@@ -15,4 +15,4 @@ export const useRefreshOnFocus = (...refetch: (() => void)[]) => {
       }
     }, [refetch]),
   );
-}
+};

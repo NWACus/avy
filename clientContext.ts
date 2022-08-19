@@ -1,7 +1,7 @@
-import React, {Context} from "react";
+import React, {Context} from 'react';
 
 export interface ClientProps {
-    host: string;
+  host: string;
 }
 
 export const defaultClientProps: ClientProps = {host: 'https://api.avalanche.org'};

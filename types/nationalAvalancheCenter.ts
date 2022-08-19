@@ -1,5 +1,5 @@
 // MapLayer describes forecast zones to be drawn for an avalanche center
-import { Mutation } from "react-query";
+import {Mutation} from 'react-query';
 
 export interface MapLayer {
   type: string; // TODO(skuznets): is this ever something other than 'FeatureCollection'?

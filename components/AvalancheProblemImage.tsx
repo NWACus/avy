@@ -57,7 +57,7 @@ export const AvalancheProblemImage: React.FunctionComponent<AvalancheProblemImag
           <RenderHTML source={{html: media.caption}} baseStyle={baseStyle} contentWidth={width} />
         </View>
       ) : (
-          <></>
+        <></>
         // <ImageView
         //   images={[{uri: media.url.original}]}
         //   imageIndex={0}

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { StyleSheet, Text, TouchableHighlight, useWindowDimensions, View } from "react-native";
-import RenderHTML from "react-native-render-html";
+import {StyleSheet, Text, TouchableHighlight, useWindowDimensions, View} from 'react-native';
+import RenderHTML from 'react-native-render-html';
 
 import {AvalancheProblem, AvalancheProblemSize, ElevationBandNames, MediaType} from '../types/nationalAvalancheCenter';
 import {AnnotatedDangerRose, DangerRose} from './DangerRose';

@@ -8,4 +8,4 @@ export const useAppState = (onChange: (status: AppStateStatus) => void) => {
       AppState.removeEventListener('change', onChange);
     };
   }, [onChange]);
-}
+};

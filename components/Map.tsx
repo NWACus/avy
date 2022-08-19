@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {StyleSheet} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import MapView, {Region} from 'react-native-maps';
 
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
@@ -39,14 +39,23 @@ export const Map: React.FunctionComponent<MapProps> = ({centers, date}: MapProps
   };
 
   return (
-    <MapView style={styles.map} initialRegion={defaultRegion} region={largerRegion} onLayout={setReady} zoomEnabled={centers.length > 1} scrollEnabled={centers.length > 1}>
-      {isReady && centers.map(center_id => <AvalancheCenterForecastZonePolygons key={center_id} center_id={center_id} setRegion={setRegion} date={date} />)}
-    </MapView>
+    <>
+      <MapView style={styles.map} initialRegion={defaultRegion} region={largerRegion} onLayout={setReady} zoomEnabled={centers.length > 1} scrollEnabled={centers.length > 1}>
+        {isReady && centers.map(center_id => <AvalancheCenterForecastZonePolygons key={center_id} center_id={center_id} setRegion={setRegion} date={date} />)}
+      </MapView>
+      <View style={styles.legend}>
+        <Text>help</Text>
+      </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  legend: {
+    position: 'absolute',
+    bottom: 50,
   },
 });
