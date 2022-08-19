@@ -2,6 +2,7 @@
   "expo": {
     "name": "avalanche-forecast",
     "slug": "avalanche-forecast",
+    "owner": "steve.kuznetsov",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
