@@ -27,7 +27,7 @@ export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardP
   const {width} = useWindowDimensions();
 
   return (
-    <View style={styles.card}>
+    <View style={styles.horizontalCard}>
       <View
         style={{
           flexDirection: 'row',
@@ -58,7 +58,7 @@ export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardP
 };
 
 const styles = StyleSheet.create({
-  card: {
+  horizontalCard: {
     marginRight: 10,
     marginLeft: 10,
     margin: 5,

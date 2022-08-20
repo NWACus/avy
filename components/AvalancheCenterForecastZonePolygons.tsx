@@ -2,7 +2,6 @@ import React from 'react';
 
 import {ActivityIndicator, Text, View} from 'react-native';
 import {Region} from 'react-native-maps';
-import {useNavigation} from '@react-navigation/native';
 
 import {useMapLayer} from '../hooks/useMapLayer';
 import {AvalancheForecastZonePolygon} from './AvalancheForecastZonePolygon';
@@ -14,7 +13,6 @@ export interface AvalancheCenterForecastZonePolygonsProps {
 }
 
 export const AvalancheCenterForecastZonePolygons: React.FunctionComponent<AvalancheCenterForecastZonePolygonsProps> = ({center_id, date, setRegion}) => {
-  const navigation = useNavigation();
   const {isLoading, isError, data: mapLayer, error} = useMapLayer(center_id);
   if (isLoading) {
     // TODO(skuznets): without the zones, we don't know where on the map to put these loading/error elements ... ?
@@ -35,7 +33,7 @@ export const AvalancheCenterForecastZonePolygons: React.FunctionComponent<Avalan
       {mapLayer?.features
         .filter(feature => feature.type === 'Feature')
         .map(feature => (
-          <AvalancheForecastZonePolygon key={center_id + feature.id} feature={feature} setRegion={setRegion} date={date} navigation={navigation} />
+          <AvalancheForecastZonePolygon key={center_id + feature.id} feature={feature} setRegion={setRegion} date={date} />
         ))}
     </>
   );
