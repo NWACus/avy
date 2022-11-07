@@ -115,7 +115,9 @@ export interface Warning {
 export enum ProductType {
   Forecast = 'forecast',
   Warning = 'warning',
+  Weather = 'weather',
   Synopsis = 'synopsis',
+  Summary = 'summary',
 }
 
 export enum ProductStatus {
