@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "prettify": "npx prettier --write ."
   },
   "dependencies": {
     "@ant-design/react-native": "^5.0.2",

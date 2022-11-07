@@ -1,0 +1,32 @@
+name: CI
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+      - ".github/ISSUE_TEMPLATE/*"
+
+jobs:
+  prettier:
+    name: prettier
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: yarn
+
+      - name: 🎨🖌 Prettify Source Code
+        run: |-
+          npm run prettify
+          if ! git diff --quiet HEAD; then \
+              git diff; \
+              echo "You need to run 'npm run prettify' to update source code files and commit them"; \
+              exit 1; \
+          fi
