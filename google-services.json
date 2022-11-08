@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "211641844697",
+    "project_id": "pc-api-6845397651172210259-679",
+    "storage_bucket": "pc-api-6845397651172210259-679.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:211641844697:android:a89768f1814b1775fb0fc8",
+        "android_client_info": {
+          "package_name": "us.nwac.forecast"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "211641844697-s9hsd52ej8s3c2b28lbfvlfhc8in13bh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFfanBV1s1iJEb_Ge1eoudf9V0dwMMdvI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "211641844697-s9hsd52ej8s3c2b28lbfvlfhc8in13bh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

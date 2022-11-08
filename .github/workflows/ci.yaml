@@ -4,9 +4,9 @@ on:
     branches:
       - main
     paths-ignore:
-      - "docs/**"
-      - "**/*.md"
-      - ".github/ISSUE_TEMPLATE/*"
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/ISSUE_TEMPLATE/*'
 
 jobs:
   prettier:

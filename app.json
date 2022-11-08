@@ -20,9 +20,16 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "us.nwac.forecast",
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "47e2fd36-5165-4eb4-9a2d-21beec393379"
       }
     },
     "web": {
