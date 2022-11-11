@@ -15,7 +15,7 @@ import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {useMapLayer} from '../hooks/useMapLayer';
 import {useAvalancheForecastFragment} from '../hooks/useAvalancheForecastFragment';
 
-const defaultRegion: Region = {
+export const defaultRegion: Region = {
   // TODO(skuznets): add a sane default for the US?
   latitude: 47.454188397509135,
   latitudeDelta: 3,
@@ -28,7 +28,7 @@ export interface MapProps {
   date: string;
 }
 
-export const Map: React.FunctionComponent<MapProps> = ({centers, date}: MapProps) => {
+export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({centers, date}: MapProps) => {
   const [isReady, setIsReady] = React.useState<boolean>(false);
   const [region, setRegion] = React.useState<Region>({
     latitude: 0,
@@ -105,10 +105,10 @@ export const Map: React.FunctionComponent<MapProps> = ({centers, date}: MapProps
   }
 };
 
-const CARD_WIDTH = 0.9; // proportion of overall width that one card takes up
-const CARD_WHITESPACE = (1 - CARD_WIDTH) / 2; // proportion of overall width that the spacing between cards takes up on the screen
-const CARD_SPACING = CARD_WHITESPACE / 2; // proportion of overall width that the spacing between two cards takes up
-const CARD_MARGIN = CARD_SPACING / 2; // proportion of overall width that each card needs as a margin
+export const CARD_WIDTH = 0.9; // proportion of overall width that one card takes up
+export const CARD_WHITESPACE = (1 - CARD_WIDTH) / 2; // proportion of overall width that the spacing between cards takes up on the screen
+export const CARD_SPACING = CARD_WHITESPACE / 2; // proportion of overall width that the spacing between two cards takes up
+export const CARD_MARGIN = CARD_SPACING / 2; // proportion of overall width that each card needs as a margin
 
 export const AvalancheForecastZoneCards: React.FunctionComponent<{
   center_id: string;

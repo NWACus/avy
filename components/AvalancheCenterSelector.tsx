@@ -68,7 +68,7 @@ const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = (
   }
 
   return (
-    <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('zoneSelector', {center_id: center_id, date: date})}>
+    <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('avalancheCenterHome', {center_id: center_id, date: date})}>
       <AvalancheCenterLogo style={styles.logo} center_id={center_id} />
       <Text style={{textAlignVertical: 'center'}}>{avalancheCenter.name}</Text>
     </TouchableOpacity>

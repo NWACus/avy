@@ -38,7 +38,10 @@ const NotificationMarker: React.FunctionComponent<PropsWithChildren<Notification
   );
 };
 
-const updateRegionToContain = (previous: Region, coordinates: LatLng[]): Region => {
+export const updateRegionToContain = (previous: Region, coordinates: LatLng[]): Region => {
+  if (!coordinates) {
+    return previous;
+  }
   // for the US, the "top left" corner of a map will have the largest latitude and smallest longitude
   let topLeft: LatLng = {
     longitude: previous.longitude - previous.longitudeDelta / 2,

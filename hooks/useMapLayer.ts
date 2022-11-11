@@ -9,7 +9,7 @@ import {MapLayer} from '../types/nationalAvalancheCenter';
 export const useMapLayer = (center_id: string) => {
   const clientProps = React.useContext<ClientProps>(ClientContext);
   return useQuery<MapLayer, AxiosError | Error>(['map-layer', center_id], async () => {
-    const {data} = await axios.get<MapLayer>(`${clientProps.host}/v2/public/products/map-layer/${center_id}`);
+    const {data} = await axios.get<MapLayer>(`${clientProps.nationalAvalancheCenterHost}/v2/public/products/map-layer/${center_id}`);
     return data;
   });
 };

@@ -9,7 +9,7 @@ import {AvalancheCenter} from '../types/nationalAvalancheCenter';
 export const useAvalancheCenterMetadata = (center_id: string) => {
   const clientProps = React.useContext<ClientProps>(ClientContext);
   return useQuery<AvalancheCenter, AxiosError | Error>(['avalanche-center', center_id], async () => {
-    const {data} = await axios.get<AvalancheCenter>(`${clientProps.host}/v2/public/avalanche-center/${center_id}`);
+    const {data} = await axios.get<AvalancheCenter>(`${clientProps.nationalAvalancheCenterHost}/v2/public/avalanche-center/${center_id}`);
     return data;
   });
 };
