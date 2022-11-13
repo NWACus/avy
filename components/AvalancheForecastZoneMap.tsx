@@ -69,7 +69,14 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   } else {
     return (
       <>
-        <MapView style={styles.map} initialRegion={defaultRegion} region={largerRegion} onLayout={setReady} zoomEnabled={centers.length > 1} scrollEnabled={centers.length > 1}>
+        <MapView
+          style={styles.map}
+          initialRegion={defaultRegion}
+          region={largerRegion}
+          onLayout={setReady}
+          zoomEnabled={centers.length > 1}
+          scrollEnabled={centers.length > 1}
+          provider={'google'}>
           {isReady && centers.map(center_id => <AvalancheCenterForecastZonePolygons key={center_id} center_id={center_id} setRegion={setRegion} date={date} />)}
         </MapView>
         <View style={styles.legend}>

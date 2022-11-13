@@ -82,7 +82,7 @@ const TelemetryTimeseriesGraph: React.FunctionComponent<{
 
   return (
     <View style={{flex: 1}}>
-      <Text>{variable.Variable}</Text>
+      <Text>{variable.variable}</Text>
       <Chart
         style={{height: GRAPH_HEIGHT, width: width}}
         xDomain={{min: x(start), max: x(end)}}
@@ -93,7 +93,7 @@ const TelemetryTimeseriesGraph: React.FunctionComponent<{
             .nice()
             .ticks(5)
             .map(i => y(i))}
-          theme={{labels: {formatter: v => v.toFixed(2)}}}
+          theme={{labels: {formatter: v => y.invert(v).toFixed(2)}}}
         />
         <HorizontalAxis
           tickValues={x

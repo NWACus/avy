@@ -91,7 +91,7 @@ export const TelemetryStationMap: React.FunctionComponent<{
   } else {
     return (
       <>
-        <MapView style={styles.map} initialRegion={defaultRegion} region={largerRegion} onLayout={setReady}>
+        <MapView style={styles.map} initialRegion={defaultRegion} region={largerRegion} onLayout={setReady} provider={'google'}>
           {isReady &&
             Object.values(telemetryStations).map(station => (
               <Marker
