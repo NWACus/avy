@@ -15,7 +15,7 @@ export const useAvalancheForecast = (center_id: string, forecast_zone_id: number
   return useQuery<Product, AxiosError | Error>(
     ['product', forecastId],
     async () => {
-      const url = `${clientProps.nationalAvalancheCenterHost}/v2/public/product/${forecastId}`
+      const url = `${clientProps.nationalAvalancheCenterHost}/v2/public/product/${forecastId}`;
       const {data} = await axios.get(url);
 
       // Fix up data issues before parsing

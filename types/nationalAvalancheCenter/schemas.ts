@@ -33,7 +33,7 @@ export const multiPolygonSchema = z.object({
 });
 
 export const featureComponentSchema = z.union([polygonSchema, multiPolygonSchema]);
-export type FeatureComponent = z.infer<typeof featureComponentSchema>
+export type FeatureComponent = z.infer<typeof featureComponentSchema>;
 
 export const productTypeSchema = z.nativeEnum(ProductType);
 
@@ -75,7 +75,7 @@ export const avalancheForecastZoneSummarySchema = z.object({
   state: z.string().optional(),
   zone_id: z.union([z.number(), z.string()]), // TODO(brian): can the string always be coerced to a number? or do we even need this field?
 });
-export type AvalancheForecastZoneSummary = z.infer<typeof avalancheForecastZoneSummarySchema>
+export type AvalancheForecastZoneSummary = z.infer<typeof avalancheForecastZoneSummarySchema>;
 
 export const avalancheCenterTypeSchema = z.nativeEnum(AvalancheCenterType);
 
@@ -115,7 +115,7 @@ export const elevationBandNamesSchema = z.object({
   middle: z.string(),
   upper: z.string(),
 });
-export type ElevationBandNames = z.infer<typeof elevationBandNamesSchema>
+export type ElevationBandNames = z.infer<typeof elevationBandNamesSchema>;
 
 export const nationalWeatherServiceZoneSchema = z.object({
   id: z.number(),
@@ -133,7 +133,7 @@ export const avalancheDangerForecastSchema = z.object({
   upper: dangerLevelSchema.nullable(),
   valid_day: forecastPeriodSchema,
 });
-export type AvalancheDangerForecast = z.infer<typeof avalancheDangerForecastSchema>
+export type AvalancheDangerForecast = z.infer<typeof avalancheDangerForecastSchema>;
 
 export const mediaItemSchema = z.object({
   id: z.number().optional(),
@@ -141,7 +141,7 @@ export const mediaItemSchema = z.object({
   type: mediaTypeSchema,
   caption: z.string(),
 });
-export type MediaItem = z.infer<typeof mediaItemSchema>
+export type MediaItem = z.infer<typeof mediaItemSchema>;
 
 export const avalancheCenterWeatherConfigurationSchema = z.object({
   autofill: z.any(),
@@ -168,10 +168,7 @@ export const avalancheCenterStationsWidgetConfigurationSchema = z.object({
   source_legend: z.boolean(),
   sources: z.array(z.string()),
   within: z.union([z.string(), z.number()]),
-  external_modal_links: z.union([
-    z.record(externalModalLinkSchema),
-    z.array(externalModalLinkSchema),
-  ]).optional(),
+  external_modal_links: z.union([z.record(externalModalLinkSchema), z.array(externalModalLinkSchema)]).optional(),
   token: z.string(),
 });
 
@@ -193,7 +190,7 @@ export const avalancheProblemSchema = z.object({
   icon: z.string(),
   media: mediaItemSchema,
 });
-export type AvalancheProblem = z.infer<typeof avalancheProblemSchema>
+export type AvalancheProblem = z.infer<typeof avalancheProblemSchema>;
 
 export const avalancheCenterConfigurationSchema = z.object({
   // expires_time and published_time seem to be fractional hours past midnight, in the locale
@@ -222,7 +219,7 @@ export const avalancheForecastZoneSchema = z.object({
   status: avalancheForecastZoneStatusSchema,
   rank: z.number().nullable(),
 });
-export type AvalancheForecastZone = z.infer<typeof avalancheForecastZoneSchema>
+export type AvalancheForecastZone = z.infer<typeof avalancheForecastZoneSchema>;
 
 export const productSchema = z.object({
   id: z.number(),
@@ -269,7 +266,7 @@ export const avalancheCenterSchema = z.object({
   center_point: z.any(),
   off_season: z.boolean(),
 });
-export type AvalancheCenter = z.infer<typeof avalancheCenterSchema>
+export type AvalancheCenter = z.infer<typeof avalancheCenterSchema>;
 
 export const warningSchema = z.object({
   // CAIC returns strings here: https://api.avalanche.org/v2/public/products/map-layer/CAIC
@@ -309,11 +306,11 @@ export const featureSchema = z.object({
   properties: featurePropertiesSchema,
   geometry: featureComponentSchema,
 });
-export type Feature = z.infer<typeof featureSchema>
+export type Feature = z.infer<typeof featureSchema>;
 
 // MapLayer describes forecast zones to be drawn for an avalanche center
 export const mapLayerSchema = z.object({
   type: z.string(),
   features: z.array(featureSchema),
 });
-export type MapLayer = z.infer<typeof mapLayerSchema>
+export type MapLayer = z.infer<typeof mapLayerSchema>;
