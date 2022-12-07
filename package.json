@@ -49,6 +49,7 @@
     "@types/polylabel": "^1.0.5",
     "@types/react": "~18.0.0",
     "@types/react-native": "~0.69.1",
+    "expo-updates": "^0.15.6",
     "prettier": "^2.7.1",
     "ts-to-zod": "^1.13.1",
     "typescript": "^4.6.3"
