@@ -61,19 +61,19 @@ export const mediaLinksSchema = z.object({
 });
 
 export const avalancheCenterMetadataSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   name: z.string(),
-  url: z.string(),
-  city: z.string(),
-  state: z.string(),
+  url: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
 });
 
 export const avalancheForecastZoneSummarySchema = z.object({
   id: z.number(),
   name: z.string(),
   url: z.string(),
-  state: z.string(),
-  zone_id: z.number(),
+  state: z.string().optional(),
+  zone_id: z.union([z.number(), z.string()]), // TODO(brian): can the string always be coerced to a number? or do we even need this field?
 });
 export type AvalancheForecastZoneSummary = z.infer<typeof avalancheForecastZoneSummarySchema>
 
@@ -128,15 +128,15 @@ export const nationalWeatherServiceZoneSchema = z.object({
 });
 
 export const avalancheDangerForecastSchema = z.object({
-  lower: dangerLevelSchema,
-  middle: dangerLevelSchema,
-  upper: dangerLevelSchema,
+  lower: dangerLevelSchema.nullable(),
+  middle: dangerLevelSchema.nullable(),
+  upper: dangerLevelSchema.nullable(),
   valid_day: forecastPeriodSchema,
 });
 export type AvalancheDangerForecast = z.infer<typeof avalancheDangerForecastSchema>
 
 export const mediaItemSchema = z.object({
-  id: z.number(),
+  id: z.number().optional(),
   url: mediaLinksSchema,
   type: mediaTypeSchema,
   caption: z.string(),
@@ -168,7 +168,7 @@ export const avalancheCenterStationsWidgetConfigurationSchema = z.object({
   source_legend: z.boolean(),
   sources: z.array(z.string()),
   within: z.union([z.string(), z.number()]),
-  external_modal_links: z.any([
+  external_modal_links: z.union([
     z.record(externalModalLinkSchema),
     z.array(externalModalLinkSchema),
   ]).optional(),
@@ -218,8 +218,7 @@ export const avalancheForecastZoneSchema = z.object({
   // SAC: zone is null
   url: z.string().nullable(),
   zone_id: z.string(),
-  // CAIC is returning malformed JSON for zone config - looks over-escaped
-  config: z.union([avalancheForecastZoneConfigurationSchema, z.string()]).nullable(),
+  config: avalancheForecastZoneConfigurationSchema.nullable(),
   status: avalancheForecastZoneStatusSchema,
   rank: z.number().nullable(),
 });
@@ -229,19 +228,19 @@ export const productSchema = z.object({
   id: z.number(),
   product_type: productTypeSchema,
   status: productStatusSchema,
-  author: z.string(),
+  author: z.string().nullable(),
   published_time: z.string().nullable(),
   expires_time: z.string(),
   created_at: z.string(),
-  updated_at: z.string(),
-  announcement: z.string(),
-  bottom_line: z.string(),
-  forecast_avalanche_problems: z.array(avalancheProblemSchema),
-  hazard_discussion: z.string(),
+  updated_at: z.string().nullable(),
+  announcement: z.string().optional().nullable(),
+  bottom_line: z.string().nullable(),
+  forecast_avalanche_problems: z.array(avalancheProblemSchema).optional(),
+  hazard_discussion: z.string().optional().nullable(),
   danger: z.array(avalancheDangerForecastSchema),
-  weather_discussion: z.string(),
+  weather_discussion: z.string().optional().nullable(),
   weather_data: z.any(),
-  media: z.array(mediaItemSchema),
+  media: z.array(mediaItemSchema).optional(),
   avalanche_center: avalancheCenterMetadataSchema,
   forecast_zone: z.array(avalancheForecastZoneSummarySchema),
 });
@@ -273,7 +272,8 @@ export const avalancheCenterSchema = z.object({
 export type AvalancheCenter = z.infer<typeof avalancheCenterSchema>
 
 export const warningSchema = z.object({
-  product: productSchema,
+  // CAIC returns strings here: https://api.avalanche.org/v2/public/products/map-layer/CAIC
+  product: z.union([productSchema, z.string()]).nullable(),
 });
 
 // FeatureProperties contains three types of metadata about the forecast zone:
@@ -291,8 +291,9 @@ export const featurePropertiesSchema = z.object({
   danger: z.string(),
   danger_level: dangerLevelSchema,
   // start_date and end_date are RFC3339 timestamps that bound the current forecast
-  start_date: z.string(),
-  end_date: z.string(),
+  // They're null for CNFAIC
+  start_date: z.string().nullable(),
+  end_date: z.string().nullable(),
   warning: warningSchema,
   color: z.string(),
   stroke: z.string(),

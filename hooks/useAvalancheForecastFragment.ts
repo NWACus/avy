@@ -5,18 +5,26 @@ import {useQuery} from 'react-query';
 import {add, format} from 'date-fns';
 
 import {ClientContext, ClientProps} from '../clientContext';
-import {Product} from '../types/nationalAvalancheCenter';
+import {Product, productArraySchema} from '../types/nationalAvalancheCenter';
 
 export const useAvalancheForecastFragment = (center_id: string, forecast_zone_id: number, date: Date) => {
   const clientProps = React.useContext<ClientProps>(ClientContext);
   return useQuery<Product | undefined, AxiosError | Error>(['products', center_id, forecast_zone_id, format(date, 'y-MM-dd')], async () => {
-    const {data} = await axios.get<Product[]>(`${clientProps.nationalAvalancheCenterHost}/v2/public/products`, {
+    const url = `${clientProps.nationalAvalancheCenterHost}/v2/public/products`;
+    const {data} = await axios.get(url, {
       params: {
         avalanche_center_id: center_id,
         date_start: format(date, 'y-MM-dd'),
         date_end: format(add(date, {days: 1}), 'y-MM-dd'),
       },
     });
-    return data.find(forecast => forecast.forecast_zone.find(zone => zone.id === forecast_zone_id));
+
+    const parseResult = productArraySchema.safeParse(data);
+    if (!parseResult.success) {
+      // @ts-ignore
+      console.warn('unparsable forecast fragment', url, parseResult.error, JSON.stringify(data, null, 2));
+    }
+    const products = productArraySchema.parse(data);
+    return products.find(forecast => forecast.forecast_zone.find(zone => zone.id === forecast_zone_id));
   });
 };

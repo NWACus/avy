@@ -9,7 +9,24 @@ import {AvalancheCenter, avalancheCenterSchema} from '../types/nationalAvalanche
 export const useAvalancheCenterMetadata = (center_id: string) => {
   const clientProps = React.useContext<ClientProps>(ClientContext);
   return useQuery<AvalancheCenter, AxiosError | Error>(['avalanche-center', center_id], async () => {
-    const {data} = await axios.get(`${clientProps.nationalAvalancheCenterHost}/v2/public/avalanche-center/${center_id}`);
+    const url = `${clientProps.nationalAvalancheCenterHost}/v2/public/avalanche-center/${center_id}`;
+    const {data} = await axios.get(url);
+
+    // Fix up data issues before parsing
+    // 1) CAIC is returning malformed JSON for zone config - looks over-escaped
+    data.zones.forEach(zone => {
+      if (typeof zone.config === 'string') {
+        // this is pretty noisy
+        // console.log('patching over-escaped zone config', zone.config);
+        zone.config = JSON.parse(zone.config);
+      }
+    });
+
+    const parseResult = avalancheCenterSchema.safeParse(data);
+    if (!parseResult.success) {
+      // @ts-ignore
+      console.warn(`unparsable avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data, null, 2));
+    }
     return avalancheCenterSchema.parse(data);
   });
 };
