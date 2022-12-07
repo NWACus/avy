@@ -80,8 +80,8 @@ export type AvalancheForecastZoneSummary = z.infer<typeof avalancheForecastZoneS
 export const avalancheCenterTypeSchema = z.nativeEnum(AvalancheCenterType);
 
 export const latLngSchema = z.object({
-  latitude: z.number().nullable(),
-  longitude: z.number().nullable(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 export const avalancheCenterForecastWidgetTabSchema = z.object({
@@ -91,8 +91,8 @@ export const avalancheCenterForecastWidgetTabSchema = z.object({
 });
 
 export const avalancheCenterDangerMapWidgetConfigurationSchema = z.object({
-  height: z.number(),
-  saturation: z.number(),
+  height: z.union([z.string(), z.number()]),
+  saturation: z.union([z.string(), z.number()]),
   search: z.boolean(),
   geolocate: z.boolean(),
   advice: z.boolean(),
@@ -103,8 +103,9 @@ export const avalancheCenterDangerMapWidgetConfigurationSchema = z.object({
 export const unitsSchema = z.nativeEnum(Units);
 
 export const externalModalLinkSchema = z.object({
-  area_plots: z.string(),
-  area_tables: z.string(),
+  link_name: z.string().optional(),
+  area_plots: z.string().optional(),
+  area_tables: z.string().optional(),
 });
 
 export const avalancheForecastZoneStatusSchema = z.nativeEnum(AvalancheForecastZoneStatus);
@@ -122,7 +123,7 @@ export const nationalWeatherServiceZoneSchema = z.object({
   zone_id: z.string(),
   state: z.string(),
   city: z.string(),
-  contact: z.string(),
+  contact: z.string().nullable(), // CNFAIC (and others?) return null
   zone_state: z.string(),
 });
 
@@ -144,7 +145,7 @@ export type MediaItem = z.infer<typeof mediaItemSchema>
 
 export const avalancheCenterWeatherConfigurationSchema = z.object({
   autofill: z.any(),
-  zone_id: z.number(),
+  zone_id: z.string(),
   forecast_point: latLngSchema,
   forecast_url: z.any(),
 });
@@ -165,9 +166,12 @@ export const avalancheCenterStationsWidgetConfigurationSchema = z.object({
   timezone: z.string(),
   color_rules: z.boolean(),
   source_legend: z.boolean(),
-  sources: z.string(),
-  within: z.number(),
-  external_modal_links: z.record(externalModalLinkSchema),
+  sources: z.array(z.string()),
+  within: z.union([z.string(), z.number()]),
+  external_modal_links: z.any([
+    z.record(externalModalLinkSchema),
+    z.array(externalModalLinkSchema),
+  ]).optional(),
   token: z.string(),
 });
 
@@ -193,27 +197,31 @@ export type AvalancheProblem = z.infer<typeof avalancheProblemSchema>
 
 export const avalancheCenterConfigurationSchema = z.object({
   // expires_time and published_time seem to be fractional hours past midnight, in the locale
-  expires_time: z.number(),
-  published_time: z.number(),
-  blog: z.boolean(),
-  weather_table: z.array(avalancheCenterWeatherConfigurationSchema),
-  zone_order: z.array(z.string()),
+  expires_time: z.number().optional().nullable(),
+  published_time: z.number().optional().nullable(),
+  blog: z.boolean().optional(),
+  weather_table: z.array(avalancheCenterWeatherConfigurationSchema).optional(),
+  zone_order: z.array(z.number()).optional(),
 });
 
 export const avalancheCenterWidgetConfigurationSchema = z.object({
-  forecast: avalancheCenterForecastWidgetConfigurationSchema,
-  danger_map: avalancheCenterDangerMapWidgetConfigurationSchema,
-  stations: avalancheCenterStationsWidgetConfigurationSchema,
+  // CNFAIC (and others?) isn't returning forecast or danger_map
+  forecast: avalancheCenterForecastWidgetConfigurationSchema.optional(),
+  danger_map: avalancheCenterDangerMapWidgetConfigurationSchema.optional(),
+  // GNFAC: missing stations
+  stations: avalancheCenterStationsWidgetConfigurationSchema.optional(),
 });
 
 export const avalancheForecastZoneSchema = z.object({
   id: z.number(),
   name: z.string(),
-  url: z.string(),
+  // SAC: zone is null
+  url: z.string().nullable(),
   zone_id: z.string(),
-  config: avalancheForecastZoneConfigurationSchema,
+  // CAIC is returning malformed JSON for zone config - looks over-escaped
+  config: z.union([avalancheForecastZoneConfigurationSchema, z.string()]).nullable(),
   status: avalancheForecastZoneStatusSchema,
-  rank: z.number(),
+  rank: z.number().nullable(),
 });
 export type AvalancheForecastZone = z.infer<typeof avalancheForecastZoneSchema>
 
@@ -222,7 +230,7 @@ export const productSchema = z.object({
   product_type: productTypeSchema,
   status: productStatusSchema,
   author: z.string(),
-  published_time: z.string(),
+  published_time: z.string().nullable(),
   expires_time: z.string(),
   created_at: z.string(),
   updated_at: z.string(),
@@ -237,20 +245,23 @@ export const productSchema = z.object({
   avalanche_center: avalancheCenterMetadataSchema,
   forecast_zone: z.array(avalancheForecastZoneSummarySchema),
 });
-export type Product = z.infer<typeof productSchema>
+export type Product = z.infer<typeof productSchema>;
+
+export const productArraySchema = z.array(productSchema);
+export type ProductArray = z.infer<typeof productArraySchema>;
 
 export const avalancheCenterSchema = z.object({
   id: z.string(),
   name: z.string(),
   url: z.string(),
-  city: z.string(),
+  city: z.string().nullable(),
   state: z.string(),
   timezone: z.string(),
-  email: z.string(),
-  phone: z.string(),
-  config: avalancheCenterConfigurationSchema,
-  type: avalancheCenterTypeSchema,
-  widget_config: avalancheCenterWidgetConfigurationSchema,
+  email: z.string().nullable(),
+  phone: z.string().nullable(),
+  config: avalancheCenterConfigurationSchema.nullable(),
+  type: avalancheCenterTypeSchema.nullable(),
+  widget_config: avalancheCenterWidgetConfigurationSchema.nullable(),
   created_at: z.string(),
   zones: z.array(avalancheForecastZoneSchema),
   nws_zones: z.array(nationalWeatherServiceZoneSchema),

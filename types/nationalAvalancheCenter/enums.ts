@@ -98,8 +98,9 @@ export enum MediaType {
 }
 
 export enum AvalancheCenterType {
-  USFS = 'usfs',
+  Nonprofit = 'nonprofit',
   State = 'state',
+  USFS = 'usfs',
   Volunteer = 'volunteer',
 }
 
@@ -112,4 +113,3 @@ export enum AvalancheForecastZoneStatus {
   Active = 'active',
   Disabled = 'disabled',
 }
-
