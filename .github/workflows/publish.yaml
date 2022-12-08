@@ -4,7 +4,12 @@ on:
     branches:
       - main
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
+
   build:
+    # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
+    needs: [ci]
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo

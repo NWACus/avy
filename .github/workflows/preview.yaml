@@ -1,7 +1,19 @@
 name: preview
-on: [pull_request]
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/ISSUE_TEMPLATE/*'
+
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
+
   publish:
+    needs: [ci]
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo

@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "ci": "yarn prettier --check . && yarn tsc && echo 'Compilation succeeded!'",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "prettify": "npx prettier --write ."
+    "prettify": "npx prettier --write .",
+    "ci:prettier": "scripts/ci-prettier.sh",
+    "ci:tsc": "scripts/ci-tsc.sh",
+    "ci": "yarn ci:prettier && yarn ci:tsc"
   },
   "dependencies": {
     "@ant-design/react-native": "^5.0.2",
