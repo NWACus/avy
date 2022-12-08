@@ -22,5 +22,8 @@ jobs:
           node-version: 16.x
           cache: yarn
 
+      - name: 📦 Install dependencies
+        run: yarn install
+
       - name: CI checks
         run: yarn ci
