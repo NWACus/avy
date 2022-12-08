@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "🎨  Checking prettier format..."
-if ! yarn prettier --check .; then
+if ! npx prettier --check .; then
     echo
     echo "⚠️  Run 'yarn prettify' to fix prettier errors & commit the result"
     echo
@@ -9,7 +9,7 @@ if ! yarn prettier --check .; then
 fi
 
 echo "⚙️  Checking typescript..."
-if ! yarn tsc; then
+if ! npx tsc; then
     echo
     echo "⚠️  Typescript compilation failed"
     echo
