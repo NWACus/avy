@@ -14,10 +14,10 @@ interface dimensions {
   width: number;
 }
 
-const baseStyle = {
+const baseStyle = Object.freeze({
   fontStyle: 'italic',
   fontWeight: '300',
-};
+});
 
 export const AvalancheProblemImage: React.FunctionComponent<AvalancheProblemImageProps> = ({media}) => {
   const [gallery, setGallery] = React.useState<boolean>(false);

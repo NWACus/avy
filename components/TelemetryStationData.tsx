@@ -83,27 +83,32 @@ const TelemetryTimeseriesGraph: React.FunctionComponent<{
   return (
     <View style={{flex: 1}}>
       <Text>{variable.variable}</Text>
-      <Chart
-        style={{height: GRAPH_HEIGHT, width: width}}
-        xDomain={{min: x(start), max: x(end)}}
-        yDomain={{min: y(minValue), max: y(maxValue)}}
-        padding={{left: 40, top: 40, bottom: 40, right: 10}}>
-        <VerticalAxis
-          tickValues={y
-            .nice()
-            .ticks(5)
-            .map(i => y(i))}
-          theme={{labels: {formatter: v => y.invert(v).toFixed(2)}}}
-        />
-        <HorizontalAxis
-          tickValues={x
-            .nice()
-            .ticks(5)
-            .map(i => x(i))}
-          theme={{labels: {formatter: v => format(x.invert(v), 'MM-dd HH:mm:SS')}}}
-        />
-        <Line data={points.map(point => ({x: x(point.date), y: y(point.datum)}))} smoothing={'cubic-spline'} />
-      </Chart>
+      {
+        // @ts-ignore Chart type doesn't have a definition for `children`
+        // There's an unmerged pull request to address the issue:
+        // https://github.com/xanderdeseyn/react-native-responsive-linechart/issues/166
+        <Chart
+          style={{height: GRAPH_HEIGHT, width: width}}
+          xDomain={{min: x(start), max: x(end)}}
+          yDomain={{min: y(minValue), max: y(maxValue)}}
+          padding={{left: 40, top: 40, bottom: 40, right: 10}}>
+          <VerticalAxis
+            tickValues={y
+              .nice()
+              .ticks(5)
+              .map(i => y(i))}
+            theme={{labels: {formatter: v => y.invert(v).toFixed(2)}}}
+          />
+          <HorizontalAxis
+            tickValues={x
+              .nice()
+              .ticks(5)
+              .map(i => x(i))}
+            theme={{labels: {formatter: v => format(x.invert(v), 'MM-dd HH:mm:SS')}}}
+          />
+          <Line data={points.map(point => ({x: x(point.date), y: y(point.datum)}))} smoothing={'cubic-spline'} />
+        </Chart>
+      }
     </View>
   );
 };
