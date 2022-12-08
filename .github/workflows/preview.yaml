@@ -10,7 +10,7 @@ on:
 
 jobs:
   ci:
-    uses: ./.github/workflows/ci.yaml  # use the callable ci job to run CI checks
+    uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
 
   publish:
     needs: [ci]
