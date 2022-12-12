@@ -6,6 +6,9 @@ import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigat
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 
+import Constants from 'expo-constants';
+import * as Sentry from 'sentry-expo';
+
 import {formatISO} from 'date-fns';
 import {focusManager, QueryClient, QueryClientProvider} from 'react-query';
 
@@ -17,6 +20,12 @@ import {useOnlineManager} from './hooks/useOnlineManager';
 import {useAppState} from './hooks/useAppState';
 import {TelemetryStationMap} from './components/TelemetryStationMap';
 import {TelemetryStationData} from './components/TelemetryStationData';
+
+Sentry.init({
+  dsn: Constants.expoConfig.extra!.sentry_dsn,
+  enableInExpoDevelopment: true,
+  debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
+});
 
 const queryClient: QueryClient = new QueryClient();
 
@@ -190,21 +199,26 @@ const onAppStateChange = (status: AppStateStatus) => {
 };
 
 const App = () => {
-  useOnlineManager();
+  try {
+    // your code
+    useOnlineManager();
 
-  useAppState(onAppStateChange);
+    useAppState(onAppStateChange);
 
-  return (
-    <ClientContext.Provider value={defaultClientProps}>
-      <QueryClientProvider client={queryClient}>
-        <SafeAreaProvider>
-          <NavigationContainer>
-            <AvalancheCenterSelectionScreen />
-          </NavigationContainer>
-        </SafeAreaProvider>
-      </QueryClientProvider>
-    </ClientContext.Provider>
-  );
+    return (
+      <ClientContext.Provider value={defaultClientProps}>
+        <QueryClientProvider client={queryClient}>
+          <SafeAreaProvider>
+            <NavigationContainer>
+              <AvalancheCenterSelectionScreen />
+            </NavigationContainer>
+          </SafeAreaProvider>
+        </QueryClientProvider>
+      </ClientContext.Provider>
+    );
+  } catch (error) {
+    Sentry.Native.captureException(error);
+  }
 };
 
 const styles = StyleSheet.create({

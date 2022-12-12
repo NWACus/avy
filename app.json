@@ -18,7 +18,10 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "us.nwac.forecast"
+      "bundleIdentifier": "us.nwac.forecast",
+      "config": {
+        "googleMapsApiKey": "LOADED_FROM_ENVIRONMENT"
+      }
     },
     "android": {
       "package": "us.nwac.forecast",
@@ -26,12 +29,29 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
+      },
+      "config": {
+        "googleMaps": {"apiKey": "LOADED_FROM_ENVIRONMENT"}
       }
     },
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "sentry-expo/upload-sourcemaps",
+          "config": {
+            "organization": "nwac",
+            "project": "mobile-app",
+            "authToken": "LOADED_FROM_ENVIRONMENT"
+          }
+        }
+      ]
+    },
+    "plugins": ["sentry-expo"],
     "extra": {
       "eas": {
         "projectId": "47e2fd36-5165-4eb4-9a2d-21beec393379"
-      }
+      },
+      "sentry_dsn": "LOADED_FROM_ENVIRONMENT"
     },
     "web": {
       "favicon": "./assets/favicon.png"
