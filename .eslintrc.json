@@ -3,7 +3,7 @@
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
   "root": true,
-  "ignorePatterns": ["babel.config.js", "dist", ".expo"],
+  "ignorePatterns": ["babel.config.js", "dist", ".expo", "types/generated"],
   "reportUnusedDisableDirectives": true,
   "rules": {
     "@typescript-eslint/no-unused-vars": [
