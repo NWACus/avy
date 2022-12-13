@@ -33,7 +33,7 @@ export const TelemetryStationMap: React.FunctionComponent<{
 
   React.useEffect(() => {
     if (stations) {
-      let newStations: Record<number, StationMetadata> = {};
+      const newStations: Record<number, StationMetadata> = {};
       stations.results.map(station => (newStations[station.id] = station));
       setTelemetryStations(previous => ({...previous, ...newStations}));
       if (stations.current_page < stations.pages) {

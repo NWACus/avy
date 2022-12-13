@@ -55,7 +55,7 @@ export const AvalancheProblemIcon: React.FunctionComponent<AvalancheProblemIconP
       return <Image style={s} source={require('../assets/problem-icons/Glide.png')} />;
     },
   };
-  let actualStyle: ImageStyle = {...style};
+  const actualStyle: ImageStyle = {...style};
   if (actualStyle.height) {
     actualStyle.width = undefined;
   } else {

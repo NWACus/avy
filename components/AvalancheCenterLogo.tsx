@@ -85,7 +85,7 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
       return <Image style={s} source={require('../assets/logos/WAC.png')} />;
     },
   };
-  let actualStyle: ImageStyle = {...style};
+  const actualStyle: ImageStyle = {...style};
   if (actualStyle.height) {
     actualStyle.width = undefined;
   } else {

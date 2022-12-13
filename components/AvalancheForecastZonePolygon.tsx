@@ -43,12 +43,12 @@ export const updateRegionToContain = (previous: Region, coordinates: LatLng[]): 
     return previous;
   }
   // for the US, the "top left" corner of a map will have the largest latitude and smallest longitude
-  let topLeft: LatLng = {
+  const topLeft: LatLng = {
     longitude: previous.longitude - previous.longitudeDelta / 2,
     latitude: previous.latitude + previous.longitudeDelta / 2,
   };
   // similarly, the "bottom right" will have the smallest latitude and largest longitude
-  let bottomRight: LatLng = {
+  const bottomRight: LatLng = {
     longitude: previous.longitude + previous.longitudeDelta / 2,
     latitude: previous.latitude - previous.longitudeDelta / 2,
   };

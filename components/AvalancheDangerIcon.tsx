@@ -47,7 +47,7 @@ export const AvalancheDangerIcon: React.FunctionComponent<AvalancheDangerIconPro
       return <Image style={s} source={require('../assets/danger-icons/5.png')} />;
     },
   };
-  let actualStyle: ImageStyle = {...style};
+  const actualStyle: ImageStyle = {...style};
   actualStyle.width = undefined;
   actualStyle.aspectRatio = sizes[level].width / sizes[level].height;
   return images[level](actualStyle);

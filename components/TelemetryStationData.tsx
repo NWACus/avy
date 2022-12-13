@@ -33,7 +33,7 @@ export const TelemetryStationData: React.FunctionComponent<{
     );
   }
 
-  let allTimeseries: Record<
+  const allTimeseries: Record<
     Variable | string,
     {
       dates: string[];
@@ -119,7 +119,7 @@ interface DataPoint {
 }
 
 const dataPoints = (dates: string[], data: number[]): DataPoint[] => {
-  let points: DataPoint[] = [];
+  const points: DataPoint[] = [];
   for (let i = 0; i < dates.length; i++) {
     points.push({
       date: parseISO(dates[i]),

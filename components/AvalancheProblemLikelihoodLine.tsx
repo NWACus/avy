@@ -16,7 +16,7 @@ export const likelihoodText = (input: AvalancheProblemLikelihood): string => {
 };
 
 const likelihoodToRange = (likelihood: AvalancheProblemLikelihood): SeverityNumberLineRange => {
-  let index: number = 4;
+  let index = 4;
   switch (likelihood) {
     case AvalancheProblemLikelihood.AlmostCertain:
       index -= 1;
