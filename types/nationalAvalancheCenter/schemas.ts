@@ -145,8 +145,10 @@ export type MediaItem = z.infer<typeof mediaItemSchema>;
 
 export const avalancheCenterWeatherConfigurationSchema = z.object({
   autofill: z.any(),
-  zone_id: z.string(),
-  forecast_point: latLngSchema,
+  // as of 2022-12-13, zone_id is a string in production and a number in staging
+  zone_id: z.union([z.number(), z.string()]),
+  // as of 2022-12-13, always present in production and undefined in staging
+  forecast_point: z.optional(latLngSchema),
   forecast_url: z.any(),
 });
 

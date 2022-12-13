@@ -5,8 +5,15 @@ export interface ClientProps {
   snowboundHost: string;
 }
 
-export const defaultClientProps: ClientProps = {
+export const productionClientProps: ClientProps = {
   nationalAvalancheCenterHost: 'https://api.avalanche.org',
   snowboundHost: 'https://api.snowobs.com',
 };
-export const ClientContext: Context<ClientProps> = React.createContext<ClientProps>(defaultClientProps);
+
+export const stagingClientProps: ClientProps = {
+  nationalAvalancheCenterHost: 'https://staging-api.avalanche.org',
+  // TODO(brian): what's the Staging version for Snowbound?
+  snowboundHost: 'https://api.snowobs.com',
+};
+
+export const ClientContext: Context<ClientProps> = React.createContext<ClientProps>(stagingClientProps);

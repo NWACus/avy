@@ -106,6 +106,7 @@ export enum AvalancheCenterType {
 
 export enum Units {
   English = 'english',
+  Metric = 'metric',
   // TODO: what else?
 }
 
