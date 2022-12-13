@@ -1,6 +1,6 @@
-import React, {Context} from 'react';
+import React, {useEffect, useState} from 'react';
 
-import {AppStateStatus, Platform, StyleSheet} from 'react-native';
+import {AppStateStatus, DevSettings, Platform, StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -12,7 +12,7 @@ import * as Sentry from 'sentry-expo';
 import {formatISO} from 'date-fns';
 import {focusManager, QueryClient, QueryClientProvider} from 'react-query';
 
-import {ClientContext, defaultClientProps} from './clientContext';
+import {ClientContext, productionClientProps, stagingClientProps} from './clientContext';
 import {AvalancheForecastZoneMap} from './components/AvalancheForecastZoneMap';
 import {AvalancheForecast} from './components/AvalancheForecast';
 import {AvalancheCenterSelector} from './components/AvalancheCenterSelector';
@@ -205,8 +205,24 @@ const App = () => {
 
     useAppState(onAppStateChange);
 
+    // Using NAC staging may trigger errors, but we'll try it for now
+    const [contextValue, setContextValue] = useState(stagingClientProps);
+
+    useEffect(() => {
+      // Add toggle commands to the React Native debug menu
+      // NB: the menu is only available in dev builds, *not* in Expo Go
+      DevSettings.addMenuItem('Switch to staging API', () => {
+        console.log('switch to staging API');
+        setContextValue(stagingClientProps);
+      });
+      DevSettings.addMenuItem('Switch to production API', () => {
+        console.log('Switch to production API');
+        setContextValue(productionClientProps);
+      });
+    });
+
     return (
-      <ClientContext.Provider value={defaultClientProps}>
+      <ClientContext.Provider value={contextValue}>
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
             <NavigationContainer>

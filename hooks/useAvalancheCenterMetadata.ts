@@ -3,6 +3,8 @@ import React from 'react';
 import axios, {AxiosError} from 'axios';
 import {useQuery} from 'react-query';
 
+import * as Sentry from 'sentry-expo';
+
 import {ClientContext, ClientProps} from '../clientContext';
 import {AvalancheCenter, avalancheCenterSchema} from '../types/nationalAvalancheCenter';
 
@@ -23,9 +25,15 @@ export const useAvalancheCenterMetadata = (center_id: string) => {
     });
 
     const parseResult = avalancheCenterSchema.safeParse(data);
-    if (!parseResult.success) {
-      // @ts-ignore
+    if (parseResult.success === false) {
       console.warn(`unparsable avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data, null, 2));
+      Sentry.Native.captureException(parseResult.error, {
+        tags: {
+          zod_error: true,
+          center_id,
+          url,
+        },
+      });
     }
     return avalancheCenterSchema.parse(data);
   });
