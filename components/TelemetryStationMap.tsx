@@ -1,6 +1,6 @@
 import React from 'react';
 
-import MapView, {LatLng, Marker, Region} from 'react-native-maps';
+import MapView, {Marker, Region} from 'react-native-maps';
 import {FontAwesome5} from '@expo/vector-icons';
 import {StationMetadata} from '../types/snowbound';
 import {useStations} from '../hooks/useStations';
@@ -33,7 +33,7 @@ export const TelemetryStationMap: React.FunctionComponent<{
 
   React.useEffect(() => {
     if (stations) {
-      let newStations: Record<number, StationMetadata> = {};
+      const newStations: Record<number, StationMetadata> = {};
       stations.results.map(station => (newStations[station.id] = station));
       setTelemetryStations(previous => ({...previous, ...newStations}));
       if (stations.current_page < stations.pages) {

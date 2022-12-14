@@ -4,6 +4,8 @@ import axios, {AxiosError} from 'axios';
 import {useQuery} from 'react-query';
 import {add, format} from 'date-fns';
 
+import * as Sentry from 'sentry-expo';
+
 import {ClientContext, ClientProps} from '../clientContext';
 import {Product, productArraySchema} from '../types/nationalAvalancheCenter';
 
@@ -20,9 +22,17 @@ export const useAvalancheForecastFragment = (center_id: string, forecast_zone_id
     });
 
     const parseResult = productArraySchema.safeParse(data);
-    if (!parseResult.success) {
-      // @ts-ignore
+    if (parseResult.success === false) {
       console.warn('unparsable forecast fragment', url, parseResult.error, JSON.stringify(data, null, 2));
+      Sentry.Native.captureException(parseResult.error, {
+        tags: {
+          zod_error: true,
+          center_id,
+          forecast_zone_id,
+          date: date.toString(),
+          url,
+        },
+      });
     }
     const products = productArraySchema.parse(data);
     return products.find(forecast => forecast.forecast_zone.find(zone => zone.id === forecast_zone_id));

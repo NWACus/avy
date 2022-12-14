@@ -12,6 +12,7 @@ interface size {
 }
 
 export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoProps> = ({style, center_id}: AvalancheCenterLogoProps) => {
+  /* eslint-disable @typescript-eslint/no-var-requires */
   const sizes: Record<string, size> = {
     ['BTAC']: Image.resolveAssetSource(require('../assets/logos/BTAC.png')),
     ['CNFAIC']: Image.resolveAssetSource(require('../assets/logos/CNFAIC.png')),
@@ -85,7 +86,8 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
       return <Image style={s} source={require('../assets/logos/WAC.png')} />;
     },
   };
-  let actualStyle: ImageStyle = {...style};
+  /* eslint-enable @typescript-eslint/no-var-requires */
+  const actualStyle: ImageStyle = {...style};
   if (actualStyle.height) {
     actualStyle.width = undefined;
   } else {

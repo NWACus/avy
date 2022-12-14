@@ -37,7 +37,7 @@ export const DangerRose: React.FunctionComponent<DangerRoseProps> = ({style, loc
     [AvalancheProblemLocation.NorthwestMiddle]: 'M390.968,194.571l-195.926,195.926l166.835,68.872l97.963,-97.963l-68.872,-166.835Z',
     [AvalancheProblemLocation.NorthwestLower]: 'M318.884,27l-292.884,292.884l167.311,68.396l195.066,-195.066l-69.493,-166.214Z',
   };
-  let elements: ReactElement[] = [];
+  const elements: ReactElement[] = [];
   for (const location of Object.values(AvalancheProblemLocation)) {
     elements.push(
       <Path key={String(location)} d={paths[location]} stroke={'rgb(81, 85, 88)'} strokeWidth={10} fill={locations.includes(location) ? 'rgb(200, 202, 206)' : 'transparent'} />,
@@ -95,7 +95,7 @@ export interface AnnotatedDangerRoseProps {
   elevationBandNames: ElevationBandNames;
 }
 
-export const AnnotatedDangerRose: React.FunctionComponent<AnnotatedDangerRoseProps> = ({rose, elevationBandNames}: AnnotatedDangerRoseProps) => {
+export const AnnotatedDangerRose: React.FunctionComponent<AnnotatedDangerRoseProps> = ({rose}: AnnotatedDangerRoseProps) => {
   return (
     <View>
       <View

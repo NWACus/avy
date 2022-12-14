@@ -1,10 +1,10 @@
 import React from 'react';
 import {useTimeSeries} from '../hooks/useTimeseries';
 import {useAvalancheCenterMetadata} from '../hooks/useAvalancheCenterMetadata';
-import {Easing, StyleSheet, View, Text, ActivityIndicator, ScrollView, useWindowDimensions} from 'react-native';
+import {StyleSheet, View, Text, ActivityIndicator, ScrollView, useWindowDimensions} from 'react-native';
 
-import {Chart, Line, Area, HorizontalAxis, VerticalAxis} from 'react-native-responsive-linechart';
-import {curveBasis, line, scaleLinear, scaleTime} from 'd3';
+import {Chart, Line, HorizontalAxis, VerticalAxis} from 'react-native-responsive-linechart';
+import {scaleLinear, scaleTime} from 'd3';
 import {max, min, parseISO, format} from 'date-fns';
 import {Variable, VariableMetadata} from '../types/snowbound';
 
@@ -33,7 +33,7 @@ export const TelemetryStationData: React.FunctionComponent<{
     );
   }
 
-  let allTimeseries: Record<
+  const allTimeseries: Record<
     Variable | string,
     {
       dates: string[];
@@ -84,9 +84,11 @@ const TelemetryTimeseriesGraph: React.FunctionComponent<{
     <View style={{flex: 1}}>
       <Text>{variable.variable}</Text>
       {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore Chart type doesn't have a definition for `children`
         // There's an unmerged pull request to address the issue:
         // https://github.com/xanderdeseyn/react-native-responsive-linechart/issues/166
+
         <Chart
           style={{height: GRAPH_HEIGHT, width: width}}
           xDomain={{min: x(start), max: x(end)}}
@@ -119,7 +121,7 @@ interface DataPoint {
 }
 
 const dataPoints = (dates: string[], data: number[]): DataPoint[] => {
-  let points: DataPoint[] = [];
+  const points: DataPoint[] = [];
   for (let i = 0; i < dates.length; i++) {
     points.push({
       date: parseISO(dates[i]),

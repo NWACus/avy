@@ -14,20 +14,20 @@ export interface SeverityNumberLineProps {
 }
 
 export const SeverityNumberLine: React.FunctionComponent<SeverityNumberLineProps> = ({labels, range}: SeverityNumberLineProps) => {
-  const labelStyle = (item: number): any => {
+  const labelStyle = (item: number) => {
     if (range.from <= item && range.to >= item) {
       return styles.active;
     }
     return styles.inactive;
   };
 
-  const padding: number = 5;
-  const strokeWidth: number = 2;
-  const axisHeight: number = 200;
+  const padding = 5;
+  const strokeWidth = 2;
+  const axisHeight = 200;
   const y = (index: number): number => {
     return padding + strokeWidth / 2 + axisHeight * (index / (labels.length - 1));
   };
-  const rangePadding: number = 4;
+  const rangePadding = 4;
   const yBetween: number = y(range.to) - y(range.from) + rangePadding * 2;
   return (
     <View style={styles.container}>

@@ -84,7 +84,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
 
   const zone: AvalancheForecastZone | undefined = center.zones.find(item => item.id === forecast_zone_id);
   if (!zone) {
-    const message: string = `No such zone ${forecast_zone_id} for center ${center_id}.`;
+    const message = `No such zone ${forecast_zone_id} for center ${center_id}.`;
     Alert.alert('Avalanche forecast zone not found', message, [
       {
         text: 'OK',

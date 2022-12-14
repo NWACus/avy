@@ -25,7 +25,6 @@ export const AvalancheProblemImage: React.FunctionComponent<AvalancheProblemImag
   const [imageDimensions, setImageDimensions] = React.useState<dimensions>({height: 0, width: 0});
   const [error, setError] = React.useState<string>('');
   const toGallery = React.useCallback(() => setGallery(true), []);
-  const toImage = React.useCallback(() => setGallery(false), []);
 
   React.useEffect(() => {
     Image.getSize(

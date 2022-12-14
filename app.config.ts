@@ -5,6 +5,9 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   // we keep in the environment and out of code. For cloud builds, the secrets
   // are stored in Expo and supplied via process.env. For local builds, the
   // secrets can be stored in a .env file and loaded via direnv.
+
+  // we're overwriting fields that were previously defined in app.json, so we know they're non-null:
+  /* eslint-disable @typescript-eslint/no-non-null-assertion */
   config.ios!.config!.googleMapsApiKey = process.env.IOS_GOOGLE_MAPS_API_KEY;
   config.android!.config!.googleMaps!.apiKey = process.env.ANDROID_GOOGLE_MAPS_API_KEY;
   config.hooks!.postPublish![0]!.config!.authToken = process.env.SENTRY_API_TOKEN;
