@@ -93,7 +93,7 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
   const coordinates: LatLng[] = coordinateList(feature.geometry).map(toLatLng);
   React.useEffect(() => {
     setRegion((previous: Region) => updateRegionToContain(previous, coordinates));
-  }, [coordinates, setRegion]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const forecastDate: Date = parseISO(date);
   const navigation = useNavigation();
