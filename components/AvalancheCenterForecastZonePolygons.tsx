@@ -1,6 +1,5 @@
 import React from 'react';
 
-import {ActivityIndicator, Text, View} from 'react-native';
 import {Region} from 'react-native-maps';
 
 import {useMapLayer} from '../hooks/useMapLayer';
@@ -13,7 +12,7 @@ export interface AvalancheCenterForecastZonePolygonsProps {
 }
 
 export const AvalancheCenterForecastZonePolygons: React.FunctionComponent<AvalancheCenterForecastZonePolygonsProps> = ({center_id, date, setRegion}) => {
-  const {isLoading, isError, data: mapLayer, error} = useMapLayer(center_id);
+  const {isLoading, isError, data: mapLayer /*, error */} = useMapLayer(center_id);
   if (isLoading) {
     // TODO(skuznets): without the zones, we don't know where on the map to put these loading/error elements ... ?
     return <></>;

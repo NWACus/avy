@@ -1,6 +1,6 @@
 import React from 'react';
 
-import MapView, {LatLng, Marker, Region} from 'react-native-maps';
+import MapView, {Marker, Region} from 'react-native-maps';
 import {FontAwesome5} from '@expo/vector-icons';
 import {StationMetadata} from '../types/snowbound';
 import {useStations} from '../hooks/useStations';

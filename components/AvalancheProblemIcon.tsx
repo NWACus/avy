@@ -14,6 +14,7 @@ interface size {
 }
 
 export const AvalancheProblemIcon: React.FunctionComponent<AvalancheProblemIconProps> = ({style, problem}: AvalancheProblemIconProps) => {
+  /* eslint-disable @typescript-eslint/no-var-requires */
   const sizes: Record<AvalancheProblemType, size> = {
     [AvalancheProblemType.DryLoose]: Image.resolveAssetSource(require('../assets/problem-icons/DryLoose.png')),
     [AvalancheProblemType.StormSlab]: Image.resolveAssetSource(require('../assets/problem-icons/StormSlab.png')),
@@ -55,6 +56,7 @@ export const AvalancheProblemIcon: React.FunctionComponent<AvalancheProblemIconP
       return <Image style={s} source={require('../assets/problem-icons/Glide.png')} />;
     },
   };
+  /* eslint-enable @typescript-eslint/no-var-requires */
   const actualStyle: ImageStyle = {...style};
   if (actualStyle.height) {
     actualStyle.width = undefined;

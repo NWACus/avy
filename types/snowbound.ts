@@ -1,6 +1,7 @@
-// TimeSeriesResponse holds the response for a timeseries request to the SnowBound API
-import {Units} from './nationalAvalancheCenter';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// TODO: the usage of `any` in this file should go away when we use OpenAPI generated types instead!
 
+// TimeSeriesResponse holds the response for a timeseries request to the SnowBound API
 export interface TimeSeriesResponse {
   msg: string;
   status: string;

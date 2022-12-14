@@ -14,6 +14,7 @@ interface size {
 }
 
 export const AvalancheDangerIcon: React.FunctionComponent<AvalancheDangerIconProps> = ({style, level}: AvalancheDangerIconProps) => {
+  /* eslint-disable @typescript-eslint/no-var-requires */
   const sizes: Record<DangerLevel, size> = {
     [DangerLevel.GeneralInformation]: Image.resolveAssetSource(require('../assets/danger-icons/0.png')),
     [DangerLevel.None]: Image.resolveAssetSource(require('../assets/danger-icons/0.png')),
@@ -47,6 +48,7 @@ export const AvalancheDangerIcon: React.FunctionComponent<AvalancheDangerIconPro
       return <Image style={s} source={require('../assets/danger-icons/5.png')} />;
     },
   };
+  /* eslint-enable @typescript-eslint/no-var-requires */
   const actualStyle: ImageStyle = {...style};
   actualStyle.width = undefined;
   actualStyle.aspectRatio = sizes[level].width / sizes[level].height;

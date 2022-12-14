@@ -14,7 +14,7 @@ export interface SeverityNumberLineProps {
 }
 
 export const SeverityNumberLine: React.FunctionComponent<SeverityNumberLineProps> = ({labels, range}: SeverityNumberLineProps) => {
-  const labelStyle = (item: number): any => {
+  const labelStyle = (item: number) => {
     if (range.from <= item && range.to >= item) {
       return styles.active;
     }

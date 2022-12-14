@@ -22,6 +22,8 @@ import {TelemetryStationMap} from './components/TelemetryStationMap';
 import {TelemetryStationData} from './components/TelemetryStationData';
 
 Sentry.init({
+  // we're overwriting a field that was previously defined in app.json, so we know it's non-null:
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   dsn: Constants.expoConfig.extra!.sentry_dsn,
   enableInExpoDevelopment: true,
   debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
@@ -58,7 +60,7 @@ const AvalancheCenterTabScreen = ({route}: AvalancheCenterProps) => {
         name={'avalancheCenterStack'}
         component={AvalancheCenterStackScreen}
         initialParams={{center_id: center_id, date: date}}
-        options={({route}) => ({title: center_id})}
+        options={() => ({title: center_id})}
       />
       <AvalancheCenterTab.Screen
         name={'avalancheCenterTelemetryStack'}
@@ -183,10 +185,12 @@ type StackParamList = {
   };
 };
 
-const Stack = createNativeStackNavigator<StackParamList>();
-
+// TODO(brian): dig into this. This is somehow suppressing typescript errors in
+// other files - if you comment it out, compilation fails.
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace ReactNavigation {
+    // eslint-disable-next-line @typescript-eslint/no-empty-interface
     interface RootParamList extends StackParamList {}
   }
 }
@@ -234,6 +238,7 @@ const App = () => {
     );
   } catch (error) {
     Sentry.Native.captureException(error);
+    throw error;
   }
 };
 

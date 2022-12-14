@@ -3,6 +3,8 @@ import React from 'react';
 import axios, {AxiosError} from 'axios';
 import {useQuery} from 'react-query';
 
+import * as Sentry from 'sentry-expo';
+
 import {ClientContext, ClientProps} from '../clientContext';
 import {Product, productSchema} from '../types/nationalAvalancheCenter';
 import {useAvalancheForecastFragment} from './useAvalancheForecastFragment';
@@ -29,9 +31,17 @@ export const useAvalancheForecast = (center_id: string, forecast_zone_id: number
       });
 
       const parseResult = productSchema.safeParse(data);
-      if (!parseResult.success) {
-        // @ts-ignore
+      if (parseResult.success === false) {
         console.warn(`unparsable forecast`, url, parseResult.error, JSON.stringify(data, null, 2));
+        Sentry.Native.captureException(parseResult.error, {
+          tags: {
+            zod_error: true,
+            center_id,
+            forecast_zone_id,
+            date: date.toString(),
+            url,
+          },
+        });
       }
       return productSchema.parse(data);
     },

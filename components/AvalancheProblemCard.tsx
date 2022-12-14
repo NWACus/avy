@@ -1,12 +1,12 @@
 import React from 'react';
 
-import {StyleSheet, Text, TouchableHighlight, useWindowDimensions, View} from 'react-native';
+import {StyleSheet, Text, useWindowDimensions, View} from 'react-native';
 import RenderHTML from 'react-native-render-html';
 
-import {AvalancheProblem, AvalancheProblemSize, ElevationBandNames, MediaType} from '../types/nationalAvalancheCenter';
-import {AnnotatedDangerRose, DangerRose} from './DangerRose';
+import {AvalancheProblem, ElevationBandNames, MediaType} from '../types/nationalAvalancheCenter';
+import {AnnotatedDangerRose} from './DangerRose';
 import {AvalancheProblemIcon} from './AvalancheProblemIcon';
-import {AvalancheProblemLikelihoodLine, likelihoodText} from './AvalancheProblemLikelihoodLine';
+import {AvalancheProblemLikelihoodLine} from './AvalancheProblemLikelihoodLine';
 import {AvalancheProblemSizeLine} from './AvalancheProblemSizeLine';
 import {TitledPanel} from './TitledPanel';
 import {AvalancheProblemImage} from './AvalancheProblemImage';
@@ -15,13 +15,6 @@ export interface AvalancheProblemCardProps {
   problem: AvalancheProblem;
   names: ElevationBandNames;
 }
-
-const formatSizesShort = (size: AvalancheProblemSize[]): string => {
-  if (size[0] === size[1]) {
-    return `D${size[0]}`;
-  }
-  return `D${size[0]}-${size[1]}`;
-};
 
 export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardProps> = ({problem, names}: AvalancheProblemCardProps) => {
   const {width} = useWindowDimensions();

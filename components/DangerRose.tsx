@@ -95,7 +95,7 @@ export interface AnnotatedDangerRoseProps {
   elevationBandNames: ElevationBandNames;
 }
 
-export const AnnotatedDangerRose: React.FunctionComponent<AnnotatedDangerRoseProps> = ({rose, elevationBandNames}: AnnotatedDangerRoseProps) => {
+export const AnnotatedDangerRose: React.FunctionComponent<AnnotatedDangerRoseProps> = ({rose}: AnnotatedDangerRoseProps) => {
   return (
     <View>
       <View

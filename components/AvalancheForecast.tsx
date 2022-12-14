@@ -42,7 +42,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
         navigation.setOptions({title: thisZone.name});
       }
     }
-  }, [forecast]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [forecast, forecast_zone_id, navigation]);
 
   if (isForecastLoading || isCenterLoading || !center || !forecast) {
     return <ActivityIndicator />;
