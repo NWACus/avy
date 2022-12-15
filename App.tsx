@@ -16,8 +16,9 @@ import {ClientContext, productionClientProps, stagingClientProps} from './client
 import {AvalancheForecastZoneMap} from './components/AvalancheForecastZoneMap';
 import {AvalancheForecast} from './components/AvalancheForecast';
 import {AvalancheCenterSelector} from './components/AvalancheCenterSelector';
-import {useOnlineManager} from './hooks/useOnlineManager';
 import {useAppState} from './hooks/useAppState';
+import {useLocation} from './hooks/useLocation';
+import {useOnlineManager} from './hooks/useOnlineManager';
 import {TelemetryStationMap} from './components/TelemetryStationMap';
 import {TelemetryStationData} from './components/TelemetryStationData';
 
@@ -209,6 +210,11 @@ const App = () => {
 
     useAppState(onAppStateChange);
 
+    const locationStatus = useLocation(location => {
+      console.log('Location update', location);
+    });
+    console.log('Location permission status', locationStatus);
+
     // Using NAC staging may trigger errors, but we'll try it for now
     const [contextValue, setContextValue] = useState(stagingClientProps);
 
@@ -223,7 +229,7 @@ const App = () => {
         console.log('Switch to production API');
         setContextValue(productionClientProps);
       });
-    });
+    }, []); // this effect should only run once
 
     return (
       <ClientContext.Provider value={contextValue}>
