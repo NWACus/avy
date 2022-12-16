@@ -169,7 +169,7 @@ function HomeScreen({route}) {
         name="avalancheCenter"
         component={MapScreen}
         initialParams={{center_id: center_id, date: defaultDate}}
-        options={({route}) => ({title: route.params.center_id, headerShown: false})}
+        options={({route}) => ({title: route.params.center_id, headerBarStatusHeight: 0})}
       />
       <HomeStack.Screen
         name="forecast"
@@ -218,7 +218,7 @@ const App = () => {
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
             <NavigationContainer>
-              <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
+              <Tab.Navigator initialRouteName="Home" screenOptions={{headerBarStatusHeight: 0}}>
                 <Tab.Screen name="Home" initialParams={{center_id: defaultCenterId}}>
                   {args => HomeScreen(args)}
                 </Tab.Screen>
