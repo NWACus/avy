@@ -44,7 +44,7 @@ const SelectorStack = createNativeStackNavigator<StackParamList>();
 const AvalancheCenterSelectionScreen = () => {
   // TODO(skuznets) not showing the header here means iOS has no way to get back to this screen once they choose a center, but showing it means we double-up on headers ... ?
   return (
-    <SelectorStack.Navigator initialRouteName="avalancheCenterSelection" screenOptions={{headerShown: false}}>
+    <SelectorStack.Navigator initialRouteName="avalancheCenterSelection" screenOptions={{headerStatusBarHeight: 0}}>
       <SelectorStack.Screen name="avalancheCenterSelection" component={AvalancheCenterSelectorScreen} options={{title: 'Select an Avalanche Center'}} />
       <SelectorStack.Screen name="avalancheCenterHome" component={AvalancheCenterTabScreen} options={({route}) => ({title: route.params.center_id})} />
     </SelectorStack.Navigator>
