@@ -87,6 +87,9 @@ export enum AvalancheProblemSize {
   Historic,
 }
 
+// Round the number up, then clamp it to the bounds 1-4
+export const numberToProblemSize = (size: number): AvalancheProblemSize => Math.max(AvalancheProblemSize.Small, Math.min(AvalancheProblemSize.Historic, Math.round(size)));
+
 export enum ForecastPeriod {
   Current = 'current',
   Tomorrow = 'tomorrow',
