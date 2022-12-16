@@ -9,6 +9,7 @@ import {StyleSheet, ActivityIndicator, FlatList, TouchableOpacity, View, ViewSty
 import {CARD_MARGIN, CARD_SPACING, CARD_WIDTH, defaultRegion} from './AvalancheForecastZoneMap';
 import {updateRegionToContain} from './AvalancheForecastZonePolygon';
 import {useNavigation} from '@react-navigation/native';
+import {HomeStackNavigationProps} from '../routes';
 
 export const TelemetryStationMap: React.FunctionComponent<{
   center_id: string;
@@ -138,7 +139,7 @@ export const TelemetryStationCard: React.FunctionComponent<{
   style: ViewStyle;
 }> = ({center_id, station, style}) => {
   const {width} = useWindowDimensions();
-  const navigation = useNavigation();
+  const navigation = useNavigation<HomeStackNavigationProps>();
   return (
     <TouchableOpacity
       onPress={() => {

@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 
-import {AppStateStatus, DevSettings, Platform, StyleSheet} from 'react-native';
+import {AppStateStatus, DevSettings, Platform, StyleSheet, Text, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -19,8 +19,9 @@ import {AvalancheCenterSelector} from './components/AvalancheCenterSelector';
 import {useAppState} from './hooks/useAppState';
 import {useLocation} from './hooks/useLocation';
 import {useOnlineManager} from './hooks/useOnlineManager';
-import {TelemetryStationMap} from './components/TelemetryStationMap';
-import {TelemetryStationData} from './components/TelemetryStationData';
+// import {TelemetryStationMap} from './components/TelemetryStationMap';
+// import {TelemetryStationData} from './components/TelemetryStationData';
+import {TabNavigatorParamList, HomeStackParamList} from './routes';
 
 Sentry.init({
   // we're overwriting a field that was previously defined in app.json, so we know it's non-null:
@@ -32,169 +33,118 @@ Sentry.init({
 
 const queryClient: QueryClient = new QueryClient();
 
-const AvalancheCenterSelectorScreen = () => {
-  return (
-    <SafeAreaView style={styles.container}>
-      <AvalancheCenterSelector date={formatISO(new Date('2022-03-01'))} />
-    </SafeAreaView>
-  );
-};
+const Tab = createBottomTabNavigator<TabNavigatorParamList>();
+const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 
-const SelectorStack = createNativeStackNavigator<StackParamList>();
-const AvalancheCenterSelectionScreen = () => {
-  // TODO(skuznets) not showing the header here means iOS has no way to get back to this screen once they choose a center, but showing it means we double-up on headers ... ?
-  return (
-    <SelectorStack.Navigator initialRouteName="avalancheCenterSelection" screenOptions={{headerShown: false}}>
-      <SelectorStack.Screen name="avalancheCenterSelection" component={AvalancheCenterSelectorScreen} options={{title: 'Select an Avalanche Center'}} />
-      <SelectorStack.Screen name="avalancheCenterHome" component={AvalancheCenterTabScreen} options={({route}) => ({title: route.params.center_id})} />
-    </SelectorStack.Navigator>
-  );
-};
+// TODO(brian): do we need this? I'm guessing this kept things working while
+// developing in the offseason. Also TBD whether this should be part of the
+// route; are there use cases for supporting forecasts from different dates than
+// "today"?
+const defaultDate = formatISO(new Date('2022-03-01'));
 
-type AvalancheCenterProps = NativeStackScreenProps<StackParamList, 'avalancheCenter'>;
-const AvalancheCenterTab = createBottomTabNavigator<StackParamList>();
-const AvalancheCenterTabScreen = ({route}: AvalancheCenterProps) => {
-  const {center_id, date} = route.params;
-  return (
-    <AvalancheCenterTab.Navigator screenOptions={{headerShown: false}}>
-      <AvalancheCenterTab.Screen
-        name={'avalancheCenterStack'}
-        component={AvalancheCenterStackScreen}
-        initialParams={{center_id: center_id, date: date}}
-        options={() => ({title: center_id})}
-      />
-      <AvalancheCenterTab.Screen
-        name={'avalancheCenterTelemetryStack'}
-        component={AvalancheCenterTelemetryStackScreen}
-        initialParams={{center_id: center_id}}
-        options={({route}) => ({title: `${route.params.center_id} Telemetry Stations`})}
-      />
-    </AvalancheCenterTab.Navigator>
-  );
-};
+// TODO(brian): commented out stuff needs to be moved/restored, keeping it here for now
 
-const AvalancheCenterStack = createNativeStackNavigator<StackParamList>();
-const AvalancheCenterStackScreen = ({route}: AvalancheCenterProps) => {
-  const {center_id, date} = route.params;
-  return (
-    <AvalancheCenterStack.Navigator initialRouteName="avalancheCenter">
-      <AvalancheCenterStack.Screen
-        name="avalancheCenter"
-        component={MapScreen}
-        initialParams={{center_id: center_id, date: date}}
-        options={({route}) => ({title: route.params.center_id})}
-      />
-      <AvalancheCenterStack.Screen
-        name="forecast"
-        component={ForecastScreen}
-        initialParams={{center_id: center_id, date: date}}
-        options={({route}) => ({title: String(route.params.forecast_zone_id)})}
-      />
-    </AvalancheCenterStack.Navigator>
-  );
-};
+type AvalancheCenterProps = NativeStackScreenProps<HomeStackParamList, 'avalancheCenter'>;
+// const AvalancheCenterTab = createBottomTabNavigator<HomeStackParamList>();
+// const AvalancheCenterTabScreen = ({route}: AvalancheCenterProps) => {
+//   const {center_id, date} = route.params;
+//   return (
+//     <AvalancheCenterTab.Navigator screenOptions={{headerShown: false}}>
+//       <AvalancheCenterTab.Screen
+//         name={'avalancheCenterStack'}
+//         component={AvalancheCenterStackScreen}
+//         initialParams={{center_id: center_id, date: date}}
+//         options={() => ({title: center_id})}
+//       />
+//       <AvalancheCenterTab.Screen
+//         name={'avalancheCenterTelemetryStack'}
+//         component={AvalancheCenterTelemetryStackScreen}
+//         initialParams={{center_id: center_id}}
+//         options={({route}) => ({title: `${route.params.center_id} Telemetry Stations`})}
+//       />
+//     </AvalancheCenterTab.Navigator>
+//   );
+// };
+
+// const AvalancheCenterStack = createNativeStackNavigator<HomeStackParamList>();
+// const AvalancheCenterStackScreen = ({route}: AvalancheCenterProps) => {
+//   const {center_id, date} = route.params;
+//   return (
+//     <AvalancheCenterStack.Navigator initialRouteName="avalancheCenter">
+//       <AvalancheCenterStack.Screen
+//         name="avalancheCenter"
+//         component={MapScreen}
+//         initialParams={{center_id: center_id, date: date}}
+//         options={({route}) => ({title: route.params.center_id})}
+//       />
+//       <AvalancheCenterStack.Screen
+//         name="forecast"
+//         component={ForecastScreen}
+//         initialParams={{center_id: center_id, date: date}}
+//         options={({route}) => ({title: String(route.params.forecast_zone_id)})}
+//       />
+//     </AvalancheCenterStack.Navigator>
+//   );
+// };
 
 const MapScreen = ({route}: AvalancheCenterProps) => {
   const {center_id, date} = route.params;
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={{...styles.container}}>
       <AvalancheForecastZoneMap centers={[center_id]} date={date} />
-    </SafeAreaView>
+    </View>
   );
 };
 
-type ForecastScreenProps = NativeStackScreenProps<StackParamList, 'forecast'>;
+type ForecastScreenProps = NativeStackScreenProps<HomeStackParamList, 'forecast'>;
 const ForecastScreen = ({route}: ForecastScreenProps) => {
   const {center_id, forecast_zone_id, date} = route.params;
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <AvalancheForecast center_id={center_id} forecast_zone_id={forecast_zone_id} date={date} />
-    </SafeAreaView>
+    </View>
   );
 };
 
-const AvalancheCenterTelemetryStack = createNativeStackNavigator<StackParamList>();
-const AvalancheCenterTelemetryStackScreen = ({route}: AvalancheCenterProps) => {
-  const {center_id} = route.params;
-  return (
-    <AvalancheCenterTelemetryStack.Navigator initialRouteName="telemetryStations">
-      <AvalancheCenterTelemetryStack.Screen
-        name="telemetryStations"
-        component={TelemetryScreen}
-        initialParams={{center_id: center_id}}
-        options={({route}) => ({title: `${route.params.center_id} Telemetry Stations`})}
-      />
-      <AvalancheCenterTelemetryStack.Screen
-        name="telemetryStation"
-        component={TelemetryStationScreen}
-        initialParams={{center_id: center_id}}
-        options={({route}) => ({title: String(route.params.name)})}
-      />
-    </AvalancheCenterTelemetryStack.Navigator>
-  );
-};
+// const AvalancheCenterTelemetryStack = createNativeStackNavigator<HomeStackParamList>();
+// const AvalancheCenterTelemetryStackScreen = ({route}: AvalancheCenterProps) => {
+//   const {center_id} = route.params;
+//   return (
+//     <AvalancheCenterTelemetryStack.Navigator initialRouteName="telemetryStations">
+//       <AvalancheCenterTelemetryStack.Screen
+//         name="telemetryStations"
+//         component={TelemetryScreen}
+//         initialParams={{center_id: center_id}}
+//         options={({route}) => ({title: `${route.params.center_id} Telemetry Stations`})}
+//       />
+//       <AvalancheCenterTelemetryStack.Screen
+//         name="telemetryStation"
+//         component={TelemetryStationScreen}
+//         initialParams={{center_id: center_id}}
+//         options={({route}) => ({title: String(route.params.name)})}
+//       />
+//     </AvalancheCenterTelemetryStack.Navigator>
+//   );
+// };
 
-const TelemetryScreen = ({route}: AvalancheCenterProps) => {
-  const {center_id} = route.params;
-  return (
-    <SafeAreaView style={styles.container}>
-      <TelemetryStationMap center_id={center_id} />
-    </SafeAreaView>
-  );
-};
+// const TelemetryScreen = ({route}: AvalancheCenterProps) => {
+//   const {center_id} = route.params;
+//   return (
+//     <View style={styles.container}>
+//       <TelemetryStationMap center_id={center_id} />
+//     </View>
+//   );
+// };
 
-type TelemetryStationProps = NativeStackScreenProps<StackParamList, 'telemetryStation'>;
-const TelemetryStationScreen = ({route}: TelemetryStationProps) => {
-  const {center_id, source, station_id} = route.params;
-  return (
-    <SafeAreaView style={styles.container}>
-      <TelemetryStationData center_id={center_id} source={source} station_id={station_id} />
-    </SafeAreaView>
-  );
-};
-
-type StackParamList = {
-  avalancheCenterSelection: undefined;
-  avalancheCenterHome: {
-    center_id: string;
-    date: string;
-  };
-  avalancheCenterStack: {
-    center_id: string;
-    date: string;
-  };
-  avalancheCenter: {
-    center_id: string;
-    date: string;
-  };
-  forecast: {
-    center_id: string;
-    forecast_zone_id: number;
-    date: string;
-  };
-  avalancheCenterTelemetryStack: {
-    center_id: string;
-  };
-  telemetryStations: {
-    center_id: string;
-  };
-  telemetryStation: {
-    center_id: string;
-    source: string;
-    station_id: number;
-    name: string;
-  };
-};
-
-// TODO(brian): dig into this. This is somehow suppressing typescript errors in
-// other files - if you comment it out, compilation fails.
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace ReactNavigation {
-    // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    interface RootParamList extends StackParamList {}
-  }
-}
+// type TelemetryStationProps = NativeStackScreenProps<HomeStackParamList, 'telemetryStation'>;
+// const TelemetryStationScreen = ({route}: TelemetryStationProps) => {
+//   const {center_id, source, station_id} = route.params;
+//   return (
+//     <View style={styles.container}>
+//       <TelemetryStationData center_id={center_id} source={source} station_id={station_id} />
+//     </View>
+//   );
+// };
 
 const onAppStateChange = (status: AppStateStatus) => {
   // React Query already supports in web browser refetch on window focus by default
@@ -203,6 +153,39 @@ const onAppStateChange = (status: AppStateStatus) => {
   }
 };
 
+function PlaceholderScreen(label: string) {
+  return (
+    <View style={{...styles.container, flex: 1, justifyContent: 'space-between', alignItems: 'center'}}>
+      <Text>This is top text.</Text>
+      <Text style={{fontSize: 24, fontWeight: 'bold'}}>View name: {label}</Text>
+      <Text>This is bottom text.</Text>
+    </View>
+  );
+}
+
+function HomeScreen({route}) {
+  const {center_id} = route.params;
+  return (
+    <HomeStack.Navigator initialRouteName="avalancheCenter">
+      <HomeStack.Screen
+        name="avalancheCenter"
+        component={MapScreen}
+        initialParams={{center_id: center_id, date: defaultDate}}
+        options={({route}) => ({title: route.params.center_id, headerShown: false})}
+      />
+      <HomeStack.Screen
+        name="forecast"
+        component={ForecastScreen}
+        initialParams={{center_id: center_id, date: defaultDate}}
+        options={({route}) => ({title: String(route.params.forecast_zone_id)})}
+      />
+    </HomeStack.Navigator>
+  );
+}
+
+// TODO(brian): move this into app config
+export const defaultCenterId = 'NWAC';
+
 const App = () => {
   try {
     // your code
@@ -210,8 +193,9 @@ const App = () => {
 
     useAppState(onAppStateChange);
 
-    const locationStatus = useLocation(location => {
-      console.log('Location update', location);
+    const locationStatus = useLocation(_location => {
+      // console.log('Location update', location);
+      undefined;
     });
     console.log('Location permission status', locationStatus);
 
@@ -236,7 +220,31 @@ const App = () => {
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
             <NavigationContainer>
-              <AvalancheCenterSelectionScreen />
+              <SafeAreaView style={styles.container}>
+                <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
+                  <Tab.Screen name="Home" initialParams={{center_id: defaultCenterId}}>
+                    {args => HomeScreen(args)}
+                  </Tab.Screen>
+                  <Tab.Screen name="Observations" initialParams={{center_id: defaultCenterId}}>
+                    {() => PlaceholderScreen('Observations')}
+                  </Tab.Screen>
+                  <Tab.Screen name="WeatherData" initialParams={{center_id: defaultCenterId}}>
+                    {() => PlaceholderScreen('Weather data')}
+                  </Tab.Screen>
+                  <Tab.Screen name="Menu" initialParams={{center_id: defaultCenterId}}>
+                    {() => PlaceholderScreen('Menu')}
+                  </Tab.Screen>
+                  {__DEV__ && (
+                    <Tab.Screen name="Debug" initialParams={{center_id: defaultCenterId}}>
+                      {() => (
+                        <View style={styles.container}>
+                          <AvalancheCenterSelector />
+                        </View>
+                      )}
+                    </Tab.Screen>
+                  )}
+                </Tab.Navigator>
+              </SafeAreaView>
             </NavigationContainer>
           </SafeAreaProvider>
         </QueryClientProvider>
