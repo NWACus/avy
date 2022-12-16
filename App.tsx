@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 
-import {AppStateStatus, DevSettings, Platform, StyleSheet, Text} from 'react-native';
+import {AppStateStatus, DevSettings, Platform, StyleSheet, Text, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -90,9 +90,9 @@ type AvalancheCenterProps = NativeStackScreenProps<HomeStackParamList, 'avalanch
 const MapScreen = ({route}: AvalancheCenterProps) => {
   const {center_id, date} = route.params;
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={{...styles.container}}>
       <AvalancheForecastZoneMap centers={[center_id]} date={date} />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -100,9 +100,9 @@ type ForecastScreenProps = NativeStackScreenProps<HomeStackParamList, 'forecast'
 const ForecastScreen = ({route}: ForecastScreenProps) => {
   const {center_id, forecast_zone_id, date} = route.params;
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <AvalancheForecast center_id={center_id} forecast_zone_id={forecast_zone_id} date={date} />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -130,9 +130,9 @@ const ForecastScreen = ({route}: ForecastScreenProps) => {
 // const TelemetryScreen = ({route}: AvalancheCenterProps) => {
 //   const {center_id} = route.params;
 //   return (
-//     <SafeAreaView style={styles.container}>
+//     <View style={styles.container}>
 //       <TelemetryStationMap center_id={center_id} />
-//     </SafeAreaView>
+//     </View>
 //   );
 // };
 
@@ -140,9 +140,9 @@ const ForecastScreen = ({route}: ForecastScreenProps) => {
 // const TelemetryStationScreen = ({route}: TelemetryStationProps) => {
 //   const {center_id, source, station_id} = route.params;
 //   return (
-//     <SafeAreaView style={styles.container}>
+//     <View style={styles.container}>
 //       <TelemetryStationData center_id={center_id} source={source} station_id={station_id} />
-//     </SafeAreaView>
+//     </View>
 //   );
 // };
 
@@ -155,9 +155,11 @@ const onAppStateChange = (status: AppStateStatus) => {
 
 function PlaceholderScreen(label: string) {
   return (
-    <SafeAreaView style={styles.container}>
-      <Text>{label}</Text>
-    </SafeAreaView>
+    <View style={{...styles.container, flex: 1, justifyContent: 'space-between', alignItems: 'center'}}>
+      <Text>This is top text.</Text>
+      <Text style={{fontSize: 24, fontWeight: 'bold'}}>View name: {label}</Text>
+      <Text>This is bottom text.</Text>
+    </View>
   );
 }
 
@@ -169,7 +171,7 @@ function HomeScreen({route}) {
         name="avalancheCenter"
         component={MapScreen}
         initialParams={{center_id: center_id, date: defaultDate}}
-        options={({route}) => ({title: route.params.center_id, headerBarStatusHeight: 0})}
+        options={({route}) => ({title: route.params.center_id, headerShown: false})}
       />
       <HomeStack.Screen
         name="forecast"
@@ -218,29 +220,31 @@ const App = () => {
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
             <NavigationContainer>
-              <Tab.Navigator initialRouteName="Home" screenOptions={{headerBarStatusHeight: 0}}>
-                <Tab.Screen name="Home" initialParams={{center_id: defaultCenterId}}>
-                  {args => HomeScreen(args)}
-                </Tab.Screen>
-                <Tab.Screen name="Observations" initialParams={{center_id: defaultCenterId}}>
-                  {() => PlaceholderScreen('Observations')}
-                </Tab.Screen>
-                <Tab.Screen name="WeatherData" initialParams={{center_id: defaultCenterId}}>
-                  {() => PlaceholderScreen('Weather data')}
-                </Tab.Screen>
-                <Tab.Screen name="Menu" initialParams={{center_id: defaultCenterId}}>
-                  {() => PlaceholderScreen('Menu')}
-                </Tab.Screen>
-                {__DEV__ && (
-                  <Tab.Screen name="Debug" initialParams={{center_id: defaultCenterId}}>
-                    {() => (
-                      <SafeAreaView style={styles.container}>
-                        <AvalancheCenterSelector />
-                      </SafeAreaView>
-                    )}
+              <SafeAreaView style={styles.container}>
+                <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
+                  <Tab.Screen name="Home" initialParams={{center_id: defaultCenterId}}>
+                    {args => HomeScreen(args)}
                   </Tab.Screen>
-                )}
-              </Tab.Navigator>
+                  <Tab.Screen name="Observations" initialParams={{center_id: defaultCenterId}}>
+                    {() => PlaceholderScreen('Observations')}
+                  </Tab.Screen>
+                  <Tab.Screen name="WeatherData" initialParams={{center_id: defaultCenterId}}>
+                    {() => PlaceholderScreen('Weather data')}
+                  </Tab.Screen>
+                  <Tab.Screen name="Menu" initialParams={{center_id: defaultCenterId}}>
+                    {() => PlaceholderScreen('Menu')}
+                  </Tab.Screen>
+                  {__DEV__ && (
+                    <Tab.Screen name="Debug" initialParams={{center_id: defaultCenterId}}>
+                      {() => (
+                        <View style={styles.container}>
+                          <AvalancheCenterSelector />
+                        </View>
+                      )}
+                    </Tab.Screen>
+                  )}
+                </Tab.Navigator>
+              </SafeAreaView>
             </NavigationContainer>
           </SafeAreaProvider>
         </QueryClientProvider>
