@@ -15,6 +15,7 @@ import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {dangerText} from './helpers/dangerText';
 import {useMapLayer} from '../hooks/useMapLayer';
 import {useAvalancheForecastFragment} from '../hooks/useAvalancheForecastFragment';
+import {HomeStackNavigationProps} from '../routes';
 
 export const defaultRegion: Region = {
   // TODO(skuznets): add a sane default for the US?
@@ -192,7 +193,7 @@ export const AvalancheForecastZoneCard: React.FunctionComponent<{
 }> = ({feature, date, style}) => {
   const forecastDate: Date = parseISO(date);
   const {width} = useWindowDimensions();
-  const navigation = useNavigation();
+  const navigation = useNavigation<HomeStackNavigationProps>();
   const {isLoading, isError, data: forecast, error} = useAvalancheForecastFragment(feature.properties.center_id, feature.id, forecastDate);
   if (isLoading) {
     return (

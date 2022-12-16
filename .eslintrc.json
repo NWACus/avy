@@ -4,5 +4,16 @@
   "plugins": ["@typescript-eslint"],
   "root": true,
   "ignorePatterns": ["babel.config.js"],
-  "reportUnusedDisableDirectives": true
+  "reportUnusedDisableDirectives": true,
+  "rules": {
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        // Don't produce unused arg errors if identifier starts with an underscore:
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ]
+  }
 }

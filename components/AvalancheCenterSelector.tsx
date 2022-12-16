@@ -5,6 +5,7 @@ import {useNavigation} from '@react-navigation/native';
 
 import {AvalancheCenterLogo} from './AvalancheCenterLogo';
 import {useAvalancheCenterMetadata} from '../hooks/useAvalancheCenterMetadata';
+import {TabNavigationProps} from '../routes';
 
 const center_idsByType: SectionListData<string>[] = [
   {
@@ -43,11 +44,10 @@ const center_idsByType: SectionListData<string>[] = [
 
 interface AvalancheCenterCardProps {
   center_id: string;
-  date: string;
 }
 
-const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = ({center_id, date}: AvalancheCenterCardProps) => {
-  const navigation = useNavigation();
+const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = ({center_id}: AvalancheCenterCardProps) => {
+  const navigation = useNavigation<TabNavigationProps>();
   const {isLoading, isError, data: avalancheCenter, error} = useAvalancheCenterMetadata(center_id);
   if (isLoading) {
     return <ActivityIndicator style={styles.item} />;
@@ -68,24 +68,29 @@ const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = (
   }
 
   return (
-    <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('avalancheCenterHome', {center_id: center_id, date: date})}>
+    <TouchableOpacity
+      style={styles.item}
+      onPress={() => {
+        // We need to clear navigation state to force all screens from the
+        // previous avalanche center selection to unmount
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'Home', params: {center_id}}],
+        });
+      }}>
       <AvalancheCenterLogo style={styles.logo} center_id={center_id} />
       <Text style={{textAlignVertical: 'center'}}>{avalancheCenter.name}</Text>
     </TouchableOpacity>
   );
 };
 
-export interface AvalancheCenterSelectorProps {
-  date: string;
-}
-
-export const AvalancheCenterSelector: React.FunctionComponent<AvalancheCenterSelectorProps> = ({date}: AvalancheCenterSelectorProps) => {
+export const AvalancheCenterSelector = () => {
   return (
     <SectionList
       style={styles.container}
       sections={center_idsByType}
       keyExtractor={item => item}
-      renderItem={({item}) => <AvalancheCenterCard center_id={item} date={date} />}
+      renderItem={({item}) => <AvalancheCenterCard center_id={item} />}
       renderSectionHeader={({section: {title}}) => <Text style={styles.title}>{title + ' Centers'}</Text>}
     />
   );
