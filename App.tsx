@@ -36,11 +36,9 @@ const queryClient: QueryClient = new QueryClient();
 const Tab = createBottomTabNavigator<TabNavigatorParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 
-// TODO(brian): do we need this? I'm guessing this kept things working while
-// developing in the offseason. Also TBD whether this should be part of the
-// route; are there use cases for supporting forecasts from different dates than
-// "today"?
-const defaultDate = formatISO(new Date('2022-03-01'));
+// For now, we are implicitly interested in today's forecast.
+// If you want to investigate an issue on a different day, you can change this value.
+const defaultDate = formatISO(Date.now());
 
 // TODO(brian): commented out stuff needs to be moved/restored, keeping it here for now
 
@@ -200,7 +198,7 @@ const App = () => {
     console.log('Location permission status', locationStatus);
 
     // Using NAC staging may trigger errors, but we'll try it for now
-    const [contextValue, setContextValue] = useState(stagingClientProps);
+    const [contextValue, setContextValue] = useState(productionClientProps);
 
     useEffect(() => {
       // Add toggle commands to the React Native debug menu

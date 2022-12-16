@@ -6,7 +6,7 @@ import {useQuery} from 'react-query';
 import * as Sentry from 'sentry-expo';
 
 import {ClientContext, ClientProps} from '../clientContext';
-import {Product, productSchema} from '../types/nationalAvalancheCenter';
+import {Product, productSchema, numberToProblemSize} from '../types/nationalAvalancheCenter';
 import {useAvalancheForecastFragment} from './useAvalancheForecastFragment';
 
 export const useAvalancheForecast = (center_id: string, forecast_zone_id: number, date: Date) => {
@@ -22,12 +22,14 @@ export const useAvalancheForecast = (center_id: string, forecast_zone_id: number
 
       // Fix up data issues before parsing
       // 1) NWAC (and probably others) return strings for avalanche problem size, not numbers
+      // 2) NWAC (and probably others) use values outside our enums 1-4
       data.forecast_avalanche_problems?.forEach(problem => {
         if (problem.size.find(s => typeof s === 'string')) {
           // this is pretty noisy
           console.log('converting size string to number', problem.size);
           problem.size = problem.size.map(s => Number(s));
         }
+        problem.size = problem.size.map(numberToProblemSize);
       });
 
       const parseResult = productSchema.safeParse(data);
