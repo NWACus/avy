@@ -13,10 +13,11 @@ import {HomeStackNavigationProps} from '../routes';
 
 export const TelemetryStationMap: React.FunctionComponent<{
   center_id: string;
-}> = ({center_id}) => {
+  date: string;
+}> = ({center_id, date}) => {
   const {width} = useWindowDimensions();
   const [isReady, setIsReady] = React.useState<boolean>(false);
-  const [isList, setIsList] = React.useState<boolean>(true); // TODO(skuznets): set to false when map is ready
+  const [isList, setIsList] = React.useState<boolean>(false);
 
   function toggleList() {
     setIsList(v => !v);
@@ -32,6 +33,7 @@ export const TelemetryStationMap: React.FunctionComponent<{
   const [telemetryStations, setTelemetryStations] = React.useState<Record<number, StationMetadata>>({}); // Set uses === for equality, and we need by ID
   const {isLoading: isStationLoading, isError: isStationError, data: stations, error: stationError} = useStations(avalancheCenter?.widget_config?.stations?.token, page);
 
+  // TODO: when switching between centers, this pagination impl keeps previous centers' stations :|
   React.useEffect(() => {
     if (stations) {
       const newStations: Record<number, StationMetadata> = {};
@@ -80,7 +82,7 @@ export const TelemetryStationMap: React.FunctionComponent<{
             id: station.id,
             station: station,
           }))}
-          renderItem={({item}) => <TelemetryStationCard center_id={center_id} station={item.station} style={styles.verticalCard} />}
+          renderItem={({item}) => <TelemetryStationCard center_id={center_id} date={date} station={item.station} style={styles.verticalCard} />}
         />
         <TouchableOpacity onPress={toggleList}>
           <View style={styles.toggle}>
@@ -120,7 +122,7 @@ export const TelemetryStationMap: React.FunctionComponent<{
               id: station.id,
               station: station,
             }))}
-            renderItem={({item}) => <TelemetryStationCard center_id={center_id} station={item.station} style={styles.verticalCard} />}
+            renderItem={({item}) => <TelemetryStationCard center_id={center_id} date={date} station={item.station} style={styles.verticalCard} />}
           />
           <TouchableOpacity onPress={toggleList}>
             <View style={styles.toggle}>
@@ -135,9 +137,10 @@ export const TelemetryStationMap: React.FunctionComponent<{
 
 export const TelemetryStationCard: React.FunctionComponent<{
   center_id: string;
+  date: string;
   station: StationMetadata;
   style: ViewStyle;
-}> = ({center_id, station, style}) => {
+}> = ({center_id, date, station, style}) => {
   const {width} = useWindowDimensions();
   const navigation = useNavigation<HomeStackNavigationProps>();
   return (
@@ -148,6 +151,7 @@ export const TelemetryStationCard: React.FunctionComponent<{
           source: station.source,
           station_id: station.stid,
           name: station.name,
+          date: date,
         });
       }}
       style={{
