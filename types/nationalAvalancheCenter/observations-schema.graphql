@@ -1,6 +1,10 @@
-"""Exposes a URL that specifies the behaviour of this scalar."""
+"""
+Exposes a URL that specifies the behaviour of this scalar.
+"""
 directive @specifiedBy(
-  """The URL that specifies the behaviour of this scalar."""
+  """
+  The URL that specifies the behaviour of this scalar.
+  """
   url: String!
 ) on SCALAR
 
@@ -52,13 +56,19 @@ type CoordinatesGraph {
   lng: Float
 }
 
-"""Date (isoformat)"""
+"""
+Date (isoformat)
+"""
 scalar Date
 
-"""Date with time (isoformat)"""
+"""
+Date with time (isoformat)
+"""
 scalar DateTime
 
-"""The `JSON` scalar type represents JSON values"""
+"""
+The `JSON` scalar type represents JSON values
+"""
 scalar JSON
 
 type ObservationGraphPublic {
@@ -93,7 +103,9 @@ type Query {
   getObservationList(centerId: String!, startDate: String!, endDate: String!): [ObservationGraphPublic!]!
 }
 
-"""Time (isoformat)"""
+"""
+Time (isoformat)
+"""
 scalar Time
 
 scalar UUID

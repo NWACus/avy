@@ -11,6 +11,7 @@ npm install -g npm@8.19.3 yarn@1.22.10
 ## Local Secrets
 
 For development, you will need a number of environment variables set to secret values. The canonical approach is to store them in a `.env` file at the root of the repository. Make sure to provide the following values:
+
 - `ANDROID_GOOGLE_MAPS_API_KEY`
 - `IOS_GOOGLE_MAPS_API_KEY`
 - `SENTRY_API_TOKEN`

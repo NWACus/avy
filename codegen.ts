@@ -5,10 +5,19 @@ const config: CodegenConfig = {
   documents: ['./types/nationalAvalancheCenter/observations-queries.graphql'],
   generates: {
     './hooks/useObservations.ts': {
-      plugins: ['typescript', 'typescript-operations', 'typescript-react-query'],
+      plugins: [
+        {
+          add: {
+            content: '/* eslint-disable @typescript-eslint/no-explicit-any */',
+          },
+        },
+        'typescript',
+        'typescript-operations',
+        'typescript-react-query',
+      ],
       config: {
         fetcher: {
-          func: './observations-fetcher#fetch',
+          func: './observations-fetcher#useFetch',
           isReactHook: true,
           errorType: 'AxiosError', // this doesn't seem to take effect ... why ?
         },
