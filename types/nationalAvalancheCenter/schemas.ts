@@ -229,7 +229,7 @@ export const productSchema = z.object({
   status: productStatusSchema,
   author: z.string().nullable(),
   published_time: z.string().nullable(),
-  expires_time: z.string(),
+  expires_time: z.string().nullable(),
   created_at: z.string(),
   updated_at: z.string().nullable(),
   announcement: z.string().optional().nullable(),
