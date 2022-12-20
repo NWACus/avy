@@ -11,7 +11,9 @@
     "ci:eslint": "scripts/eslint.sh",
     "ci:prettier": "scripts/ci-prettier.sh",
     "ci:tsc": "scripts/ci-tsc.sh",
-    "ci": "yarn ci:prettier && yarn ci:eslint && yarn ci:tsc"
+    "ci": "yarn ci:prettier && yarn ci:eslint && yarn ci:tsc",
+    "graphql:schema": "get-graphql-schema https://api.avalanche.org/obs/v1/public/graphql > types/observations-schema.graphql",
+    "graphql:codegen": "graphql codegen"
   },
   "dependencies": {
     "@ant-design/react-native": "^5.0.2",
@@ -38,9 +40,11 @@
     "expo-location": "~14.3.0",
     "expo-status-bar": "~1.4.0",
     "expo-updates": "~0.14.7",
+    "get-graphql-schema": "^2.1.2",
+    "global": "^4.4.0",
     "polylabel": "^1.1.0",
     "react": "18.0.0",
-    "react-native": "0.69.7",
+    "react-native": "0.69.6",
     "react-native-gesture-handler": "~2.5.0",
     "react-native-maps": "0.31.1",
     "react-native-render-html": "^6.3.4",
@@ -55,6 +59,10 @@
   "devDependencies": {
     "@babel/core": "^7.18.6",
     "@expo/config": "^7.0.0",
+    "@graphql-cli/codegen": "2.4.21",
+    "@graphql-codegen/add": "^3.2.3",
+    "@graphql-codegen/typescript-operations": "^2.5.10",
+    "@graphql-codegen/typescript-react-query": "^4.0.6",
     "@types/color": "^3.0.3",
     "@types/polylabel": "^1.0.5",
     "@types/react": "~18.0.0",
@@ -63,6 +71,7 @@
     "@typescript-eslint/parser": "^5.46.1",
     "eslint": "^8.29.0",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "graphql-cli": "4.1.0",
     "prettier": "^2.7.1",
     "ts-to-zod": "^1.13.1",
     "typescript": "^4.9.4"

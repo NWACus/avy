@@ -1,0 +1,93 @@
+query observation($id: ID!) {
+    getSingleObservation(id: $id) {
+        ...everything
+    }
+}
+
+query observations($center: String!, $startDate: String!, $endDate: String!) {
+    getObservationList(centerId: $center, startDate: $startDate, endDate: $endDate) {
+        ...overview
+    }
+}
+
+fragment overview on ObservationGraphPublic {
+    id
+    observerType
+    name
+    startDate
+    locationPoint {
+        lat
+        lng
+    }
+    locationName
+    instability
+}
+
+fragment everything on ObservationGraphPublic {
+    id
+    centerId
+    createdAt
+    lastUpdated
+    status
+    private
+    observerType
+    organization
+    name
+    startDate
+    endDate
+    activity
+    locationPoint {
+        lat
+        lng
+    }
+    locationName
+    route
+    instability
+    instabilitySummary
+    observationSummary
+    media
+    urls
+    avalanchesSummary
+    avalanches {
+        id
+        observationId
+        date
+        time
+        dateAccuracy
+        location
+        number
+        avalancheType
+        cause
+        trigger
+        avgCrownDepth
+        dSize
+        rSize
+        bedSfc
+        elevation
+        verticalFall
+        width
+        slopeAngle
+        aspect
+        weakLayerType
+        weakLayerDate
+        comments
+        media
+    }
+    advancedFields {
+        id
+        observationId
+        observedTerrain
+        timeInField
+        weatherSummary
+        weather
+        avalancheComments
+        snowpackSummary
+        snowpack
+        snowpackMedia
+        avalancheProblems
+        avalancheProblemsComments
+        terrainUse
+        bottomLine
+    }
+    numberMedia
+}

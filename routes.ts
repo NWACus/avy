@@ -43,5 +43,12 @@ export type HomeStackParamList = {
     name: string;
     date: string;
   };
+  observations: {
+    center_id: string;
+    date: string;
+  };
+  observation: {
+    id: string;
+  };
 };
 export type HomeStackNavigationProps = NativeStackNavigationProp<HomeStackParamList>;

@@ -1,0 +1,99 @@
+"""Exposes a URL that specifies the behaviour of this scalar."""
+directive @specifiedBy(
+  """The URL that specifies the behaviour of this scalar."""
+  url: String!
+) on SCALAR
+
+type AdvancedFieldsGraphPublic {
+  id: UUID!
+  observationId: UUID!
+  observedTerrain: String
+  timeInField: JSON!
+  weatherSummary: String
+  weather: JSON
+  avalancheComments: String
+  snowpackSummary: String
+  snowpack: JSON
+  snowpackMedia: JSON
+  avalancheProblems: JSON
+  avalancheProblemsComments: String
+  terrainUse: String
+  bottomLine: String
+}
+
+type AvalancheObservationGraph {
+  id: UUID!
+  observationId: UUID!
+  date: Date
+  time: Time
+  dateAccuracy: String
+  location: String
+  number: Int
+  avalancheType: String
+  cause: String
+  trigger: String
+  avgCrownDepth: Float
+  dSize: String
+  rSize: String
+  bedSfc: String
+  elevation: Int
+  verticalFall: Float
+  width: Float
+  slopeAngle: Float
+  aspect: String
+  weakLayerType: String
+  weakLayerDate: Date
+  comments: String
+  media: JSON
+}
+
+type CoordinatesGraph {
+  lat: Float
+  lng: Float
+}
+
+"""Date (isoformat)"""
+scalar Date
+
+"""Date with time (isoformat)"""
+scalar DateTime
+
+"""The `JSON` scalar type represents JSON values"""
+scalar JSON
+
+type ObservationGraphPublic {
+  id: UUID!
+  centerId: String!
+  createdAt: DateTime!
+  lastUpdated: DateTime!
+  status: String!
+  private: Boolean!
+  observerType: String!
+  organization: String!
+  name: String
+  startDate: Date
+  endDate: Date
+  activity: [String!]!
+  locationPoint: CoordinatesGraph!
+  locationName: String!
+  route: String
+  instability: JSON!
+  instabilitySummary: String
+  observationSummary: String!
+  media: JSON
+  urls: [String!]
+  avalanchesSummary: String
+  avalanches: [AvalancheObservationGraph!]!
+  advancedFields: AdvancedFieldsGraphPublic
+  numberMedia: Int!
+}
+
+type Query {
+  getSingleObservation(id: ID!): ObservationGraphPublic!
+  getObservationList(centerId: String!, startDate: String!, endDate: String!): [ObservationGraphPublic!]!
+}
+
+"""Time (isoformat)"""
+scalar Time
+
+scalar UUID

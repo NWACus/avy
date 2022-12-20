@@ -22,6 +22,8 @@ import {useOnlineManager} from './hooks/useOnlineManager';
 import {TelemetryStationMap} from './components/TelemetryStationMap';
 import {TelemetryStationData} from './components/TelemetryStationData';
 import {TabNavigatorParamList, HomeStackParamList} from './routes';
+import {Observations} from './components/Observations';
+import {Observation} from './components/Observation';
 
 Sentry.init({
   // we're overwriting a field that was previously defined in app.json, so we know it's non-null:
@@ -112,6 +114,39 @@ const TelemetryStationScreen = ({route}: NativeStackScreenProps<HomeStackParamLi
   );
 };
 
+const ObservationsStack = createNativeStackNavigator<HomeStackParamList>();
+const ObservationsStackScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Observations'>, center_id: string, date: string) => {
+  return (
+    <ObservationsStack.Navigator initialRouteName="telemetryStations">
+      <ObservationsStack.Screen
+        name="observations"
+        component={ObservationsScreen}
+        initialParams={{center_id: center_id, date: date}}
+        options={({route}) => ({title: `${center_id} Observations`})}
+      />
+      <ObservationsStack.Screen name="observation" component={ObservationScreen} />
+    </ObservationsStack.Navigator>
+  );
+};
+
+const ObservationsScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'observations'>) => {
+  const {center_id, date} = route.params;
+  return (
+    <View style={styles.container}>
+      <Observations center_id={center_id} date={date} />
+    </View>
+  );
+};
+
+const ObservationScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'observation'>) => {
+  const {id} = route.params;
+  return (
+    <View style={styles.container}>
+      <Observation id={id} />
+    </View>
+  );
+};
+
 const onAppStateChange = (status: AppStateStatus) => {
   // React Query already supports in web browser refetch on window focus by default
   if (Platform.OS !== 'web') {
@@ -169,9 +204,6 @@ const App = () => {
           <SafeAreaProvider>
             <NavigationContainer>
               <SafeAreaView style={styles.container}>
-                  <Tab.Screen name="Observations" initialParams={{center_id: defaultCenterId}}>
-                    {() => PlaceholderScreen('Observations')}
-                  </Tab.Screen>
                 <TabNavigator.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
                   <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenter, date: date}}>
                     {args => AvalancheCenterStackScreen(args, avalancheCenter, date)}
