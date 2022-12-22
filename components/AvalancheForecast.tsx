@@ -56,18 +56,15 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
     );
   }
 
-  const currentDanger: AvalancheDangerForecast | undefined = forecast.danger.find(item => item.valid_day === ForecastPeriod.Current);
-  if (!currentDanger) {
-    Alert.alert('No danger recorded.', '', [
-      {
-        text: 'OK',
-      },
-    ]);
-    return (
-      <View>
-        <Text>{'No danger recorded'}</Text>
-      </View>
-    );
+  let currentDanger: AvalancheDangerForecast | undefined = forecast.danger.find(item => item.valid_day === ForecastPeriod.Current);
+  if (!currentDanger || !currentDanger.upper) {
+    // sometimes, we get an entry of nulls for today
+    currentDanger = {
+      lower: DangerLevel.None,
+      middle: DangerLevel.None,
+      upper: DangerLevel.None,
+      valid_day: ForecastPeriod.Tomorrow,
+    };
   }
   const highestDangerToday: DangerLevel = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper);
 

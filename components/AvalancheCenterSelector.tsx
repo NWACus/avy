@@ -44,9 +44,10 @@ const center_idsByType: SectionListData<string>[] = [
 
 interface AvalancheCenterCardProps {
   center_id: string;
+  set_avalanche_center: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = ({center_id}: AvalancheCenterCardProps) => {
+const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = ({center_id, set_avalanche_center}: AvalancheCenterCardProps) => {
   const navigation = useNavigation<TabNavigationProps>();
   const {isLoading, isError, data: avalancheCenter, error} = useAvalancheCenterMetadata(center_id);
   if (isLoading) {
@@ -71,11 +72,12 @@ const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = (
     <TouchableOpacity
       style={styles.item}
       onPress={() => {
+        set_avalanche_center(center_id);
         // We need to clear navigation state to force all screens from the
         // previous avalanche center selection to unmount
         navigation.reset({
           index: 0,
-          routes: [{name: 'Home', params: {center_id}}],
+          routes: [{name: 'Home'}],
         });
       }}>
       <AvalancheCenterLogo style={styles.logo} center_id={center_id} />
@@ -84,13 +86,13 @@ const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = (
   );
 };
 
-export const AvalancheCenterSelector = () => {
+export const AvalancheCenterSelector = ({setAvalancheCenter}) => {
   return (
     <SectionList
       style={styles.container}
       sections={center_idsByType}
       keyExtractor={item => item}
-      renderItem={({item}) => <AvalancheCenterCard center_id={item} />}
+      renderItem={({item}) => <AvalancheCenterCard center_id={item} set_avalanche_center={setAvalancheCenter} />}
       renderSectionHeader={({section: {title}}) => <Text style={styles.title}>{title + ' Centers'}</Text>}
     />
   );
