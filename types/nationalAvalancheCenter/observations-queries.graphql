@@ -21,6 +21,7 @@ fragment overview on ObservationGraphPublic {
   }
   locationName
   instability
+  observationSummary
 }
 
 fragment everything on ObservationGraphPublic {
