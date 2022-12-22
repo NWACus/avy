@@ -204,7 +204,7 @@ const App = () => {
                   initialRouteName="Home"
                   screenOptions={({route}) => ({
                     headerShown: false,
-                    tabBarIcon: ({focused, color, size}) => {
+                    tabBarIcon: ({color, size}) => {
                       if (route.name === 'Home') {
                         return <AntDesign name="search1" size={size} color={color} />;
                       } else if (route.name === 'Observations') {
