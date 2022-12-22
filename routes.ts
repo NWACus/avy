@@ -3,7 +3,7 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 export type TabNavigatorParamList = {
   Home: {center_id: string; date: string};
-  WeatherData: {center_id: string; date: string};
+  'Weather Data': {center_id: string; date: string};
   Observations: {center_id: string; date: string};
   Menu: {center_id: string};
   Debug: {center_id: string};

@@ -5,6 +5,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+import {AntDesign} from '@expo/vector-icons';
 
 import Constants from 'expo-constants';
 import * as Sentry from 'sentry-expo';
@@ -199,10 +200,27 @@ const App = () => {
           <SafeAreaProvider>
             <NavigationContainer>
               <SafeAreaView style={styles.container}>
-                <TabNavigator.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
+                <TabNavigator.Navigator
+                  initialRouteName="Home"
+                  screenOptions={({route}) => ({
+                    headerShown: false,
+                    tabBarIcon: ({focused, color, size}) => {
+                      if (route.name === 'Home') {
+                        return <AntDesign name="search1" size={size} color={color} />;
+                      } else if (route.name === 'Observations') {
+                        return <AntDesign name="filetext1" size={size} color={color} />;
+                      } else if (route.name === 'Weather Data') {
+                        return <AntDesign name="barschart" size={size} color={color} />;
+                      } else if (route.name === 'Menu') {
+                        return <AntDesign name="bars" size={size} color={color} />;
+                      } else if (route.name === 'Debug') {
+                        return <AntDesign name="database" size={size} color={color} />;
+                      }
+                    },
+                  })}>
                   <TabNavigator.Screen name="Home">{() => AvalancheCenterStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
                   <TabNavigator.Screen name="Observations">{() => ObservationsStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
-                  <TabNavigator.Screen name="WeatherData">{() => AvalancheCenterTelemetryStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
+                  <TabNavigator.Screen name="Weather Data">{() => AvalancheCenterTelemetryStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
                   <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenter}}>
                     {() => PlaceholderScreen('Menu')}
                   </TabNavigator.Screen>
