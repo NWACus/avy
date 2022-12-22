@@ -18,7 +18,7 @@
   "dependencies": {
     "@ant-design/react-native": "^5.0.2",
     "@expo/vector-icons": "^13.0.0",
-    "@react-native-community/cameraroll": "^4.1.2",
+    "@react-native-camera-roll/camera-roll": "^5.2.0",
     "@react-native-community/netinfo": "9.3.0",
     "@react-native-community/segmented-control": "^2.2.2",
     "@react-native-community/slider": "4.2.3",
