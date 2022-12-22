@@ -2,7 +2,7 @@ import React from 'react';
 
 import axios, {AxiosError} from 'axios';
 import {useQuery} from 'react-query';
-import {add, format} from 'date-fns';
+import {add, sub, format} from 'date-fns';
 
 import * as Sentry from 'sentry-expo';
 
@@ -16,7 +16,7 @@ export const useAvalancheForecastFragment = (center_id: string, forecast_zone_id
     const {data} = await axios.get(url, {
       params: {
         avalanche_center_id: center_id,
-        date_start: format(date, 'y-MM-dd'),
+        date_start: format(sub(date, {days: 1}), 'y-MM-dd'),
         date_end: format(add(date, {days: 1}), 'y-MM-dd'),
       },
     });
