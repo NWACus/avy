@@ -14,6 +14,9 @@ interface size {
 }
 
 export const AvalancheDangerIcon: React.FunctionComponent<AvalancheDangerIconProps> = ({style, level}: AvalancheDangerIconProps) => {
+  if (level === null) {
+    level = DangerLevel.None;
+  }
   /* eslint-disable @typescript-eslint/no-var-requires */
   const sizes: Record<DangerLevel, size> = {
     [DangerLevel.GeneralInformation]: Image.resolveAssetSource(require('../assets/danger-icons/0.png')),

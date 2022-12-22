@@ -98,6 +98,8 @@ export enum ForecastPeriod {
 export enum MediaType {
   Image = 'image',
   Video = 'video',
+  External = 'external',
+  None = '',
   // TODO(skuznets): more exist, no idea what they are
 }
 

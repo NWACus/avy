@@ -53,18 +53,20 @@ export const forecastPeriodSchema = z.nativeEnum(ForecastPeriod);
 
 export const mediaTypeSchema = z.nativeEnum(MediaType);
 
-export const mediaLinksSchema = z.object({
-  large: z.string(),
-  medium: z.string(),
-  original: z.string(),
-  thumbnail: z.string(),
-});
+export const mediaLinksSchema = z
+  .object({
+    large: z.string().optional(),
+    medium: z.string().optional(),
+    original: z.string().optional(),
+    thumbnail: z.string().optional(),
+  })
+  .or(z.string()); // when this field is not populated, it's an empty string, not a null
 
 export const avalancheCenterMetadataSchema = z.object({
   id: z.string().optional(),
   name: z.string(),
   url: z.string().optional(),
-  city: z.string().optional(),
+  city: z.string().optional().nullable(),
   state: z.string().optional(),
 });
 
@@ -187,10 +189,10 @@ export const avalancheProblemSchema = z.object({
   likelihood: avalancheProblemLikelihoodSchema,
   location: z.array(avalancheProblemLocationSchema),
   size: z.array(avalancheProblemSizeSchema),
-  discussion: z.string(),
+  discussion: z.string().nullable(),
   problem_description: z.string(),
   icon: z.string(),
-  media: mediaItemSchema,
+  media: mediaItemSchema.nullable(),
 });
 export type AvalancheProblem = z.infer<typeof avalancheProblemSchema>;
 
@@ -239,7 +241,7 @@ export const productSchema = z.object({
   danger: z.array(avalancheDangerForecastSchema),
   weather_discussion: z.string().optional().nullable(),
   weather_data: z.any(),
-  media: z.array(mediaItemSchema).optional(),
+  media: z.array(mediaItemSchema).optional().nullable(),
   avalanche_center: avalancheCenterMetadataSchema,
   forecast_zone: z.array(avalancheForecastZoneSummarySchema),
 });
@@ -252,7 +254,7 @@ export const avalancheCenterSchema = z.object({
   id: z.string(),
   name: z.string(),
   url: z.string(),
-  city: z.string().nullable(),
+  city: z.string().nullable().optional(),
   state: z.string(),
   timezone: z.string(),
   email: z.string().nullable(),
