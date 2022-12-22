@@ -2,7 +2,7 @@ import React from 'react';
 
 import axios, {AxiosError} from 'axios';
 import {useQuery} from 'react-query';
-import {add, sub, format} from 'date-fns';
+import {add, sub, format, isAfter, isBefore, parseISO} from 'date-fns';
 
 import * as Sentry from 'sentry-expo';
 
@@ -35,6 +35,10 @@ export const useAvalancheForecastFragment = (center_id: string, forecast_zone_id
       });
     }
     const products = productArraySchema.parse(data);
-    return products.find(forecast => forecast.forecast_zone.find(zone => zone.id === forecast_zone_id));
+    return products.find(forecast => isBetween(forecast.published_time, forecast.expires_time, date) && forecast.forecast_zone.find(zone => zone.id === forecast_zone_id));
   });
+};
+
+const isBetween = (start: string, end: string, date: Date): boolean => {
+  return isAfter(date, parseISO(start)) && isBefore(date, parseISO(end));
 };
