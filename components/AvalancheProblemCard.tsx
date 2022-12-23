@@ -42,7 +42,7 @@ export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardP
           <AvalancheProblemSizeLine size={problem.size} />
         </TitledPanel>
       </View>
-      {problem.media.type === MediaType.Image && <AvalancheProblemImage media={problem.media} />}
+      {problem.media.type === MediaType.Image && problem.media.url !== null && <AvalancheProblemImage media={problem.media} />}
       <View style={styles.content}>
         <RenderHTML source={{html: problem.discussion}} contentWidth={width} />
       </View>
