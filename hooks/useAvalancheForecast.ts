@@ -6,31 +6,20 @@ import {useQuery} from 'react-query';
 import * as Sentry from 'sentry-expo';
 
 import {ClientContext, ClientProps} from '../clientContext';
-import {Product, productSchema, numberToProblemSize} from '../types/nationalAvalancheCenter';
+import {Product, productSchema} from '../types/nationalAvalancheCenter';
 import {useAvalancheForecastFragment} from './useAvalancheForecastFragment';
+import {ZodError} from 'zod';
 
 export const useAvalancheForecast = (center_id: string, forecast_zone_id: number, date: Date) => {
   const clientProps = React.useContext<ClientProps>(ClientContext);
   const {data: fragment} = useAvalancheForecastFragment(center_id, forecast_zone_id, date);
   const forecastId = fragment?.id;
 
-  return useQuery<Product, AxiosError | Error>(
+  return useQuery<Product, AxiosError | ZodError>(
     ['product', forecastId],
     async () => {
       const url = `${clientProps.nationalAvalancheCenterHost}/v2/public/product/${forecastId}`;
       const {data} = await axios.get(url);
-
-      // Fix up data issues before parsing
-      // 1) NWAC (and probably others) return strings for avalanche problem size, not numbers
-      // 2) NWAC (and probably others) use values outside our enums 1-4
-      data.forecast_avalanche_problems?.forEach(problem => {
-        if (problem.size.find(s => typeof s === 'string')) {
-          // this is pretty noisy
-          console.log('converting size string to number', problem.size);
-          problem.size = problem.size.map(s => Number(s));
-        }
-        problem.size = problem.size.map(numberToProblemSize);
-      });
 
       const parseResult = productSchema.safeParse(data);
       if (parseResult.success === false) {
@@ -44,8 +33,10 @@ export const useAvalancheForecast = (center_id: string, forecast_zone_id: number
             url,
           },
         });
+        throw parseResult.error;
+      } else {
+        return parseResult.data;
       }
-      return productSchema.parse(data);
     },
     {
       enabled: !!forecastId,
