@@ -7,11 +7,11 @@ import {
   AvalancheProblemLikelihood,
   AvalancheProblemLocation,
   AvalancheProblemName,
-  AvalancheProblemSize,
   AvalancheProblemType,
   DangerLevel,
   ForecastPeriod,
   MediaType,
+  numberToProblemSize,
   ProductStatus,
   ProductType,
   Units,
@@ -47,7 +47,24 @@ export const avalancheProblemLikelihoodSchema = z.nativeEnum(AvalancheProblemLik
 
 export const avalancheProblemLocationSchema = z.nativeEnum(AvalancheProblemLocation);
 
-export const avalancheProblemSizeSchema = z.nativeEnum(AvalancheProblemSize);
+// Fix up data issues before parsing
+// 1) NWAC (and probably others) return strings for avalanche problem size, not numbers
+// 2) NWAC (and probably others) use values outside our enums 1-4
+export const avalancheProblemSizeSchema = z
+  .number()
+  .or(z.string())
+  .transform((val: string, ctx) => {
+    const parsed = parseInt(val);
+    if (isNaN(parsed)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Avalanche problem size must be numeric, got: ${val}.`,
+      });
+      return z.NEVER;
+    }
+    return parsed;
+  })
+  .transform(val => numberToProblemSize(val));
 
 export const forecastPeriodSchema = z.nativeEnum(ForecastPeriod);
 
@@ -60,7 +77,8 @@ export const mediaLinksSchema = z
     original: z.string().optional(),
     thumbnail: z.string().optional(),
   })
-  .or(z.string()); // when this field is not populated, it's an empty string, not a null
+  .or(z.string()) // when this field is not populated, it's an empty string, not a null
+  .transform((_: string) => null);
 
 export const avalancheCenterMetadataSchema = z.object({
   id: z.string().optional(),
@@ -75,7 +93,9 @@ export const avalancheForecastZoneSummarySchema = z.object({
   name: z.string(),
   url: z.string(),
   state: z.string().optional(),
-  zone_id: z.union([z.number(), z.string()]), // TODO(brian): can the string always be coerced to a number? or do we even need this field?
+  zone_id: z.union([z.number(), z.string()]).transform((val: number) => {
+    return String(val);
+  }),
 });
 export type AvalancheForecastZoneSummary = z.infer<typeof avalancheForecastZoneSummarySchema>;
 
@@ -148,7 +168,9 @@ export type MediaItem = z.infer<typeof mediaItemSchema>;
 export const avalancheCenterWeatherConfigurationSchema = z.object({
   autofill: z.any(),
   // as of 2022-12-13, zone_id is a string in production and a number in staging
-  zone_id: z.union([z.number(), z.string()]),
+  zone_id: z.union([z.number(), z.string()]).transform((val: number) => {
+    return String(val);
+  }),
   // as of 2022-12-13, always present in production and undefined in staging
   forecast_point: z.optional(latLngSchema),
   forecast_url: z.any(),
@@ -219,7 +241,14 @@ export const avalancheForecastZoneSchema = z.object({
   // SAC: zone is null
   url: z.string().nullable(),
   zone_id: z.string(),
-  config: avalancheForecastZoneConfigurationSchema.nullable(),
+  config: avalancheForecastZoneConfigurationSchema
+    .or(
+      z.string().transform((val: string) => {
+        // 1) CAIC is returning malformed JSON for zone config - looks over-escaped
+        return avalancheForecastZoneConfigurationSchema.parse(JSON.parse(val));
+      }),
+    )
+    .nullable(),
   status: avalancheForecastZoneStatusSchema,
   rank: z.number().nullable(),
 });

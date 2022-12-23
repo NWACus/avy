@@ -7,10 +7,11 @@ import * as Sentry from 'sentry-expo';
 
 import {ClientContext, ClientProps} from '../clientContext';
 import {MapLayer, mapLayerSchema} from '../types/nationalAvalancheCenter';
+import {ZodError} from 'zod';
 
 export const useMapLayer = (center_id: string) => {
   const clientProps = React.useContext<ClientProps>(ClientContext);
-  return useQuery<MapLayer, AxiosError | Error>(['map-layer', center_id], async () => {
+  return useQuery<MapLayer, AxiosError | ZodError>(['map-layer', center_id], async () => {
     const url = `${clientProps.nationalAvalancheCenterHost}/v2/public/products/map-layer/${center_id}`;
     const {data} = await axios.get(url);
 
@@ -23,7 +24,9 @@ export const useMapLayer = (center_id: string) => {
           center_id,
         },
       });
+      throw parseResult.error;
+    } else {
+      return parseResult.data;
     }
-    return mapLayerSchema.parse(data);
   });
 };
