@@ -77,8 +77,8 @@ export const mediaLinksSchema = z
     original: z.string().optional(),
     thumbnail: z.string().optional(),
   })
-  .or(z.string()) // when this field is not populated, it's an empty string, not a null
-  .transform((_: string) => null);
+  .or(z.string().transform((_: string) => null)) // when this field is not populated, it's an empty string, not a null
+  .nullable();
 
 export const avalancheCenterMetadataSchema = z.object({
   id: z.string().optional(),
