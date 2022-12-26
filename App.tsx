@@ -25,13 +25,21 @@ import {TabNavigatorParamList, HomeStackParamList} from './routes';
 import {Observations} from './components/Observations';
 import {Observation} from './components/Observation';
 
-Sentry.init({
-  // we're overwriting a field that was previously defined in app.json, so we know it's non-null:
+if (Sentry?.init) {
+  // we're reading a field that was previously defined in app.json, so we know it's non-null:
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  dsn: Constants.expoConfig.extra!.sentry_dsn,
-  enableInExpoDevelopment: true,
-  debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
-});
+  const dsn = Constants.expoConfig.extra!.sentry_dsn;
+  // Only initialize Sentry if we can find the correct env setup
+  if (dsn === 'LOADED_FROM_ENVIRONMENT') {
+    console.warn('Sentry integration not configured, check your environment');
+  } else {
+    Sentry.init({
+      dsn,
+      enableInExpoDevelopment: true,
+      debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
+    });
+  }
+}
 
 const queryClient: QueryClient = new QueryClient();
 
@@ -182,16 +190,21 @@ const App = () => {
     const [contextValue, setContextValue] = React.useState(productionClientProps);
 
     React.useEffect(() => {
-      // Add toggle commands to the React Native debug menu
-      // NB: the menu is only available in dev builds, *not* in Expo Go
-      DevSettings.addMenuItem('Switch to staging API', () => {
-        console.log('switch to staging API');
-        setContextValue(stagingClientProps);
-      });
-      DevSettings.addMenuItem('Switch to production API', () => {
-        console.log('Switch to production API');
-        setContextValue(productionClientProps);
-      });
+      // TODO(brian): this menu hacking isn't super-useful and doesn't work
+      // everywhere; adding to the in-app debug screen would be a better
+      // approach.
+      if (DevSettings?.addMenuItem) {
+        // Add toggle commands to the React Native debug menu
+        // NB: the menu is only available in dev builds, *not* in Expo Go
+        DevSettings.addMenuItem('Switch to staging API', () => {
+          console.log('switch to staging API');
+          setContextValue(stagingClientProps);
+        });
+        DevSettings.addMenuItem('Switch to production API', () => {
+          console.log('Switch to production API');
+          setContextValue(productionClientProps);
+        });
+      }
     }, []); // this effect should only run once
 
     return (
