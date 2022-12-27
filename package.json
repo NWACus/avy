@@ -11,9 +11,10 @@
     "ci:eslint": "scripts/eslint.sh",
     "ci:prettier": "scripts/ci-prettier.sh",
     "ci:tsc": "scripts/ci-tsc.sh",
-    "ci": "yarn ci:prettier && yarn ci:eslint && yarn ci:tsc",
+    "ci": "yarn ci:prettier && yarn ci:eslint && yarn ci:tsc && yarn test",
     "graphql:schema": "get-graphql-schema https://api.avalanche.org/obs/v1/public/graphql > types/observations-schema.graphql",
-    "graphql:codegen": "graphql codegen"
+    "graphql:codegen": "graphql codegen",
+    "test": "jest"
   },
   "dependencies": {
     "@ant-design/react-native": "^5.0.2",
@@ -43,6 +44,8 @@
     "expo-updates": "~0.15.6",
     "get-graphql-schema": "^2.1.2",
     "global": "^4.4.0",
+    "jest": "^26.6.3",
+    "jest-expo": "^47.0.1",
     "polylabel": "^1.1.0",
     "react": "18.1.0",
     "react-native": "0.70.5",
@@ -65,6 +68,7 @@
     "@graphql-codegen/typescript-operations": "^2.5.10",
     "@graphql-codegen/typescript-react-query": "^4.0.6",
     "@types/color": "^3.0.3",
+    "@types/jest": "^29.2.4",
     "@types/polylabel": "^1.0.5",
     "@types/react": "~18.0.24",
     "@types/react-native": "~0.70.6",
@@ -76,6 +80,12 @@
     "prettier": "^2.7.1",
     "ts-to-zod": "^1.13.1",
     "typescript": "^4.6.3"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
+    ]
   },
   "private": true
 }
