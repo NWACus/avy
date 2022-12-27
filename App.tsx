@@ -14,8 +14,6 @@ import {formatISO} from 'date-fns';
 import {focusManager, QueryClient, QueryClientProvider} from 'react-query';
 
 import {ClientContext, productionClientProps, stagingClientProps} from 'clientContext';
-import {AvalancheForecastZoneMap} from 'components/AvalancheForecastZoneMap';
-import {AvalancheForecast} from 'components/AvalancheForecast';
 import {AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 import {useAppState} from 'hooks/useAppState';
 import {useOnlineManager} from 'hooks/useOnlineManager';
@@ -24,6 +22,7 @@ import {TelemetryStationData} from 'components/TelemetryStationData';
 import {TabNavigatorParamList, HomeStackParamList} from 'routes';
 import {Observations} from 'components/Observations';
 import {Observation} from 'components/Observation';
+import {AvalancheCenterStackScreen} from 'components/screens/HomeScreen';
 
 if (Sentry?.init) {
   // we're reading a field that was previously defined in app.json, so we know it's non-null:
@@ -44,45 +43,6 @@ if (Sentry?.init) {
 const queryClient: QueryClient = new QueryClient();
 
 const TabNavigator = createBottomTabNavigator<TabNavigatorParamList>();
-
-const AvalancheCenterStack = createNativeStackNavigator<HomeStackParamList>();
-const AvalancheCenterStackScreen = (center_id: string, date: string) => {
-  return (
-    <AvalancheCenterStack.Navigator initialRouteName="avalancheCenter">
-      <AvalancheCenterStack.Screen
-        name="avalancheCenter"
-        component={MapScreen}
-        initialParams={{center_id: center_id, date: date}}
-        options={({route}) => ({title: route.params.center_id})}
-      />
-      <AvalancheCenterStack.Screen
-        name="forecast"
-        component={ForecastScreen}
-        initialParams={{center_id: center_id, date: date}}
-        options={({route}) => ({title: String(route.params.forecast_zone_id)})}
-      />
-    </AvalancheCenterStack.Navigator>
-  );
-};
-
-const MapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'avalancheCenter'>) => {
-  const {center_id, date} = route.params;
-  return (
-    <View style={{...styles.container}}>
-      <AvalancheForecastZoneMap centers={[center_id]} date={date} />
-    </View>
-  );
-};
-
-type ForecastScreenProps = NativeStackScreenProps<HomeStackParamList, 'forecast'>;
-const ForecastScreen = ({route}: ForecastScreenProps) => {
-  const {center_id, forecast_zone_id, date} = route.params;
-  return (
-    <View style={styles.container}>
-      <AvalancheForecast center_id={center_id} forecast_zone_id={forecast_zone_id} date={date} />
-    </View>
-  );
-};
 
 const AvalancheCenterTelemetryStack = createNativeStackNavigator<HomeStackParamList>();
 const AvalancheCenterTelemetryStackScreen = (center_id: string, date: string) => {
