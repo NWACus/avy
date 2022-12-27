@@ -1,5 +1,5 @@
 import React from 'react';
-import {EverythingFragment, useObservationQuery} from '../hooks/useObservations';
+import {EverythingFragment, useObservationQuery} from 'hooks/useObservations';
 import {ActivityIndicator, View, Text} from 'react-native';
 
 export const Observation: React.FunctionComponent<{

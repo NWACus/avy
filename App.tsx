@@ -17,8 +17,8 @@ import {ClientContext, productionClientProps, stagingClientProps} from './client
 import {AvalancheForecastZoneMap} from './components/AvalancheForecastZoneMap';
 import {AvalancheForecast} from './components/AvalancheForecast';
 import {AvalancheCenterSelector} from './components/AvalancheCenterSelector';
-import {useAppState} from './hooks/useAppState';
-import {useOnlineManager} from './hooks/useOnlineManager';
+import {useAppState} from 'hooks/useAppState';
+import {useOnlineManager} from 'hooks/useOnlineManager';
 import {TelemetryStationMap} from './components/TelemetryStationMap';
 import {TelemetryStationData} from './components/TelemetryStationData';
 import {TabNavigatorParamList, HomeStackParamList} from './routes';

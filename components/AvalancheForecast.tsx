@@ -10,9 +10,9 @@ import {AvalancheDangerForecast, AvalancheForecastZone, AvalancheForecastZoneSum
 import {AvalancheDangerTable} from './AvalancheDangerTable';
 import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {AvalancheProblemCard} from './AvalancheProblemCard';
-import {useAvalancheForecast} from '../hooks/useAvalancheForecast';
-import {useAvalancheCenterMetadata} from '../hooks/useAvalancheCenterMetadata';
-import {useRefreshByUser} from '../hooks/useRefreshByUser';
+import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {useRefreshByUser} from 'hooks/useRefreshByUser';
 
 export interface AvalancheForecastProps {
   center_id: string;

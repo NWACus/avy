@@ -13,8 +13,8 @@ import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZone
 import {colorFor} from './AvalancheDangerPyramid';
 import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {dangerText} from './helpers/dangerText';
-import {useMapLayer} from '../hooks/useMapLayer';
-import {useAvalancheForecastFragment} from '../hooks/useAvalancheForecastFragment';
+import {useMapLayer} from 'hooks/useMapLayer';
+import {useAvalancheForecastFragment} from 'hooks/useAvalancheForecastFragment';
 import {HomeStackNavigationProps} from '../routes';
 
 export const defaultRegion: Region = {

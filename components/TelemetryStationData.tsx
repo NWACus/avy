@@ -1,6 +1,6 @@
 import React from 'react';
-import {useTimeSeries} from '../hooks/useTimeseries';
-import {useAvalancheCenterMetadata} from '../hooks/useAvalancheCenterMetadata';
+import {useTimeSeries} from 'hooks/useTimeseries';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {StyleSheet, View, Text, ActivityIndicator, ScrollView, useWindowDimensions} from 'react-native';
 
 import {Chart, Line, HorizontalAxis, VerticalAxis} from 'react-native-responsive-linechart';

@@ -4,7 +4,7 @@ import {Text, View, SectionList, SectionListData, StyleSheet, TouchableOpacity, 
 import {useNavigation} from '@react-navigation/native';
 
 import {AvalancheCenterLogo} from './AvalancheCenterLogo';
-import {useAvalancheCenterMetadata} from '../hooks/useAvalancheCenterMetadata';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {TabNavigationProps} from '../routes';
 
 const center_idsByType: SectionListData<string>[] = [
