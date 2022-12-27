@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {AppStateStatus, DevSettings, Platform, StyleSheet, Text, View} from 'react-native';
+import {AppStateStatus, Platform, StyleSheet, Switch, Text, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -187,25 +187,16 @@ const App = () => {
     const [avalancheCenter, setAvalancheCenter] = React.useState(defaultCenterId);
     const [date] = React.useState(defaultDate);
 
-    const [contextValue, setContextValue] = React.useState(productionClientProps);
-
-    React.useEffect(() => {
-      // TODO(brian): this menu hacking isn't super-useful and doesn't work
-      // everywhere; adding to the in-app debug screen would be a better
-      // approach.
-      if (DevSettings?.addMenuItem) {
-        // Add toggle commands to the React Native debug menu
-        // NB: the menu is only available in dev builds, *not* in Expo Go
-        DevSettings.addMenuItem('Switch to staging API', () => {
-          console.log('switch to staging API');
-          setContextValue(stagingClientProps);
-        });
-        DevSettings.addMenuItem('Switch to production API', () => {
-          console.log('Switch to production API');
-          setContextValue(productionClientProps);
-        });
-      }
-    }, []); // this effect should only run once
+    const [staging, setStaging] = React.useState(false);
+    const toggleStaging = React.useCallback(() => {
+      setStaging(!staging);
+      console.log(`Switching to ${staging ? 'production' : 'staging'} environment`);
+    }, [staging, setStaging]);
+    const contextValue = {
+      ...(staging ? stagingClientProps : productionClientProps),
+      staging,
+      toggleStaging,
+    };
 
     return (
       <ClientContext.Provider value={contextValue}>
@@ -241,6 +232,10 @@ const App = () => {
                     <TabNavigator.Screen name="Debug">
                       {() => (
                         <View style={styles.container}>
+                          <View>
+                            <Text>Use staging environment</Text>
+                            <Switch value={staging} onValueChange={toggleStaging} />
+                          </View>
                           <AvalancheCenterSelector setAvalancheCenter={setAvalancheCenter} />
                         </View>
                       )}
