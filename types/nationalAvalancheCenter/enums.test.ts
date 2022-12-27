@@ -1,4 +1,4 @@
-import {AvalancheProblemSize, numberToProblemSize} from './enums';
+import {AvalancheProblemSize, numberToProblemSize} from 'types/nationalAvalancheCenter/enums';
 
 describe('numberToProblemSize', () => {
   it('works for expected values', () => {
