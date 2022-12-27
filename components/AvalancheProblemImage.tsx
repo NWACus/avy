@@ -3,7 +3,7 @@ import React from 'react';
 import {Text, Image, StyleSheet, TouchableHighlight, useWindowDimensions, View, ActivityIndicator} from 'react-native';
 import RenderHTML from 'react-native-render-html';
 
-import {MediaItem} from '../types/nationalAvalancheCenter';
+import {MediaItem} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheProblemImageProps {
   media: MediaItem;

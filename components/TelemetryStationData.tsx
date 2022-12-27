@@ -6,7 +6,7 @@ import {StyleSheet, View, Text, ActivityIndicator, ScrollView, useWindowDimensio
 import {Chart, Line, HorizontalAxis, VerticalAxis} from 'react-native-responsive-linechart';
 import {scaleLinear, scaleTime} from 'd3';
 import {max, min, parseISO, format} from 'date-fns';
-import {Variable, VariableMetadata} from '../types/snowbound';
+import {Variable, VariableMetadata} from 'types/snowbound';
 
 export const TelemetryStationData: React.FunctionComponent<{
   center_id: string;

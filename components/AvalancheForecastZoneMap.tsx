@@ -8,14 +8,14 @@ import {FontAwesome5} from '@expo/vector-icons';
 import Color from 'color';
 import {parseISO} from 'date-fns';
 
-import {AvalancheDangerForecast, DangerLevel, Feature, ForecastPeriod} from '../types/nationalAvalancheCenter';
+import {AvalancheDangerForecast, DangerLevel, Feature, ForecastPeriod} from 'types/nationalAvalancheCenter';
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
 import {colorFor} from './AvalancheDangerPyramid';
 import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {dangerText} from './helpers/dangerText';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useAvalancheForecastFragment} from 'hooks/useAvalancheForecastFragment';
-import {HomeStackNavigationProps} from '../routes';
+import {HomeStackNavigationProps} from 'routes';
 
 export const defaultRegion: Region = {
   // TODO(skuznets): add a sane default for the US?

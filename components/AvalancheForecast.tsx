@@ -6,7 +6,7 @@ import {useNavigation} from '@react-navigation/native';
 
 import {parseISO} from 'date-fns';
 
-import {AvalancheDangerForecast, AvalancheForecastZone, AvalancheForecastZoneSummary, DangerLevel, ElevationBandNames, ForecastPeriod} from '../types/nationalAvalancheCenter';
+import {AvalancheDangerForecast, AvalancheForecastZone, AvalancheForecastZoneSummary, DangerLevel, ElevationBandNames, ForecastPeriod} from 'types/nationalAvalancheCenter';
 import {AvalancheDangerTable} from './AvalancheDangerTable';
 import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {AvalancheProblemCard} from './AvalancheProblemCard';

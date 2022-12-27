@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {AvalancheProblemSize} from '../types/nationalAvalancheCenter';
+import {AvalancheProblemSize} from 'types/nationalAvalancheCenter';
 import {SeverityNumberLine} from './SeverityNumberLine';
 
 export interface AvalancheProblemSizeLineProps {

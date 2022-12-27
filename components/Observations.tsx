@@ -2,7 +2,7 @@ import React from 'react';
 import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {compareDesc, format, parseISO, sub} from 'date-fns';
 import {ActivityIndicator, View, Text, FlatList, TouchableOpacity, useWindowDimensions} from 'react-native';
-import {HomeStackNavigationProps} from '../routes';
+import {HomeStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
 import {Card, WhiteSpace, WingBlank} from '@ant-design/react-native';
 import {useMapLayer} from 'hooks/useMapLayer';

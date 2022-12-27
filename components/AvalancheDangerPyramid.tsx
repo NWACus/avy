@@ -5,7 +5,7 @@ import {StyleSheet} from 'react-native';
 
 import Color from 'color';
 
-import {AvalancheDangerForecast, DangerLevel} from '../types/nationalAvalancheCenter';
+import {AvalancheDangerForecast, DangerLevel} from 'types/nationalAvalancheCenter';
 
 export const colorFor = (danger: DangerLevel): Color => {
   switch (danger) {

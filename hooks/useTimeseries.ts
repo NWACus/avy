@@ -3,8 +3,8 @@ import React from 'react';
 import axios, {AxiosError} from 'axios';
 import {useQuery} from 'react-query';
 
-import {ClientContext, ClientProps} from '../clientContext';
-import {TimeSeriesResponse} from '../types/snowbound';
+import {ClientContext, ClientProps} from 'clientContext';
+import {TimeSeriesResponse} from 'types/snowbound';
 
 export const useTimeSeries = (station_id: number, source: string, token: string) => {
   const clientProps = React.useContext<ClientProps>(ClientContext);

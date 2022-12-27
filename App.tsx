@@ -13,17 +13,17 @@ import * as Sentry from 'sentry-expo';
 import {formatISO} from 'date-fns';
 import {focusManager, QueryClient, QueryClientProvider} from 'react-query';
 
-import {ClientContext, productionClientProps, stagingClientProps} from './clientContext';
-import {AvalancheForecastZoneMap} from './components/AvalancheForecastZoneMap';
-import {AvalancheForecast} from './components/AvalancheForecast';
-import {AvalancheCenterSelector} from './components/AvalancheCenterSelector';
+import {ClientContext, productionClientProps, stagingClientProps} from 'clientContext';
+import {AvalancheForecastZoneMap} from 'components/AvalancheForecastZoneMap';
+import {AvalancheForecast} from 'components/AvalancheForecast';
+import {AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 import {useAppState} from 'hooks/useAppState';
 import {useOnlineManager} from 'hooks/useOnlineManager';
-import {TelemetryStationMap} from './components/TelemetryStationMap';
-import {TelemetryStationData} from './components/TelemetryStationData';
-import {TabNavigatorParamList, HomeStackParamList} from './routes';
-import {Observations} from './components/Observations';
-import {Observation} from './components/Observation';
+import {TelemetryStationMap} from 'components/TelemetryStationMap';
+import {TelemetryStationData} from 'components/TelemetryStationData';
+import {TabNavigatorParamList, HomeStackParamList} from 'routes';
+import {Observations} from 'components/Observations';
+import {Observation} from 'components/Observation';
 
 if (Sentry?.init) {
   // we're reading a field that was previously defined in app.json, so we know it's non-null:

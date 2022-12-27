@@ -3,7 +3,7 @@ import React, {PropsWithChildren, ReactElement} from 'react';
 import {StyleSheet, Text, TextStyle, View, ViewStyle} from 'react-native';
 import Svg, {Path} from 'react-native-svg';
 
-import {AvalancheProblemLocation, ElevationBandNames} from '../types/nationalAvalancheCenter';
+import {AvalancheProblemLocation, ElevationBandNames} from 'types/nationalAvalancheCenter';
 
 export interface DangerRoseProps {
   style: ViewStyle;

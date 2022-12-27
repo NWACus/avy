@@ -5,8 +5,8 @@ import {useQuery} from 'react-query';
 
 import * as Sentry from 'sentry-expo';
 
-import {ClientContext, ClientProps} from '../clientContext';
-import {AvalancheCenter, avalancheCenterSchema} from '../types/nationalAvalancheCenter';
+import {ClientContext, ClientProps} from 'clientContext';
+import {AvalancheCenter, avalancheCenterSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
 export const useAvalancheCenterMetadata = (center_id: string) => {
