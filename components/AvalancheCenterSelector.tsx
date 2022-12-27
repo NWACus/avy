@@ -100,7 +100,6 @@ export const AvalancheCenterSelector = ({setAvalancheCenter}) => {
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
     flex: 1,
   },
   item: {
