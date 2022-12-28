@@ -5,14 +5,13 @@ import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 import {FontAwesome5} from '@expo/vector-icons';
 
-import Color from 'color';
 import {parseISO} from 'date-fns';
 
 import {AvalancheDangerForecast, DangerLevel, Feature, ForecastPeriod} from 'types/nationalAvalancheCenter';
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
 import {colorFor} from './AvalancheDangerPyramid';
 import {AvalancheDangerIcon} from './AvalancheDangerIcon';
-import {dangerText} from './helpers/dangerText';
+import {dangerShortText} from './helpers/dangerText';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useAvalancheForecastFragment} from 'hooks/useAvalancheForecastFragment';
 import {HomeStackNavigationProps} from 'routes';
@@ -82,21 +81,39 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           {isReady && centers.map(center_id => <AvalancheCenterForecastZonePolygons key={center_id} center_id={center_id} setRegion={setRegion} date={date} />)}
         </MapView>
         <View style={styles.legend}>
-          <Text style={styles.legendTitle}>Avalanche Danger Scale</Text>
+          <View style={styles.legendHeader}>
+            <Text style={styles.legendTitle}>Danger Scale</Text>
+            <FontAwesome5 name="info-circle" size={16} color="blue" />
+          </View>
           <View style={styles.legendItems}>
             {Object.keys(DangerLevel)
               .filter(key => Number.isNaN(+key))
-              .filter(key => DangerLevel[key] != DangerLevel.None)
-              .map(key => {
-                const level: DangerLevel = DangerLevel[key];
-                const backgroundColor: Color = colorFor(level).alpha(0.85);
-                const textColor: Color = backgroundColor.isLight() ? Color('black') : Color('white');
-                return (
-                  <View key={key} style={{...styles.legendMarker, backgroundColor: backgroundColor.string()}}>
-                    <Text style={{color: textColor.string()}}>{dangerText(DangerLevel[key])}</Text>
-                  </View>
-                );
-              })}
+              .filter(key => DangerLevel[key] > DangerLevel.None)
+              .map(key => DangerLevel[key])
+              .map(level => (
+                <View
+                  key={level}
+                  style={{
+                    ...styles.legendColor,
+                    backgroundColor: colorFor(level).alpha(0.85).string(),
+                    borderBottomLeftRadius: level === DangerLevel.Low ? 4 : 0,
+                    borderTopLeftRadius: level === DangerLevel.Low ? 4 : 0,
+                    borderBottomRightRadius: level === DangerLevel.Extreme ? 4 : 0,
+                    borderTopRightRadius: level === DangerLevel.Extreme ? 4 : 0,
+                  }}
+                />
+              ))}
+          </View>
+          <View style={styles.legendItems}>
+            {Object.keys(DangerLevel)
+              .filter(key => Number.isNaN(+key))
+              .filter(key => DangerLevel[key] > DangerLevel.None)
+              .map(key => DangerLevel[key])
+              .map(level => (
+                <Text key={level} style={styles.legendText}>
+                  {dangerShortText(level)}
+                </Text>
+              ))}
           </View>
         </View>
         <View style={styles.footer}>
@@ -246,44 +263,51 @@ const styles = StyleSheet.create({
   },
   legend: {
     backgroundColor: 'white',
-    padding: 2,
-    margin: 2,
+    padding: 8,
+    marginLeft: '10%',
     borderStyle: 'solid',
     borderWidth: 1.2,
     borderColor: 'rgb(200,202,206)',
     shadowOffset: {width: 1, height: 2},
     shadowOpacity: 0.8,
     shadowColor: 'rgb(157,162,165)',
-    borderRadius: 5,
+    borderRadius: 8,
     position: 'absolute',
-    width: '100%',
-    top: 0,
+    width: '80%',
+    bottom: 200,
     display: 'flex',
     flex: 1,
     flexDirection: 'column',
   },
+  legendHeader: {flex: 1, flexDirection: 'row', alignItems: 'center'},
   legendTitle: {
-    padding: 2,
+    flex: 0,
+    padding: 8,
     fontWeight: 'bold',
   },
+  legendIcon: {
+    flex: 0,
+    width: 16,
+    height: 16,
+  },
   legendItems: {
-    width: '100%',
+    marginLeft: 8,
+    marginRight: 8,
     display: 'flex',
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
   },
-  legendMarker: {
+  legendColor: {
+    flex: 1,
+    height: 16,
+  },
+  legendText: {
+    flex: 1,
     padding: 2,
-    marginLeft: 2,
-    marginRight: 2,
-    borderStyle: 'solid',
-    borderWidth: 1.2,
-    borderColor: 'rgb(200,202,206)',
-    shadowOffset: {width: 1, height: 2},
-    shadowOpacity: 0.8,
-    shadowColor: 'rgb(157,162,165)',
-    borderRadius: 5,
+    color: 'black',
+    textAlign: 'center',
+    fontSize: 10,
   },
   footer: {
     position: 'absolute',
