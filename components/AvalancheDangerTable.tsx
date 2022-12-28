@@ -4,7 +4,7 @@ import {Dimensions, ScaledSize, StyleSheet, Text, View} from 'react-native';
 
 import {addDays, format} from 'date-fns';
 
-import {AvalancheDangerForecast, ElevationBandNames} from '../types/nationalAvalancheCenter';
+import {AvalancheDangerForecast, ElevationBandNames} from 'types/nationalAvalancheCenter';
 import {AvalancheDangerPyramid, AvalancheDangerTriangle} from './AvalancheDangerPyramid';
 import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {dangerText} from './helpers/dangerText';

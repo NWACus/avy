@@ -1,4 +1,4 @@
-import {DangerLevel} from '../../types/nationalAvalancheCenter';
+import {DangerLevel} from 'types/nationalAvalancheCenter';
 
 export const dangerText = (level: DangerLevel): string => {
   let display: DangerLevel = level;

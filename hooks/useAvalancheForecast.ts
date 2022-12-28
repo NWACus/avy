@@ -5,8 +5,8 @@ import {useQuery} from 'react-query';
 
 import * as Sentry from 'sentry-expo';
 
-import {ClientContext, ClientProps} from '../clientContext';
-import {Product, productSchema} from '../types/nationalAvalancheCenter';
+import {ClientContext, ClientProps} from 'clientContext';
+import {Product, productSchema} from 'types/nationalAvalancheCenter';
 import {useAvalancheForecastFragment} from './useAvalancheForecastFragment';
 import {ZodError} from 'zod';
 

@@ -3,7 +3,7 @@ import React from 'react';
 import {StyleSheet, Text, useWindowDimensions, View} from 'react-native';
 import RenderHTML from 'react-native-render-html';
 
-import {AvalancheProblem, ElevationBandNames, MediaType} from '../types/nationalAvalancheCenter';
+import {AvalancheProblem, ElevationBandNames, MediaType} from 'types/nationalAvalancheCenter';
 import {AnnotatedDangerRose} from './DangerRose';
 import {AvalancheProblemIcon} from './AvalancheProblemIcon';
 import {AvalancheProblemLikelihoodLine} from './AvalancheProblemLikelihoodLine';

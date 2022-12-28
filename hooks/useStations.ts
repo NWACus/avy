@@ -3,8 +3,8 @@ import React from 'react';
 import axios, {AxiosError} from 'axios';
 import {useQuery} from 'react-query';
 
-import {ClientContext, ClientProps} from '../clientContext';
-import {StationResponse} from '../types/snowbound';
+import {ClientContext, ClientProps} from 'clientContext';
+import {StationResponse} from 'types/snowbound';
 
 export const useStations = (token: string, page: number) => {
   const clientProps = React.useContext<ClientProps>(ClientContext);

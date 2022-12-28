@@ -6,10 +6,10 @@ import {useNavigation} from '@react-navigation/native';
 import {parseISO} from 'date-fns';
 import polylabel from 'polylabel';
 
-import {AvalancheDangerForecast, DangerLevel, Feature, FeatureComponent, ForecastPeriod} from '../types/nationalAvalancheCenter';
-import {useAvalancheForecastFragment} from '../hooks/useAvalancheForecastFragment';
+import {AvalancheDangerForecast, DangerLevel, Feature, FeatureComponent, ForecastPeriod} from 'types/nationalAvalancheCenter';
+import {useAvalancheForecastFragment} from 'hooks/useAvalancheForecastFragment';
 import {colorFor} from './AvalancheDangerPyramid';
-import {HomeStackNavigationProps} from '../routes';
+import {HomeStackNavigationProps} from 'routes';
 
 const coordinateList = (geometry: FeatureComponent): number[][] => {
   let items: number[][] = [];

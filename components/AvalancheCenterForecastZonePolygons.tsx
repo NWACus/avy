@@ -2,7 +2,7 @@ import React from 'react';
 
 import {Region} from 'react-native-maps';
 
-import {useMapLayer} from '../hooks/useMapLayer';
+import {useMapLayer} from 'hooks/useMapLayer';
 import {AvalancheForecastZonePolygon} from './AvalancheForecastZonePolygon';
 
 export interface AvalancheCenterForecastZonePolygonsProps {

@@ -6,8 +6,8 @@ import {add, sub, format, isAfter, isBefore, parseISO} from 'date-fns';
 
 import * as Sentry from 'sentry-expo';
 
-import {ClientContext, ClientProps} from '../clientContext';
-import {Product, productArraySchema} from '../types/nationalAvalancheCenter';
+import {ClientContext, ClientProps} from 'clientContext';
+import {Product, productArraySchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
 export const useAvalancheForecastFragment = (center_id: string, forecast_zone_id: number, date: Date) => {

@@ -1,7 +1,7 @@
 import React, {ReactElement} from 'react';
 import {Image, ImageStyle} from 'react-native';
 
-import {AvalancheProblemType} from '../types/nationalAvalancheCenter';
+import {AvalancheProblemType} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheProblemIconProps {
   style: ImageStyle;

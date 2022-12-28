@@ -2,14 +2,14 @@ import React from 'react';
 
 import MapView, {Marker, Region} from 'react-native-maps';
 import {FontAwesome5} from '@expo/vector-icons';
-import {StationMetadata} from '../types/snowbound';
-import {useStations} from '../hooks/useStations';
-import {useAvalancheCenterMetadata} from '../hooks/useAvalancheCenterMetadata';
+import {StationMetadata} from 'types/snowbound';
+import {useStations} from 'hooks/useStations';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {StyleSheet, ActivityIndicator, FlatList, TouchableOpacity, View, ViewStyle, Text, useWindowDimensions} from 'react-native';
 import {CARD_MARGIN, CARD_SPACING, CARD_WIDTH, defaultRegion} from './AvalancheForecastZoneMap';
 import {updateRegionToContain} from './AvalancheForecastZonePolygon';
 import {useNavigation} from '@react-navigation/native';
-import {HomeStackNavigationProps} from '../routes';
+import {HomeStackNavigationProps} from 'routes';
 
 export const TelemetryStationMap: React.FunctionComponent<{
   center_id: string;

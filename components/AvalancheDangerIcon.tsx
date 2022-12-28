@@ -1,7 +1,7 @@
 import React, {ReactElement} from 'react';
 import {Image, ImageStyle} from 'react-native';
 
-import {DangerLevel} from '../types/nationalAvalancheCenter';
+import {DangerLevel} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheDangerIconProps {
   style: ImageStyle;
