@@ -1,29 +1,8 @@
-import {StyleSheet, View} from 'react-native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
-import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
+import {ForecastScreen} from './ForecastScreen';
+import {MapScreen} from './MapScreen';
 import {HomeStackParamList} from 'routes';
-
-import {AvalancheForecastZoneMap} from 'components/AvalancheForecastZoneMap';
-import {AvalancheForecast} from 'components/AvalancheForecast';
-
-const HomeScreenMapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'avalancheCenter'>) => {
-  const {center_id, date} = route.params;
-  return (
-    <View style={{...styles.container}}>
-      <AvalancheForecastZoneMap centers={[center_id]} date={date} />
-    </View>
-  );
-};
-
-type HomeScreenForecastScreenProps = NativeStackScreenProps<HomeStackParamList, 'forecast'>;
-const HomeScreenForecastScreen = ({route}: HomeScreenForecastScreenProps) => {
-  const {center_id, forecast_zone_id, date} = route.params;
-  return (
-    <View style={styles.container}>
-      <AvalancheForecast center_id={center_id} forecast_zone_id={forecast_zone_id} date={date} />
-    </View>
-  );
-};
 
 const AvalancheCenterStack = createNativeStackNavigator<HomeStackParamList>();
 export const AvalancheCenterStackScreen = (center_id: string, date: string) => {
@@ -31,23 +10,16 @@ export const AvalancheCenterStackScreen = (center_id: string, date: string) => {
     <AvalancheCenterStack.Navigator initialRouteName="avalancheCenter">
       <AvalancheCenterStack.Screen
         name="avalancheCenter"
-        component={HomeScreenMapScreen}
+        component={MapScreen}
         initialParams={{center_id: center_id, date: date}}
         options={({route}) => ({title: route.params.center_id})}
       />
       <AvalancheCenterStack.Screen
         name="forecast"
-        component={HomeScreenForecastScreen}
+        component={ForecastScreen}
         initialParams={{center_id: center_id, date: date}}
         options={({route}) => ({title: String(route.params.forecast_zone_id)})}
       />
     </AvalancheCenterStack.Navigator>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-    flex: 1,
-  },
-});
