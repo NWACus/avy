@@ -8,12 +8,7 @@ const AvalancheCenterStack = createNativeStackNavigator<HomeStackParamList>();
 export const AvalancheCenterStackScreen = (center_id: string, date: string) => {
   return (
     <AvalancheCenterStack.Navigator initialRouteName="avalancheCenter">
-      <AvalancheCenterStack.Screen
-        name="avalancheCenter"
-        component={MapScreen}
-        initialParams={{center_id: center_id, date: date}}
-        options={({route}) => ({title: route.params.center_id})}
-      />
+      <AvalancheCenterStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, date: date}} options={() => ({headerShown: false})} />
       <AvalancheCenterStack.Screen
         name="forecast"
         component={ForecastScreen}
