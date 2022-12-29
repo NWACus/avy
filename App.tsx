@@ -13,6 +13,8 @@ import * as Sentry from 'sentry-expo';
 import {formatISO} from 'date-fns';
 import {focusManager, QueryClient, QueryClientProvider} from 'react-query';
 
+import {NativeBaseProvider} from 'native-base';
+
 import {ClientContext, productionClientProps, stagingClientProps} from 'clientContext';
 import {AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 import {useAppState} from 'hooks/useAppState';
@@ -161,50 +163,52 @@ const App = () => {
     return (
       <ClientContext.Provider value={contextValue}>
         <QueryClientProvider client={queryClient}>
-          <SafeAreaProvider>
-            <NavigationContainer>
-              <SafeAreaView style={styles.container}>
-                <TabNavigator.Navigator
-                  initialRouteName="Home"
-                  screenOptions={({route}) => ({
-                    headerShown: false,
-                    tabBarIcon: ({color, size}) => {
-                      if (route.name === 'Home') {
-                        return <AntDesign name="search1" size={size} color={color} />;
-                      } else if (route.name === 'Observations') {
-                        return <AntDesign name="filetext1" size={size} color={color} />;
-                      } else if (route.name === 'Weather Data') {
-                        return <AntDesign name="barschart" size={size} color={color} />;
-                      } else if (route.name === 'Menu') {
-                        return <AntDesign name="bars" size={size} color={color} />;
-                      } else if (route.name === 'Debug') {
-                        return <AntDesign name="database" size={size} color={color} />;
-                      }
-                    },
-                  })}>
-                  <TabNavigator.Screen name="Home">{() => AvalancheCenterStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
-                  <TabNavigator.Screen name="Observations">{() => ObservationsStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
-                  <TabNavigator.Screen name="Weather Data">{() => AvalancheCenterTelemetryStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
-                  <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenter}}>
-                    {() => PlaceholderScreen('Menu')}
-                  </TabNavigator.Screen>
-                  {__DEV__ && (
-                    <TabNavigator.Screen name="Debug">
-                      {() => (
-                        <View style={styles.container}>
-                          <View>
-                            <Text>Use staging environment</Text>
-                            <Switch value={staging} onValueChange={toggleStaging} />
-                          </View>
-                          <AvalancheCenterSelector setAvalancheCenter={setAvalancheCenter} />
-                        </View>
-                      )}
+          <NativeBaseProvider>
+            <SafeAreaProvider>
+              <NavigationContainer>
+                <SafeAreaView style={styles.container}>
+                  <TabNavigator.Navigator
+                    initialRouteName="Home"
+                    screenOptions={({route}) => ({
+                      headerShown: false,
+                      tabBarIcon: ({color, size}) => {
+                        if (route.name === 'Home') {
+                          return <AntDesign name="search1" size={size} color={color} />;
+                        } else if (route.name === 'Observations') {
+                          return <AntDesign name="filetext1" size={size} color={color} />;
+                        } else if (route.name === 'Weather Data') {
+                          return <AntDesign name="barschart" size={size} color={color} />;
+                        } else if (route.name === 'Menu') {
+                          return <AntDesign name="bars" size={size} color={color} />;
+                        } else if (route.name === 'Debug') {
+                          return <AntDesign name="database" size={size} color={color} />;
+                        }
+                      },
+                    })}>
+                    <TabNavigator.Screen name="Home">{() => AvalancheCenterStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
+                    <TabNavigator.Screen name="Observations">{() => ObservationsStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
+                    <TabNavigator.Screen name="Weather Data">{() => AvalancheCenterTelemetryStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
+                    <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenter}}>
+                      {() => PlaceholderScreen('Menu')}
                     </TabNavigator.Screen>
-                  )}
-                </TabNavigator.Navigator>
-              </SafeAreaView>
-            </NavigationContainer>
-          </SafeAreaProvider>
+                    {__DEV__ && (
+                      <TabNavigator.Screen name="Debug">
+                        {() => (
+                          <View style={styles.container}>
+                            <View>
+                              <Text>Use staging environment</Text>
+                              <Switch value={staging} onValueChange={toggleStaging} />
+                            </View>
+                            <AvalancheCenterSelector setAvalancheCenter={setAvalancheCenter} />
+                          </View>
+                        )}
+                      </TabNavigator.Screen>
+                    )}
+                  </TabNavigator.Navigator>
+                </SafeAreaView>
+              </NavigationContainer>
+            </SafeAreaProvider>
+          </NativeBaseProvider>
         </QueryClientProvider>
       </ClientContext.Provider>
     );

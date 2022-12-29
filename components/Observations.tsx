@@ -4,7 +4,7 @@ import {compareDesc, format, parseISO, sub} from 'date-fns';
 import {ActivityIndicator, View, Text, FlatList, TouchableOpacity, useWindowDimensions} from 'react-native';
 import {HomeStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
-import {Card, WhiteSpace, WingBlank} from '@ant-design/react-native';
+import {Box, Divider, VStack, HStack, Text as NBText, Heading} from 'native-base';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {geoContains} from 'd3-geo';
 import RenderHTML from 'react-native-render-html';
@@ -83,26 +83,32 @@ export const ObservationSummaryCard: React.FunctionComponent<{
   const navigation = useNavigation<HomeStackNavigationProps>();
   const {width} = useWindowDimensions();
   return (
-    <>
-      <WingBlank size={'md'}>
-        <TouchableOpacity
-          onPress={() => {
-            navigation.navigate('observation', {
-              id: observation.id,
-            });
-          }}>
-          <Card>
-            <Card.Header title={zone + ' - ' + observation.locationName} extra={observation.startDate} />
-            <Card.Body>
-              <View style={{padding: 10}}>
-                <RenderHTML source={{html: observation.observationSummary}} contentWidth={width} />
-              </View>
-            </Card.Body>
-            <Card.Footer content={observation.name} extra={observation.observerType} />
-          </Card>
-        </TouchableOpacity>
-      </WingBlank>
-      <WhiteSpace size={'sm'} />
-    </>
+    <Box px="2" pt="2">
+      <TouchableOpacity
+        onPress={() => {
+          navigation.navigate('observation', {
+            id: observation.id,
+          });
+        }}>
+        <Box bg="white" borderWidth="2" borderRadius="8" borderColor="light.200" p="4">
+          <VStack space="2">
+            <HStack justifyContent="space-between" alignItems="center">
+              <Heading size="md" flex={1} mr="8" fontWeight="normal">
+                {zone + ' - ' + observation.locationName}
+              </Heading>
+              <Heading size="md" color="light.400" fontWeight="normal">
+                {observation.startDate}
+              </Heading>
+            </HStack>
+            <Divider orientation="horizontal" bg="light.200" />
+            <RenderHTML source={{html: observation.observationSummary}} contentWidth={width} />
+            <HStack justifyContent="space-between" pt="4">
+              <NBText color="light.400">{observation.name}</NBText>
+              <NBText color="light.400">{observation.observerType}</NBText>
+            </HStack>
+          </VStack>
+        </Box>
+      </TouchableOpacity>
+    </Box>
   );
 };
