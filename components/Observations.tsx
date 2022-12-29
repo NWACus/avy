@@ -90,7 +90,7 @@ export const ObservationSummaryCard: React.FunctionComponent<{
             id: observation.id,
           });
         }}>
-        <Box bg="white" borderWidth="2" borderRadius="4" borderColor="light.200" p="4">
+        <Box bg="white" borderWidth="2" borderRadius="8" borderColor="light.200" p="4">
           <VStack space="2">
             <HStack justifyContent="space-between" alignItems="center">
               <Heading size="md" flex={1} mr="8" fontWeight="normal">
@@ -103,8 +103,8 @@ export const ObservationSummaryCard: React.FunctionComponent<{
             <Divider orientation="horizontal" bg="light.200" />
             <RenderHTML source={{html: observation.observationSummary}} contentWidth={width} />
             <HStack justifyContent="space-between" pt="4">
-              <NBText>{observation.name}</NBText>
-              <NBText>{observation.observerType}</NBText>
+              <NBText color="light.400">{observation.name}</NBText>
+              <NBText color="light.400">{observation.observerType}</NBText>
             </HStack>
           </VStack>
         </Box>
