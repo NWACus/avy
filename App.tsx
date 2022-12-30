@@ -1,10 +1,10 @@
 import React from 'react';
 
-import {AppStateStatus, Platform, StyleSheet, Switch, Text, View} from 'react-native';
+import {AppStateStatus, Platform, StyleSheet, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {AntDesign} from '@expo/vector-icons';
 
 import Constants from 'expo-constants';
@@ -15,8 +15,7 @@ import {focusManager, QueryClient, QueryClientProvider} from 'react-query';
 
 import {NativeBaseProvider} from 'native-base';
 
-import {ClientContext, productionClientProps, stagingClientProps} from 'clientContext';
-import {AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
+import {ClientContext, contextDefaults, productionHosts, stagingHosts} from 'clientContext';
 import {useAppState} from 'hooks/useAppState';
 import {useOnlineManager} from 'hooks/useOnlineManager';
 import {TelemetryStationMap} from 'components/TelemetryStationMap';
@@ -25,6 +24,7 @@ import {TabNavigatorParamList, HomeStackParamList} from 'routes';
 import {Observations} from 'components/Observations';
 import {Observation} from 'components/Observation';
 import {AvalancheCenterStackScreen} from 'components/screens/HomeScreen';
+import {MenuScreen} from 'components/screens/MenuScreen';
 
 if (Sentry?.init) {
   // we're reading a field that was previously defined in app.json, so we know it's non-null:
@@ -124,21 +124,10 @@ const onAppStateChange = (status: AppStateStatus) => {
   }
 };
 
-function PlaceholderScreen(label: string) {
-  return (
-    <View style={{...styles.container, flex: 1, justifyContent: 'space-between', alignItems: 'center'}}>
-      <Text>This is top text.</Text>
-      <Text style={{fontSize: 24, fontWeight: 'bold'}}>View name: {label}</Text>
-      <Text>This is bottom text.</Text>
-    </View>
-  );
-}
-
 // For now, we are implicitly interested in today's forecast.
 // If you want to investigate an issue on a different day, you can change this value.
 // TODO: add a date picker
 const defaultDate = formatISO(Date.now());
-export const defaultCenterId = 'NWAC';
 
 const App = () => {
   try {
@@ -146,19 +135,22 @@ const App = () => {
 
     useAppState(onAppStateChange);
 
-    const [avalancheCenter, setAvalancheCenter] = React.useState(defaultCenterId);
-    const [date] = React.useState(defaultDate);
-
+    // Set up ClientContext values
+    const [avalancheCenter, setAvalancheCenter] = React.useState(contextDefaults.avalancheCenter);
     const [staging, setStaging] = React.useState(false);
     const toggleStaging = React.useCallback(() => {
       setStaging(!staging);
       console.log(`Switching to ${staging ? 'production' : 'staging'} environment`);
     }, [staging, setStaging]);
     const contextValue = {
-      ...(staging ? stagingClientProps : productionClientProps),
+      ...(staging ? stagingHosts : productionHosts),
+      avalancheCenter,
+      setAvalancheCenter,
       staging,
       toggleStaging,
     };
+
+    const [date] = React.useState(defaultDate);
 
     return (
       <ClientContext.Provider value={contextValue}>
@@ -166,46 +158,29 @@ const App = () => {
           <NativeBaseProvider>
             <SafeAreaProvider>
               <NavigationContainer>
-                <SafeAreaView style={styles.container}>
-                  <TabNavigator.Navigator
-                    initialRouteName="Home"
-                    screenOptions={({route}) => ({
-                      headerShown: false,
-                      tabBarIcon: ({color, size}) => {
-                        if (route.name === 'Home') {
-                          return <AntDesign name="search1" size={size} color={color} />;
-                        } else if (route.name === 'Observations') {
-                          return <AntDesign name="filetext1" size={size} color={color} />;
-                        } else if (route.name === 'Weather Data') {
-                          return <AntDesign name="barschart" size={size} color={color} />;
-                        } else if (route.name === 'Menu') {
-                          return <AntDesign name="bars" size={size} color={color} />;
-                        } else if (route.name === 'Debug') {
-                          return <AntDesign name="database" size={size} color={color} />;
-                        }
-                      },
-                    })}>
-                    <TabNavigator.Screen name="Home">{() => AvalancheCenterStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
-                    <TabNavigator.Screen name="Observations">{() => ObservationsStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
-                    <TabNavigator.Screen name="Weather Data">{() => AvalancheCenterTelemetryStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
-                    <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenter}}>
-                      {() => PlaceholderScreen('Menu')}
-                    </TabNavigator.Screen>
-                    {__DEV__ && (
-                      <TabNavigator.Screen name="Debug">
-                        {() => (
-                          <View style={styles.container}>
-                            <View>
-                              <Text>Use staging environment</Text>
-                              <Switch value={staging} onValueChange={toggleStaging} />
-                            </View>
-                            <AvalancheCenterSelector setAvalancheCenter={setAvalancheCenter} />
-                          </View>
-                        )}
-                      </TabNavigator.Screen>
-                    )}
-                  </TabNavigator.Navigator>
-                </SafeAreaView>
+                <TabNavigator.Navigator
+                  initialRouteName="Home"
+                  screenOptions={({route}) => ({
+                    headerShown: false,
+                    tabBarIcon: ({color, size}) => {
+                      if (route.name === 'Home') {
+                        return <AntDesign name="search1" size={size} color={color} />;
+                      } else if (route.name === 'Observations') {
+                        return <AntDesign name="filetext1" size={size} color={color} />;
+                      } else if (route.name === 'Weather Data') {
+                        return <AntDesign name="barschart" size={size} color={color} />;
+                      } else if (route.name === 'Menu') {
+                        return <AntDesign name="bars" size={size} color={color} />;
+                      }
+                    },
+                  })}>
+                  <TabNavigator.Screen name="Home">{() => AvalancheCenterStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
+                  <TabNavigator.Screen name="Observations">{() => ObservationsStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
+                  <TabNavigator.Screen name="Weather Data">{() => AvalancheCenterTelemetryStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
+                  <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenter}}>
+                    {() => MenuScreen()}
+                  </TabNavigator.Screen>
+                </TabNavigator.Navigator>
               </NavigationContainer>
             </SafeAreaProvider>
           </NativeBaseProvider>
