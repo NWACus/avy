@@ -36,11 +36,7 @@ jobs:
         run: yarn install
 
       - name: 🚀 Publish preview
-<<<<<<< HEAD
         run: eas update --branch=pr-${{ github.event.number }} --message '${{ github.event.pull_request.title }}' --non-interactive
-=======
-        run: expo publish --profile preview --release-channel=pr-${{ github.event.number }} --non-interactive
->>>>>>> 4b72c25 (App.tsx: add a Menu screen that hosts debug info conditionally)
 
       - name: 💬 Comment preview
         uses: expo/expo-github-action/preview-comment@v7
