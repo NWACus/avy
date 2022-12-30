@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {Box, VStack, HStack, Text as NBText} from 'native-base';
-import {Text, SectionList, SectionListData, StyleSheet, TouchableOpacity, ActivityIndicator} from 'react-native';
+import {Text, SectionList, SectionListData, StyleSheet, TouchableOpacity, ActivityIndicator, useWindowDimensions} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import {AvalancheCenterLogo} from './AvalancheCenterLogo';
@@ -50,17 +50,18 @@ interface AvalancheCenterCardProps {
 }
 
 export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = ({avalancheCenterId, selected, onPress}: AvalancheCenterCardProps) => {
+  const {width, height} = useWindowDimensions();
   const {isLoading, isError, data: avalancheCenter, error} = useAvalancheCenterMetadata(avalancheCenterId);
   if (isLoading) {
     return <ActivityIndicator style={styles.item} />;
   }
   if (isError) {
     return (
-      <Box px="2" pt="2">
-        <Box bg="white" borderWidth="2" borderRadius="8" borderColor="light.200" p="4">
-          <VStack space="2">
-            <HStack justifyContent="space-between" pt="4">
-              <NBText color="light.400">{`Could not fetch data for ${avalancheCenter}: ${error?.message}.`}</NBText>
+      <Box>
+        <Box bg="light.100">
+          <VStack>
+            <HStack justifyContent="flex-start" alignItems="center">
+              <NBText color="light.400">{`Could not fetch data for ${avalancheCenterId}: ${error?.message}.`}</NBText>
             </HStack>
           </VStack>
         </Box>
@@ -69,11 +70,11 @@ export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardPro
   }
   if (!avalancheCenter) {
     return (
-      <Box px="2" pt="2">
-        <Box bg="white" borderWidth="2" borderRadius="8" borderColor="light.200" p="4">
-          <VStack space="2">
-            <HStack justifyContent="space-between" pt="4">
-              <NBText color="light.400">{`No metadata found for ${avalancheCenter}.`}</NBText>
+      <Box>
+        <Box bg="light.100">
+          <VStack>
+            <HStack justifyContent="flex-start" alignItems="center">
+              <NBText color="light.400">{`No metadata found for ${avalancheCenterId}.`}</NBText>
             </HStack>
           </VStack>
         </Box>
@@ -82,17 +83,19 @@ export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardPro
   }
 
   return (
-    <Box px="2" pt="2">
+    <Box>
       <TouchableOpacity
         style={styles.item}
         onPress={() => {
           onPress(avalancheCenterId);
         }}>
-        <Box bg={selected ? 'red.400' : 'white'} borderWidth="2" borderRadius="8" borderColor="light.200" p="4">
-          <VStack space="2">
-            <HStack justifyContent="space-between" pt="4">
-              <AvalancheCenterLogo style={styles.logo} avalancheCenterId={avalancheCenterId} />
-              <NBText color="light.400">{avalancheCenter.name}</NBText>
+        <Box bg={selected ? 'blue.100' : 'light.100'}>
+          <VStack>
+            <HStack justifyContent="flex-start" alignItems="center" px="2" width={width}>
+              <AvalancheCenterLogo style={{height: height / 20}} avalancheCenterId={avalancheCenterId} />
+              <NBText px="2" color="light.400">
+                {avalancheCenter.name}
+              </NBText>
             </HStack>
           </VStack>
         </Box>
