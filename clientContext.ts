@@ -1,12 +1,8 @@
 import React, {Context} from 'react';
 
 export interface ClientProps {
-  avalancheCenter: string;
-  setAvalancheCenter: (center: string) => void;
   nationalAvalancheCenterHost: string;
   snowboundHost: string;
-  staging: boolean;
-  toggleStaging: () => void;
 }
 
 export const productionHosts = {
@@ -20,14 +16,6 @@ export const stagingHosts = {
   snowboundHost: 'https://api.snowobs.com',
 };
 
-export const contextDefaults = {
-  ...productionHosts,
-  staging: false,
-  avalancheCenter: 'NWAC',
-};
-
 export const ClientContext: Context<ClientProps> = React.createContext<ClientProps>({
-  ...contextDefaults,
-  setAvalancheCenter: () => undefined,
-  toggleStaging: () => undefined,
+  ...productionHosts,
 });

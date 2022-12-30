@@ -11,7 +11,6 @@ export type TabNavigatorParamList = {
 export type TabNavigationProps = BottomTabNavigationProp<TabNavigatorParamList>;
 
 export type HomeStackParamList = {
-  avalancheCenterSelection: undefined;
   avalancheCenterHome: {
     center_id: string;
     date: string;
@@ -53,3 +52,13 @@ export type HomeStackParamList = {
   };
 };
 export type HomeStackNavigationProps = NativeStackNavigationProp<HomeStackParamList>;
+
+export type MenuStackParamList = {
+  avalancheCenterSelector: {
+    current_center_id: string;
+  };
+  menu: {
+    current_center_id: string;
+  };
+};
+export type MenuStackNavigationProps = NativeStackNavigationProp<MenuStackParamList>;

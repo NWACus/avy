@@ -15,7 +15,8 @@ import {focusManager, QueryClient, QueryClientProvider} from 'react-query';
 
 import {NativeBaseProvider, extendTheme} from 'native-base';
 
-import {ClientContext, contextDefaults, productionHosts, stagingHosts} from 'clientContext';
+import {ClientContext, productionHosts, stagingHosts} from 'clientContext';
+import {defaults} from 'defaults';
 import {useAppState} from 'hooks/useAppState';
 import {useOnlineManager} from 'hooks/useOnlineManager';
 import {TelemetryStationMap} from 'components/TelemetryStationMap';
@@ -24,7 +25,7 @@ import {TabNavigatorParamList, HomeStackParamList} from 'routes';
 import {Observations} from 'components/Observations';
 import {Observation} from 'components/Observation';
 import {AvalancheCenterStackScreen} from 'components/screens/HomeScreen';
-import {MenuScreen} from 'components/screens/MenuScreen';
+import {MenuStackScreen} from 'components/screens/MenuScreen';
 
 if (Sentry?.init) {
   // we're reading a field that was previously defined in app.json, so we know it's non-null:
@@ -142,18 +143,11 @@ const App = () => {
     useAppState(onAppStateChange);
 
     // Set up ClientContext values
-    const [avalancheCenter, setAvalancheCenter] = React.useState(contextDefaults.avalancheCenter);
+    const [avalancheCenter, setAvalancheCenter] = React.useState(defaults.avalancheCenter);
     const [staging, setStaging] = React.useState(false);
-    const toggleStaging = React.useCallback(() => {
-      setStaging(!staging);
-      console.log(`Switching to ${staging ? 'production' : 'staging'} environment`);
-    }, [staging, setStaging]);
+
     const contextValue = {
       ...(staging ? stagingHosts : productionHosts),
-      avalancheCenter,
-      setAvalancheCenter,
-      staging,
-      toggleStaging,
     };
 
     const [date] = React.useState(defaultDate);
@@ -184,7 +178,7 @@ const App = () => {
                   <TabNavigator.Screen name="Observations">{() => ObservationsStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
                   <TabNavigator.Screen name="Weather Data">{() => AvalancheCenterTelemetryStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
                   <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenter}}>
-                    {() => MenuScreen()}
+                    {() => MenuStackScreen(avalancheCenter, setAvalancheCenter, staging, setStaging)}
                   </TabNavigator.Screen>
                 </TabNavigator.Navigator>
               </NavigationContainer>
