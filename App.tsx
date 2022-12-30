@@ -128,6 +128,7 @@ const onAppStateChange = (status: AppStateStatus) => {
 // If you want to investigate an issue on a different day, you can change this value.
 // TODO: add a date picker
 const defaultDate = formatISO(Date.now());
+const defaultCenterId = 'NWAC';
 
 const App = () => {
   try {
@@ -136,8 +137,8 @@ const App = () => {
     useAppState(onAppStateChange);
 
     // Set up ClientContext values
-    const [avalancheCenter, setAvalancheCenter] = React.useState(contextDefaults.avalancheCenter);
-    const [staging, setStaging] = React.useState(false);
+    const [avalancheCenter, setAvalancheCenter] = React.useState(defaultCenterId);
+    const [staging, setStaging] = React.useState(contextDefaults.staging);
     const toggleStaging = React.useCallback(() => {
       setStaging(!staging);
       console.log(`Switching to ${staging ? 'production' : 'staging'} environment`);

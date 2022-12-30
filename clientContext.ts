@@ -1,7 +1,6 @@
 import React, {Context} from 'react';
 
 export interface ClientProps {
-  avalancheCenter: string;
   setAvalancheCenter: (center: string) => void;
   nationalAvalancheCenterHost: string;
   snowboundHost: string;
@@ -23,7 +22,6 @@ export const stagingHosts = {
 export const contextDefaults = {
   ...productionHosts,
   staging: false,
-  avalancheCenter: 'NWAC',
 };
 
 export const ClientContext: Context<ClientProps> = React.createContext<ClientProps>({
