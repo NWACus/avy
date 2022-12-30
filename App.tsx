@@ -1,8 +1,7 @@
 import React from 'react';
 
-import {AppStateStatus, Platform, StyleSheet, View} from 'react-native';
+import {AppStateStatus, Platform} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {AntDesign} from '@expo/vector-icons';
@@ -19,13 +18,11 @@ import {ClientContext, productionHosts, stagingHosts} from 'clientContext';
 import {defaults} from 'defaults';
 import {useAppState} from 'hooks/useAppState';
 import {useOnlineManager} from 'hooks/useOnlineManager';
-import {TelemetryStationMap} from 'components/TelemetryStationMap';
-import {TelemetryStationData} from 'components/TelemetryStationData';
-import {TabNavigatorParamList, HomeStackParamList} from 'routes';
-import {Observations} from 'components/Observations';
-import {Observation} from 'components/Observation';
-import {AvalancheCenterStackScreen} from 'components/screens/HomeScreen';
+import {TabNavigatorParamList} from 'routes';
+import {HomeTabScreen} from 'components/screens/HomeScreen';
 import {MenuStackScreen} from 'components/screens/MenuScreen';
+import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
+import {TelemetryTabScreen} from 'components/screens/TelemetryScreen';
 
 if (Sentry?.init) {
   // we're reading a field that was previously defined in app.json, so we know it's non-null:
@@ -46,77 +43,6 @@ if (Sentry?.init) {
 const queryClient: QueryClient = new QueryClient();
 
 const TabNavigator = createBottomTabNavigator<TabNavigatorParamList>();
-
-const AvalancheCenterTelemetryStack = createNativeStackNavigator<HomeStackParamList>();
-const AvalancheCenterTelemetryStackScreen = (center_id: string, date: string) => {
-  return (
-    <AvalancheCenterTelemetryStack.Navigator initialRouteName="telemetryStations">
-      <AvalancheCenterTelemetryStack.Screen
-        name="telemetryStations"
-        component={TelemetryScreen}
-        initialParams={{center_id: center_id, date: date}}
-        options={() => ({title: `${center_id} Telemetry Stations`})}
-      />
-      <AvalancheCenterTelemetryStack.Screen
-        name="telemetryStation"
-        component={TelemetryStationScreen}
-        initialParams={{center_id: center_id, date: date}}
-        options={({route}) => ({title: String(route.params.name)})}
-      />
-    </AvalancheCenterTelemetryStack.Navigator>
-  );
-};
-
-const TelemetryScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'avalancheCenter'>) => {
-  const {center_id, date} = route.params;
-  return (
-    <View style={styles.container}>
-      <TelemetryStationMap center_id={center_id} date={date} />
-    </View>
-  );
-};
-
-const TelemetryStationScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'telemetryStation'>) => {
-  const {center_id, source, station_id} = route.params;
-  return (
-    <View style={styles.container}>
-      <TelemetryStationData center_id={center_id} source={source} station_id={station_id} />
-    </View>
-  );
-};
-
-const ObservationsStack = createNativeStackNavigator<HomeStackParamList>();
-const ObservationsStackScreen = (center_id: string, date: string) => {
-  return (
-    <ObservationsStack.Navigator initialRouteName="telemetryStations">
-      <ObservationsStack.Screen
-        name="observations"
-        component={ObservationsScreen}
-        initialParams={{center_id: center_id, date: date}}
-        options={() => ({title: `${center_id} Observations`})}
-      />
-      <ObservationsStack.Screen name="observation" component={ObservationScreen} />
-    </ObservationsStack.Navigator>
-  );
-};
-
-const ObservationsScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'observations'>) => {
-  const {center_id, date} = route.params;
-  return (
-    <View style={styles.container}>
-      <Observations center_id={center_id} date={date} />
-    </View>
-  );
-};
-
-const ObservationScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'observation'>) => {
-  const {id} = route.params;
-  return (
-    <View style={styles.container}>
-      <Observation id={id} />
-    </View>
-  );
-};
 
 const onAppStateChange = (status: AppStateStatus) => {
   // React Query already supports in web browser refetch on window focus by default
@@ -143,7 +69,7 @@ const App = () => {
     useAppState(onAppStateChange);
 
     // Set up ClientContext values
-    const [avalancheCenter, setAvalancheCenter] = React.useState(defaults.avalancheCenter);
+    const [avalancheCenterId, setAvalancheCenterId] = React.useState(defaults.avalancheCenter);
     const [staging, setStaging] = React.useState(false);
 
     const contextValue = {
@@ -174,11 +100,17 @@ const App = () => {
                       }
                     },
                   })}>
-                  <TabNavigator.Screen name="Home">{() => AvalancheCenterStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
-                  <TabNavigator.Screen name="Observations">{() => ObservationsStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
-                  <TabNavigator.Screen name="Weather Data">{() => AvalancheCenterTelemetryStackScreen(avalancheCenter, date)}</TabNavigator.Screen>
-                  <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenter}}>
-                    {() => MenuStackScreen(avalancheCenter, setAvalancheCenter, staging, setStaging)}
+                  <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, date: date}}>
+                    {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+                  </TabNavigator.Screen>
+                  <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, date: date}}>
+                    {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+                  </TabNavigator.Screen>
+                  <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, date: date}}>
+                    {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+                  </TabNavigator.Screen>
+                  <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
+                    {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
                   </TabNavigator.Screen>
                 </TabNavigator.Navigator>
               </NavigationContainer>
@@ -193,11 +125,17 @@ const App = () => {
   }
 };
 
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-    flex: 1,
-  },
-});
+const withParams = (state, params) => {
+  return {
+    ...state,
+    route: {
+      ...state.route,
+      params: {
+        ...state.route.params,
+        ...params,
+      },
+    },
+  };
+};
 
 export default App;

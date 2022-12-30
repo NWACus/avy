@@ -6,19 +6,10 @@ export type TabNavigatorParamList = {
   'Weather Data': {center_id: string; date: string};
   Observations: {center_id: string; date: string};
   Menu: {center_id: string};
-  Debug: {center_id: string};
 };
 export type TabNavigationProps = BottomTabNavigationProp<TabNavigatorParamList>;
 
 export type HomeStackParamList = {
-  avalancheCenterHome: {
-    center_id: string;
-    date: string;
-  };
-  avalancheCenterStack: {
-    center_id: string;
-    date: string;
-  };
   avalancheCenter: {
     center_id: string;
     date: string;
@@ -29,9 +20,10 @@ export type HomeStackParamList = {
     forecast_zone_id: number;
     date: string;
   };
-  avalancheCenterTelemetryStack: {
-    center_id: string;
-  };
+};
+export type HomeStackNavigationProps = NativeStackNavigationProp<HomeStackParamList>;
+
+export type TelemetryStackParamList = {
   telemetryStations: {
     center_id: string;
     date: string;
@@ -43,6 +35,10 @@ export type HomeStackParamList = {
     name: string;
     date: string;
   };
+};
+export type TelemetryStackNavigationProps = NativeStackNavigationProp<TelemetryStackParamList>;
+
+export type ObservationsStackParamList = {
   observations: {
     center_id: string;
     date: string;
@@ -51,14 +47,10 @@ export type HomeStackParamList = {
     id: string;
   };
 };
-export type HomeStackNavigationProps = NativeStackNavigationProp<HomeStackParamList>;
+export type ObservationsStackNavigationProps = NativeStackNavigationProp<ObservationsStackParamList>;
 
 export type MenuStackParamList = {
-  avalancheCenterSelector: {
-    current_center_id: string;
-  };
-  menu: {
-    current_center_id: string;
-  };
+  menu: undefined;
+  avalancheCenterSelector: undefined;
 };
 export type MenuStackNavigationProps = NativeStackNavigationProp<MenuStackParamList>;

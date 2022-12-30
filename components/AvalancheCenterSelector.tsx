@@ -8,7 +8,7 @@ import {AvalancheCenterLogo} from './AvalancheCenterLogo';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {TabNavigationProps} from 'routes';
 
-const center_idsByType: SectionListData<string>[] = [
+const avalancheCenterIDsByType: SectionListData<string>[] = [
   {
     title: 'Forest Service',
     data: [
@@ -44,13 +44,13 @@ const center_idsByType: SectionListData<string>[] = [
 ];
 
 interface AvalancheCenterCardProps {
-  center_id: string;
+  avalancheCenterId: string;
   selected: boolean;
-  onPress: (center_id: string) => void;
+  onPress: (avalancheCenter: string) => void;
 }
 
-export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = ({center_id, selected, onPress}: AvalancheCenterCardProps) => {
-  const {isLoading, isError, data: avalancheCenter, error} = useAvalancheCenterMetadata(center_id);
+export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = ({avalancheCenterId, selected, onPress}: AvalancheCenterCardProps) => {
+  const {isLoading, isError, data: avalancheCenter, error} = useAvalancheCenterMetadata(avalancheCenterId);
   if (isLoading) {
     return <ActivityIndicator style={styles.item} />;
   }
@@ -60,7 +60,7 @@ export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardPro
         <Box bg="white" borderWidth="2" borderRadius="8" borderColor="light.200" p="4">
           <VStack space="2">
             <HStack justifyContent="space-between" pt="4">
-              <NBText color="light.400">{`Could not fetch data for ${center_id}: ${error?.message}.`}</NBText>
+              <NBText color="light.400">{`Could not fetch data for ${avalancheCenter}: ${error?.message}.`}</NBText>
             </HStack>
           </VStack>
         </Box>
@@ -73,7 +73,7 @@ export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardPro
         <Box bg="white" borderWidth="2" borderRadius="8" borderColor="light.200" p="4">
           <VStack space="2">
             <HStack justifyContent="space-between" pt="4">
-              <NBText color="light.400">{`No metadata found for ${center_id}.`}</NBText>
+              <NBText color="light.400">{`No metadata found for ${avalancheCenter}.`}</NBText>
             </HStack>
           </VStack>
         </Box>
@@ -86,12 +86,12 @@ export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardPro
       <TouchableOpacity
         style={styles.item}
         onPress={() => {
-          onPress(center_id);
+          onPress(avalancheCenterId);
         }}>
         <Box bg={selected ? 'red.400' : 'white'} borderWidth="2" borderRadius="8" borderColor="light.200" p="4">
           <VStack space="2">
             <HStack justifyContent="space-between" pt="4">
-              <AvalancheCenterLogo style={styles.logo} center_id={center_id} />
+              <AvalancheCenterLogo style={styles.logo} avalancheCenterId={avalancheCenterId} />
               <NBText color="light.400">{avalancheCenter.name}</NBText>
             </HStack>
           </VStack>
@@ -106,14 +106,14 @@ export const AvalancheCenterSelector = ({currentCenterId, setAvalancheCenter}) =
   return (
     <SectionList
       style={styles.container}
-      sections={center_idsByType}
+      sections={avalancheCenterIDsByType}
       keyExtractor={item => item}
       renderItem={({item}) => (
         <AvalancheCenterCard
-          center_id={item}
+          avalancheCenterId={item}
           selected={item === currentCenterId}
-          onPress={(center_id: string) => {
-            setAvalancheCenter(center_id);
+          onPress={(avalancheCenter: string) => {
+            setAvalancheCenter(avalancheCenter);
             // We need to clear navigation state to force all screens from the
             // previous avalanche center selection to unmount
             navigation.reset({
