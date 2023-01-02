@@ -7,11 +7,10 @@ import {FontAwesome5} from '@expo/vector-icons';
 
 import {parseISO} from 'date-fns';
 
+import {DangerScale} from 'components/DangerScale';
 import {AvalancheDangerForecast, DangerLevel, Feature, ForecastPeriod} from 'types/nationalAvalancheCenter';
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
-import {colorFor} from './AvalancheDangerPyramid';
 import {AvalancheDangerIcon} from './AvalancheDangerIcon';
-import {dangerShortText} from './helpers/dangerText';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useAvalancheForecastFragment} from 'hooks/useAvalancheForecastFragment';
 import {HomeStackNavigationProps} from 'routes';
@@ -80,42 +79,20 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           provider={'google'}>
           {isReady && centers.map(center_id => <AvalancheCenterForecastZonePolygons key={center_id} center_id={center_id} setRegion={setRegion} date={date} />)}
         </MapView>
-        <View style={styles.legend}>
-          <View style={styles.legendHeader}>
-            <Text style={styles.legendTitle}>Danger Scale</Text>
-            <FontAwesome5 name="info-circle" size={16} color="blue" />
-          </View>
-          <View style={styles.legendItems}>
-            {Object.keys(DangerLevel)
-              .filter(key => Number.isNaN(+key))
-              .filter(key => DangerLevel[key] > DangerLevel.None)
-              .map(key => DangerLevel[key])
-              .map(level => (
-                <View
-                  key={level}
-                  style={{
-                    ...styles.legendColor,
-                    backgroundColor: colorFor(level).alpha(0.85).string(),
-                    borderBottomLeftRadius: level === DangerLevel.Low ? 4 : 0,
-                    borderTopLeftRadius: level === DangerLevel.Low ? 4 : 0,
-                    borderBottomRightRadius: level === DangerLevel.Extreme ? 4 : 0,
-                    borderTopRightRadius: level === DangerLevel.Extreme ? 4 : 0,
-                  }}
-                />
-              ))}
-          </View>
-          <View style={styles.legendItems}>
-            {Object.keys(DangerLevel)
-              .filter(key => Number.isNaN(+key))
-              .filter(key => DangerLevel[key] > DangerLevel.None)
-              .map(key => DangerLevel[key])
-              .map(level => (
-                <Text key={level} style={styles.legendText}>
-                  {dangerShortText(level)}
-                </Text>
-              ))}
-          </View>
-        </View>
+        <DangerScale
+          style={{
+            position: 'absolute',
+            width: '80%',
+            marginLeft: '10%',
+            bottom: 200,
+            borderStyle: 'solid',
+            borderWidth: 1.2,
+            borderColor: 'rgb(200,202,206)',
+            shadowOffset: {width: 1, height: 2},
+            shadowOpacity: 0.8,
+            shadowColor: 'rgb(157,162,165)',
+          }}
+        />
         <View style={styles.footer}>
           {centers.map(center_id => (
             <AvalancheForecastZoneCards key={center_id} center_id={center_id} date={date} cardStyle={styles.horizontalCard} horizontal={true} />
@@ -278,36 +255,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     flex: 1,
     flexDirection: 'column',
-  },
-  legendHeader: {flex: 1, flexDirection: 'row', alignItems: 'center'},
-  legendTitle: {
-    flex: 0,
-    padding: 8,
-    fontWeight: 'bold',
-  },
-  legendIcon: {
-    flex: 0,
-    width: 16,
-    height: 16,
-  },
-  legendItems: {
-    marginLeft: 8,
-    marginRight: 8,
-    display: 'flex',
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-  },
-  legendColor: {
-    flex: 1,
-    height: 16,
-  },
-  legendText: {
-    flex: 1,
-    padding: 2,
-    color: 'black',
-    textAlign: 'center',
-    fontSize: 10,
   },
   footer: {
     position: 'absolute',
