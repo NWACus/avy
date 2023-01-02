@@ -13,7 +13,7 @@ export const AvalancheCenterStackScreen = (center_id: string, date: string) => {
         name="forecast"
         component={ForecastScreen}
         initialParams={{center_id: center_id, date: date}}
-        options={({route}) => ({title: String(route.params.forecast_zone_id)})}
+        options={({route}) => ({title: String(route.params.zoneName)})}
       />
     </AvalancheCenterStack.Navigator>
   );

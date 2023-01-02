@@ -215,6 +215,7 @@ export const AvalancheForecastZoneCard: React.FunctionComponent<{
     <TouchableOpacity
       onPress={() => {
         navigation.navigate('forecast', {
+          zoneName: feature.properties.name,
           center_id: feature.properties.center_id,
           forecast_zone_id: feature.id,
           date: date,

@@ -25,6 +25,7 @@ export type HomeStackParamList = {
     date: string;
   };
   forecast: {
+    zoneName: string;
     center_id: string;
     forecast_zone_id: number;
     date: string;

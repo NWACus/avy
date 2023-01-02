@@ -132,6 +132,7 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
       tappable={true}
       onPress={() => {
         navigation.navigate('forecast', {
+          zoneName: feature.properties.name,
           center_id: feature.properties.center_id,
           forecast_zone_id: feature.id,
           date: date,

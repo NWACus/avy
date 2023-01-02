@@ -15,6 +15,7 @@ import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useRefreshByUser} from 'hooks/useRefreshByUser';
 
 export interface AvalancheForecastProps {
+  zoneName: string;
   center_id: string;
   date: string;
   forecast_zone_id: number;
