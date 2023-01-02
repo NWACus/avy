@@ -9,7 +9,6 @@ import {Heading, Text, View, VStack} from 'native-base';
 import {parseISO} from 'date-fns';
 
 import {
-  AvalancheCenter,
   AvalancheDangerForecast,
   AvalancheForecastZone,
   AvalancheForecastZoneSummary,
@@ -21,7 +20,7 @@ import {
 import {AvalancheDangerTable} from './AvalancheDangerTable';
 import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {AvalancheProblemCard} from './AvalancheProblemCard';
-import {TabControl} from 'components/TabControl';
+import {Tab, TabControl} from 'components/TabControl';
 import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useRefreshByUser} from 'hooks/useRefreshByUser';
@@ -33,7 +32,13 @@ export interface AvalancheForecastProps {
   forecast_zone_id: number;
 }
 
-const renderAvalancheTab = (windowWidth: number, center: AvalancheCenter, zone: AvalancheForecastZone, forecast: Product) => {
+interface AvalancheTabProps {
+  windowWidth: number;
+  zone: AvalancheForecastZone;
+  forecast: Product;
+}
+
+const AvalancheTab = React.memo(({windowWidth, zone, forecast}: AvalancheTabProps) => {
   let currentDanger: AvalancheDangerForecast | undefined = forecast.danger.find(item => item.valid_day === ForecastPeriod.Current);
   if (!currentDanger || !currentDanger.upper) {
     // sometimes, we get an entry of nulls for today
@@ -80,13 +85,13 @@ const renderAvalancheTab = (windowWidth: number, center: AvalancheCenter, zone: 
       <Text style={styles.heading}>Media</Text>
     </VStack>
   );
-};
+});
 
-const renderWeatherTab = () => {
+const WeatherTab = () => {
   return <Heading>Weather coming soon</Heading>;
 };
 
-const renderObservationsTab = () => {
+const ObservationsTab = () => {
   return <Heading>Observations coming soon</Heading>;
 };
 
@@ -147,23 +152,17 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
 
   return (
     <ScrollView style={StyleSheet.absoluteFillObject} refreshControl={<RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />}>
-      <TabControl
-        backgroundColor="white"
-        tabs={[
-          {
-            title: 'Avalanche',
-            render: () => renderAvalancheTab(windowWidth, center, zone, forecast),
-          },
-          {
-            title: 'Weather',
-            render: () => renderWeatherTab(),
-          },
-          {
-            title: 'Observations',
-            render: () => renderObservationsTab(),
-          },
-        ]}
-      />
+      <TabControl backgroundColor="white">
+        <Tab title="Avalanche">
+          <AvalancheTab windowWidth={windowWidth} zone={zone} forecast={forecast} />
+        </Tab>
+        <Tab title="Weather">
+          <WeatherTab />
+        </Tab>
+        <Tab title="Observations">
+          <ObservationsTab />
+        </Tab>
+      </TabControl>
     </ScrollView>
   );
 };
