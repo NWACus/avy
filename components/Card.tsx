@@ -1,6 +1,11 @@
-import React, {PropsWithChildren, ReactNode, useCallback} from 'react';
+import React, {PropsWithChildren, ReactNode, useCallback, useState} from 'react';
+
+import Collapsible from 'react-native-collapsible';
 import {TouchableOpacity} from 'react-native';
-import {Box, IBoxProps, Divider, VStack} from 'native-base';
+
+import {FontAwesome} from '@expo/vector-icons';
+
+import {Box, IBoxProps, Divider, VStack, HStack, useToken} from 'native-base';
 
 export interface CardProps extends IBoxProps {
   header?: ReactNode;
@@ -24,5 +29,29 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({hea
         </Box>
       </TouchableOpacity>
     </Box>
+  );
+};
+
+export interface CollapsibleCardProps extends CardProps {
+  startsCollapsed: boolean;
+}
+
+export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({startsCollapsed, header, children, ...props}) => {
+  const [isCollapsed, setIsCollapsed] = useState(startsCollapsed);
+  const [textColor] = useToken('colors', ['darkText']);
+
+  return (
+    <Card
+      {...props}
+      header={
+        <HStack justifyContent="space-between" alignItems="center">
+          {header}
+          <FontAwesome.Button name={isCollapsed ? 'angle-down' : 'angle-up'} color={textColor} backgroundColor="white" onPress={() => setIsCollapsed(!isCollapsed)} />
+        </HStack>
+      }>
+      <Collapsible collapsed={isCollapsed} renderChildrenCollapsed>
+        <>{children}</>
+      </Collapsible>
+    </Card>
   );
 };

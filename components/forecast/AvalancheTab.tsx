@@ -10,7 +10,7 @@ import {AvalancheDangerForecast, AvalancheForecastZone, DangerLevel, ElevationBa
 import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
-import {Card} from 'components/Card';
+import {Card, CollapsibleCard} from 'components/Card';
 
 interface AvalancheTabProps {
   windowWidth: number;
@@ -102,14 +102,14 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
       <Card borderRadius={0} borderColor="white" header={<Heading>Avalanche Danger</Heading>}>
         <AvalancheDangerTable date={parseISO(forecast.published_time)} current={currentDanger} outlook={outlookDanger} elevation_band_names={elevationBandNames} />
       </Card>
-      <Card borderRadius={0} borderColor="white" header={<Heading>Avalanche Problems</Heading>}>
+      <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Avalanche Problems</Heading>}>
         {forecast.forecast_avalanche_problems.map((problem, index) => (
           <AvalancheProblemCard key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
         ))}
-      </Card>
-      <Card borderRadius={0} borderColor="white" header={<Heading>Forecast Discussion</Heading>}>
+      </CollapsibleCard>
+      <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Forecast Discussion</Heading>}>
         <RenderHTML source={{html: forecast.hazard_discussion}} {...renderHTMLProps} />
-      </Card>
+      </CollapsibleCard>
       <Card borderRadius={0} borderColor="white" header={<Heading>Media</Heading>}>
         <Text>TBD!</Text>
       </Card>
