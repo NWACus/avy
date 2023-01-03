@@ -4,7 +4,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
-import {AvalancheForecast} from 'components/AvalancheForecast';
+import {AvalancheForecast} from 'components/forecast/AvalancheForecast';
 import {HomeStackParamList} from 'routes';
 
 export const ForecastScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'forecast'>) => {
