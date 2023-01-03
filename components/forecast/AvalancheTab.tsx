@@ -23,7 +23,7 @@ const dateToString = (dateString: string | undefined): string => {
     return 'Unknown';
   }
   const date = parseISO(dateString);
-  return format(date, `EEE, MMM d yyyy h:mm a`);
+  return format(date, `EEE, MMM d, yyyy h:mm a`);
 };
 
 export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.memo(({windowWidth, zone, forecast}) => {
