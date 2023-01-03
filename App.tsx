@@ -15,7 +15,6 @@ import {focusManager, QueryClient, QueryClientProvider} from 'react-query';
 import {NativeBaseProvider, extendTheme} from 'native-base';
 
 import {ClientContext, productionHosts, stagingHosts} from 'clientContext';
-import {defaults} from 'defaults';
 import {useAppState} from 'hooks/useAppState';
 import {useOnlineManager} from 'hooks/useOnlineManager';
 import {TabNavigatorParamList} from 'routes';
@@ -69,7 +68,7 @@ const App = () => {
     useAppState(onAppStateChange);
 
     // Set up ClientContext values
-    const [avalancheCenterId, setAvalancheCenterId] = React.useState(defaults.avalancheCenter);
+    const [avalancheCenterId, setAvalancheCenterId] = React.useState(Constants.expoConfig.extra.avalanche_center);
     const [staging, setStaging] = React.useState(false);
 
     const contextValue = {

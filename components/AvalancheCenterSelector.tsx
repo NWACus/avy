@@ -50,7 +50,7 @@ interface AvalancheCenterCardProps {
 }
 
 export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = ({avalancheCenterId, selected, onPress}: AvalancheCenterCardProps) => {
-  const {width, height} = useWindowDimensions();
+  const {width} = useWindowDimensions();
   const {isLoading, isError, data: avalancheCenter, error} = useAvalancheCenterMetadata(avalancheCenterId);
   if (isLoading) {
     return <ActivityIndicator style={styles.item} />;
@@ -92,7 +92,7 @@ export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardPro
         <Box bg={selected ? 'blue.100' : 'light.100'}>
           <VStack>
             <HStack justifyContent="flex-start" alignItems="center" px="2" width={width}>
-              <AvalancheCenterLogo style={{height: height / 20}} avalancheCenterId={avalancheCenterId} />
+              <AvalancheCenterLogo style={{height: 36}} avalancheCenterId={avalancheCenterId} />
               <NBText px="2" color="light.400">
                 {avalancheCenter.name}
               </NBText>
