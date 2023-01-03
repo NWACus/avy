@@ -13,7 +13,7 @@ import * as Sentry from 'sentry-expo';
 import {formatISO} from 'date-fns';
 import {focusManager, QueryClient, QueryClientProvider} from 'react-query';
 
-import {NativeBaseProvider} from 'native-base';
+import {NativeBaseProvider, extendTheme} from 'native-base';
 
 import {ClientContext, contextDefaults, productionHosts, stagingHosts} from 'clientContext';
 import {useAppState} from 'hooks/useAppState';
@@ -129,6 +129,12 @@ const onAppStateChange = (status: AppStateStatus) => {
 // TODO: add a date picker
 const defaultDate = formatISO(Date.now());
 
+const theme = extendTheme({
+  colors: {
+    darkText: '#333333',
+  },
+});
+
 const App = () => {
   try {
     useOnlineManager();
@@ -155,7 +161,7 @@ const App = () => {
     return (
       <ClientContext.Provider value={contextValue}>
         <QueryClientProvider client={queryClient}>
-          <NativeBaseProvider>
+          <NativeBaseProvider theme={theme}>
             <SafeAreaProvider>
               <NavigationContainer>
                 <TabNavigator.Navigator

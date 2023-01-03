@@ -8,10 +8,10 @@ import {AvalancheForecast} from 'components/AvalancheForecast';
 import {HomeStackParamList} from 'routes';
 
 export const ForecastScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'forecast'>) => {
-  const {center_id, forecast_zone_id, date} = route.params;
+  const {center_id, forecast_zone_id, date, zoneName} = route.params;
   return (
     <SafeAreaView style={styles.container}>
-      <AvalancheForecast center_id={center_id} forecast_zone_id={forecast_zone_id} date={date} />
+      <AvalancheForecast center_id={center_id} forecast_zone_id={forecast_zone_id} date={date} zoneName={zoneName} />
     </SafeAreaView>
   );
 };
