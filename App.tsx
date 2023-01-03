@@ -132,6 +132,7 @@ const defaultDate = formatISO(Date.now());
 const theme = extendTheme({
   colors: {
     darkText: '#333333',
+    lightText: '#999999',
   },
 });
 
