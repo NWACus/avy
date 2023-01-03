@@ -1,9 +1,9 @@
 import React from 'react';
 
 import {compareDesc, format, parseISO, sub} from 'date-fns';
-import {ActivityIndicator, View, Text, FlatList, TouchableOpacity, useWindowDimensions} from 'react-native';
+import {ActivityIndicator, View, Text, FlatList, useWindowDimensions} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {Box, Divider, VStack, HStack, Text as NBText, Heading} from 'native-base';
+import {HStack, Text as NBText, Heading} from 'native-base';
 import {geoContains} from 'd3-geo';
 import RenderHTML from 'react-native-render-html';
 
@@ -87,6 +87,8 @@ export const ObservationSummaryCard: React.FunctionComponent<{
   const {width} = useWindowDimensions();
   return (
     <Card
+      px="2"
+      pt="2"
       onPress={() => {
         navigation.navigate('observation', {
           id: observation.id,

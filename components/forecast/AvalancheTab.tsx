@@ -3,7 +3,7 @@ import React from 'react';
 import {StyleSheet} from 'react-native';
 import RenderHTML from 'react-native-render-html';
 
-import {Divider, Heading, HStack, Text, View, VStack} from 'native-base';
+import {Heading, HStack, Text, View, VStack} from 'native-base';
 
 import {format, parseISO} from 'date-fns';
 
@@ -11,6 +11,7 @@ import {AvalancheDangerForecast, AvalancheForecastZone, DangerLevel, ElevationBa
 import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
+import {Card} from 'components/Card';
 
 interface AvalancheTabProps {
   windowWidth: number;
@@ -54,29 +55,29 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
   const elevationBandNames: ElevationBandNames = zone.config.elevation_band_names;
 
   return (
-    <VStack space="4" px="4">
-      <Heading>Avalanche Forecast</Heading>
-      <Divider orientation="horizontal" bg="light.200" />
-      <HStack justifyContent="space-evenly" space="2">
-        <VStack space="2" style={{flex: 1}}>
-          <Text bold style={{textTransform: 'uppercase'}}>
-            Issued
-          </Text>
-          <Text>{dateToString(forecast.published_time)}</Text>
-        </VStack>
-        <VStack space="2" style={{flex: 1}}>
-          <Text bold style={{textTransform: 'uppercase'}}>
-            Expires
-          </Text>
-          <Text>{dateToString(forecast.expires_time)}</Text>
-        </VStack>
-        <VStack space="2" style={{flex: 1}}>
-          <Text bold style={{textTransform: 'uppercase'}}>
-            Author
-          </Text>
-          <Text>{forecast.author || 'Unknown'}</Text>
-        </VStack>
-      </HStack>
+    <VStack space="4" bgColor={'#f0f2f5'}>
+      <Card paddingTop={2} borderRadius={0} borderColor="white" header={<Heading>Avalanche Forecast</Heading>}>
+        <HStack justifyContent="space-evenly" space="2">
+          <VStack space="2" style={{flex: 1}}>
+            <Text bold style={{textTransform: 'uppercase'}}>
+              Issued
+            </Text>
+            <Text>{dateToString(forecast.published_time)}</Text>
+          </VStack>
+          <VStack space="2" style={{flex: 1}}>
+            <Text bold style={{textTransform: 'uppercase'}}>
+              Expires
+            </Text>
+            <Text>{dateToString(forecast.expires_time)}</Text>
+          </VStack>
+          <VStack space="2" style={{flex: 1}}>
+            <Text bold style={{textTransform: 'uppercase'}}>
+              Author
+            </Text>
+            <Text>{forecast.author || 'Unknown'}</Text>
+          </VStack>
+        </HStack>
+      </Card>
       <View style={styles.bound}>
         <AvalancheDangerIcon style={styles.icon} level={highestDangerToday} />
         <View style={styles.content}>
