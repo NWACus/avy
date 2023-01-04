@@ -39,14 +39,10 @@ jobs:
         id: eas-update
         run: |
           output=`eas update --branch=pr-${{ github.event.number }} --message '${{ github.event.pull_request.title }}' --non-interactive --json | jq -c`
-          # echo $output
           ios_id=`echo $output | jq -r '.[] | select(.platform == "ios") | .id'`
-          # echo $ios_id
           android_id=`echo $output | jq -r '.[] | select(.platform == "android") | .id'`
-          # echo $android_id
-          echo "ios_url=exp://u.expo.dev/update/$ios_id" >> $GITHUB_OUTPUT
-          echo "android_url=exp://u.expo.dev/update/$android_id" >> $GITHUB_OUTPUT
-          # cat $GITHUB_OUTPUT
+          echo "ios_id=$ios_id" >> $GITHUB_OUTPUT
+          echo "android_id=$android_id" >> $GITHUB_OUTPUT
 
       - name: Find existing preview comment (if any)
         uses: peter-evans/find-comment@v2
@@ -66,6 +62,5 @@ jobs:
 
             iOS | Android
             --- | ---
-            <a href="${{ steps.eas-update.outputs.ios_url }}"><img src="https://api.qrserver.com/v1/create-qr-code/?size=512x512&data=${{ steps.eas-update.outputs.ios_url }}" height="512px" width="512px" /></a> | <a href="${{ steps.eas-update.outputs.android_url }}"><img src="https://api.qrserver.com/v1/create-qr-code/?size=512x512&data=${{ steps.eas-update.outputs.android_url }}" height="512px" width="512px" /></a>
-
-            _(just tap the QR code if you're on a mobile device)_
+            ![qrcode](https://qr.expo.dev/eas-update?updateId=${{ steps.eas-update.outputs.ios_id }}) | ![qrcode](https://qr.expo.dev/eas-update?updateId=${{ steps.eas-update.outputs.ios_id }})
+            `exp://u.expo.dev/update/${{ steps.eas-update.outputs.ios_id }})` | `exp://u.expo.dev/update/${{ steps.eas-update.outputs.android_id }})`
