@@ -43,7 +43,7 @@ jobs:
           ios_id=`echo $output | jq '.[] | select(.platform == "ios") | .id' | tr -d '"'`
           echo $ios_id
           android_id=`echo $output | jq '.[] | select(.platform == "android") | .id' | tr -d '"'`
-          Echo $android_id
+          echo $android_id
           echo "ios_url=exp://u.expo.dev/update/$ios_id" >> $GITHUB_OUTPUT
           echo "android_url=exp://u.expo.dev/update/$android_id" >> $GITHUB_OUTPUT
           cat $GITHUB_OUTPUT
