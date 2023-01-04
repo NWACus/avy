@@ -39,12 +39,8 @@ jobs:
         id: eas-update
         run: |
           output=`eas update --branch=pr-${{ github.event.number }} --message '${{ github.event.pull_request.title }}' --non-interactive --json | jq -c`
-          ios_id=`echo $output | jq -r '.[] | select(.platform == "ios") | .id'`
-          android_id=`echo $output | jq -r '.[] | select(.platform == "android") | .id'`
-          echo "ios_id=$ios_id" >> $GITHUB_OUTPUT
-          echo "android_id=$android_id" >> $GITHUB_OUTPUT
-          echo "new_ios_id=$( jq --raw-output '.[] | select(.platform == "ios" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
-          echo "new_android_id=$( jq --raw-output '.[] | select(.platform == "android" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
+          echo "ios_id=$( jq --raw-output '.[] | select(.platform == "ios" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
+          echo "android_id=$( jq --raw-output '.[] | select(.platform == "android" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
 
       - name: Find existing preview comment (if any)
         uses: peter-evans/find-comment@v2
@@ -61,11 +57,6 @@ jobs:
           edit-mode: replace
           body: |
             ## Preview in Expo Go
-
-            - ${{ steps.eas-update.outputs.ios_id }}
-            - ${{ steps.eas-update.outputs.new_ios_id }}
-            - ${{ steps.eas-update.outputs.android_id }}
-            - ${{ steps.eas-update.outputs.new_android_id }}
 
             iOS | Android
             --- | ---
