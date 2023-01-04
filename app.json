@@ -15,6 +15,7 @@
     "runtimeVersion": {
       "policy": "sdkVersion"
     },
+    "jsEngine": "hermes",
     "updates": {
       "url": "https://u.expo.dev/47e2fd36-5165-4eb4-9a2d-21beec393379",
       "fallbackToCacheTimeout": 0
