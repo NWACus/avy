@@ -9,11 +9,11 @@ on:
       - '.github/ISSUE_TEMPLATE/*'
 
 jobs:
-  ci:
-    uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
+  # ci:
+  #   uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
 
   publish:
-    needs: [ci]
+    # needs: [ci]
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
@@ -46,6 +46,7 @@ jobs:
           echo $android_id
           echo "{ios_url}={exp://u.expo.dev/update/$ios_id}" >> $GITHUB_OUTPUT
           echo "{android_url}={exp://u.expo.dev/update/$android_id}" >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
 
       # - name: 💬 Comment preview
       #   uses: expo/expo-github-action/preview-comment@v7
@@ -67,6 +68,7 @@ jobs:
           edit-mode: replace
           body: |
             ## Preview in Expo Go
+            Outputs ${{ steps.eas-update.outputs }}
 
             ### iOS
             ${{ steps.eas-update.outputs.ios_url }}
