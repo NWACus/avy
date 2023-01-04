@@ -17,8 +17,10 @@ export const useAvalancheForecastFragment = (center_id: string, forecast_zone_id
     const {data} = await axios.get(url, {
       params: {
         avalanche_center_id: center_id,
-        date_start: format(sub(date, {days: 1}), 'y-MM-dd'),
-        date_end: format(add(date, {days: 1}), 'y-MM-dd'),
+        forecast_zone_id,
+        // TODO(brian): remove this hack of adding/subtracting two days, which works around issues converting between local day and UTC day
+        date_start: format(sub(date, {days: 2}), 'y-MM-dd'),
+        date_end: format(add(date, {days: 2}), 'y-MM-dd'),
       },
     });
 
@@ -36,6 +38,7 @@ export const useAvalancheForecastFragment = (center_id: string, forecast_zone_id
       });
       throw parseResult.error;
     } else {
+      // TODO(brian): This is assuming that a forecast always exists for the given zone/date range. That's not a good assumption!
       return parseResult.data.find(
         forecast => isBetween(forecast.published_time, forecast.expires_time, date) && forecast.forecast_zone.find(zone => zone.id === forecast_zone_id),
       );
