@@ -92,8 +92,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
         borderColor="white"
         header={
           <HStack space={2} alignItems="center">
-            {/* TODO wrong icon here */}
-            <AvalancheDangerIcon style={{height: 24}} level={highestDangerToday} />
+            <AvalancheDangerIcon style={{height: 32}} level={highestDangerToday} />
             <Heading>The Bottom Line</Heading>
           </HStack>
         }>
