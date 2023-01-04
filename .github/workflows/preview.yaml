@@ -43,6 +43,8 @@ jobs:
           android_id=`echo $output | jq -r '.[] | select(.platform == "android") | .id'`
           echo "ios_id=$ios_id" >> $GITHUB_OUTPUT
           echo "android_id=$android_id" >> $GITHUB_OUTPUT
+          echo "new_ios_id=$( jq --raw-output '.[] | select(.platform == "ios" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
+          echo "new_android_id=$( jq --raw-output '.[] | select(.platform == "android" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
 
       - name: Find existing preview comment (if any)
         uses: peter-evans/find-comment@v2
@@ -60,7 +62,12 @@ jobs:
           body: |
             ## Preview in Expo Go
 
+            - ${{ steps.eas-update.outputs.ios_id }}
+            - ${{ steps.eas-update.outputs.new_ios_id }}
+            - ${{ steps.eas-update.outputs.android_id }}
+            - ${{ steps.eas-update.outputs.new_android_id }}
+
             iOS | Android
             --- | ---
-            ![qrcode](https://qr.expo.dev/eas-update?updateId=${{ steps.eas-update.outputs.ios_id }}) | ![qrcode](https://qr.expo.dev/eas-update?updateId=${{ steps.eas-update.outputs.ios_id }})
+            ![qrcode](https://qr.expo.dev/eas-update?updateId=${{ steps.eas-update.outputs.ios_id }}&appScheme=exp&host=u.expo.dev) | ![qrcode](https://qr.expo.dev/eas-update?updateId=${{ steps.eas-update.outputs.ios_id }}&appScheme=exp&host=u.expo.dev)
             `exp://u.expo.dev/update/${{ steps.eas-update.outputs.ios_id }})` | `exp://u.expo.dev/update/${{ steps.eas-update.outputs.android_id }})`
