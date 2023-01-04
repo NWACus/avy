@@ -48,27 +48,35 @@ jobs:
           echo "{android_url}={exp://u.expo.dev/update/$android_id}" >> $GITHUB_OUTPUT
           cat $GITHUB_OUTPUT
 
+      - name: Set color
+        id: random-color-generator
+        run: echo "SELECTED_COLOR=green" >> $GITHUB_OUTPUT
+
+      - name: Get color
+        run: echo "The selected color is ${{ steps.random-color-generator.outputs.SELECTED_COLOR }}"
+
       # - name: 💬 Comment preview
       #   uses: expo/expo-github-action/preview-comment@v7
       #   with:
       #     channel: pr-${{ github.event.number }}
 
       - name: Find existing preview comment (if any)
-        uses: peter-evans/find-comment@v1
-        id: existing-comment
+        uses: peter-evans/find-comment@v2
+        id: find-comment
         with:
           issue-number: ${{ github.event.number }}
           body-includes: Preview in Expo Go
 
       - name: Update preview comment
-        uses: peter-evans/create-or-update-comment@v1
+        uses: peter-evans/create-or-update-comment@v2
         with:
-          comment-id: ${{ steps.existing-comment.outputs.comment-id }}
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
           issue-number: ${{ github.event.number }}
           edit-mode: replace
           body: |
             ## Preview in Expo Go
             Outputs ${{ steps.eas-update.outputs }}
+            The selected color is ${{ steps.random-color-generator.outputs.SELECTED_COLOR }}
 
             ### iOS
             ${{ steps.eas-update.outputs.ios_url }}
