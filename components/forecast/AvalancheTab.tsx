@@ -28,7 +28,6 @@ const dateToString = (dateString: string | undefined): string => {
 };
 
 export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.memo(({windowWidth, zone, forecast}) => {
-  console.dir(forecast);
   let currentDanger: AvalancheDangerForecast | undefined = forecast.danger.find(item => item.valid_day === ForecastPeriod.Current);
   if (!currentDanger || !currentDanger.upper) {
     // sometimes, we get an entry of nulls for today

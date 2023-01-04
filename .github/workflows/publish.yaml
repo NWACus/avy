@@ -7,6 +7,33 @@ jobs:
   ci:
     uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
 
+  publish-update-bundle:
+    # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
+    needs: [ci]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: yarn
+
+      - name: 🏗 Setup Expo and EAS
+        uses: expo/expo-github-action@v7
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📦 Install dependencies
+        run: yarn install
+
+      - name: 🚀 Publish update bundle
+        run: eas update --channel preview --message '${{ github.event.head_commit.message }}' --non-interactive
+
   build-android:
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
     needs: [ci]
@@ -33,6 +60,7 @@ jobs:
 
       - name: 🚀 Build Android app
         run: eas build --non-interactive --platform android --profile preview
+
   build-ios:
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
     needs: [ci]
@@ -57,5 +85,5 @@ jobs:
       - name: 📦 Install dependencies
         run: yarn install
 
-      - name: 🚀 Build Android app
+      - name: 🚀 Build iOS app
         run: eas build --non-interactive --platform ios --profile preview
