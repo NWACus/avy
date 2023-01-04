@@ -36,9 +36,42 @@ jobs:
         run: yarn install
 
       - name: 🚀 Publish preview
-        run: eas update --branch=pr-${{ github.event.number }} --message '${{ github.event.pull_request.title }}' --non-interactive
+        id: eas-update
+        run: |
+          output=`eas update --branch=pr-${{ github.event.number }} --message '${{ github.event.pull_request.title }}' --non-interactive --json | jq -c`
+          echo $output
+          ios_id=`echo $output | jq '.[] | select(.platform == "ios") | .id'`
+          echo $ios_id
+          android_id=`echo $output | jq '.[] | select(.platform == "android") | .id'`
+          echo $android_id
+          echo "{ios_url}={exp://u.expo.dev/update/$ios_id}" >> $GITHUB_OUTPUT
+          echo "{android_url}={exp://u.expo.dev/update/$android_id}" >> $GITHUB_OUTPUT
 
-      - name: 💬 Comment preview
-        uses: expo/expo-github-action/preview-comment@v7
+      # - name: 💬 Comment preview
+      #   uses: expo/expo-github-action/preview-comment@v7
+      #   with:
+      #     channel: pr-${{ github.event.number }}
+
+      - name: Find existing preview comment (if any)
+        uses: peter-evans/find-comment@v1
+        id: existing-comment
         with:
-          channel: pr-${{ github.event.number }}
+          issue-number: ${{ github.event.number }}
+          body-includes: Preview in Expo Go
+
+      - name: Update preview comment
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          comment-id: ${{ steps.existing-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.number }}
+          edit-mode: replace
+          body: |
+            ## Preview in Expo Go
+
+            ### iOS
+            ${{ steps.eas-update.outputs.ios_url }}
+            <a href="${{ steps.eas-update.outputs.ios_url }}"><img src="https://api.qrserver.com/v1/create-qr-code/?size=512x512&data=${{ steps.eas-update.outputs.ios_url }}" height="512px" width="512px" /></a>
+
+            ### Android
+            ${{ steps.eas-update.outputs.android_url }}
+            <a href="${{ steps.eas-update.outputs.android_url }}"><img src="https://api.qrserver.com/v1/create-qr-code/?size=512x512&data=${{ steps.eas-update.outputs.android_url }}" height="512px" width="512px" /></a>
