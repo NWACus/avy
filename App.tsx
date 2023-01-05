@@ -1,10 +1,24 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 
-import {AppStateStatus, Platform} from 'react-native';
+import {AppStateStatus, Platform, StyleSheet, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {AntDesign} from '@expo/vector-icons';
+import {
+  useFonts,
+  Lato_100Thin,
+  Lato_100Thin_Italic,
+  Lato_300Light,
+  Lato_300Light_Italic,
+  Lato_400Regular,
+  Lato_400Regular_Italic,
+  Lato_700Bold,
+  Lato_700Bold_Italic,
+  Lato_900Black,
+  Lato_900Black_Italic,
+} from '@expo-google-fonts/lato';
+import * as SplashScreen from 'expo-splash-screen';
 
 import Constants from 'expo-constants';
 import * as Sentry from 'sentry-expo';
@@ -22,6 +36,9 @@ import {HomeTabScreen} from 'components/screens/HomeScreen';
 import {MenuStackScreen} from 'components/screens/MenuScreen';
 import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
 import {TelemetryTabScreen} from 'components/screens/TelemetryScreen';
+
+// The SplashScreen stays up until we've loaded all of our fonts and other assets
+SplashScreen.preventAutoHideAsync();
 
 if (Sentry?.init) {
   // we're reading a field that was previously defined in app.json, so we know it's non-null:
@@ -60,6 +77,50 @@ const theme = extendTheme({
     darkText: '#333333',
     lightText: '#999999',
   },
+  fontConfig: {
+    Lato: {
+      100: {
+        normal: 'Lato_100Thin',
+        italic: 'Lato_100ThinItalic',
+      },
+      200: {
+        normal: 'Lato_100Thin',
+        italic: 'Lato_100ThinItalic',
+      },
+      300: {
+        normal: 'Lato_300Light',
+        italic: 'Lato_300LightItalic',
+      },
+      400: {
+        normal: 'Lato_400Regular',
+        italic: 'Lato_400RegularItalic',
+      },
+      500: {
+        normal: 'Lato_400Regular',
+        italic: 'Lato_400RegularItalic',
+      },
+      600: {
+        normal: 'Lato_400Regular',
+        italic: 'Lato_400RegularItalic',
+      },
+      700: {
+        normal: 'Lato_700Bold',
+        italic: 'Lato_700BoldItalic',
+      },
+      800: {
+        normal: 'Lato_700Bold',
+        italic: 'Lato_700BoldItalic',
+      },
+      900: {
+        normal: 'Lato_900Black',
+        italic: 'Lato_900BlackItalic',
+      },
+    },
+  },
+  fonts: {
+    heading: 'Lato',
+    body: 'Lato',
+  },
 });
 
 const App = () => {
@@ -78,41 +139,67 @@ const App = () => {
 
     const [date] = React.useState(defaultDate);
 
+    const [fontsLoaded] = useFonts({
+      Lato_100Thin,
+      Lato_100Thin_Italic,
+      Lato_300Light,
+      Lato_300Light_Italic,
+      Lato_400Regular_Italic,
+      Lato_400Regular,
+      Lato_700Bold,
+      Lato_700Bold_Italic,
+      Lato_900Black,
+      Lato_900Black_Italic,
+    });
+
+    const onLayoutRootView = useCallback(async () => {
+      if (fontsLoaded) {
+        await SplashScreen.hideAsync();
+      }
+    }, [fontsLoaded]);
+
+    if (!fontsLoaded) {
+      // The splash screen keeps rendering while fonts are loading
+      return null;
+    }
+
     return (
       <ClientContext.Provider value={contextValue}>
         <QueryClientProvider client={queryClient}>
           <NativeBaseProvider theme={theme}>
             <SafeAreaProvider>
               <NavigationContainer>
-                <TabNavigator.Navigator
-                  initialRouteName="Home"
-                  screenOptions={({route}) => ({
-                    headerShown: false,
-                    tabBarIcon: ({color, size}) => {
-                      if (route.name === 'Home') {
-                        return <AntDesign name="search1" size={size} color={color} />;
-                      } else if (route.name === 'Observations') {
-                        return <AntDesign name="filetext1" size={size} color={color} />;
-                      } else if (route.name === 'Weather Data') {
-                        return <AntDesign name="barschart" size={size} color={color} />;
-                      } else if (route.name === 'Menu') {
-                        return <AntDesign name="bars" size={size} color={color} />;
-                      }
-                    },
-                  })}>
-                  <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, date: date}}>
-                    {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
-                  </TabNavigator.Screen>
-                  <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, date: date}}>
-                    {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
-                  </TabNavigator.Screen>
-                  <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, date: date}}>
-                    {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
-                  </TabNavigator.Screen>
-                  <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
-                    {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-                  </TabNavigator.Screen>
-                </TabNavigator.Navigator>
+                <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
+                  <TabNavigator.Navigator
+                    initialRouteName="Home"
+                    screenOptions={({route}) => ({
+                      headerShown: false,
+                      tabBarIcon: ({color, size}) => {
+                        if (route.name === 'Home') {
+                          return <AntDesign name="search1" size={size} color={color} />;
+                        } else if (route.name === 'Observations') {
+                          return <AntDesign name="filetext1" size={size} color={color} />;
+                        } else if (route.name === 'Weather Data') {
+                          return <AntDesign name="barschart" size={size} color={color} />;
+                        } else if (route.name === 'Menu') {
+                          return <AntDesign name="bars" size={size} color={color} />;
+                        }
+                      },
+                    })}>
+                    <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, date: date}}>
+                      {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+                    </TabNavigator.Screen>
+                    <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, date: date}}>
+                      {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+                    </TabNavigator.Screen>
+                    <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, date: date}}>
+                      {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+                    </TabNavigator.Screen>
+                    <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
+                      {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                    </TabNavigator.Screen>
+                  </TabNavigator.Navigator>
+                </View>
               </NavigationContainer>
             </SafeAreaProvider>
           </NativeBaseProvider>

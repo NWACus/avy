@@ -52,5 +52,6 @@ export type ObservationsStackNavigationProps = NativeStackNavigationProp<Observa
 export type MenuStackParamList = {
   menu: undefined;
   avalancheCenterSelector: undefined;
+  textStylePreview: undefined;
 };
 export type MenuStackNavigationProps = NativeStackNavigationProp<MenuStackParamList>;

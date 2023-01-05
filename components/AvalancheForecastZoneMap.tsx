@@ -14,6 +14,8 @@ import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useAvalancheForecastFragment} from 'hooks/useAvalancheForecastFragment';
 import {HomeStackNavigationProps} from 'routes';
+import {VStack} from 'native-base';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export const defaultRegion: Region = {
   // TODO(skuznets): add a sane default for the US?
@@ -53,6 +55,8 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     longitudeDelta: 1.05 * region.longitudeDelta,
   };
 
+  const insets = useSafeAreaInsets();
+
   if (isList) {
     return (
       <>
@@ -79,20 +83,9 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           provider={'google'}>
           {isReady && centers.map(center_id => <AvalancheCenterForecastZonePolygons key={center_id} center_id={center_id} setRegion={setRegion} date={date} />)}
         </MapView>
-        <DangerScale
-          style={{
-            position: 'absolute',
-            width: '80%',
-            marginLeft: '10%',
-            bottom: 200,
-            borderStyle: 'solid',
-            borderWidth: 1.2,
-            borderColor: 'rgb(200,202,206)',
-            shadowOffset: {width: 1, height: 2},
-            shadowOpacity: 0.8,
-            shadowColor: 'rgb(157,162,165)',
-          }}
-        />
+        <VStack px="4" width="100%" position="absolute" top={16 + insets.top}>
+          <DangerScale />
+        </VStack>
         <View style={styles.footer}>
           {centers.map(center_id => (
             <AvalancheForecastZoneCards key={center_id} center_id={center_id} date={date} cardStyle={styles.horizontalCard} horizontal={true} />
