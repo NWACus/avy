@@ -4,18 +4,26 @@ import {MaterialIcons} from '@expo/vector-icons';
 
 import {DangerLevel} from 'types/nationalAvalancheCenter';
 import {colorFor} from './AvalancheDangerPyramid';
-import {Center, HStack} from 'native-base';
+import {Center, HStack, useToast} from 'native-base';
 import {BodyXSmBlack, BodyXSmMedium} from 'components/text';
+import {TouchableOpacity} from 'react-native';
 
 export const DangerScale: React.FunctionComponent = () => {
+  const toast = useToast();
+
   return (
     <HStack backgroundColor="rgba(0, 0, 0, 0.6)" borderRadius={24} px="4" py="2" justifyContent="space-between" alignItems="center">
-      <HStack space="1" alignItems="center">
-        <BodyXSmBlack color="white" bold style={{letterSpacing: -0.61}}>
-          Danger Scale
-        </BodyXSmBlack>
-        <MaterialIcons name="open-in-new" size={16} color="white" />
-      </HStack>
+      <TouchableOpacity
+        onPress={() => {
+          toast.show({description: 'Not implemented yet'});
+        }}>
+        <HStack space="1" alignItems="center">
+          <BodyXSmBlack color="white" bold style={{letterSpacing: -0.61}}>
+            Danger Scale
+          </BodyXSmBlack>
+          <MaterialIcons name="open-in-new" size={16} color="white" />
+        </HStack>
+      </TouchableOpacity>
       <HStack space={0} justifyContent="stretch">
         {Object.keys(DangerLevel)
           .filter(key => Number.isNaN(+key))
