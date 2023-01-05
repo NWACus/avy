@@ -5,7 +5,19 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {AntDesign} from '@expo/vector-icons';
-import {useFonts, Lato_400Regular, Lato_700Bold, Lato_900Black} from '@expo-google-fonts/lato';
+import {
+  useFonts,
+  Lato_100Thin,
+  Lato_100Thin_Italic,
+  Lato_300Light,
+  Lato_300Light_Italic,
+  Lato_400Regular,
+  Lato_400Regular_Italic,
+  Lato_700Bold,
+  Lato_700Bold_Italic,
+  Lato_900Black,
+  Lato_900Black_Italic,
+} from '@expo-google-fonts/lato';
 
 import Constants from 'expo-constants';
 import * as Sentry from 'sentry-expo';
@@ -61,6 +73,52 @@ const theme = extendTheme({
     darkText: '#333333',
     lightText: '#999999',
   },
+  fontConfig: {
+    Lato: {
+      100: {
+        normal: 'Lato_100Thin',
+        italic: 'Lato_100ThinItalic',
+      },
+      200: {
+        normal: 'Lato_100Thin',
+        italic: 'Lato_100ThinItalic',
+      },
+      300: {
+        normal: 'Lato_300Light',
+        italic: 'Lato_300LightItalic',
+      },
+      400: {
+        normal: 'Lato_400Regular',
+        italic: 'Lato_400RegularItalic',
+      },
+      500: {
+        normal: 'Lato_400Regular',
+        italic: 'Lato_400RegularItalic',
+      },
+      600: {
+        normal: 'Lato_400Regular',
+        italic: 'Lato_400RegularItalic',
+      },
+      700: {
+        normal: 'Lato_700Bold',
+        italic: 'Lato_700BoldItalic',
+      },
+      800: {
+        normal: 'Lato_700Bold',
+        italic: 'Lato_700BoldItalic',
+      },
+      900: {
+        normal: 'Lato_900Black',
+        italic: 'Lato_900BlackItalic',
+      },
+    },
+  },
+  // Make sure values below matches any of the keys in `fontConfig`
+  fonts: {
+    heading: 'Lato',
+    body: 'Lato',
+    mono: 'Lato',
+  },
 });
 
 const App = () => {
@@ -80,9 +138,16 @@ const App = () => {
     const [date] = React.useState(defaultDate);
 
     const [fontsLoaded] = useFonts({
+      Lato_100Thin,
+      Lato_100Thin_Italic,
+      Lato_300Light,
+      Lato_300Light_Italic,
+      Lato_400Regular_Italic,
       Lato_400Regular,
-      Lato_900Black,
       Lato_700Bold,
+      Lato_700Bold_Italic,
+      Lato_900Black,
+      Lato_900Black_Italic,
     });
 
     if (!fontsLoaded) {
