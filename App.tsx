@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 
-import {AppStateStatus, Platform} from 'react-native';
+import {AppStateStatus, Platform, StyleSheet, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -18,6 +18,7 @@ import {
   Lato_900Black,
   Lato_900Black_Italic,
 } from '@expo-google-fonts/lato';
+import * as SplashScreen from 'expo-splash-screen';
 
 import Constants from 'expo-constants';
 import * as Sentry from 'sentry-expo';
@@ -35,6 +36,9 @@ import {HomeTabScreen} from 'components/screens/HomeScreen';
 import {MenuStackScreen} from 'components/screens/MenuScreen';
 import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
 import {TelemetryTabScreen} from 'components/screens/TelemetryScreen';
+
+// The SplashScreen stays up until we've loaded all of our fonts and other assets
+SplashScreen.preventAutoHideAsync();
 
 if (Sentry?.init) {
   // we're reading a field that was previously defined in app.json, so we know it's non-null:
@@ -148,46 +152,54 @@ const App = () => {
       Lato_900Black_Italic,
     });
 
+    const onLayoutRootView = useCallback(async () => {
+      if (fontsLoaded) {
+        await SplashScreen.hideAsync();
+      }
+    }, [fontsLoaded]);
+
     if (!fontsLoaded) {
-      // TODO(brian): should this be a loading screen? Sounds like yes, see
-      // https://docs.expo.dev/guides/using-custom-fonts/#waiting-for-fonts-to-load
+      // The splash screen keeps rendering while fonts are loading
       return null;
     }
+
     return (
       <ClientContext.Provider value={contextValue}>
         <QueryClientProvider client={queryClient}>
           <NativeBaseProvider theme={theme}>
             <SafeAreaProvider>
               <NavigationContainer>
-                <TabNavigator.Navigator
-                  initialRouteName="Home"
-                  screenOptions={({route}) => ({
-                    headerShown: false,
-                    tabBarIcon: ({color, size}) => {
-                      if (route.name === 'Home') {
-                        return <AntDesign name="search1" size={size} color={color} />;
-                      } else if (route.name === 'Observations') {
-                        return <AntDesign name="filetext1" size={size} color={color} />;
-                      } else if (route.name === 'Weather Data') {
-                        return <AntDesign name="barschart" size={size} color={color} />;
-                      } else if (route.name === 'Menu') {
-                        return <AntDesign name="bars" size={size} color={color} />;
-                      }
-                    },
-                  })}>
-                  <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, date: date}}>
-                    {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
-                  </TabNavigator.Screen>
-                  <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, date: date}}>
-                    {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
-                  </TabNavigator.Screen>
-                  <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, date: date}}>
-                    {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
-                  </TabNavigator.Screen>
-                  <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
-                    {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-                  </TabNavigator.Screen>
-                </TabNavigator.Navigator>
+                <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
+                  <TabNavigator.Navigator
+                    initialRouteName="Home"
+                    screenOptions={({route}) => ({
+                      headerShown: false,
+                      tabBarIcon: ({color, size}) => {
+                        if (route.name === 'Home') {
+                          return <AntDesign name="search1" size={size} color={color} />;
+                        } else if (route.name === 'Observations') {
+                          return <AntDesign name="filetext1" size={size} color={color} />;
+                        } else if (route.name === 'Weather Data') {
+                          return <AntDesign name="barschart" size={size} color={color} />;
+                        } else if (route.name === 'Menu') {
+                          return <AntDesign name="bars" size={size} color={color} />;
+                        }
+                      },
+                    })}>
+                    <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, date: date}}>
+                      {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+                    </TabNavigator.Screen>
+                    <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, date: date}}>
+                      {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+                    </TabNavigator.Screen>
+                    <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, date: date}}>
+                      {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+                    </TabNavigator.Screen>
+                    <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
+                      {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                    </TabNavigator.Screen>
+                  </TabNavigator.Navigator>
+                </View>
               </NavigationContainer>
             </SafeAreaProvider>
           </NativeBaseProvider>
