@@ -1,8 +1,6 @@
 import React from 'react';
 
-import RenderHTML, {RenderHTMLProps} from 'react-native-render-html';
-
-import {Heading, HStack, Text, useToken, VStack} from 'native-base';
+import {Heading, HStack, Text, VStack} from 'native-base';
 
 import {format, parseISO} from 'date-fns';
 
@@ -11,9 +9,9 @@ import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
 import {Card, CollapsibleCard} from 'components/Card';
+import {HTMLRenderer} from 'components/HTMLRenderer';
 
 interface AvalancheTabProps {
-  windowWidth: number;
   zone: AvalancheForecastZone;
   forecast: Product;
 }
@@ -26,7 +24,7 @@ const dateToString = (dateString: string | undefined): string => {
   return format(date, `EEE, MMM d, yyyy h:mm a`);
 };
 
-export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.memo(({windowWidth, zone, forecast}) => {
+export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.memo(({zone, forecast}) => {
   let currentDanger: AvalancheDangerForecast | undefined = forecast.danger.find(item => item.valid_day === ForecastPeriod.Current);
   if (!currentDanger || !currentDanger.upper) {
     // sometimes, we get an entry of nulls for today
@@ -51,17 +49,6 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
   }
 
   const elevationBandNames: ElevationBandNames = zone.config.elevation_band_names;
-
-  const [textColor] = useToken('colors', ['darkText']);
-  const renderHTMLProps: Partial<RenderHTMLProps> = {
-    contentWidth: windowWidth,
-    defaultTextProps: {
-      style: {
-        fontSize: 16,
-        color: textColor,
-      },
-    },
-  };
 
   return (
     <VStack space="2" bgColor={'#f0f2f5'}>
@@ -96,7 +83,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
             <Heading>The Bottom Line</Heading>
           </HStack>
         }>
-        <RenderHTML source={{html: forecast.bottom_line}} {...renderHTMLProps} />
+        <HTMLRenderer source={{html: forecast.bottom_line}} />
       </Card>
       <Card borderRadius={0} borderColor="white" header={<Heading>Avalanche Danger</Heading>}>
         <AvalancheDangerTable date={parseISO(forecast.published_time)} current={currentDanger} outlook={outlookDanger} elevation_band_names={elevationBandNames} />
@@ -107,7 +94,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
         ))}
       </CollapsibleCard>
       <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Forecast Discussion</Heading>}>
-        <RenderHTML source={{html: forecast.hazard_discussion}} {...renderHTMLProps} />
+        <HTMLRenderer source={{html: forecast.hazard_discussion}} />
       </CollapsibleCard>
       <Card borderRadius={0} borderColor="white" header={<Heading>Media</Heading>}>
         <Text>TBD!</Text>
