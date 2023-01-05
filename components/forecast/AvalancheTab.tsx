@@ -1,9 +1,8 @@
 import React from 'react';
 
-import {StyleSheet} from 'react-native';
-import RenderHTML from 'react-native-render-html';
+import RenderHTML, {RenderHTMLProps} from 'react-native-render-html';
 
-import {Heading, HStack, Text, View, VStack} from 'native-base';
+import {Heading, HStack, Text, useToken, VStack} from 'native-base';
 
 import {format, parseISO} from 'date-fns';
 
@@ -11,7 +10,7 @@ import {AvalancheDangerForecast, AvalancheForecastZone, DangerLevel, ElevationBa
 import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
-import {Card} from 'components/Card';
+import {Card, CollapsibleCard} from 'components/Card';
 
 interface AvalancheTabProps {
   windowWidth: number;
@@ -53,88 +52,66 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
 
   const elevationBandNames: ElevationBandNames = zone.config.elevation_band_names;
 
+  const [textColor] = useToken('colors', ['darkText']);
+  const renderHTMLProps: Partial<RenderHTMLProps> = {
+    contentWidth: windowWidth,
+    defaultTextProps: {
+      style: {
+        fontSize: 16,
+        color: textColor,
+      },
+    },
+  };
+
   return (
-    <VStack space="4" bgColor={'#f0f2f5'}>
-      <Card paddingTop={2} borderRadius={0} borderColor="white" header={<Heading>Avalanche Forecast</Heading>}>
+    <VStack space="2" bgColor={'#f0f2f5'}>
+      <Card marginTop={2} borderRadius={0} borderColor="white" header={<Heading>Avalanche Forecast</Heading>}>
         <HStack justifyContent="space-evenly" space="2">
           <VStack space="2" style={{flex: 1}}>
             <Text bold style={{textTransform: 'uppercase'}}>
               Issued
             </Text>
-            <Text>{dateToString(forecast.published_time)}</Text>
+            <Text color="lightText">{dateToString(forecast.published_time)}</Text>
           </VStack>
           <VStack space="2" style={{flex: 1}}>
             <Text bold style={{textTransform: 'uppercase'}}>
               Expires
             </Text>
-            <Text>{dateToString(forecast.expires_time)}</Text>
+            <Text color="lightText">{dateToString(forecast.expires_time)}</Text>
           </VStack>
           <VStack space="2" style={{flex: 1}}>
             <Text bold style={{textTransform: 'uppercase'}}>
               Author
             </Text>
-            <Text>{forecast.author || 'Unknown'}</Text>
+            <Text color="lightText">{forecast.author || 'Unknown'}</Text>
           </VStack>
         </HStack>
       </Card>
-      <View style={styles.bound}>
-        <AvalancheDangerIcon style={styles.icon} level={highestDangerToday} />
-        <View style={styles.content}>
-          <Text style={styles.title}>THE BOTTOM LINE</Text>
-          <RenderHTML source={{html: forecast.bottom_line}} contentWidth={windowWidth} />
-        </View>
-      </View>
-      <AvalancheDangerTable date={parseISO(forecast.published_time)} current={currentDanger} outlook={outlookDanger} elevation_band_names={elevationBandNames} />
-      <Text style={styles.heading}>Avalanche Problems</Text>
-      {forecast.forecast_avalanche_problems.map((problem, index) => (
-        <AvalancheProblemCard key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
-      ))}
-      <Text style={styles.heading}>Forecast Discussion</Text>
-      <View style={styles.discussion}>
-        <RenderHTML source={{html: forecast.hazard_discussion}} contentWidth={windowWidth} />
-      </View>
-      <Text style={styles.heading}>Media</Text>
+      <Card
+        borderRadius={0}
+        borderColor="white"
+        header={
+          <HStack space={2} alignItems="center">
+            <AvalancheDangerIcon style={{height: 32}} level={highestDangerToday} />
+            <Heading>The Bottom Line</Heading>
+          </HStack>
+        }>
+        <RenderHTML source={{html: forecast.bottom_line}} {...renderHTMLProps} />
+      </Card>
+      <Card borderRadius={0} borderColor="white" header={<Heading>Avalanche Danger</Heading>}>
+        <AvalancheDangerTable date={parseISO(forecast.published_time)} current={currentDanger} outlook={outlookDanger} elevation_band_names={elevationBandNames} />
+      </Card>
+      <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Avalanche Problems</Heading>}>
+        {forecast.forecast_avalanche_problems.map((problem, index) => (
+          <AvalancheProblemCard key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
+        ))}
+      </CollapsibleCard>
+      <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Forecast Discussion</Heading>}>
+        <RenderHTML source={{html: forecast.hazard_discussion}} {...renderHTMLProps} />
+      </CollapsibleCard>
+      <Card borderRadius={0} borderColor="white" header={<Heading>Media</Heading>}>
+        <Text>TBD!</Text>
+      </Card>
     </VStack>
   );
-});
-
-const styles = StyleSheet.create({
-  icon: {
-    position: 'absolute',
-    top: -25,
-    left: -25,
-    height: 50,
-  },
-  bound: {
-    margin: 25,
-    borderStyle: 'solid',
-    borderWidth: 1.2,
-    borderColor: 'rgb(200,202,206)',
-    shadowOffset: {width: 1, height: 2},
-    shadowOpacity: 0.8,
-    shadowColor: 'rgb(157,162,165)',
-  },
-  content: {
-    flexDirection: 'column',
-    paddingTop: 15,
-    paddingLeft: 15,
-    paddingBottom: 0,
-    paddingRight: 5,
-  },
-  title: {
-    fontWeight: 'bold',
-  },
-  heading: {
-    textTransform: 'uppercase',
-    fontWeight: 'bold',
-    paddingBottom: 10,
-    marginHorizontal: 10,
-  },
-  discussion: {
-    flexDirection: 'column',
-    paddingTop: 0,
-    paddingLeft: 10,
-    paddingBottom: 0,
-    paddingRight: 10,
-  },
 });

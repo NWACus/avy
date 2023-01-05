@@ -128,7 +128,8 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
     <Polygon
       coordinates={coordinates}
       fillColor={colorFor(dangerLevel).alpha(feature.properties.fillOpacity).string()}
-      strokeColor={colorFor(dangerLevel).string()}
+      strokeColor={'#484848'}
+      strokeWidth={2}
       tappable={true}
       onPress={() => {
         navigation.navigate('forecast', {
