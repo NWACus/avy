@@ -5,6 +5,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {AntDesign} from '@expo/vector-icons';
+import {useFonts, Lato_400Regular, Lato_700Bold, Lato_900Black} from '@expo-google-fonts/lato';
 
 import Constants from 'expo-constants';
 import * as Sentry from 'sentry-expo';
@@ -78,6 +79,17 @@ const App = () => {
 
     const [date] = React.useState(defaultDate);
 
+    const [fontsLoaded] = useFonts({
+      Lato_400Regular,
+      Lato_900Black,
+      Lato_700Bold,
+    });
+
+    if (!fontsLoaded) {
+      // TODO(brian): should this be a loading screen? Sounds like yes, see
+      // https://docs.expo.dev/guides/using-custom-fonts/#waiting-for-fonts-to-load
+      return null;
+    }
     return (
       <ClientContext.Provider value={contextValue}>
         <QueryClientProvider client={queryClient}>

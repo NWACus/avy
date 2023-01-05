@@ -5,7 +5,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 import * as Updates from 'expo-updates';
 
-import {Heading, HStack, VStack, Switch, Text, Divider, ScrollView, SectionList, View} from 'native-base';
+import {Heading, HStack, VStack, Switch, Text, Divider, SectionList, View} from 'native-base';
 
 import {AvalancheCenterCard, AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 
@@ -160,6 +160,7 @@ const TextStylePreview = () => {
   return (
     <SafeAreaView style={styles.fullscreen}>
       <SectionList
+        paddingX={4}
         sections={data}
         keyExtractor={item => item.content}
         renderItem={({item}) => <item.Component>{item.content}</item.Component>}
