@@ -1,11 +1,11 @@
 import React from 'react';
 
-import {StyleSheet} from 'react-native';
+import {Button, StyleSheet} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import * as Updates from 'expo-updates';
 
-import {Heading, HStack, VStack, Switch, Text, Divider} from 'native-base';
+import {Heading, HStack, VStack, Switch, Text, Divider, ScrollView, SectionList, View} from 'native-base';
 
 import {AvalancheCenterCard, AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 
@@ -13,6 +13,29 @@ import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigat
 
 import {MenuStackParamList, MenuStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
+import {
+  AllCapsSm,
+  AllCapsSmBlack,
+  Body,
+  BodyBlack,
+  BodySemibold,
+  BodySm,
+  BodySmBlack,
+  BodySmSemibold,
+  BodyXSm,
+  BodyXSmBlack,
+  BodyXSmMedium,
+  Caption1,
+  Caption1Black,
+  Caption1Semibold,
+  FeatureTitleBlack,
+  Title1,
+  Title1Black,
+  Title1Semibold,
+  Title3,
+  Title3Black,
+  Title3Semibold,
+} from 'components/text';
 
 const MenuStack = createNativeStackNavigator<MenuStackParamList>();
 export const MenuStackScreen = (
@@ -29,6 +52,7 @@ export const MenuStackScreen = (
         component={AvalancheCenterSelectorScreen(avalancheCenterId, setAvalancheCenter)}
         options={{title: `Choose An Avalanche Center`}}
       />
+      <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text style preview`}} />
     </MenuStack.Navigator>
   );
 };
@@ -62,12 +86,87 @@ export const MenuScreen = (avalancheCenterId: string, staging: boolean, setStagi
                   }}
                 />
               </VStack>
+              <Button onPress={() => navigation.navigate('textStylePreview')} title="Open text style preview" />
             </>
           )}
         </VStack>
       </SafeAreaView>
     );
   };
+};
+
+const TextStylePreview = () => {
+  const data = [
+    {
+      title: 'Feature title',
+      data: [{Component: FeatureTitleBlack, content: 'Feature Title Black'}],
+    },
+    {
+      title: 'Title 1',
+      data: [
+        {Component: Title1, content: 'Title 1 Regular'},
+        {Component: Title1Semibold, content: 'Title 1 Semibold'},
+        {Component: Title1Black, content: 'Title 1 Black'},
+      ],
+    },
+    {
+      title: 'Title 3',
+      data: [
+        {Component: Title3, content: 'Title 3 Regular'},
+        {Component: Title3Semibold, content: 'Title 3 Semibold'},
+        {Component: Title3Black, content: 'Title 3 Black'},
+      ],
+    },
+    {
+      title: 'Body',
+      data: [
+        {Component: Body, content: 'Body Regular'},
+        {Component: BodySemibold, content: 'Body Semibold'},
+        {Component: BodyBlack, content: 'Body Black'},
+      ],
+    },
+    {
+      title: 'Body Small',
+      data: [
+        {Component: BodySm, content: 'Body small Regular'},
+        {Component: BodySmSemibold, content: 'Body small Semibold'},
+        {Component: BodySmBlack, content: 'Body small Black'},
+      ],
+    },
+    {
+      title: 'Body Extra Small',
+      data: [
+        {Component: BodyXSm, content: 'Body xsml Regular'},
+        {Component: BodyXSmMedium, content: 'Body xsml Medium'},
+        {Component: BodyXSmBlack, content: 'Body xsml Black'},
+      ],
+    },
+    {
+      title: 'All Caps Small',
+      data: [
+        {Component: AllCapsSm, content: 'All caps small medium'},
+        {Component: AllCapsSmBlack, content: 'All caps small Black'},
+      ],
+    },
+    {
+      title: 'Caption',
+      data: [
+        {Component: Caption1, content: 'Caption 1 Regular'},
+        {Component: Caption1Semibold, content: 'Caption 1 Semibold'},
+        {Component: Caption1Black, content: 'Caption 1 Black'},
+      ],
+    },
+  ];
+  return (
+    <SafeAreaView style={styles.fullscreen}>
+      <SectionList
+        sections={data}
+        keyExtractor={item => item.content}
+        renderItem={({item}) => <item.Component>{item.content}</item.Component>}
+        renderSectionHeader={() => <View height="4" />}
+      />
+    </SafeAreaView>
+  );
 };
 
 export const AvalancheCenterSelectorScreen = (avalancheCenterId: string, setAvalancheCenter: React.Dispatch<React.SetStateAction<string>>) => {
