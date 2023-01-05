@@ -3,7 +3,7 @@ import {Image, ImageStyle} from 'react-native';
 
 export interface AvalancheCenterLogoProps {
   style: ImageStyle;
-  center_id: string;
+  avalancheCenterId: string;
 }
 
 interface size {
@@ -11,7 +11,7 @@ interface size {
   height: number;
 }
 
-export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoProps> = ({style, center_id}: AvalancheCenterLogoProps) => {
+export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoProps> = ({style, avalancheCenterId}: AvalancheCenterLogoProps) => {
   /* eslint-disable @typescript-eslint/no-var-requires */
   const sizes: Record<string, size> = {
     ['BTAC']: Image.resolveAssetSource(require('../assets/logos/BTAC.png')),
@@ -93,6 +93,6 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
   } else {
     actualStyle.height = undefined;
   }
-  actualStyle.aspectRatio = sizes[center_id].width / sizes[center_id].height;
-  return images[center_id](actualStyle);
+  actualStyle.aspectRatio = sizes[avalancheCenterId].width / sizes[avalancheCenterId].height;
+  return images[avalancheCenterId](actualStyle);
 };

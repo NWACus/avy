@@ -1,13 +1,14 @@
 import React from 'react';
 
-import {Text, View, SectionList, SectionListData, StyleSheet, TouchableOpacity, ActivityIndicator} from 'react-native';
+import {Box, VStack, HStack, Text as NBText} from 'native-base';
+import {Text, SectionList, SectionListData, StyleSheet, TouchableOpacity, ActivityIndicator, useWindowDimensions} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import {AvalancheCenterLogo} from './AvalancheCenterLogo';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {TabNavigationProps} from 'routes';
 
-const center_idsByType: SectionListData<string>[] = [
+const avalancheCenterIDsByType: SectionListData<string>[] = [
   {
     title: 'Forest Service',
     data: [
@@ -43,56 +44,88 @@ const center_idsByType: SectionListData<string>[] = [
 ];
 
 interface AvalancheCenterCardProps {
-  center_id: string;
-  set_avalanche_center: React.Dispatch<React.SetStateAction<string>>;
+  avalancheCenterId: string;
+  selected: boolean;
+  onPress: (avalancheCenter: string) => void;
 }
 
-const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = ({center_id, set_avalanche_center}: AvalancheCenterCardProps) => {
-  const navigation = useNavigation<TabNavigationProps>();
-  const {isLoading, isError, data: avalancheCenter, error} = useAvalancheCenterMetadata(center_id);
+export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = ({avalancheCenterId, selected, onPress}: AvalancheCenterCardProps) => {
+  const {width} = useWindowDimensions();
+  const {isLoading, isError, data: avalancheCenter, error} = useAvalancheCenterMetadata(avalancheCenterId);
   if (isLoading) {
     return <ActivityIndicator style={styles.item} />;
   }
   if (isError) {
     return (
-      <View style={styles.item}>
-        <Text>{`Could not fetch data for ${center_id}: ${error?.message}.`}</Text>
-      </View>
+      <Box>
+        <Box bg="light.100">
+          <VStack>
+            <HStack justifyContent="flex-start" alignItems="center">
+              <NBText color="light.400">{`Could not fetch data for ${avalancheCenterId}: ${error?.message}.`}</NBText>
+            </HStack>
+          </VStack>
+        </Box>
+      </Box>
     );
   }
   if (!avalancheCenter) {
     return (
-      <View style={styles.item}>
-        <Text>{`No metadata found for ${center_id}.`}</Text>
-      </View>
+      <Box>
+        <Box bg="light.100">
+          <VStack>
+            <HStack justifyContent="flex-start" alignItems="center">
+              <NBText color="light.400">{`No metadata found for ${avalancheCenterId}.`}</NBText>
+            </HStack>
+          </VStack>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <TouchableOpacity
-      style={styles.item}
-      onPress={() => {
-        set_avalanche_center(center_id);
-        // We need to clear navigation state to force all screens from the
-        // previous avalanche center selection to unmount
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'Home'}],
-        });
-      }}>
-      <AvalancheCenterLogo style={styles.logo} center_id={center_id} />
-      <Text style={{textAlignVertical: 'center'}}>{avalancheCenter.name}</Text>
-    </TouchableOpacity>
+    <Box>
+      <TouchableOpacity
+        style={styles.item}
+        onPress={() => {
+          onPress(avalancheCenterId);
+        }}>
+        <Box bg={selected ? 'blue.100' : 'light.100'}>
+          <VStack>
+            <HStack justifyContent="flex-start" alignItems="center" px="2" width={width}>
+              <AvalancheCenterLogo style={{height: 36}} avalancheCenterId={avalancheCenterId} />
+              <NBText px="2" color="light.400">
+                {avalancheCenter.name}
+              </NBText>
+            </HStack>
+          </VStack>
+        </Box>
+      </TouchableOpacity>
+    </Box>
   );
 };
 
-export const AvalancheCenterSelector = ({setAvalancheCenter}) => {
+export const AvalancheCenterSelector = ({currentCenterId, setAvalancheCenter}) => {
+  const navigation = useNavigation<TabNavigationProps>();
   return (
     <SectionList
       style={styles.container}
-      sections={center_idsByType}
+      sections={avalancheCenterIDsByType}
       keyExtractor={item => item}
-      renderItem={({item}) => <AvalancheCenterCard center_id={item} set_avalanche_center={setAvalancheCenter} />}
+      renderItem={({item}) => (
+        <AvalancheCenterCard
+          avalancheCenterId={item}
+          selected={item === currentCenterId}
+          onPress={(avalancheCenter: string) => {
+            setAvalancheCenter(avalancheCenter);
+            // We need to clear navigation state to force all screens from the
+            // previous avalanche center selection to unmount
+            navigation.reset({
+              index: 0,
+              routes: [{name: 'Home'}],
+            });
+          }}
+        />
+      )}
       renderSectionHeader={({section: {title}}) => <Text style={styles.title}>{title + ' Centers'}</Text>}
     />
   );

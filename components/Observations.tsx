@@ -2,6 +2,7 @@ import React from 'react';
 
 import {compareDesc, format, parseISO, sub} from 'date-fns';
 import {ActivityIndicator, View, Text, FlatList, useWindowDimensions} from 'react-native';
+import {ObservationsStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
 import {HStack, Text as NBText, Heading} from 'native-base';
 import {geoContains} from 'd3-geo';
@@ -9,7 +10,6 @@ import RenderHTML from 'react-native-render-html';
 
 import {Card} from 'components/Card';
 import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
-import {HomeStackNavigationProps} from 'routes';
 import {useMapLayer} from 'hooks/useMapLayer';
 
 // TODO: we could show the Avy center logo for obs that come from forecasters
@@ -83,7 +83,7 @@ export const ObservationSummaryCard: React.FunctionComponent<{
   observation: OverviewFragment;
   zone: string;
 }> = ({zone, observation}) => {
-  const navigation = useNavigation<HomeStackNavigationProps>();
+  const navigation = useNavigation<ObservationsStackNavigationProps>();
   const {width} = useWindowDimensions();
   return (
     <Card
