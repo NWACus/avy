@@ -99,7 +99,6 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
   return (
     <FlatList
       horizontal
-      px="4"
       width="100%"
       position="absolute"
       bottom="4"
