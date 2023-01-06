@@ -12,18 +12,20 @@ export interface CardProps extends IBoxProps {
   onPress?: () => void;
   borderRadius?: number;
   borderColor?: string;
+  noDivider?: boolean;
+  noInternalSpace?: boolean;
 }
 
-export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({header, onPress, borderColor, borderRadius, children, ...boxProps}) => {
+export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({header, onPress, borderColor, borderRadius, noDivider, noInternalSpace, children, ...boxProps}) => {
   const pressHandler = useCallback(() => onPress?.(), [onPress]);
 
   return (
     <Box {...boxProps}>
       <TouchableOpacity onPress={pressHandler} disabled={!onPress}>
         <Box bg="white" borderWidth="2" borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.200'} p="4">
-          <VStack space="2">
+          <VStack space={noInternalSpace ? 0 : 2}>
             <>{header}</>
-            <Divider orientation="horizontal" bg="light.200" />
+            {noDivider || <Divider orientation="horizontal" bg="light.200" />}
             <>{children}</>
           </VStack>
         </Box>
@@ -43,14 +45,21 @@ export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<Collapsi
   return (
     <Card
       {...props}
+      noDivider
+      noInternalSpace
       header={
-        <HStack justifyContent="space-between" alignItems="center">
-          {header}
-          <FontAwesome.Button name={isCollapsed ? 'angle-down' : 'angle-up'} color={textColor} backgroundColor="white" onPress={() => setIsCollapsed(!isCollapsed)} />
-        </HStack>
+        <TouchableOpacity onPress={() => setIsCollapsed(!isCollapsed)}>
+          <HStack justifyContent="space-between" alignItems="center">
+            {header}
+            <FontAwesome name={isCollapsed ? 'angle-down' : 'angle-up'} color={textColor} backgroundColor="white" size={24} />
+          </HStack>
+        </TouchableOpacity>
       }>
       <Collapsible collapsed={isCollapsed} renderChildrenCollapsed>
-        <>{children}</>
+        <VStack space={2} pt={2}>
+          <Divider orientation="horizontal" bg="light.200" />
+          <>{children}</>
+        </VStack>
       </Collapsible>
     </Card>
   );

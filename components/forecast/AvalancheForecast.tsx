@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 
-import {ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, useWindowDimensions} from 'react-native';
+import {ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import {Heading, Text, View} from 'native-base';
@@ -33,7 +33,6 @@ const ObservationsTab = () => {
 export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> = ({center_id, date, forecast_zone_id}: AvalancheForecastProps) => {
   const forecastDate: Date = parseISO(date);
 
-  const {width: windowWidth} = useWindowDimensions();
   const {isLoading: isCenterLoading, isError: isCenterError, data: center, error: centerError, refetch: refetchCenter} = useAvalancheCenterMetadata(center_id);
   const {
     isLoading: isForecastLoading,
@@ -89,7 +88,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
     <ScrollView style={StyleSheet.absoluteFillObject} refreshControl={<RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />}>
       <TabControl backgroundColor="white">
         <Tab title="Avalanche">
-          <AvalancheTab windowWidth={windowWidth} zone={zone} forecast={forecast} />
+          <AvalancheTab zone={zone} forecast={forecast} />
         </Tab>
         <Tab title="Weather">
           <WeatherTab />
