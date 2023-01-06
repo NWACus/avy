@@ -4,7 +4,6 @@ import {ActivityIndicator, View, ScrollView, StyleSheet} from 'react-native';
 import {Heading, Row, Text, Column} from 'native-base';
 import {Card, CollapsibleCard} from 'components/Card';
 import {FontAwesome5, MaterialCommunityIcons, Fontisto} from '@expo/vector-icons';
-import {dateToString} from './forecast/AvalancheTab';
 import {useMapLayer} from '../hooks/useMapLayer';
 import {
   Activity,
@@ -34,6 +33,7 @@ import {zone} from './Observations';
 import {HTMLRenderer} from './text/HTMLRenderer';
 import {AvalancheProblemImage} from './AvalancheProblemImage';
 import {NACIcon} from './icons/nac-icons';
+import {dateToString} from 'utils/date';
 
 export const Observation: React.FunctionComponent<{
   id: string;

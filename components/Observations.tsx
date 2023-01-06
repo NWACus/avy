@@ -13,7 +13,7 @@ import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from '../types/nationalAvalancheCenter';
 import {Title3Semibold} from './text';
-import {dateToString} from './forecast/AvalancheTab';
+import {dateToString} from 'utils/date';
 import {HTMLRenderer} from './text/HTMLRenderer';
 import {NACIcon} from './icons/nac-icons';
 

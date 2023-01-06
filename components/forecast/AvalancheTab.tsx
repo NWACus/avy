@@ -2,7 +2,7 @@ import React from 'react';
 
 import {Heading, HStack, Text, VStack} from 'native-base';
 
-import {format, parseISO} from 'date-fns';
+import {parseISO} from 'date-fns';
 
 import {AvalancheDangerForecast, AvalancheForecastZone, DangerLevel, ElevationBandNames, ForecastPeriod, Product} from 'types/nationalAvalancheCenter';
 import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
@@ -10,19 +10,12 @@ import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
 import {Card, CollapsibleCard} from 'components/Card';
 import {HTMLRenderer} from 'components/text/HTMLRenderer';
+import {dateToString} from 'utils/date';
 
 interface AvalancheTabProps {
   zone: AvalancheForecastZone;
   forecast: Product;
 }
-
-export const dateToString = (dateString: string | undefined): string => {
-  if (!dateString) {
-    return 'Unknown';
-  }
-  const date = parseISO(dateString);
-  return format(date, `EEE, MMM d, yyyy h:mm a`);
-};
 
 export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.memo(({zone, forecast}) => {
   let currentDanger: AvalancheDangerForecast | undefined = forecast.danger.find(item => item.valid_day === ForecastPeriod.Current);

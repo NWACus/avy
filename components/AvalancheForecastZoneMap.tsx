@@ -1,20 +1,20 @@
-import React from 'react';
+import React, {useState} from 'react';
 
-import {ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, ViewStyle} from 'react-native';
+import {StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
+import {FlatList, HStack, View, VStack} from 'native-base';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
-import {FontAwesome5} from '@expo/vector-icons';
-
-import {parseISO} from 'date-fns';
 
 import {DangerScale} from 'components/DangerScale';
-import {AvalancheCenterID, AvalancheDangerForecast, DangerLevel, Feature, ForecastPeriod} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, Feature, MapLayer} from 'types/nationalAvalancheCenter';
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
 import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {useMapLayer} from 'hooks/useMapLayer';
-import {useAvalancheForecastFragment} from 'hooks/useAvalancheForecastFragment';
 import {HomeStackNavigationProps} from 'routes';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {BodySmSemibold, Caption1, Caption1Black, FeatureTitleBlack, Title3Black} from 'components/text';
+import {colorFor} from './AvalancheDangerPyramid';
+import {dateToString} from 'utils/date';
 
 export const defaultRegion: Region = {
   // TODO(skuznets): add a sane default for the US?
@@ -25,23 +25,18 @@ export const defaultRegion: Region = {
 };
 
 export interface MapProps {
-  centers: AvalancheCenterID[];
+  center: AvalancheCenterID;
   date: string;
 }
 
-export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({centers, date}: MapProps) => {
-  const [isReady, setIsReady] = React.useState<boolean>(false);
-  const [region, setRegion] = React.useState<Region>({
+export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, date}: MapProps) => {
+  const [isReady, setIsReady] = useState<boolean>(false);
+  const [region, setRegion] = useState<Region>({
     latitude: 0,
     longitude: 0,
     latitudeDelta: 0,
     longitudeDelta: 0,
   });
-  const [isList, setIsList] = React.useState<boolean>(false);
-
-  function toggleList() {
-    setIsList(v => !v);
-  }
 
   function setReady() {
     setIsReady(true);
@@ -53,49 +48,29 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     latitudeDelta: 1.05 * region.latitudeDelta,
     longitudeDelta: 1.05 * region.longitudeDelta,
   };
+  const {isLoading, isError, data: mapLayer, error} = useMapLayer(center);
 
-  if (isList) {
-    return (
-      <>
-        {centers.map(center_id => (
-          <AvalancheForecastZoneCards key={center_id} center_id={center_id} date={date} cardStyle={styles.verticalCard} horizontal={false} />
-        ))}
-        <TouchableOpacity onPress={toggleList}>
-          <View style={styles.toggle}>
-            <FontAwesome5 name={'map'} size={32} />
-          </View>
-        </TouchableOpacity>
-      </>
-    );
-  } else {
-    return (
-      <>
-        <MapView
-          style={styles.map}
-          initialRegion={defaultRegion}
-          region={largerRegion}
-          onLayout={setReady}
-          zoomEnabled={centers.length > 1}
-          scrollEnabled={centers.length > 1}
-          provider={'google'}>
-          {isReady && centers.map(center_id => <AvalancheCenterForecastZonePolygons key={center_id} center_id={center_id} setRegion={setRegion} date={date} />)}
-        </MapView>
-        <SafeAreaView>
-          <DangerScale px="4" width="100%" position="absolute" top="12" />
-        </SafeAreaView>
-        <View style={styles.footer}>
-          {centers.map(center_id => (
-            <AvalancheForecastZoneCards key={center_id} center_id={center_id} date={date} cardStyle={styles.horizontalCard} horizontal={true} />
-          ))}
-          <TouchableOpacity onPress={toggleList}>
-            <View style={styles.toggle}>
-              <FontAwesome5 name={'list-ul'} size={32} />
-            </View>
-          </TouchableOpacity>
-        </View>
-      </>
-    );
-  }
+  return (
+    <>
+      <MapView
+        style={StyleSheet.absoluteFillObject}
+        initialRegion={defaultRegion}
+        region={largerRegion}
+        onLayout={setReady}
+        zoomEnabled={true}
+        scrollEnabled={true}
+        provider={'google'}>
+        {isReady && <AvalancheCenterForecastZonePolygons key={center} center_id={center} setRegion={setRegion} date={date} />}
+      </MapView>
+      <SafeAreaView>
+        <DangerScale px="4" width="100%" position="absolute" top="12" />
+      </SafeAreaView>
+
+      {isLoading && <FeatureTitleBlack>Loading...</FeatureTitleBlack>}
+      {isError && <FeatureTitleBlack>{`Error...${error}`}</FeatureTitleBlack>}
+      {!isLoading && !isError && <AvalancheForecastZoneCards key={center} center={center} date={date} mapLayer={mapLayer} />}
+    </>
+  );
 };
 
 export const CARD_WIDTH = 0.9; // proportion of overall width that one card takes up
@@ -103,104 +78,52 @@ export const CARD_WHITESPACE = (1 - CARD_WIDTH) / 2; // proportion of overall wi
 export const CARD_SPACING = CARD_WHITESPACE / 2; // proportion of overall width that the spacing between two cards takes up
 export const CARD_MARGIN = CARD_SPACING / 2; // proportion of overall width that each card needs as a margin
 
-export const AvalancheForecastZoneCards: React.FunctionComponent<{
-  center_id: AvalancheCenterID;
+const AvalancheForecastZoneCards: React.FunctionComponent<{
+  center: AvalancheCenterID;
   date: string;
-  cardStyle: ViewStyle;
-  horizontal: boolean;
-}> = ({center_id, date, cardStyle, horizontal}) => {
+  mapLayer: MapLayer;
+}> = ({center, date, mapLayer}) => {
   const {width} = useWindowDimensions();
-  const {isLoading, isError, data: mapLayer, error} = useMapLayer(center_id);
-  if (isLoading) {
-    return (
-      <FlatList
-        horizontal={true}
-        data={[{id: center_id, title: center_id}]}
-        renderItem={({item}) => (
-          <View style={cardStyle}>
-            <Text>{item.title}</Text>
-            <ActivityIndicator />
-          </View>
-        )}
-      />
-    );
-  }
-  if (isError) {
-    return (
-      <FlatList
-        horizontal={true}
-        data={[{id: center_id, title: center_id}]}
-        renderItem={({item}) => (
-          <View style={cardStyle}>
-            <Text>{item.title}</Text>
-            <Text>{`Could not fetch forecast zones for ${center_id}: ${error?.message}.`}</Text>
-            <ActivityIndicator />
-          </View>
-        )}
-      />
-    );
-  }
 
-  let props = {};
-  if (horizontal) {
-    props = {
-      horizontal: true,
-      snapToAlignment: 'start',
-      decelerationRate: 'fast',
-      snapToOffsets: mapLayer?.features.filter(feature => feature.type === 'Feature').map((feature, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width),
-      contentInset: {
-        left: CARD_MARGIN * width,
-        right: CARD_MARGIN * width,
-      },
-      contentContainerStyle: {paddingHorizontal: CARD_MARGIN * width},
-    };
-  }
+  const props = {
+    snapToAlignment: 'start',
+    decelerationRate: 'fast',
+    snapToOffsets: mapLayer?.features.filter(feature => feature.type === 'Feature').map((feature, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width),
+    contentInset: {
+      left: CARD_MARGIN * width,
+      right: CARD_MARGIN * width,
+    },
+    contentContainerStyle: {paddingHorizontal: CARD_MARGIN * width},
+  } as const;
 
   return (
     <FlatList
+      horizontal
+      px="4"
+      width="100%"
+      position="absolute"
+      bottom="4"
       {...props}
       data={mapLayer?.features
         .filter(feature => feature.type === 'Feature')
         .map(feature => ({
-          id: center_id + feature.id,
+          id: center + feature.id,
           feature: feature,
           date: date,
         }))}
-      renderItem={({item}) => <AvalancheForecastZoneCard key={item.id} feature={item.feature} date={item.date} style={cardStyle} />}></FlatList>
+      renderItem={({item}) => <AvalancheForecastZoneCard key={item.id} feature={item.feature} date={item.date} />}></FlatList>
   );
 };
 
-export const AvalancheForecastZoneCard: React.FunctionComponent<{
+const AvalancheForecastZoneCard: React.FunctionComponent<{
   feature: Feature;
   date: string;
-  style: ViewStyle;
-}> = ({feature, date, style}) => {
-  const forecastDate: Date = parseISO(date);
+}> = ({feature, date}) => {
   const {width} = useWindowDimensions();
   const navigation = useNavigation<HomeStackNavigationProps>();
-  const {isLoading, isError, data: forecast, error} = useAvalancheForecastFragment(feature.properties.center_id, feature.id, forecastDate);
-  if (isLoading) {
-    return (
-      <View style={style}>
-        <ActivityIndicator />
-      </View>
-    );
-  }
-  if (isError) {
-    return (
-      <View style={style}>
-        <Text>{`Could not fetch forecast for ${feature.properties.name}: ${error?.message}.`}</Text>
-      </View>
-    );
-  }
 
-  let dangerLevel: DangerLevel = DangerLevel.None;
-  if (forecast) {
-    const currentDanger: AvalancheDangerForecast | undefined = forecast.danger.find(item => item.valid_day === ForecastPeriod.Current);
-    if (currentDanger) {
-      dangerLevel = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper);
-    }
-  }
+  const dangerColor = colorFor(feature.properties.danger_level);
+
   return (
     <TouchableOpacity
       onPress={() => {
@@ -210,97 +133,32 @@ export const AvalancheForecastZoneCard: React.FunctionComponent<{
           forecast_zone_id: feature.id,
           date: date,
         });
-      }}
-      style={{
-        width: width * CARD_WIDTH,
-        marginRight: CARD_MARGIN * width,
-        marginLeft: CARD_MARGIN * width,
-        ...style,
       }}>
-      <View style={styles.header}>
-        <AvalancheDangerIcon style={styles.icon} level={dangerLevel} />
-        <Text style={styles.title}>{feature.properties.name}</Text>
-      </View>
+      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} marginX={CARD_MARGIN * width}>
+        <View height="8px" width="100%" bg={dangerColor.string()} borderTopRadius={8} pb={0} />
+        <VStack px={6} pt={1} pb={3} space={2}>
+          <HStack space={2} alignItems="center">
+            <AvalancheDangerIcon style={{height: 32}} level={feature.properties.danger_level} />
+            <BodySmSemibold>
+              {feature.properties.danger_level} - <Text style={{textTransform: 'capitalize'}}>{feature.properties.danger}</Text> Avalanche Danger
+            </BodySmSemibold>
+          </HStack>
+          <Title3Black>{feature.properties.name}</Title3Black>
+          <VStack py={2}>
+            <Text>
+              <Caption1Black>Published: </Caption1Black>
+              <Caption1>{dateToString(feature.properties.start_date)}</Caption1>
+              {'\n'}
+              <Caption1Black>Expires: </Caption1Black>
+              <Caption1>{dateToString(feature.properties.end_date)}</Caption1>
+            </Text>
+          </VStack>
+          <Text>
+            <Caption1Black>Travel advice: </Caption1Black>
+            <Caption1>{feature.properties.travel_advice}</Caption1>
+          </Text>
+        </VStack>
+      </VStack>
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  legend: {
-    backgroundColor: 'white',
-    padding: 8,
-    marginLeft: '10%',
-    borderStyle: 'solid',
-    borderWidth: 1.2,
-    borderColor: 'rgb(200,202,206)',
-    shadowOffset: {width: 1, height: 2},
-    shadowOpacity: 0.8,
-    shadowColor: 'rgb(157,162,165)',
-    borderRadius: 8,
-    position: 'absolute',
-    width: '80%',
-    bottom: 200,
-    display: 'flex',
-    flex: 1,
-    flexDirection: 'column',
-  },
-  footer: {
-    position: 'absolute',
-    width: '100%',
-    height: '30%',
-    bottom: 2,
-    justifyContent: 'flex-start',
-    flexDirection: 'column-reverse',
-    alignItems: 'flex-start',
-  },
-  horizontalCard: {
-    padding: 2,
-    borderStyle: 'solid',
-    backgroundColor: 'white',
-    borderWidth: 1.2,
-    borderColor: 'rgb(200,202,206)',
-    shadowOffset: {width: 1, height: 2},
-    shadowOpacity: 0.8,
-    shadowColor: 'rgb(157,162,165)',
-    borderRadius: 5,
-  },
-  verticalCard: {
-    width: '100%',
-    padding: 2,
-    borderStyle: 'solid',
-    borderWidth: 1.2,
-    borderColor: 'rgb(200,202,206)',
-    shadowOffset: {width: 1, height: 2},
-    shadowOpacity: 0.8,
-    shadowColor: 'rgb(157,162,165)',
-    borderRadius: 5,
-  },
-  header: {
-    width: '100%',
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
-  icon: {
-    height: 50,
-  },
-  title: {
-    fontWeight: 'bold',
-  },
-  toggle: {
-    backgroundColor: 'white',
-    padding: 2,
-    margin: 5,
-    borderStyle: 'solid',
-    borderWidth: 1.2,
-    borderColor: 'rgb(200,202,206)',
-    shadowOffset: {width: 1, height: 2},
-    shadowOpacity: 0.8,
-    shadowColor: 'rgb(157,162,165)',
-    borderRadius: 5,
-  },
-});

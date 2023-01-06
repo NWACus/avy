@@ -9,7 +9,7 @@ export const MapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'a
   const {center_id, date} = route.params;
   return (
     <View style={{...styles.container}}>
-      <AvalancheForecastZoneMap centers={[center_id]} date={date} />
+      <AvalancheForecastZoneMap center={center_id} date={date} />
     </View>
   );
 };
