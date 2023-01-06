@@ -13,16 +13,17 @@ export interface CardProps extends IBoxProps {
   borderRadius?: number;
   borderColor?: string;
   noDivider?: boolean;
+  noInternalSpace?: boolean;
 }
 
-export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({header, onPress, borderColor, borderRadius, children, noDivider, ...boxProps}) => {
+export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({header, onPress, borderColor, borderRadius, noDivider, noInternalSpace, children, ...boxProps}) => {
   const pressHandler = useCallback(() => onPress?.(), [onPress]);
 
   return (
     <Box {...boxProps}>
       <TouchableOpacity onPress={pressHandler} disabled={!onPress}>
         <Box bg="white" borderWidth="2" borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.200'} p="4">
-          <VStack space="2">
+          <VStack space={noInternalSpace ? 0 : 2}>
             <>{header}</>
             {noDivider || <Divider orientation="horizontal" bg="light.200" />}
             <>{children}</>
@@ -45,6 +46,7 @@ export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<Collapsi
     <Card
       {...props}
       noDivider
+      noInternalSpace
       header={
         <TouchableOpacity onPress={() => setIsCollapsed(!isCollapsed)}>
           <HStack justifyContent="space-between" alignItems="center">
@@ -54,7 +56,7 @@ export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<Collapsi
         </TouchableOpacity>
       }>
       <Collapsible collapsed={isCollapsed} renderChildrenCollapsed>
-        <VStack space={2}>
+        <VStack space={2} pt={2}>
           <Divider orientation="horizontal" bg="light.200" />
           <>{children}</>
         </VStack>
