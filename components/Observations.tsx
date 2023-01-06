@@ -1,16 +1,21 @@
 import React from 'react';
 
 import {compareDesc, format, parseISO, sub} from 'date-fns';
-import {ActivityIndicator, View, Text, FlatList, useWindowDimensions} from 'react-native';
+import {ActivityIndicator, View, FlatList} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
-import {HStack, Text as NBText, Heading} from 'native-base';
+import {Text, Row, Column} from 'native-base';
 import {geoContains} from 'd3-geo';
-import RenderHTML from 'react-native-render-html';
+import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 
 import {Card} from 'components/Card';
 import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {useMapLayer} from 'hooks/useMapLayer';
+import {FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from '../types/nationalAvalancheCenter';
+import {Title3Semibold} from './text';
+import {dateToString} from './forecast/AvalancheTab';
+import {HTMLRenderer} from './text/HTMLRenderer';
+import {NACIcon} from './icons/nac-icons';
 
 // TODO: we could show the Avy center logo for obs that come from forecasters
 
@@ -53,30 +58,30 @@ export const Observations: React.FunctionComponent<{
     );
   }
 
-  observations.getObservationList.sort((a, b) => compareDesc(parseISO(a.startDate), parseISO(b.startDate)));
-
-  const zone = (lat: number, long: number): string => {
-    const matchingFeatures = mapLayer.features.filter(feature => geoContains(feature.geometry, [long, lat])).map(feature => feature.properties.name);
-    if (matchingFeatures.length === 0) {
-      return '<no zone>';
-    } else if (matchingFeatures.length > 1) {
-      // TODO: this happens almost 100% ... why?
-      // also, seems like the widget is naming things with more specificity than just the forecast zones? e.g. teton village
-      console.log(`(${long},${lat}) matched ${matchingFeatures.length} features: ${matchingFeatures}`);
-    }
-    return matchingFeatures[0];
-  };
+  observations.getObservationList.sort((a, b) => compareDesc(parseISO(a.createdAt), parseISO(b.createdAt)));
 
   return (
     <FlatList
       data={observations.getObservationList.map(observation => ({
         id: observation.id,
         observation: observation,
-        zone: zone(observation.locationPoint.lat, observation.locationPoint.lng),
+        zone: zone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng),
       }))}
       renderItem={({item}) => <ObservationSummaryCard observation={item.observation} zone={item.zone} />}
     />
   );
+};
+
+export const zone = (mapLayer: MapLayer, lat: number, long: number): string => {
+  const matchingFeatures = mapLayer.features.filter(feature => geoContains(feature.geometry, [long, lat])).map(feature => feature.properties.name);
+  if (matchingFeatures.length === 0) {
+    return 'Unknown';
+  } else if (matchingFeatures.length > 1) {
+    // TODO: this happens almost 100% ... why?
+    // also, seems like the widget is naming things with more specificity than just the forecast zones? e.g. teton village
+    console.log(`(${long},${lat}) matched ${matchingFeatures.length} features: ${matchingFeatures}`);
+  }
+  return matchingFeatures[0];
 };
 
 export const ObservationSummaryCard: React.FunctionComponent<{
@@ -84,31 +89,99 @@ export const ObservationSummaryCard: React.FunctionComponent<{
   zone: string;
 }> = ({zone, observation}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
-  const {width} = useWindowDimensions();
+  const anySignsOfInstability =
+    observation.instability.avalanches_caught ||
+    observation.instability.avalanches_observed ||
+    observation.instability.avalanches_triggered ||
+    observation.instability.collapsing ||
+    observation.instability.cracking;
   return (
     <Card
-      px="2"
-      pt="2"
+      marginTop={2}
+      borderRadius={8}
+      borderColor="white"
       onPress={() => {
         navigation.navigate('observation', {
           id: observation.id,
         });
       }}
       header={
-        <HStack justifyContent="space-between" alignItems="center">
-          <Heading size="md" flex={1} mr="8" fontWeight="normal">
-            {zone + ' - ' + observation.locationName}
-          </Heading>
-          <Heading size="md" color="light.400" fontWeight="normal">
-            {observation.startDate}
-          </Heading>
-        </HStack>
+        <Row alignContent="flex-start" flexWrap="wrap" alignItems="center" space="2">
+          <Title3Semibold>{zone}</Title3Semibold>
+          <FontAwesome name="angle-right" size={18} style={{paddingHorizontal: 4}} color="black" />
+          <Title3Semibold>{observation.locationName}</Title3Semibold>
+        </Row>
       }>
-      <RenderHTML source={{html: observation.observationSummary}} contentWidth={width} />
-      <HStack justifyContent="space-between" pt="4">
-        <NBText color="light.400">{observation.name}</NBText>
-        <NBText color="light.400">{observation.observerType}</NBText>
-      </HStack>
+      <Row flexWrap="wrap" space="2">
+        <IdentifiedInformation header={'Submitted'} body={dateToString(observation.createdAt)} />
+        <IdentifiedInformation header={'Observer'} body={FormatPartnerType(observation.observerType as PartnerType)} />
+        <IdentifiedInformation header={'Author(s)'} body={observation.name || 'Unknown'} />
+      </Row>
+      {anySignsOfInstability && (
+        <Column space="2" style={{flex: 1}}>
+          <Text bold style={{textTransform: 'uppercase'}}>
+            {'Signs Of Instability'}
+          </Text>
+          {observation.instability.avalanches_caught && (
+            <Row space={2} alignItems="center">
+              <NACIcon name="avalanche" size={32} color="black" />
+              <Text color="lightText">{'Caught in Avalanche(s)'}</Text>
+            </Row>
+          )}
+          {observation.instability.avalanches_observed && (
+            <Row space={2} alignItems="center">
+              <NACIcon name="avalanche" size={32} color="black" />
+              <Text color="lightText">{'Avalanche(s) Observed'}</Text>
+            </Row>
+          )}
+          {observation.instability.avalanches_triggered && (
+            <Row space={2} alignItems="center">
+              <NACIcon name="avalanche" size={32} color="black" />
+              <Text color="lightText">{'Avalanche(s) Triggered'}</Text>
+            </Row>
+          )}
+          {observation.instability.collapsing && (
+            <Row space={2} alignItems="center">
+              <MaterialCommunityIcons name="arrow-collapse-vertical" size={24} color="black" />
+              <Text color="lightText">
+                {observation.instability.collapsing_description && `${FormatAvalancheProblemDistribution(observation.instability.collapsing_description)} `}
+                {'Collapsing Observed'}
+              </Text>
+            </Row>
+          )}
+          {observation.instability.cracking && (
+            <Row space={2} alignItems="center">
+              <MaterialCommunityIcons name="lightning-bolt" size={24} color="black" />
+              <Text color="lightText">
+                {observation.instability.cracking_description && `${FormatAvalancheProblemDistribution(observation.instability.cracking_description)} `}
+                {'Cracking Observed'}
+              </Text>
+            </Row>
+          )}
+        </Column>
+      )}
+      {observation.observationSummary && (
+        <Column space="2" style={{flex: 1}}>
+          <Text bold style={{textTransform: 'uppercase'}}>
+            {'Observation Summary'}
+          </Text>
+          <HTMLRenderer source={{html: observation.observationSummary}} />
+        </Column>
+      )}
     </Card>
+  );
+};
+
+const IdentifiedInformation: React.FunctionComponent<{
+  header: string;
+  body: string;
+}> = ({header, body}) => {
+  return (
+    <Column space="2" style={{flex: 1}}>
+      <Text bold style={{textTransform: 'uppercase'}}>
+        {header}
+      </Text>
+      <Text color="lightText">{body}</Text>
+    </Column>
   );
 };

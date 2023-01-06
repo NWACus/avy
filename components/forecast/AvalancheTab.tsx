@@ -16,7 +16,7 @@ interface AvalancheTabProps {
   forecast: Product;
 }
 
-const dateToString = (dateString: string | undefined): string => {
+export const dateToString = (dateString: string | undefined): string => {
   if (!dateString) {
     return 'Unknown';
   }

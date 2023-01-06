@@ -150,6 +150,7 @@ const App = () => {
       Lato_700Bold_Italic,
       Lato_900Black,
       Lato_900Black_Italic,
+      NAC_Icons: require('./assets/fonts/nac-icons.ttf'),
     });
 
     const onLayoutRootView = useCallback(async () => {
