@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {Text, Image, StyleSheet, /*TouchableHighlight,*/ useWindowDimensions, View, ActivityIndicator} from 'react-native';
+import {Text, Image, StyleSheet, useWindowDimensions, View, ActivityIndicator} from 'react-native';
 import RenderHTML from 'react-native-render-html';
 
 import {MediaItem} from 'types/nationalAvalancheCenter';
@@ -20,11 +20,10 @@ const baseStyle = Object.freeze({
 });
 
 export const AvalancheProblemImage: React.FunctionComponent<AvalancheProblemImageProps> = ({media}) => {
-  const [gallery /*, setGallery*/] = React.useState<boolean>(false);
+  const [gallery] = React.useState<boolean>(false);
   const {width} = useWindowDimensions();
   const [imageDimensions, setImageDimensions] = React.useState<dimensions>({height: 0, width: 0});
   const [error, setError] = React.useState<string>('');
-  // const toGallery = React.useCallback(() => setGallery(true), []);
 
   React.useEffect(() => {
     Image.getSize(
@@ -50,9 +49,7 @@ export const AvalancheProblemImage: React.FunctionComponent<AvalancheProblemImag
     <>
       {!gallery ? (
         <View style={styles.container}>
-          {/* <TouchableHighlight onPress={toGallery}> */}
           <Image source={{uri: media.url.original}} style={{width: '70%', aspectRatio: imageDimensions.height / imageDimensions.width}} />
-          {/* </TouchableHighlight> */}
           <RenderHTML source={{html: media.caption}} baseStyle={baseStyle} contentWidth={width} />
         </View>
       ) : (
