@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 
-import {StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
-import {FlatList, HStack, View, VStack} from 'native-base';
+import {ActivityIndicator, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
+import {Alert, Center, CloseIcon, FlatList, HStack, IconButton, View, VStack} from 'native-base';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
@@ -12,7 +12,7 @@ import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {HomeStackNavigationProps} from 'routes';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {BodySmSemibold, Caption1, Caption1Black, FeatureTitleBlack, Title3Black} from 'components/text';
+import {Body, BodySmSemibold, Caption1, Caption1Black, FeatureTitleBlack, Title3Black} from 'components/text';
 import {colorFor} from './AvalancheDangerPyramid';
 import {dateToString} from 'utils/date';
 
@@ -66,8 +66,21 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         <DangerScale px="4" width="100%" position="absolute" top="12" />
       </SafeAreaView>
 
-      {isLoading && <FeatureTitleBlack>Loading...</FeatureTitleBlack>}
-      {isError && <FeatureTitleBlack>{`Error...${error}`}</FeatureTitleBlack>}
+      {isLoading && (
+        <Center width="100%" height="100%" position="absolute" top="0">
+          <ActivityIndicator size={'large'} />
+        </Center>
+      )}
+      {isError && (
+        <Center width="100%" position="absolute" bottom="6">
+          <Alert status={'warning'} px={6} py={4}>
+            <HStack space={2} flexShrink={1}>
+              <Alert.Icon mt="1" />
+              <Body>Unable to load forecast data</Body>
+            </HStack>
+          </Alert>
+        </Center>
+      )}
       {!isLoading && !isError && <AvalancheForecastZoneCards key={center} center={center} date={date} mapLayer={mapLayer} />}
     </>
   );
