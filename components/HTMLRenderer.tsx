@@ -1,9 +1,9 @@
-import * as React from 'react';
+import React, {useState} from 'react';
 import * as _ from 'lodash';
 
-import {useToken} from 'native-base';
+import {useToken, Text, ScrollView} from 'native-base';
 import {RenderHTML, RenderHTMLProps} from 'react-native-render-html';
-import {useWindowDimensions} from 'react-native';
+import {TouchableOpacity, useWindowDimensions} from 'react-native';
 import Constants from 'expo-constants';
 
 const systemFonts = [
@@ -44,6 +44,23 @@ export const HTMLRenderer: React.FunctionComponent<RenderHTMLProps> = props => {
     },
     systemFonts,
   };
+
+  if (__DEV__) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [showSource, setShowSource] = useState(false);
+    const html = _.get(props, ['source', 'html'], undefined);
+    return (
+      <TouchableOpacity activeOpacity={1} onLongPress={() => setShowSource(!showSource)}>
+        {showSource && html ? (
+          <ScrollView>
+            <Text fontFamily="Courier New">{html}</Text>
+          </ScrollView>
+        ) : (
+          <RenderHTML {..._.merge(defaultProps, props || {})} />
+        )}
+      </TouchableOpacity>
+    );
+  }
 
   return <RenderHTML {..._.merge(defaultProps, props || {})} />;
 };
