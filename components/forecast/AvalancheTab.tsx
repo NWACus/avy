@@ -88,11 +88,11 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
       <Card borderRadius={0} borderColor="white" header={<Heading>Avalanche Danger</Heading>}>
         <AvalancheDangerTable date={parseISO(forecast.published_time)} current={currentDanger} outlook={outlookDanger} elevation_band_names={elevationBandNames} />
       </Card>
-      <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Avalanche Problems</Heading>}>
-        {forecast.forecast_avalanche_problems.map((problem, index) => (
+      {forecast.forecast_avalanche_problems.map((problem, index) => (
+        <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Avalanche Problem #{index + 1}</Heading>}>
           <AvalancheProblemCard key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
-        ))}
-      </CollapsibleCard>
+        </CollapsibleCard>
+      ))}
       <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Forecast Discussion</Heading>}>
         <HTMLRenderer source={{html: forecast.hazard_discussion}} />
       </CollapsibleCard>
