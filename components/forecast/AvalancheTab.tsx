@@ -9,7 +9,7 @@ import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
 import {Card, CollapsibleCard} from 'components/Card';
-import {HTMLRenderer} from 'components/HTMLRenderer';
+import {HTMLRenderer} from 'components/text/HTMLRenderer';
 
 interface AvalancheTabProps {
   zone: AvalancheForecastZone;
