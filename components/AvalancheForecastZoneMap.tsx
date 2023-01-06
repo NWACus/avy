@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 
 import {ActivityIndicator, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
-import {Alert, Center, CloseIcon, FlatList, HStack, IconButton, View, VStack} from 'native-base';
+import {Alert, Center, FlatList, HStack, View, VStack} from 'native-base';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
@@ -12,7 +12,7 @@ import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {HomeStackNavigationProps} from 'routes';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {Body, BodySmSemibold, Caption1, Caption1Black, FeatureTitleBlack, Title3Black} from 'components/text';
+import {Body, BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
 import {colorFor} from './AvalancheDangerPyramid';
 import {dateToString} from 'utils/date';
 
@@ -48,7 +48,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     latitudeDelta: 1.05 * region.latitudeDelta,
     longitudeDelta: 1.05 * region.longitudeDelta,
   };
-  const {isLoading, isError, data: mapLayer, error} = useMapLayer(center);
+  const {isLoading, isError, data: mapLayer} = useMapLayer(center);
 
   return (
     <>
