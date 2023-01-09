@@ -10,7 +10,7 @@ import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
 import {Card, CollapsibleCard} from 'components/Card';
 import {HTMLRenderer} from 'components/text/HTMLRenderer';
-import {dateToString} from 'utils/date';
+import {utcDateToLocalTimeString} from 'utils/date';
 
 interface AvalancheTabProps {
   zone: AvalancheForecastZone;
@@ -51,13 +51,13 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
             <Text bold style={{textTransform: 'uppercase'}}>
               Issued
             </Text>
-            <Text color="lightText">{dateToString(forecast.published_time)}</Text>
+            <Text color="lightText">{utcDateToLocalTimeString(forecast.published_time)}</Text>
           </VStack>
           <VStack space="2" style={{flex: 1}}>
             <Text bold style={{textTransform: 'uppercase'}}>
               Expires
             </Text>
-            <Text color="lightText">{dateToString(forecast.expires_time)}</Text>
+            <Text color="lightText">{utcDateToLocalTimeString(forecast.expires_time)}</Text>
           </VStack>
           <VStack space="2" style={{flex: 1}}>
             <Text bold style={{textTransform: 'uppercase'}}>

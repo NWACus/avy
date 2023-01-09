@@ -1,6 +1,6 @@
 import {format, parseISO} from 'date-fns';
 
-export const dateToString = (dateString: string | undefined): string => {
+export const utcDateToLocalTimeString = (dateString: string | undefined): string => {
   if (!dateString) {
     return 'Unknown';
   }

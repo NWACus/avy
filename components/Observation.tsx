@@ -33,7 +33,7 @@ import {zone} from './Observations';
 import {HTMLRenderer} from './text/HTMLRenderer';
 import {AvalancheProblemImage} from './AvalancheProblemImage';
 import {NACIcon} from './icons/nac-icons';
-import {dateToString} from 'utils/date';
+import {utcDateToLocalTimeString} from 'utils/date';
 
 export const Observation: React.FunctionComponent<{
   id: string;
@@ -84,8 +84,8 @@ export const ObservationCard: React.FunctionComponent<{
       <Column space="2" bgColor={'#f0f2f5'}>
         <Card marginTop={2} borderRadius={0} borderColor="white" header={<Heading>{`${FormatPartnerType(observation.observerType as PartnerType)} Field Observation`}</Heading>}>
           <Row flexWrap="wrap" space="2">
-            <IdentifiedInformation header={'Submitted'} body={dateToString(observation.createdAt)} />
-            {observation.endDate && <IdentifiedInformation header={'Expires'} body={dateToString(observation.endDate)} />}
+            <IdentifiedInformation header={'Submitted'} body={utcDateToLocalTimeString(observation.createdAt)} />
+            {observation.endDate && <IdentifiedInformation header={'Expires'} body={utcDateToLocalTimeString(observation.endDate)} />}
             <IdentifiedInformation header={'Author(s)'} body={observation.name || 'Unknown'} />
             <IdentifiedInformation header={'Activity'} body={activityDisplayName(observation.activity)} />
           </Row>
@@ -193,7 +193,10 @@ export const ObservationCard: React.FunctionComponent<{
               observation.avalanches.map((item, index) => (
                 <Column space="2" style={{flex: 1}} key={`avalanche-${index}`}>
                   <Row space={2} alignItems="center">
-                    <IdentifiedInformation header={'Date'} body={`${dateToString(item.date)} (${FormatAvalancheDateUncertainty(item.dateAccuracy as AvalancheDateUncertainty)})`} />
+                    <IdentifiedInformation
+                      header={'Date'}
+                      body={`${utcDateToLocalTimeString(item.date)} (${FormatAvalancheDateUncertainty(item.dateAccuracy as AvalancheDateUncertainty)})`}
+                    />
                     <IdentifiedInformation header={'Location'} body={item.location} />
                     <IdentifiedInformation header={'Size'} body={`D${item.dSize}-R${item.rSize}`} />
                   </Row>

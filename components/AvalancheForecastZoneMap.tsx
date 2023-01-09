@@ -14,7 +14,7 @@ import {HomeStackNavigationProps} from 'routes';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Body, BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
 import {colorFor} from './AvalancheDangerPyramid';
-import {dateToString} from 'utils/date';
+import {utcDateToLocalTimeString} from 'utils/date';
 
 export const defaultRegion: Region = {
   // TODO(skuznets): add a sane default for the US?
@@ -159,10 +159,10 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           <VStack py={2}>
             <Text>
               <Caption1Black>Published: </Caption1Black>
-              <Caption1>{dateToString(feature.properties.start_date)}</Caption1>
+              <Caption1>{utcDateToLocalTimeString(feature.properties.start_date)}</Caption1>
               {'\n'}
               <Caption1Black>Expires: </Caption1Black>
-              <Caption1>{dateToString(feature.properties.end_date)}</Caption1>
+              <Caption1>{utcDateToLocalTimeString(feature.properties.end_date)}</Caption1>
             </Text>
           </VStack>
           <Text>
