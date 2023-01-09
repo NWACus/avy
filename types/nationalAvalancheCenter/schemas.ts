@@ -11,7 +11,6 @@ import {
   DangerLevel,
   ForecastPeriod,
   MediaType,
-  numberToProblemSize,
   ProductStatus,
   ProductType,
   Units,
@@ -49,12 +48,11 @@ export const avalancheProblemLocationSchema = z.nativeEnum(AvalancheProblemLocat
 
 // Fix up data issues before parsing
 // 1) NWAC (and probably others) return strings for avalanche problem size, not numbers
-// 2) NWAC (and probably others) use values outside our enums 1-4
 export const avalancheProblemSizeSchema = z
   .number()
   .or(z.string())
   .transform((val: string, ctx) => {
-    const parsed = parseInt(val);
+    const parsed = parseFloat(val);
     if (isNaN(parsed)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -63,8 +61,7 @@ export const avalancheProblemSizeSchema = z
       return z.NEVER;
     }
     return parsed;
-  })
-  .transform(val => numberToProblemSize(val));
+  });
 
 export const forecastPeriodSchema = z.nativeEnum(ForecastPeriod);
 
