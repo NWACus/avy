@@ -208,7 +208,7 @@ export type ObservationsQuery = {
     id: any;
     observerType: string;
     name?: string | null;
-    startDate?: any | null;
+    createdAt: any;
     locationName: string;
     instability: any;
     observationSummary: string;
@@ -221,7 +221,7 @@ export type OverviewFragment = {
   id: any;
   observerType: string;
   name?: string | null;
-  startDate?: any | null;
+  createdAt: any;
   locationName: string;
   instability: any;
   observationSummary: string;
@@ -302,7 +302,7 @@ export const OverviewFragmentDoc = `
   id
   observerType
   name
-  startDate
+  createdAt
   locationPoint {
     lat
     lng

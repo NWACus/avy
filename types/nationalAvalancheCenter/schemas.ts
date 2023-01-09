@@ -16,6 +16,27 @@ import {
   Units,
 } from './enums';
 
+export const avalancheCenterIDSchema = z.enum([
+  'BTAC', // Bridger-Teton: ID, WY
+  'CNFAIC', // Chugach: AK
+  'FAC', // Flathead: MT
+  'GNFAC', // Gallatin: MT, WY, ID
+  'IPAC', // Idaho Panhandle: ID, MT
+  'NWAC', // Northwest: WA, OR
+  'MSAC', // Mount Shasta: CA
+  'MWAC', // Mount Washington: NH
+  'PAC', // Payette: ID
+  'SNFAC', // Sawtooths: ID
+  'SAC', // Sierra: CA
+  'WCMAC', // West Central Montana: MT
+  'CAIC', // Colorado: CO
+  'COAA', // Central Oregon: OR
+  'CBAC', // Crested Butte: CO
+  'ESAC', // Eastern Sierra: CA
+  'WAC', // Wallowas: OR
+]);
+export type AvalancheCenterID = z.infer<typeof avalancheCenterIDSchema>;
+
 export const dangerLevelSchema = z.nativeEnum(DangerLevel);
 
 // coordinates encodes a list of points, each as a two-member array [longitude,latitude]
@@ -309,7 +330,7 @@ export const warningSchema = z.object({
 // - consumer directions for how to render the feature, like fill color & stroke
 export const featurePropertiesSchema = z.object({
   name: z.string(),
-  center_id: z.string(),
+  center_id: avalancheCenterIDSchema,
   center_link: z.string(),
   state: z.string(),
   link: z.string(),

@@ -36,11 +36,12 @@ import {
   Title3Black,
   Title3Semibold,
 } from 'components/text';
+import {AvalancheCenterID} from '../../types/nationalAvalancheCenter';
 
 const MenuStack = createNativeStackNavigator<MenuStackParamList>();
 export const MenuStackScreen = (
-  avalancheCenterId: string,
-  setAvalancheCenter: React.Dispatch<React.SetStateAction<string>>,
+  avalancheCenterId: AvalancheCenterID,
+  setAvalancheCenter: React.Dispatch<React.SetStateAction<AvalancheCenterID>>,
   staging: boolean,
   setStaging: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
@@ -57,7 +58,7 @@ export const MenuStackScreen = (
   );
 };
 
-export const MenuScreen = (avalancheCenterId: string, staging: boolean, setStaging: React.Dispatch<React.SetStateAction<boolean>>) => {
+export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolean, setStaging: React.Dispatch<React.SetStateAction<boolean>>) => {
   const toggleStaging = React.useCallback(() => {
     setStaging(!staging);
     console.log(`Switching to ${staging ? 'production' : 'staging'} environment`);
@@ -170,7 +171,7 @@ const TextStylePreview = () => {
   );
 };
 
-export const AvalancheCenterSelectorScreen = (avalancheCenterId: string, setAvalancheCenter: React.Dispatch<React.SetStateAction<string>>) => {
+export const AvalancheCenterSelectorScreen = (avalancheCenterId: AvalancheCenterID, setAvalancheCenter: React.Dispatch<React.SetStateAction<AvalancheCenterID>>) => {
   return function (_: NativeStackScreenProps<MenuStackParamList, 'avalancheCenterSelector'>) {
     return <AvalancheCenterSelector currentCenterId={avalancheCenterId} setAvalancheCenter={setAvalancheCenter} />;
   };

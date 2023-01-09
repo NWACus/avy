@@ -8,7 +8,7 @@ import {FontAwesome5} from '@expo/vector-icons';
 import {parseISO} from 'date-fns';
 
 import {DangerScale} from 'components/DangerScale';
-import {AvalancheDangerForecast, DangerLevel, Feature, ForecastPeriod} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, AvalancheDangerForecast, DangerLevel, Feature, ForecastPeriod} from 'types/nationalAvalancheCenter';
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
 import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {useMapLayer} from 'hooks/useMapLayer';
@@ -25,7 +25,7 @@ export const defaultRegion: Region = {
 };
 
 export interface MapProps {
-  centers: string[];
+  centers: AvalancheCenterID[];
   date: string;
 }
 
@@ -104,7 +104,7 @@ export const CARD_SPACING = CARD_WHITESPACE / 2; // proportion of overall width 
 export const CARD_MARGIN = CARD_SPACING / 2; // proportion of overall width that each card needs as a margin
 
 export const AvalancheForecastZoneCards: React.FunctionComponent<{
-  center_id: string;
+  center_id: AvalancheCenterID;
   date: string;
   cardStyle: ViewStyle;
   horizontal: boolean;

@@ -7,7 +7,7 @@ import {Heading, Text, View} from 'native-base';
 
 import {parseISO} from 'date-fns';
 
-import {AvalancheForecastZone, AvalancheForecastZoneSummary} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, AvalancheForecastZone, AvalancheForecastZoneSummary} from 'types/nationalAvalancheCenter';
 import {Tab, TabControl} from 'components/TabControl';
 import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
@@ -17,7 +17,7 @@ import {AvalancheTab} from './AvalancheTab';
 
 export interface AvalancheForecastProps {
   zoneName: string;
-  center_id: string;
+  center_id: AvalancheCenterID;
   date: string;
   forecast_zone_id: number;
 }

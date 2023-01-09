@@ -7,10 +7,10 @@ import {add, sub, format} from 'date-fns';
 import * as Sentry from 'sentry-expo';
 
 import {ClientContext, ClientProps} from 'clientContext';
-import {Product, productArraySchema} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, Product, productArraySchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
-export const useAvalancheForecastFragments = (center_id: string, date: Date) => {
+export const useAvalancheForecastFragments = (center_id: AvalancheCenterID, date: Date) => {
   const clientProps = React.useContext<ClientProps>(ClientContext);
   return useQuery<Product[] | undefined, AxiosError | ZodError>(['products', center_id, format(date, 'y-MM-dd')], async () => {
     const url = `${clientProps.nationalAvalancheCenterHost}/v2/public/products`;

@@ -1,10 +1,10 @@
 import {useQuery} from 'react-query';
 import {format, isAfter, isBefore, parseISO} from 'date-fns';
 
-import {Product} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, Product} from 'types/nationalAvalancheCenter';
 import {useAvalancheForecastFragments} from './useAvalancheForecastFragments';
 
-export const useAvalancheForecastFragment = (center_id: string, forecast_zone_id: number, date: Date) => {
+export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forecast_zone_id: number, date: Date) => {
   const {data: fragments} = useAvalancheForecastFragments(center_id, date);
 
   return useQuery<Product, Error>(

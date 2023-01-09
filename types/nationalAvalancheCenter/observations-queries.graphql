@@ -14,7 +14,7 @@ fragment overview on ObservationGraphPublic {
   id
   observerType
   name
-  startDate
+  createdAt
   locationPoint {
     lat
     lng
