@@ -4,9 +4,10 @@ import {Region} from 'react-native-maps';
 
 import {useMapLayer} from 'hooks/useMapLayer';
 import {AvalancheForecastZonePolygon} from './AvalancheForecastZonePolygon';
+import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
 
 export interface AvalancheCenterForecastZonePolygonsProps {
-  center_id: string;
+  center_id: AvalancheCenterID;
   date: string;
   setRegion: React.Dispatch<React.SetStateAction<Region>>;
 }

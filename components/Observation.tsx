@@ -11,6 +11,7 @@ import {
   AvalancheAspect,
   AvalancheBedSurface,
   AvalancheCause,
+  AvalancheCenterID,
   AvalancheDateUncertainty,
   AvalancheTrigger,
   AvalancheType,
@@ -45,7 +46,12 @@ export const Observation: React.FunctionComponent<{
   } = useObservationQuery({
     id: id,
   });
-  const {isLoading: isMapLoading, isError: isMapError, data: mapLayer, error: mapError} = useMapLayer(observation?.getSingleObservation.centerId?.toUpperCase());
+  const {
+    isLoading: isMapLoading,
+    isError: isMapError,
+    data: mapLayer,
+    error: mapError,
+  } = useMapLayer(observation?.getSingleObservation.centerId?.toUpperCase() as AvalancheCenterID);
 
   if (isObservationLoading || isMapLoading || !observation) {
     return <ActivityIndicator />;

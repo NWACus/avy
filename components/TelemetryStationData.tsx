@@ -7,9 +7,10 @@ import {Chart, Line, HorizontalAxis, VerticalAxis} from 'react-native-responsive
 import {scaleLinear, scaleTime} from 'd3';
 import {max, min, parseISO, format} from 'date-fns';
 import {Variable, VariableMetadata} from 'types/snowbound';
+import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
 
 export const TelemetryStationData: React.FunctionComponent<{
-  center_id: string;
+  center_id: AvalancheCenterID;
   source: string;
   station_id: number;
 }> = ({center_id, source, station_id}) => {

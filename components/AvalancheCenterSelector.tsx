@@ -7,8 +7,9 @@ import {useNavigation} from '@react-navigation/native';
 import {AvalancheCenterLogo} from './AvalancheCenterLogo';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {TabNavigationProps} from 'routes';
+import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
 
-const avalancheCenterIDsByType: SectionListData<string>[] = [
+const avalancheCenterIDsByType: SectionListData<AvalancheCenterID>[] = [
   {
     title: 'Forest Service',
     data: [
@@ -44,9 +45,9 @@ const avalancheCenterIDsByType: SectionListData<string>[] = [
 ];
 
 interface AvalancheCenterCardProps {
-  avalancheCenterId: string;
+  avalancheCenterId: AvalancheCenterID;
   selected: boolean;
-  onPress: (avalancheCenter: string) => void;
+  onPress: (avalancheCenter: AvalancheCenterID) => void;
 }
 
 export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = ({avalancheCenterId, selected, onPress}: AvalancheCenterCardProps) => {
@@ -115,7 +116,7 @@ export const AvalancheCenterSelector = ({currentCenterId, setAvalancheCenter}) =
         <AvalancheCenterCard
           avalancheCenterId={item}
           selected={item === currentCenterId}
-          onPress={(avalancheCenter: string) => {
+          onPress={(avalancheCenter: AvalancheCenterID) => {
             setAvalancheCenter(avalancheCenter);
             // We need to clear navigation state to force all screens from the
             // previous avalanche center selection to unmount

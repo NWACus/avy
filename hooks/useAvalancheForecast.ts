@@ -6,11 +6,11 @@ import {useQuery} from 'react-query';
 import * as Sentry from 'sentry-expo';
 
 import {ClientContext, ClientProps} from 'clientContext';
-import {Product, productSchema} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, Product, productSchema} from 'types/nationalAvalancheCenter';
 import {useAvalancheForecastFragment} from './useAvalancheForecastFragment';
 import {ZodError} from 'zod';
 
-export const useAvalancheForecast = (center_id: string, forecast_zone_id: number, date: Date) => {
+export const useAvalancheForecast = (center_id: AvalancheCenterID, forecast_zone_id: number, date: Date) => {
   const clientProps = React.useContext<ClientProps>(ClientContext);
   const {data: fragment} = useAvalancheForecastFragment(center_id, forecast_zone_id, date);
   const forecastId = fragment?.id;

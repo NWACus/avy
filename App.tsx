@@ -36,6 +36,7 @@ import {HomeTabScreen} from 'components/screens/HomeScreen';
 import {MenuStackScreen} from 'components/screens/MenuScreen';
 import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
 import {TelemetryTabScreen} from 'components/screens/TelemetryScreen';
+import {AvalancheCenterID} from './types/nationalAvalancheCenter';
 
 // The SplashScreen stays up until we've loaded all of our fonts and other assets
 SplashScreen.preventAutoHideAsync();
@@ -130,7 +131,7 @@ const App = () => {
     useAppState(onAppStateChange);
 
     // Set up ClientContext values
-    const [avalancheCenterId, setAvalancheCenterId] = React.useState(Constants.expoConfig.extra.avalanche_center);
+    const [avalancheCenterId, setAvalancheCenterId] = React.useState(Constants.expoConfig.extra.avalanche_center as AvalancheCenterID);
     const [staging, setStaging] = React.useState(false);
 
     const contextValue = {

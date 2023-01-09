@@ -10,9 +10,10 @@ import {CARD_MARGIN, CARD_SPACING, CARD_WIDTH, defaultRegion} from './AvalancheF
 import {updateRegionToContain} from './AvalancheForecastZonePolygon';
 import {useNavigation} from '@react-navigation/native';
 import {TelemetryStackNavigationProps} from 'routes';
+import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
 
 export const TelemetryStationMap: React.FunctionComponent<{
-  center_id: string;
+  center_id: AvalancheCenterID;
   date: string;
 }> = ({center_id, date}) => {
   const {width} = useWindowDimensions();
@@ -136,7 +137,7 @@ export const TelemetryStationMap: React.FunctionComponent<{
 };
 
 export const TelemetryStationCard: React.FunctionComponent<{
-  center_id: string;
+  center_id: AvalancheCenterID;
   date: string;
   station: StationMetadata;
   style: ViewStyle;

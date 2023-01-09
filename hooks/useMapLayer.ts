@@ -6,10 +6,10 @@ import {useQuery} from 'react-query';
 import * as Sentry from 'sentry-expo';
 
 import {ClientContext, ClientProps} from 'clientContext';
-import {MapLayer, mapLayerSchema} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MapLayer, mapLayerSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
-export const useMapLayer = (center_id: string) => {
+export const useMapLayer = (center_id: AvalancheCenterID) => {
   const clientProps = React.useContext<ClientProps>(ClientContext);
   return useQuery<MapLayer, AxiosError | ZodError>(
     ['map-layer', center_id],

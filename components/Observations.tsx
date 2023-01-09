@@ -11,7 +11,7 @@ import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import {Card} from 'components/Card';
 import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {useMapLayer} from 'hooks/useMapLayer';
-import {FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from '../types/nationalAvalancheCenter';
+import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from '../types/nationalAvalancheCenter';
 import {Title3Semibold} from './text';
 import {dateToString} from './forecast/AvalancheTab';
 import {HTMLRenderer} from './text/HTMLRenderer';
@@ -20,7 +20,7 @@ import {NACIcon} from './icons/nac-icons';
 // TODO: we could show the Avy center logo for obs that come from forecasters
 
 export const Observations: React.FunctionComponent<{
-  center_id: string;
+  center_id: AvalancheCenterID;
   date: string;
 }> = ({center_id, date}) => {
   const {isLoading: isMapLoading, isError: isMapError, data: mapLayer, error: mapError} = useMapLayer(center_id);

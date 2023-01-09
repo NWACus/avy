@@ -6,10 +6,10 @@ import {useQuery} from 'react-query';
 import * as Sentry from 'sentry-expo';
 
 import {ClientContext, ClientProps} from 'clientContext';
-import {AvalancheCenter, avalancheCenterSchema} from 'types/nationalAvalancheCenter';
+import {AvalancheCenter, AvalancheCenterID, avalancheCenterSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
-export const useAvalancheCenterMetadata = (center_id: string) => {
+export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID) => {
   const clientProps = React.useContext<ClientProps>(ClientContext);
   return useQuery<AvalancheCenter, AxiosError | ZodError>(['avalanche-center', center_id], async () => {
     const url = `${clientProps.nationalAvalancheCenterHost}/v2/public/avalanche-center/${center_id}`;
