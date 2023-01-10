@@ -16,6 +16,7 @@ import {Body, BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'compon
 import {colorFor} from './AvalancheDangerPyramid';
 import {utcDateToLocalTimeString} from 'utils/date';
 import {parseISO} from 'date-fns';
+import {TravelAdvice} from './helpers/travelAdvice';
 
 export const defaultRegion: Region = {
   // TODO(skuznets): add a sane default for the US?
@@ -161,7 +162,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           </VStack>
           <Text>
             <Caption1Black>Travel advice: </Caption1Black>
-            <Caption1>{zone.travel_advice}</Caption1>
+            <TravelAdvice dangerLevel={zone.danger_level} />
           </Text>
         </VStack>
       </VStack>

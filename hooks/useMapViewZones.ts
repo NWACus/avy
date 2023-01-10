@@ -12,7 +12,6 @@ export type MapViewZone = {
   name?: string;
   danger_level?: DangerLevel;
   danger?: string;
-  travel_advice?: string;
   start_date: string | null;
   end_date: string | null;
   geometry?: FeatureComponent;
@@ -52,9 +51,6 @@ export const useMapViewZones = (center_id: AvalancheCenterID, date: Date) => {
               mapViewZoneData.danger = forecast.danger_level_text ?? mapViewZoneData.danger;
               mapViewZoneData.startDate = forecast.published_time ?? mapViewZoneData.startDate;
               mapViewZoneData.endDate = forecast.expires_time ?? mapViewZoneData.endDate;
-              // TODO(brian): forecasts don't have travel advice, so maybe we want to hardcode travel advice strings?
-              // Otherwise we could display an updated danger level without updated travel advice.
-              // This will definitely be a problem if we aggressively cache the results of `useMapLayer`.
             }
           });
         });
