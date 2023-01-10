@@ -1,6 +1,16 @@
 import React, {useRef, useState} from 'react';
 
-import {Animated, ActivityIndicator, StyleSheet, Text, useWindowDimensions, PanResponder, TouchableWithoutFeedback} from 'react-native';
+import {
+  Animated,
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  PanResponder,
+  TouchableWithoutFeedback,
+  PanResponderGestureState,
+  GestureResponderEvent,
+} from 'react-native';
 import {Alert, Center, HStack, View, VStack} from 'native-base';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
@@ -92,21 +102,104 @@ export const CARD_WHITESPACE = (1 - CARD_WIDTH) / 2; // proportion of overall wi
 export const CARD_SPACING = CARD_WHITESPACE / 2; // proportion of overall width that the spacing between two cards takes up
 export const CARD_MARGIN = CARD_SPACING / 2; // proportion of overall width that each card needs as a margin
 
-enum CardState {
+enum AnimatedDrawerState {
   Hidden = 'Hidden',
   Docked = 'Docked',
   Visible = 'Visible',
 }
 
-// These offsets are applied through translateY on the FlatList
-const OFFSETS = {
-  [CardState.Hidden]: 160,
-  [CardState.Docked]: 120,
-  [CardState.Visible]: 0,
-};
+class AnimatedDrawerController {
+  // These offsets are applied through translateY on the FlatList
+  static readonly OFFSETS = {
+    [AnimatedDrawerState.Hidden]: 160,
+    [AnimatedDrawerState.Docked]: 120,
+    [AnimatedDrawerState.Visible]: 0,
+  };
 
-// When a pan gesture goes beyond this distance, we animate to the final state
-const SNAP_THRESHOLD = 16;
+  // When a pan gesture goes beyond this distance, we animate to the final state
+  static readonly SNAP_THRESHOLD = 16;
+
+  state: AnimatedDrawerState;
+  baseOffset: number;
+  panning: boolean;
+  yOffset: Animated.Value;
+
+  constructor(state = AnimatedDrawerState.Docked) {
+    this.state = state;
+    this.baseOffset = AnimatedDrawerController.OFFSETS[state];
+    this.panning = false;
+    this.yOffset = new Animated.Value(this.baseOffset);
+  }
+
+  setState(state: AnimatedDrawerState) {
+    this.state = state;
+    this.panning = false;
+    this.baseOffset = AnimatedDrawerController.OFFSETS[state];
+    this.yOffset.setOffset(this.baseOffset);
+    this.yOffset.setValue(0);
+  }
+
+  onPanResponderGrant() {
+    this.panning = true;
+    this.yOffset.setOffset(this.baseOffset);
+    this.yOffset.setValue(0);
+  }
+
+  onPanResponderMove(event: GestureResponderEvent, gestureState: PanResponderGestureState) {
+    if (!this.panning) {
+      return;
+    }
+
+    // Are we moving too far in the X direction? If so, treat as a scroll and stop panning the drawer
+    if (Math.abs(gestureState.dx) > AnimatedDrawerController.SNAP_THRESHOLD) {
+      this.onPanResponderRelease();
+      return;
+    }
+
+    // Detect overscroll in the invalid direction - we allow a little bit of give,
+    // but then ignore the events
+    if (
+      (this.state === AnimatedDrawerState.Docked && gestureState.dy > AnimatedDrawerController.SNAP_THRESHOLD) ||
+      (this.state === AnimatedDrawerState.Visible && gestureState.dy < -AnimatedDrawerController.SNAP_THRESHOLD)
+    ) {
+      return;
+    }
+
+    if (Math.abs(gestureState.dy) > AnimatedDrawerController.SNAP_THRESHOLD) {
+      this.panning = false;
+      this.state = this.state === AnimatedDrawerState.Docked ? AnimatedDrawerState.Visible : AnimatedDrawerState.Docked;
+      this.baseOffset = AnimatedDrawerController.OFFSETS[this.state];
+      this.yOffset.flattenOffset();
+      Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}).start();
+    } else {
+      Animated.event([null, {dy: this.yOffset}], {useNativeDriver: false})(event, gestureState);
+    }
+  }
+
+  onPanResponderRelease() {
+    if (this.panning) {
+      // user panned, but not far enough to change state - we should spring back to our previous position
+      this.panning = false;
+      this.yOffset.flattenOffset();
+      Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}).start();
+    }
+    this.panning = false;
+  }
+
+  getTransform() {
+    const allowedRange = [
+      AnimatedDrawerController.OFFSETS[AnimatedDrawerState.Visible] - AnimatedDrawerController.SNAP_THRESHOLD,
+      AnimatedDrawerController.OFFSETS[AnimatedDrawerState.Hidden] + AnimatedDrawerController.SNAP_THRESHOLD,
+    ];
+    return {
+      translateY: this.yOffset.interpolate({
+        inputRange: allowedRange,
+        outputRange: allowedRange,
+        extrapolate: 'clamp',
+      }),
+    };
+  }
+}
 
 const AvalancheForecastZoneCards: React.FunctionComponent<{
   date: string;
@@ -129,69 +222,14 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
   // These values control the state that's driven through gestures & animation.
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
-  const DEFAULT_CARD_STATE = CardState.Docked;
-  const yOffset = useRef(new Animated.Value(OFFSETS[DEFAULT_CARD_STATE])).current;
-  const responderState = useRef({
-    panning: false,
-    cardState: DEFAULT_CARD_STATE,
-    baseOffset: OFFSETS[DEFAULT_CARD_STATE],
-    setState: (state: CardState) => {
-      responderState.cardState = state;
-      responderState.panning = false;
-      responderState.baseOffset = OFFSETS[state];
-      yOffset.setOffset(responderState.baseOffset);
-      yOffset.setValue(0);
-    },
-    startPanning: () => {
-      responderState.panning = true;
-      yOffset.setOffset(responderState.baseOffset);
-      yOffset.setValue(0);
-    },
-    handlePanEvent: (event, gestureState) => {
-      const {panning, cardState} = responderState;
-      if (!panning) {
-        return;
-      }
-
-      // Are we moving too far in the X direction? If so, treat as a scroll and stop panning the drawer
-      if (Math.abs(gestureState.dx) > SNAP_THRESHOLD) {
-        responderState.endPanning();
-        return;
-      }
-
-      // Detect overscroll in the invalid direction - we allow a little bit of give,
-      // but then ignore the events
-      if ((cardState === CardState.Docked && gestureState.dy > SNAP_THRESHOLD) || (cardState === CardState.Visible && gestureState.dy < -SNAP_THRESHOLD)) {
-        return;
-      }
-
-      if (Math.abs(gestureState.dy) > SNAP_THRESHOLD) {
-        responderState.panning = false;
-        responderState.cardState = responderState.cardState === CardState.Docked ? CardState.Visible : CardState.Docked;
-        responderState.baseOffset = OFFSETS[responderState.cardState];
-        yOffset.flattenOffset();
-        Animated.spring(yOffset, {toValue: responderState.baseOffset, useNativeDriver: true}).start();
-      } else {
-        Animated.event([null, {dy: yOffset}], {useNativeDriver: false})(event, gestureState);
-      }
-    },
-    endPanning: () => {
-      if (responderState.panning) {
-        // user panned, but not far enough to change state - we should spring back to our previous position
-        responderState.panning = false;
-        yOffset.flattenOffset();
-        Animated.spring(yOffset, {toValue: responderState.baseOffset, useNativeDriver: true}).start();
-      }
-      responderState.panning = false;
-    },
-  }).current;
+  const panResponderController = useRef<AnimatedDrawerController>(new AnimatedDrawerController(AnimatedDrawerState.Docked)).current;
 
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: responderState.startPanning,
-      onPanResponderMove: responderState.handlePanEvent,
-      onPanResponderRelease: responderState.endPanning,
+      onPanResponderGrant: () => panResponderController.onPanResponderGrant(),
+      onPanResponderMove: (e, gestureState) => panResponderController.onPanResponderMove(e, gestureState),
+      onPanResponderRelease: () => panResponderController.onPanResponderRelease(),
     }),
   ).current;
 
@@ -203,15 +241,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
           position: 'absolute',
           width: '100%',
           bottom: 6,
-          transform: [
-            {
-              translateY: yOffset.interpolate({
-                inputRange: [OFFSETS[CardState.Visible] - SNAP_THRESHOLD, OFFSETS[CardState.Hidden] + SNAP_THRESHOLD],
-                outputRange: [OFFSETS[CardState.Visible] - SNAP_THRESHOLD, OFFSETS[CardState.Hidden] + SNAP_THRESHOLD],
-                extrapolate: 'clamp',
-              }),
-            },
-          ],
+          transform: [panResponderController.getTransform()],
         },
       ]}
       {...panResponder.panHandlers}
