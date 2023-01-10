@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 
-import {ActivityIndicator, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
-import {Alert, Center, FlatList, HStack, View, VStack} from 'native-base';
+import {Animated, ActivityIndicator, StyleSheet, Text, useWindowDimensions, PanResponder, TouchableWithoutFeedback} from 'react-native';
+import {Alert, Center, HStack, View, VStack} from 'native-base';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
@@ -92,13 +92,29 @@ export const CARD_WHITESPACE = (1 - CARD_WIDTH) / 2; // proportion of overall wi
 export const CARD_SPACING = CARD_WHITESPACE / 2; // proportion of overall width that the spacing between two cards takes up
 export const CARD_MARGIN = CARD_SPACING / 2; // proportion of overall width that each card needs as a margin
 
+enum CardState {
+  Hidden = 'Hidden',
+  Docked = 'Docked',
+  Visible = 'Visible',
+}
+
+// These offsets are applied through translateY on the FlatList
+const OFFSETS = {
+  [CardState.Hidden]: 160,
+  [CardState.Docked]: 120,
+  [CardState.Visible]: 0,
+};
+
+// When a pan gesture goes beyond this distance, we animate to the final state
+const SNAP_THRESHOLD = 16;
+
 const AvalancheForecastZoneCards: React.FunctionComponent<{
   date: string;
   zones: MapViewZone[];
 }> = ({date, zones}) => {
   const {width} = useWindowDimensions();
 
-  const props = {
+  const flatListProps = {
     snapToAlignment: 'start',
     decelerationRate: 'fast',
     snapToOffsets: zones?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width),
@@ -109,15 +125,100 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
     contentContainerStyle: {paddingHorizontal: CARD_MARGIN * width},
   } as const;
 
+  // The list view has drawer-like behavior - it can be swiped into view, or swiped away.
+  // These values control the state that's driven through gestures & animation.
+  // useRef has to be used here. Animation and gesture handlers can't use props and state,
+  // and aren't re-evaluated on render. Fun!
+  const DEFAULT_CARD_STATE = CardState.Docked;
+  const yOffset = useRef(new Animated.Value(OFFSETS[DEFAULT_CARD_STATE])).current;
+  const responderState = useRef({
+    panning: false,
+    cardState: DEFAULT_CARD_STATE,
+    baseOffset: OFFSETS[DEFAULT_CARD_STATE],
+    setState: (state: CardState) => {
+      responderState.cardState = state;
+      responderState.panning = false;
+      responderState.baseOffset = OFFSETS[state];
+      yOffset.setOffset(responderState.baseOffset);
+      yOffset.setValue(0);
+    },
+    startPanning: () => {
+      responderState.panning = true;
+      yOffset.setOffset(responderState.baseOffset);
+      yOffset.setValue(0);
+    },
+    handlePanEvent: (event, gestureState) => {
+      const {panning, cardState} = responderState;
+      if (!panning) {
+        return;
+      }
+
+      // Are we moving too far in the X direction? If so, treat as a scroll and stop panning the drawer
+      if (Math.abs(gestureState.dx) > SNAP_THRESHOLD) {
+        responderState.endPanning();
+        return;
+      }
+
+      // Detect overscroll in the invalid direction - we allow a little bit of give,
+      // but then ignore the events
+      if ((cardState === CardState.Docked && gestureState.dy > SNAP_THRESHOLD) || (cardState === CardState.Visible && gestureState.dy < -SNAP_THRESHOLD)) {
+        return;
+      }
+
+      if (Math.abs(gestureState.dy) > SNAP_THRESHOLD) {
+        responderState.panning = false;
+        responderState.cardState = responderState.cardState === CardState.Docked ? CardState.Visible : CardState.Docked;
+        responderState.baseOffset = OFFSETS[responderState.cardState];
+        yOffset.flattenOffset();
+        Animated.spring(yOffset, {toValue: responderState.baseOffset, useNativeDriver: true}).start();
+      } else {
+        Animated.event([null, {dy: yOffset}], {useNativeDriver: false})(event, gestureState);
+      }
+    },
+    endPanning: () => {
+      if (responderState.panning) {
+        // user panned, but not far enough to change state - we should spring back to our previous position
+        responderState.panning = false;
+        yOffset.flattenOffset();
+        Animated.spring(yOffset, {toValue: responderState.baseOffset, useNativeDriver: true}).start();
+      }
+      responderState.panning = false;
+    },
+  }).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: responderState.startPanning,
+      onPanResponderMove: responderState.handlePanEvent,
+      onPanResponderRelease: responderState.endPanning,
+    }),
+  ).current;
+
   return (
-    <FlatList
+    <Animated.FlatList
       horizontal
-      width="100%"
-      position="absolute"
-      bottom="4"
-      {...props}
+      style={[
+        {
+          position: 'absolute',
+          width: '100%',
+          bottom: 6,
+          transform: [
+            {
+              translateY: yOffset.interpolate({
+                inputRange: [OFFSETS[CardState.Visible] - SNAP_THRESHOLD, OFFSETS[CardState.Hidden] + SNAP_THRESHOLD],
+                outputRange: [OFFSETS[CardState.Visible] - SNAP_THRESHOLD, OFFSETS[CardState.Hidden] + SNAP_THRESHOLD],
+                extrapolate: 'clamp',
+              }),
+            },
+          ],
+        },
+      ]}
+      {...panResponder.panHandlers}
+      {...flatListProps}
       data={zones}
-      renderItem={({item: zone}) => <AvalancheForecastZoneCard key={zone.zone_id} zone={zone} date={date} />}></FlatList>
+      renderItem={({item: zone}) => <AvalancheForecastZoneCard key={zone.zone_id} zone={zone} date={date} />}
+    />
   );
 };
 
@@ -131,7 +232,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
   const dangerColor = colorFor(zone.danger_level);
 
   return (
-    <TouchableOpacity
+    <TouchableWithoutFeedback
       onPress={() => {
         navigation.navigate('forecast', {
           zoneName: zone.name,
@@ -165,6 +266,6 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           </Text>
         </VStack>
       </VStack>
-    </TouchableOpacity>
+    </TouchableWithoutFeedback>
   );
 };
