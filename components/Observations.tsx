@@ -13,9 +13,9 @@ import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from '../types/nationalAvalancheCenter';
 import {Title3Semibold} from './text';
-import {dateToString} from './forecast/AvalancheTab';
 import {HTMLRenderer} from './text/HTMLRenderer';
 import {NACIcon} from './icons/nac-icons';
+import {utcDateToLocalTimeString} from 'utils/date';
 
 // TODO: we could show the Avy center logo for obs that come from forecasters
 
@@ -113,7 +113,7 @@ export const ObservationSummaryCard: React.FunctionComponent<{
         </Row>
       }>
       <Row flexWrap="wrap" space="2">
-        <IdentifiedInformation header={'Submitted'} body={dateToString(observation.createdAt)} />
+        <IdentifiedInformation header={'Submitted'} body={utcDateToLocalTimeString(observation.createdAt)} />
         <IdentifiedInformation header={'Observer'} body={FormatPartnerType(observation.observerType as PartnerType)} />
         <IdentifiedInformation header={'Author(s)'} body={observation.name || 'Unknown'} />
       </Row>
