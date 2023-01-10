@@ -15,31 +15,30 @@ export const useAvalancheForecast = (center_id: AvalancheCenterID, forecast_zone
   const {data: fragment} = useAvalancheForecastFragment(center_id, forecast_zone_id, date);
   const forecastId = fragment?.id;
 
-  return useQuery<Product, AxiosError | ZodError>(
-    ['product', forecastId],
-    async () => {
-      const url = `${clientProps.nationalAvalancheCenterHost}/v2/public/product/${forecastId}`;
-      const {data} = await axios.get(url);
+  return useQuery<Product, AxiosError | ZodError>(['host', clientProps.nationalAvalancheCenterHost, 'product', forecastId], fetchProduct, {
+    enabled: !!forecastId,
+  });
+};
 
-      const parseResult = productSchema.safeParse(data);
-      if (parseResult.success === false) {
-        console.warn(`unparsable forecast`, url, parseResult.error, JSON.stringify(data, null, 2));
-        Sentry.Native.captureException(parseResult.error, {
-          tags: {
-            zod_error: true,
-            center_id,
-            forecast_zone_id,
-            date: date.toString(),
-            url,
-          },
-        });
-        throw parseResult.error;
-      } else {
-        return parseResult.data;
-      }
-    },
-    {
-      enabled: !!forecastId,
-    },
-  );
+export const fetchProduct = async ({queryKey}) => {
+  const host: string = queryKey[1];
+  const id: number = queryKey[3];
+
+  const url = `${host}/v2/public/product/${id}`;
+  const {data} = await axios.get(url);
+
+  const parseResult = productSchema.safeParse(data);
+  if (parseResult.success === false) {
+    console.warn(`unparsable forecast`, url, parseResult.error, JSON.stringify(data, null, 2));
+    Sentry.Native.captureException(parseResult.error, {
+      tags: {
+        zod_error: true,
+        id,
+        url,
+      },
+    });
+    throw parseResult.error;
+  } else {
+    return parseResult.data;
+  }
 };
