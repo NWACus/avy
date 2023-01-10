@@ -6,15 +6,16 @@ import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
 import {DangerScale} from 'components/DangerScale';
-import {AvalancheCenterID, Feature, MapLayer} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
 import {AvalancheDangerIcon} from './AvalancheDangerIcon';
-import {useMapLayer} from 'hooks/useMapLayer';
+import {MapViewZone, useMapViewZones} from 'hooks/useMapViewZones';
 import {HomeStackNavigationProps} from 'routes';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Body, BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
 import {colorFor} from './AvalancheDangerPyramid';
 import {utcDateToLocalTimeString} from 'utils/date';
+import {parseISO} from 'date-fns';
 
 export const defaultRegion: Region = {
   // TODO(skuznets): add a sane default for the US?
@@ -48,7 +49,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     latitudeDelta: 1.05 * region.latitudeDelta,
     longitudeDelta: 1.05 * region.longitudeDelta,
   };
-  const {isLoading, isError, data: mapLayer} = useMapLayer(center);
+  const {isLoading, isError, data: zones} = useMapViewZones(center, parseISO(date));
 
   return (
     <>
@@ -81,7 +82,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           </Alert>
         </Center>
       )}
-      {!isLoading && !isError && <AvalancheForecastZoneCards key={center} center={center} date={date} mapLayer={mapLayer} />}
+      {!isLoading && !isError && <AvalancheForecastZoneCards key={center} date={date} zones={zones} />}
     </>
   );
 };
@@ -92,16 +93,15 @@ export const CARD_SPACING = CARD_WHITESPACE / 2; // proportion of overall width 
 export const CARD_MARGIN = CARD_SPACING / 2; // proportion of overall width that each card needs as a margin
 
 const AvalancheForecastZoneCards: React.FunctionComponent<{
-  center: AvalancheCenterID;
   date: string;
-  mapLayer: MapLayer;
-}> = ({center, date, mapLayer}) => {
+  zones: MapViewZone[];
+}> = ({date, zones}) => {
   const {width} = useWindowDimensions();
 
   const props = {
     snapToAlignment: 'start',
     decelerationRate: 'fast',
-    snapToOffsets: mapLayer?.features.filter(feature => feature.type === 'Feature').map((feature, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width),
+    snapToOffsets: zones?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width),
     contentInset: {
       left: CARD_MARGIN * width,
       right: CARD_MARGIN * width,
@@ -116,33 +116,27 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
       position="absolute"
       bottom="4"
       {...props}
-      data={mapLayer?.features
-        .filter(feature => feature.type === 'Feature')
-        .map(feature => ({
-          id: center + feature.id,
-          feature: feature,
-          date: date,
-        }))}
-      renderItem={({item}) => <AvalancheForecastZoneCard key={item.id} feature={item.feature} date={item.date} />}></FlatList>
+      data={zones}
+      renderItem={({item: zone}) => <AvalancheForecastZoneCard key={zone.zone_id} zone={zone} date={date} />}></FlatList>
   );
 };
 
 const AvalancheForecastZoneCard: React.FunctionComponent<{
-  feature: Feature;
   date: string;
-}> = ({feature, date}) => {
+  zone: MapViewZone;
+}> = ({date, zone}) => {
   const {width} = useWindowDimensions();
   const navigation = useNavigation<HomeStackNavigationProps>();
 
-  const dangerColor = colorFor(feature.properties.danger_level);
+  const dangerColor = colorFor(zone.danger_level);
 
   return (
     <TouchableOpacity
       onPress={() => {
         navigation.navigate('forecast', {
-          zoneName: feature.properties.name,
-          center_id: feature.properties.center_id,
-          forecast_zone_id: feature.id,
+          zoneName: zone.name,
+          center_id: zone.center_id,
+          forecast_zone_id: zone.zone_id,
           date: date,
         });
       }}>
@@ -150,24 +144,24 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
         <View height="8px" width="100%" bg={dangerColor.string()} borderTopRadius={8} pb={0} />
         <VStack px={6} pt={1} pb={3} space={2}>
           <HStack space={2} alignItems="center">
-            <AvalancheDangerIcon style={{height: 32}} level={feature.properties.danger_level} />
+            <AvalancheDangerIcon style={{height: 32}} level={zone.danger_level} />
             <BodySmSemibold>
-              {feature.properties.danger_level} - <Text style={{textTransform: 'capitalize'}}>{feature.properties.danger}</Text> Avalanche Danger
+              {zone.danger_level} - <Text style={{textTransform: 'capitalize'}}>{zone.danger}</Text> Avalanche Danger
             </BodySmSemibold>
           </HStack>
-          <Title3Black>{feature.properties.name}</Title3Black>
+          <Title3Black>{zone.name}</Title3Black>
           <VStack py={2}>
             <Text>
               <Caption1Black>Published: </Caption1Black>
-              <Caption1>{utcDateToLocalTimeString(feature.properties.start_date)}</Caption1>
+              <Caption1>{utcDateToLocalTimeString(zone.start_date)}</Caption1>
               {'\n'}
               <Caption1Black>Expires: </Caption1Black>
-              <Caption1>{utcDateToLocalTimeString(feature.properties.end_date)}</Caption1>
+              <Caption1>{utcDateToLocalTimeString(zone.end_date)}</Caption1>
             </Text>
           </VStack>
           <Text>
             <Caption1Black>Travel advice: </Caption1Black>
-            <Caption1>{feature.properties.travel_advice}</Caption1>
+            <Caption1>{zone.travel_advice}</Caption1>
           </Text>
         </VStack>
       </VStack>

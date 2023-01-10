@@ -286,6 +286,7 @@ export const productSchema = z.object({
   forecast_avalanche_problems: z.array(avalancheProblemSchema).optional(),
   hazard_discussion: z.string().optional().nullable(),
   danger: z.array(avalancheDangerForecastSchema),
+  danger_level_text: z.string().optional().nullable(),
   weather_discussion: z.string().optional().nullable(),
   weather_data: z.any(),
   media: z.array(mediaItemSchema).optional().nullable(),
