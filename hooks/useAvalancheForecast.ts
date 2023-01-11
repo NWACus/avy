@@ -17,6 +17,8 @@ export const useAvalancheForecast = (center_id: AvalancheCenterID, forecast_zone
 
   return useQuery<Product, AxiosError | ZodError>(['host', clientProps.nationalAvalancheCenterHost, 'product', forecastId], fetchProduct, {
     enabled: !!forecastId,
+    staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
+    cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
 };
 

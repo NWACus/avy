@@ -14,6 +14,8 @@ export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forec
     },
     {
       enabled: !!fragments,
+      staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
+      cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
     },
   );
 };
