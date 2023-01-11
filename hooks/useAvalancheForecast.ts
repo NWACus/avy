@@ -5,6 +5,8 @@ import {QueryClient, useQuery} from 'react-query';
 
 import * as Sentry from 'sentry-expo';
 
+import Log from 'network/log';
+
 import {ClientContext, ClientProps} from 'clientContext';
 import {AvalancheCenterID, Product, productSchema} from 'types/nationalAvalancheCenter';
 import {useAvalancheForecastFragment} from './useAvalancheForecastFragment';
@@ -32,13 +34,13 @@ export const prefetchAvalancheForecast = async (queryClient: QueryClient, nation
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, forecastId),
     queryFn: async () => {
-      console.log('starting forecast prefetch');
+      Log.prefetch('starting forecast prefetch');
       const result = fetchProduct(nationalAvalancheCenterHost, forecastId);
-      console.log('forecast request finished');
+      Log.prefetch('forecast request finished');
       return result;
     },
   });
-  console.log(`avalanche forecast ${forecastId} data is cached with react-query`);
+  Log.prefetch(`avalanche forecast ${forecastId} data is cached with react-query`);
 };
 
 // TODO need to export?

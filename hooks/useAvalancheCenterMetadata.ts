@@ -5,6 +5,8 @@ import {QueryClient, useQuery} from 'react-query';
 
 import * as Sentry from 'sentry-expo';
 
+import Log from 'network/log';
+
 import {ClientContext, ClientProps} from 'clientContext';
 import {AvalancheCenter, AvalancheCenterID, avalancheCenterSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
@@ -27,13 +29,13 @@ export const prefetchAvalancheCenterMetadata = async (queryClient: QueryClient, 
   await queryClient.prefetchQuery({
     queryKey: queryKey(center_id),
     queryFn: async () => {
-      console.log('starting metadata prefetch');
+      Log.prefetch('starting metadata prefetch');
       const result = await fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id);
-      console.log('metadata request finished');
+      Log.prefetch('metadata request finished');
       return result;
     },
   });
-  console.log('avalanche center metadata is cached with react-query');
+  Log.prefetch('avalanche center metadata is cached with react-query');
 };
 
 export const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {

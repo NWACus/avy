@@ -3,11 +3,16 @@ import {Image} from 'react-native';
 import {parseISO} from 'date-fns';
 import {QueryClient} from 'react-query';
 
+import Log from 'network/log';
+
 import {AvalancheCenterID, MediaType, Product} from 'types/nationalAvalancheCenter';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import ForecastFragmentsQuery from 'hooks/useAvalancheForecastFragments';
 import ForecastQuery from 'hooks/useAvalancheForecast';
 
+//
+// Note: you can enable preload logging by setting ENABLE_PREFETCH_LOGGING in network/log
+//
 export const prefetchAllActiveForecasts = async (queryClient: QueryClient, center_id: AvalancheCenterID, date: string, nationalAvalancheCenterHost: string) => {
   const prefetchDate: Date = parseISO(date);
 
@@ -27,11 +32,11 @@ export const prefetchAllActiveForecasts = async (queryClient: QueryClient, cente
           queryKey: ['url', item.url.original],
           queryFn: async () => {
             await Image.prefetch(item.url.original);
-            console.log('prefetched image', item.url.original);
+            Log.prefetch('prefetched image', item.url.original);
           },
         });
       });
   });
 
-  console.log('preload complete!');
+  Log.prefetch('preload complete!');
 };

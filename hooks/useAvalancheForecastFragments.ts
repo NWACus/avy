@@ -6,6 +6,8 @@ import {add, sub, format} from 'date-fns';
 
 import * as Sentry from 'sentry-expo';
 
+import Log from 'network/log';
+
 import {ClientContext, ClientProps} from 'clientContext';
 import {AvalancheCenterID, Product, productArraySchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
@@ -26,13 +28,13 @@ const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nati
   await queryClient.prefetchQuery({
     queryKey: queryKey(center_id, date),
     queryFn: async () => {
-      console.log('starting fragment prefetch');
+      Log.prefetch('starting fragment prefetch');
       const result = await fetchAvalancheForecastFragments(nationalAvalancheCenterHost, center_id, date);
-      console.log('fragment request finished');
+      Log.prefetch('fragment request finished');
       return result;
     },
   });
-  console.log('avalanche fragment data is cached with react-query');
+  Log.prefetch('avalanche fragment data is cached with react-query');
 };
 
 const fetchAvalancheForecastFragments = async (nationalAvalancheCenterHost: string, center_id: string, date: Date) => {
