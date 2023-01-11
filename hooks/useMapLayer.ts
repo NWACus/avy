@@ -33,6 +33,8 @@ export const useMapLayer = (center_id: AvalancheCenterID) => {
     },
     {
       enabled: !!center_id,
+      staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
+      cacheTime: Infinity, // hold on to this cached data forever
     },
   );
 };

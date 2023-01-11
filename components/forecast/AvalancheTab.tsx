@@ -82,7 +82,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
         <AvalancheDangerTable date={parseISO(forecast.published_time)} current={currentDanger} elevation_band_names={elevationBandNames} />
       </Card>
       {forecast.forecast_avalanche_problems.map((problem, index) => (
-        <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Avalanche Problem #{index + 1}</Heading>}>
+        <CollapsibleCard key={`avalanche-problem-${index}-card`} startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Avalanche Problem #{index + 1}</Heading>}>
           <AvalancheProblemCard key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
         </CollapsibleCard>
       ))}
