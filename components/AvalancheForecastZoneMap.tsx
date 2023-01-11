@@ -145,9 +145,15 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
         <VStack px={6} pt={1} pb={3} space={2}>
           <HStack space={2} alignItems="center">
             <AvalancheDangerIcon style={{height: 32}} level={zone.danger_level} />
-            <BodySmSemibold>
-              {zone.danger_level} - <Text style={{textTransform: 'capitalize'}}>{zone.danger}</Text> Avalanche Danger
-            </BodySmSemibold>
+            {zone.danger_level === -1 ? (
+              <BodySmSemibold>
+                <Text style={{textTransform: 'capitalize'}}>{zone.danger}</Text>
+              </BodySmSemibold>
+            ) : (
+              <BodySmSemibold>
+                {zone.danger_level} - <Text style={{textTransform: 'capitalize'}}>{zone.danger}</Text> Avalanche Danger
+              </BodySmSemibold>
+            )}
           </HStack>
           <Title3Black>{zone.name}</Title3Black>
           <VStack py={2}>
