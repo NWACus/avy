@@ -3,6 +3,11 @@ on:
   push:
     branches:
       - main
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   ci:
     uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
@@ -32,6 +37,7 @@ jobs:
         run: yarn install
 
       - name: 🚀 Publish update bundle
+        shell: bash
         run: eas update --channel preview --message '${{ github.event.head_commit.message }}' --non-interactive
 
   build-android:

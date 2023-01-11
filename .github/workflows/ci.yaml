@@ -1,6 +1,10 @@
 name: CI
 on: workflow_call
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   prettier:
     name: prettier
