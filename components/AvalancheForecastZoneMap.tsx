@@ -1,7 +1,17 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 
-import {ActivityIndicator, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
-import {Alert, Center, FlatList, HStack, View, VStack} from 'native-base';
+import {
+  Animated,
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  PanResponder,
+  TouchableWithoutFeedback,
+  PanResponderGestureState,
+  GestureResponderEvent,
+} from 'react-native';
+import {Alert, Center, HStack, View, VStack} from 'native-base';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
@@ -92,13 +102,112 @@ export const CARD_WHITESPACE = (1 - CARD_WIDTH) / 2; // proportion of overall wi
 export const CARD_SPACING = CARD_WHITESPACE / 2; // proportion of overall width that the spacing between two cards takes up
 export const CARD_MARGIN = CARD_SPACING / 2; // proportion of overall width that each card needs as a margin
 
+enum AnimatedDrawerState {
+  Hidden = 'Hidden',
+  Docked = 'Docked',
+  Visible = 'Visible',
+}
+
+class AnimatedDrawerController {
+  // These offsets are applied through translateY on the FlatList
+  static readonly OFFSETS = {
+    [AnimatedDrawerState.Hidden]: 160,
+    [AnimatedDrawerState.Docked]: 120,
+    [AnimatedDrawerState.Visible]: 0,
+  };
+
+  // When a pan gesture goes beyond this distance, we animate to the final state
+  static readonly SNAP_THRESHOLD = 16;
+
+  state: AnimatedDrawerState;
+  baseOffset: number;
+  panning: boolean;
+  yOffset: Animated.Value;
+
+  constructor(state = AnimatedDrawerState.Docked) {
+    this.state = state;
+    this.baseOffset = AnimatedDrawerController.OFFSETS[state];
+    this.panning = false;
+    this.yOffset = new Animated.Value(this.baseOffset);
+  }
+
+  setState(state: AnimatedDrawerState) {
+    this.state = state;
+    this.panning = false;
+    this.baseOffset = AnimatedDrawerController.OFFSETS[state];
+    this.yOffset.setOffset(this.baseOffset);
+    this.yOffset.setValue(0);
+  }
+
+  onPanResponderGrant() {
+    this.panning = true;
+    this.yOffset.setOffset(this.baseOffset);
+    this.yOffset.setValue(0);
+  }
+
+  onPanResponderMove(event: GestureResponderEvent, gestureState: PanResponderGestureState) {
+    if (!this.panning) {
+      return;
+    }
+
+    // Are we moving too far in the X direction? If so, treat as a scroll and stop panning the drawer
+    if (Math.abs(gestureState.dx) > AnimatedDrawerController.SNAP_THRESHOLD) {
+      this.onPanResponderRelease();
+      return;
+    }
+
+    // Detect overscroll in the invalid direction - we allow a little bit of give,
+    // but then ignore the events
+    if (
+      (this.state === AnimatedDrawerState.Docked && gestureState.dy > AnimatedDrawerController.SNAP_THRESHOLD) ||
+      (this.state === AnimatedDrawerState.Visible && gestureState.dy < -AnimatedDrawerController.SNAP_THRESHOLD)
+    ) {
+      return;
+    }
+
+    if (Math.abs(gestureState.dy) > AnimatedDrawerController.SNAP_THRESHOLD) {
+      this.panning = false;
+      this.state = this.state === AnimatedDrawerState.Docked ? AnimatedDrawerState.Visible : AnimatedDrawerState.Docked;
+      this.baseOffset = AnimatedDrawerController.OFFSETS[this.state];
+      this.yOffset.flattenOffset();
+      Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}).start();
+    } else {
+      Animated.event([null, {dy: this.yOffset}], {useNativeDriver: false})(event, gestureState);
+    }
+  }
+
+  onPanResponderRelease() {
+    if (this.panning) {
+      // user panned, but not far enough to change state - we should spring back to our previous position
+      this.panning = false;
+      this.yOffset.flattenOffset();
+      Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}).start();
+    }
+    this.panning = false;
+  }
+
+  getTransform() {
+    const allowedRange = [
+      AnimatedDrawerController.OFFSETS[AnimatedDrawerState.Visible] - AnimatedDrawerController.SNAP_THRESHOLD,
+      AnimatedDrawerController.OFFSETS[AnimatedDrawerState.Hidden] + AnimatedDrawerController.SNAP_THRESHOLD,
+    ];
+    return {
+      translateY: this.yOffset.interpolate({
+        inputRange: allowedRange,
+        outputRange: allowedRange,
+        extrapolate: 'clamp',
+      }),
+    };
+  }
+}
+
 const AvalancheForecastZoneCards: React.FunctionComponent<{
   date: string;
   zones: MapViewZone[];
 }> = ({date, zones}) => {
   const {width} = useWindowDimensions();
 
-  const props = {
+  const flatListProps = {
     snapToAlignment: 'start',
     decelerationRate: 'fast',
     snapToOffsets: zones?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width),
@@ -109,15 +218,37 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
     contentContainerStyle: {paddingHorizontal: CARD_MARGIN * width},
   } as const;
 
+  // The list view has drawer-like behavior - it can be swiped into view, or swiped away.
+  // These values control the state that's driven through gestures & animation.
+  // useRef has to be used here. Animation and gesture handlers can't use props and state,
+  // and aren't re-evaluated on render. Fun!
+  const panResponderController = useRef<AnimatedDrawerController>(new AnimatedDrawerController(AnimatedDrawerState.Docked)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => panResponderController.onPanResponderGrant(),
+      onPanResponderMove: (e, gestureState) => panResponderController.onPanResponderMove(e, gestureState),
+      onPanResponderRelease: () => panResponderController.onPanResponderRelease(),
+    }),
+  ).current;
+
   return (
-    <FlatList
+    <Animated.FlatList
       horizontal
-      width="100%"
-      position="absolute"
-      bottom="4"
-      {...props}
+      style={[
+        {
+          position: 'absolute',
+          width: '100%',
+          bottom: 6,
+          transform: [panResponderController.getTransform()],
+        },
+      ]}
+      {...panResponder.panHandlers}
+      {...flatListProps}
       data={zones}
-      renderItem={({item: zone}) => <AvalancheForecastZoneCard key={zone.zone_id} zone={zone} date={date} />}></FlatList>
+      renderItem={({item: zone}) => <AvalancheForecastZoneCard key={zone.zone_id} zone={zone} date={date} />}
+    />
   );
 };
 
@@ -131,7 +262,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
   const dangerColor = colorFor(zone.danger_level);
 
   return (
-    <TouchableOpacity
+    <TouchableWithoutFeedback
       onPress={() => {
         navigation.navigate('forecast', {
           zoneName: zone.name,
@@ -163,7 +294,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           </Text>
         </VStack>
       </VStack>
-    </TouchableOpacity>
+    </TouchableWithoutFeedback>
   );
 };
 
