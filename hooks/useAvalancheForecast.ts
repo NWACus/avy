@@ -1,9 +1,11 @@
 import React from 'react';
 
 import axios, {AxiosError} from 'axios';
-import {useQuery} from 'react-query';
+import {QueryClient, useQuery} from 'react-query';
 
 import * as Sentry from 'sentry-expo';
+
+import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import {AvalancheCenterID, Product, productSchema} from 'types/nationalAvalancheCenter';
@@ -11,22 +13,39 @@ import {useAvalancheForecastFragment} from './useAvalancheForecastFragment';
 import {ZodError} from 'zod';
 
 export const useAvalancheForecast = (center_id: AvalancheCenterID, forecast_zone_id: number, date: Date) => {
-  const clientProps = React.useContext<ClientProps>(ClientContext);
+  const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {data: fragment} = useAvalancheForecastFragment(center_id, forecast_zone_id, date);
   const forecastId = fragment?.id;
 
-  return useQuery<Product, AxiosError | ZodError>(['host', clientProps.nationalAvalancheCenterHost, 'product', forecastId], fetchProduct, {
+  return useQuery<Product, AxiosError | ZodError>({
+    queryKey: queryKey(nationalAvalancheCenterHost, forecastId),
+    queryFn: () => fetchProduct(nationalAvalancheCenterHost, forecastId),
     enabled: !!forecastId,
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
 };
 
-export const fetchProduct = async ({queryKey}) => {
-  const host: string = queryKey[1];
-  const id: number = queryKey[3];
+function queryKey(nationalAvalancheCenterHost: string, forecastId: number) {
+  return ['host', nationalAvalancheCenterHost, 'product', forecastId];
+}
 
-  const url = `${host}/v2/public/product/${id}`;
+export const prefetchAvalancheForecast = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, forecastId: number) => {
+  await queryClient.prefetchQuery({
+    queryKey: queryKey(nationalAvalancheCenterHost, forecastId),
+    queryFn: async () => {
+      Log.prefetch('starting forecast prefetch');
+      const result = fetchProduct(nationalAvalancheCenterHost, forecastId);
+      Log.prefetch('forecast request finished');
+      return result;
+    },
+  });
+  Log.prefetch(`avalanche forecast ${forecastId} data is cached with react-query`);
+};
+
+// TODO need to export?
+export const fetchProduct = async (nationalAvalancheCenterHost: string, forecastId: number) => {
+  const url = `${nationalAvalancheCenterHost}/v2/public/product/${forecastId}`;
   const {data} = await axios.get(url);
 
   const parseResult = productSchema.safeParse(data);
@@ -35,7 +54,7 @@ export const fetchProduct = async ({queryKey}) => {
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,
-        id,
+        forecastId,
         url,
       },
     });
@@ -43,4 +62,10 @@ export const fetchProduct = async ({queryKey}) => {
   } else {
     return parseResult.data;
   }
+};
+
+export default {
+  queryKey,
+  fetch: fetchProduct,
+  prefetch: prefetchAvalancheForecast,
 };

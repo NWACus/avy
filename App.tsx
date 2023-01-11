@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 
 import {AppStateStatus, Platform, StyleSheet, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
@@ -24,11 +24,11 @@ import Constants from 'expo-constants';
 import * as Sentry from 'sentry-expo';
 
 import {formatISO} from 'date-fns';
-import {focusManager, QueryClient, QueryClientProvider} from 'react-query';
+import {focusManager, QueryClient, QueryClientProvider, useQueryClient} from 'react-query';
 
 import {NativeBaseProvider, extendTheme} from 'native-base';
 
-import {ClientContext, productionHosts, stagingHosts} from 'clientContext';
+import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
 import {useAppState} from 'hooks/useAppState';
 import {useOnlineManager} from 'hooks/useOnlineManager';
 import {TabNavigatorParamList} from 'routes';
@@ -37,7 +37,7 @@ import {MenuStackScreen} from 'components/screens/MenuScreen';
 import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
 import {TelemetryTabScreen} from 'components/screens/TelemetryScreen';
 import {AvalancheCenterID} from './types/nationalAvalancheCenter';
-import {usePrefetchAllActiveForecasts} from './hooks/usePrefetchAllActiveForecasts';
+import {prefetchAllActiveForecasts} from './network/prefetchAllActiveForecasts';
 
 // The SplashScreen stays up until we've loaded all of our fonts and other assets
 SplashScreen.preventAutoHideAsync();
@@ -163,7 +163,13 @@ const BaseApp: React.FunctionComponent<{
   const [avalancheCenterId, setAvalancheCenterId] = React.useState(Constants.expoConfig.extra.avalanche_center as AvalancheCenterID);
   const [date] = React.useState(defaultDate);
 
-  usePrefetchAllActiveForecasts(avalancheCenterId, date);
+  const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    (async () => {
+      await prefetchAllActiveForecasts(queryClient, avalancheCenterId, date, nationalAvalancheCenterHost);
+    })();
+  }, [queryClient, avalancheCenterId, date, nationalAvalancheCenterHost]);
 
   const [fontsLoaded] = useFonts({
     Lato_100Thin,
