@@ -6,7 +6,7 @@ import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
 import {DangerScale} from 'components/DangerScale';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
 import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {MapViewZone, useMapViewZones} from 'hooks/useMapViewZones';
@@ -145,15 +145,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
         <VStack px={6} pt={1} pb={3} space={2}>
           <HStack space={2} alignItems="center">
             <AvalancheDangerIcon style={{height: 32}} level={zone.danger_level} />
-            {zone.danger_level === -1 ? (
-              <BodySmSemibold>
-                <Text style={{textTransform: 'capitalize'}}>{zone.danger}</Text>
-              </BodySmSemibold>
-            ) : (
-              <BodySmSemibold>
-                {zone.danger_level} - <Text style={{textTransform: 'capitalize'}}>{zone.danger}</Text> Avalanche Danger
-              </BodySmSemibold>
-            )}
+            <DangerLevelTitle dangerLevel={zone.danger_level} danger={zone.danger} />
           </HStack>
           <Title3Black>{zone.name}</Title3Black>
           <VStack py={2}>
@@ -173,4 +165,31 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
       </VStack>
     </TouchableOpacity>
   );
+};
+
+const DangerLevelTitle: React.FunctionComponent<{
+  dangerLevel: DangerLevel;
+  danger: string;
+}> = ({dangerLevel, danger}) => {
+  switch (dangerLevel) {
+    case DangerLevel.GeneralInformation:
+    case DangerLevel.None:
+      return (
+        <BodySmSemibold>
+          <Text style={{textTransform: 'capitalize'}}>{danger}</Text>
+        </BodySmSemibold>
+      );
+    case DangerLevel.Low:
+    case DangerLevel.Moderate:
+    case DangerLevel.Considerable:
+    case DangerLevel.High:
+    case DangerLevel.Extreme:
+      return (
+        <BodySmSemibold>
+          {dangerLevel} - <Text style={{textTransform: 'capitalize'}}>{danger}</Text> Avalanche Danger
+        </BodySmSemibold>
+      );
+  }
+  const invalid: never = dangerLevel;
+  throw new Error(`Unknown danger level: ${invalid}`);
 };
