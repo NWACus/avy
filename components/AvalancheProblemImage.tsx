@@ -1,9 +1,9 @@
 import React from 'react';
 
-import {Text, Image, StyleSheet, useWindowDimensions, View, ActivityIndicator} from 'react-native';
-import RenderHTML from 'react-native-render-html';
+import {Text, Image, StyleSheet, View, ActivityIndicator} from 'react-native';
 
 import {MediaItem} from 'types/nationalAvalancheCenter';
+import {HTML} from 'components/text/HTML';
 
 export interface AvalancheProblemImageProps {
   media: MediaItem;
@@ -14,14 +14,8 @@ interface dimensions {
   width: number;
 }
 
-const baseStyle = Object.freeze({
-  fontStyle: 'italic',
-  fontWeight: '300',
-});
-
 export const AvalancheProblemImage: React.FunctionComponent<AvalancheProblemImageProps> = ({media}) => {
   const [gallery] = React.useState<boolean>(false);
-  const {width} = useWindowDimensions();
   const [imageDimensions, setImageDimensions] = React.useState<dimensions>({height: 0, width: 0});
   const [error, setError] = React.useState<string>('');
 
@@ -50,7 +44,7 @@ export const AvalancheProblemImage: React.FunctionComponent<AvalancheProblemImag
       {!gallery ? (
         <View style={styles.container}>
           <Image source={{uri: media.url.original}} style={{width: '70%', aspectRatio: imageDimensions.height / imageDimensions.width}} />
-          <RenderHTML source={{html: media.caption}} baseStyle={baseStyle} contentWidth={width} />
+          <HTML source={{html: `<em>${media.caption}</em>`}} />
         </View>
       ) : (
         <></>

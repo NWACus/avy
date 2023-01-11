@@ -13,7 +13,7 @@ import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from '../types/nationalAvalancheCenter';
 import {Title3Semibold} from './text';
-import {HTMLRenderer} from './text/HTMLRenderer';
+import {HTML} from './text/HTML';
 import {NACIcon} from './icons/nac-icons';
 import {utcDateToLocalTimeString} from 'utils/date';
 
@@ -165,7 +165,7 @@ export const ObservationSummaryCard: React.FunctionComponent<{
           <Text bold style={{textTransform: 'uppercase'}}>
             {'Observation Summary'}
           </Text>
-          <HTMLRenderer source={{html: observation.observationSummary}} />
+          <HTML source={{html: observation.observationSummary}} />
         </Column>
       )}
     </Card>

@@ -1,7 +1,6 @@
 import React from 'react';
 
-import {StyleSheet, Text, useWindowDimensions, View} from 'react-native';
-import RenderHTML from 'react-native-render-html';
+import {StyleSheet, Text, View} from 'react-native';
 
 import {AvalancheProblem, ElevationBandNames, MediaType} from 'types/nationalAvalancheCenter';
 import {AnnotatedDangerRose} from './DangerRose';
@@ -10,6 +9,7 @@ import {AvalancheProblemLikelihoodLine} from './AvalancheProblemLikelihoodLine';
 import {AvalancheProblemSizeLine} from './AvalancheProblemSizeLine';
 import {TitledPanel} from './TitledPanel';
 import {AvalancheProblemImage} from './AvalancheProblemImage';
+import {HTML} from 'components/text/HTML';
 
 export interface AvalancheProblemCardProps {
   problem: AvalancheProblem;
@@ -17,8 +17,6 @@ export interface AvalancheProblemCardProps {
 }
 
 export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardProps> = ({problem, names}: AvalancheProblemCardProps) => {
-  const {width} = useWindowDimensions();
-
   return (
     <View style={styles.horizontalCard}>
       <View
@@ -44,7 +42,7 @@ export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardP
       </View>
       {problem.media.type === MediaType.Image && problem.media.url !== null && <AvalancheProblemImage media={problem.media} />}
       <View style={styles.content}>
-        <RenderHTML source={{html: problem.discussion}} contentWidth={width} />
+        <HTML source={{html: problem.discussion}} />
       </View>
     </View>
   );

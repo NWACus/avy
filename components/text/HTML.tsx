@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
+import React, {ReactNode, useState} from 'react';
 import * as _ from 'lodash';
 
 import {useToken, Text, ScrollView} from 'native-base';
-import {RenderHTML, RenderHTMLProps} from 'react-native-render-html';
+import {RenderHTMLConfigProvider, RenderHTMLSource, RenderHTMLSourceProps, TRenderEngineProvider} from 'react-native-render-html';
 import {TouchableOpacity, useWindowDimensions} from 'react-native';
 import Constants from 'expo-constants';
 
@@ -20,29 +20,35 @@ const systemFonts = [
   'Lato_900Black_Italic',
 ];
 
-export const HTMLRenderer: React.FunctionComponent<RenderHTMLProps> = props => {
-  const {width: windowWidth} = useWindowDimensions();
+export const HTMLRendererConfig: React.FunctionComponent<{children?: ReactNode | undefined}> = ({children}) => {
   const [textColor] = useToken('colors', ['darkText']);
-  const defaultProps: Partial<RenderHTMLProps> = {
-    contentWidth: windowWidth,
-    defaultTextProps: {
-      style: {
+  return (
+    <TRenderEngineProvider
+      baseStyle={{
         fontSize: 16,
-      },
-    },
-    tagsStyles: {
-      p: {
         fontFamily: 'Lato_400Regular',
         color: textColor,
-      },
-      strong: {
-        fontFamily: 'Lato_700Bold',
-      },
-      em: {
-        fontFamily: 'Lato_400Regular_Italic',
-      },
-    },
-    systemFonts,
+      }}
+      tagsStyles={{
+        strong: {
+          fontFamily: 'Lato_700Bold',
+        },
+        em: {
+          fontFamily: 'Lato_400Regular_Italic',
+        },
+      }}
+      systemFonts={systemFonts}>
+      <RenderHTMLConfigProvider enableExperimentalBRCollapsing enableExperimentalMarginCollapsing>
+        {children}
+      </RenderHTMLConfigProvider>
+    </TRenderEngineProvider>
+  );
+};
+
+export const HTML: React.FunctionComponent<RenderHTMLSourceProps> = props => {
+  const {width: windowWidth} = useWindowDimensions();
+  const defaultProps: Partial<RenderHTMLSourceProps> = {
+    contentWidth: windowWidth,
   };
 
   if (__DEV__) {
@@ -56,11 +62,11 @@ export const HTMLRenderer: React.FunctionComponent<RenderHTMLProps> = props => {
             <Text fontFamily="Courier New">{html}</Text>
           </ScrollView>
         ) : (
-          <RenderHTML {..._.merge(defaultProps, props || {})} />
+          <RenderHTMLSource {..._.merge(defaultProps, props || {})} />
         )}
       </TouchableOpacity>
     );
   }
 
-  return <RenderHTML {..._.merge(defaultProps, props || {})} />;
+  return <RenderHTMLSource {..._.merge(defaultProps, props || {})} />;
 };

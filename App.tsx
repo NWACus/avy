@@ -38,6 +38,7 @@ import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
 import {TelemetryTabScreen} from 'components/screens/TelemetryScreen';
 import {AvalancheCenterID} from './types/nationalAvalancheCenter';
 import {prefetchAllActiveForecasts} from './network/prefetchAllActiveForecasts';
+import {HTMLRendererConfig} from 'components/text/HTML';
 
 // The SplashScreen stays up until we've loaded all of our fonts and other assets
 SplashScreen.preventAutoHideAsync();
@@ -198,41 +199,43 @@ const BaseApp: React.FunctionComponent<{
 
   return (
     <NativeBaseProvider theme={theme}>
-      <SafeAreaProvider>
-        <NavigationContainer>
-          <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
-            <TabNavigator.Navigator
-              initialRouteName="Home"
-              screenOptions={({route}) => ({
-                headerShown: false,
-                tabBarIcon: ({color, size}) => {
-                  if (route.name === 'Home') {
-                    return <AntDesign name="search1" size={size} color={color} />;
-                  } else if (route.name === 'Observations') {
-                    return <AntDesign name="filetext1" size={size} color={color} />;
-                  } else if (route.name === 'Weather Data') {
-                    return <AntDesign name="barschart" size={size} color={color} />;
-                  } else if (route.name === 'Menu') {
-                    return <AntDesign name="bars" size={size} color={color} />;
-                  }
-                },
-              })}>
-              <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, date: date}}>
-                {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
-              </TabNavigator.Screen>
-              <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, date: date}}>
-                {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
-              </TabNavigator.Screen>
-              <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, date: date}}>
-                {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
-              </TabNavigator.Screen>
-              <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
-                {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-              </TabNavigator.Screen>
-            </TabNavigator.Navigator>
-          </View>
-        </NavigationContainer>
-      </SafeAreaProvider>
+      <HTMLRendererConfig>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
+              <TabNavigator.Navigator
+                initialRouteName="Home"
+                screenOptions={({route}) => ({
+                  headerShown: false,
+                  tabBarIcon: ({color, size}) => {
+                    if (route.name === 'Home') {
+                      return <AntDesign name="search1" size={size} color={color} />;
+                    } else if (route.name === 'Observations') {
+                      return <AntDesign name="filetext1" size={size} color={color} />;
+                    } else if (route.name === 'Weather Data') {
+                      return <AntDesign name="barschart" size={size} color={color} />;
+                    } else if (route.name === 'Menu') {
+                      return <AntDesign name="bars" size={size} color={color} />;
+                    }
+                  },
+                })}>
+                <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, date: date}}>
+                  {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+                </TabNavigator.Screen>
+                <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, date: date}}>
+                  {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+                </TabNavigator.Screen>
+                <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, date: date}}>
+                  {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+                </TabNavigator.Screen>
+                <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
+                  {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                </TabNavigator.Screen>
+              </TabNavigator.Navigator>
+            </View>
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </HTMLRendererConfig>
     </NativeBaseProvider>
   );
 };
