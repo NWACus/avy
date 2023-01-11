@@ -1,7 +1,7 @@
 import React from 'react';
 
 import axios, {AxiosError} from 'axios';
-import {useQuery} from 'react-query';
+import {QueryClient, useQuery} from 'react-query';
 
 import * as Sentry from 'sentry-expo';
 
@@ -10,31 +10,54 @@ import {AvalancheCenter, AvalancheCenterID, avalancheCenterSchema} from 'types/n
 import {ZodError} from 'zod';
 
 export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID) => {
-  const clientProps = React.useContext<ClientProps>(ClientContext);
-  return useQuery<AvalancheCenter, AxiosError | ZodError>(
-    ['avalanche-center', center_id],
-    async () => {
-      const url = `${clientProps.nationalAvalancheCenterHost}/v2/public/avalanche-center/${center_id}`;
-      const {data} = await axios.get(url);
+  const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
+  return useQuery<AvalancheCenter, AxiosError | ZodError>({
+    queryKey: queryKey(center_id),
+    queryFn: async () => fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id),
+    staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
+    cacheTime: Infinity, // hold on to this cached data forever
+  });
+};
 
-      const parseResult = avalancheCenterSchema.safeParse(data);
-      if (parseResult.success === false) {
-        console.warn(`unparsable avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data, null, 2));
-        Sentry.Native.captureException(parseResult.error, {
-          tags: {
-            zod_error: true,
-            center_id,
-            url,
-          },
-        });
-        throw parseResult.error;
-      } else {
-        return parseResult.data;
-      }
+function queryKey(center_id: string) {
+  return ['avalanche-center', center_id];
+}
+
+export const prefetchAvalancheCenterMetadata = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {
+  await queryClient.prefetchQuery({
+    queryKey: queryKey(center_id),
+    queryFn: async () => {
+      console.log('starting metadata prefetch');
+      const result = await fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id);
+      console.log('metadata request finished');
+      return result;
     },
-    {
-      staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
-      cacheTime: Infinity, // hold on to this cached data forever
-    },
-  );
+  });
+  console.log('avalanche center metadata is cached with react-query');
+};
+
+export const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {
+  const url = `${nationalAvalancheCenterHost}/v2/public/avalanche-center/${center_id}`;
+  const {data} = await axios.get(url);
+
+  const parseResult = avalancheCenterSchema.safeParse(data);
+  if (parseResult.success === false) {
+    console.warn(`unparsable avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data, null, 2));
+    Sentry.Native.captureException(parseResult.error, {
+      tags: {
+        zod_error: true,
+        center_id,
+        url,
+      },
+    });
+    throw parseResult.error;
+  } else {
+    return parseResult.data;
+  }
+};
+
+export default {
+  queryKey,
+  fetch: fetchAvalancheCenterMetadata,
+  prefetch: prefetchAvalancheCenterMetadata,
 };
