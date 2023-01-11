@@ -27,7 +27,7 @@ export const DangerScale: React.FunctionComponent<DangerScaleProps> = props => {
             <MaterialIcons name="open-in-new" size={16} color="white" />
           </HStack>
         </TouchableOpacity>
-        <HStack space={0} justifyContent="stretch">
+        <HStack space={0}>
           {Object.keys(DangerLevel)
             .filter(key => Number.isNaN(+key))
             .filter(key => DangerLevel[key] > DangerLevel.None)
