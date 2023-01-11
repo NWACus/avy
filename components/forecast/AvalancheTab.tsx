@@ -9,7 +9,7 @@ import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
 import {Card, CollapsibleCard} from 'components/Card';
-import {HTMLRenderer} from 'components/text/HTMLRenderer';
+import {HTML} from 'components/text/HTML';
 import {utcDateToLocalTimeString} from 'utils/date';
 
 interface AvalancheTabProps {
@@ -76,7 +76,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
             <Heading>The Bottom Line</Heading>
           </HStack>
         }>
-        <HTMLRenderer source={{html: forecast.bottom_line}} />
+        <HTML source={{html: forecast.bottom_line}} />
       </Card>
       <Card borderRadius={0} borderColor="white" header={<Heading>Avalanche Danger</Heading>}>
         <AvalancheDangerTable date={parseISO(forecast.published_time)} current={currentDanger} elevation_band_names={elevationBandNames} />
@@ -87,7 +87,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
         </CollapsibleCard>
       ))}
       <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Forecast Discussion</Heading>}>
-        <HTMLRenderer source={{html: forecast.hazard_discussion}} />
+        <HTML source={{html: forecast.hazard_discussion}} />
       </CollapsibleCard>
       <Card borderRadius={0} borderColor="white" header={<Heading>Media</Heading>}>
         <Text>TBD!</Text>

@@ -38,7 +38,7 @@ import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
 import {TelemetryTabScreen} from 'components/screens/TelemetryScreen';
 import {AvalancheCenterID} from './types/nationalAvalancheCenter';
 import {prefetchAllActiveForecasts} from './network/prefetchAllActiveForecasts';
-import {HTMLRendererConfig} from 'components/text/HTMLRenderer';
+import {HTMLRendererConfig} from 'components/text/HTML';
 
 // The SplashScreen stays up until we've loaded all of our fonts and other assets
 SplashScreen.preventAutoHideAsync();

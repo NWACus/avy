@@ -3,7 +3,7 @@ import React from 'react';
 import {Text, Image, StyleSheet, View, ActivityIndicator} from 'react-native';
 
 import {MediaItem} from 'types/nationalAvalancheCenter';
-import {HTMLRenderer} from 'components/text/HTMLRenderer';
+import {HTML} from 'components/text/HTML';
 
 export interface AvalancheProblemImageProps {
   media: MediaItem;
@@ -44,7 +44,7 @@ export const AvalancheProblemImage: React.FunctionComponent<AvalancheProblemImag
       {!gallery ? (
         <View style={styles.container}>
           <Image source={{uri: media.url.original}} style={{width: '70%', aspectRatio: imageDimensions.height / imageDimensions.width}} />
-          <HTMLRenderer source={{html: `<em>${media.caption}</em>`}} />
+          <HTML source={{html: `<em>${media.caption}</em>`}} />
         </View>
       ) : (
         <></>

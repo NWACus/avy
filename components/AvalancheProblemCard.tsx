@@ -9,7 +9,7 @@ import {AvalancheProblemLikelihoodLine} from './AvalancheProblemLikelihoodLine';
 import {AvalancheProblemSizeLine} from './AvalancheProblemSizeLine';
 import {TitledPanel} from './TitledPanel';
 import {AvalancheProblemImage} from './AvalancheProblemImage';
-import {HTMLRenderer} from 'components/text/HTMLRenderer';
+import {HTML} from 'components/text/HTML';
 
 export interface AvalancheProblemCardProps {
   problem: AvalancheProblem;
@@ -42,7 +42,7 @@ export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardP
       </View>
       {problem.media.type === MediaType.Image && problem.media.url !== null && <AvalancheProblemImage media={problem.media} />}
       <View style={styles.content}>
-        <HTMLRenderer source={{html: problem.discussion}} />
+        <HTML source={{html: problem.discussion}} />
       </View>
     </View>
   );

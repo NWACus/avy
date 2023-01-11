@@ -45,7 +45,7 @@ export const HTMLRendererConfig: React.FunctionComponent<{children?: ReactNode |
   );
 };
 
-export const HTMLRenderer: React.FunctionComponent<RenderHTMLSourceProps> = props => {
+export const HTML: React.FunctionComponent<RenderHTMLSourceProps> = props => {
   const {width: windowWidth} = useWindowDimensions();
   const defaultProps: Partial<RenderHTMLSourceProps> = {
     contentWidth: windowWidth,

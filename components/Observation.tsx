@@ -30,7 +30,7 @@ import {
   PartnerType,
 } from '../types/nationalAvalancheCenter';
 import {zone} from './Observations';
-import {HTMLRenderer} from './text/HTMLRenderer';
+import {HTML} from './text/HTML';
 import {AvalancheProblemImage} from './AvalancheProblemImage';
 import {NACIcon} from './icons/nac-icons';
 import {utcDateToLocalTimeString} from 'utils/date';
@@ -105,7 +105,7 @@ export const ObservationCard: React.FunctionComponent<{
               <Heading>Observation Summary</Heading>
             </Row>
           }>
-          <HTMLRenderer source={{html: observation.observationSummary}} />
+          <HTML source={{html: observation.observationSummary}} />
           {anySignsOfInstability && (
             <Column space="2" style={{flex: 1}}>
               <Text bold style={{textTransform: 'uppercase'}}>
@@ -154,7 +154,7 @@ export const ObservationCard: React.FunctionComponent<{
               <Text bold style={{textTransform: 'uppercase'}}>
                 {'Instability Comments'}
               </Text>
-              <HTMLRenderer source={{html: observation.instabilitySummary}} />
+              <HTML source={{html: observation.instabilitySummary}} />
             </Column>
           )}
         </CollapsibleCard>
@@ -234,7 +234,7 @@ export const ObservationCard: React.FunctionComponent<{
                         <Text bold style={{textTransform: 'uppercase'}}>
                           {'Avalanche Comments'}
                         </Text>
-                        <HTMLRenderer source={{html: item.comments}} />
+                        <HTML source={{html: item.comments}} />
                       </Column>
                     )}
                   </>
@@ -245,7 +245,7 @@ export const ObservationCard: React.FunctionComponent<{
                 <Text bold style={{textTransform: 'uppercase'}}>
                   {'Avalanche Summary'}
                 </Text>
-                <HTMLRenderer source={{html: observation.avalanchesSummary}} />
+                <HTML source={{html: observation.avalanchesSummary}} />
               </Column>
             )}
           </CollapsibleCard>
@@ -286,7 +286,7 @@ export const ObservationCard: React.FunctionComponent<{
                   <Text bold style={{textTransform: 'uppercase'}}>
                     {'Weather Summary'}
                   </Text>
-                  <HTMLRenderer source={{html: observation.advancedFields.weatherSummary}} />
+                  <HTML source={{html: observation.advancedFields.weatherSummary}} />
                 </Column>
               )}
             </>
@@ -313,7 +313,7 @@ export const ObservationCard: React.FunctionComponent<{
                     <Text bold style={{textTransform: 'uppercase'}}>
                       {'Snowpack Summary'}
                     </Text>
-                    <HTMLRenderer source={{html: observation.advancedFields.snowpackSummary}} />
+                    <HTML source={{html: observation.advancedFields.snowpackSummary}} />
                   </Column>
                 )}
               </>
