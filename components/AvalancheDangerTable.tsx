@@ -22,7 +22,7 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
       <Body>{utcDateToLocalDateString(date)}</Body>
       <View height="200" width="100%">
         {/* This view contains 3 layers stacked over each other: the background bars in gray, the avalanche pyramid, and the text labels and icons */}
-        <VStack width="100%" height="100%" position="absolute" justifyContent="stretch" alignItems="stretch" alignContent="stretch" space="3px" paddingTop="13px" zIndex={10}>
+        <VStack width="100%" height="100%" position="absolute" justifyContent="space-evenly" alignItems="stretch" alignContent="stretch" space="3px" paddingTop="13px" zIndex={10}>
           <View bg="gray.100" flex={1} />
           <View bg="gray.100" flex={1} />
           <View bg="gray.100" flex={1} />
@@ -30,7 +30,7 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
         <View width="100%" height="100%" position="absolute" zIndex={20}>
           <AvalancheDangerPyramid forecast={current} height="100%" />
         </View>
-        <VStack width="100%" height="100%" position="absolute" justifyContent="stretch" alignItems="stretch" space="3px" paddingTop="13px" zIndex={30}>
+        <VStack width="100%" height="100%" position="absolute" justifyContent="space-evenly" alignItems="stretch" space="3px" paddingTop="13px" zIndex={30}>
           {['upper', 'middle', 'lower'].map((layer, index) => (
             <HStack flex={1} justifyContent="space-between" key={index}>
               <View bg="white" my={4} px={1} justifyContent="center">
