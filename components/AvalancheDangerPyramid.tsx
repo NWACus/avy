@@ -1,5 +1,7 @@
 import React from 'react';
 
+import * as _ from 'lodash';
+
 import Svg, {Path, SvgProps} from 'react-native-svg';
 import {StyleSheet} from 'react-native';
 
@@ -33,7 +35,7 @@ export interface AvalancheDangerPyramidProps extends SvgProps {
 }
 export const AvalancheDangerPyramid: React.FunctionComponent<AvalancheDangerPyramidProps> = ({forecast, ...props}) => {
   return (
-    <Svg style={styles.pyramid} viewBox={'0 0 250 300'} {...props}>
+    <Svg viewBox={'0 0 250 300'} {..._.merge(props, {style: styles.pyramid})}>
       <Path d="M31.504,210l175,0l43.496,90l-250,0l31.504,-90Z" fill={colorFor(forecast.lower).string()} strokeWidth={0} />
       <Path d="M204.087,205l-170.833,0l31.503,-90l95.834,0l43.496,90Z" fill={colorFor(forecast.middle).string()} strokeWidth={0} />
       <Path d="M158.174,110l-91.666,0l38.504,-110l53.162,110Z" fill={colorFor(forecast.upper).string()} strokeWidth={0} />
