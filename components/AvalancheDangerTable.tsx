@@ -8,18 +8,18 @@ import {utcDateToLocalDateString} from 'utils/date';
 import {Body, Caption1, Caption1Semibold} from 'components/text';
 
 import {AvalancheDangerPyramid} from './AvalancheDangerPyramid';
-import {AvalancheDangerIcon} from './AvalancheDangerIcon';
+import {AvalancheDangerIcon, iconSize} from './AvalancheDangerIcon';
 
 export type DangerTableSize = 'main' | 'outlook';
 
 export interface AvalancheDangerTableProps {
   date: Date;
-  current: AvalancheDangerForecast;
+  forecast: AvalancheDangerForecast;
   elevation_band_names: ElevationBandNames;
   size: DangerTableSize;
 }
 
-export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableProps> = ({date, current, elevation_band_names, size}: AvalancheDangerTableProps) => {
+export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableProps> = ({date, forecast: current, elevation_band_names, size}: AvalancheDangerTableProps) => {
   const {height, marginLeft, paddingTop} = {
     main: {
       height: '200',
@@ -32,6 +32,9 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
       marginLeft: 16,
     },
   }[size];
+
+  const maxIconWidth = Math.max(...[current.lower, current.middle, current.upper].map(d => iconSize(d).width));
+
   return (
     <VStack space={3} alignItems="stretch">
       <Body>{utcDateToLocalDateString(date)}</Body>
@@ -55,7 +58,12 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
                 <View my={4} px={1} justifyContent="center">
                   <Caption1Semibold style={{textTransform: 'uppercase'}}>{dangerText(current[layer])}</Caption1Semibold>
                 </View>
-                <AvalancheDangerIcon style={{height: 32}} level={current[layer]} />
+                {(() => {
+                  const size = iconSize(current[layer]);
+                  const scale = 32.0 / size.height;
+                  const rightMargin = Math.max(0, maxIconWidth - size.width) * scale;
+                  return <AvalancheDangerIcon style={{height: 32, marginRight: rightMargin}} level={current[layer]} />;
+                })()}
               </HStack>
             </HStack>
           ))}
