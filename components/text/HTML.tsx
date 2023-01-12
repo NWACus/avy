@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 
 import {useToken, Text, ScrollView} from 'native-base';
 import {RenderHTMLConfigProvider, RenderHTMLSource, RenderHTMLSourceProps, TRenderEngineProvider} from 'react-native-render-html';
-import {TouchableOpacity, useWindowDimensions} from 'react-native';
+import {Platform, TouchableOpacity, useWindowDimensions} from 'react-native';
 import Constants from 'expo-constants';
 
 const systemFonts = [
@@ -59,7 +59,7 @@ export const HTML: React.FunctionComponent<RenderHTMLSourceProps> = props => {
       <TouchableOpacity activeOpacity={1} onLongPress={() => setShowSource(!showSource)}>
         {showSource && html ? (
           <ScrollView>
-            <Text fontFamily="Courier New">{html}</Text>
+            <Text style={Platform.select({ios: {fontFamily: 'Courier New'}, android: {fontFamily: 'monospace'}})}>{html}</Text>
           </ScrollView>
         ) : (
           <RenderHTMLSource {..._.merge(defaultProps, props || {})} />
