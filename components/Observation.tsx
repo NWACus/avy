@@ -1,7 +1,7 @@
 import React from 'react';
 import {EverythingFragment, useObservationQuery} from 'hooks/useObservations';
 import {ActivityIndicator, View, ScrollView, StyleSheet} from 'react-native';
-import {Heading, Row, Text, Column} from 'native-base';
+import {Row, Text, Column} from 'native-base';
 import {Card, CollapsibleCard} from 'components/Card';
 import {FontAwesome5, MaterialCommunityIcons, Fontisto} from '@expo/vector-icons';
 import {useMapLayer} from '../hooks/useMapLayer';
@@ -34,6 +34,7 @@ import {HTML} from './text/HTML';
 import {AvalancheProblemImage} from './AvalancheProblemImage';
 import {NACIcon} from './icons/nac-icons';
 import {utcDateToLocalTimeString} from 'utils/date';
+import {FeatureTitleBlack} from 'components/text';
 
 export const Observation: React.FunctionComponent<{
   id: string;
@@ -82,7 +83,11 @@ export const ObservationCard: React.FunctionComponent<{
   return (
     <ScrollView style={StyleSheet.absoluteFillObject}>
       <Column space="2" bgColor={'#f0f2f5'}>
-        <Card marginTop={2} borderRadius={0} borderColor="white" header={<Heading>{`${FormatPartnerType(observation.observerType as PartnerType)} Field Observation`}</Heading>}>
+        <Card
+          marginTop={2}
+          borderRadius={0}
+          borderColor="white"
+          header={<FeatureTitleBlack>{`${FormatPartnerType(observation.observerType as PartnerType)} Field Observation`}</FeatureTitleBlack>}>
           <Row flexWrap="wrap" space="2">
             <IdentifiedInformation header={'Submitted'} body={utcDateToLocalTimeString(observation.createdAt)} />
             {observation.endDate && <IdentifiedInformation header={'Expires'} body={utcDateToLocalTimeString(observation.endDate)} />}
@@ -102,7 +107,7 @@ export const ObservationCard: React.FunctionComponent<{
           header={
             <Row space={2} alignItems="center">
               <FontAwesome5 name="info-circle" size={24} color="black" />
-              <Heading>Observation Summary</Heading>
+              <FeatureTitleBlack>Observation Summary</FeatureTitleBlack>
             </Row>
           }>
           <HTML source={{html: observation.observationSummary}} />
@@ -166,7 +171,7 @@ export const ObservationCard: React.FunctionComponent<{
             header={
               <Row space={2} alignItems="center">
                 <FontAwesome5 name="photo-video" size={24} color="black" />
-                <Heading>Observation Media</Heading>
+                <FeatureTitleBlack>Observation Media</FeatureTitleBlack>
               </Row>
             }>
             {observation.media
@@ -185,7 +190,7 @@ export const ObservationCard: React.FunctionComponent<{
             header={
               <Row space={2} alignItems="center">
                 <NACIcon name="avalanche" size={48} color="black" />
-                <Heading>Avalanches</Heading>
+                <FeatureTitleBlack>Avalanches</FeatureTitleBlack>
               </Row>
             }>
             {observation.avalanches &&
@@ -258,7 +263,7 @@ export const ObservationCard: React.FunctionComponent<{
             header={
               <Row space={2} alignItems="center">
                 <MaterialCommunityIcons name="weather-snowy-heavy" size={24} color="black" />
-                <Heading>Weather</Heading>
+                <FeatureTitleBlack>Weather</FeatureTitleBlack>
               </Row>
             }>
             <>
@@ -303,7 +308,7 @@ export const ObservationCard: React.FunctionComponent<{
               header={
                 <Row space={2} alignItems="center">
                   <Fontisto name="snowflake" size={24} color="black" />
-                  <Heading>Snowpack Observations</Heading>
+                  <FeatureTitleBlack>Snowpack Observations</FeatureTitleBlack>
                 </Row>
               }>
               <>{observation.advancedFields.snowpack && <>{/* we don't know what fields could be in this thing ... */}</>}</>

@@ -21,7 +21,7 @@ export const DangerScale: React.FunctionComponent<DangerScaleProps> = props => {
             toast.show({description: 'Not implemented yet'});
           }}>
           <HStack space="1" alignItems="center">
-            <BodyXSmBlack color="white" bold style={{letterSpacing: -0.61}}>
+            <BodyXSmBlack color="white" style={{letterSpacing: -0.61}}>
               Danger Scale
             </BodyXSmBlack>
             <MaterialIcons name="open-in-new" size={16} color="white" />
@@ -42,7 +42,7 @@ export const DangerScale: React.FunctionComponent<DangerScaleProps> = props => {
                   borderBottomRightRadius: level === DangerLevel.Extreme ? 24 : 0,
                   borderTopRightRadius: level === DangerLevel.Extreme ? 24 : 0,
                 }}>
-                <BodyXSmMedium px="5" color={level < 4 ? 'darkText' : 'white'}>
+                <BodyXSmMedium style={{paddingHorizontal: 20}} color={level < 4 ? 'darkText' : 'white'}>
                   {level}
                 </BodyXSmMedium>
               </Center>
