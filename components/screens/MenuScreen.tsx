@@ -1,11 +1,11 @@
 import React from 'react';
 
-import {Button, StyleSheet} from 'react-native';
+import {Button, StyleSheet, Switch} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import * as Updates from 'expo-updates';
 
-import {HStack, VStack, Switch, Divider, SectionList, View} from 'native-base';
+import {HStack, VStack, Divider, SectionList, View} from 'native-base';
 
 import {AvalancheCenterCard, AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 

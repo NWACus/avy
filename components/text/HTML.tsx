@@ -1,9 +1,8 @@
 import React, {ReactNode, useState} from 'react';
 import * as _ from 'lodash';
 
-import {ScrollView} from 'native-base';
 import {RenderHTMLConfigProvider, RenderHTMLSource, RenderHTMLSourceProps, TRenderEngineProvider} from 'react-native-render-html';
-import {Platform, TouchableOpacity, useWindowDimensions} from 'react-native';
+import {Platform, ScrollView, TouchableOpacity, useWindowDimensions} from 'react-native';
 import Constants from 'expo-constants';
 import {Body} from 'components/text';
 import {colorLookup} from 'theme';
