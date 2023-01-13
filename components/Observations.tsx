@@ -4,7 +4,7 @@ import {compareDesc, format, parseISO, sub} from 'date-fns';
 import {ActivityIndicator, View, FlatList} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
-import {Text, Row, Column} from 'native-base';
+import {Row, Column} from 'native-base';
 import {geoContains} from 'd3-geo';
 import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 
@@ -12,7 +12,7 @@ import {Card} from 'components/Card';
 import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from '../types/nationalAvalancheCenter';
-import {Title3Semibold} from './text';
+import {Body, BodyBlack, Title3Semibold} from './text';
 import {HTML} from './text/HTML';
 import {NACIcon} from './icons/nac-icons';
 import {utcDateToLocalTimeString} from 'utils/date';
@@ -45,15 +45,15 @@ export const Observations: React.FunctionComponent<{
   if (isMapError || isObservationsError) {
     return (
       <View>
-        {isMapError && <Text>{`Could not fetch ${center_id} map layer: ${mapError}.`}</Text>}
-        {isObservationsError && <Text>{`Could not fetch ${center_id} observations: ${observationsError}.`}</Text>}
+        {isMapError && <Body>{`Could not fetch ${center_id} map layer: ${mapError}.`}</Body>}
+        {isObservationsError && <Body>{`Could not fetch ${center_id} observations: ${observationsError}.`}</Body>}
       </View>
     );
   }
   if (!observations.getObservationList || observations.getObservationList.length === 0) {
     return (
       <View>
-        <Text>{`No observations were recorded for ${center_id} between ${startDate} and ${endDate}.`}</Text>
+        <Body>{`No observations were recorded for ${center_id} between ${startDate} and ${endDate}.`}</Body>
       </View>
     );
   }
@@ -119,52 +119,48 @@ export const ObservationSummaryCard: React.FunctionComponent<{
       </Row>
       {anySignsOfInstability && (
         <Column space="2" style={{flex: 1}}>
-          <Text bold style={{textTransform: 'uppercase'}}>
-            {'Signs Of Instability'}
-          </Text>
+          <BodyBlack style={{textTransform: 'uppercase'}}>{'Signs Of Instability'}</BodyBlack>
           {observation.instability.avalanches_caught && (
             <Row space={2} alignItems="center">
               <NACIcon name="avalanche" size={32} color="black" />
-              <Text color="lightText">{'Caught in Avalanche(s)'}</Text>
+              <Body color="lightText">{'Caught in Avalanche(s)'}</Body>
             </Row>
           )}
           {observation.instability.avalanches_observed && (
             <Row space={2} alignItems="center">
               <NACIcon name="avalanche" size={32} color="black" />
-              <Text color="lightText">{'Avalanche(s) Observed'}</Text>
+              <Body color="lightText">{'Avalanche(s) Observed'}</Body>
             </Row>
           )}
           {observation.instability.avalanches_triggered && (
             <Row space={2} alignItems="center">
               <NACIcon name="avalanche" size={32} color="black" />
-              <Text color="lightText">{'Avalanche(s) Triggered'}</Text>
+              <Body color="lightText">{'Avalanche(s) Triggered'}</Body>
             </Row>
           )}
           {observation.instability.collapsing && (
             <Row space={2} alignItems="center">
               <MaterialCommunityIcons name="arrow-collapse-vertical" size={24} color="black" />
-              <Text color="lightText">
+              <Body color="lightText">
                 {observation.instability.collapsing_description && `${FormatAvalancheProblemDistribution(observation.instability.collapsing_description)} `}
                 {'Collapsing Observed'}
-              </Text>
+              </Body>
             </Row>
           )}
           {observation.instability.cracking && (
             <Row space={2} alignItems="center">
               <MaterialCommunityIcons name="lightning-bolt" size={24} color="black" />
-              <Text color="lightText">
+              <Body color="lightText">
                 {observation.instability.cracking_description && `${FormatAvalancheProblemDistribution(observation.instability.cracking_description)} `}
                 {'Cracking Observed'}
-              </Text>
+              </Body>
             </Row>
           )}
         </Column>
       )}
       {observation.observationSummary && (
         <Column space="2" style={{flex: 1}}>
-          <Text bold style={{textTransform: 'uppercase'}}>
-            {'Observation Summary'}
-          </Text>
+          <BodyBlack style={{textTransform: 'uppercase'}}>{'Observation Summary'}</BodyBlack>
           <HTML source={{html: observation.observationSummary}} />
         </Column>
       )}
@@ -178,10 +174,8 @@ const IdentifiedInformation: React.FunctionComponent<{
 }> = ({header, body}) => {
   return (
     <Column space="2" style={{flex: 1}}>
-      <Text bold style={{textTransform: 'uppercase'}}>
-        {header}
-      </Text>
-      <Text color="lightText">{body}</Text>
+      <BodyBlack style={{textTransform: 'uppercase'}}>{header}</BodyBlack>
+      <Body color="lightText">{body}</Body>
     </Column>
   );
 };
