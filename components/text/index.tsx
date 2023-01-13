@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as _ from 'lodash';
+import {merge} from 'lodash';
 
 import {ITextProps, Text} from 'native-base';
 
@@ -27,7 +27,7 @@ export const BodyXSmMedium: React.FunctionComponent<ITextProps> = props => <Body
 export const BodyXSmBlack: React.FunctionComponent<ITextProps> = props => <BodyXSm fontFamily="Lato_900Black" {...props} />;
 
 export const AllCapsSm: React.FunctionComponent<ITextProps> = props => (
-  <Text fontSize={13} lineHeight={18} fontFamily="Lato_400Regular" letterSpacing={-0.08} {..._.merge({style: {textTransform: 'uppercase'}}, props ?? {})} />
+  <Text fontSize={13} lineHeight={18} fontFamily="Lato_400Regular" letterSpacing={-0.08} {...merge({style: {textTransform: 'uppercase'}}, props)} />
 );
 export const AllCapsSmBlack: React.FunctionComponent<ITextProps> = props => <AllCapsSm fontFamily="Lato_900Black" {...props} />;
 
