@@ -19,7 +19,7 @@ export interface AvalancheDangerTableProps {
   size: DangerTableSize;
 }
 
-export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableProps> = ({date, forecast: current, elevation_band_names, size}: AvalancheDangerTableProps) => {
+export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableProps> = ({date, forecast, elevation_band_names, size}: AvalancheDangerTableProps) => {
   const {height, marginLeft, paddingTop} = {
     main: {
       height: '200',
@@ -33,7 +33,7 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
     },
   }[size];
 
-  const maxIconWidth = Math.max(...[current.lower, current.middle, current.upper].map(d => iconSize(d).width));
+  const maxIconWidth = Math.max(...[forecast.lower, forecast.middle, forecast.upper].map(d => iconSize(d).width));
 
   return (
     <VStack space={3} alignItems="stretch">
@@ -46,7 +46,7 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
           <View bg="gray.100" flex={1} />
         </VStack>
         <View width="100%" height="100%" position="absolute" zIndex={20}>
-          <AvalancheDangerPyramid forecast={current} height="100%" style={{marginLeft: marginLeft}} />
+          <AvalancheDangerPyramid forecast={forecast} height="100%" style={{marginLeft: marginLeft}} />
         </View>
         <VStack width="100%" height="100%" position="absolute" justifyContent="space-evenly" alignItems="stretch" space="3px" paddingTop={paddingTop} zIndex={30}>
           {['upper', 'middle', 'lower'].map((layer, index) => (
@@ -56,13 +56,13 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
               </View>
               <HStack space={2} alignItems="center" px={1}>
                 <View my={4} px={1} justifyContent="center">
-                  <Caption1Semibold style={{textTransform: 'uppercase'}}>{dangerText(current[layer])}</Caption1Semibold>
+                  <Caption1Semibold style={{textTransform: 'uppercase'}}>{dangerText(forecast[layer])}</Caption1Semibold>
                 </View>
                 {(() => {
-                  const size = iconSize(current[layer]);
+                  const size = iconSize(forecast[layer]);
                   const scale = 32.0 / size.height;
                   const rightMargin = Math.max(0, maxIconWidth - size.width) * scale;
-                  return <AvalancheDangerIcon style={{height: 32, marginRight: rightMargin}} level={current[layer]} />;
+                  return <AvalancheDangerIcon style={{height: 32, marginRight: rightMargin}} level={forecast[layer]} />;
                 })()}
               </HStack>
             </HStack>
