@@ -3,6 +3,8 @@ import {isUndefined, merge, omit} from 'lodash';
 
 import {Text, TextProps, TextStyle} from 'react-native';
 
+import {colorLookup} from 'theme';
+
 interface TextWrapperProps extends TextProps {
   color?: TextStyle['color'];
   fontFamily?: TextStyle['fontFamily'];
@@ -15,7 +17,7 @@ interface TextWrapperProps extends TextProps {
 const TextWrapper: React.FC<TextWrapperProps> = ({color, fontFamily, fontSize, letterSpacing, lineHeight, textTransform, children, ...props}) => {
   const style = omit(
     {
-      color,
+      color: colorLookup(color),
       fontFamily,
       fontSize,
       letterSpacing,

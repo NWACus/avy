@@ -2,8 +2,9 @@ import React, {PropsWithChildren, ReactElement, useState} from 'react';
 
 import {TouchableOpacity} from 'react-native';
 
-import {HStack, VStack, useToken} from 'native-base';
+import {HStack, VStack} from 'native-base';
 import {Body, BodySemibold} from './text';
+import {colorLookup} from 'theme';
 
 export interface TabProps {
   title: string;
@@ -18,7 +19,7 @@ export interface TabControlProps {
 
 export const TabControl: React.FunctionComponent<TabControlProps> = ({children, backgroundColor}) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [selectedTextColor] = useToken('colors', ['primary.600']);
+  const selectedTextColor = colorLookup('primary.600');
   const tabCount = React.Children.count(children);
 
   const tabStyle = {

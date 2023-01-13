@@ -5,7 +5,8 @@ import {TouchableOpacity} from 'react-native';
 
 import {FontAwesome} from '@expo/vector-icons';
 
-import {Box, IBoxProps, Divider, VStack, HStack, useToken} from 'native-base';
+import {Box, IBoxProps, Divider, VStack, HStack} from 'native-base';
+import {colorLookup} from 'theme';
 
 export interface CardProps extends IBoxProps {
   header?: ReactNode;
@@ -40,7 +41,7 @@ export interface CollapsibleCardProps extends CardProps {
 
 export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({startsCollapsed, header, children, ...props}) => {
   const [isCollapsed, setIsCollapsed] = useState(startsCollapsed);
-  const [textColor] = useToken('colors', ['darkText']);
+  const textColor = colorLookup('darkText');
 
   return (
     <Card
