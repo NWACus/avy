@@ -34,7 +34,7 @@ import {HTML} from './text/HTML';
 import {AvalancheProblemImage} from './AvalancheProblemImage';
 import {NACIcon} from './icons/nac-icons';
 import {utcDateToLocalTimeString} from 'utils/date';
-import {Body, BodyBlack, FeatureTitleBlack} from 'components/text';
+import {Body, BodyBlack, FeatureTitleBlack, Title1Black} from 'components/text';
 
 export const Observation: React.FunctionComponent<{
   id: string;
@@ -107,7 +107,7 @@ export const ObservationCard: React.FunctionComponent<{
           header={
             <Row space={2} alignItems="center">
               <FontAwesome5 name="info-circle" size={24} color="black" />
-              <FeatureTitleBlack>Observation Summary</FeatureTitleBlack>
+              <Title1Black>Observation Summary</Title1Black>
             </Row>
           }>
           <HTML source={{html: observation.observationSummary}} />
@@ -167,7 +167,7 @@ export const ObservationCard: React.FunctionComponent<{
             header={
               <Row space={2} alignItems="center">
                 <FontAwesome5 name="photo-video" size={24} color="black" />
-                <FeatureTitleBlack>Observation Media</FeatureTitleBlack>
+                <Title1Black>Observation Media</Title1Black>
               </Row>
             }>
             {observation.media
@@ -186,7 +186,7 @@ export const ObservationCard: React.FunctionComponent<{
             header={
               <Row space={2} alignItems="center">
                 <NACIcon name="avalanche" size={48} color="black" />
-                <FeatureTitleBlack>Avalanches</FeatureTitleBlack>
+                <Title1Black>Avalanches</Title1Black>
               </Row>
             }>
             {observation.avalanches &&
@@ -253,7 +253,7 @@ export const ObservationCard: React.FunctionComponent<{
             header={
               <Row space={2} alignItems="center">
                 <MaterialCommunityIcons name="weather-snowy-heavy" size={24} color="black" />
-                <FeatureTitleBlack>Weather</FeatureTitleBlack>
+                <Title1Black>Weather</Title1Black>
               </Row>
             }>
             <>
@@ -296,7 +296,7 @@ export const ObservationCard: React.FunctionComponent<{
               header={
                 <Row space={2} alignItems="center">
                   <Fontisto name="snowflake" size={24} color="black" />
-                  <FeatureTitleBlack>Snowpack Observations</FeatureTitleBlack>
+                  <Title1Black>Snowpack Observations</Title1Black>
                 </Row>
               }>
               <>{observation.advancedFields.snowpack && <>{/* we don't know what fields could be in this thing ... */}</>}</>
