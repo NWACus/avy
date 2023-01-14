@@ -1,7 +1,7 @@
 import React from 'react';
 import {EverythingFragment, useObservationQuery} from 'hooks/useObservations';
 import {ActivityIndicator, View, ScrollView, StyleSheet} from 'react-native';
-import {Heading, Row, Text, Column} from 'native-base';
+import {Row, Column} from 'native-base';
 import {Card, CollapsibleCard} from 'components/Card';
 import {FontAwesome5, MaterialCommunityIcons, Fontisto} from '@expo/vector-icons';
 import {useMapLayer} from '../hooks/useMapLayer';
@@ -34,6 +34,7 @@ import {HTML} from './text/HTML';
 import {AvalancheProblemImage} from './AvalancheProblemImage';
 import {NACIcon} from './icons/nac-icons';
 import {utcDateToLocalTimeString} from 'utils/date';
+import {Body, BodyBlack, FeatureTitleBlack, Title1Black} from 'components/text';
 
 export const Observation: React.FunctionComponent<{
   id: string;
@@ -59,8 +60,8 @@ export const Observation: React.FunctionComponent<{
   if (isObservationError || isMapError) {
     return (
       <View>
-        {isMapError && <Text>{`Could not fetch ${observation.getSingleObservation.centerId} map layer: ${mapError}.`}</Text>}
-        {isObservationError && <Text>{`Could not fetch ${observation.getSingleObservation.centerId} observation ${id}: ${observationError}.`}</Text>}
+        {isMapError && <Body>{`Could not fetch ${observation.getSingleObservation.centerId} map layer: ${mapError}.`}</Body>}
+        {isObservationError && <Body>{`Could not fetch ${observation.getSingleObservation.centerId} observation ${id}: ${observationError}.`}</Body>}
       </View>
     );
   }
@@ -82,7 +83,11 @@ export const ObservationCard: React.FunctionComponent<{
   return (
     <ScrollView style={StyleSheet.absoluteFillObject}>
       <Column space="2" bgColor={'#f0f2f5'}>
-        <Card marginTop={2} borderRadius={0} borderColor="white" header={<Heading>{`${FormatPartnerType(observation.observerType as PartnerType)} Field Observation`}</Heading>}>
+        <Card
+          marginTop={2}
+          borderRadius={0}
+          borderColor="white"
+          header={<FeatureTitleBlack>{`${FormatPartnerType(observation.observerType as PartnerType)} Field Observation`}</FeatureTitleBlack>}>
           <Row flexWrap="wrap" space="2">
             <IdentifiedInformation header={'Submitted'} body={utcDateToLocalTimeString(observation.createdAt)} />
             {observation.endDate && <IdentifiedInformation header={'Expires'} body={utcDateToLocalTimeString(observation.endDate)} />}
@@ -102,58 +107,54 @@ export const ObservationCard: React.FunctionComponent<{
           header={
             <Row space={2} alignItems="center">
               <FontAwesome5 name="info-circle" size={24} color="black" />
-              <Heading>Observation Summary</Heading>
+              <Title1Black>Observation Summary</Title1Black>
             </Row>
           }>
           <HTML source={{html: observation.observationSummary}} />
           {anySignsOfInstability && (
             <Column space="2" style={{flex: 1}}>
-              <Text bold style={{textTransform: 'uppercase'}}>
-                {'Signs Of Instability'}
-              </Text>
+              <BodyBlack style={{textTransform: 'uppercase'}}>{'Signs Of Instability'}</BodyBlack>
               {observation.instability.avalanches_caught && (
                 <Row space={2} alignItems="center">
                   <NACIcon name="avalanche" size={32} color="black" />
-                  <Text color="lightText">{'Caught in Avalanche(s)'}</Text>
+                  <Body color="lightText">{'Caught in Avalanche(s)'}</Body>
                 </Row>
               )}
               {observation.instability.avalanches_observed && (
                 <Row space={2} alignItems="center">
                   <NACIcon name="avalanche" size={32} color="black" />
-                  <Text color="lightText">{'Avalanche(s) Observed'}</Text>
+                  <Body color="lightText">{'Avalanche(s) Observed'}</Body>
                 </Row>
               )}
               {observation.instability.avalanches_triggered && (
                 <Row space={2} alignItems="center">
                   <NACIcon name="avalanche" size={32} color="black" />
-                  <Text color="lightText">{'Avalanche(s) Triggered'}</Text>
+                  <Body color="lightText">{'Avalanche(s) Triggered'}</Body>
                 </Row>
               )}
               {observation.instability.collapsing && (
                 <Row space={2} alignItems="center">
                   <MaterialCommunityIcons name="arrow-collapse-vertical" size={24} color="black" />
-                  <Text color="lightText">
+                  <Body color="lightText">
                     {observation.instability.collapsing_description && `${FormatAvalancheProblemDistribution(observation.instability.collapsing_description)} `}
                     {'Collapsing Observed'}
-                  </Text>
+                  </Body>
                 </Row>
               )}
               {observation.instability.cracking && (
                 <Row space={2} alignItems="center">
                   <MaterialCommunityIcons name="lightning-bolt" size={24} color="black" />
-                  <Text color="lightText">
+                  <Body color="lightText">
                     {observation.instability.cracking_description && `${FormatAvalancheProblemDistribution(observation.instability.cracking_description)} `}
                     {'Cracking Observed'}
-                  </Text>
+                  </Body>
                 </Row>
               )}
             </Column>
           )}
           {observation.instabilitySummary && (
             <Column space="2" style={{flex: 1}}>
-              <Text bold style={{textTransform: 'uppercase'}}>
-                {'Instability Comments'}
-              </Text>
+              <BodyBlack style={{textTransform: 'uppercase'}}>{'Instability Comments'}</BodyBlack>
               <HTML source={{html: observation.instabilitySummary}} />
             </Column>
           )}
@@ -166,7 +167,7 @@ export const ObservationCard: React.FunctionComponent<{
             header={
               <Row space={2} alignItems="center">
                 <FontAwesome5 name="photo-video" size={24} color="black" />
-                <Heading>Observation Media</Heading>
+                <Title1Black>Observation Media</Title1Black>
               </Row>
             }>
             {observation.media
@@ -185,7 +186,7 @@ export const ObservationCard: React.FunctionComponent<{
             header={
               <Row space={2} alignItems="center">
                 <NACIcon name="avalanche" size={48} color="black" />
-                <Heading>Avalanches</Heading>
+                <Title1Black>Avalanches</Title1Black>
               </Row>
             }>
             {observation.avalanches &&
@@ -217,9 +218,7 @@ export const ObservationCard: React.FunctionComponent<{
                   <>
                     {item.media && item.media.length > 0 && (
                       <Column space="2" style={{flex: 1}}>
-                        <Text bold style={{textTransform: 'uppercase'}}>
-                          {'Avalanche Media'}
-                        </Text>
+                        <BodyBlack style={{textTransform: 'uppercase'}}>{'Avalanche Media'}</BodyBlack>
                         {item.media
                           .filter(mediaItem => mediaItem.type === 'image')
                           .map((mediaItem, mediaIndex) => (
@@ -231,9 +230,7 @@ export const ObservationCard: React.FunctionComponent<{
                   <>
                     {item.comments && (
                       <Column space="2" style={{flex: 1}}>
-                        <Text bold style={{textTransform: 'uppercase'}}>
-                          {'Avalanche Comments'}
-                        </Text>
+                        <BodyBlack style={{textTransform: 'uppercase'}}>{'Avalanche Comments'}</BodyBlack>
                         <HTML source={{html: item.comments}} />
                       </Column>
                     )}
@@ -242,9 +239,7 @@ export const ObservationCard: React.FunctionComponent<{
               ))}
             {observation.avalanchesSummary && (
               <Column space="2" style={{flex: 1}}>
-                <Text bold style={{textTransform: 'uppercase'}}>
-                  {'Avalanche Summary'}
-                </Text>
+                <BodyBlack style={{textTransform: 'uppercase'}}>{'Avalanche Summary'}</BodyBlack>
                 <HTML source={{html: observation.avalanchesSummary}} />
               </Column>
             )}
@@ -258,7 +253,7 @@ export const ObservationCard: React.FunctionComponent<{
             header={
               <Row space={2} alignItems="center">
                 <MaterialCommunityIcons name="weather-snowy-heavy" size={24} color="black" />
-                <Heading>Weather</Heading>
+                <Title1Black>Weather</Title1Black>
               </Row>
             }>
             <>
@@ -283,9 +278,7 @@ export const ObservationCard: React.FunctionComponent<{
             <>
               {observation.advancedFields.weatherSummary && (
                 <Column space="2" style={{flex: 1}}>
-                  <Text bold style={{textTransform: 'uppercase'}}>
-                    {'Weather Summary'}
-                  </Text>
+                  <BodyBlack style={{textTransform: 'uppercase'}}>{'Weather Summary'}</BodyBlack>
                   <HTML source={{html: observation.advancedFields.weatherSummary}} />
                 </Column>
               )}
@@ -303,16 +296,14 @@ export const ObservationCard: React.FunctionComponent<{
               header={
                 <Row space={2} alignItems="center">
                   <Fontisto name="snowflake" size={24} color="black" />
-                  <Heading>Snowpack Observations</Heading>
+                  <Title1Black>Snowpack Observations</Title1Black>
                 </Row>
               }>
               <>{observation.advancedFields.snowpack && <>{/* we don't know what fields could be in this thing ... */}</>}</>
               <>
                 {observation.advancedFields.snowpackSummary && (
                   <Column space="2" style={{flex: 1}}>
-                    <Text bold style={{textTransform: 'uppercase'}}>
-                      {'Snowpack Summary'}
-                    </Text>
+                    <BodyBlack style={{textTransform: 'uppercase'}}>{'Snowpack Summary'}</BodyBlack>
                     <HTML source={{html: observation.advancedFields.snowpackSummary}} />
                   </Column>
                 )}
@@ -321,9 +312,7 @@ export const ObservationCard: React.FunctionComponent<{
                 {observation.advancedFields.snowpackMedia && observation.advancedFields.snowpackMedia.length > 0 && (
                   <>
                     <Column space="2" style={{flex: 1}}>
-                      <Text bold style={{textTransform: 'uppercase'}}>
-                        {'Snowpack Media'}
-                      </Text>
+                      <BodyBlack style={{textTransform: 'uppercase'}}>{'Snowpack Media'}</BodyBlack>
                       {observation.advancedFields.snowpackMedia
                         .filter(item => item.type === 'image')
                         .map((item, index) => (
@@ -353,10 +342,8 @@ const IdentifiedInformation: React.FunctionComponent<{
 }> = ({header, body}) => {
   return (
     <Column space="2" style={{flex: 1}}>
-      <Text bold style={{textTransform: 'uppercase'}}>
-        {header}
-      </Text>
-      <Text color="lightText">{body}</Text>
+      <BodyBlack style={{textTransform: 'uppercase'}}>{header}</BodyBlack>
+      <Body color="lightText">{body}</Body>
     </Column>
   );
 };
@@ -367,12 +354,10 @@ const IdentifiedWeatherInformation: React.FunctionComponent<{
 }> = ({header, body}) => {
   return (
     <Column space="2" style={{flex: 1}}>
-      <Text bold style={{textTransform: 'uppercase'}}>
-        {header}
-      </Text>
-      <Text color="lightText" style={{textTransform: 'capitalize', fontStyle: body === '' ? 'italic' : 'normal'}}>
+      <BodyBlack style={{textTransform: 'uppercase'}}>{header}</BodyBlack>
+      <Body color="lightText" style={{textTransform: 'capitalize', fontStyle: body === '' ? 'italic' : 'normal'}}>
         {body || 'Not Observed'}
-      </Text>
+      </Body>
     </Column>
   );
 };

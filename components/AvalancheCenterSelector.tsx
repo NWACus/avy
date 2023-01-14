@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {Box, VStack, HStack, Text as NBText} from 'native-base';
+import {Box, VStack, HStack} from 'native-base';
 import {Text, SectionList, SectionListData, StyleSheet, TouchableOpacity, ActivityIndicator, useWindowDimensions} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
@@ -8,6 +8,7 @@ import {AvalancheCenterLogo} from './AvalancheCenterLogo';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {TabNavigationProps} from 'routes';
 import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
+import {Body} from './text';
 
 const avalancheCenterIDsByType: SectionListData<AvalancheCenterID>[] = [
   {
@@ -62,7 +63,7 @@ export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardPro
         <Box bg="light.100">
           <VStack>
             <HStack justifyContent="flex-start" alignItems="center">
-              <NBText color="light.400">{`Could not fetch data for ${avalancheCenterId}: ${error?.message}.`}</NBText>
+              <Body color="light.400">{`Could not fetch data for ${avalancheCenterId}: ${error?.message}.`}</Body>
             </HStack>
           </VStack>
         </Box>
@@ -75,7 +76,7 @@ export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardPro
         <Box bg="light.100">
           <VStack>
             <HStack justifyContent="flex-start" alignItems="center">
-              <NBText color="light.400">{`No metadata found for ${avalancheCenterId}.`}</NBText>
+              <Body color="light.400">{`No metadata found for ${avalancheCenterId}.`}</Body>
             </HStack>
           </VStack>
         </Box>
@@ -94,9 +95,9 @@ export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardPro
           <VStack>
             <HStack justifyContent="flex-start" alignItems="center" px="2" width={width}>
               <AvalancheCenterLogo style={{height: 36}} avalancheCenterId={avalancheCenterId} />
-              <NBText px="2" color="light.400">
+              <Body style={{paddingHorizontal: 4}} color="light.400">
                 {avalancheCenter.name}
-              </NBText>
+              </Body>
             </HStack>
           </VStack>
         </Box>

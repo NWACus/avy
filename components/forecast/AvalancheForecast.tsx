@@ -3,7 +3,7 @@ import React, {useEffect} from 'react';
 import {ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-import {Heading, Text, View} from 'native-base';
+import {View} from 'native-base';
 
 import {parseISO} from 'date-fns';
 
@@ -14,6 +14,7 @@ import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useRefreshByUser} from 'hooks/useRefreshByUser';
 
 import {AvalancheTab} from './AvalancheTab';
+import {Body, FeatureTitleBlack} from 'components/text';
 
 export interface AvalancheForecastProps {
   zoneName: string;
@@ -23,11 +24,11 @@ export interface AvalancheForecastProps {
 }
 
 const WeatherTab = () => {
-  return <Heading>Weather coming soon</Heading>;
+  return <FeatureTitleBlack>Weather coming soon</FeatureTitleBlack>;
 };
 
 const ObservationsTab = () => {
-  return <Heading>Observations coming soon</Heading>;
+  return <FeatureTitleBlack>Observations coming soon</FeatureTitleBlack>;
 };
 
 export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> = ({center_id, date, forecast_zone_id}: AvalancheForecastProps) => {
@@ -62,8 +63,8 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
   if (isForecastError || isCenterError) {
     return (
       <View>
-        {isCenterError && <Text>{`Could not fetch ${center_id} properties: ${centerError?.message}.`}</Text>}
-        {isForecastError && <Text>{`Could not fetch forecast for ${center_id} zone ${forecast_zone_id}: ${forecastError?.message}.`}</Text>}
+        {isCenterError && <Body>{`Could not fetch ${center_id} properties: ${centerError?.message}.`}</Body>}
+        {isForecastError && <Body>{`Could not fetch forecast for ${center_id} zone ${forecast_zone_id}: ${forecastError?.message}.`}</Body>}
         {/* TODO(brian): we should add a "Try again" button and have that invoke `refetchByUser` */}
       </View>
     );
@@ -79,7 +80,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
     ]);
     return (
       <View>
-        <Text>{message}</Text>
+        <Body>{message}</Body>
       </View>
     );
   }

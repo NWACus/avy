@@ -1,11 +1,11 @@
 import React from 'react';
 
-import {Button, StyleSheet} from 'react-native';
+import {Button, StyleSheet, Switch} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import * as Updates from 'expo-updates';
 
-import {Heading, HStack, VStack, Switch, Text, Divider, SectionList, View} from 'native-base';
+import {HStack, VStack, Divider, SectionList, View} from 'native-base';
 
 import {AvalancheCenterCard, AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 
@@ -68,17 +68,17 @@ export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolea
     return (
       <SafeAreaView style={styles.fullscreen}>
         <VStack pt="16" px="4" space="4" style={styles.fullscreen}>
-          <Heading>Settings</Heading>
+          <FeatureTitleBlack>Settings</FeatureTitleBlack>
           <Divider orientation="horizontal" bg="light.200" />
           {Updates.channel !== 'production' && (
             <>
-              <Heading size="sm">Debug Settings</Heading>
+              <Title1Black>Debug Settings</Title1Black>
               <HStack justifyContent="space-between" alignItems="center" space="4">
-                <Text>Use staging environment</Text>
+                <BodyBlack>Use staging environment</BodyBlack>
                 <Switch value={staging} onValueChange={toggleStaging} />
               </HStack>
               <VStack alignItems="flex-start">
-                <Text>Choose Avalanche Center</Text>
+                <BodyBlack>Choose Avalanche Center</BodyBlack>
                 <AvalancheCenterCard
                   avalancheCenterId={avalancheCenterId}
                   selected={false}

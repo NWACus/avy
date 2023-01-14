@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {Heading, HStack, Text, VStack} from 'native-base';
+import {HStack, VStack} from 'native-base';
 
 import {addDays, parseISO} from 'date-fns';
 
@@ -11,6 +11,7 @@ import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
 import {Card, CollapsibleCard} from 'components/Card';
 import {HTML} from 'components/text/HTML';
 import {utcDateToLocalTimeString} from 'utils/date';
+import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, Title3Black} from 'components/text';
 
 interface AvalancheTabProps {
   zone: AvalancheForecastZone;
@@ -45,25 +46,25 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
 
   return (
     <VStack space="2" bgColor={'#f0f2f5'}>
-      <Card marginTop={2} borderRadius={0} borderColor="white" header={<Heading>Avalanche Forecast</Heading>}>
+      <Card marginTop={2} borderRadius={0} borderColor="white" header={<Title3Black>Avalanche Forecast</Title3Black>}>
         <HStack justifyContent="space-evenly" space="2">
           <VStack space="2" style={{flex: 1}}>
-            <Text bold style={{textTransform: 'uppercase'}}>
-              Issued
-            </Text>
-            <Text color="lightText">{utcDateToLocalTimeString(forecast.published_time)}</Text>
+            <AllCapsSmBlack>Issued</AllCapsSmBlack>
+            <AllCapsSm style={{textTransform: 'none'}} color="lightText">
+              {utcDateToLocalTimeString(forecast.published_time)}
+            </AllCapsSm>
           </VStack>
           <VStack space="2" style={{flex: 1}}>
-            <Text bold style={{textTransform: 'uppercase'}}>
-              Expires
-            </Text>
-            <Text color="lightText">{utcDateToLocalTimeString(forecast.expires_time)}</Text>
+            <AllCapsSmBlack>Expires</AllCapsSmBlack>
+            <AllCapsSm style={{textTransform: 'none'}} color="lightText">
+              {utcDateToLocalTimeString(forecast.expires_time)}
+            </AllCapsSm>
           </VStack>
           <VStack space="2" style={{flex: 1}}>
-            <Text bold style={{textTransform: 'uppercase'}}>
-              Author
-            </Text>
-            <Text color="lightText">{forecast.author || 'Unknown'}</Text>
+            <AllCapsSmBlack>Author</AllCapsSmBlack>
+            <AllCapsSm style={{textTransform: 'none'}} color="lightText">
+              {forecast.author || 'Unknown'}
+            </AllCapsSm>
           </VStack>
         </HStack>
       </Card>
@@ -73,27 +74,32 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
         header={
           <HStack space={2} alignItems="center">
             <AvalancheDangerIcon style={{height: 32}} level={highestDangerToday} />
-            <Heading>The Bottom Line</Heading>
+            <BodyBlack>The Bottom Line</BodyBlack>
           </HStack>
         }>
         <HTML source={{html: forecast.bottom_line}} />
       </Card>
-      <Card borderRadius={0} borderColor="white" header={<Heading>Avalanche Danger</Heading>}>
+      <Card borderRadius={0} borderColor="white" header={<BodyBlack>Avalanche Danger</BodyBlack>}>
         <AvalancheDangerTable date={parseISO(forecast.published_time)} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
       </Card>
-      <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Outlook</Heading>}>
+      <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<BodyBlack>Outlook</BodyBlack>}>
         <AvalancheDangerTable date={addDays(parseISO(forecast.published_time), 1)} forecast={outlookDanger} elevation_band_names={elevationBandNames} size={'outlook'} />
       </CollapsibleCard>
       {forecast.forecast_avalanche_problems.map((problem, index) => (
-        <CollapsibleCard key={`avalanche-problem-${index}-card`} startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Avalanche Problem #{index + 1}</Heading>}>
+        <CollapsibleCard
+          key={`avalanche-problem-${index}-card`}
+          startsCollapsed
+          borderRadius={0}
+          borderColor="white"
+          header={<BodyBlack>Avalanche Problem #{index + 1}</BodyBlack>}>
           <AvalancheProblemCard key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
         </CollapsibleCard>
       ))}
-      <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<Heading>Forecast Discussion</Heading>}>
+      <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<BodyBlack>Forecast Discussion</BodyBlack>}>
         <HTML source={{html: forecast.hazard_discussion}} />
       </CollapsibleCard>
-      <Card borderRadius={0} borderColor="white" header={<Heading>Media</Heading>}>
-        <Text>TBD!</Text>
+      <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>}>
+        <Body>TBD!</Body>
       </Card>
     </VStack>
   );
