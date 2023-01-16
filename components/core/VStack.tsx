@@ -14,7 +14,7 @@ export interface VStackProps extends ViewProps {
   space?: number;
 }
 
-export const VStack: React.FC<VStackProps> = ({children: originalChildren, style: originalStyle = {}, space, ...props}) => {
+export const VStack: React.FC<VStackProps> = React.memo(({children: originalChildren, style: originalStyle = {}, space, ...props}) => {
   const style = {};
   merge(style, baseStyle, originalStyle);
   const children = (() => {
@@ -30,4 +30,4 @@ export const VStack: React.FC<VStackProps> = ({children: originalChildren, style
       {children}
     </View>
   );
-};
+});

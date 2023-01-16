@@ -154,7 +154,7 @@ const validateProp = (prop: ViewStyleProp, value): void => {
 };
 
 export interface ViewProps extends RNViewProps, ViewStyleProps, ViewAliasProps {}
-export const View: React.FC<ViewProps> = ({children, style = {}, ...props}) => {
+export const View: React.FC<ViewProps> = React.memo(({children, style = {}, ...props}) => {
   const resolvedProps: RNViewProps = {style};
   Object.entries(props).forEach(([key, value]) => {
     const prop = propAliasMapping[key] || key;
@@ -169,4 +169,4 @@ export const View: React.FC<ViewProps> = ({children, style = {}, ...props}) => {
     }
   });
   return <RNView {...resolvedProps}>{children}</RNView>;
-};
+});
