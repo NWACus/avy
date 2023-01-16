@@ -4,9 +4,10 @@ import {MaterialIcons} from '@expo/vector-icons';
 
 import {DangerLevel} from 'types/nationalAvalancheCenter';
 import {colorFor} from './AvalancheDangerPyramid';
-import {Center, HStack, View, useToast} from 'native-base';
+import {Center, HStack, useToast} from 'native-base';
 import {BodyXSmBlack, BodyXSmMedium} from 'components/text';
 import {TouchableOpacity} from 'react-native';
+import {View} from 'components/core';
 
 export type DangerScaleProps = Omit<React.ComponentProps<typeof View>, 'children'>;
 
