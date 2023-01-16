@@ -168,6 +168,5 @@ export const View: React.FC<ViewProps> = ({children, style = {}, ...props}) => {
       resolvedProps[prop] = value;
     }
   });
-  // console.log(JSON.stringify(resolvedProps, null, 2));
   return <RNView {...resolvedProps}>{children}</RNView>;
 };
