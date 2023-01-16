@@ -11,7 +11,6 @@ import {
   PanResponderGestureState,
   GestureResponderEvent,
 } from 'react-native';
-import {Alert} from 'native-base';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
@@ -28,6 +27,8 @@ import {colorFor} from './AvalancheDangerPyramid';
 import {utcDateToLocalTimeString} from 'utils/date';
 import {parseISO} from 'date-fns';
 import {TravelAdvice} from './helpers/travelAdvice';
+import {COLORS} from 'theme/colors';
+import {FontAwesome5} from '@expo/vector-icons';
 
 export const defaultRegion: Region = {
   // TODO(skuznets): add a sane default for the US?
@@ -88,12 +89,14 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       )}
       {isError && (
         <Center width="100%" position="absolute" bottom={6}>
-          <Alert status={'warning'} px={6} py={4}>
-            <HStack space={8} flexShrink={1}>
-              <Alert.Icon mt="1" />
-              <Body>Unable to load forecast data</Body>
-            </HStack>
-          </Alert>
+          <VStack space={8}>
+            <Center bg={COLORS['warning.200']} px={24} py={16} borderRadius={4}>
+              <HStack space={8} flexShrink={1}>
+                <FontAwesome5 name="exclamation-triangle" size={16} color={COLORS['warning.700']} />
+                <Body>Unable to load forecast data</Body>
+              </HStack>
+            </Center>
+          </VStack>
         </Center>
       )}
       {!isLoading && !isError && <AvalancheForecastZoneCards key={center} date={date} zones={zones} />}

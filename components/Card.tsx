@@ -5,9 +5,8 @@ import {TouchableOpacity} from 'react-native';
 
 import {FontAwesome} from '@expo/vector-icons';
 
-import {Divider} from 'native-base';
 import {colorLookup} from 'theme';
-import {HStack, View, ViewProps, VStack} from 'components/core';
+import {Divider, HStack, View, ViewProps, VStack} from 'components/core';
 
 export interface CardProps extends ViewProps {
   header?: ReactNode;
@@ -27,7 +26,7 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({hea
         <View bg="white" borderWidth={2} borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.200'} p={16}>
           <VStack space={noInternalSpace ? 0 : 8}>
             <>{header}</>
-            {noDivider || <Divider orientation="horizontal" bg="light.200" />}
+            {noDivider || <Divider direction="horizontal" bg="light.200" />}
             <>{children}</>
           </VStack>
         </View>
@@ -59,7 +58,7 @@ export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<Collapsi
       }>
       <Collapsible collapsed={isCollapsed} renderChildrenCollapsed>
         <VStack space={8} pt={8}>
-          <Divider orientation="horizontal" bg="light.200" />
+          <Divider direction="horizontal" bg="light.200" />
           <>{children}</>
         </VStack>
       </Collapsible>
