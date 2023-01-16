@@ -15,6 +15,7 @@ export type MapViewZone = {
   start_date: string | null;
   end_date: string | null;
   geometry?: FeatureComponent;
+  fillOpacity: number;
 };
 
 export const useMapViewZones = (center_id: AvalancheCenterID, date: Date) => {

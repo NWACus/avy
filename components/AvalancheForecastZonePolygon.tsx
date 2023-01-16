@@ -1,15 +1,9 @@
-import React, {PropsWithChildren} from 'react';
-import {ActivityIndicator, Text, View} from 'react-native';
-import {LatLng, Marker, Polygon, Region} from 'react-native-maps';
-import {useNavigation} from '@react-navigation/native';
+import React from 'react';
+import {LatLng, Polygon, Region} from 'react-native-maps';
 
-import {parseISO} from 'date-fns';
-import polylabel from 'polylabel';
-
-import {AvalancheDangerForecast, DangerLevel, Feature, FeatureComponent, ForecastPeriod} from 'types/nationalAvalancheCenter';
-import {useAvalancheForecastFragment} from 'hooks/useAvalancheForecastFragment';
+import {FeatureComponent} from 'types/nationalAvalancheCenter';
 import {colorFor} from './AvalancheDangerPyramid';
-import {HomeStackNavigationProps} from 'routes';
+import {MapViewZone} from 'hooks/useMapViewZones';
 
 const coordinateList = (geometry: FeatureComponent): number[][] => {
   let items: number[][] = [];
@@ -23,20 +17,6 @@ const coordinateList = (geometry: FeatureComponent): number[][] => {
 
 const toLatLng = (item: number[]): LatLng => {
   return {longitude: item[0], latitude: item[1]};
-};
-
-interface NotificationMarkerProps {
-  geometry: FeatureComponent;
-}
-
-const NotificationMarker: React.FunctionComponent<PropsWithChildren<NotificationMarkerProps>> = ({geometry, children}: PropsWithChildren<NotificationMarkerProps>) => {
-  const coordinates: number[][] = coordinateList(geometry);
-  return (
-    <>
-      <Polygon coordinates={coordinates.map(toLatLng)} fillColor={colorFor(DangerLevel.None).alpha(0.5).string()} />
-      <Marker coordinate={toLatLng(polylabel([coordinates], 1.0))}>{children}</Marker>
-    </>
-  );
 };
 
 export const updateRegionToContain = (previous: Region, coordinates: LatLng[]): Region => {
@@ -85,59 +65,27 @@ export const updateRegionToContain = (previous: Region, coordinates: LatLng[]): 
 };
 
 export interface AvalancheForecastZonePolygonProps {
-  feature: Feature;
-  date: string;
+  zone: MapViewZone;
   setRegion: React.Dispatch<React.SetStateAction<Region>>;
+  setSelectedZone: (zone: MapViewZone) => void;
 }
 
-export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({feature, date, setRegion}: AvalancheForecastZonePolygonProps) => {
-  const coordinates: LatLng[] = coordinateList(feature.geometry).map(toLatLng);
+export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({zone, setRegion, setSelectedZone}: AvalancheForecastZonePolygonProps) => {
+  const coordinates: LatLng[] = coordinateList(zone.geometry).map(toLatLng);
   React.useEffect(() => {
     setRegion((previous: Region) => updateRegionToContain(previous, coordinates));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const forecastDate: Date = parseISO(date);
-  const navigation = useNavigation<HomeStackNavigationProps>();
-  const {isLoading, isError, data: forecast, error} = useAvalancheForecastFragment(feature.properties.center_id, feature.id, forecastDate);
-  if (isLoading) {
-    return (
-      <NotificationMarker geometry={feature.geometry}>
-        <ActivityIndicator />
-      </NotificationMarker>
-    );
-  }
-  if (isError) {
-    return (
-      <NotificationMarker geometry={feature.geometry}>
-        <View>
-          <Text>{`Could not fetch forecast for ${feature.properties.name}: ${error?.message}.`}</Text>
-        </View>
-      </NotificationMarker>
-    );
-  }
-
-  let dangerLevel: DangerLevel = DangerLevel.None;
-  if (forecast) {
-    const currentDanger: AvalancheDangerForecast | undefined = forecast.danger.find(item => item.valid_day === ForecastPeriod.Current);
-    if (currentDanger) {
-      dangerLevel = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper);
-    }
-  }
-
   return (
     <Polygon
       coordinates={coordinates}
-      fillColor={colorFor(dangerLevel).alpha(feature.properties.fillOpacity).string()}
+      fillColor={colorFor(zone.danger_level).alpha(zone.fillOpacity).string()}
       strokeColor={'#484848'}
       strokeWidth={2}
       tappable={true}
-      onPress={() => {
-        navigation.navigate('forecast', {
-          zoneName: feature.properties.name,
-          center_id: feature.properties.center_id,
-          forecast_zone_id: feature.id,
-          date: date,
-        });
+      onPress={event => {
+        setSelectedZone(zone);
+        event.stopPropagation();
       }}
     />
   );
