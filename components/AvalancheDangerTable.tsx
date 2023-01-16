@@ -1,9 +1,7 @@
 import React from 'react';
 
-import {HStack, VStack} from 'native-base';
-
 import {AvalancheDangerForecast, ElevationBandNames} from 'types/nationalAvalancheCenter';
-import {View} from 'components/core/View';
+import {HStack, View, VStack} from 'components/core';
 import {dangerText} from 'components/helpers/dangerText';
 import {utcDateToLocalDateString} from 'utils/date';
 import {Body, Caption1, Caption1Semibold} from 'components/text';
@@ -24,12 +22,12 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
   const {height, marginLeft, paddingTop} = {
     main: {
       height: 200,
-      paddingTop: '13px',
+      paddingTop: 13,
       marginLeft: -6,
     },
     outlook: {
       height: 150,
-      paddingTop: '10px',
+      paddingTop: 10,
       marginLeft: 16,
     },
   }[size];
@@ -37,11 +35,11 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
   const maxIconWidth = Math.max(...[forecast.lower, forecast.middle, forecast.upper].map(d => iconSize(d).width));
 
   return (
-    <VStack space={3} alignItems="stretch">
+    <VStack space={12} alignItems="stretch">
       <Body>{utcDateToLocalDateString(date)}</Body>
       <View height={height} width="100%">
         {/* This view contains 3 layers stacked over each other: the background bars in gray, the avalanche pyramid, and the text labels and icons */}
-        <VStack width="100%" height="100%" position="absolute" justifyContent="space-evenly" alignItems="stretch" space="3px" paddingTop={paddingTop} zIndex={10}>
+        <VStack width="100%" height="100%" position="absolute" justifyContent="space-evenly" alignItems="stretch" space={3} paddingTop={paddingTop} zIndex={10}>
           <View bg="gray.100" flex={1} />
           <View bg="gray.100" flex={1} />
           <View bg="gray.100" flex={1} />
@@ -49,13 +47,13 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
         <View width="100%" height="100%" position="absolute" zIndex={20}>
           <AvalancheDangerPyramid forecast={forecast} height="100%" style={{marginLeft: marginLeft}} />
         </View>
-        <VStack width="100%" height="100%" position="absolute" justifyContent="space-evenly" alignItems="stretch" space="3px" paddingTop={paddingTop} zIndex={30}>
+        <VStack width="100%" height="100%" position="absolute" justifyContent="space-evenly" alignItems="stretch" space={3} paddingTop={paddingTop} zIndex={30}>
           {['upper', 'middle', 'lower'].map((layer, index) => (
             <HStack flex={1} justifyContent="space-between" key={index}>
               <View my={4} px={1} justifyContent="center">
                 <Caption1>{elevation_band_names[layer]}</Caption1>
               </View>
-              <HStack space={2} alignItems="center" px={1}>
+              <HStack space={8} alignItems="center" px={1}>
                 <View my={4} px={1} justifyContent="center">
                   <Caption1Semibold style={{textTransform: 'uppercase'}}>{dangerText(forecast[layer])}</Caption1Semibold>
                 </View>

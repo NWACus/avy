@@ -1,11 +1,9 @@
 import React from 'react';
 
-import {Button, StyleSheet, Switch} from 'react-native';
+import {Button, SectionList, StyleSheet, Switch} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import * as Updates from 'expo-updates';
-
-import {HStack, VStack, Divider, SectionList} from 'native-base';
 
 import {AvalancheCenterCard, AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 
@@ -14,7 +12,7 @@ import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigat
 import {MenuStackParamList, MenuStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
 
-import {View} from 'components/core';
+import {Divider, HStack, View, VStack} from 'components/core';
 
 import {
   AllCapsSm,
@@ -70,13 +68,13 @@ export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolea
   return function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
     return (
       <SafeAreaView style={styles.fullscreen}>
-        <VStack pt="16" px="4" space="4" style={styles.fullscreen}>
+        <VStack pt={16} px={16} space={16} style={styles.fullscreen}>
           <FeatureTitleBlack>Settings</FeatureTitleBlack>
-          <Divider orientation="horizontal" bg="light.200" />
+          <Divider direction="horizontal" bg="light.200" />
           {Updates.channel !== 'production' && (
-            <>
+            <VStack space={16}>
               <Title1Black>Debug Settings</Title1Black>
-              <HStack justifyContent="space-between" alignItems="center" space="4">
+              <HStack justifyContent="space-between" alignItems="center" space={16}>
                 <BodyBlack>Use staging environment</BodyBlack>
                 <Switch value={staging} onValueChange={toggleStaging} />
               </HStack>
@@ -91,7 +89,7 @@ export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolea
                 />
               </VStack>
               <Button onPress={() => navigation.navigate('textStylePreview')} title="Open text style preview" />
-            </>
+            </VStack>
           )}
         </VStack>
       </SafeAreaView>
@@ -164,7 +162,7 @@ const TextStylePreview = () => {
   return (
     <SafeAreaView style={styles.fullscreen}>
       <SectionList
-        paddingX={4}
+        style={{paddingHorizontal: 4}}
         sections={data}
         keyExtractor={item => item.content}
         renderItem={({item}) => <item.Component>{item.content}</item.Component>}

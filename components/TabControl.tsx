@@ -2,9 +2,9 @@ import React, {PropsWithChildren, ReactElement, useState} from 'react';
 
 import {TouchableOpacity} from 'react-native';
 
-import {HStack, VStack} from 'native-base';
 import {Body, BodySemibold} from './text';
 import {colorLookup} from 'theme';
+import {HStack, VStack} from 'components/core';
 
 export interface TabProps {
   title: string;

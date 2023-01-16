@@ -4,7 +4,6 @@ import {compareDesc, format, parseISO, sub} from 'date-fns';
 import {ActivityIndicator, View, FlatList} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
-import {Row, Column} from 'native-base';
 import {geoContains} from 'd3-geo';
 import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 
@@ -16,6 +15,7 @@ import {Body, BodyBlack, Title3Semibold} from './text';
 import {HTML} from './text/HTML';
 import {NACIcon} from './icons/nac-icons';
 import {utcDateToLocalTimeString} from 'utils/date';
+import {HStack, VStack} from 'components/core';
 
 // TODO: we could show the Avy center logo for obs that come from forecasters
 
@@ -106,63 +106,63 @@ export const ObservationSummaryCard: React.FunctionComponent<{
         });
       }}
       header={
-        <Row alignContent="flex-start" flexWrap="wrap" alignItems="center" space="2">
+        <HStack alignContent="flex-start" flexWrap="wrap" alignItems="center" space={8}>
           <Title3Semibold>{zone}</Title3Semibold>
           <FontAwesome name="angle-right" size={18} style={{paddingHorizontal: 4}} color="black" />
           <Title3Semibold>{observation.locationName}</Title3Semibold>
-        </Row>
+        </HStack>
       }>
-      <Row flexWrap="wrap" space="2">
+      <HStack flexWrap="wrap" space={8}>
         <IdentifiedInformation header={'Submitted'} body={utcDateToLocalTimeString(observation.createdAt)} />
         <IdentifiedInformation header={'Observer'} body={FormatPartnerType(observation.observerType as PartnerType)} />
         <IdentifiedInformation header={'Author(s)'} body={observation.name || 'Unknown'} />
-      </Row>
+      </HStack>
       {anySignsOfInstability && (
-        <Column space="2" style={{flex: 1}}>
+        <VStack space={8} style={{flex: 1}}>
           <BodyBlack style={{textTransform: 'uppercase'}}>{'Signs Of Instability'}</BodyBlack>
           {observation.instability.avalanches_caught && (
-            <Row space={2} alignItems="center">
+            <HStack space={8} alignItems="center">
               <NACIcon name="avalanche" size={32} color="black" />
               <Body color="lightText">{'Caught in Avalanche(s)'}</Body>
-            </Row>
+            </HStack>
           )}
           {observation.instability.avalanches_observed && (
-            <Row space={2} alignItems="center">
+            <HStack space={8} alignItems="center">
               <NACIcon name="avalanche" size={32} color="black" />
               <Body color="lightText">{'Avalanche(s) Observed'}</Body>
-            </Row>
+            </HStack>
           )}
           {observation.instability.avalanches_triggered && (
-            <Row space={2} alignItems="center">
+            <HStack space={8} alignItems="center">
               <NACIcon name="avalanche" size={32} color="black" />
               <Body color="lightText">{'Avalanche(s) Triggered'}</Body>
-            </Row>
+            </HStack>
           )}
           {observation.instability.collapsing && (
-            <Row space={2} alignItems="center">
+            <HStack space={8} alignItems="center">
               <MaterialCommunityIcons name="arrow-collapse-vertical" size={24} color="black" />
               <Body color="lightText">
                 {observation.instability.collapsing_description && `${FormatAvalancheProblemDistribution(observation.instability.collapsing_description)} `}
                 {'Collapsing Observed'}
               </Body>
-            </Row>
+            </HStack>
           )}
           {observation.instability.cracking && (
-            <Row space={2} alignItems="center">
+            <HStack space={8} alignItems="center">
               <MaterialCommunityIcons name="lightning-bolt" size={24} color="black" />
               <Body color="lightText">
                 {observation.instability.cracking_description && `${FormatAvalancheProblemDistribution(observation.instability.cracking_description)} `}
                 {'Cracking Observed'}
               </Body>
-            </Row>
+            </HStack>
           )}
-        </Column>
+        </VStack>
       )}
       {observation.observationSummary && (
-        <Column space="2" style={{flex: 1}}>
+        <VStack space={8} style={{flex: 1}}>
           <BodyBlack style={{textTransform: 'uppercase'}}>{'Observation Summary'}</BodyBlack>
           <HTML source={{html: observation.observationSummary}} />
-        </Column>
+        </VStack>
       )}
     </Card>
   );
@@ -173,9 +173,9 @@ const IdentifiedInformation: React.FunctionComponent<{
   body: string;
 }> = ({header, body}) => {
   return (
-    <Column space="2" style={{flex: 1}}>
+    <VStack space={8} style={{flex: 1}}>
       <BodyBlack style={{textTransform: 'uppercase'}}>{header}</BodyBlack>
       <Body color="lightText">{body}</Body>
-    </Column>
+    </VStack>
   );
 };

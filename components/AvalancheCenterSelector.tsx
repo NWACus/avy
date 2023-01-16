@@ -1,6 +1,5 @@
 import React from 'react';
 
-import {Box, VStack, HStack} from 'native-base';
 import {Text, SectionList, SectionListData, StyleSheet, TouchableOpacity, ActivityIndicator, useWindowDimensions} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
@@ -9,6 +8,7 @@ import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {TabNavigationProps} from 'routes';
 import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
 import {Body} from './text';
+import {HStack, View, VStack} from 'components/core';
 
 const avalancheCenterIDsByType: SectionListData<AvalancheCenterID>[] = [
   {
@@ -59,50 +59,50 @@ export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardPro
   }
   if (isError) {
     return (
-      <Box>
-        <Box bg="light.100">
+      <View>
+        <View bg="light.100">
           <VStack>
             <HStack justifyContent="flex-start" alignItems="center">
               <Body color="light.400">{`Could not fetch data for ${avalancheCenterId}: ${error?.message}.`}</Body>
             </HStack>
           </VStack>
-        </Box>
-      </Box>
+        </View>
+      </View>
     );
   }
   if (!avalancheCenter) {
     return (
-      <Box>
-        <Box bg="light.100">
+      <View>
+        <View bg="light.100">
           <VStack>
             <HStack justifyContent="flex-start" alignItems="center">
               <Body color="light.400">{`No metadata found for ${avalancheCenterId}.`}</Body>
             </HStack>
           </VStack>
-        </Box>
-      </Box>
+        </View>
+      </View>
     );
   }
 
   return (
-    <Box>
+    <View>
       <TouchableOpacity
         style={styles.item}
         onPress={() => {
           onPress(avalancheCenterId);
         }}>
-        <Box bg={selected ? 'blue.100' : 'light.100'}>
+        <View bg={selected ? 'blue.100' : 'light.100'}>
           <VStack>
-            <HStack justifyContent="flex-start" alignItems="center" px="2" width={width}>
+            <HStack justifyContent="flex-start" alignItems="center" px={8} width={width}>
               <AvalancheCenterLogo style={{height: 36}} avalancheCenterId={avalancheCenterId} />
               <Body style={{paddingHorizontal: 4}} color="light.400">
                 {avalancheCenter.name}
               </Body>
             </HStack>
           </VStack>
-        </Box>
+        </View>
       </TouchableOpacity>
-    </Box>
+    </View>
   );
 };
 

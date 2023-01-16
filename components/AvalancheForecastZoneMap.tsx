@@ -1,21 +1,10 @@
 import React, {useRef, useState} from 'react';
 
-import {
-  Animated,
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  PanResponder,
-  TouchableWithoutFeedback,
-  PanResponderGestureState,
-  GestureResponderEvent,
-} from 'react-native';
-import {Alert, Center, HStack, VStack} from 'native-base';
+import {Animated, ActivityIndicator, StyleSheet, Text, useWindowDimensions, PanResponder, PanResponderGestureState, GestureResponderEvent, TouchableOpacity} from 'react-native';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
-import {View} from 'components/core';
+import {Center, HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
@@ -28,6 +17,8 @@ import {colorFor} from './AvalancheDangerPyramid';
 import {utcDateToLocalTimeString} from 'utils/date';
 import {parseISO} from 'date-fns';
 import {TravelAdvice} from './helpers/travelAdvice';
+import {COLORS} from 'theme/colors';
+import {FontAwesome5} from '@expo/vector-icons';
 
 export const defaultRegion: Region = {
   // TODO(skuznets): add a sane default for the US?
@@ -82,18 +73,20 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       </SafeAreaView>
 
       {isLoading && (
-        <Center width="100%" height="100%" position="absolute" top="0">
+        <Center width="100%" height="100%" position="absolute" top={0}>
           <ActivityIndicator size={'large'} />
         </Center>
       )}
       {isError && (
-        <Center width="100%" position="absolute" bottom="6">
-          <Alert status={'warning'} px={6} py={4}>
-            <HStack space={2} flexShrink={1}>
-              <Alert.Icon mt="1" />
-              <Body>Unable to load forecast data</Body>
-            </HStack>
-          </Alert>
+        <Center width="100%" position="absolute" bottom={6}>
+          <VStack space={8}>
+            <Center bg={COLORS['warning.200']} px={24} py={16} borderRadius={4}>
+              <HStack space={8} flexShrink={1}>
+                <FontAwesome5 name="exclamation-triangle" size={16} color={COLORS['warning.700']} />
+                <Body>Unable to load forecast data</Body>
+              </HStack>
+            </Center>
+          </VStack>
         </Center>
       )}
       {!isLoading && !isError && <AvalancheForecastZoneCards key={center} date={date} zones={zones} />}
@@ -230,7 +223,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
 
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_event, {dx, dy}) => dx > 0 || dy > 0,
       onPanResponderGrant: () => panResponderController.onPanResponderGrant(),
       onPanResponderMove: (e, gestureState) => panResponderController.onPanResponderMove(e, gestureState),
       onPanResponderRelease: () => panResponderController.onPanResponderRelease(),
@@ -266,7 +259,8 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
   const dangerColor = colorFor(zone.danger_level);
 
   return (
-    <TouchableWithoutFeedback
+    <TouchableOpacity
+      activeOpacity={0.9}
       onPress={() => {
         navigation.navigate('forecast', {
           zoneName: zone.name,
@@ -275,15 +269,15 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           date: date,
         });
       }}>
-      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} marginX={CARD_MARGIN * width}>
+      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width}>
         <View height={8} width="100%" bg={dangerColor.string()} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
-        <VStack px={6} pt={1} pb={3} space={2}>
-          <HStack space={2} alignItems="center">
+        <VStack px={24} pt={4} pb={12} space={8}>
+          <HStack space={8} alignItems="center">
             <AvalancheDangerIcon style={{height: 32}} level={zone.danger_level} />
             <DangerLevelTitle dangerLevel={zone.danger_level} danger={zone.danger} />
           </HStack>
           <Title3Black>{zone.name}</Title3Black>
-          <VStack py={2}>
+          <VStack py={8}>
             <Text>
               <Caption1Black>Published: </Caption1Black>
               <Caption1>{utcDateToLocalTimeString(zone.start_date)}</Caption1>
@@ -298,7 +292,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           </Text>
         </VStack>
       </VStack>
-    </TouchableWithoutFeedback>
+    </TouchableOpacity>
   );
 };
 

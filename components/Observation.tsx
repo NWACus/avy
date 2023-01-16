@@ -1,7 +1,6 @@
 import React from 'react';
 import {EverythingFragment, useObservationQuery} from 'hooks/useObservations';
 import {ActivityIndicator, View, ScrollView, StyleSheet} from 'react-native';
-import {Row, Column} from 'native-base';
 import {Card, CollapsibleCard} from 'components/Card';
 import {FontAwesome5, MaterialCommunityIcons, Fontisto} from '@expo/vector-icons';
 import {useMapLayer} from '../hooks/useMapLayer';
@@ -35,6 +34,7 @@ import {AvalancheProblemImage} from './AvalancheProblemImage';
 import {NACIcon} from './icons/nac-icons';
 import {utcDateToLocalTimeString} from 'utils/date';
 import {Body, BodyBlack, FeatureTitleBlack, Title1Black} from 'components/text';
+import {HStack, VStack} from 'components/core';
 
 export const Observation: React.FunctionComponent<{
   id: string;
@@ -82,81 +82,83 @@ export const ObservationCard: React.FunctionComponent<{
 
   return (
     <ScrollView style={StyleSheet.absoluteFillObject}>
-      <Column space="2" bgColor={'#f0f2f5'}>
+      <VStack space={8} bgColor={'#f0f2f5'}>
         <Card
           marginTop={2}
           borderRadius={0}
           borderColor="white"
           header={<FeatureTitleBlack>{`${FormatPartnerType(observation.observerType as PartnerType)} Field Observation`}</FeatureTitleBlack>}>
-          <Row flexWrap="wrap" space="2">
-            <IdentifiedInformation header={'Submitted'} body={utcDateToLocalTimeString(observation.createdAt)} />
-            {observation.endDate && <IdentifiedInformation header={'Expires'} body={utcDateToLocalTimeString(observation.endDate)} />}
-            <IdentifiedInformation header={'Author(s)'} body={observation.name || 'Unknown'} />
-            <IdentifiedInformation header={'Activity'} body={activityDisplayName(observation.activity)} />
-          </Row>
-          <Row flexWrap="wrap" space="2">
-            <IdentifiedInformation header={'Zone/Region'} body={zone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng)} />
-            <IdentifiedInformation header={'Location'} body={observation.locationName} />
-            <IdentifiedInformation header={'Route'} body={observation.route} />
-          </Row>
+          <VStack space={8}>
+            <HStack flexWrap="wrap" space={8} alignItems="flex-start">
+              <IdentifiedInformation header={'Submitted'} body={utcDateToLocalTimeString(observation.createdAt)} />
+              {observation.endDate && <IdentifiedInformation header={'Expires'} body={utcDateToLocalTimeString(observation.endDate)} />}
+              <IdentifiedInformation header={'Author(s)'} body={observation.name || 'Unknown'} />
+              <IdentifiedInformation header={'Activity'} body={activityDisplayName(observation.activity)} />
+            </HStack>
+            <HStack flexWrap="wrap" space={8} alignItems="flex-start">
+              <IdentifiedInformation header={'Zone/Region'} body={zone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng)} />
+              <IdentifiedInformation header={'Location'} body={observation.locationName} />
+              <IdentifiedInformation header={'Route'} body={observation.route} />
+            </HStack>
+          </VStack>
         </Card>
         <CollapsibleCard
           startsCollapsed={false}
           borderRadius={0}
           borderColor="white"
           header={
-            <Row space={2} alignItems="center">
+            <HStack space={8} alignItems="center">
               <FontAwesome5 name="info-circle" size={24} color="black" />
               <Title1Black>Observation Summary</Title1Black>
-            </Row>
+            </HStack>
           }>
           <HTML source={{html: observation.observationSummary}} />
           {anySignsOfInstability && (
-            <Column space="2" style={{flex: 1}}>
+            <VStack space={8} style={{flex: 1}}>
               <BodyBlack style={{textTransform: 'uppercase'}}>{'Signs Of Instability'}</BodyBlack>
               {observation.instability.avalanches_caught && (
-                <Row space={2} alignItems="center">
+                <HStack space={8} alignItems="center">
                   <NACIcon name="avalanche" size={32} color="black" />
                   <Body color="lightText">{'Caught in Avalanche(s)'}</Body>
-                </Row>
+                </HStack>
               )}
               {observation.instability.avalanches_observed && (
-                <Row space={2} alignItems="center">
+                <HStack space={8} alignItems="center">
                   <NACIcon name="avalanche" size={32} color="black" />
                   <Body color="lightText">{'Avalanche(s) Observed'}</Body>
-                </Row>
+                </HStack>
               )}
               {observation.instability.avalanches_triggered && (
-                <Row space={2} alignItems="center">
+                <HStack space={8} alignItems="center">
                   <NACIcon name="avalanche" size={32} color="black" />
                   <Body color="lightText">{'Avalanche(s) Triggered'}</Body>
-                </Row>
+                </HStack>
               )}
               {observation.instability.collapsing && (
-                <Row space={2} alignItems="center">
+                <HStack space={8} alignItems="center">
                   <MaterialCommunityIcons name="arrow-collapse-vertical" size={24} color="black" />
                   <Body color="lightText">
                     {observation.instability.collapsing_description && `${FormatAvalancheProblemDistribution(observation.instability.collapsing_description)} `}
                     {'Collapsing Observed'}
                   </Body>
-                </Row>
+                </HStack>
               )}
               {observation.instability.cracking && (
-                <Row space={2} alignItems="center">
+                <HStack space={8} alignItems="center">
                   <MaterialCommunityIcons name="lightning-bolt" size={24} color="black" />
                   <Body color="lightText">
                     {observation.instability.cracking_description && `${FormatAvalancheProblemDistribution(observation.instability.cracking_description)} `}
                     {'Cracking Observed'}
                   </Body>
-                </Row>
+                </HStack>
               )}
-            </Column>
+            </VStack>
           )}
           {observation.instabilitySummary && (
-            <Column space="2" style={{flex: 1}}>
+            <VStack space={8} style={{flex: 1}}>
               <BodyBlack style={{textTransform: 'uppercase'}}>{'Instability Comments'}</BodyBlack>
               <HTML source={{html: observation.instabilitySummary}} />
-            </Column>
+            </VStack>
           )}
         </CollapsibleCard>
         {observation.media && observation.media.length > 0 && (
@@ -165,10 +167,10 @@ export const ObservationCard: React.FunctionComponent<{
             borderRadius={0}
             borderColor="white"
             header={
-              <Row space={2} alignItems="center">
+              <HStack space={8} alignItems="center">
                 <FontAwesome5 name="photo-video" size={24} color="black" />
                 <Title1Black>Observation Media</Title1Black>
-              </Row>
+              </HStack>
             }>
             {observation.media
               .filter(item => item.type === 'image')
@@ -184,64 +186,64 @@ export const ObservationCard: React.FunctionComponent<{
             borderWidth={0}
             borderColor="white"
             header={
-              <Row space={2} alignItems="center">
+              <HStack space={8} alignItems="center">
                 <NACIcon name="avalanche" size={48} color="black" />
                 <Title1Black>Avalanches</Title1Black>
-              </Row>
+              </HStack>
             }>
             {observation.avalanches &&
               observation.avalanches.length > 0 &&
               observation.avalanches.map((item, index) => (
-                <Column space="2" style={{flex: 1}} key={`avalanche-${index}`}>
-                  <Row space={2} alignItems="center">
+                <VStack space={8} style={{flex: 1}} key={`avalanche-${index}`}>
+                  <HStack space={8} alignItems="center">
                     <IdentifiedInformation
                       header={'Date'}
                       body={`${utcDateToLocalTimeString(item.date)} (${FormatAvalancheDateUncertainty(item.dateAccuracy as AvalancheDateUncertainty)})`}
                     />
                     <IdentifiedInformation header={'Location'} body={item.location} />
                     <IdentifiedInformation header={'Size'} body={`D${item.dSize}-R${item.rSize}`} />
-                  </Row>
-                  <Row space={2} alignItems="center">
+                  </HStack>
+                  <HStack space={8} alignItems="center">
                     <IdentifiedInformation
                       header={'Trigger'}
                       body={`${FormatAvalancheTrigger(item.trigger as AvalancheTrigger)} - ${FormatAvalancheCause(item.cause as AvalancheCause)}`}
                     />
                     <IdentifiedInformation header={'Start Zone'} body={`${FormatAvalancheAspect(item.aspect as AvalancheAspect)}, ${item.slopeAngle}° at ${item.elevation}ft`} />
                     <IdentifiedInformation header={'Vertical Fall'} body={`${item.verticalFall}ft`} />
-                  </Row>
-                  <Row space={2} alignItems="center">
+                  </HStack>
+                  <HStack space={8} alignItems="center">
                     <IdentifiedInformation header={'Crown Thickness'} body={`${item.avgCrownDepth}cm`} />
                     <IdentifiedInformation header={'Width'} body={`${item.width}ft`} />
                     <IdentifiedInformation header={'Type'} body={FormatAvalancheType(item.avalancheType as AvalancheType)} />
                     <IdentifiedInformation header={'Bed Surface'} body={FormatAvalancheBedSurface(item.bedSfc as AvalancheBedSurface)} />
-                  </Row>
+                  </HStack>
                   <>
                     {item.media && item.media.length > 0 && (
-                      <Column space="2" style={{flex: 1}}>
+                      <VStack space={8} style={{flex: 1}}>
                         <BodyBlack style={{textTransform: 'uppercase'}}>{'Avalanche Media'}</BodyBlack>
                         {item.media
                           .filter(mediaItem => mediaItem.type === 'image')
                           .map((mediaItem, mediaIndex) => (
                             <AvalancheProblemImage key={`avalanche-${index}-media-item-${mediaIndex}`} media={mediaItem} />
                           ))}
-                      </Column>
+                      </VStack>
                     )}
                   </>
                   <>
                     {item.comments && (
-                      <Column space="2" style={{flex: 1}}>
+                      <VStack space={8} style={{flex: 1}}>
                         <BodyBlack style={{textTransform: 'uppercase'}}>{'Avalanche Comments'}</BodyBlack>
                         <HTML source={{html: item.comments}} />
-                      </Column>
+                      </VStack>
                     )}
                   </>
-                </Column>
+                </VStack>
               ))}
             {observation.avalanchesSummary && (
-              <Column space="2" style={{flex: 1}}>
+              <VStack space={8} style={{flex: 1}}>
                 <BodyBlack style={{textTransform: 'uppercase'}}>{'Avalanche Summary'}</BodyBlack>
                 <HTML source={{html: observation.avalanchesSummary}} />
-              </Column>
+              </VStack>
             )}
           </CollapsibleCard>
         )}
@@ -251,36 +253,36 @@ export const ObservationCard: React.FunctionComponent<{
             borderRadius={0}
             borderColor="white"
             header={
-              <Row space={2} alignItems="center">
+              <HStack space={8} alignItems="center">
                 <MaterialCommunityIcons name="weather-snowy-heavy" size={24} color="black" />
                 <Title1Black>Weather</Title1Black>
-              </Row>
+              </HStack>
             }>
             <>
               {observation.advancedFields.weather && (
                 <>
-                  <Row flexWrap="wrap" space="2">
+                  <HStack flexWrap="wrap" space={8}>
                     <IdentifiedWeatherInformation header={'Cloud Cover'} body={FormatCloudCover(observation.advancedFields.weather.cloud_cover)} />
                     <IdentifiedWeatherInformation header={'Temperature (F)'} body={observation.advancedFields.weather.air_temp} />
                     <IdentifiedWeatherInformation header={'New or Recent Snowfall'} body={observation.advancedFields.weather.recent_snowfall} />
-                  </Row>
-                  <Row flexWrap="wrap" space="2">
+                  </HStack>
+                  <HStack flexWrap="wrap" space={8}>
                     <IdentifiedWeatherInformation header={'Rain/Snow Line (ft)'} body={observation.advancedFields.weather.rain_elevation} />
                     <IdentifiedWeatherInformation
                       header={'Snow Available For Transport'}
                       body={FormatSnowAvailableForTransport(observation.advancedFields.weather.snow_avail_for_transport)}
                     />
                     <IdentifiedWeatherInformation header={'Wind Loading'} body={FormatWindLoading(observation.advancedFields.weather.wind_loading)} />
-                  </Row>
+                  </HStack>
                 </>
               )}
             </>
             <>
               {observation.advancedFields.weatherSummary && (
-                <Column space="2" style={{flex: 1}}>
+                <VStack space={8} style={{flex: 1}}>
                   <BodyBlack style={{textTransform: 'uppercase'}}>{'Weather Summary'}</BodyBlack>
                   <HTML source={{html: observation.advancedFields.weatherSummary}} />
-                </Column>
+                </VStack>
               )}
             </>
           </CollapsibleCard>
@@ -294,37 +296,37 @@ export const ObservationCard: React.FunctionComponent<{
               borderRadius={0}
               borderColor="white"
               header={
-                <Row space={2} alignItems="center">
+                <HStack space={8} alignItems="center">
                   <Fontisto name="snowflake" size={24} color="black" />
                   <Title1Black>Snowpack Observations</Title1Black>
-                </Row>
+                </HStack>
               }>
               <>{observation.advancedFields.snowpack && <>{/* we don't know what fields could be in this thing ... */}</>}</>
               <>
                 {observation.advancedFields.snowpackSummary && (
-                  <Column space="2" style={{flex: 1}}>
+                  <VStack space={8} style={{flex: 1}}>
                     <BodyBlack style={{textTransform: 'uppercase'}}>{'Snowpack Summary'}</BodyBlack>
                     <HTML source={{html: observation.advancedFields.snowpackSummary}} />
-                  </Column>
+                  </VStack>
                 )}
               </>
               <>
                 {observation.advancedFields.snowpackMedia && observation.advancedFields.snowpackMedia.length > 0 && (
                   <>
-                    <Column space="2" style={{flex: 1}}>
+                    <VStack space={8} style={{flex: 1}}>
                       <BodyBlack style={{textTransform: 'uppercase'}}>{'Snowpack Media'}</BodyBlack>
                       {observation.advancedFields.snowpackMedia
                         .filter(item => item.type === 'image')
                         .map((item, index) => (
                           <AvalancheProblemImage key={`media-item-${index}`} media={item} />
                         ))}
-                    </Column>
+                    </VStack>
                   </>
                 )}
               </>
             </CollapsibleCard>
           )}
-      </Column>
+      </VStack>
     </ScrollView>
   );
 };
@@ -341,10 +343,10 @@ const IdentifiedInformation: React.FunctionComponent<{
   body: string;
 }> = ({header, body}) => {
   return (
-    <Column space="2" style={{flex: 1}}>
+    <VStack space={8} style={{flex: 1}}>
       <BodyBlack style={{textTransform: 'uppercase'}}>{header}</BodyBlack>
       <Body color="lightText">{body}</Body>
-    </Column>
+    </VStack>
   );
 };
 
@@ -353,11 +355,11 @@ const IdentifiedWeatherInformation: React.FunctionComponent<{
   body: string;
 }> = ({header, body}) => {
   return (
-    <Column space="2" style={{flex: 1}}>
+    <VStack space={8} style={{flex: 1}}>
       <BodyBlack style={{textTransform: 'uppercase'}}>{header}</BodyBlack>
       <Body color="lightText" style={{textTransform: 'capitalize', fontStyle: body === '' ? 'italic' : 'normal'}}>
         {body || 'Not Observed'}
       </Body>
-    </Column>
+    </VStack>
   );
 };

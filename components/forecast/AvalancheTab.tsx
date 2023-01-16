@@ -1,7 +1,5 @@
 import React from 'react';
 
-import {HStack, VStack} from 'native-base';
-
 import {addDays, parseISO} from 'date-fns';
 
 import {AvalancheDangerForecast, AvalancheForecastZone, DangerLevel, ElevationBandNames, ForecastPeriod, Product} from 'types/nationalAvalancheCenter';
@@ -12,6 +10,7 @@ import {Card, CollapsibleCard} from 'components/Card';
 import {HTML} from 'components/text/HTML';
 import {utcDateToLocalTimeString} from 'utils/date';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, Title3Black} from 'components/text';
+import {HStack, VStack} from 'components/core';
 
 interface AvalancheTabProps {
   zone: AvalancheForecastZone;
@@ -45,22 +44,22 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
   const elevationBandNames: ElevationBandNames = zone.config.elevation_band_names;
 
   return (
-    <VStack space="2" bgColor={'#f0f2f5'}>
+    <VStack space={8} bgColor={'#f0f2f5'}>
       <Card marginTop={2} borderRadius={0} borderColor="white" header={<Title3Black>Avalanche Forecast</Title3Black>}>
-        <HStack justifyContent="space-evenly" space="2">
-          <VStack space="2" style={{flex: 1}}>
+        <HStack justifyContent="space-evenly" space={8}>
+          <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Issued</AllCapsSmBlack>
             <AllCapsSm style={{textTransform: 'none'}} color="lightText">
               {utcDateToLocalTimeString(forecast.published_time)}
             </AllCapsSm>
           </VStack>
-          <VStack space="2" style={{flex: 1}}>
+          <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Expires</AllCapsSmBlack>
             <AllCapsSm style={{textTransform: 'none'}} color="lightText">
               {utcDateToLocalTimeString(forecast.expires_time)}
             </AllCapsSm>
           </VStack>
-          <VStack space="2" style={{flex: 1}}>
+          <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Author</AllCapsSmBlack>
             <AllCapsSm style={{textTransform: 'none'}} color="lightText">
               {forecast.author || 'Unknown'}
@@ -72,7 +71,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
         borderRadius={0}
         borderColor="white"
         header={
-          <HStack space={2} alignItems="center">
+          <HStack space={8} alignItems="center">
             <AvalancheDangerIcon style={{height: 32}} level={highestDangerToday} />
             <BodyBlack>The Bottom Line</BodyBlack>
           </HStack>
