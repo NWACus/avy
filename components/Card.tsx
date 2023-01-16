@@ -5,11 +5,11 @@ import {TouchableOpacity} from 'react-native';
 
 import {FontAwesome} from '@expo/vector-icons';
 
-import {Box, IBoxProps, Divider} from 'native-base';
+import {Divider} from 'native-base';
 import {colorLookup} from 'theme';
-import {HStack, VStack} from 'components/core';
+import {HStack, View, ViewProps, VStack} from 'components/core';
 
-export interface CardProps extends IBoxProps {
+export interface CardProps extends ViewProps {
   header?: ReactNode;
   onPress?: () => void;
   borderRadius?: number;
@@ -22,17 +22,17 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({hea
   const pressHandler = useCallback(() => onPress?.(), [onPress]);
 
   return (
-    <Box {...boxProps}>
+    <View {...boxProps}>
       <TouchableOpacity onPress={pressHandler} disabled={!onPress}>
-        <Box bg="white" borderWidth="2" borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.200'} p="4">
+        <View bg="white" borderWidth={2} borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.200'} p={16}>
           <VStack space={noInternalSpace ? 0 : 8}>
             <>{header}</>
             {noDivider || <Divider orientation="horizontal" bg="light.200" />}
             <>{children}</>
           </VStack>
-        </Box>
+        </View>
       </TouchableOpacity>
-    </Box>
+    </View>
   );
 };
 

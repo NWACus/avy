@@ -1,11 +1,11 @@
 import React from 'react';
 
-import {Button, StyleSheet, Switch} from 'react-native';
+import {Button, SectionList, StyleSheet, Switch} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import * as Updates from 'expo-updates';
 
-import {Divider, SectionList} from 'native-base';
+import {Divider} from 'native-base';
 
 import {AvalancheCenterCard, AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 
@@ -164,7 +164,7 @@ const TextStylePreview = () => {
   return (
     <SafeAreaView style={styles.fullscreen}>
       <SectionList
-        paddingX={4}
+        style={{paddingHorizontal: 4}}
         sections={data}
         keyExtractor={item => item.content}
         renderItem={({item}) => <item.Component>{item.content}</item.Component>}
