@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   PanResponderGestureState,
   GestureResponderEvent,
+  TouchableOpacity,
 } from 'react-native';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
@@ -233,7 +234,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
 
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_event, {dx, dy}) => dx > 0 || dy > 0,
       onPanResponderGrant: () => panResponderController.onPanResponderGrant(),
       onPanResponderMove: (e, gestureState) => panResponderController.onPanResponderMove(e, gestureState),
       onPanResponderRelease: () => panResponderController.onPanResponderRelease(),
@@ -269,7 +270,8 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
   const dangerColor = colorFor(zone.danger_level);
 
   return (
-    <TouchableWithoutFeedback
+    <TouchableOpacity
+      activeOpacity={0.9}
       onPress={() => {
         navigation.navigate('forecast', {
           zoneName: zone.name,
@@ -301,7 +303,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           </Text>
         </VStack>
       </VStack>
-    </TouchableWithoutFeedback>
+    </TouchableOpacity>
   );
 };
 
