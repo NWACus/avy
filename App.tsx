@@ -26,8 +26,6 @@ import * as Sentry from 'sentry-expo';
 import {formatISO} from 'date-fns';
 import {focusManager, QueryClient, QueryClientProvider, useQueryClient} from 'react-query';
 
-import {NativeBaseProvider, extendTheme} from 'native-base';
-
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
 import {useAppState} from 'hooks/useAppState';
 import {useOnlineManager} from 'hooks/useOnlineManager';
@@ -74,57 +72,6 @@ const onAppStateChange = (status: AppStateStatus) => {
 // If you want to investigate an issue on a different day, you can change this value.
 // TODO: add a date picker
 const defaultDate = formatISO(Date.now());
-
-const theme = extendTheme({
-  colors: {
-    darkText: '#333333',
-    lightText: '#999999',
-  },
-  fontConfig: {
-    Lato: {
-      100: {
-        normal: 'Lato_100Thin',
-        italic: 'Lato_100ThinItalic',
-      },
-      200: {
-        normal: 'Lato_100Thin',
-        italic: 'Lato_100ThinItalic',
-      },
-      300: {
-        normal: 'Lato_300Light',
-        italic: 'Lato_300LightItalic',
-      },
-      400: {
-        normal: 'Lato_400Regular',
-        italic: 'Lato_400RegularItalic',
-      },
-      500: {
-        normal: 'Lato_400Regular',
-        italic: 'Lato_400RegularItalic',
-      },
-      600: {
-        normal: 'Lato_400Regular',
-        italic: 'Lato_400RegularItalic',
-      },
-      700: {
-        normal: 'Lato_700Bold',
-        italic: 'Lato_700BoldItalic',
-      },
-      800: {
-        normal: 'Lato_700Bold',
-        italic: 'Lato_700BoldItalic',
-      },
-      900: {
-        normal: 'Lato_900Black',
-        italic: 'Lato_900BlackItalic',
-      },
-    },
-  },
-  fonts: {
-    heading: 'Lato',
-    body: 'Lato',
-  },
-});
 
 const App = () => {
   try {
@@ -198,45 +145,43 @@ const BaseApp: React.FunctionComponent<{
   }
 
   return (
-    <NativeBaseProvider theme={theme}>
-      <HTMLRendererConfig>
-        <SafeAreaProvider>
-          <NavigationContainer>
-            <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
-              <TabNavigator.Navigator
-                initialRouteName="Home"
-                screenOptions={({route}) => ({
-                  headerShown: false,
-                  tabBarIcon: ({color, size}) => {
-                    if (route.name === 'Home') {
-                      return <AntDesign name="search1" size={size} color={color} />;
-                    } else if (route.name === 'Observations') {
-                      return <AntDesign name="filetext1" size={size} color={color} />;
-                    } else if (route.name === 'Weather Data') {
-                      return <AntDesign name="barschart" size={size} color={color} />;
-                    } else if (route.name === 'Menu') {
-                      return <AntDesign name="bars" size={size} color={color} />;
-                    }
-                  },
-                })}>
-                <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, date: date}}>
-                  {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
-                </TabNavigator.Screen>
-                <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, date: date}}>
-                  {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
-                </TabNavigator.Screen>
-                <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, date: date}}>
-                  {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
-                </TabNavigator.Screen>
-                <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
-                  {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-                </TabNavigator.Screen>
-              </TabNavigator.Navigator>
-            </View>
-          </NavigationContainer>
-        </SafeAreaProvider>
-      </HTMLRendererConfig>
-    </NativeBaseProvider>
+    <HTMLRendererConfig>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
+            <TabNavigator.Navigator
+              initialRouteName="Home"
+              screenOptions={({route}) => ({
+                headerShown: false,
+                tabBarIcon: ({color, size}) => {
+                  if (route.name === 'Home') {
+                    return <AntDesign name="search1" size={size} color={color} />;
+                  } else if (route.name === 'Observations') {
+                    return <AntDesign name="filetext1" size={size} color={color} />;
+                  } else if (route.name === 'Weather Data') {
+                    return <AntDesign name="barschart" size={size} color={color} />;
+                  } else if (route.name === 'Menu') {
+                    return <AntDesign name="bars" size={size} color={color} />;
+                  }
+                },
+              })}>
+              <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, date: date}}>
+                {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+              </TabNavigator.Screen>
+              <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, date: date}}>
+                {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+              </TabNavigator.Screen>
+              <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, date: date}}>
+                {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+              </TabNavigator.Screen>
+              <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
+                {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+              </TabNavigator.Screen>
+            </TabNavigator.Navigator>
+          </View>
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </HTMLRendererConfig>
   );
 };
 
