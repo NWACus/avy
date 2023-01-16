@@ -4,22 +4,19 @@ import {MaterialIcons} from '@expo/vector-icons';
 
 import {DangerLevel} from 'types/nationalAvalancheCenter';
 import {colorFor} from './AvalancheDangerPyramid';
-import {Center, useToast} from 'native-base';
 import {BodyXSmBlack, BodyXSmMedium} from 'components/text';
 import {TouchableOpacity} from 'react-native';
-import {HStack, View} from 'components/core';
+import {Center, HStack, View} from 'components/core';
 
 export type DangerScaleProps = Omit<React.ComponentProps<typeof View>, 'children'>;
 
 export const DangerScale: React.FunctionComponent<DangerScaleProps> = props => {
-  const toast = useToast();
-
   return (
     <View {...props}>
       <HStack backgroundColor="rgba(0, 0, 0, 0.6)" borderRadius={24} px={16} py={8} justifyContent="space-between" alignItems="center">
         <TouchableOpacity
           onPress={() => {
-            toast.show({description: 'Not implemented yet'});
+            console.warn('Not implemented yet');
           }}>
           <HStack space={4} alignItems="center">
             <BodyXSmBlack color="white" style={{letterSpacing: -0.61}}>

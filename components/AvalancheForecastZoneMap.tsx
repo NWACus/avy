@@ -11,11 +11,11 @@ import {
   PanResponderGestureState,
   GestureResponderEvent,
 } from 'react-native';
-import {Alert, Center} from 'native-base';
+import {Alert} from 'native-base';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
-import {HStack, View, VStack} from 'components/core';
+import {Center, HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
@@ -82,12 +82,12 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       </SafeAreaView>
 
       {isLoading && (
-        <Center width="100%" height="100%" position="absolute" top="0">
+        <Center width="100%" height="100%" position="absolute" top={0}>
           <ActivityIndicator size={'large'} />
         </Center>
       )}
       {isError && (
-        <Center width="100%" position="absolute" bottom="6">
+        <Center width="100%" position="absolute" bottom={6}>
           <Alert status={'warning'} px={6} py={4}>
             <HStack space={8} flexShrink={1}>
               <Alert.Icon mt="1" />
