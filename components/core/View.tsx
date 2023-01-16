@@ -74,7 +74,7 @@ class ViewAliasProps {
 
     readonly p?: RNViewStyle['padding'],
     readonly px?: RNViewStyle['paddingHorizontal'],
-    readonly ph?: RNViewStyle['paddingVertical'],
+    readonly py?: RNViewStyle['paddingVertical'],
     readonly pt?: RNViewStyle['paddingTop'],
     readonly pl?: RNViewStyle['paddingLeft'],
     readonly pr?: RNViewStyle['paddingRight'],
@@ -99,7 +99,7 @@ const propAliasMapping: Record<keyof ViewAliasProps, keyof ViewStyleProps> = {
 
   p: 'padding',
   px: 'paddingHorizontal',
-  ph: 'paddingVertical',
+  py: 'paddingVertical',
   pt: 'paddingTop',
   pl: 'paddingLeft',
   pr: 'paddingRight',
