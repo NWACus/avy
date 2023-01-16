@@ -73,6 +73,8 @@
     "@graphql-codegen/add": "^3.2.3",
     "@graphql-codegen/typescript-operations": "^2.5.10",
     "@graphql-codegen/typescript-react-query": "^4.0.6",
+    "@testing-library/jest-native": "^5.4.1",
+    "@testing-library/react-native": "^11.5.0",
     "@types/color": "^3.0.3",
     "@types/jest": "^29.2.4",
     "@types/polylabel": "^1.0.5",
@@ -97,6 +99,9 @@
     "preset": "jest-expo",
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
+    ],
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-native/extend-expect"
     ]
   },
   "private": true
