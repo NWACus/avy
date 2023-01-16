@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 
 import {Animated, ActivityIndicator, StyleSheet, Text, useWindowDimensions, PanResponder, PanResponderGestureState, GestureResponderEvent, TouchableOpacity} from 'react-native';
 import MapView, {Region} from 'react-native-maps';
@@ -7,7 +7,6 @@ import {useNavigation} from '@react-navigation/native';
 import {Center, HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
-import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
 import {AvalancheDangerIcon} from './AvalancheDangerIcon';
 import {MapViewZone, useMapViewZones} from 'hooks/useMapViewZones';
 import {HomeStackNavigationProps} from 'routes';
@@ -19,6 +18,7 @@ import {parseISO} from 'date-fns';
 import {TravelAdvice} from './helpers/travelAdvice';
 import {COLORS} from 'theme/colors';
 import {FontAwesome5} from '@expo/vector-icons';
+import {AvalancheForecastZonePolygon} from 'components/AvalancheForecastZonePolygon';
 
 export const defaultRegion: Region = {
   // TODO(skuznets): add a sane default for the US?
@@ -54,6 +54,11 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   };
   const {isLoading, isError, data: zones} = useMapViewZones(center, parseISO(date));
 
+  const [selectedZone, setSelectedZone] = useState<MapViewZone | null>(null);
+  const onPress = useCallback(() => {
+    setSelectedZone(null);
+  }, []);
+
   return (
     <>
       <MapView
@@ -63,8 +68,9 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         onLayout={setReady}
         zoomEnabled={true}
         scrollEnabled={true}
-        provider={'google'}>
-        {isReady && <AvalancheCenterForecastZonePolygons key={center} center_id={center} setRegion={setRegion} date={date} />}
+        provider={'google'}
+        onPress={onPress}>
+        {isReady && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} setRegion={setRegion} setSelectedZone={setSelectedZone} />)}
       </MapView>
       <SafeAreaView>
         <View flex={1}>
@@ -89,7 +95,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           </VStack>
         </Center>
       )}
-      {!isLoading && !isError && <AvalancheForecastZoneCards key={center} date={date} zones={zones} />}
+      {!isLoading && !isError && <AvalancheForecastZoneCards key={center} date={date} zones={zones} selectedZone={selectedZone} />}
     </>
   );
 };
@@ -108,7 +114,7 @@ enum AnimatedDrawerState {
 class AnimatedDrawerController {
   // These offsets are applied through translateY on the FlatList
   static readonly OFFSETS = {
-    [AnimatedDrawerState.Hidden]: 160,
+    [AnimatedDrawerState.Hidden]: 220,
     [AnimatedDrawerState.Docked]: 120,
     [AnimatedDrawerState.Visible]: 0,
   };
@@ -132,8 +138,8 @@ class AnimatedDrawerController {
     this.state = state;
     this.panning = false;
     this.baseOffset = AnimatedDrawerController.OFFSETS[state];
-    this.yOffset.setOffset(this.baseOffset);
-    this.yOffset.setValue(0);
+    this.yOffset.flattenOffset();
+    Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}).start();
   }
 
   onPanResponderGrant() {
@@ -201,8 +207,11 @@ class AnimatedDrawerController {
 const AvalancheForecastZoneCards: React.FunctionComponent<{
   date: string;
   zones: MapViewZone[];
-}> = ({date, zones}) => {
+  selectedZone: MapViewZone | null;
+}> = ({date, zones, selectedZone}) => {
   const {width} = useWindowDimensions();
+
+  const [previousSelectedZone, setPreviousSelectedZone] = useState<MapViewZone | null>(null);
 
   const flatListProps = {
     snapToAlignment: 'start',
@@ -219,7 +228,12 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
   // These values control the state that's driven through gestures & animation.
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
-  const panResponderController = useRef<AnimatedDrawerController>(new AnimatedDrawerController(AnimatedDrawerState.Docked)).current;
+  const panResponderController = useRef<AnimatedDrawerController>(new AnimatedDrawerController(AnimatedDrawerState.Hidden)).current;
+  if (selectedZone && panResponderController.state !== AnimatedDrawerState.Visible) {
+    panResponderController.setState(AnimatedDrawerState.Visible);
+  } else if (!selectedZone && panResponderController.state === AnimatedDrawerState.Visible) {
+    panResponderController.setState(AnimatedDrawerState.Docked);
+  }
 
   const panResponder = useRef(
     PanResponder.create({
@@ -230,8 +244,19 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
     }),
   ).current;
 
+  const flatListRef = useRef(null);
+
+  if (selectedZone !== previousSelectedZone) {
+    if (selectedZone) {
+      const index = zones.findIndex(z => z.zone_id === selectedZone.zone_id);
+      flatListRef.current.scrollToIndex({index, animated: true, viewPosition: 0.5});
+    }
+    setPreviousSelectedZone(selectedZone);
+  }
+
   return (
     <Animated.FlatList
+      ref={flatListRef}
       horizontal
       style={[
         {

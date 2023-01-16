@@ -134,10 +134,10 @@ const BaseApp: React.FunctionComponent<{
   });
 
   const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded) {
-      await SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
+    // This callback won't execute until fontsLoaded is true, because
+    // otherwise we won't render the view that triggers this callback
+    await SplashScreen.hideAsync();
+  }, []);
 
   if (!fontsLoaded) {
     // The splash screen keeps rendering while fonts are loading
