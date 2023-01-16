@@ -3,7 +3,7 @@ import React, {useEffect} from 'react';
 import {ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-import {View} from 'native-base';
+import {View} from 'components/core/View';
 
 import {parseISO} from 'date-fns';
 

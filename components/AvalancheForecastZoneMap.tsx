@@ -11,10 +11,11 @@ import {
   PanResponderGestureState,
   GestureResponderEvent,
 } from 'react-native';
-import {Alert, Center, HStack, View, VStack} from 'native-base';
+import {Alert, Center, HStack, VStack} from 'native-base';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
+import {View} from 'components/core/View';
 import {DangerScale} from 'components/DangerScale';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
@@ -75,7 +76,9 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         {isReady && <AvalancheCenterForecastZonePolygons key={center} center_id={center} setRegion={setRegion} date={date} />}
       </MapView>
       <SafeAreaView>
-        <DangerScale px="4" width="100%" position="absolute" top="12" />
+        <View flex={1}>
+          <DangerScale px={4} width="100%" position="absolute" top={12} />
+        </View>
       </SafeAreaView>
 
       {isLoading && (
@@ -273,7 +276,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
         });
       }}>
       <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} marginX={CARD_MARGIN * width}>
-        <View height="8px" width="100%" bg={dangerColor.string()} borderTopRadius={8} pb={0} />
+        <View height={8} width="100%" bg={dangerColor.string()} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
         <VStack px={6} pt={1} pb={3} space={2}>
           <HStack space={2} alignItems="center">
             <AvalancheDangerIcon style={{height: 32}} level={zone.danger_level} />

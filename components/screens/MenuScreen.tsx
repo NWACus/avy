@@ -5,7 +5,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 import * as Updates from 'expo-updates';
 
-import {HStack, VStack, Divider, SectionList, View} from 'native-base';
+import {HStack, VStack, Divider, SectionList} from 'native-base';
 
 import {AvalancheCenterCard, AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 
@@ -13,6 +13,9 @@ import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigat
 
 import {MenuStackParamList, MenuStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
+
+import {View} from 'components/core/View';
+
 import {
   AllCapsSm,
   AllCapsSmBlack,
@@ -165,7 +168,7 @@ const TextStylePreview = () => {
         sections={data}
         keyExtractor={item => item.content}
         renderItem={({item}) => <item.Component>{item.content}</item.Component>}
-        renderSectionHeader={() => <View height="4" />}
+        renderSectionHeader={() => <View height={4} />}
       />
     </SafeAreaView>
   );

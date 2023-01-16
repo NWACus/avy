@@ -1,8 +1,9 @@
 import React from 'react';
 
-import {HStack, View, VStack} from 'native-base';
+import {HStack, VStack} from 'native-base';
 
 import {AvalancheDangerForecast, ElevationBandNames} from 'types/nationalAvalancheCenter';
+import {View} from 'components/core/View';
 import {dangerText} from 'components/helpers/dangerText';
 import {utcDateToLocalDateString} from 'utils/date';
 import {Body, Caption1, Caption1Semibold} from 'components/text';
@@ -22,12 +23,12 @@ export interface AvalancheDangerTableProps {
 export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableProps> = ({date, forecast, elevation_band_names, size}: AvalancheDangerTableProps) => {
   const {height, marginLeft, paddingTop} = {
     main: {
-      height: '200',
+      height: 200,
       paddingTop: '13px',
       marginLeft: -6,
     },
     outlook: {
-      height: '150',
+      height: 150,
       paddingTop: '10px',
       marginLeft: 16,
     },
