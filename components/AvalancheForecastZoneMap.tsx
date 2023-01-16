@@ -15,7 +15,7 @@ import {Alert, Center, HStack, VStack} from 'native-base';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
-import {View} from 'components/core/View';
+import {View} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';

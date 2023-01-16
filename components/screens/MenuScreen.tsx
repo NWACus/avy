@@ -14,7 +14,7 @@ import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigat
 import {MenuStackParamList, MenuStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
 
-import {View} from 'components/core/View';
+import {View} from 'components/core';
 
 import {
   AllCapsSm,
