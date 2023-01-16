@@ -1,17 +1,6 @@
 import React, {useRef, useState} from 'react';
 
-import {
-  Animated,
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  PanResponder,
-  TouchableWithoutFeedback,
-  PanResponderGestureState,
-  GestureResponderEvent,
-  TouchableOpacity,
-} from 'react-native';
+import {Animated, ActivityIndicator, StyleSheet, Text, useWindowDimensions, PanResponder, PanResponderGestureState, GestureResponderEvent, TouchableOpacity} from 'react-native';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
