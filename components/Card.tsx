@@ -5,9 +5,9 @@ import {TouchableOpacity} from 'react-native';
 
 import {FontAwesome} from '@expo/vector-icons';
 
-import {Box, IBoxProps, Divider, HStack} from 'native-base';
+import {Box, IBoxProps, Divider} from 'native-base';
 import {colorLookup} from 'theme';
-import {VStack} from 'components/core';
+import {HStack, VStack} from 'components/core';
 
 export interface CardProps extends IBoxProps {
   header?: ReactNode;

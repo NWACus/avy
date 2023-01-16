@@ -5,7 +5,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 import * as Updates from 'expo-updates';
 
-import {HStack, Divider, SectionList} from 'native-base';
+import {Divider, SectionList} from 'native-base';
 
 import {AvalancheCenterCard, AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 
@@ -14,7 +14,7 @@ import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigat
 import {MenuStackParamList, MenuStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
 
-import {View, VStack} from 'components/core';
+import {HStack, View, VStack} from 'components/core';
 
 import {
   AllCapsSm,
@@ -74,9 +74,9 @@ export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolea
           <FeatureTitleBlack>Settings</FeatureTitleBlack>
           <Divider orientation="horizontal" bg="light.200" />
           {Updates.channel !== 'production' && (
-            <>
+            <VStack space={16}>
               <Title1Black>Debug Settings</Title1Black>
-              <HStack justifyContent="space-between" alignItems="center" space="4">
+              <HStack justifyContent="space-between" alignItems="center" space={16}>
                 <BodyBlack>Use staging environment</BodyBlack>
                 <Switch value={staging} onValueChange={toggleStaging} />
               </HStack>
@@ -91,7 +91,7 @@ export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolea
                 />
               </VStack>
               <Button onPress={() => navigation.navigate('textStylePreview')} title="Open text style preview" />
-            </>
+            </VStack>
           )}
         </VStack>
       </SafeAreaView>

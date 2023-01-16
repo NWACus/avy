@@ -11,11 +11,11 @@ import {
   PanResponderGestureState,
   GestureResponderEvent,
 } from 'react-native';
-import {Alert, Center, HStack} from 'native-base';
+import {Alert, Center} from 'native-base';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
-import {View, VStack} from 'components/core';
+import {HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
@@ -89,7 +89,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       {isError && (
         <Center width="100%" position="absolute" bottom="6">
           <Alert status={'warning'} px={6} py={4}>
-            <HStack space={2} flexShrink={1}>
+            <HStack space={8} flexShrink={1}>
               <Alert.Icon mt="1" />
               <Body>Unable to load forecast data</Body>
             </HStack>
@@ -278,7 +278,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
       <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width}>
         <View height={8} width="100%" bg={dangerColor.string()} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
         <VStack px={24} pt={4} pb={12} space={8}>
-          <HStack space={2} alignItems="center">
+          <HStack space={8} alignItems="center">
             <AvalancheDangerIcon style={{height: 32}} level={zone.danger_level} />
             <DangerLevelTitle dangerLevel={zone.danger_level} danger={zone.danger} />
           </HStack>

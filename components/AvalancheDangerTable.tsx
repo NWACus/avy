@@ -1,9 +1,7 @@
 import React from 'react';
 
-import {HStack} from 'native-base';
-
 import {AvalancheDangerForecast, ElevationBandNames} from 'types/nationalAvalancheCenter';
-import {View, VStack} from 'components/core';
+import {HStack, View, VStack} from 'components/core';
 import {dangerText} from 'components/helpers/dangerText';
 import {utcDateToLocalDateString} from 'utils/date';
 import {Body, Caption1, Caption1Semibold} from 'components/text';
@@ -55,7 +53,7 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
               <View my={4} px={1} justifyContent="center">
                 <Caption1>{elevation_band_names[layer]}</Caption1>
               </View>
-              <HStack space={2} alignItems="center" px={1}>
+              <HStack space={8} alignItems="center" px={1}>
                 <View my={4} px={1} justifyContent="center">
                   <Caption1Semibold style={{textTransform: 'uppercase'}}>{dangerText(forecast[layer])}</Caption1Semibold>
                 </View>
