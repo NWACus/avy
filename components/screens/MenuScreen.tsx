@@ -5,7 +5,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 import * as Updates from 'expo-updates';
 
-import {HStack, VStack, Divider, SectionList} from 'native-base';
+import {HStack, Divider, SectionList} from 'native-base';
 
 import {AvalancheCenterCard, AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 
@@ -14,7 +14,7 @@ import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigat
 import {MenuStackParamList, MenuStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
 
-import {View} from 'components/core';
+import {View, VStack} from 'components/core';
 
 import {
   AllCapsSm,
@@ -70,7 +70,7 @@ export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolea
   return function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
     return (
       <SafeAreaView style={styles.fullscreen}>
-        <VStack pt="16" px="4" space="4" style={styles.fullscreen}>
+        <VStack pt={16} px={16} space={16} style={styles.fullscreen}>
           <FeatureTitleBlack>Settings</FeatureTitleBlack>
           <Divider orientation="horizontal" bg="light.200" />
           {Updates.channel !== 'production' && (

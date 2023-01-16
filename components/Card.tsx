@@ -5,8 +5,9 @@ import {TouchableOpacity} from 'react-native';
 
 import {FontAwesome} from '@expo/vector-icons';
 
-import {Box, IBoxProps, Divider, VStack, HStack} from 'native-base';
+import {Box, IBoxProps, Divider, HStack} from 'native-base';
 import {colorLookup} from 'theme';
+import {VStack} from 'components/core';
 
 export interface CardProps extends IBoxProps {
   header?: ReactNode;
@@ -24,7 +25,7 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({hea
     <Box {...boxProps}>
       <TouchableOpacity onPress={pressHandler} disabled={!onPress}>
         <Box bg="white" borderWidth="2" borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.200'} p="4">
-          <VStack space={noInternalSpace ? 0 : 2}>
+          <VStack space={noInternalSpace ? 0 : 8}>
             <>{header}</>
             {noDivider || <Divider orientation="horizontal" bg="light.200" />}
             <>{children}</>
@@ -57,7 +58,7 @@ export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<Collapsi
         </TouchableOpacity>
       }>
       <Collapsible collapsed={isCollapsed} renderChildrenCollapsed>
-        <VStack space={2} pt={2}>
+        <VStack space={8} pt={8}>
           <Divider orientation="horizontal" bg="light.200" />
           <>{children}</>
         </VStack>

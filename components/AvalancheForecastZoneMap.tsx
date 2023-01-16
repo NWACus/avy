@@ -11,11 +11,11 @@ import {
   PanResponderGestureState,
   GestureResponderEvent,
 } from 'react-native';
-import {Alert, Center, HStack, VStack} from 'native-base';
+import {Alert, Center, HStack} from 'native-base';
 import MapView, {Region} from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
-import {View} from 'components/core';
+import {View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
 import {AvalancheCenterForecastZonePolygons} from './AvalancheCenterForecastZonePolygons';
@@ -275,15 +275,15 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           date: date,
         });
       }}>
-      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} marginX={CARD_MARGIN * width}>
+      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width}>
         <View height={8} width="100%" bg={dangerColor.string()} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
-        <VStack px={6} pt={1} pb={3} space={2}>
+        <VStack px={24} pt={4} pb={12} space={8}>
           <HStack space={2} alignItems="center">
             <AvalancheDangerIcon style={{height: 32}} level={zone.danger_level} />
             <DangerLevelTitle dangerLevel={zone.danger_level} danger={zone.danger} />
           </HStack>
           <Title3Black>{zone.name}</Title3Black>
-          <VStack py={2}>
+          <VStack py={8}>
             <Text>
               <Caption1Black>Published: </Caption1Black>
               <Caption1>{utcDateToLocalTimeString(zone.start_date)}</Caption1>

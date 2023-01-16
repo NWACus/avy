@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {Box, VStack, HStack} from 'native-base';
+import {Box, HStack} from 'native-base';
 import {Text, SectionList, SectionListData, StyleSheet, TouchableOpacity, ActivityIndicator, useWindowDimensions} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
@@ -9,6 +9,7 @@ import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {TabNavigationProps} from 'routes';
 import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
 import {Body} from './text';
+import {VStack} from 'components/core';
 
 const avalancheCenterIDsByType: SectionListData<AvalancheCenterID>[] = [
   {
