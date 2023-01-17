@@ -10,7 +10,7 @@ import {Card, CollapsibleCard} from 'components/content/Card';
 import {HTML} from 'components/text/HTML';
 import {utcDateToLocalTimeString} from 'utils/date';
 import {AllCapsSm, AllCapsSmBlack, BodyBlack, Title3Black} from 'components/text';
-import {HStack, VStack} from 'components/core';
+import {HStack, View, VStack} from 'components/core';
 import {Carousel} from 'components/content/Carousel';
 
 interface AvalancheTabProps {
@@ -103,6 +103,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
           <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={forecast.media} displayCaptions={false} />
         </Card>
       )}
+      <View height={16} />
     </VStack>
   );
 });
