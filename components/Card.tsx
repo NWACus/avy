@@ -1,7 +1,7 @@
 import React, {PropsWithChildren, ReactNode, useCallback, useState} from 'react';
 
 import Collapsible from 'react-native-collapsible';
-import {TouchableOpacity} from 'react-native';
+import {ColorValue, TouchableOpacity} from 'react-native';
 
 import {FontAwesome} from '@expo/vector-icons';
 
@@ -12,7 +12,7 @@ export interface CardProps extends ViewProps {
   header?: ReactNode;
   onPress?: () => void;
   borderRadius?: number;
-  borderColor?: string;
+  borderColor?: ColorValue;
   noDivider?: boolean;
   noInternalSpace?: boolean;
 }
