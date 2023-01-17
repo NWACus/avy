@@ -5,12 +5,12 @@ import {AnnotatedDangerRose} from './DangerRose';
 import {AvalancheProblemIcon} from './AvalancheProblemIcon';
 import {AvalancheProblemLikelihoodLine} from './AvalancheProblemLikelihoodLine';
 import {AvalancheProblemSizeLine} from './AvalancheProblemSizeLine';
-import {AvalancheProblemImage} from './AvalancheProblemImage';
 import {HTML} from 'components/text/HTML';
 import {Center, HStack, VStack} from 'components/core';
 import {AllCapsSm, Caption1Semibold} from 'components/text';
-import {Card, CardProps} from 'components/Card';
+import {Card, CardProps} from 'components/content/Card';
 import {colorLookup} from 'theme';
+import {Carousel} from 'components/content/Carousel';
 
 export interface AvalancheProblemCardProps {
   problem: AvalancheProblem;
@@ -62,7 +62,7 @@ export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardP
           <AllCapsSm textAlign="center">Size</AllCapsSm>
         </AspectCard>
       </HStack>
-      {problem.media.type === MediaType.Image && problem.media.url !== null && <AvalancheProblemImage media={problem.media} />}
+      {problem.media.type === MediaType.Image && problem.media.url !== null && <Carousel media={[problem.media]} thumbnailHeight={200} />}
     </VStack>
   );
 };

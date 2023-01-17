@@ -7,7 +7,7 @@ import {useNavigation} from '@react-navigation/native';
 import {geoContains} from 'd3-geo';
 import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 
-import {Card} from 'components/Card';
+import {Card} from 'components/content/Card';
 import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from '../types/nationalAvalancheCenter';

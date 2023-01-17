@@ -1,7 +1,7 @@
 import React from 'react';
 import {EverythingFragment, useObservationQuery} from 'hooks/useObservations';
 import {ActivityIndicator, View, ScrollView, StyleSheet} from 'react-native';
-import {Card, CollapsibleCard} from 'components/Card';
+import {Card, CollapsibleCard} from 'components/content/Card';
 import {FontAwesome5, MaterialCommunityIcons, Fontisto} from '@expo/vector-icons';
 import {useMapLayer} from '../hooks/useMapLayer';
 import {
