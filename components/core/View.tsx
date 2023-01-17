@@ -145,7 +145,7 @@ const dimensionalProps: ViewStyleProp[] = [
 const validateProp = (prop: ViewStyleProp, value): void => {
   if (dimensionalProps.includes(prop) && typeof value === 'string') {
     // Dimensions as strings must either specify 'pt' or '%'
-    if (value.slice(-2) !== 'pt' && value.slice(-1) !== '%') {
+    if (value !== 'auto' && value.slice(-2) !== 'pt' && value.slice(-1) !== '%') {
       const error = `Invalid string value "${value}" for property ${prop}: string dimensions must specify pt or %`;
       console.error(error);
       throw new Error(error);
