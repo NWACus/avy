@@ -1,68 +1,38 @@
-import React, {ReactElement} from 'react';
-import {Image, ImageStyle} from 'react-native';
+import React from 'react';
+import {Image, ImageSourcePropType, ImageStyle} from 'react-native';
 
 import {AvalancheProblemType} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheProblemIconProps {
-  style: ImageStyle;
   problem: AvalancheProblemType;
 }
 
-interface size {
-  width: number;
-  height: number;
-}
+const icons: Record<AvalancheProblemType, ImageSourcePropType> = {
+  [AvalancheProblemType.DryLoose]: require('../assets/problem-icons/DryLoose.png'),
+  [AvalancheProblemType.StormSlab]: require('../assets/problem-icons/StormSlab.png'),
+  [AvalancheProblemType.WindSlab]: require('../assets/problem-icons/WindSlab.png'),
+  [AvalancheProblemType.PersistentSlab]: require('../assets/problem-icons/PersistentSlab.png'),
+  [AvalancheProblemType.DeepPersistentSlab]: require('../assets/problem-icons/DeepPersistentSlab.png'),
+  [AvalancheProblemType.WetLoose]: require('../assets/problem-icons/WetLoose.png'),
+  [AvalancheProblemType.WetSlab]: require('../assets/problem-icons/WetSlab.png'),
+  [AvalancheProblemType.CorniceFall]: require('../assets/problem-icons/CorniceFall.png'),
+  [AvalancheProblemType.Glide]: require('../assets/problem-icons/Glide.png'),
+};
 
-export const AvalancheProblemIcon: React.FunctionComponent<AvalancheProblemIconProps> = ({style, problem}: AvalancheProblemIconProps) => {
-  /* eslint-disable @typescript-eslint/no-var-requires */
-  const sizes: Record<AvalancheProblemType, size> = {
-    [AvalancheProblemType.DryLoose]: Image.resolveAssetSource(require('../assets/problem-icons/DryLoose.png')),
-    [AvalancheProblemType.StormSlab]: Image.resolveAssetSource(require('../assets/problem-icons/StormSlab.png')),
-    [AvalancheProblemType.WindSlab]: Image.resolveAssetSource(require('../assets/problem-icons/WindSlab.png')),
-    [AvalancheProblemType.PersistentSlab]: Image.resolveAssetSource(require('../assets/problem-icons/PersistentSlab.png')),
-    [AvalancheProblemType.DeepPersistentSlab]: Image.resolveAssetSource(require('../assets/problem-icons/DeepPersistentSlab.png')),
-    [AvalancheProblemType.WetLoose]: Image.resolveAssetSource(require('../assets/problem-icons/WetLoose.png')),
-    [AvalancheProblemType.WetSlab]: Image.resolveAssetSource(require('../assets/problem-icons/WetSlab.png')),
-    [AvalancheProblemType.CorniceFall]: Image.resolveAssetSource(require('../assets/problem-icons/CorniceFall.png')),
-    [AvalancheProblemType.Glide]: Image.resolveAssetSource(require('../assets/problem-icons/Glide.png')),
-  };
+const sizes = Object.keys(icons).reduce((accum, key) => {
+  accum[key] = Image.resolveAssetSource(icons[key]);
+  return accum;
+}, {});
 
-  const images: Record<AvalancheProblemType, {(s: ImageStyle): ReactElement}> = {
-    [AvalancheProblemType.DryLoose]: (s: ImageStyle) => {
-      return <Image style={s} source={require('../assets/problem-icons/DryLoose.png')} />;
-    },
-    [AvalancheProblemType.StormSlab]: (s: ImageStyle) => {
-      return <Image style={s} source={require('../assets/problem-icons/StormSlab.png')} />;
-    },
-    [AvalancheProblemType.WindSlab]: (s: ImageStyle) => {
-      return <Image style={s} source={require('../assets/problem-icons/WindSlab.png')} />;
-    },
-    [AvalancheProblemType.PersistentSlab]: (s: ImageStyle) => {
-      return <Image style={s} source={require('../assets/problem-icons/PersistentSlab.png')} />;
-    },
-    [AvalancheProblemType.DeepPersistentSlab]: (s: ImageStyle) => {
-      return <Image style={s} source={require('../assets/problem-icons/DeepPersistentSlab.png')} />;
-    },
-    [AvalancheProblemType.WetLoose]: (s: ImageStyle) => {
-      return <Image style={s} source={require('../assets/problem-icons/WetLoose.png')} />;
-    },
-    [AvalancheProblemType.WetSlab]: (s: ImageStyle) => {
-      return <Image style={s} source={require('../assets/problem-icons/WetSlab.png')} />;
-    },
-    [AvalancheProblemType.CorniceFall]: (s: ImageStyle) => {
-      return <Image style={s} source={require('../assets/problem-icons/CorniceFall.png')} />;
-    },
-    [AvalancheProblemType.Glide]: (s: ImageStyle) => {
-      return <Image style={s} source={require('../assets/problem-icons/Glide.png')} />;
-    },
-  };
-  /* eslint-enable @typescript-eslint/no-var-requires */
-  const actualStyle: ImageStyle = {...style};
-  if (actualStyle.height) {
-    actualStyle.width = undefined;
-  } else {
-    actualStyle.height = undefined;
-  }
-  actualStyle.aspectRatio = sizes[problem].width / sizes[problem].height;
-  return images[problem](actualStyle);
+export const AvalancheProblemIcon: React.FunctionComponent<AvalancheProblemIconProps> = ({problem}: AvalancheProblemIconProps) => {
+  const style: ImageStyle = {};
+
+  // Tell the image to flex into the size of its parent:
+  style.width = undefined;
+  style.height = undefined;
+  style.resizeMode = 'contain';
+  style.flex = 1;
+  style.aspectRatio = sizes[problem].width / sizes[problem].height;
+
+  return <Image style={style} source={icons[problem]} />;
 };
