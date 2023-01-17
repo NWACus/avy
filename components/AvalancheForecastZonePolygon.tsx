@@ -85,6 +85,9 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
       tappable={true}
       onPress={event => {
         setSelectedZone(zone);
+        // By calling stopPropagation, we prevent this event from getting passed to the MapView's onPress handler,
+        // which would then clear the selection
+        // https://github.com/react-native-maps/react-native-maps/issues/1132
         event.stopPropagation();
       }}
     />
