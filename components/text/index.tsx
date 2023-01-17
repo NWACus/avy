@@ -11,10 +11,11 @@ interface TextWrapperProps extends TextProps {
   fontSize?: TextStyle['fontSize'];
   letterSpacing?: TextStyle['letterSpacing'];
   lineHeight?: TextStyle['lineHeight'];
+  textAlign?: TextStyle['textAlign'];
   textTransform?: TextStyle['textTransform'];
 }
 
-const TextWrapper: React.FC<TextWrapperProps> = ({color, fontFamily, fontSize, letterSpacing, lineHeight, textTransform, children, ...props}) => {
+const TextWrapper: React.FC<TextWrapperProps> = ({color, fontFamily, fontSize, letterSpacing, lineHeight, textAlign, textTransform, children, ...props}) => {
   const style = omit(
     {
       color: colorLookup(color),
@@ -22,6 +23,7 @@ const TextWrapper: React.FC<TextWrapperProps> = ({color, fontFamily, fontSize, l
       fontSize,
       letterSpacing,
       lineHeight,
+      textAlign,
       textTransform,
     },
     isUndefined,
