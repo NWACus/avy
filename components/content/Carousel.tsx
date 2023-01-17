@@ -64,12 +64,13 @@ const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateC
 
 export interface CarouselProps extends ViewProps {
   thumbnailHeight: number;
+  thumbnailAspectRatio?: number;
   media: MediaItem[];
   displayCaptions?: boolean;
 }
 
-export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>> = ({thumbnailHeight, media, displayCaptions = true, ...props}) => {
-  const thumbnailWidth = 1.3 * thumbnailHeight;
+export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>> = ({thumbnailHeight, thumbnailAspectRatio = 1.3, media, displayCaptions = true, ...props}) => {
+  const thumbnailWidth = thumbnailAspectRatio * thumbnailHeight;
   const padding = 16;
 
   // Loading state is used to force the FlatList to re-render when the image state changes.

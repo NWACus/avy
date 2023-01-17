@@ -100,7 +100,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
       </CollapsibleCard>
       {forecast.media && (
         <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>}>
-          <Carousel thumbnailHeight={160} media={forecast.media} displayCaptions={false} />
+          <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={forecast.media} displayCaptions={false} />
         </Card>
       )}
     </VStack>

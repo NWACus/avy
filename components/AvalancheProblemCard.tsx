@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 
 import {AvalancheProblem, ElevationBandNames, MediaType} from 'types/nationalAvalancheCenter';
 import {AnnotatedDangerRose} from './DangerRose';
@@ -20,8 +20,9 @@ export interface AvalancheProblemCardProps {
 const AspectCard: React.FC<CardProps> = ({...props}) => <Card flex={1} flexBasis={'35%'} flexGrow={1} borderColor={colorLookup('light.200')} borderRadius={8} mb={8} {...props} />;
 
 export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardProps> = ({problem, names}: AvalancheProblemCardProps) => {
+  const [cardWidth, setCardWidth] = useState<number | null>(null);
   return (
-    <VStack space={8}>
+    <VStack space={8} onLayout={event => setCardWidth(event.nativeEvent.layout.width)}>
       <HTML source={{html: problem.discussion}} />
       <HStack flexWrap="wrap" justifyContent="space-evenly" alignItems="stretch">
         <AspectCard
@@ -62,7 +63,9 @@ export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardP
           <AllCapsSm textAlign="center">Size</AllCapsSm>
         </AspectCard>
       </HStack>
-      {problem.media.type === MediaType.Image && problem.media.url !== null && <Carousel media={[problem.media]} thumbnailHeight={200} />}
+      {problem.media.type === MediaType.Image && problem.media.url !== null && cardWidth > 0 && (
+        <Carousel media={[problem.media]} thumbnailAspectRatio={1.3} thumbnailHeight={cardWidth / 1.3} />
+      )}
     </VStack>
   );
 };
