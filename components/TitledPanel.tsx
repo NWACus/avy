@@ -1,5 +1,7 @@
+import {View, VStack} from 'components/core';
+import {Caption1Semibold} from 'components/text';
 import React, {PropsWithChildren} from 'react';
-import {StyleSheet, Text, View, ViewStyle} from 'react-native';
+import {ViewStyle} from 'react-native';
 
 export interface TitledPanelProps {
   title: string;
@@ -8,28 +10,13 @@ export interface TitledPanelProps {
 
 export const TitledPanel: React.FunctionComponent<PropsWithChildren<TitledPanelProps>> = ({children, title, style}) => {
   return (
-    <View style={{...style, ...styles.container}}>
+    <VStack alignItems="baseline" style={style} pt={8}>
       {children}
-      <Text style={styles.title}>{title}</Text>
-    </View>
+      <View py={10} width="100%">
+        <Caption1Semibold textTransform="uppercase" style={{textAlign: 'center'}}>
+          {title}
+        </Caption1Semibold>
+      </View>
+    </VStack>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  title: {
-    width: '100%',
-    textTransform: 'uppercase',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    paddingBottom: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: 'rgb(200,202,206)',
-  },
-});
