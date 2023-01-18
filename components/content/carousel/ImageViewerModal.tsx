@@ -22,7 +22,6 @@ const htmlStyle = {fontSize: 12, textAlign: 'center', color: 'white'} as const;
 const htmlHeight = 96;
 
 export const ImageViewerModal: React.FunctionComponent<PropsWithChildren<ImageViewerModalProps>> = ({visible, media, startIndex, onClose, ..._props}) => {
-  // TODO: take start index and use a ref to tell the scrollview to move to it
   const [index, setIndex] = useState<number>(startIndex);
   useEffect(() => setIndex(startIndex), [startIndex]);
 
@@ -60,6 +59,7 @@ export const ImageViewerModal: React.FunctionComponent<PropsWithChildren<ImageVi
             <View flex={1} justifyContent="center" onLayout={onLayout}>
               <HTMLRendererConfig baseStyle={htmlStyle}>
                 <ImageList
+                  initialScrollIndex={startIndex}
                   imageWidth={imageDimensions.width}
                   imageHeight={imageDimensions.height}
                   media={media}

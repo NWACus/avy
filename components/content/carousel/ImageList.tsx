@@ -19,7 +19,7 @@ export interface ImageListProps extends Omit<FlatListProps<MediaItem>, 'data' | 
   onScrollPositionChanged?: (index: number) => void;
 }
 
-export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps>> = ({
+export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
   imageHeight,
   imageWidth,
   media,
@@ -32,6 +32,7 @@ export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps
   ...props
 }) => {
   const padding = 16;
+  const cellWidth = imageWidth + padding;
 
   // Loading state is used to force the FlatList to re-render when the image state changes.
   // Without this, the inputs to FlatList wouldn't change, and so it would never re-render individual list items.
@@ -47,7 +48,7 @@ export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps
 
   const renderItem = useCallback(
     ({item, index}) => (
-      <VStack space={8} width={imageWidth + padding} alignItems="stretch" flex={1}>
+      <VStack space={8} width={cellWidth} alignItems="stretch" flex={1}>
         <NetworkImage
           width={imageWidth}
           height={imageHeight}
@@ -70,7 +71,7 @@ export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps
         )}
       </VStack>
     ),
-    [imageHeight, imageWidth, loadingState, displayCaptions, imageSize, imageStyle, resizeMode, onPressCallback],
+    [imageHeight, imageWidth, cellWidth, loadingState, displayCaptions, imageSize, imageStyle, resizeMode, onPressCallback],
   );
 
   const onScroll = useCallback(
@@ -79,10 +80,10 @@ export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps
         contentOffset: {x},
       },
     }: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const index = Math.round(x / (imageWidth + padding));
+      const index = Math.round(x / cellWidth);
       onScrollPositionChanged(index);
     },
-    [imageWidth, onScrollPositionChanged],
+    [cellWidth, onScrollPositionChanged],
   );
 
   return (
@@ -91,6 +92,7 @@ export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps
       data={media}
       extraData={loadingState}
       renderItem={renderItem}
+      getItemLayout={(_data, index) => ({length: cellWidth, offset: cellWidth * index, index})}
       centerContent
       snapToInterval={imageWidth + padding}
       snapToAlignment="center"
