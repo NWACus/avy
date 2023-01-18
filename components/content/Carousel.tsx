@@ -1,12 +1,12 @@
 import React, {PropsWithChildren, useCallback, useState} from 'react';
 
-import {ActivityIndicator, Button, FlatList, Image, ImageProps, Modal, TouchableOpacity} from 'react-native';
+import {ActivityIndicator, FlatList, Image, ImageProps, Modal, TouchableOpacity} from 'react-native';
 
 import {AntDesign, FontAwesome5} from '@expo/vector-icons';
 
-import {Center, View, ViewProps, VStack} from 'components/core';
+import {Center, HStack, View, ViewProps, VStack} from 'components/core';
 import {MediaItem} from 'types/nationalAvalancheCenter';
-import {Body, BodySm, FeatureTitleBlack} from 'components/text';
+import {Body, BodySm} from 'components/text';
 import {HTML, HTMLRendererConfig} from 'components/text/HTML';
 import {colorLookup, COLORS} from 'theme/colors';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
@@ -76,7 +76,7 @@ const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateC
               ...croppedThumbnailStyle,
               ...(typeof imageStyle === 'object' ? imageStyle : {}),
             }}
-            resizeMode="cover"
+            resizeMode="contain"
           />
         </TouchableOpacity>
       )}
@@ -84,40 +84,38 @@ const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateC
   );
 };
 
-export interface CarouselProps extends ViewProps {
-  thumbnailHeight: number;
-  thumbnailAspectRatio?: number;
+interface ImageListProps extends ViewProps {
+  imageHeight: number;
+  imageWidth: number;
   media: MediaItem[];
   displayCaptions?: boolean;
+  onPress?: (index: number) => void;
 }
 
-export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>> = ({thumbnailHeight, thumbnailAspectRatio = 1.3, media, displayCaptions = true, ...props}) => {
-  const thumbnailWidth = thumbnailAspectRatio * thumbnailHeight;
+const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps>> = ({imageHeight, imageWidth, media, displayCaptions = true, onPress = () => undefined, ...props}) => {
   const padding = 16;
 
   // Loading state is used to force the FlatList to re-render when the image state changes.
   // Without this, the inputs to FlatList wouldn't change, and so it would never re-render individual list items.
   const [loadingState, setLoadingState] = useState<NetworkImageState[]>(media.map(() => 'loading'));
 
-  const [modalIndex, setModalIndex] = useState<number | null>(null);
-
-  const onPress = useCallback(
+  const onPressCallback = useCallback(
     (index: number) => {
       console.log('onpress', media[index], index);
-      setModalIndex(index);
+      onPress(index);
     },
-    [media],
+    [media, onPress],
   );
 
   const renderItem = useCallback(
     ({item, index}) => (
-      <VStack space={4} width={thumbnailWidth + padding} alignItems="stretch" flex={1}>
+      <VStack space={4} width={imageWidth + padding} alignItems="stretch" flex={1}>
         <NetworkImage
-          width={thumbnailWidth}
-          height={thumbnailHeight}
+          width={imageWidth}
+          height={imageHeight}
           uri={item.url.thumbnail}
           index={index}
-          onPress={onPress}
+          onPress={onPressCallback}
           onStateChange={state => {
             loadingState[index] = state;
             setLoadingState(loadingState);
@@ -130,48 +128,69 @@ export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>>
         )}
       </VStack>
     ),
-    [thumbnailHeight, thumbnailWidth, loadingState, displayCaptions, onPress],
+    [imageHeight, imageWidth, loadingState, displayCaptions, onPressCallback],
   );
 
   return (
-    <HTMLRendererConfig baseStyle={{fontSize: 12, fontFamily: 'Lato_400Regular_Italic', textAlign: 'center'}}>
-      <FlatList
-        horizontal
-        data={media}
-        extraData={loadingState}
-        renderItem={renderItem}
-        centerContent
-        snapToInterval={thumbnailWidth + padding}
-        snapToAlignment="center"
-        {...props}
-      />
-      <Modal visible={modalIndex !== null} animationType="fade" onRequestClose={() => setModalIndex(null)} transparent={false}>
-        <SafeAreaProvider>
-          <SafeAreaView>
-            <VStack bg="#333333" height="100%" justifyContent="space-between" py={32}>
-              <View position="absolute" top={8} right={8} width={64} height={64}>
-                <Center flex={1}>
-                  <AntDesign.Button size={24} color="white" name="close" backgroundColor="#333333" onPress={() => setModalIndex(null)} />
-                </Center>
-              </View>
-              <Center>
-                <BodySm color="white">
-                  {modalIndex + 1} / {media.length}
-                </BodySm>
-              </Center>
-              <Center flex={1}>
-                <FeatureTitleBlack color="white">Modal</FeatureTitleBlack>
-              </Center>
-              <Button title="Close" onPress={() => setModalIndex(null)} />
-              <View px={32}>
-                <HTMLRendererConfig baseStyle={{fontSize: 12, textAlign: 'center', color: 'white'}}>
-                  <HTML source={{html: modalIndex != null ? media[modalIndex].caption : ''}} />
-                </HTMLRendererConfig>
-              </View>
-            </VStack>
-          </SafeAreaView>
-        </SafeAreaProvider>
-      </Modal>
-    </HTMLRendererConfig>
+    <FlatList horizontal data={media} extraData={loadingState} renderItem={renderItem} centerContent snapToInterval={imageWidth + padding} snapToAlignment="center" {...props} />
+  );
+};
+
+export interface CarouselProps extends ViewProps {
+  thumbnailHeight: number;
+  thumbnailAspectRatio?: number;
+  media: MediaItem[];
+  displayCaptions?: boolean;
+}
+
+export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>> = ({thumbnailHeight, thumbnailAspectRatio = 1.3, media, displayCaptions = true, ...props}) => {
+  const thumbnailWidth = thumbnailAspectRatio * thumbnailHeight;
+
+  const [modalIndex, setModalIndex] = useState<number | null>(null);
+
+  const onPress = useCallback(
+    (index: number) => {
+      console.log('onpress', media[index], index);
+      setModalIndex(index);
+    },
+    [media],
+  );
+
+  return (
+    <View {...props}>
+      <HTMLRendererConfig baseStyle={{fontSize: 12, fontFamily: 'Lato_400Regular_Italic', textAlign: 'center'}}>
+        <ImageList imageWidth={thumbnailWidth} imageHeight={thumbnailHeight} media={media} displayCaptions={displayCaptions} onPress={onPress} />
+        <Modal visible={modalIndex !== null} animationType="fade" onRequestClose={() => setModalIndex(null)} transparent={false}>
+          <SafeAreaProvider>
+            <SafeAreaView style={{backgroundColor: '#333333'}}>
+              <VStack height="100%" width="100%" justifyContent="space-between" pb={32} space={32}>
+                <HStack width="100%" justifyContent="space-between" alignItems="center" height={64}>
+                  <View width={64} height={64} />
+                  <Center>
+                    <BodySm color="white">
+                      {modalIndex + 1} / {media.length}
+                    </BodySm>
+                  </Center>
+                  <AntDesign.Button
+                    size={32}
+                    color="white"
+                    name="close"
+                    backgroundColor="#333333"
+                    iconStyle={{marginRight: 0}}
+                    style={{textAlign: 'center', paddingRight: 8}}
+                    onPress={() => setModalIndex(null)}
+                  />
+                </HStack>
+                <View flex={1} justifyContent="center">
+                  <HTMLRendererConfig baseStyle={{fontSize: 12, textAlign: 'center', color: 'white'}}>
+                    <ImageList imageWidth={428} imageHeight={(428 * 4) / 3.0} media={media} displayCaptions={true} />
+                  </HTMLRendererConfig>
+                </View>
+              </VStack>
+            </SafeAreaView>
+          </SafeAreaProvider>
+        </Modal>
+      </HTMLRendererConfig>
+    </View>
   );
 };
