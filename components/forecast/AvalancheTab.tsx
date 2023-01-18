@@ -11,7 +11,7 @@ import {HTML} from 'components/text/HTML';
 import {utcDateToLocalTimeString} from 'utils/date';
 import {AllCapsSm, AllCapsSmBlack, BodyBlack, Title3Black} from 'components/text';
 import {HStack, View, VStack} from 'components/core';
-import {Carousel} from 'components/content/Carousel';
+import {Carousel} from 'components/content/carousel';
 
 interface AvalancheTabProps {
   zone: AvalancheForecastZone;
