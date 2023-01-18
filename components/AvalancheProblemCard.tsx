@@ -10,7 +10,7 @@ import {Center, HStack, VStack} from 'components/core';
 import {AllCapsSm, Caption1Semibold} from 'components/text';
 import {Card, CardProps} from 'components/content/Card';
 import {colorLookup} from 'theme';
-import {Carousel} from 'components/content/Carousel';
+import {Carousel} from 'components/content/carousel';
 
 export interface AvalancheProblemCardProps {
   problem: AvalancheProblem;
