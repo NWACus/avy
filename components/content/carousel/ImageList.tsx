@@ -10,6 +10,7 @@ import {NetworkImage, NetworkImageProps, NetworkImageState} from 'components/con
 export interface ImageListProps extends Omit<FlatListProps<MediaItem>, 'data' | 'renderItem'> {
   imageHeight: number;
   imageWidth: number;
+  space?: number;
   media: MediaItem[];
   imageSize?: 'large' | 'medium' | 'original' | 'thumbnail';
   displayCaptions?: boolean;
@@ -22,6 +23,7 @@ export interface ImageListProps extends Omit<FlatListProps<MediaItem>, 'data' | 
 export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
   imageHeight,
   imageWidth,
+  space = 16,
   media,
   imageSize = 'thumbnail',
   imageStyle,
@@ -31,24 +33,17 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
   onScrollPositionChanged = () => undefined,
   ...props
 }) => {
-  const padding = 16;
-  const cellWidth = imageWidth + padding;
+  const cellWidth = imageWidth + space;
 
   // Loading state is used to force the FlatList to re-render when the image state changes.
   // Without this, the inputs to FlatList wouldn't change, and so it would never re-render individual list items.
   const [loadingState, setLoadingState] = useState<NetworkImageState[]>(media.map(() => 'loading'));
 
-  const onPressCallback = useCallback(
-    (index: number) => {
-      console.log('onpress', media[index], index);
-      onPress(index);
-    },
-    [media, onPress],
-  );
+  const onPressCallback = useCallback((index: number) => onPress(index), [onPress]);
 
   const renderItem = useCallback(
     ({item, index}) => (
-      <VStack space={8} width={cellWidth} alignItems="stretch" flex={1}>
+      <VStack space={8} width={imageWidth} alignItems="stretch" flex={1}>
         <NetworkImage
           width={imageWidth}
           height={imageHeight}
@@ -71,7 +66,7 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
         )}
       </VStack>
     ),
-    [imageHeight, imageWidth, cellWidth, loadingState, displayCaptions, imageSize, imageStyle, resizeMode, onPressCallback],
+    [imageHeight, imageWidth, loadingState, displayCaptions, imageSize, imageStyle, resizeMode, onPressCallback],
   );
 
   const onScroll = useCallback(
@@ -92,9 +87,10 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
       data={media}
       extraData={loadingState}
       renderItem={renderItem}
+      ItemSeparatorComponent={() => <View width={space} />}
       getItemLayout={(_data, index) => ({length: cellWidth, offset: cellWidth * index, index})}
       centerContent
-      snapToInterval={imageWidth + padding}
+      snapToInterval={imageWidth + space}
       snapToAlignment="center"
       onScroll={onScroll}
       onMomentumScrollEnd={onScroll}

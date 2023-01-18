@@ -62,6 +62,7 @@ export const ImageViewerModal: React.FunctionComponent<PropsWithChildren<ImageVi
                   initialScrollIndex={startIndex}
                   imageWidth={imageDimensions.width}
                   imageHeight={imageDimensions.height}
+                  space={0}
                   media={media}
                   displayCaptions={true}
                   imageStyle={{borderRadius: 0, borderWidth: 0}}
