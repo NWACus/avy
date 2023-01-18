@@ -25,6 +25,23 @@ const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateC
   const [state, setState] = useState<NetworkImageState>('loading');
   const [imageSize, setImageSize] = useState([0, 0]);
 
+  // with this style, the available space is always completely filled. a portrait image is cropped to fit the available space.
+  const croppedThumbnailStyle = {
+    width,
+    height,
+    flex: 1,
+    borderRadius: borderRadius,
+  };
+
+  // with this style, the full thumbnail is always visible. a portrait image will leave whitespace on the sides.
+  const _fullThumbnailStyle = {
+    width: imageSize[0] === 0 ? undefined : imageSize[0],
+    height: imageSize[1] === 0 ? undefined : imageSize[1],
+    aspectRatio: imageSize[1] > 0 ? imageSize[0] / imageSize[1] : 1,
+    flex: 1,
+    borderRadius: imageSize[1] > imageSize[0] ? 0 : borderRadius, // don't round the corners of a vertical image
+  };
+
   return (
     <Center width={width} height={height} borderColor={colorLookup('light.200')} borderWidth={1} borderRadius={borderRadius}>
       {state === 'loading' && <ActivityIndicator style={{height: Math.min(32, height / 2)}} />}
@@ -48,11 +65,7 @@ const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateC
           }}
           onError={_e => setState('error')}
           style={{
-            width: imageSize[0] === 0 ? undefined : imageSize[0],
-            height: imageSize[1] === 0 ? undefined : imageSize[1],
-            aspectRatio: imageSize[1] > 0 ? imageSize[0] / imageSize[1] : 1,
-            flex: 1,
-            borderRadius: imageSize[1] > imageSize[0] ? 0 : borderRadius, // don't round the corners of a vertical image
+            ...croppedThumbnailStyle,
             ...(typeof imageStyle === 'object' ? imageStyle : {}),
           }}
           resizeMode="cover"
