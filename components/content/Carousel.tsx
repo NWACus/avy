@@ -1,14 +1,15 @@
 import React, {PropsWithChildren, useCallback, useState} from 'react';
 
-import {ActivityIndicator, FlatList, Image, ImageProps} from 'react-native';
+import {ActivityIndicator, Button, FlatList, Image, ImageProps, Modal, TouchableOpacity} from 'react-native';
 
-import {FontAwesome5} from '@expo/vector-icons';
+import {AntDesign, FontAwesome5} from '@expo/vector-icons';
 
 import {Center, View, ViewProps, VStack} from 'components/core';
 import {MediaItem} from 'types/nationalAvalancheCenter';
-import {Body} from 'components/text';
+import {Body, BodySm, FeatureTitleBlack} from 'components/text';
 import {HTML, HTMLRendererConfig} from 'components/text/HTML';
 import {colorLookup, COLORS} from 'theme/colors';
+import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 
 type NetworkImageState = 'loading' | 'ready' | 'error';
 
@@ -16,12 +17,14 @@ interface NetworkImageProps {
   uri: string;
   width: number;
   height: number;
+  index: number;
   onStateChange: (state: NetworkImageState) => void;
+  onPress: (index: number) => void;
   borderRadius?: number;
   imageStyle?: ImageProps['style'];
 }
 
-const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateChange, borderRadius = 16, imageStyle}) => {
+const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateChange, index, onPress, borderRadius = 16, imageStyle}) => {
   const [state, setState] = useState<NetworkImageState>('loading');
   const [imageSize, setImageSize] = useState([0, 0]);
 
@@ -52,24 +55,30 @@ const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateC
         </VStack>
       )}
       {(state === 'ready' || state === 'loading') && (
-        <Image
-          source={{uri}}
-          onLoad={({
-            nativeEvent: {
-              source: {width, height},
-            },
-          }) => {
-            setImageSize([width, height]);
-            setState('ready');
-            onStateChange('ready');
-          }}
-          onError={_e => setState('error')}
-          style={{
-            ...croppedThumbnailStyle,
-            ...(typeof imageStyle === 'object' ? imageStyle : {}),
-          }}
-          resizeMode="cover"
-        />
+        <TouchableOpacity activeOpacity={0.8} onPress={() => onPress(index)} disabled={state !== 'ready'}>
+          <Image
+            source={{uri}}
+            onLoad={({
+              nativeEvent: {
+                source: {width, height},
+              },
+            }) => {
+              setImageSize([width, height]);
+              setState('ready');
+              onStateChange('ready');
+            }}
+            onError={_e => setState('error')}
+            style={{
+              width: imageSize[0] === 0 ? undefined : imageSize[0],
+              height: imageSize[1] === 0 ? undefined : imageSize[1],
+              aspectRatio: imageSize[1] > 0 ? imageSize[0] / imageSize[1] : 1,
+              flex: 1,
+              ...croppedThumbnailStyle,
+              ...(typeof imageStyle === 'object' ? imageStyle : {}),
+            }}
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
       )}
     </Center>
   );
@@ -90,6 +99,16 @@ export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>>
   // Without this, the inputs to FlatList wouldn't change, and so it would never re-render individual list items.
   const [loadingState, setLoadingState] = useState<NetworkImageState[]>(media.map(() => 'loading'));
 
+  const [modalIndex, setModalIndex] = useState<number | null>(null);
+
+  const onPress = useCallback(
+    (index: number) => {
+      console.log('onpress', media[index], index);
+      setModalIndex(index);
+    },
+    [media],
+  );
+
   const renderItem = useCallback(
     ({item, index}) => (
       <VStack space={4} width={thumbnailWidth + padding} alignItems="stretch" flex={1}>
@@ -97,6 +116,8 @@ export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>>
           width={thumbnailWidth}
           height={thumbnailHeight}
           uri={item.url.thumbnail}
+          index={index}
+          onPress={onPress}
           onStateChange={state => {
             loadingState[index] = state;
             setLoadingState(loadingState);
@@ -109,7 +130,7 @@ export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>>
         )}
       </VStack>
     ),
-    [thumbnailHeight, thumbnailWidth, loadingState, displayCaptions],
+    [thumbnailHeight, thumbnailWidth, loadingState, displayCaptions, onPress],
   );
 
   return (
@@ -124,6 +145,33 @@ export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>>
         snapToAlignment="center"
         {...props}
       />
+      <Modal visible={modalIndex !== null} animationType="fade" onRequestClose={() => setModalIndex(null)} transparent={false}>
+        <SafeAreaProvider>
+          <SafeAreaView>
+            <VStack bg="#333333" height="100%" justifyContent="space-between" py={32}>
+              <View position="absolute" top={8} right={8} width={64} height={64}>
+                <Center flex={1}>
+                  <AntDesign.Button size={24} color="white" name="close" backgroundColor="#333333" onPress={() => setModalIndex(null)} />
+                </Center>
+              </View>
+              <Center>
+                <BodySm color="white">
+                  {modalIndex + 1} / {media.length}
+                </BodySm>
+              </Center>
+              <Center flex={1}>
+                <FeatureTitleBlack color="white">Modal</FeatureTitleBlack>
+              </Center>
+              <Button title="Close" onPress={() => setModalIndex(null)} />
+              <View px={32}>
+                <HTMLRendererConfig baseStyle={{fontSize: 12, textAlign: 'center', color: 'white'}}>
+                  <HTML source={{html: modalIndex != null ? media[modalIndex].caption : ''}} />
+                </HTMLRendererConfig>
+              </View>
+            </VStack>
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </Modal>
     </HTMLRendererConfig>
   );
 };
