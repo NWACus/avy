@@ -13,7 +13,6 @@ export interface ImageListProps extends Omit<FlatListProps<MediaItem>, 'data' | 
   media: MediaItem[];
   displayCaptions?: boolean;
   imageStyle?: NetworkImageProps['imageStyle'];
-  borderStyle?: NetworkImageProps['borderStyle'];
   onPress?: (index: number) => void;
   onScrollPositionChanged?: (index: number) => void;
 }
@@ -23,7 +22,6 @@ export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps
   imageWidth,
   media,
   imageStyle,
-  borderStyle,
   displayCaptions = true,
   onPress = () => undefined,
   onScrollPositionChanged = () => undefined,
@@ -53,7 +51,6 @@ export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps
           index={index}
           onPress={onPressCallback}
           imageStyle={imageStyle}
-          borderStyle={borderStyle}
           onStateChange={state => {
             loadingState[index] = state;
             setLoadingState(loadingState);
@@ -66,7 +63,7 @@ export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps
         )}
       </VStack>
     ),
-    [imageHeight, imageWidth, loadingState, displayCaptions, imageStyle, borderStyle, onPressCallback],
+    [imageHeight, imageWidth, loadingState, displayCaptions, imageStyle, onPressCallback],
   );
 
   const onScroll = useCallback(

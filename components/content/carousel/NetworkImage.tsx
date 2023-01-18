@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 
 import {merge} from 'lodash';
 
-import {ActivityIndicator, Image, ImageStyle, StyleProp, TouchableOpacity, ViewStyle} from 'react-native';
+import {ActivityIndicator, Image, ImageStyle, StyleProp, TouchableOpacity} from 'react-native';
 
 import {FontAwesome5} from '@expo/vector-icons';
 
@@ -20,28 +20,22 @@ export interface NetworkImageProps {
   onStateChange: (state: NetworkImageState) => void;
   onPress: (index: number) => void;
   imageStyle?: StyleProp<ImageStyle>;
-  borderStyle?: Pick<ViewStyle, 'borderColor' | 'borderWidth' | 'borderRadius'>;
 }
 
-const defaultImageStyle = {};
-const defaultBorderStyle = {borderRadius: 16, borderColor: colorLookup('light.200'), borderWidth: 1};
+const defaultImageStyle = {borderRadius: 16, borderColor: colorLookup('light.200'), borderWidth: 1};
 
-export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateChange, index, onPress, imageStyle: imageStyleProp, borderStyle: borderStyleProp}) => {
+export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateChange, index, onPress, imageStyle: imageStyleProp}) => {
   const [state, setState] = useState<NetworkImageState>('loading');
   const imageStyle = {};
   merge(imageStyle, defaultImageStyle, imageStyleProp ?? {});
 
-  const borderStyle = {};
-  merge(borderStyle, defaultBorderStyle, borderStyleProp ?? {});
-
-  // With this style, the available space is always completely filled. a portrait image is cropped to fit the available space.
+  // With this style, the available space is always completely filled. portrait and panoramic images are cropped to fit the available space.
   const croppedThumbnailProps = {
     style: {
       width,
       height,
       flex: 1,
       ...imageStyle,
-      ...borderStyle,
     },
     resizeMode: 'cover',
   } as const;

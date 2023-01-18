@@ -55,7 +55,7 @@ export const ImageViewerModal: React.FunctionComponent<PropsWithChildren<ImageVi
                   imageHeight={(428 * 4) / 3.0}
                   media={media}
                   displayCaptions={true}
-                  borderStyle={{borderRadius: 0, borderWidth: 0}}
+                  imageStyle={{borderRadius: 0, borderWidth: 0}}
                   onScrollPositionChanged={setIndex}
                   disableIntervalMomentum
                 />
