@@ -1,7 +1,7 @@
-import React, {ReactNode, useState} from 'react';
+import React, {PropsWithChildren, useState} from 'react';
 import * as _ from 'lodash';
 
-import {RenderHTMLConfigProvider, RenderHTMLSource, RenderHTMLSourceProps, TRenderEngineProvider} from 'react-native-render-html';
+import {MixedStyleDeclaration, RenderHTMLConfigProvider, RenderHTMLSource, RenderHTMLSourceProps, TRenderEngineProvider} from 'react-native-render-html';
 import {Platform, ScrollView, TouchableOpacity, useWindowDimensions} from 'react-native';
 import Constants from 'expo-constants';
 import {Body} from 'components/text';
@@ -21,7 +21,11 @@ const systemFonts = [
   'Lato_900Black_Italic',
 ];
 
-export const HTMLRendererConfig: React.FunctionComponent<{children?: ReactNode | undefined}> = ({children}) => {
+export interface HTMLRendererConfigProps {
+  baseStyle?: MixedStyleDeclaration;
+}
+
+export const HTMLRendererConfig: React.FunctionComponent<PropsWithChildren<HTMLRendererConfigProps>> = ({baseStyle = {}, children}) => {
   const textColor = colorLookup('darkText');
   return (
     <TRenderEngineProvider
@@ -29,6 +33,7 @@ export const HTMLRendererConfig: React.FunctionComponent<{children?: ReactNode |
         fontSize: 16,
         fontFamily: 'Lato_400Regular',
         color: textColor,
+        ...baseStyle,
       }}
       tagsStyles={{
         strong: {

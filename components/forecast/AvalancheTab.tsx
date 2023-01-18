@@ -6,11 +6,12 @@ import {AvalancheDangerForecast, AvalancheForecastZone, DangerLevel, ElevationBa
 import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
-import {Card, CollapsibleCard} from 'components/Card';
+import {Card, CollapsibleCard} from 'components/content/Card';
 import {HTML} from 'components/text/HTML';
 import {utcDateToLocalTimeString} from 'utils/date';
-import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, Title3Black} from 'components/text';
-import {HStack, VStack} from 'components/core';
+import {AllCapsSm, AllCapsSmBlack, BodyBlack, Title3Black} from 'components/text';
+import {HStack, View, VStack} from 'components/core';
+import {Carousel} from 'components/content/Carousel';
 
 interface AvalancheTabProps {
   zone: AvalancheForecastZone;
@@ -97,9 +98,12 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
       <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<BodyBlack>Forecast Discussion</BodyBlack>}>
         <HTML source={{html: forecast.hazard_discussion}} />
       </CollapsibleCard>
-      <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>}>
-        <Body>TBD!</Body>
-      </Card>
+      {forecast.media && (
+        <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>}>
+          <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={forecast.media} displayCaptions={false} />
+        </Card>
+      )}
+      <View height={16} />
     </VStack>
   );
 });

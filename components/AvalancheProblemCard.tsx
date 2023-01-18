@@ -1,16 +1,16 @@
-import React from 'react';
+import React, {useState} from 'react';
 
 import {AvalancheProblem, ElevationBandNames, MediaType} from 'types/nationalAvalancheCenter';
 import {AnnotatedDangerRose} from './DangerRose';
 import {AvalancheProblemIcon} from './AvalancheProblemIcon';
 import {AvalancheProblemLikelihoodLine} from './AvalancheProblemLikelihoodLine';
 import {AvalancheProblemSizeLine} from './AvalancheProblemSizeLine';
-import {AvalancheProblemImage} from './AvalancheProblemImage';
 import {HTML} from 'components/text/HTML';
 import {Center, HStack, VStack} from 'components/core';
 import {AllCapsSm, Caption1Semibold} from 'components/text';
-import {Card, CardProps} from 'components/Card';
+import {Card, CardProps} from 'components/content/Card';
 import {colorLookup} from 'theme';
+import {Carousel} from 'components/content/Carousel';
 
 export interface AvalancheProblemCardProps {
   problem: AvalancheProblem;
@@ -20,8 +20,9 @@ export interface AvalancheProblemCardProps {
 const AspectCard: React.FC<CardProps> = ({...props}) => <Card flex={1} flexBasis={'35%'} flexGrow={1} borderColor={colorLookup('light.200')} borderRadius={8} mb={8} {...props} />;
 
 export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardProps> = ({problem, names}: AvalancheProblemCardProps) => {
+  const [cardWidth, setCardWidth] = useState<number | null>(null);
   return (
-    <VStack space={8}>
+    <VStack space={8} onLayout={event => setCardWidth(event.nativeEvent.layout.width)}>
       <HTML source={{html: problem.discussion}} />
       <HStack flexWrap="wrap" justifyContent="space-evenly" alignItems="stretch">
         <AspectCard
@@ -62,7 +63,9 @@ export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardP
           <AllCapsSm textAlign="center">Size</AllCapsSm>
         </AspectCard>
       </HStack>
-      {problem.media.type === MediaType.Image && problem.media.url !== null && <AvalancheProblemImage media={problem.media} />}
+      {problem.media.type === MediaType.Image && problem.media.url !== null && cardWidth > 0 && (
+        <Carousel media={[problem.media]} thumbnailAspectRatio={1.3} thumbnailHeight={cardWidth / 1.3} />
+      )}
     </VStack>
   );
 };
