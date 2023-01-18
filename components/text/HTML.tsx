@@ -1,4 +1,4 @@
-import React, {PropsWithChildren, useState} from 'react';
+import React, {PropsWithChildren, useRef, useState} from 'react';
 import * as _ from 'lodash';
 
 import {MixedStyleDeclaration, RenderHTMLConfigProvider, RenderHTMLSource, RenderHTMLSourceProps, TRenderEngineProvider} from 'react-native-render-html';
@@ -25,25 +25,29 @@ export interface HTMLRendererConfigProps {
   baseStyle?: MixedStyleDeclaration;
 }
 
-export const HTMLRendererConfig: React.FunctionComponent<PropsWithChildren<HTMLRendererConfigProps>> = ({baseStyle = {}, children}) => {
-  const textColor = colorLookup('darkText');
+const baseStyleDefaults = {
+  fontSize: 16,
+  fontFamily: 'Lato_400Regular',
+  color: colorLookup('darkText'),
+};
+
+const tagsStylesDefaults = {
+  strong: {
+    fontFamily: 'Lato_700Bold',
+  },
+  em: {
+    fontFamily: 'Lato_400Regular_Italic',
+  },
+};
+
+export const HTMLRendererConfig: React.FunctionComponent<PropsWithChildren<HTMLRendererConfigProps>> = ({baseStyle: baseStyleProp = {}, children}) => {
+  const baseStyle = useRef({
+    ...baseStyleDefaults,
+    ...baseStyleProp,
+  }).current;
+
   return (
-    <TRenderEngineProvider
-      baseStyle={{
-        fontSize: 16,
-        fontFamily: 'Lato_400Regular',
-        color: textColor,
-        ...baseStyle,
-      }}
-      tagsStyles={{
-        strong: {
-          fontFamily: 'Lato_700Bold',
-        },
-        em: {
-          fontFamily: 'Lato_400Regular_Italic',
-        },
-      }}
-      systemFonts={systemFonts}>
+    <TRenderEngineProvider baseStyle={baseStyle} tagsStyles={tagsStylesDefaults} systemFonts={systemFonts}>
       <RenderHTMLConfigProvider enableExperimentalBRCollapsing enableExperimentalMarginCollapsing>
         {children}
       </RenderHTMLConfigProvider>
