@@ -1,26 +1,32 @@
 import React, {PropsWithChildren, useCallback, useState} from 'react';
 
-import {FlatList} from 'react-native';
+import {FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
-import {View, ViewProps, VStack} from 'components/core';
+import {View, VStack} from 'components/core';
 import {MediaItem} from 'types/nationalAvalancheCenter';
 import {HTML} from 'components/text/HTML';
-import {NetworkImage, NetworkImageState} from 'components/content/carousel/NetworkImage';
+import {NetworkImage, NetworkImageProps, NetworkImageState} from 'components/content/carousel/NetworkImage';
 
-export interface ImageListProps extends ViewProps {
+export interface ImageListProps extends Omit<FlatListProps<MediaItem>, 'data' | 'renderItem'> {
   imageHeight: number;
   imageWidth: number;
   media: MediaItem[];
   displayCaptions?: boolean;
+  imageStyle?: NetworkImageProps['imageStyle'];
+  borderStyle?: NetworkImageProps['borderStyle'];
   onPress?: (index: number) => void;
+  onScrollPositionChanged?: (index: number) => void;
 }
 
 export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps>> = ({
   imageHeight,
   imageWidth,
   media,
+  imageStyle,
+  borderStyle,
   displayCaptions = true,
   onPress = () => undefined,
+  onScrollPositionChanged = () => undefined,
   ...props
 }) => {
   const padding = 16;
@@ -46,6 +52,8 @@ export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps
           uri={item.url.thumbnail}
           index={index}
           onPress={onPressCallback}
+          imageStyle={imageStyle}
+          borderStyle={borderStyle}
           onStateChange={state => {
             loadingState[index] = state;
             setLoadingState(loadingState);
@@ -58,10 +66,33 @@ export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps
         )}
       </VStack>
     ),
-    [imageHeight, imageWidth, loadingState, displayCaptions, onPressCallback],
+    [imageHeight, imageWidth, loadingState, displayCaptions, imageStyle, borderStyle, onPressCallback],
+  );
+
+  const onScroll = useCallback(
+    ({
+      nativeEvent: {
+        contentOffset: {x},
+      },
+    }: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const index = Math.round(x / (imageWidth + padding));
+      onScrollPositionChanged(index);
+    },
+    [imageWidth, onScrollPositionChanged],
   );
 
   return (
-    <FlatList horizontal data={media} extraData={loadingState} renderItem={renderItem} centerContent snapToInterval={imageWidth + padding} snapToAlignment="center" {...props} />
+    <FlatList
+      horizontal
+      data={media}
+      extraData={loadingState}
+      renderItem={renderItem}
+      centerContent
+      snapToInterval={imageWidth + padding}
+      snapToAlignment="center"
+      onScroll={onScroll}
+      onMomentumScrollEnd={onScroll}
+      {...props}
+    />
   );
 };
