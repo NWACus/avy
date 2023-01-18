@@ -20,11 +20,12 @@ export interface NetworkImageProps {
   onStateChange: (state: NetworkImageState) => void;
   onPress: (index: number) => void;
   imageStyle?: StyleProp<ImageStyle>;
+  resizeMode?: 'cover' | 'contain';
 }
 
 const defaultImageStyle = {borderRadius: 16, borderColor: colorLookup('light.200'), borderWidth: 1};
 
-export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateChange, index, onPress, imageStyle: imageStyleProp}) => {
+export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateChange, index, onPress, imageStyle: imageStyleProp, resizeMode = 'cover'}) => {
   const [state, setState] = useState<NetworkImageState>('loading');
   const imageStyle = {};
   merge(imageStyle, defaultImageStyle, imageStyleProp ?? {});
@@ -37,7 +38,7 @@ export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, o
       flex: 1,
       ...imageStyle,
     },
-    resizeMode: 'cover',
+    resizeMode,
   } as const;
 
   return (

@@ -1,6 +1,6 @@
 import React, {PropsWithChildren, useCallback, useState} from 'react';
 
-import {FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import {FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent, ScrollView} from 'react-native';
 
 import {View, VStack} from 'components/core';
 import {MediaItem} from 'types/nationalAvalancheCenter';
@@ -11,8 +11,10 @@ export interface ImageListProps extends Omit<FlatListProps<MediaItem>, 'data' | 
   imageHeight: number;
   imageWidth: number;
   media: MediaItem[];
+  imageSize?: 'large' | 'medium' | 'original' | 'thumbnail';
   displayCaptions?: boolean;
   imageStyle?: NetworkImageProps['imageStyle'];
+  resizeMode?: NetworkImageProps['resizeMode'];
   onPress?: (index: number) => void;
   onScrollPositionChanged?: (index: number) => void;
 }
@@ -21,7 +23,9 @@ export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps
   imageHeight,
   imageWidth,
   media,
+  imageSize = 'thumbnail',
   imageStyle,
+  resizeMode,
   displayCaptions = true,
   onPress = () => undefined,
   onScrollPositionChanged = () => undefined,
@@ -43,14 +47,15 @@ export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps
 
   const renderItem = useCallback(
     ({item, index}) => (
-      <VStack space={4} width={imageWidth + padding} alignItems="stretch" flex={1}>
+      <VStack space={8} width={imageWidth + padding} alignItems="stretch" flex={1}>
         <NetworkImage
           width={imageWidth}
           height={imageHeight}
-          uri={item.url.thumbnail}
+          uri={item.url[imageSize]}
           index={index}
           onPress={onPressCallback}
           imageStyle={imageStyle}
+          resizeMode={resizeMode}
           onStateChange={state => {
             loadingState[index] = state;
             setLoadingState(loadingState);
@@ -58,12 +63,14 @@ export const ImageList: React.FunctionComponent<PropsWithChildren<ImageListProps
         />
         {displayCaptions && (
           <View flex={1} px={32}>
-            <HTML source={{html: item.caption}} />
+            <ScrollView bounces={false}>
+              <HTML source={{html: item.caption}} />
+            </ScrollView>
           </View>
         )}
       </VStack>
     ),
-    [imageHeight, imageWidth, loadingState, displayCaptions, imageStyle, onPressCallback],
+    [imageHeight, imageWidth, loadingState, displayCaptions, imageSize, imageStyle, resizeMode, onPressCallback],
   );
 
   const onScroll = useCallback(

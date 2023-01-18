@@ -1,6 +1,6 @@
-import React, {PropsWithChildren, useEffect, useState} from 'react';
+import React, {PropsWithChildren, useCallback, useEffect, useState} from 'react';
 
-import {Modal} from 'react-native';
+import {LayoutChangeEvent, Modal} from 'react-native';
 
 import {AntDesign} from '@expo/vector-icons';
 
@@ -19,11 +19,20 @@ export interface ImageViewerModalProps extends ViewProps {
 }
 
 const htmlStyle = {fontSize: 12, textAlign: 'center', color: 'white'} as const;
+const htmlHeight = 96;
 
 export const ImageViewerModal: React.FunctionComponent<PropsWithChildren<ImageViewerModalProps>> = ({visible, media, startIndex, onClose, ..._props}) => {
   // TODO: take start index and use a ref to tell the scrollview to move to it
   const [index, setIndex] = useState<number>(startIndex);
   useEffect(() => setIndex(startIndex), [startIndex]);
+
+  const [imageDimensions, setImageDimensions] = useState({width: 0, height: 0});
+  const onLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setImageDimensions({width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height - htmlHeight});
+    },
+    [setImageDimensions],
+  );
 
   return (
     // onRequestClose handles the back button on Android - there's also an explicit close button in this modal
@@ -48,14 +57,16 @@ export const ImageViewerModal: React.FunctionComponent<PropsWithChildren<ImageVi
                 onPress={onClose}
               />
             </HStack>
-            <View flex={1} justifyContent="center" borderColor={'red'} borderWidth={2}>
+            <View flex={1} justifyContent="center" onLayout={onLayout}>
               <HTMLRendererConfig baseStyle={htmlStyle}>
                 <ImageList
-                  imageWidth={428}
-                  imageHeight={(428 * 4) / 3.0}
+                  imageWidth={imageDimensions.width}
+                  imageHeight={imageDimensions.height}
                   media={media}
                   displayCaptions={true}
                   imageStyle={{borderRadius: 0, borderWidth: 0}}
+                  imageSize="original"
+                  resizeMode="contain"
                   onScrollPositionChanged={setIndex}
                   disableIntervalMomentum
                 />
