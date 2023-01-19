@@ -316,7 +316,7 @@ export const avalancheCenterSchema = z.object({
   config: avalancheCenterConfigurationSchema.nullable(),
   type: avalancheCenterTypeSchema.nullable(),
   widget_config: avalancheCenterWidgetConfigurationSchema.nullable(),
-  created_at: z.coerce.date(),
+  created_at: datePipeline,
   zones: z.array(avalancheForecastZoneSchema),
   nws_zones: z.array(nationalWeatherServiceZoneSchema),
   nws_offices: z.array(z.string()),
