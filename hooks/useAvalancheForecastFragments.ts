@@ -2,7 +2,7 @@ import React from 'react';
 
 import axios, {AxiosError} from 'axios';
 import {QueryClient, useQuery} from 'react-query';
-import {add, sub, format} from 'date-fns';
+import {add, sub} from 'date-fns';
 
 import * as Sentry from 'sentry-expo';
 
@@ -11,6 +11,7 @@ import Log from 'network/log';
 import {ClientContext, ClientProps} from 'clientContext';
 import {AvalancheCenterID, Product, productArraySchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
+import {apiDateString} from 'utils/date';
 
 export const useAvalancheForecastFragments = (center_id: AvalancheCenterID, date: Date) => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
@@ -21,7 +22,7 @@ export const useAvalancheForecastFragments = (center_id: AvalancheCenterID, date
 };
 
 function queryKey(center_id: string, date: Date) {
-  return ['products', center_id, format(date, 'y-MM-dd')];
+  return ['products', center_id, apiDateString(date)];
 }
 
 const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: string, date: Date) => {
@@ -42,9 +43,8 @@ const fetchAvalancheForecastFragments = async (nationalAvalancheCenterHost: stri
   const {data} = await axios.get(url, {
     params: {
       avalanche_center_id: center_id,
-      // TODO(brian): remove this hack of adding/subtracting two days, which works around issues converting between local day and UTC day
-      date_start: format(sub(date, {days: 2}), 'y-MM-dd'),
-      date_end: format(add(date, {days: 2}), 'y-MM-dd'),
+      date_start: apiDateString(sub(date, {days: 1})),
+      date_end: apiDateString(add(date, {days: 1})),
     },
   });
 

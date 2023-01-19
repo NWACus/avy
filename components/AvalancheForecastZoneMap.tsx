@@ -13,8 +13,7 @@ import {HomeStackNavigationProps} from 'routes';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Body, BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
 import {colorFor} from './AvalancheDangerPyramid';
-import {utcDateToLocalTimeString} from 'utils/date';
-import {parseISO} from 'date-fns';
+import {apiDateString, utcDateToLocalTimeString} from 'utils/date';
 import {TravelAdvice} from './helpers/travelAdvice';
 import {COLORS} from 'theme/colors';
 import {FontAwesome5} from '@expo/vector-icons';
@@ -30,7 +29,7 @@ export const defaultRegion: Region = {
 
 export interface MapProps {
   center: AvalancheCenterID;
-  date: string;
+  date: Date;
 }
 
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, date}: MapProps) => {
@@ -52,7 +51,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     latitudeDelta: 1.05 * region.latitudeDelta,
     longitudeDelta: 1.05 * region.longitudeDelta,
   };
-  const {isLoading, isError, data: zones} = useMapViewZones(center, parseISO(date));
+  const {isLoading, isError, data: zones} = useMapViewZones(center, date);
 
   const [selectedZone, setSelectedZone] = useState<MapViewZone | null>(null);
   const onPress = useCallback(() => {
@@ -205,7 +204,7 @@ class AnimatedDrawerController {
 }
 
 const AvalancheForecastZoneCards: React.FunctionComponent<{
-  date: string;
+  date: Date;
   zones: MapViewZone[];
   selectedZone: MapViewZone | null;
 }> = ({date, zones, selectedZone}) => {
@@ -275,7 +274,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
 };
 
 const AvalancheForecastZoneCard: React.FunctionComponent<{
-  date: string;
+  date: Date;
   zone: MapViewZone;
 }> = ({date, zone}) => {
   const {width} = useWindowDimensions();
@@ -291,7 +290,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           zoneName: zone.name,
           center_id: zone.center_id,
           forecast_zone_id: zone.zone_id,
-          date: date,
+          dateString: apiDateString(date),
         });
       }}>
       <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width}>

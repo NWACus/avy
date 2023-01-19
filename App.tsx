@@ -23,7 +23,6 @@ import * as SplashScreen from 'expo-splash-screen';
 import Constants from 'expo-constants';
 import * as Sentry from 'sentry-expo';
 
-import {formatISO} from 'date-fns';
 import {focusManager, QueryClient, QueryClientProvider, useQueryClient} from 'react-query';
 
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
@@ -37,6 +36,7 @@ import {TelemetryTabScreen} from 'components/screens/TelemetryScreen';
 import {AvalancheCenterID} from './types/nationalAvalancheCenter';
 import {prefetchAllActiveForecasts} from './network/prefetchAllActiveForecasts';
 import {HTMLRendererConfig} from 'components/text/HTML';
+import {apiDateString} from 'utils/date';
 
 // The SplashScreen stays up until we've loaded all of our fonts and other assets
 SplashScreen.preventAutoHideAsync();
@@ -71,7 +71,7 @@ const onAppStateChange = (status: AppStateStatus) => {
 // For now, we are implicitly interested in today's forecast.
 // If you want to investigate an issue on a different day, you can change this value.
 // TODO: add a date picker
-const defaultDate = formatISO(Date.now());
+const defaultDate = new Date();
 
 const App = () => {
   try {
@@ -109,7 +109,8 @@ const BaseApp: React.FunctionComponent<{
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({staging, setStaging}) => {
   const [avalancheCenterId, setAvalancheCenterId] = React.useState(Constants.expoConfig.extra.avalanche_center as AvalancheCenterID);
-  const [date] = React.useState(defaultDate);
+  const [date] = React.useState<Date>(defaultDate);
+  const dateString = apiDateString(date);
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
@@ -165,13 +166,13 @@ const BaseApp: React.FunctionComponent<{
                   }
                 },
               })}>
-              <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, date: date}}>
+              <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, dateString}}>
                 {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
               </TabNavigator.Screen>
-              <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, date: date}}>
+              <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString}}>
                 {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
               </TabNavigator.Screen>
-              <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, date: date}}>
+              <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString}}>
                 {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
               </TabNavigator.Screen>
               <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>

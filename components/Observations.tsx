@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {compareDesc, format, parseISO, sub} from 'date-fns';
+import {compareDesc, parseISO, sub} from 'date-fns';
 import {ActivityIndicator, View, FlatList} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
@@ -14,20 +14,19 @@ import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType
 import {Body, BodyBlack, Title3Semibold} from './text';
 import {HTML} from './text/HTML';
 import {NACIcon} from './icons/nac-icons';
-import {utcDateToLocalTimeString} from 'utils/date';
+import {apiDateString, utcDateToLocalTimeString} from 'utils/date';
 import {HStack, VStack} from 'components/core';
 
 // TODO: we could show the Avy center logo for obs that come from forecasters
 
 export const Observations: React.FunctionComponent<{
   center_id: AvalancheCenterID;
-  date: string;
+  date: Date;
 }> = ({center_id, date}) => {
   const {isLoading: isMapLoading, isError: isMapError, data: mapLayer, error: mapError} = useMapLayer(center_id);
 
-  const currentDate: Date = parseISO(date);
-  const startDate: string = format(sub(currentDate, {months: 1}), 'y-MM-dd');
-  const endDate: string = format(currentDate, 'y-MM-dd');
+  const startDate: string = apiDateString(sub(date, {months: 1}));
+  const endDate: string = apiDateString(date);
   const {
     isLoading: isObservationsLoading,
     isError: isObservationsError,
@@ -51,6 +50,7 @@ export const Observations: React.FunctionComponent<{
     );
   }
   if (!observations.getObservationList || observations.getObservationList.length === 0) {
+    // TODO: when cleaning this up, fix it so that it renders the date in the user's locale, not UTC date
     return (
       <View>
         <Body>{`No observations were recorded for ${center_id} between ${startDate} and ${endDate}.`}</Body>

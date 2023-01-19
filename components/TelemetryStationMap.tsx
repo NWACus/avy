@@ -11,10 +11,11 @@ import {updateRegionToContain} from './AvalancheForecastZonePolygon';
 import {useNavigation} from '@react-navigation/native';
 import {TelemetryStackNavigationProps} from 'routes';
 import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
+import {apiDateString} from 'utils/date';
 
 export const TelemetryStationMap: React.FunctionComponent<{
   center_id: AvalancheCenterID;
-  date: string;
+  date: Date;
 }> = ({center_id, date}) => {
   const {width} = useWindowDimensions();
   const [isReady, setIsReady] = React.useState<boolean>(false);
@@ -138,7 +139,7 @@ export const TelemetryStationMap: React.FunctionComponent<{
 
 export const TelemetryStationCard: React.FunctionComponent<{
   center_id: AvalancheCenterID;
-  date: string;
+  date: Date;
   station: StationMetadata;
   style: ViewStyle;
 }> = ({center_id, date, station, style}) => {
@@ -152,7 +153,7 @@ export const TelemetryStationCard: React.FunctionComponent<{
           source: station.source,
           station_id: station.stid,
           name: station.name,
-          date: date,
+          dateString: apiDateString(date),
         });
       }}
       style={{

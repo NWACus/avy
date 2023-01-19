@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {addDays, parseISO} from 'date-fns';
+import {addDays} from 'date-fns';
 
 import {AvalancheDangerForecast, AvalancheForecastZone, DangerLevel, ElevationBandNames, ForecastPeriod, Product} from 'types/nationalAvalancheCenter';
 import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
@@ -80,10 +80,10 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
         <HTML source={{html: forecast.bottom_line}} />
       </Card>
       <Card borderRadius={0} borderColor="white" header={<BodyBlack>Avalanche Danger</BodyBlack>}>
-        <AvalancheDangerTable date={parseISO(forecast.published_time)} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
+        <AvalancheDangerTable date={forecast.published_time} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
       </Card>
       <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<BodyBlack>Outlook</BodyBlack>}>
-        <AvalancheDangerTable date={addDays(parseISO(forecast.published_time), 1)} forecast={outlookDanger} elevation_band_names={elevationBandNames} size={'outlook'} />
+        <AvalancheDangerTable date={addDays(forecast.published_time, 1)} forecast={outlookDanger} elevation_band_names={elevationBandNames} size={'outlook'} />
       </CollapsibleCard>
       {forecast.forecast_avalanche_problems.map((problem, index) => (
         <CollapsibleCard

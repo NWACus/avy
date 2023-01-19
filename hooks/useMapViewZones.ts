@@ -1,10 +1,10 @@
 import {useQuery} from 'react-query';
-import {format} from 'date-fns';
 
 import {useMapLayer} from './useMapLayer';
 import {useAvalancheForecastFragments} from './useAvalancheForecastFragments';
 
 import {AvalancheCenterID, DangerLevel, FeatureComponent} from 'types/nationalAvalancheCenter';
+import {apiDateString} from 'utils/date';
 
 export type MapViewZone = {
   center_id: AvalancheCenterID;
@@ -12,8 +12,8 @@ export type MapViewZone = {
   name?: string;
   danger_level?: DangerLevel;
   danger?: string;
-  start_date: string | null;
-  end_date: string | null;
+  start_date: Date | null;
+  end_date: Date | null;
   geometry?: FeatureComponent;
   fillOpacity: number;
 };
@@ -25,7 +25,7 @@ export const useMapViewZones = (center_id: AvalancheCenterID, date: Date) => {
   // This query executes as soon as `useMapLayer` finishes, but then tries to augment
   // data with anything found in `useAvalancheForecastFragments`.
   return useQuery<MapViewZone[], Error>(
-    [center_id, format(date, 'y-MM-dd')],
+    [center_id, apiDateString(date)],
     () => {
       if (mapLayer.features == null || mapLayer.features.length === 0) {
         throw new Error('Unexpected error: feature array is empty');

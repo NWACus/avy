@@ -5,7 +5,7 @@ import {StyleSheet, View, Text, ActivityIndicator, ScrollView, useWindowDimensio
 
 import {Chart, Line, HorizontalAxis, VerticalAxis} from 'react-native-responsive-linechart';
 import {scaleLinear, scaleTime} from 'd3';
-import {max, min, parseISO, format} from 'date-fns';
+import {max, min, format} from 'date-fns';
 import {Variable, VariableMetadata} from 'types/snowbound';
 import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
 
@@ -125,7 +125,7 @@ const dataPoints = (dates: string[], data: number[]): DataPoint[] => {
   const points: DataPoint[] = [];
   for (let i = 0; i < dates.length; i++) {
     points.push({
-      date: parseISO(dates[i]),
+      date: new Date(dates[i]),
       datum: data[i],
     });
   }
