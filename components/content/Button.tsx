@@ -5,7 +5,6 @@ import tinycolor from 'tinycolor2';
 import {colorLookup} from 'theme';
 
 export interface ButtonProps extends ViewProps {
-  //  title: string;
   color?: ColorValue;
   onPress?: (event: GestureResponderEvent) => void;
 }
