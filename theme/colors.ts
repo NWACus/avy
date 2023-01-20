@@ -5,6 +5,11 @@ export const COLORS = {
   black: '#000000',
   lightText: '#999999',
   darkText: '#333333',
+
+  // AntDesign aliases (still referenced some places in Figma)
+  'color-primary': '#1677FF',
+
+  // Color aliases from NativeBase
   'rose.50': '#fff1f2',
   'rose.100': '#ffe4e6',
   'rose.200': '#fecdd3',

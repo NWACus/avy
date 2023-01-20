@@ -48,7 +48,10 @@ export const Title3: React.FunctionComponent<TextWrapperProps> = props => (
 export const Title3Semibold: React.FunctionComponent<TextWrapperProps> = props => <Title3 fontFamily="Lato_700Bold" {...props} />;
 export const Title3Black: React.FunctionComponent<TextWrapperProps> = props => <Title3 fontFamily="Lato_900Black" {...props} />;
 
-export const Body: React.FunctionComponent<TextWrapperProps> = props => <TextWrapper fontSize={16} lineHeight={22} fontFamily="Lato_400Regular" letterSpacing={-0.43} {...props} />;
+export const bodySize = 16;
+export const Body: React.FunctionComponent<TextWrapperProps> = props => (
+  <TextWrapper fontSize={bodySize} lineHeight={22} fontFamily="Lato_400Regular" letterSpacing={-0.43} {...props} />
+);
 export const BodySemibold: React.FunctionComponent<TextWrapperProps> = props => <Body fontFamily="Lato_700Bold" {...props} />;
 export const BodyBlack: React.FunctionComponent<TextWrapperProps> = props => <Body fontFamily="Lato_900Black" {...props} />;
 

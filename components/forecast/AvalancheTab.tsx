@@ -9,9 +9,11 @@ import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {HTML} from 'components/text/HTML';
 import {utcDateToLocalTimeString} from 'utils/date';
-import {AllCapsSm, AllCapsSmBlack, BodyBlack, Title3Black} from 'components/text';
+import {AllCapsSm, AllCapsSmBlack, BodyBlack, bodySize, Title3Black} from 'components/text';
 import {HStack, View, VStack} from 'components/core';
 import {Carousel} from 'components/content/carousel';
+import {InfoTooltip} from 'components/content/InfoTooltip';
+import helpStrings from 'content/helpStrings';
 
 interface AvalancheTabProps {
   zone: AvalancheForecastZone;
@@ -79,10 +81,27 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
         }>
         <HTML source={{html: forecast.bottom_line}} />
       </Card>
-      <Card borderRadius={0} borderColor="white" header={<BodyBlack>Avalanche Danger</BodyBlack>}>
+      <Card
+        borderRadius={0}
+        borderColor="white"
+        header={
+          <HStack space={6} alignItems="baseline">
+            <BodyBlack>Avalanche Danger</BodyBlack>
+            <InfoTooltip size={bodySize} title="Avalanche Danger" content={helpStrings.avalancheDanger} />
+          </HStack>
+        }>
         <AvalancheDangerTable date={forecast.published_time} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
       </Card>
-      <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<BodyBlack>Outlook</BodyBlack>}>
+      <CollapsibleCard
+        startsCollapsed
+        borderRadius={0}
+        borderColor="white"
+        header={
+          <HStack space={6} alignItems="baseline">
+            <BodyBlack>Outlook</BodyBlack>
+            <InfoTooltip size={bodySize} title="Outlook" content={helpStrings.avalancheDangerOutlook} />
+          </HStack>
+        }>
         <AvalancheDangerTable date={addDays(forecast.published_time, 1)} forecast={outlookDanger} elevation_band_names={elevationBandNames} size={'outlook'} />
       </CollapsibleCard>
       {forecast.forecast_avalanche_problems.map((problem, index) => (
@@ -91,7 +110,12 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
           startsCollapsed
           borderRadius={0}
           borderColor="white"
-          header={<BodyBlack>Avalanche Problem #{index + 1}</BodyBlack>}>
+          header={
+            <HStack space={6} alignItems="baseline">
+              <BodyBlack>Avalanche Problem #{index + 1}</BodyBlack>
+              <InfoTooltip size={bodySize} title="Avalanche Problems" content={helpStrings.avalancheProblem} />
+            </HStack>
+          }>
           <AvalancheProblemCard key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
         </CollapsibleCard>
       ))}

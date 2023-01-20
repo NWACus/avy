@@ -25,7 +25,7 @@ export interface HTMLRendererConfigProps {
   baseStyle?: MixedStyleDeclaration;
 }
 
-const baseStyleDefaults = {
+const baseStyleDefaults: MixedStyleDeclaration = {
   fontSize: 16,
   fontFamily: 'Lato_400Regular',
   color: colorLookup('darkText'),
