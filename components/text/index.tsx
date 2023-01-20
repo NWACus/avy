@@ -64,8 +64,9 @@ export const BodyXSm: React.FunctionComponent<TextWrapperProps> = props => (
 export const BodyXSmMedium: React.FunctionComponent<TextWrapperProps> = props => <BodyXSm fontFamily="Lato_400Regular" {...props} />;
 export const BodyXSmBlack: React.FunctionComponent<TextWrapperProps> = props => <BodyXSm fontFamily="Lato_900Black" {...props} />;
 
+export const allCapsSmLineHeight = 18;
 export const AllCapsSm: React.FunctionComponent<TextWrapperProps> = props => (
-  <TextWrapper fontSize={13} lineHeight={18} fontFamily="Lato_400Regular" letterSpacing={-0.08} {...merge({style: {textTransform: 'uppercase'}}, props)} />
+  <TextWrapper fontSize={13} lineHeight={allCapsSmLineHeight} fontFamily="Lato_400Regular" letterSpacing={-0.08} {...merge({style: {textTransform: 'uppercase'}}, props)} />
 );
 export const AllCapsSmBlack: React.FunctionComponent<TextWrapperProps> = props => <AllCapsSm fontFamily="Lato_900Black" {...props} />;
 
