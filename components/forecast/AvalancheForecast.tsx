@@ -5,8 +5,6 @@ import {useNavigation} from '@react-navigation/native';
 
 import {View} from 'components/core';
 
-import {parseISO} from 'date-fns';
-
 import {AvalancheCenterID, AvalancheForecastZone, AvalancheForecastZoneSummary} from 'types/nationalAvalancheCenter';
 import {Tab, TabControl} from 'components/TabControl';
 import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
@@ -19,7 +17,7 @@ import {Body, FeatureTitleBlack} from 'components/text';
 export interface AvalancheForecastProps {
   zoneName: string;
   center_id: AvalancheCenterID;
-  date: string;
+  date: Date;
   forecast_zone_id: number;
 }
 
@@ -32,8 +30,6 @@ const ObservationsTab = () => {
 };
 
 export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> = ({center_id, date, forecast_zone_id}: AvalancheForecastProps) => {
-  const forecastDate: Date = parseISO(date);
-
   const {isLoading: isCenterLoading, isError: isCenterError, data: center, error: centerError, refetch: refetchCenter} = useAvalancheCenterMetadata(center_id);
   const {
     isLoading: isForecastLoading,
@@ -41,7 +37,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
     data: forecast,
     error: forecastError,
     refetch: refetchForecast,
-  } = useAvalancheForecast(center_id, forecast_zone_id, forecastDate);
+  } = useAvalancheForecast(center_id, forecast_zone_id, date);
   const {isRefetchingByUser, refetchByUser} = useRefreshByUser(refetchCenter, refetchForecast);
 
   // When navigating from elsewhere in the app, the screen title should already

@@ -7,13 +7,13 @@ import {Observation} from 'components/Observation';
 
 const ObservationsStack = createNativeStackNavigator<ObservationsStackParamList>();
 export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Observations'>) => {
-  const {center_id, date} = route.params;
+  const {center_id, dateString} = route.params;
   return (
     <ObservationsStack.Navigator initialRouteName="observations">
       <ObservationsStack.Screen
         name="observations"
         component={ObservationsScreen}
-        initialParams={{center_id: center_id, date: date}}
+        initialParams={{center_id: center_id, dateString}}
         options={() => ({title: `${center_id} Observations`})}
       />
       <ObservationsStack.Screen name="observation" component={ObservationScreen} />
@@ -21,10 +21,10 @@ export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigat
   );
 };
 const ObservationsScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observations'>) => {
-  const {center_id, date} = route.params;
+  const {center_id, dateString} = route.params;
   return (
     <View style={styles.fullScreen}>
-      <Observations center_id={center_id} date={date} />
+      <Observations center_id={center_id} date={new Date(dateString)} />
     </View>
   );
 };

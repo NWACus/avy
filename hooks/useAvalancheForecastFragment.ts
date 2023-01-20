@@ -1,14 +1,15 @@
 import {useQuery} from 'react-query';
-import {format, isAfter, isBefore, parseISO} from 'date-fns';
+import {isAfter, isBefore} from 'date-fns';
 
 import {AvalancheCenterID, Product} from 'types/nationalAvalancheCenter';
 import {useAvalancheForecastFragments} from './useAvalancheForecastFragments';
+import {apiDateString} from 'utils/date';
 
 export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forecast_zone_id: number, date: Date) => {
   const {data: fragments} = useAvalancheForecastFragments(center_id, date);
 
   return useQuery<Product, Error>(
-    ['products', center_id, forecast_zone_id, format(date, 'y-MM-dd')],
+    ['products', center_id, forecast_zone_id, apiDateString(date)],
     async () => {
       return fragments?.find(forecast => isBetween(forecast.published_time, forecast.expires_time, date) && forecast.forecast_zone.find(zone => zone.id === forecast_zone_id));
     },
@@ -20,6 +21,6 @@ export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forec
   );
 };
 
-const isBetween = (start: string, end: string, date: Date): boolean => {
-  return isAfter(date, parseISO(start)) && isBefore(date, parseISO(end));
+const isBetween = (start: Date, end: Date, date: Date): boolean => {
+  return isAfter(date, start) && isBefore(date, end);
 };
