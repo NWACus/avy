@@ -1,5 +1,5 @@
 import {useQuery} from 'react-query';
-import {add, areIntervalsOverlapping, isAfter, isBefore, startOfDay} from 'date-fns';
+import {add, areIntervalsOverlapping} from 'date-fns';
 
 import {AvalancheCenterID, Product} from 'types/nationalAvalancheCenter';
 import {useAvalancheForecastFragments} from './useAvalancheForecastFragments';
