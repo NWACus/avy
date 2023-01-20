@@ -1,5 +1,5 @@
 import {useQuery} from 'react-query';
-import {isAfter, isBefore} from 'date-fns';
+import {add, areIntervalsOverlapping, isAfter, isBefore, startOfDay} from 'date-fns';
 
 import {AvalancheCenterID, Product} from 'types/nationalAvalancheCenter';
 import {useAvalancheForecastFragments} from './useAvalancheForecastFragments';
@@ -21,6 +21,7 @@ export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forec
   );
 };
 
-const isBetween = (start: Date, end: Date, date: Date): boolean => {
-  return isAfter(date, start) && isBefore(date, end);
+export const isBetween = (start: Date, end: Date, currentDate: Date): boolean => {
+  const currentDateInterval = {start: currentDate, end: add(currentDate, {days: 1})};
+  return areIntervalsOverlapping(currentDateInterval, {start, end});
 };
