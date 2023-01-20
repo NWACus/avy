@@ -7,7 +7,7 @@ import {AvalancheProblemLikelihoodLine} from './AvalancheProblemLikelihoodLine';
 import {AvalancheProblemSizeLine} from './AvalancheProblemSizeLine';
 import {HTML} from 'components/text/HTML';
 import {Center, HStack, VStack} from 'components/core';
-import {AllCapsSm, Caption1Semibold} from 'components/text';
+import {AllCapsSm, allCapsSmLineHeight, Caption1Semibold} from 'components/text';
 import {Card, CardProps} from 'components/content/Card';
 import {colorLookup} from 'theme';
 import {Carousel} from 'components/content/carousel';
@@ -17,13 +17,23 @@ export interface AvalancheProblemCardProps {
   names: ElevationBandNames;
 }
 
-const AspectCard: React.FC<CardProps> = ({...props}) => <Card flex={1} flexBasis={'35%'} flexGrow={1} borderColor={colorLookup('light.200')} borderRadius={8} mb={8} {...props} />;
+interface AspectCardProps extends Omit<CardProps, 'children'> {
+  caption: string;
+}
+const AspectCard: React.FC<AspectCardProps> = ({caption, ...props}) => (
+  <Card flex={1} flexBasis={'35%'} flexGrow={1} borderColor={colorLookup('light.200')} borderRadius={8} mb={8} {...props}>
+    {/* Always force the caption to take the space of two lines - this makes things line up on narrow screens,
+        where "Aspect/Elevation" doesn't fit on a single line */}
+    <Center height={2 * allCapsSmLineHeight}>
+      <AllCapsSm textAlign="center">{caption}</AllCapsSm>
+    </Center>
+  </Card>
+);
 
 export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardProps> = ({problem, names}: AvalancheProblemCardProps) => {
   const [cardWidth, setCardWidth] = useState<number | null>(null);
   return (
     <VStack space={8} onLayout={event => setCardWidth(event.nativeEvent.layout.width)}>
-      <HTML source={{html: problem.discussion}} />
       <HStack flexWrap="wrap" justifyContent="space-evenly" alignItems="stretch">
         <AspectCard
           mr={16}
@@ -33,36 +43,37 @@ export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardP
               <AvalancheProblemIcon problem={problem.avalanche_problem_id} />
               <Caption1Semibold textAlign="center">{problem.name}</Caption1Semibold>
             </VStack>
-          }>
-          <AllCapsSm textAlign="center">Problem Type</AllCapsSm>
-        </AspectCard>
+          }
+          caption="Problem Type"
+        />
         <AspectCard
           header={
             // The height is repeated here so that the first two items have the same height
             <Center style={{height: 150}}>
               <AnnotatedDangerRose rose={{style: {}, locations: problem.location}} elevationBandNames={names} />
             </Center>
-          }>
-          <AllCapsSm textAlign="center">Aspect/Elevation</AllCapsSm>
-        </AspectCard>
+          }
+          caption="Aspect/Elevation"
+        />
         <AspectCard
           mr={16}
           header={
             <Center>
               <AvalancheProblemLikelihoodLine likelihood={problem.likelihood} />
             </Center>
-          }>
-          <AllCapsSm textAlign="center">Likelihood</AllCapsSm>
-        </AspectCard>
+          }
+          caption="Likelihood"
+        />
         <AspectCard
           header={
             <Center>
               <AvalancheProblemSizeLine size={problem.size} />
             </Center>
-          }>
-          <AllCapsSm textAlign="center">Size</AllCapsSm>
-        </AspectCard>
+          }
+          caption="Size"
+        />
       </HStack>
+      <HTML source={{html: problem.discussion}} />
       {problem.media.type === MediaType.Image && problem.media.url !== null && cardWidth > 0 && (
         <Carousel media={[problem.media]} thumbnailAspectRatio={1.3} thumbnailHeight={cardWidth / 1.3} />
       )}
