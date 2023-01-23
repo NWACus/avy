@@ -31,7 +31,6 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
         <TouchableOpacity
           onPress={() => {
             setDropdownVisible(!dropdownVisible);
-            console.log('press');
           }}>
           <HStack justifyContent="space-between" alignItems="center">
             <Body>{selectedItem}</Body>
