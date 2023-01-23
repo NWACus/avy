@@ -16,18 +16,18 @@ import {apiDateString} from 'utils/date';
 export const useAvalancheForecastFragments = (center_id: AvalancheCenterID, date: Date) => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   return useQuery<Product[] | undefined, AxiosError | ZodError>({
-    queryKey: queryKey(center_id, date),
+    queryKey: queryKey(nationalAvalancheCenterHost, center_id, date),
     queryFn: async () => fetchAvalancheForecastFragments(nationalAvalancheCenterHost, center_id, date),
   });
 };
 
-function queryKey(center_id: string, date: Date) {
-  return ['products', center_id, apiDateString(date)];
+function queryKey(nationalAvalancheCenterHost: string, center_id: string, date: Date) {
+  return ['forecast-fragments', 'host', nationalAvalancheCenterHost, 'products', center_id, apiDateString(date)];
 }
 
 const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: string, date: Date) => {
   await queryClient.prefetchQuery({
-    queryKey: queryKey(center_id, date),
+    queryKey: queryKey(nationalAvalancheCenterHost, center_id, date),
     queryFn: async () => {
       Log.prefetch('starting fragment prefetch');
       const result = await fetchAvalancheForecastFragments(nationalAvalancheCenterHost, center_id, date);

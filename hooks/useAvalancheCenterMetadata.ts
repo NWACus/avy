@@ -14,20 +14,20 @@ import {ZodError} from 'zod';
 export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID) => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   return useQuery<AvalancheCenter, AxiosError | ZodError>({
-    queryKey: queryKey(center_id),
+    queryKey: queryKey(nationalAvalancheCenterHost, center_id),
     queryFn: async () => fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id),
     staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
     cacheTime: Infinity, // hold on to this cached data forever
   });
 };
 
-function queryKey(center_id: string) {
-  return ['avalanche-center', center_id];
+function queryKey(nationalAvalancheCenterHost: string, center_id: string) {
+  return ['center-metadata', 'host', nationalAvalancheCenterHost, 'avalanche-center', center_id];
 }
 
 export const prefetchAvalancheCenterMetadata = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {
   await queryClient.prefetchQuery({
-    queryKey: queryKey(center_id),
+    queryKey: queryKey(nationalAvalancheCenterHost, center_id),
     queryFn: async () => {
       Log.prefetch('starting metadata prefetch');
       const result = await fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id);
