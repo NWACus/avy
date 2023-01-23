@@ -1,9 +1,11 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 
-import {ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet} from 'react-native';
+import {uniq} from 'lodash';
+
+import {ActivityIndicator, Alert, Image, RefreshControl, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-import {View} from 'components/core';
+import {HStack, View} from 'components/core';
 
 import {AvalancheCenterID, AvalancheForecastZone, AvalancheForecastZoneSummary} from 'types/nationalAvalancheCenter';
 import {Tab, TabControl} from 'components/TabControl';
@@ -13,6 +15,9 @@ import {useRefreshByUser} from 'hooks/useRefreshByUser';
 
 import {AvalancheTab} from './AvalancheTab';
 import {Body, FeatureTitleBlack} from 'components/text';
+import {Dropdown} from 'components/content/Dropdown';
+import {apiDateString} from 'utils/date';
+import {HomeStackNavigationProps} from 'routes';
 
 export interface AvalancheForecastProps {
   zoneName: string;
@@ -43,7 +48,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
   // When navigating from elsewhere in the app, the screen title should already
   // be set to the zone name. But if we warp directly to a forecast link, we
   // need to load the zone name dynamically.
-  const navigation = useNavigation();
+  const navigation = useNavigation<HomeStackNavigationProps>();
   useEffect(() => {
     if (forecast) {
       const thisZone: AvalancheForecastZoneSummary | undefined = forecast.forecast_zone.find(zone => zone.id === forecast_zone_id);
@@ -52,6 +57,29 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
       }
     }
   }, [forecast, forecast_zone_id, navigation]);
+
+  const onZoneChange = useCallback(
+    zoneName => {
+      if (center) {
+        const zone = center?.zones.find(z => z.name === zoneName && z.status === 'active');
+        // TODO: consider possible improvements here
+        // 1) nice-to-have: make sure we land on the same sub-tab (Avalanche vs Forecast vs Obs)
+        // 2) nice-to-have: navigation causes a full reload on this screen - can we just do the equivalent of setState in a browser?
+        //    i.e. update the navigation stack, but then manage re-rendering internally. we shouldn't need to re-render the toolbar after making this transition.
+        navigation.navigate('forecast', {
+          zoneName: zone.name,
+          center_id: center_id,
+          forecast_zone_id: zone.id,
+          dateString: apiDateString(date),
+        });
+      }
+    },
+    [navigation, center, center_id, date],
+  );
+
+  const onReturnToMapView = useCallback(() => {
+    navigation.popToTop();
+  }, [navigation]);
 
   if (isForecastLoading || isCenterLoading || !center || !forecast) {
     return <ActivityIndicator />;
@@ -81,8 +109,20 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
     );
   }
 
+  const zones = uniq(center.zones.filter(z => z.status === 'active').map(z => z.name));
+
   return (
     <ScrollView style={StyleSheet.absoluteFillObject} refreshControl={<RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />}>
+      <HStack justifyContent="space-between" alignItems="center" space={8} width="100%" height={64}>
+        <View pl={8} py={8}>
+          <TouchableOpacity onPress={onReturnToMapView}>
+            <Image source={require('assets/icon.png')} style={{width: 48, height: 48}} />
+          </TouchableOpacity>
+        </View>
+        <View flex={1} mr={8}>
+          <Dropdown items={zones} selectedItem={zone.name} onSelectionChange={onZoneChange} bg="white" height={48} />
+        </View>
+      </HStack>
       <TabControl backgroundColor="white">
         <Tab title="Avalanche">
           <AvalancheTab zone={zone} forecast={forecast} />
