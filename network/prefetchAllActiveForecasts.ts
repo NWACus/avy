@@ -16,7 +16,7 @@ export const prefetchAllActiveForecasts = async (queryClient: QueryClient, cente
   await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
   await ForecastFragmentsQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, prefetchDate);
 
-  const fragments = queryClient.getQueryData<Product[] | undefined>(ForecastFragmentsQuery.queryKey(center_id, prefetchDate));
+  const fragments = queryClient.getQueryData<Product[] | undefined>(ForecastFragmentsQuery.queryKey(nationalAvalancheCenterHost, center_id, prefetchDate));
   fragments?.forEach(async f => {
     await ForecastQuery.prefetch(queryClient, nationalAvalancheCenterHost, f.id);
     const forecastData = queryClient.getQueryData<Product>(ForecastQuery.queryKey(nationalAvalancheCenterHost, f.id));
