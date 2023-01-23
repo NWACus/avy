@@ -22,7 +22,7 @@ export const useAvalancheForecastFragments = (center_id: AvalancheCenterID, date
 };
 
 function queryKey(nationalAvalancheCenterHost: string, center_id: string, date: Date) {
-  return ['host', nationalAvalancheCenterHost, 'products', center_id, apiDateString(date)];
+  return ['forecast-fragments', 'host', nationalAvalancheCenterHost, 'products', center_id, apiDateString(date)];
 }
 
 const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: string, date: Date) => {

@@ -22,7 +22,7 @@ export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID) => {
 };
 
 function queryKey(nationalAvalancheCenterHost: string, center_id: string) {
-  return ['host', nationalAvalancheCenterHost, 'avalanche-center', center_id];
+  return ['center-metadata', 'host', nationalAvalancheCenterHost, 'avalanche-center', center_id];
 }
 
 export const prefetchAvalancheCenterMetadata = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {

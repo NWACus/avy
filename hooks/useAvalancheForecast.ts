@@ -27,7 +27,7 @@ export const useAvalancheForecast = (center_id: AvalancheCenterID, forecast_zone
 };
 
 function queryKey(nationalAvalancheCenterHost: string, forecastId: number) {
-  return ['host', nationalAvalancheCenterHost, 'product', forecastId];
+  return ['avalanche-forecast', 'host', nationalAvalancheCenterHost, 'product', forecastId];
 }
 
 export const prefetchAvalancheForecast = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, forecastId: number) => {
