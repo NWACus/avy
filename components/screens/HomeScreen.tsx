@@ -10,12 +10,7 @@ export const HomeTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamL
   return (
     <AvalancheCenterStack.Navigator initialRouteName="avalancheCenter">
       <AvalancheCenterStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, dateString}} options={() => ({headerShown: false})} />
-      <AvalancheCenterStack.Screen
-        name="forecast"
-        component={ForecastScreen}
-        initialParams={{center_id: center_id, dateString}}
-        options={({route}) => ({title: String(route.params.zoneName)})}
-      />
+      <AvalancheCenterStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, dateString}} options={() => ({headerShown: false})} />
     </AvalancheCenterStack.Navigator>
   );
 };
