@@ -5,6 +5,7 @@ import {QueryClient} from 'react-query';
 import Log from 'network/log';
 
 import {AvalancheCenterID, MediaType, Product} from 'types/nationalAvalancheCenter';
+import AvalancheCenterMapLayerQuery from 'hooks/useMapLayer';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import ForecastFragmentsQuery from 'hooks/useAvalancheForecastFragments';
 import ForecastQuery from 'hooks/useAvalancheForecast';
@@ -13,6 +14,7 @@ import ForecastQuery from 'hooks/useAvalancheForecast';
 // Note: you can enable preload logging by setting ENABLE_PREFETCH_LOGGING in network/log
 //
 export const prefetchAllActiveForecasts = async (queryClient: QueryClient, center_id: AvalancheCenterID, prefetchDate: Date, nationalAvalancheCenterHost: string) => {
+  await AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
   await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
   await ForecastFragmentsQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, prefetchDate);
 
