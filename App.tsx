@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 
 import {AppStateStatus, Platform, StyleSheet, View} from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, ParamListBase, RouteProp} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {AntDesign} from '@expo/vector-icons';
@@ -186,7 +186,11 @@ const BaseApp: React.FunctionComponent<{
   );
 };
 
-const withParams = (state, params) => {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function withParams<U extends ParamListBase, V extends keyof U>(
+  state: {route: RouteProp<U, V>; navigation: any},
+  params: Readonly<U[V]>,
+): {route: RouteProp<U, V>; navigation: any} {
   return {
     ...state,
     route: {
@@ -197,6 +201,6 @@ const withParams = (state, params) => {
       },
     },
   };
-};
+}
 
 export default App;
