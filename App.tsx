@@ -36,7 +36,7 @@ import {TelemetryTabScreen} from 'components/screens/TelemetryScreen';
 import {AvalancheCenterID} from './types/nationalAvalancheCenter';
 import {prefetchAllActiveForecasts} from './network/prefetchAllActiveForecasts';
 import {HTMLRendererConfig} from 'components/text/HTML';
-import {apiDateString} from 'utils/date';
+import {formatInTimeZone} from 'date-fns-tz';
 
 // The SplashScreen stays up until we've loaded all of our fonts and other assets
 SplashScreen.preventAutoHideAsync();
@@ -110,7 +110,7 @@ const BaseApp: React.FunctionComponent<{
 }> = ({staging, setStaging}) => {
   const [avalancheCenterId, setAvalancheCenterId] = React.useState(Constants.expoConfig.extra.avalanche_center as AvalancheCenterID);
   const [date] = React.useState<Date>(defaultDate);
-  const dateString = apiDateString(date);
+  const dateString = formatInTimeZone(date, 'UTC', 'yyyy-MM-dd HH:mm:ssXXX');
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();

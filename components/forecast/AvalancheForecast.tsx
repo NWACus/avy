@@ -9,7 +9,7 @@ import {HStack, View} from 'components/core';
 
 import {AvalancheCenterID, AvalancheForecastZone, AvalancheForecastZoneSummary} from 'types/nationalAvalancheCenter';
 import {Tab, TabControl} from 'components/TabControl';
-import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
+import {useLatestAvalancheForecast} from 'hooks/useLatestAvalancheForecast';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useRefreshByUser} from 'hooks/useRefreshByUser';
 
@@ -42,7 +42,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
     data: forecast,
     error: forecastError,
     refetch: refetchForecast,
-  } = useAvalancheForecast(center_id, forecast_zone_id, date);
+  } = useLatestAvalancheForecast(center_id, forecast_zone_id, date); // TODO(skuznets): when we refactor to show previous forecasts, we will need two wrappers for the logic under the fetching, choosing either to fetch the latest, or for a specific date
   const {isRefetchingByUser, refetchByUser} = useRefreshByUser(refetchCenter, refetchForecast);
 
   // When navigating from elsewhere in the app, the screen title should already
