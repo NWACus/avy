@@ -76,7 +76,6 @@
     "@graphql-codegen/typescript-operations": "^2.5.10",
     "@graphql-codegen/typescript-react-query": "^4.0.6",
     "@testing-library/jest-native": "^5.4.1",
-    "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/react-native": "^11.5.0",
     "@types/color": "^3.0.3",
     "@types/jest": "^29.2.4",
