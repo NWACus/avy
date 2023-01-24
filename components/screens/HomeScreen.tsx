@@ -9,8 +9,18 @@ export const HomeTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamL
   const {center_id, dateString} = route.params;
   return (
     <AvalancheCenterStack.Navigator initialRouteName="avalancheCenter">
-      <AvalancheCenterStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, dateString}} options={() => ({headerShown: false})} />
-      <AvalancheCenterStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, dateString}} options={() => ({headerShown: false})} />
+      <AvalancheCenterStack.Screen
+        name="avalancheCenter"
+        component={MapScreen}
+        initialParams={{center_id: center_id, dateString: dateString}}
+        options={() => ({headerShown: false})}
+      />
+      <AvalancheCenterStack.Screen
+        name="forecast"
+        component={ForecastScreen}
+        initialParams={{center_id: center_id, dateString: dateString}}
+        options={() => ({headerShown: false})}
+      />
     </AvalancheCenterStack.Navigator>
   );
 };

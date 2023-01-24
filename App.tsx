@@ -166,14 +166,14 @@ const BaseApp: React.FunctionComponent<{
                   }
                 },
               })}>
-              <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, dateString}}>
-                {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+              <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, dateString: dateString}}>
+                {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, dateString: dateString}))}
               </TabNavigator.Screen>
-              <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString}}>
-                {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+              <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString: dateString}}>
+                {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, dateString: dateString}))}
               </TabNavigator.Screen>
-              <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString}}>
-                {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, date: date}))}
+              <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString: dateString}}>
+                {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, dateString: dateString}))}
               </TabNavigator.Screen>
               <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
                 {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
