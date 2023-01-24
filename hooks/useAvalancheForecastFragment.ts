@@ -23,5 +23,6 @@ export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forec
 
 export const isBetween = (start: Date, end: Date, currentDate: Date): boolean => {
   const currentDateInterval = {start: currentDate, end: add(currentDate, {days: 1})};
-  return areIntervalsOverlapping(currentDateInterval, {start, end});
+  const testInterval = {start: start, end: end};
+  return areIntervalsOverlapping(currentDateInterval, testInterval, {inclusive: true});
 };

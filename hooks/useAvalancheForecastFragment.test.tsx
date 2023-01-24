@@ -33,8 +33,8 @@ describe('useAvalancheForecastFragment', () => {
     });
 
     it('returns false for a forecast published after the given day', () => {
-      const publishedDate = new Date('2023-01-21Z');
-      const expiresDate = new Date('2023-01-22Z');
+      const publishedDate = new Date('2023-01-23Z');
+      const expiresDate = new Date('2023-01-24Z');
       expect(isBetween(publishedDate, expiresDate, today)).toBe(false);
     });
   });
