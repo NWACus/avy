@@ -1,4 +1,4 @@
-import {apiDateString, fixMalformedISO8601DateString, utcDateToLocalDateString, utcDateToLocalTimeString} from 'utils/date';
+import {apiDateString, fixMalformedISO8601DateString, nominalForecastDate, utcDateToLocalDateString, utcDateToLocalTimeString} from 'utils/date';
 import * as TimezoneMock from 'timezone-mock';
 
 describe('Dates', () => {
@@ -80,6 +80,24 @@ describe('Dates', () => {
 
     afterEach(() => {
       TimezoneMock.unregister();
+    });
+  });
+
+  describe('nominalForecastDate', () => {
+    it('returns the current day when requesting before the expiry time', () => {
+      expect(nominalForecastDate(new Date('2023-01-24T09:44:27-08:00'), 'America/Los_Angeles', 18)).toBe('2023-01-24');
+    });
+    it('returns the next day when requesting after the expiry time', () => {
+      expect(nominalForecastDate(new Date('2023-01-24T19:44:27-08:00'), 'America/Los_Angeles', 18)).toBe('2023-01-25');
+    });
+    it('returns the current day when requesting before the expiry time using UTC', () => {
+      expect(nominalForecastDate(new Date('2023-01-24T17:44:27-00:00'), 'America/Los_Angeles', 18)).toBe('2023-01-24');
+    });
+    it('returns the next day when requesting after the expiry time using UTC', () => {
+      expect(nominalForecastDate(new Date('2023-01-25T03:44:27-00:00'), 'America/Los_Angeles', 18)).toBe('2023-01-25');
+    });
+    it('handles single-digit expiry hours', () => {
+      expect(nominalForecastDate(new Date('2023-01-24T19:44:27-08:00'), 'America/Los_Angeles', 1)).toBe('2023-01-25');
     });
   });
 });
