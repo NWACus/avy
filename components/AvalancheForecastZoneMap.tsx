@@ -18,6 +18,7 @@ import {TravelAdvice} from './helpers/travelAdvice';
 import {COLORS} from 'theme/colors';
 import {FontAwesome5} from '@expo/vector-icons';
 import {AvalancheForecastZonePolygon} from 'components/AvalancheForecastZonePolygon';
+import {RegionBounds, regionFromBounds} from 'components/helpers/geographicCoordinates';
 
 export const defaultRegion: Region = {
   // TODO(skuznets): add a sane default for the US?
@@ -34,23 +35,18 @@ export interface MapProps {
 
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, date}: MapProps) => {
   const [isReady, setIsReady] = useState<boolean>(false);
-  const [region, setRegion] = useState<Region>({
-    latitude: 0,
-    longitude: 0,
-    latitudeDelta: 0,
-    longitudeDelta: 0,
+  const [region, setRegionBounds] = useState<RegionBounds>({
+    topLeft: {latitude: 0, longitude: 0},
+    bottomRight: {latitude: 0, longitude: 0},
   });
 
   function setReady() {
     setIsReady(true);
   }
 
-  const largerRegion: Region = {
-    latitude: region.latitude,
-    longitude: region.longitude,
-    latitudeDelta: 1.05 * region.latitudeDelta,
-    longitudeDelta: 1.05 * region.longitudeDelta,
-  };
+  const largerRegion: Region = regionFromBounds(region);
+  largerRegion.latitudeDelta *= 1.05;
+  largerRegion.longitudeDelta *= 1.05;
   const {isLoading, isError, data: zones} = useMapViewZones(center, date);
 
   const [selectedZone, setSelectedZone] = useState<MapViewZone | null>(null);
@@ -69,7 +65,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         scrollEnabled={true}
         provider={'google'}
         onPress={onPress}>
-        {isReady && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} setRegion={setRegion} setSelectedZone={setSelectedZone} />)}
+        {isReady && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} setRegionBounds={setRegionBounds} setSelectedZone={setSelectedZone} />)}
       </MapView>
       <SafeAreaView>
         <View flex={1}>
