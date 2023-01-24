@@ -7,11 +7,11 @@ import {useStations} from 'hooks/useStations';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {StyleSheet, ActivityIndicator, FlatList, TouchableOpacity, View, ViewStyle, Text, useWindowDimensions} from 'react-native';
 import {CARD_MARGIN, CARD_SPACING, CARD_WIDTH, defaultRegion} from './AvalancheForecastZoneMap';
-import {updateRegionToContain} from './AvalancheForecastZonePolygon';
 import {useNavigation} from '@react-navigation/native';
 import {TelemetryStackNavigationProps} from 'routes';
 import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
 import {apiDateString} from 'utils/date';
+import {regionFromBounds, updateBoundsToContain} from './helpers/geographicCoordinates';
 
 export const TelemetryStationMap: React.FunctionComponent<{
   center_id: AvalancheCenterID;
@@ -47,14 +47,14 @@ export const TelemetryStationMap: React.FunctionComponent<{
     }
   }, [stations]);
 
-  const region: Region = updateRegionToContain(
-    {
-      latitude: 0,
-      longitude: 0,
-      latitudeDelta: 0,
-      longitudeDelta: 0,
-    },
-    stations?.results.map(station => ({latitude: station.latitude, longitude: station.longitude})),
+  const region: Region = regionFromBounds(
+    updateBoundsToContain(
+      {
+        topLeft: {latitude: 0, longitude: 0},
+        bottomRight: {latitude: 0, longitude: 0},
+      },
+      stations?.results.map(station => ({latitude: station.latitude, longitude: station.longitude})),
+    ),
   );
 
   const largerRegion: Region = {
