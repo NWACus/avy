@@ -22,7 +22,7 @@ export const useMapLayer = (center_id: AvalancheCenterID) => {
 };
 
 function queryKey(nationalAvalancheCenterHost: string, center_id: string) {
-  return ['map-layer', 'host', nationalAvalancheCenterHost, 'avalanche-center', center_id];
+  return ['map-layer', {host: nationalAvalancheCenterHost, center: center_id}];
 }
 
 export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {
