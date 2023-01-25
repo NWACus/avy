@@ -1,5 +1,6 @@
 import React, {ReactElement} from 'react';
 import {Image, ImageStyle} from 'react-native';
+import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
 
 export interface AvalancheCenterLogoProps {
   style: ImageStyle;
@@ -95,4 +96,46 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
   }
   actualStyle.aspectRatio = sizes[avalancheCenterId].width / sizes[avalancheCenterId].height;
   return images[avalancheCenterId](actualStyle);
+};
+
+export const preloadAvalancheCenterLogo = async (avalancheCenter: AvalancheCenterID) => {
+  /* eslint-disable @typescript-eslint/no-var-requires */
+  switch (avalancheCenter) {
+    case 'BTAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/BTAC.png')).uri);
+    case 'CNFAIC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/CNFAIC.png')).uri);
+    case 'FAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/FAC.png')).uri);
+    case 'GNFAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/GNFAC.png')).uri);
+    case 'IPAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/IPAC.png')).uri);
+    case 'NWAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/NWAC.png')).uri);
+    case 'MSAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/MSAC.png')).uri);
+    case 'MWAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/MWAC.png')).uri);
+    case 'PAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/PAC.png')).uri);
+    case 'SNFAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/SNFAC.png')).uri);
+    case 'SAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/SAC.png')).uri);
+    case 'WCMAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/WCMAC.svg')).uri);
+    case 'CAIC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/CAIC.jpg')).uri);
+    case 'COAA':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/COAA.png')).uri);
+    case 'CBAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/CBAC.png')).uri);
+    case 'ESAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/ESAC.png')).uri);
+    case 'WAC':
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/WAC.png')).uri);
+  }
+  const invalid: never = avalancheCenter;
+  throw new Error(`Unknown avalanche center: ${invalid}`);
 };
