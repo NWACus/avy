@@ -25,6 +25,7 @@ const precipZoneToForecastZone = {
 
 type PrecipitationZone = keyof typeof precipZoneToForecastZone;
 
+// TODO: use ts-to-zod to generate Zod schemas that can be applied to a future API
 interface SnowLevel {
   period: 'day' | 'night';
   subperiod: 'early' | 'late';
@@ -39,11 +40,11 @@ interface WindSpeed {
 
 interface ZoneForecast {
   label: string; // TODO: tighten this, it's either a day of the week, or a day with "Night" appended
-  forecast?: string; // For some weather stations, all we have is precipitation
-  snowLevel?: SnowLevel[];
-  temperatures?: {low: number; high: number};
-  winds?: WindSpeed[];
-  precipitation?: Record<PrecipitationZone, string>;
+  forecast: string;
+  snowLevel: SnowLevel[];
+  temperatures: {low: number; high: number};
+  winds: WindSpeed[];
+  precipitation: Record<PrecipitationZone, string>;
 }
 
 interface WeatherForecast {
@@ -51,10 +52,13 @@ interface WeatherForecast {
   published_time: string;
   expires_time: string;
   synopsis: string | null;
+  // TODO: NAC zone id would be less fragile than using zone name here
   zones: Record<string, ZoneForecast[]>;
 }
 
 export const useNWACWeatherForecast = () => {
+  // TODO: add caching parameters
+  // TODO: add to preload sequence
   return useQuery<WeatherForecast, AxiosError | Error>({
     queryKey: queryKey(),
     queryFn: async () => fetchWeather(),
@@ -130,12 +134,12 @@ export const fetchWeather = async () => {
   const url = 'https://nwac.us/mountain-weather-forecast/';
   const {data} = await axios.get(url);
 
-  // hackity hack, the ridgeline winds table is missing </tr> tags on most of its rows
+  // hackity hack, the ridgeline winds table is missing </tr> tags on most of its rows! <sigh>
   const fixedData = data.replaceAll(/<\/td>[ \n]*<tr>/gm, '</td></tr><tr>').replaceAll(/<\/td>[ \n]*<\/table>/gm, '</td></tr></table>');
 
   // Parse the HTML into a Document
   const doc = new DOMParser({
-    // Really don't care about warnings/errors, this is placeholder
+    // Really don't care about warnings/errors, this data source is placeholder
     errorHandler: {
       warning: () => undefined,
       error: e => {
@@ -266,9 +270,12 @@ export const fetchWeather = async () => {
   });
   // console.log('step 5', JSON.stringify(zones, null, 2));
 
+  console.log(str(doc.getElementsByClassName('forecast-date')[0]));
   return {
     author: str(doc.getElementsByClassName('forecaster')[0]).replace('by ', ''),
+    // TODO: parse this time string - it's non-standard. The text is `Issued: 2:00 PM PST Wednesday, January 25, 2023`
     published_time: str(doc.getElementsByClassName('forecast-date')[0]),
+    // TODO: need a real time here, base it on expected publish times (6 am / 2 pm I think?)
     expires_time: 'never',
     synopsis: trim(doc.getElementsByClassName('synopsis')[0].getElementsByTagName('p').toString()),
     zones,

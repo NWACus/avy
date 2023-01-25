@@ -85,7 +85,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone}) => {
                   <VStack flexBasis={0.5} flex={1}>
                     <BodySemibold>Precipitation (in)</BodySemibold>
                     {Object.entries(forecast.precipitation).map(([zone, value]) => (
-                      <HStack justifyContent="space-between" alignItems="flex-start" alignSelf="stretch">
+                      <HStack key={zone} justifyContent="space-between" alignItems="flex-start" alignSelf="stretch">
                         <View flex={1} flexGrow={3} pr={12}>
                           <Body style={{flex: 1, flexBasis: 0.75}}>{zone}</Body>
                         </View>
