@@ -184,7 +184,7 @@ export const fetchWeather = async () => {
       const period = snowLevelPeriods[idx];
       const forecast = zones[zoneName].find(f => f.label === period.label);
       if (forecast) {
-        forecast['snowLevel'] ||= [];
+        forecast['snowLevel'] = forecast['snowLevel'] || [];
         forecast['snowLevel'].push({period: period.period, subperiod: period.subperiod, level: Number(cell.replace(/\D/g, ''))});
       } else {
         // console.warn(`Snow level: could not find forecast for ${period.label}`, zones);
@@ -261,7 +261,7 @@ export const fetchWeather = async () => {
       const period = windsPeriods[idx];
       const forecast = zones[zoneName].find(f => f.label === period.label);
       if (forecast) {
-        forecast['winds'] ||= [];
+        forecast['winds'] = forecast['winds'] || [];
         forecast['winds'].push({period: period.period, subperiod: period.subperiod, speed: cell});
       } else {
         // console.log(`Winds: could not find forecast for ${period.label}`, zones);
@@ -270,7 +270,6 @@ export const fetchWeather = async () => {
   });
   // console.log('step 5', JSON.stringify(zones, null, 2));
 
-  console.log(str(doc.getElementsByClassName('forecast-date')[0]));
   return {
     author: str(doc.getElementsByClassName('forecaster')[0]).replace('by ', ''),
     // TODO: parse this time string - it's non-standard. The text is `Issued: 2:00 PM PST Wednesday, January 25, 2023`
