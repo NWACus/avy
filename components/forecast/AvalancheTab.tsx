@@ -66,6 +66,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
             <AllCapsSmBlack>Author</AllCapsSmBlack>
             <AllCapsSm style={{textTransform: 'none'}} color="lightText">
               {forecast.author || 'Unknown'}
+              {'\n'}
             </AllCapsSm>
           </VStack>
         </HStack>
