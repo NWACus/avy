@@ -1,12 +1,10 @@
 import {Card} from 'components/content/Card';
-import {Center, HStack, View, VStack} from 'components/core';
+import {Center, HStack, VStack} from 'components/core';
 import {useNWACWeatherForecast} from 'components/forecast/useNWACWeatherForecast';
-import {AllCapsSm, AllCapsSmBlack, Body, FeatureTitleBlack, Title3Black} from 'components/text';
+import {AllCapsSm, AllCapsSmBlack, Body, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
-import {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {AvalancheForecastZone} from 'types/nationalAvalancheCenter';
-import {utcDateToLocalTimeString} from 'utils/date';
 
 interface WeatherTabProps {
   zone: AvalancheForecastZone;
