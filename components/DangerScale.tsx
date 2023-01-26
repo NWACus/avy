@@ -4,9 +4,10 @@ import {MaterialIcons} from '@expo/vector-icons';
 
 import {DangerLevel} from 'types/nationalAvalancheCenter';
 import {colorFor} from './AvalancheDangerPyramid';
-import {BodyXSmBlack, BodyXSmMedium} from 'components/text';
-import {TouchableOpacity} from 'react-native';
+import {BodyXSmBlack} from 'components/text';
+import {Linking, TouchableOpacity} from 'react-native';
 import {Center, HStack, View} from 'components/core';
+import {dangerShortText} from 'components/helpers/dangerText';
 
 export type DangerScaleProps = Omit<React.ComponentProps<typeof View>, 'children'>;
 
@@ -16,16 +17,13 @@ export const DangerScale: React.FunctionComponent<DangerScaleProps> = props => {
       <HStack backgroundColor="rgba(0, 0, 0, 0.6)" borderRadius={24} px={16} py={8} justifyContent="space-between" alignItems="center">
         <TouchableOpacity
           onPress={() => {
-            console.warn('Not implemented yet');
+            Linking.openURL('https://avalanche.org/avalanche-encyclopedia/danger-scale/');
           }}>
-          <HStack space={4} alignItems="center">
-            <BodyXSmBlack color="white" style={{letterSpacing: -0.61}}>
-              Danger Scale
-            </BodyXSmBlack>
+          <HStack space={4}>
             <MaterialIcons name="open-in-new" size={16} color="white" />
           </HStack>
         </TouchableOpacity>
-        <HStack>
+        <HStack px={8}>
           {Object.keys(DangerLevel)
             .filter(key => Number.isNaN(+key))
             .filter(key => DangerLevel[key] > DangerLevel.None)
@@ -34,15 +32,17 @@ export const DangerScale: React.FunctionComponent<DangerScaleProps> = props => {
               <Center
                 key={level}
                 style={{
+                  flex: 1,
+                  flexGrow: 1,
                   backgroundColor: colorFor(level).string(),
                   borderBottomLeftRadius: level === DangerLevel.Low ? 24 : 0,
                   borderTopLeftRadius: level === DangerLevel.Low ? 24 : 0,
                   borderBottomRightRadius: level === DangerLevel.Extreme ? 24 : 0,
                   borderTopRightRadius: level === DangerLevel.Extreme ? 24 : 0,
                 }}>
-                <BodyXSmMedium style={{paddingHorizontal: 20}} color={level < 4 ? 'darkText' : 'white'}>
-                  {level}
-                </BodyXSmMedium>
+                <BodyXSmBlack style={{paddingHorizontal: 4}} color={level < 4 ? 'darkText' : 'white'}>
+                  {dangerShortText(level)}
+                </BodyXSmBlack>
               </Center>
             ))}
         </HStack>
