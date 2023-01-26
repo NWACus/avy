@@ -1,4 +1,4 @@
-import {fetchWeather} from 'components/forecast/useNWACWeatherForecast';
+import {fetchWeather} from './useWeatherForecasts';
 
 // Tests are skipped by default; not sure we want to let this constantly hit the server
 describe.skip('useNWACWeatherForecast', () => {

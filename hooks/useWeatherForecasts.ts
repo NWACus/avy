@@ -58,7 +58,7 @@ interface WeatherForecast {
   zones: Record<string, ZoneForecast[]>;
 }
 
-export const useNWACWeatherForecast = () => {
+export const useWeatherForecasts = () => {
   // TODO: add caching parameters
   // TODO: add to preload sequence
   return useQuery<WeatherForecast, AxiosError | Error>({
