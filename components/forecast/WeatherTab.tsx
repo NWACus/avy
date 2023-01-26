@@ -96,7 +96,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone}) => {
                     ))}
                   </VStack>
                   <VStack flexBasis={0.5} flex={1}>
-                    <BodySemibold>Ridgeline Winds (mph))</BodySemibold>
+                    <BodySemibold>Ridgeline Winds (mph)</BodySemibold>
                     {forecast.winds.map(level => (
                       <Body key={level.subperiod}>
                         {level.speed} {timeOfDayString(level.period, level.subperiod)}
