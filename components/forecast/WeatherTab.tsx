@@ -1,7 +1,8 @@
-import {Card} from 'components/content/Card';
+import {Card, CollapsibleCard} from 'components/content/Card';
 import {Center, HStack, View, VStack} from 'components/core';
 import {useNWACWeatherForecast} from 'components/forecast/useNWACWeatherForecast';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, Title3Black} from 'components/text';
+import {HTML} from 'components/text/HTML';
 import {ActivityIndicator, StyleSheet} from 'react-native';
 import {colorLookup} from 'theme';
 import {AvalancheForecastZone} from 'types/nationalAvalancheCenter';
@@ -109,6 +110,9 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone}) => {
           })}
         </VStack>
       </Card>
+      <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Synopsis</Title3Black>} startsCollapsed={false}>
+        <HTML source={{html: forecast.synopsis}} />
+      </CollapsibleCard>
     </VStack>
   );
 };
