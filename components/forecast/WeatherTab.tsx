@@ -6,6 +6,7 @@ import {HTML} from 'components/text/HTML';
 import {ActivityIndicator, StyleSheet} from 'react-native';
 import {colorLookup} from 'theme';
 import {AvalancheForecastZone} from 'types/nationalAvalancheCenter';
+import {utcDateToLocalTimeString} from 'utils/date';
 
 interface WeatherTabProps {
   zone: AvalancheForecastZone;
@@ -43,13 +44,13 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone}) => {
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Issued</AllCapsSmBlack>
             <AllCapsSm style={{textTransform: 'none'}} color="lightText">
-              {forecast.published_time}
+              {utcDateToLocalTimeString(forecast.published_time)}
             </AllCapsSm>
           </VStack>
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Expires</AllCapsSmBlack>
             <AllCapsSm style={{textTransform: 'none'}} color="lightText">
-              {forecast.expires_time}
+              {utcDateToLocalTimeString(forecast.expires_time)}
             </AllCapsSm>
           </VStack>
           <VStack space={8} style={{flex: 1}}>
