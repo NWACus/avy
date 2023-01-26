@@ -106,7 +106,7 @@ enum AnimatedDrawerState {
   Visible = 'Visible',
 }
 
-class AnimatedDrawerController {
+class AnimatedMapWithDrawerController {
   // These offsets are applied through translateY on the FlatList
   static readonly OFFSETS = {
     [AnimatedDrawerState.Hidden]: 220,
@@ -124,7 +124,7 @@ class AnimatedDrawerController {
 
   constructor(state = AnimatedDrawerState.Docked) {
     this.state = state;
-    this.baseOffset = AnimatedDrawerController.OFFSETS[state];
+    this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[state];
     this.panning = false;
     this.yOffset = new Animated.Value(this.baseOffset);
   }
@@ -132,7 +132,7 @@ class AnimatedDrawerController {
   setState(state: AnimatedDrawerState) {
     this.state = state;
     this.panning = false;
-    this.baseOffset = AnimatedDrawerController.OFFSETS[state];
+    this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[state];
     this.yOffset.flattenOffset();
     Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}).start();
   }
@@ -149,7 +149,7 @@ class AnimatedDrawerController {
     }
 
     // Are we moving too far in the X direction? If so, treat as a scroll and stop panning the drawer
-    if (Math.abs(gestureState.dx) > AnimatedDrawerController.SNAP_THRESHOLD) {
+    if (Math.abs(gestureState.dx) > AnimatedMapWithDrawerController.SNAP_THRESHOLD) {
       this.onPanResponderRelease();
       return;
     }
@@ -157,16 +157,16 @@ class AnimatedDrawerController {
     // Detect overscroll in the invalid direction - we allow a little bit of give,
     // but then ignore the events
     if (
-      (this.state === AnimatedDrawerState.Docked && gestureState.dy > AnimatedDrawerController.SNAP_THRESHOLD) ||
-      (this.state === AnimatedDrawerState.Visible && gestureState.dy < -AnimatedDrawerController.SNAP_THRESHOLD)
+      (this.state === AnimatedDrawerState.Docked && gestureState.dy > AnimatedMapWithDrawerController.SNAP_THRESHOLD) ||
+      (this.state === AnimatedDrawerState.Visible && gestureState.dy < -AnimatedMapWithDrawerController.SNAP_THRESHOLD)
     ) {
       return;
     }
 
-    if (Math.abs(gestureState.dy) > AnimatedDrawerController.SNAP_THRESHOLD) {
+    if (Math.abs(gestureState.dy) > AnimatedMapWithDrawerController.SNAP_THRESHOLD) {
       this.panning = false;
       this.state = this.state === AnimatedDrawerState.Docked ? AnimatedDrawerState.Visible : AnimatedDrawerState.Docked;
-      this.baseOffset = AnimatedDrawerController.OFFSETS[this.state];
+      this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[this.state];
       this.yOffset.flattenOffset();
       Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}).start();
     } else {
@@ -186,8 +186,8 @@ class AnimatedDrawerController {
 
   getTransform() {
     const allowedRange = [
-      AnimatedDrawerController.OFFSETS[AnimatedDrawerState.Visible] - AnimatedDrawerController.SNAP_THRESHOLD,
-      AnimatedDrawerController.OFFSETS[AnimatedDrawerState.Hidden] + AnimatedDrawerController.SNAP_THRESHOLD,
+      AnimatedMapWithDrawerController.OFFSETS[AnimatedDrawerState.Visible] - AnimatedMapWithDrawerController.SNAP_THRESHOLD,
+      AnimatedMapWithDrawerController.OFFSETS[AnimatedDrawerState.Hidden] + AnimatedMapWithDrawerController.SNAP_THRESHOLD,
     ];
     return {
       translateY: this.yOffset.interpolate({
@@ -223,7 +223,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
   // These values control the state that's driven through gestures & animation.
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
-  const panResponderController = useRef<AnimatedDrawerController>(new AnimatedDrawerController(AnimatedDrawerState.Hidden)).current;
+  const panResponderController = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden)).current;
   if (selectedZone && panResponderController.state !== AnimatedDrawerState.Visible) {
     panResponderController.setState(AnimatedDrawerState.Visible);
   } else if (!selectedZone && panResponderController.state === AnimatedDrawerState.Visible) {
