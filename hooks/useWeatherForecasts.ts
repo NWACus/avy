@@ -5,6 +5,8 @@ import axios, {AxiosError} from 'axios';
 import {QueryClient, useQuery} from 'react-query';
 
 import Log from 'network/log';
+import {getTimezoneOffset} from 'date-fns-tz';
+import {add, parse} from 'date-fns';
 
 const precipZoneToForecastZone = {
   'Hurricane Ridge': 'Olympics',
@@ -49,14 +51,14 @@ interface ZoneForecast {
 
 interface WeatherForecast {
   author: string;
-  published_time: string;
-  expires_time: string;
+  published_time: Date;
+  expires_time: Date;
   synopsis: string | null;
   // TODO: NAC zone id would be less fragile than using zone name here
   zones: Record<string, ZoneForecast[]>;
 }
 
-export const useNWACWeatherForecast = () => {
+export const useWeatherForecasts = () => {
   // TODO: add caching parameters
   // TODO: add to preload sequence
   return useQuery<WeatherForecast, AxiosError | Error>({
@@ -270,12 +272,30 @@ export const fetchWeather = async () => {
   });
   // console.log('step 5', JSON.stringify(zones, null, 2));
 
+  // Date hacking - convert a string like `Issued: 2:00 PM PST Wednesday, January 25, 2023`
+  const publishedTimeComponents = str(doc.getElementsByClassName('forecast-date')[0]).split(' ');
+  // Turn the string into `2:00 PM -08 Wednesday, January 25, 2023`
+  const timeZone = publishedTimeComponents[3];
+  const offsetHours = getTimezoneOffset(timeZone) / 1000 / 60 / 60;
+  const offsetString = `${offsetHours < 0 ? '-' : ''}${offsetHours < 10 ? '0' : ''}${Math.abs(offsetHours)}`;
+  publishedTimeComponents[3] = offsetString;
+  // Parse it into a Date object
+  const published_time = parse(publishedTimeComponents.slice(1).join(' '), 'h:mm a X EEEE, LLLL d, y', new Date());
+
+  // Infer an expiration date. Morning forecasts expire at 2 pm Pacific the same day, afternoon forecasts at 7 am PST the next day
+  // Let's say a morning forecast has to be published between midnight and noon Pacific, while an afternoon forecast can be published between noon and midnight Pacific.
+  const publishHourUTC = published_time.getUTCHours();
+  // Deal with underflow when publishHourUTC + offsetHours goes negative
+  const publishHourLocal = (publishHourUTC + offsetHours + 24) % 24;
+  const isPublishedMorning = publishHourLocal < 12;
+  const start = new Date(Date.UTC(published_time.getUTCFullYear(), published_time.getUTCMonth(), published_time.getUTCDate()));
+  // 😵‍💫 😵‍💫 😵‍💫
+  const expires_time = isPublishedMorning ? add(start, {hours: 14 - offsetHours}) : add(start, {hours: 7 - offsetHours, days: 1});
+
   return {
     author: str(doc.getElementsByClassName('forecaster')[0]).replace('by ', ''),
-    // TODO: parse this time string - it's non-standard. The text is `Issued: 2:00 PM PST Wednesday, January 25, 2023`
-    published_time: str(doc.getElementsByClassName('forecast-date')[0]),
-    // TODO: need a real time here, base it on expected publish times (6 am / 2 pm I think?)
-    expires_time: 'never',
+    published_time,
+    expires_time,
     synopsis: trim(doc.getElementsByClassName('synopsis')[0].getElementsByTagName('p').toString()),
     zones,
   };
