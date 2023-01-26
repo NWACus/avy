@@ -2,7 +2,7 @@ import React, {useCallback, useEffect} from 'react';
 
 import {uniq} from 'lodash';
 
-import {ActivityIndicator, Alert, Image, RefreshControl, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
+import {ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import {HStack, View} from 'components/core';
@@ -18,6 +18,7 @@ import {Body, FeatureTitleBlack} from 'components/text';
 import {Dropdown} from 'components/content/Dropdown';
 import {apiDateString} from 'utils/date';
 import {HomeStackNavigationProps} from 'routes';
+import {AvalancheCenterLogo} from '../AvalancheCenterLogo';
 
 export interface AvalancheForecastProps {
   zoneName: string;
@@ -116,7 +117,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
       <HStack justifyContent="space-between" alignItems="center" space={8} width="100%" height={64}>
         <View pl={8} py={8}>
           <TouchableOpacity onPress={onReturnToMapView}>
-            <Image source={require('assets/icon.png')} style={{width: 48, height: 48}} />
+            <AvalancheCenterLogo style={{height: 48}} avalancheCenterId={center_id} />
           </TouchableOpacity>
         </View>
         <View flex={1} mr={8}>

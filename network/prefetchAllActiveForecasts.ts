@@ -8,11 +8,13 @@ import {AvalancheCenter, AvalancheCenterID, MediaType, Product} from 'types/nati
 import AvalancheCenterMapLayerQuery from 'hooks/useMapLayer';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import LatestAvalancheForecastQuery from 'hooks/useLatestAvalancheForecast';
+import {preloadAvalancheCenterLogo} from '../components/AvalancheCenterLogo';
 
 //
 // Note: you can enable preload logging by setting ENABLE_PREFETCH_LOGGING in network/log
 //
 export const prefetchAllActiveForecasts = async (queryClient: QueryClient, center_id: AvalancheCenterID, prefetchDate: Date, nationalAvalancheCenterHost: string) => {
+  preloadAvalancheCenterLogo(center_id);
   await AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
   await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
 
