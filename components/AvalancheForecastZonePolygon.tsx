@@ -4,7 +4,6 @@ import {LatLng, Polygon} from 'react-native-maps';
 import {FeatureComponent} from 'types/nationalAvalancheCenter';
 import {colorFor} from './AvalancheDangerPyramid';
 import {MapViewZone} from 'hooks/useMapViewZones';
-import {RegionBounds, updateBoundsToContain} from './helpers/geographicCoordinates';
 
 const coordinateList = (geometry: FeatureComponent): number[][] => {
   let items: number[][] = [];
@@ -20,25 +19,19 @@ const toLatLng = (item: number[]): LatLng => {
   return {longitude: item[0], latitude: item[1]};
 };
 
+export const toLatLngList = (geometry: FeatureComponent): LatLng[] => {
+  return coordinateList(geometry).map(toLatLng);
+};
+
 export interface AvalancheForecastZonePolygonProps {
   zone: MapViewZone;
-  setRegionBounds: React.Dispatch<React.SetStateAction<RegionBounds>>;
   setSelectedZone: (zone: MapViewZone) => void;
 }
 
-export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({
-  zone,
-  setRegionBounds,
-  setSelectedZone,
-}: AvalancheForecastZonePolygonProps) => {
-  const coordinates: LatLng[] = coordinateList(zone.geometry).map(toLatLng);
-  React.useEffect(() => {
-    setRegionBounds((previous: RegionBounds) => updateBoundsToContain(previous, coordinates));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
+export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({zone, setSelectedZone}: AvalancheForecastZonePolygonProps) => {
   return (
     <Polygon
-      coordinates={coordinates}
+      coordinates={toLatLngList(zone.geometry)}
       fillColor={colorFor(zone.danger_level).alpha(zone.fillOpacity).string()}
       strokeColor={'#484848'}
       strokeWidth={2}

@@ -6,7 +6,7 @@ import {StationMetadata} from 'types/snowbound';
 import {useStations} from 'hooks/useStations';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {StyleSheet, ActivityIndicator, FlatList, TouchableOpacity, View, ViewStyle, Text, useWindowDimensions} from 'react-native';
-import {CARD_MARGIN, CARD_SPACING, CARD_WIDTH, defaultRegion} from './AvalancheForecastZoneMap';
+import {CARD_MARGIN, CARD_SPACING, CARD_WIDTH} from './AvalancheForecastZoneMap';
 import {useNavigation} from '@react-navigation/native';
 import {TelemetryStackNavigationProps} from 'routes';
 import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
@@ -96,7 +96,7 @@ export const TelemetryStationMap: React.FunctionComponent<{
   } else {
     return (
       <>
-        <MapView style={styles.map} initialRegion={defaultRegion} region={largerRegion} onLayout={setReady} provider={'google'}>
+        <MapView style={styles.map} region={largerRegion} onLayout={setReady} provider={'google'}>
           {isReady &&
             Object.values(telemetryStations).map(station => (
               <Marker
