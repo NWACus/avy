@@ -7,6 +7,7 @@ import {QueryClient, useQuery} from 'react-query';
 import Log from 'network/log';
 import {getTimezoneOffset} from 'date-fns-tz';
 import {add, parse} from 'date-fns';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 const precipZoneToForecastZone = {
   'Hurricane Ridge': 'Olympics',
@@ -40,8 +41,27 @@ interface WindSpeed {
   speed: string;
 }
 
-interface ZoneForecast {
-  label: string; // TODO: tighten this, it's either a day of the week, or a day with "Night" appended
+type PeriodLabel =
+  | 'Sunday'
+  | 'Monday'
+  | 'Tuesday'
+  | 'Wednesday'
+  | 'Thursday'
+  | 'Friday'
+  | 'Saturday'
+  | 'Sunday Night'
+  | 'Monday Night'
+  | 'Tuesday Night'
+  | 'Wednesday Night'
+  | 'Thursday Night'
+  | 'Friday Night'
+  | 'Saturday Night';
+
+export interface ZoneForecastPeriod {
+  // TODO: does this object need an actual time? Right now, all it has is a relative field like "Sunday Night",
+  //       which works fine when displaying latest forecast and maybe not so fine when displaying archived ones?
+  //       not sure the website handles this any better, tbh.
+  label: PeriodLabel;
   forecast: string;
   snowLevel: SnowLevel[];
   temperatures: {low: number; high: number};
@@ -49,19 +69,30 @@ interface ZoneForecast {
   precipitation: Record<PrecipitationZone, string>;
 }
 
-interface WeatherForecast {
+interface WeatherForecastBase {
   author: string;
   published_time: Date;
   expires_time: Date;
   synopsis: string | null;
-  // TODO: NAC zone id would be less fragile than using zone name here
-  zones: Record<string, ZoneForecast[]>;
 }
 
-export const useWeatherForecasts = () => {
+export interface WeatherForecast extends WeatherForecastBase {
+  data: ZoneForecastPeriod[];
+}
+
+interface WeatherForecastAllZones extends WeatherForecastBase {
+  // TODO: NAC zone id would be less fragile than using zone name here
+  zones: Record<string, ZoneForecastPeriod[]>;
+}
+
+export const useLatestWeatherForecasts = (center_id: AvalancheCenterID) => {
+  if (center_id !== 'NWAC') {
+    throw new Error(`can't fetch weather for ${center_id}: useLatestWeatherForecasts hook only supports NWAC`);
+  }
+
   // TODO: add caching parameters
   // TODO: add to preload sequence
-  return useQuery<WeatherForecast, AxiosError | Error>({
+  return useQuery<WeatherForecastAllZones, AxiosError | Error>({
     queryKey: queryKey(),
     queryFn: async () => fetchWeather(),
   });
@@ -153,7 +184,7 @@ export const fetchWeather = async () => {
     },
   }).parseFromString(fixedData, 'text/html');
 
-  const zones: Record<string, ZoneForecast[]> = {};
+  const zones: Record<string, ZoneForecastPeriod[]> = {};
 
   // Zone forecasts
   const mwrIdToName = Object.fromEntries(
