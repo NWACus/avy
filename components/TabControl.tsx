@@ -4,7 +4,7 @@ import {TouchableOpacity} from 'react-native';
 
 import {Body, BodySemibold} from './text';
 import {colorLookup} from 'theme';
-import {HStack, VStack} from 'components/core';
+import {Center, HStack, View, VStack} from 'components/core';
 
 export interface TabProps {
   title: string;
@@ -23,34 +23,31 @@ export const TabControl: React.FunctionComponent<TabControlProps> = ({children, 
   const tabCount = React.Children.count(children);
 
   const tabStyle = {
-    borderBottomColor: backgroundColor,
-    borderBottomWidth: 4,
-    borderRadius: 0,
     width: `${Math.round(10000.0 / tabCount) / 100}%`,
-  } as const;
-  const selectedTabStyle = {
-    ...tabStyle,
-    borderBottomColor: selectedTextColor,
   } as const;
   const textStyle = {
     textAlign: 'center',
-    padding: 8,
+    paddingVertical: 8,
   } as const;
 
   return (
     <VStack style={{width: '100%', backgroundColor}}>
-      <HStack justifyContent="space-evenly" alignItems="center" style={{width: '100%', backgroundColor, height: 64}}>
+      <HStack justifyContent="space-evenly" alignItems="center" width="100%" backgroundColor={backgroundColor} paddingTop={8}>
         {React.Children.map(children, (child, index) => {
           const selected = selectedIndex === index;
           return (
-            <TouchableOpacity onPress={() => setSelectedIndex(index)} style={selected ? selectedTabStyle : tabStyle} key={`tabcontrol-item-${index}`}>
-              {selected ? (
-                <BodySemibold color={selectedTextColor} style={textStyle}>
-                  {child.props.title}
-                </BodySemibold>
-              ) : (
-                <Body style={textStyle}>{child.props.title}</Body>
-              )}
+            <TouchableOpacity onPress={() => setSelectedIndex(index)} style={tabStyle} key={`tabcontrol-item-${index}`}>
+              <Center>
+                <View borderColor={selected ? selectedTextColor : backgroundColor} borderBottomWidth={4} borderRadius={0}>
+                  {selected ? (
+                    <BodySemibold color={selectedTextColor} style={textStyle}>
+                      {child.props.title}
+                    </BodySemibold>
+                  ) : (
+                    <Body style={textStyle}>{child.props.title}</Body>
+                  )}
+                </View>
+              </Center>
             </TouchableOpacity>
           );
         })}

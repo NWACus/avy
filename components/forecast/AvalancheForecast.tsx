@@ -19,6 +19,7 @@ import {Dropdown} from 'components/content/Dropdown';
 import {apiDateString} from 'utils/date';
 import {HomeStackNavigationProps} from 'routes';
 import {AvalancheCenterLogo} from '../AvalancheCenterLogo';
+import {WeatherTab} from 'components/forecast/WeatherTab';
 
 export interface AvalancheForecastProps {
   zoneName: string;
@@ -26,10 +27,6 @@ export interface AvalancheForecastProps {
   date: Date;
   forecast_zone_id: number;
 }
-
-const WeatherTab = () => {
-  return <FeatureTitleBlack>Weather coming soon</FeatureTitleBlack>;
-};
 
 const ObservationsTab = () => {
   return <FeatureTitleBlack>Observations coming soon</FeatureTitleBlack>;
@@ -129,7 +126,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
           <AvalancheTab zone={zone} forecast={forecast} />
         </Tab>
         <Tab title="Weather">
-          <WeatherTab />
+          <WeatherTab zone={zone} />
         </Tab>
         <Tab title="Observations">
           <ObservationsTab />

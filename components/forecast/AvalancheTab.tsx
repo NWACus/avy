@@ -48,7 +48,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
 
   return (
     <VStack space={8} bgColor={'#f0f2f5'}>
-      <Card marginTop={2} borderRadius={0} borderColor="white" header={<Title3Black>Avalanche Forecast</Title3Black>}>
+      <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Avalanche Forecast</Title3Black>}>
         <HStack justifyContent="space-evenly" space={8}>
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Issued</AllCapsSmBlack>
@@ -66,6 +66,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
             <AllCapsSmBlack>Author</AllCapsSmBlack>
             <AllCapsSm style={{textTransform: 'none'}} color="lightText">
               {forecast.author || 'Unknown'}
+              {'\n'}
             </AllCapsSm>
           </VStack>
         </HStack>
