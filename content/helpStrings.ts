@@ -18,7 +18,24 @@ export default {
   dangerScaleDetail: `
     <p>The North American Public Avalanche Danger Scale (NAPADS) is a system that rates avalanche danger and provides general travel advice
     based on the likelihood, size, and distribution of expected avalanches. It consists of five levels, from least to highest amount of
-    danger: 1 – Low, 2 – Moderate, 3 – Considerable, 4 – High, 5 – Extreme. Danger ratings are typically provided for three distinct
+    danger:</p>
+    <table>
+        <tr>
+            <td>1 - Low</td>
+        </tr>
+        <tr>
+            <td>2 - Moderate</td>
+        </tr>
+        <tr>
+            <td>3 - Considerable</td>
+        </tr>
+        <tr>
+            <td>4 - High</td>
+        </tr>
+        <tr>
+            <td>5 - Extreme</td>
+        </tr>
+    </table><p>Danger ratings are typically provided for three distinct
     elevation bands. Although the danger ratings are assigned numerical levels, the danger increases exponentially between levels.
     In other words, the hazard rises more dramatically as it ascends toward the higher levels on the scale.</p>
     <p><a href='https://avalanche.org/avalanche-encyclopedia/danger-scale/'>Click here</a> to learn more.</p>`,
