@@ -1,23 +1,28 @@
 import {AntDesign} from '@expo/vector-icons';
+import {IconButtonProps} from '@expo/vector-icons/build/createIconSet';
 import {Button} from 'components/content/Button';
 import {Center, View, VStack} from 'components/core';
 import {Body, Title3Semibold} from 'components/text';
 import {HTML, HTMLRendererConfig} from 'components/text/HTML';
 import React, {useCallback, useState} from 'react';
-import {ColorValue, Modal, TouchableWithoutFeedback} from 'react-native';
+import {ColorValue, Insets, Modal, TextStyle, TouchableWithoutFeedback, ViewProps, ViewStyle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 
 export interface InfoTooltipProps {
   title: string;
   content: string;
-  color?: ColorValue;
   size: number;
+  color?: ColorValue;
+
+  // Additional IconButton customization
+  style?: ViewStyle | TextStyle;
+  hitSlop?: Insets | undefined;
 }
 
 const htmlStyle = {fontSize: 14, lineHeight: 21, textAlign: 'center'} as const;
 
-export const InfoTooltip: React.FC<InfoTooltipProps> = ({title, content, color = 'darktext', size}) => {
+export const InfoTooltip: React.FC<InfoTooltipProps> = ({title, content, color = 'darktext', size, ...props}) => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const openModal = useCallback(() => {
     setShowModal(true);
@@ -29,7 +34,7 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({title, content, color =
   return (
     <>
       {/* unfortunate ant misspelling: infocirlceo */}
-      <AntDesign.Button name="infocirlceo" color={colorLookup(color)} backgroundColor="rgba(1, 1, 1, 0)" onPress={openModal} size={size} iconStyle={{marginRight: 0}} />
+      <AntDesign.Button name="infocirlceo" color={colorLookup(color)} backgroundColor="rgba(1, 1, 1, 0)" onPress={openModal} size={size} iconStyle={{marginRight: 0}} {...props} />
       {/* Pressing the Android back button dismisses the modal */}
       <Modal visible={showModal} transparent animationType="fade" onRequestClose={closeModal}>
         {/* Pressing anywhere outside the modal dismisses the modal */}
