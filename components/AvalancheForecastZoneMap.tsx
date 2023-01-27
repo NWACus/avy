@@ -111,7 +111,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         scrollEnabled={true}
         provider={'google'}
         onPress={onPressMapView}>
-        {isReady && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} onPress={onPressPolygon} />)}
+        {isReady && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={selectedZone === zone} onPress={onPressPolygon} />)}
       </MapView.Animated>
       <SafeAreaView onLayout={(event: LayoutChangeEvent) => controller.animateUsingUpdatedTopElementsHeight(event.nativeEvent.layout.y + event.nativeEvent.layout.height)}>
         <View flex={1}>
