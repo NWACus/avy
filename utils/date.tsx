@@ -36,7 +36,7 @@ export const utcDateToLocalTimeString = (date: Date | string | undefined): strin
     return 'Unknown';
   }
   const d = typeof date === 'string' ? new Date(date) : date;
-  return format(d, `EEE, MMM d, yyyy h:mm a`);
+  return format(d, `EEE, MMM d, yyyy \nh:mm a`);
 };
 
 export const utcDateToLocalDateString = (date: Date | string | undefined): string => {

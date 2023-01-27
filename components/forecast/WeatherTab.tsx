@@ -21,9 +21,9 @@ const timeOfDayString = (period: 'day' | 'night', subperiod: 'early' | 'late') =
 };
 
 export const WeatherTab: React.FC<WeatherTabProps> = ({zone}) => {
-  const {isLoading, isError, data: forecast} = useLatestWeatherForecast('NWAC', zone);
+  const {isLoading, isError, isIdle, data: forecast} = useLatestWeatherForecast('NWAC', zone);
 
-  if (isLoading) {
+  if (isLoading || (isIdle && !forecast)) {
     return (
       <Center style={StyleSheet.absoluteFillObject}>
         <ActivityIndicator />
@@ -88,7 +88,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone}) => {
                     <BodySemibold>Precipitation (in)</BodySemibold>
                     {Object.entries(forecast.precipitation).map(([zone, value]) => (
                       <HStack key={zone} justifyContent="space-between" alignItems="flex-start" alignSelf="stretch">
-                        <View flex={1} flexGrow={3} pr={12}>
+                        <View flex={1} flexGrow={2} pr={12}>
                           <Body style={{flex: 1, flexBasis: 0.75}}>{zone}</Body>
                         </View>
                         <View flex={1} flexGrow={1}>
