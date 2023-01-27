@@ -1,7 +1,7 @@
-import {fetchWeather} from './useWeatherForecasts';
+import {fetchWeather} from './useLatestWeatherForecasts';
 
 // Tests are skipped by default; not sure we want to let this constantly hit the server
-describe.skip('useNWACWeatherForecast', () => {
+describe.skip('useLatestWeatherForecasts', () => {
   it('scrapes the HTML into a reasonable format', async () => {
     const data = await fetchWeather();
 

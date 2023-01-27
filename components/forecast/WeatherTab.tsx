@@ -1,6 +1,6 @@
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {Center, HStack, View, VStack} from 'components/core';
-import {useWeatherForecasts} from 'hooks/useWeatherForecasts';
+import {useLatestWeatherForecast} from 'hooks/useLatestWeatherForecast';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {ActivityIndicator, StyleSheet} from 'react-native';
@@ -21,9 +21,9 @@ const timeOfDayString = (period: 'day' | 'night', subperiod: 'early' | 'late') =
 };
 
 export const WeatherTab: React.FC<WeatherTabProps> = ({zone}) => {
-  const {isLoading, isError, data: forecast} = useWeatherForecasts();
+  const {isLoading, isError, isIdle, data: forecast} = useLatestWeatherForecast('NWAC', zone);
 
-  if (isLoading) {
+  if (isLoading || (isIdle && !forecast)) {
     return (
       <Center style={StyleSheet.absoluteFillObject}>
         <ActivityIndicator />
@@ -62,7 +62,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone}) => {
           </VStack>
         </HStack>
         <VStack alignItems="stretch" pt={4}>
-          {forecast.zones[zone.name].slice(0, 2).map((forecast, index) => {
+          {forecast.data.slice(0, 2).map((forecast, index) => {
             return (
               <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index === 0 ? colorLookup('light.200') : 'white'}>
                 <BodyBlack>{forecast.label}</BodyBlack>
@@ -88,7 +88,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone}) => {
                     <BodySemibold>Precipitation (in)</BodySemibold>
                     {Object.entries(forecast.precipitation).map(([zone, value]) => (
                       <HStack key={zone} justifyContent="space-between" alignItems="flex-start" alignSelf="stretch">
-                        <View flex={1} flexGrow={3} pr={12}>
+                        <View flex={1} flexGrow={2} pr={12}>
                           <Body style={{flex: 1, flexBasis: 0.75}}>{zone}</Body>
                         </View>
                         <View flex={1} flexGrow={1}>

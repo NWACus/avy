@@ -7,6 +7,9 @@ import {QueryClient, useQuery} from 'react-query';
 import Log from 'network/log';
 import {getTimezoneOffset} from 'date-fns-tz';
 import {add, parse} from 'date-fns';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+
+const LOG_LEVEL = 0;
 
 const precipZoneToForecastZone = {
   'Hurricane Ridge': 'Olympics',
@@ -40,8 +43,27 @@ interface WindSpeed {
   speed: string;
 }
 
-interface ZoneForecast {
-  label: string; // TODO: tighten this, it's either a day of the week, or a day with "Night" appended
+type PeriodLabel =
+  | 'Sunday'
+  | 'Monday'
+  | 'Tuesday'
+  | 'Wednesday'
+  | 'Thursday'
+  | 'Friday'
+  | 'Saturday'
+  | 'Sunday Night'
+  | 'Monday Night'
+  | 'Tuesday Night'
+  | 'Wednesday Night'
+  | 'Thursday Night'
+  | 'Friday Night'
+  | 'Saturday Night';
+
+export interface ZoneForecastPeriod {
+  // TODO: does this object need an actual time? Right now, all it has is a relative field like "Sunday Night",
+  //       which works fine when displaying latest forecast and maybe not so fine when displaying archived ones?
+  //       not sure the website handles this any better, tbh.
+  label: PeriodLabel;
   forecast: string;
   snowLevel: SnowLevel[];
   temperatures: {low: number; high: number};
@@ -49,19 +71,30 @@ interface ZoneForecast {
   precipitation: Record<PrecipitationZone, string>;
 }
 
-interface WeatherForecast {
+interface WeatherForecastBase {
   author: string;
   published_time: Date;
   expires_time: Date;
   synopsis: string | null;
-  // TODO: NAC zone id would be less fragile than using zone name here
-  zones: Record<string, ZoneForecast[]>;
 }
 
-export const useWeatherForecasts = () => {
+export interface WeatherForecast extends WeatherForecastBase {
+  data: ZoneForecastPeriod[];
+}
+
+interface WeatherForecastAllZones extends WeatherForecastBase {
+  // TODO: NAC zone id would be less fragile than using zone name here
+  zones: Record<string, ZoneForecastPeriod[]>;
+}
+
+export const useLatestWeatherForecasts = (center_id: AvalancheCenterID) => {
+  if (center_id !== 'NWAC') {
+    throw new Error(`can't fetch weather for ${center_id}: useLatestWeatherForecasts hook only supports NWAC`);
+  }
+
   // TODO: add caching parameters
   // TODO: add to preload sequence
-  return useQuery<WeatherForecast, AxiosError | Error>({
+  return useQuery<WeatherForecastAllZones, AxiosError | Error>({
     queryKey: queryKey(),
     queryFn: async () => fetchWeather(),
   });
@@ -102,8 +135,14 @@ const findNextSiblingByTag = (node, tag: string) => {
 };
 
 const periodInfo = (input: string) => {
+  if (!input || input.length === 0) {
+    return null;
+  }
   const parts = input.split(' ');
   const day = parts[0];
+  if (!day || day.length === 0) {
+    return null;
+  }
   switch (parts[1]) {
     case 'Morning':
       return {label: day, day, period: 'day', subperiod: 'early'};
@@ -153,7 +192,7 @@ export const fetchWeather = async () => {
     },
   }).parseFromString(fixedData, 'text/html');
 
-  const zones: Record<string, ZoneForecast[]> = {};
+  const zones: Record<string, ZoneForecastPeriod[]> = {};
 
   // Zone forecasts
   const mwrIdToName = Object.fromEntries(
@@ -164,36 +203,43 @@ export const fetchWeather = async () => {
     const zoneName = mwrIdToName[mwrId];
     const periods = toArray(node.getElementsByTagName('th'))
       .filter(n => n.getAttribute('class') === 'row-header')
-      .map(n => periodInfo(str(n)));
+      .map(n => periodInfo(str(n)))
+      .filter(n => n != null);
     const forecasts = toArray(node.getElementsByTagName('td'))
       .filter(n => n.getAttribute('class') === 'description')
       .map(n => str(n));
     merge(zones, {[zoneName]: periods.map((p, idx) => ({label: p.label, forecast: forecasts[idx], precipitation: {}}))});
   });
 
-  // console.log('step 1', JSON.stringify(zones, null, 2));
+  LOG_LEVEL > 0 && console.log('step 1', JSON.stringify(zones, null, 2));
 
   // Zone snow level predictions
   const snowLevel = doc.getElementsByClassName('desktop snow-level')[0];
   const snowLevelRows = toArray(snowLevel.getElementsByTagName('tr'));
   const snowLevelPeriods = toArray(snowLevelRows[0].getElementsByTagName('th'))
     .slice(1)
-    .map(n => periodInfo(str(n)));
+    .map(n => str(n))
+    .filter(x => x.length > 0)
+    .map(n => periodInfo(n))
+    .filter(n => n != null);
   snowLevelRows.slice(1).forEach(row => {
     const zoneName = canonicalZoneName(row.getElementsByTagName('th')[0]);
     const cells = toArray(row.getElementsByTagName('td')).map(cell => str(cell));
     cells.forEach((cell, idx) => {
+      if (idx >= snowLevelPeriods.length) {
+        return;
+      }
       const period = snowLevelPeriods[idx];
       const forecast = zones[zoneName].find(f => f.label === period.label);
       if (forecast) {
         forecast['snowLevel'] = forecast['snowLevel'] || [];
         forecast['snowLevel'].push({period: period.period, subperiod: period.subperiod, level: Number(cell.replace(/\D/g, ''))});
       } else {
-        // console.warn(`Snow level: could not find forecast for ${period.label}`, zones);
+        LOG_LEVEL > 1 && console.warn(`Snow level: could not find forecast for ${period.label}`, zones);
       }
     });
   });
-  // console.log('step 2', JSON.stringify(zones, null, 2));
+  LOG_LEVEL > 0 && console.log('step 2', JSON.stringify(zones, null, 2));
 
   const precip = doc.getElementsByClassName('desktop precipitation')[0];
   const precipRows = toArray(precip.getElementsByTagName('tr'));
@@ -201,7 +247,8 @@ export const fetchWeather = async () => {
     .slice(1)
     .map(n => str(n))
     .filter(x => x.length > 0)
-    .map(x => periodInfo(x));
+    .map(x => periodInfo(x))
+    .filter(n => n != null);
   precipRows.slice(2).forEach(row => {
     const precipZone = canonicalZoneName(row.getElementsByTagName('th')[0]);
     const zoneName = precipZoneToForecastZone[precipZone];
@@ -210,17 +257,20 @@ export const fetchWeather = async () => {
         .map(cell => str(cell))
         .filter(x => x.length > 0);
       cells.forEach((cell, idx) => {
+        if (idx >= precipPeriods.length) {
+          return;
+        }
         const period = precipPeriods[idx];
         const forecast = zones[zoneName].find(f => f.label === period.label);
         if (forecast) {
           forecast.precipitation[precipZone] = cell;
         } else {
-          // console.warn(`Precipitation: could not find forecast for ${period.label}`, zones);
+          LOG_LEVEL > 1 && console.warn(`Precipitation: could not find forecast for ${period.label}`, zones);
         }
       });
     }
   });
-  // console.log('step 3', JSON.stringify(zones, null, 2));
+  LOG_LEVEL > 0 && console.log('step 3', JSON.stringify(zones, null, 2));
 
   const temps = doc.getElementsByClassName('desktop temperatures')[0];
   const tempsRows = toArray(temps.getElementsByTagName('tr'));
@@ -228,24 +278,28 @@ export const fetchWeather = async () => {
     .slice(1)
     .map(n => str(n))
     .filter(x => x.length > 0)
-    .map(n => periodInfo(n));
+    .map(n => periodInfo(n))
+    .filter(n => n != null);
   tempsRows.slice(2).forEach(row => {
     const zoneName = canonicalZoneName(row.getElementsByTagName('td')[0]);
     const cells = toArray(row.getElementsByTagName('td'))
       .slice(1)
       .map(cell => str(cell));
     cells.forEach((cell, idx) => {
+      if (idx >= tempsPeriods.length) {
+        return;
+      }
       const period = tempsPeriods[idx];
       const forecast = zones[zoneName].find(f => f.label === period.label);
       if (forecast) {
         const [_temp, high, low] = cell.match(/(\d+)\s*\/\s*(\d+)/);
         forecast['temperatures'] = {low: Number(low), high: Number(high)};
       } else {
-        // console.warn(`Temps: could not find forecast for ${period.label}`, zones);
+        LOG_LEVEL > 1 && console.warn(`Temps: could not find forecast for ${period.label}`, zones);
       }
     });
   });
-  // console.log('step 4', JSON.stringify(zones, null, 2));
+  LOG_LEVEL > 0 && console.log('step 4', JSON.stringify(zones, null, 2));
 
   // Ridgeline winds table doesn't have a sensible classname :(
   const windsHeader = doc.getElementById('free-winds-5k');
@@ -255,22 +309,26 @@ export const fetchWeather = async () => {
     .slice(1)
     .map(n => str(n))
     .filter(x => x.length > 0)
-    .map(n => periodInfo(n));
+    .map(n => periodInfo(n))
+    .filter(n => n != null);
   windsRows.slice(1).forEach(row => {
     const zoneName = canonicalZoneName(row.getElementsByTagName('th')[0]);
     const cells = toArray(row.getElementsByTagName('td')).map(cell => str(cell));
     cells.forEach((cell, idx) => {
+      if (idx >= windsPeriods.length) {
+        return;
+      }
       const period = windsPeriods[idx];
       const forecast = zones[zoneName].find(f => f.label === period.label);
       if (forecast) {
         forecast['winds'] = forecast['winds'] || [];
         forecast['winds'].push({period: period.period, subperiod: period.subperiod, speed: cell});
       } else {
-        // console.log(`Winds: could not find forecast for ${period.label}`, zones);
+        LOG_LEVEL > 1 && console.warn(`Winds: could not find forecast for ${period.label}`, zones);
       }
     });
   });
-  // console.log('step 5', JSON.stringify(zones, null, 2));
+  LOG_LEVEL > 0 && console.log('step 5', JSON.stringify(zones, null, 2));
 
   // Date hacking - convert a string like `Issued: 2:00 PM PST Wednesday, January 25, 2023`
   const publishedTimeComponents = str(doc.getElementsByClassName('forecast-date')[0]).split(' ');
