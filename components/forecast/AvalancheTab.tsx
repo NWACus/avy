@@ -20,6 +20,15 @@ interface AvalancheTabProps {
   forecast: Product;
 }
 
+const HeaderWithTooltip = ({title, content}) => (
+  // the icon style is designed to make the circle "i" look natural next to the
+  // text - neither `center` nor `baseline` alignment look good on their own
+  <HStack space={6} alignItems="center">
+    <BodyBlack>{title}</BodyBlack>
+    <InfoTooltip size={bodySize} title={title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />
+  </HStack>
+);
+
 export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.memo(({zone, forecast}) => {
   let currentDanger: AvalancheDangerForecast | undefined = forecast.danger.find(item => item.valid_day === ForecastPeriod.Current);
   if (!currentDanger || !currentDanger.upper) {
@@ -82,27 +91,10 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
         }>
         <HTML source={{html: forecast.bottom_line}} />
       </Card>
-      <Card
-        borderRadius={0}
-        borderColor="white"
-        header={
-          <HStack space={6} alignItems="baseline">
-            <BodyBlack>Avalanche Danger</BodyBlack>
-            <InfoTooltip size={bodySize} title="Avalanche Danger" content={helpStrings.avalancheDanger} />
-          </HStack>
-        }>
+      <Card borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Avalanche Danger" content={helpStrings.avalancheDanger} />}>
         <AvalancheDangerTable date={forecast.published_time} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
       </Card>
-      <CollapsibleCard
-        startsCollapsed
-        borderRadius={0}
-        borderColor="white"
-        header={
-          <HStack space={6} alignItems="baseline">
-            <BodyBlack>Outlook</BodyBlack>
-            <InfoTooltip size={bodySize} title="Outlook" content={helpStrings.avalancheDangerOutlook} />
-          </HStack>
-        }>
+      <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Outlook" content={helpStrings.avalancheDangerOutlook} />}>
         <AvalancheDangerTable date={addDays(forecast.published_time, 1)} forecast={outlookDanger} elevation_band_names={elevationBandNames} size={'outlook'} />
       </CollapsibleCard>
       {forecast.forecast_avalanche_problems.map((problem, index) => (
@@ -111,12 +103,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
           startsCollapsed
           borderRadius={0}
           borderColor="white"
-          header={
-            <HStack space={6} alignItems="baseline">
-              <BodyBlack>Avalanche Problem #{index + 1}</BodyBlack>
-              <InfoTooltip size={bodySize} title="Avalanche Problems" content={helpStrings.avalancheProblem} />
-            </HStack>
-          }>
+          header={<HeaderWithTooltip title="Avalanche Problems" content={helpStrings.avalancheProblem} />}>
           <AvalancheProblemCard key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
         </CollapsibleCard>
       ))}

@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 
-import {AppStateStatus, Platform, StyleSheet, View} from 'react-native';
+import {AppStateStatus, Platform, StatusBar, StyleSheet, View} from 'react-native';
 import {NavigationContainer, ParamListBase, RouteProp} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -149,6 +149,7 @@ const BaseApp: React.FunctionComponent<{
     <HTMLRendererConfig>
       <SafeAreaProvider>
         <NavigationContainer>
+          <StatusBar barStyle="dark-content" />
           <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
             <TabNavigator.Navigator
               initialRouteName="Home"
