@@ -25,10 +25,10 @@ export const toLatLngList = (geometry: FeatureComponent): LatLng[] => {
 
 export interface AvalancheForecastZonePolygonProps {
   zone: MapViewZone;
-  setSelectedZone: (zone: MapViewZone) => void;
+  onPress: (zone: MapViewZone) => void;
 }
 
-export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({zone, setSelectedZone}: AvalancheForecastZonePolygonProps) => {
+export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({zone, onPress}: AvalancheForecastZonePolygonProps) => {
   return (
     <Polygon
       coordinates={toLatLngList(zone.geometry)}
@@ -37,7 +37,7 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
       strokeWidth={2}
       tappable={true}
       onPress={event => {
-        setSelectedZone(zone);
+        onPress(zone);
         // By calling stopPropagation, we prevent this event from getting passed to the MapView's onPress handler,
         // which would then clear the selection
         // https://github.com/react-native-maps/react-native-maps/issues/1132
