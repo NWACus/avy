@@ -92,10 +92,10 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
         <HTML source={{html: forecast.bottom_line}} />
       </Card>
       <Card borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Avalanche Danger" content={helpStrings.avalancheDanger} />}>
-        <AvalancheDangerTable date={forecast.published_time} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
+        <AvalancheDangerTable date={addDays(forecast.published_time, 1)} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
       </Card>
       <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Outlook" content={helpStrings.avalancheDangerOutlook} />}>
-        <AvalancheDangerTable date={addDays(forecast.published_time, 1)} forecast={outlookDanger} elevation_band_names={elevationBandNames} size={'outlook'} />
+        <AvalancheDangerTable date={addDays(forecast.published_time, 2)} forecast={outlookDanger} elevation_band_names={elevationBandNames} size={'outlook'} />
       </CollapsibleCard>
       {forecast.forecast_avalanche_problems.map((problem, index) => (
         <CollapsibleCard
