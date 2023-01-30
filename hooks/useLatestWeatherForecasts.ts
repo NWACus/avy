@@ -114,8 +114,17 @@ export const prefetchWeather = async (queryClient: QueryClient) => {
       return result;
     },
   });
-  Log.prefetch('avalanche center map layer is cached with react-query');
+  Log.prefetch('avalanche center weather is cached with react-query');
 };
+
+export const fetchWeatherQuery = async (queryClient: QueryClient) =>
+  await queryClient.fetchQuery({
+    queryKey: queryKey(),
+    queryFn: async () => {
+      const result = await fetchWeather();
+      return result;
+    },
+  });
 
 const toArray = (elements: HTMLCollection) => Array.prototype.slice.call(elements);
 
@@ -362,6 +371,6 @@ export const fetchWeather = async () => {
 
 export default {
   queryKey,
-  fetch: fetchWeather,
   prefetch: prefetchWeather,
+  fetchQuery: fetchWeatherQuery,
 };
