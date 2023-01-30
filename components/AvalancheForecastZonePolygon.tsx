@@ -4,6 +4,7 @@ import {LatLng, Polygon} from 'react-native-maps';
 import {FeatureComponent} from 'types/nationalAvalancheCenter';
 import {colorFor} from './AvalancheDangerPyramid';
 import {MapViewZone} from 'hooks/useMapViewZones';
+import {colorLookup} from '../theme';
 
 const coordinateList = (geometry: FeatureComponent): number[][] => {
   let items: number[][] = [];
@@ -25,17 +26,21 @@ export const toLatLngList = (geometry: FeatureComponent): LatLng[] => {
 
 export interface AvalancheForecastZonePolygonProps {
   zone: MapViewZone;
+  selected: boolean;
   onPress: (zone: MapViewZone) => void;
 }
 
-export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({zone, onPress}: AvalancheForecastZonePolygonProps) => {
+export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({zone, selected, onPress}: AvalancheForecastZonePolygonProps) => {
+  const outline = colorLookup('gray.700');
+  const highlight = colorLookup('blue.100');
   return (
     <Polygon
       coordinates={toLatLngList(zone.geometry)}
       fillColor={colorFor(zone.danger_level).alpha(zone.fillOpacity).string()}
-      strokeColor={'#484848'}
-      strokeWidth={2}
+      strokeColor={selected ? highlight.toString() : outline.toString()}
+      strokeWidth={selected ? 4 : 2}
       tappable={true}
+      zIndex={selected ? 1 : 0}
       onPress={event => {
         onPress(zone);
         // By calling stopPropagation, we prevent this event from getting passed to the MapView's onPress handler,
