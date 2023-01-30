@@ -52,10 +52,26 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   const {isLoading, isError, data: zones} = useMapViewZones(center, date);
 
+  const navigation = useNavigation<HomeStackNavigationProps>();
   const [selectedZone, setSelectedZone] = useState<MapViewZone | null>(null);
-  const onPress = useCallback(() => {
+  const onPressMapView = useCallback(() => {
     setSelectedZone(null);
   }, []);
+  const onPressPolygon = useCallback(
+    (zone: MapViewZone) => {
+      if (selectedZone === zone) {
+        navigation.navigate('forecast', {
+          zoneName: zone.name,
+          center_id: zone.center_id,
+          forecast_zone_id: zone.zone_id,
+          dateString: apiDateString(date),
+        });
+      } else {
+        setSelectedZone(zone);
+      }
+    },
+    [navigation, selectedZone, date],
+  );
 
   const avalancheCenterMapRegionBounds: RegionBounds = zones
     ? zones.reduce((accumulator, currentValue) => updateBoundsToContain(accumulator, toLatLngList(currentValue.geometry)), defaultAvalancheCenterMapRegionBounds)
@@ -94,8 +110,8 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         zoomEnabled={true}
         scrollEnabled={true}
         provider={'google'}
-        onPress={onPress}>
-        {isReady && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} setSelectedZone={setSelectedZone} />)}
+        onPress={onPressMapView}>
+        {isReady && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} onPress={onPressPolygon} />)}
       </MapView.Animated>
       <SafeAreaView onLayout={(event: LayoutChangeEvent) => controller.animateUsingUpdatedTopElementsHeight(event.nativeEvent.layout.y + event.nativeEvent.layout.height)}>
         <View flex={1}>
