@@ -143,7 +143,8 @@ const periodInfo = (input: string) => {
   if (!day || day.length === 0) {
     return null;
   }
-  switch (parts[1]) {
+  // Not dealing with asterisks here - https://github.com/stevekuznetsov/avalanche-forecast/issues/109 tracks doing this for the real API
+  switch (parts[1]?.trim()?.replace('*', '')) {
     case 'Morning':
       return {label: day, day, period: 'day', subperiod: 'early'};
     case 'Afternoon':
