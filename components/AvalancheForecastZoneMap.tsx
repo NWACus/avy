@@ -76,7 +76,6 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const avalancheCenterMapRegionBounds: RegionBounds = zones
     ? zones.reduce((accumulator, currentValue) => updateBoundsToContain(accumulator, toLatLngList(currentValue.geometry)), defaultAvalancheCenterMapRegionBounds)
     : defaultAvalancheCenterMapRegionBounds;
-  zones?.forEach(zone => updateBoundsToContain(avalancheCenterMapRegionBounds, toLatLngList(zone.geometry)));
   const avalancheCenterMapRegion: Region = regionFromBounds(avalancheCenterMapRegionBounds);
   // give the polygons a little buffer in the region so we don't render them at the outskirts of the screen
   avalancheCenterMapRegion.latitudeDelta *= 1.05;
