@@ -38,6 +38,15 @@ const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nati
   Log.prefetch('avalanche fragment data is cached with react-query');
 };
 
+const fetchAvalancheForecastFragmentsQuery = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: string, date: Date) =>
+  await queryClient.fetchQuery({
+    queryKey: queryKey(nationalAvalancheCenterHost, center_id, date),
+    queryFn: async () => {
+      const result = await fetchAvalancheForecastFragments(nationalAvalancheCenterHost, center_id, date);
+      return result;
+    },
+  });
+
 const fetchAvalancheForecastFragments = async (nationalAvalancheCenterHost: string, center_id: string, date: Date) => {
   const url = `${nationalAvalancheCenterHost}/v2/public/products`;
   const {data} = await axios.get(url, {
@@ -68,6 +77,6 @@ const fetchAvalancheForecastFragments = async (nationalAvalancheCenterHost: stri
 
 export default {
   queryKey,
-  fetch: fetchAvalancheForecastFragments,
   prefetch: prefetchAvalancheForecastFragments,
+  fetchQuery: fetchAvalancheForecastFragmentsQuery,
 };
