@@ -38,7 +38,16 @@ export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalanc
   Log.prefetch('avalanche center map layer is cached with react-query');
 };
 
-export const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {
+const fetchMapLayerQuery = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) =>
+  await queryClient.fetchQuery({
+    queryKey: queryKey(nationalAvalancheCenterHost, center_id),
+    queryFn: async () => {
+      const result = await fetchMapLayer(nationalAvalancheCenterHost, center_id);
+      return result;
+    },
+  });
+
+const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {
   const url = `${nationalAvalancheCenterHost}/v2/public/products/map-layer/${center_id}`;
   const {data} = await axios.get(url);
 
@@ -60,6 +69,6 @@ export const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_
 
 export default {
   queryKey,
-  fetch: fetchMapLayer,
+  fetchQuery: fetchMapLayerQuery,
   prefetch: prefetchMapLayer,
 };

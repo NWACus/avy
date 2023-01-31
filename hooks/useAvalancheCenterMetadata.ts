@@ -38,7 +38,16 @@ export const prefetchAvalancheCenterMetadata = async (queryClient: QueryClient, 
   Log.prefetch('avalanche center metadata is cached with react-query');
 };
 
-export const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {
+export const fetchAvalancheCenterMetadataQuery = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) =>
+  await queryClient.fetchQuery({
+    queryKey: queryKey(nationalAvalancheCenterHost, center_id),
+    queryFn: async () => {
+      const result = await fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id);
+      return result;
+    },
+  });
+
+const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {
   const url = `${nationalAvalancheCenterHost}/v2/public/avalanche-center/${center_id}`;
   const {data} = await axios.get(url);
 
@@ -60,6 +69,6 @@ export const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: 
 
 export default {
   queryKey,
-  fetch: fetchAvalancheCenterMetadata,
+  fetchQuery: fetchAvalancheCenterMetadataQuery,
   prefetch: prefetchAvalancheCenterMetadata,
 };

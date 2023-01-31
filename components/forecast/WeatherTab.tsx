@@ -9,6 +9,7 @@ import {AvalancheForecastZone} from 'types/nationalAvalancheCenter';
 import {utcDateToLocalTimeString} from 'utils/date';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import helpStrings from 'content/helpStrings';
+import {useWeatherStations} from 'hooks/useWeatherStations';
 
 interface WeatherTabProps {
   zone: AvalancheForecastZone;
@@ -32,9 +33,15 @@ const SmallHeaderWithTooltip = ({title, content, dialogTitle}) => (
 );
 
 export const WeatherTab: React.FC<WeatherTabProps> = ({zone}) => {
-  const {isLoading, isError, isIdle, data: forecast} = useLatestWeatherForecast('NWAC', zone);
+  const {isLoading, isError, data: forecast} = useLatestWeatherForecast('NWAC', zone);
 
-  if (isLoading || (isIdle && !forecast)) {
+  const {status: weatherStationStatus, data: weatherStationsByZone} = useWeatherStations({center: 'NWAC', sources: ['nwac']});
+
+  // In the UI, we show weather station groups, which may contain 1 or more weather stations.
+  // Example: Alpental Ski Area shows 3 weather stations.
+  const groupedWeatherStations = Object.entries(weatherStationsByZone?.find(zoneData => zoneData.zoneId === zone.id)?.stationGroups || {}).sort((a, b) => a[0].localeCompare(b[0]));
+
+  if (isLoading) {
     return (
       <Center style={StyleSheet.absoluteFillObject}>
         <ActivityIndicator />
@@ -122,9 +129,38 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone}) => {
           })}
         </VStack>
       </Card>
-      <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Synopsis</Title3Black>} startsCollapsed={false}>
+      <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Synopsis</Title3Black>} startsCollapsed={true}>
         <HTML source={{html: forecast.synopsis}} />
       </CollapsibleCard>
+      <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Station Data</Title3Black>}>
+        <VStack>
+          {(weatherStationStatus === 'loading' || weatherStationStatus === 'idle') && (
+            <View py={6}>
+              <ActivityIndicator size={16} />
+            </View>
+          )}
+          {weatherStationStatus === 'error' && (
+            <HStack py={6}>
+              <Body>Error loading weather stations.</Body>
+            </HStack>
+          )}
+          {weatherStationStatus === 'success' &&
+            groupedWeatherStations.length > 0 &&
+            groupedWeatherStations.map(([name]) => (
+              <HStack key={name} borderBottomWidth={1} borderColor={colorLookup('light.200')} py={8}>
+                <VStack>
+                  <Body>{name}</Body>
+                  {/* <BodyXSm>stations: {stations.map(s => s.stid).join(',')}</BodyXSm> */}
+                </VStack>
+              </HStack>
+            ))}
+          {weatherStationStatus === 'success' && groupedWeatherStations.length === 0 && (
+            <HStack py={6}>
+              <Body>No weather stations in this zone.</Body>
+            </HStack>
+          )}
+        </VStack>
+      </Card>
     </VStack>
   );
 };
