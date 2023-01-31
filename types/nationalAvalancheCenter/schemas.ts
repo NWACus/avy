@@ -49,14 +49,24 @@ export const dangerLevelSchema = z.nativeEnum(DangerLevel);
 // coordinates encodes a list of points, each as a two-member array [longitude,latitude]
 // for a type=Polygon, this a three-dimensional array number[][][]
 // for a type=MultiPolygon, this a four-dimensional array number[][][][]
+// See https://stevage.github.io/geojson-spec/#section-3.1.6 for the definition of Polygon/MultiPolygon
+const point = z.number().array().length(2);
+const lineString = point.array().min(4);
+const polygon = lineString.array().min(1);
+const multiPolygon = polygon.array().min(1);
+export type Point = z.infer<typeof point>;
+export type LineString = z.infer<typeof lineString>;
+export type Polygon = z.infer<typeof polygon>;
+export type MultiPolygon = z.infer<typeof multiPolygon>;
+
 export const polygonSchema = z.object({
   type: z.literal('Polygon'),
-  coordinates: z.array(z.array(z.array(z.number()))),
+  coordinates: polygon,
 });
 
 export const multiPolygonSchema = z.object({
   type: z.literal('MultiPolygon'),
-  coordinates: z.array(z.array(z.array(z.array(z.number())))),
+  coordinates: multiPolygon,
 });
 
 export const featureComponentSchema = z.union([polygonSchema, multiPolygonSchema]);

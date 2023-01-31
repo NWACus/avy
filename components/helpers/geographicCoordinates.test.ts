@@ -1,7 +1,7 @@
 // useAvalancheForecastFragments pulls in Sentry, which makes Jest blow up
 jest.mock('@sentry/react-native', () => ({init: () => jest.fn()}));
 
-import {updateBoundsToContain, RegionBounds, regionFromBounds} from 'components/helpers/geographicCoordinates';
+import {updateBoundsToContain, RegionBounds, regionFromBounds, boundsForRegions} from 'components/helpers/geographicCoordinates';
 import {LatLng} from 'react-native-maps';
 
 describe('AvalancheForecastZonePolygon', () => {
@@ -93,6 +93,25 @@ describe('AvalancheForecastZonePolygon', () => {
         longitude: 1,
         latitudeDelta: 2,
         longitudeDelta: 2,
+      });
+    });
+  });
+
+  describe('boundsForRegions', () => {
+    it('calculates the total bounding box for multiple regions', () => {
+      const regions = [
+        {
+          topLeft: {latitude: 20, longitude: -100},
+          bottomRight: {latitude: 10, longitude: -50},
+        },
+        {
+          topLeft: {latitude: 40, longitude: -110},
+          bottomRight: {latitude: 15, longitude: -75},
+        },
+      ];
+      expect(boundsForRegions(regions)).toStrictEqual({
+        topLeft: {latitude: 40, longitude: -110},
+        bottomRight: {latitude: 10, longitude: -50},
       });
     });
   });

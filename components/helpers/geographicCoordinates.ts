@@ -1,4 +1,6 @@
 import {LatLng, Region} from 'react-native-maps';
+import {geoContains} from 'd3-geo';
+import {Feature, LineString} from 'types/nationalAvalancheCenter';
 
 export interface RegionBounds {
   topLeft: LatLng;
@@ -43,4 +45,33 @@ export const updateBoundsToContain = (previous: RegionBounds, coordinates: LatLn
   }
 
   return bounds;
+};
+
+export const emptyBounds = () => ({
+  topLeft: {latitude: 0, longitude: 0},
+  bottomRight: {latitude: 0, longitude: 0},
+});
+
+export const featureBounds = (feature: Feature): RegionBounds => {
+  // this is glossing over complexity because we only need an outer bounding box. the Polygon GeoJSON type is actually a
+  // *list* of coordinate arrays; element 0 is the outer bounds of the polygon, while elements 1-N represent holes.
+  // MultiPolygon is an array of polygons.
+  const outerBorderPoints: LineString = feature.geometry.type === 'MultiPolygon' ? feature.geometry.coordinates.map(p => p[0]).flat() : feature.geometry.coordinates[0];
+  return updateBoundsToContain(
+    emptyBounds(),
+    outerBorderPoints.map(([longitude, latitude]) => ({latitude, longitude})),
+  );
+};
+
+// Given a list of RegionBounds, calculate a total region bounding box
+export const boundsForRegions = (bounds: RegionBounds[]): RegionBounds => ({
+  topLeft: {latitude: Math.max(...bounds.map(b => b.topLeft.latitude)), longitude: Math.min(...bounds.map(b => b.topLeft.longitude))},
+  bottomRight: {latitude: Math.min(...bounds.map(b => b.bottomRight.latitude)), longitude: Math.max(...bounds.map(b => b.bottomRight.longitude))},
+});
+
+export const pointInBounds = ({latitude, longitude}: LatLng, {topLeft, bottomRight}: RegionBounds): boolean =>
+  latitude >= bottomRight.latitude && latitude <= topLeft.latitude && longitude <= bottomRight.latitude && longitude >= topLeft.longitude;
+
+export const pointInFeature = ({latitude, longitude}: LatLng, feature: Feature): boolean => {
+  return geoContains(feature.geometry, [longitude, latitude]);
 };
