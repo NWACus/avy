@@ -41,7 +41,7 @@ const stationGroupMapping = {
   'Mount Rainier - Paradise': ['35', '36'],
   'Mount Rainier - Camp Muir': ['34'],
   'Chinook Pass': ['32', '33'],
-  'White Pass': ['37', '39'],
+  'White Pass': ['37', '39', '49'],
   'Mt St Helens': ['40'],
 
   // West Central
@@ -63,9 +63,7 @@ const stationGroupMapping = {
   'Mt. Hood Meadows Cascade Express': ['41'],
 };
 
-// TODO
 const decommissionedStations = [
-  '49', // White Pass - Pigtail Peak
   '15', // Stevens Pass - Brooks Wind (Retired 2019)
 ];
 
