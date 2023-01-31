@@ -4,7 +4,7 @@ tmpfile=$(mktemp /tmp/openapi.XXXXXX)
 
 # Generate TS type definitions from Snowbound's published API
 yarn openapi \
-    --input $tmpfile \
+    --input "${tmpfile}" \
     --output ./types/generated/snowbound \
     --client axios \
     --indent 2 \
