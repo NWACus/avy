@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 
 import {AppStateStatus, Platform, StatusBar, StyleSheet, View} from 'react-native';
-import {NavigationContainer, ParamListBase, RouteProp} from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {AntDesign} from '@expo/vector-icons';
@@ -167,17 +167,11 @@ const BaseApp: React.FunctionComponent<{
                   }
                 },
               })}>
-              <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, dateString: dateString}}>
-                {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, dateString: dateString}))}
-              </TabNavigator.Screen>
-              <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString: dateString}}>
-                {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, dateString: dateString}))}
-              </TabNavigator.Screen>
-              <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString: dateString}}>
-                {state => WeatherScreen(withParams(state, {center_id: avalancheCenterId, dateString: dateString}))}
-              </TabNavigator.Screen>
-              <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
-                {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+              <TabNavigator.Screen name="Home">{() => <HomeTabScreen defaultCenterId={avalancheCenterId} defaultDateString={dateString} />}</TabNavigator.Screen>
+              <TabNavigator.Screen name="Observations">{() => <ObservationsTabScreen defaultCenterId={avalancheCenterId} defaultDateString={dateString} />}</TabNavigator.Screen>
+              <TabNavigator.Screen name="Weather Data">{() => <WeatherScreen defaultCenterId={avalancheCenterId} defaultDateString={dateString} />}</TabNavigator.Screen>
+              <TabNavigator.Screen name="Menu">
+                {() => <MenuStackScreen avalancheCenterId={avalancheCenterId} setAvalancheCenter={setAvalancheCenterId} staging={staging} setStaging={setStaging} />}
               </TabNavigator.Screen>
             </TabNavigator.Navigator>
           </View>
@@ -186,22 +180,5 @@ const BaseApp: React.FunctionComponent<{
     </HTMLRendererConfig>
   );
 };
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-function withParams<U extends ParamListBase, V extends keyof U>(
-  state: {route: RouteProp<U, V>; navigation: any},
-  params: Readonly<U[V]>,
-): {route: RouteProp<U, V>; navigation: any} {
-  return {
-    ...state,
-    route: {
-      ...state.route,
-      params: {
-        ...state.route.params,
-        ...params,
-      },
-    },
-  };
-}
 
 export default App;

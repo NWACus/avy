@@ -68,10 +68,6 @@ const decommissionedStations = [
 ];
 
 export const useWeatherStations = ({center, sources}: Props) => {
-  if (center !== 'NWAC') {
-    throw new Error(`can't fetch weather for ${center}: useWeatherStations hook only supports NWAC`);
-  }
-
   const queryClient = useQueryClient();
   const clientProps = useContext<ClientProps>(ClientContext);
   const sourceString = sources.join(',');

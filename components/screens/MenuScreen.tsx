@@ -40,12 +40,13 @@ import {
 import {AvalancheCenterID} from '../../types/nationalAvalancheCenter';
 
 const MenuStack = createNativeStackNavigator<MenuStackParamList>();
-export const MenuStackScreen = (
-  avalancheCenterId: AvalancheCenterID,
-  setAvalancheCenter: React.Dispatch<React.SetStateAction<AvalancheCenterID>>,
-  staging: boolean,
-  setStaging: React.Dispatch<React.SetStateAction<boolean>>,
-) => {
+export interface MenuStackScreenProps {
+  avalancheCenterId: AvalancheCenterID;
+  setAvalancheCenter: React.Dispatch<React.SetStateAction<AvalancheCenterID>>;
+  staging: boolean;
+  setStaging: React.Dispatch<React.SetStateAction<boolean>>;
+}
+export const MenuStackScreen = ({avalancheCenterId, setAvalancheCenter, staging, setStaging}: MenuStackScreenProps) => {
   return (
     <MenuStack.Navigator initialRouteName="menu">
       <MenuStack.Screen name="menu" component={MenuScreen(avalancheCenterId, staging, setStaging)} options={{title: `Settings`}} />

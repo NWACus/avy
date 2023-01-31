@@ -1,14 +1,7 @@
 import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
+import {NavigatorScreenParams} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {AvalancheCenterID} from './types/nationalAvalancheCenter';
-
-export type TabNavigatorParamList = {
-  Home: {center_id: AvalancheCenterID; dateString: string};
-  'Weather Data': {center_id: AvalancheCenterID; dateString: string};
-  Observations: {center_id: AvalancheCenterID; dateString: string};
-  Menu: {center_id: AvalancheCenterID};
-};
-export type TabNavigationProps = BottomTabNavigationProp<TabNavigatorParamList>;
 
 export type HomeStackParamList = {
   avalancheCenter: {
@@ -31,8 +24,7 @@ export type WeatherStackParamList = {
   };
   stationDetail: {
     center_id: AvalancheCenterID;
-    source: string;
-    station_id: number;
+    station_ids: string[];
     name: string;
     dateString: string;
   };
@@ -71,3 +63,11 @@ export type MenuStackParamList = {
   textStylePreview: undefined;
 };
 export type MenuStackNavigationProps = NativeStackNavigationProp<MenuStackParamList>;
+
+export type TabNavigatorParamList = {
+  Home: NavigatorScreenParams<HomeStackParamList>;
+  'Weather Data': NavigatorScreenParams<WeatherStackParamList>;
+  Observations: NavigatorScreenParams<ObservationsStackParamList>;
+  Menu: NavigatorScreenParams<MenuStackParamList>;
+};
+export type TabNavigationProps = BottomTabNavigationProp<TabNavigatorParamList>;

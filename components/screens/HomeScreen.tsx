@@ -1,26 +1,25 @@
-import {NativeStackScreenProps, createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 import {ForecastScreen} from './ForecastScreen';
 import {MapScreen} from './MapScreen';
-import {TabNavigatorParamList, HomeStackParamList} from 'routes';
+import {HomeStackParamList} from 'routes';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 const AvalancheCenterStack = createNativeStackNavigator<HomeStackParamList>();
-export const HomeTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Home'>) => {
-  const {center_id, dateString} = route.params;
+export interface HomeTabScreenProps {
+  defaultCenterId: AvalancheCenterID;
+  defaultDateString: string;
+}
+export const HomeTabScreen = ({defaultCenterId, defaultDateString}: HomeTabScreenProps) => {
   return (
     <AvalancheCenterStack.Navigator initialRouteName="avalancheCenter">
       <AvalancheCenterStack.Screen
         name="avalancheCenter"
         component={MapScreen}
-        initialParams={{center_id: center_id, dateString: dateString}}
+        initialParams={{center_id: defaultCenterId, dateString: defaultDateString}}
         options={() => ({headerShown: false})}
       />
-      <AvalancheCenterStack.Screen
-        name="forecast"
-        component={ForecastScreen}
-        initialParams={{center_id: center_id, dateString: dateString}}
-        options={() => ({headerShown: false})}
-      />
+      <AvalancheCenterStack.Screen name="forecast" component={ForecastScreen} options={() => ({headerShown: false})} />
     </AvalancheCenterStack.Navigator>
   );
 };

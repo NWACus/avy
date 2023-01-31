@@ -1,20 +1,24 @@
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
-import {ObservationsStackParamList, TabNavigatorParamList} from 'routes';
+import {ObservationsStackParamList} from 'routes';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Observations} from 'components/Observations';
 import {Observation} from 'components/Observation';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 const ObservationsStack = createNativeStackNavigator<ObservationsStackParamList>();
-export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Observations'>) => {
-  const {center_id, dateString} = route.params;
+export interface ObservationsTabScreenProps {
+  defaultCenterId: AvalancheCenterID;
+  defaultDateString: string;
+}
+export const ObservationsTabScreen = ({defaultCenterId, defaultDateString}: ObservationsTabScreenProps) => {
   return (
     <ObservationsStack.Navigator initialRouteName="observations">
       <ObservationsStack.Screen
         name="observations"
         component={ObservationsScreen}
-        initialParams={{center_id: center_id, dateString}}
-        options={() => ({title: `${center_id} Observations`})}
+        initialParams={{center_id: defaultCenterId, dateString: defaultDateString}}
+        options={({route: {params}}) => ({title: `${params.center_id} Observations`})}
       />
       <ObservationsStack.Screen name="observation" component={ObservationScreen} />
     </ObservationsStack.Navigator>

@@ -5,14 +5,22 @@ import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize, Titl
 import {HTML} from 'components/text/HTML';
 import {ActivityIndicator, StyleSheet} from 'react-native';
 import {colorLookup} from 'theme';
-import {AvalancheForecastZone} from 'types/nationalAvalancheCenter';
-import {utcDateToLocalTimeString} from 'utils/date';
+import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
+import {apiDateString, utcDateToLocalTimeString} from 'utils/date';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import helpStrings from 'content/helpStrings';
 import {useWeatherStations} from 'hooks/useWeatherStations';
+import {ActionList} from 'components/content/ActionList';
+import {CompositeNavigationProp, useNavigation} from '@react-navigation/native';
+import {HomeStackParamList, TabNavigationProps} from 'routes';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+
+type ForecastNavigationProp = CompositeNavigationProp<NativeStackNavigationProp<HomeStackParamList, 'forecast'>, TabNavigationProps>;
 
 interface WeatherTabProps {
   zone: AvalancheForecastZone;
+  center_id: AvalancheCenterID;
+  date: Date;
 }
 
 const timeOfDayString = (period: 'day' | 'night', subperiod: 'early' | 'late') => {
@@ -32,10 +40,11 @@ const SmallHeaderWithTooltip = ({title, content, dialogTitle}) => (
   </HStack>
 );
 
-export const WeatherTab: React.FC<WeatherTabProps> = ({zone}) => {
-  const {isLoading, isError, data: forecast} = useLatestWeatherForecast('NWAC', zone);
+export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) => {
+  const {isLoading, isError, data: forecast} = useLatestWeatherForecast(center_id, zone);
+  const {status: weatherStationStatus, data: weatherStationsByZone} = useWeatherStations({center: center_id, sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel']});
 
-  const {status: weatherStationStatus, data: weatherStationsByZone} = useWeatherStations({center: 'NWAC', sources: ['nwac']});
+  const navigation = useNavigation<ForecastNavigationProp>();
 
   // In the UI, we show weather station groups, which may contain 1 or more weather stations.
   // Example: Alpental Ski Area shows 3 weather stations.
@@ -144,16 +153,23 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone}) => {
               <Body>Error loading weather stations.</Body>
             </HStack>
           )}
-          {weatherStationStatus === 'success' &&
-            groupedWeatherStations.length > 0 &&
-            groupedWeatherStations.map(([name]) => (
-              <HStack key={name} borderBottomWidth={1} borderColor={colorLookup('light.200')} py={8}>
-                <VStack>
-                  <Body>{name}</Body>
-                  {/* <BodyXSm>stations: {stations.map(s => s.stid).join(',')}</BodyXSm> */}
-                </VStack>
-              </HStack>
-            ))}
+          {weatherStationStatus === 'success' && groupedWeatherStations.length > 0 && (
+            <ActionList
+              actions={groupedWeatherStations.map(([name, stations]) => ({
+                label: name,
+                data: stations,
+                action: () => {
+                  // Nested navigation to the stationDetail page of the Weather Data stack
+                  navigation.navigate('Weather Data', {
+                    screen: 'stationDetail',
+                    // Treat this as the first screen in the Weather Data stack - don't show a back button going to the stationList
+                    initial: true,
+                    params: {center_id, station_ids: stations.map(s => s.id), name, dateString: apiDateString(date)},
+                  });
+                },
+              }))}
+            />
+          )}
           {weatherStationStatus === 'success' && groupedWeatherStations.length === 0 && (
             <HStack py={6}>
               <Body>No weather stations in this zone.</Body>

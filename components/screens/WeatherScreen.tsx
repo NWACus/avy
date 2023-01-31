@@ -1,29 +1,29 @@
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
-import {TabNavigatorParamList, WeatherStackParamList} from 'routes';
+import {WeatherStackParamList} from 'routes';
 import {StyleSheet, View} from 'react-native';
 import React from 'react';
 import {Body} from 'components/text';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 const WeatherStack = createNativeStackNavigator<WeatherStackParamList>();
-export const WeatherScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Weather Data'>) => {
-  const {center_id, dateString} = route.params;
+export interface WeatherScreenProps {
+  defaultCenterId: AvalancheCenterID;
+  defaultDateString: string;
+}
+export const WeatherScreen = ({defaultCenterId, defaultDateString}: WeatherScreenProps) => {
   return (
     <WeatherStack.Navigator initialRouteName="stationList">
       <WeatherStack.Screen
         name="stationList"
         component={StationListScreen}
-        initialParams={{center_id: center_id, dateString}}
-        options={() => ({title: `${center_id} Weather Stations`})}
+        initialParams={{center_id: defaultCenterId, dateString: defaultDateString}}
+        options={({route: {params}}) => ({title: `${params.center_id} Weather Stations`})}
       />
-      <WeatherStack.Screen
-        name="stationDetail"
-        component={StationDetailScreen}
-        initialParams={{center_id: center_id, dateString}}
-        options={({route}) => ({title: String(route.params.name)})}
-      />
+      <WeatherStack.Screen name="stationDetail" component={StationDetailScreen} options={({route}) => ({title: String(route.params.name)})} />
     </WeatherStack.Navigator>
   );
 };
+
 const StationListScreen = ({route}: NativeStackScreenProps<WeatherStackParamList, 'stationList'>) => {
   const {center_id, dateString} = route.params;
   return (
@@ -36,11 +36,11 @@ const StationListScreen = ({route}: NativeStackScreenProps<WeatherStackParamList
 };
 
 const StationDetailScreen = ({route}: NativeStackScreenProps<WeatherStackParamList, 'stationDetail'>) => {
-  const {center_id, source, station_id} = route.params;
+  const {center_id, name, station_ids} = route.params;
   return (
     <View style={styles.fullScreen}>
       <Body>
-        Weather station detail {center_id} {station_id} {source}
+        Weather station detail {center_id} {name} {station_ids.join(', ')}
       </Body>
     </View>
   );

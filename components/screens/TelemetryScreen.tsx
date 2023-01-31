@@ -1,27 +1,26 @@
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
-import {TabNavigatorParamList, TelemetryStackParamList} from 'routes';
+import {TelemetryStackParamList} from 'routes';
 import {StyleSheet, View} from 'react-native';
 import {TelemetryStationData} from 'components/TelemetryStationData';
 import React from 'react';
 import {TelemetryStationMap} from 'components/TelemetryStationMap';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 const TelemetryStack = createNativeStackNavigator<TelemetryStackParamList>();
-export const TelemetryTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Weather Data'>) => {
-  const {center_id, dateString} = route.params;
+export interface TelemetryTabScreenProps {
+  defaultCenterId: AvalancheCenterID;
+  defaultDateString: string;
+}
+export const TelemetryTabScreen = ({defaultCenterId, defaultDateString}: TelemetryTabScreenProps) => {
   return (
     <TelemetryStack.Navigator initialRouteName="telemetryStations">
       <TelemetryStack.Screen
         name="telemetryStations"
         component={TelemetryScreen}
-        initialParams={{center_id: center_id, dateString}}
-        options={() => ({title: `${center_id} Telemetry Stations`})}
+        initialParams={{center_id: defaultCenterId, dateString: defaultDateString}}
+        options={({route: {params}}) => ({title: `${params.center_id} Telemetry Stations`})}
       />
-      <TelemetryStack.Screen
-        name="telemetryStation"
-        component={TelemetryStationScreen}
-        initialParams={{center_id: center_id, dateString}}
-        options={({route}) => ({title: String(route.params.name)})}
-      />
+      <TelemetryStack.Screen name="telemetryStation" component={TelemetryStationScreen} options={({route}) => ({title: String(route.params.name)})} />
     </TelemetryStack.Navigator>
   );
 };

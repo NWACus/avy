@@ -126,7 +126,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
           <AvalancheTab zone={zone} forecast={forecast} />
         </Tab>
         <Tab title="Weather">
-          <WeatherTab zone={zone} />
+          <WeatherTab zone={zone} center_id={center_id} date={date} />
         </Tab>
         <Tab title="Observations">
           <ObservationsTab />
