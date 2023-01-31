@@ -32,11 +32,11 @@ import {TabNavigatorParamList} from 'routes';
 import {HomeTabScreen} from 'components/screens/HomeScreen';
 import {MenuStackScreen} from 'components/screens/MenuScreen';
 import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
-import {TelemetryTabScreen} from 'components/screens/TelemetryScreen';
 import {AvalancheCenterID} from './types/nationalAvalancheCenter';
 import {prefetchAllActiveForecasts} from './network/prefetchAllActiveForecasts';
 import {HTMLRendererConfig} from 'components/text/HTML';
 import {toISOStringUTC} from './utils/date';
+import {WeatherScreen} from 'components/screens/WeatherScreen';
 
 // The SplashScreen stays up until we've loaded all of our fonts and other assets
 SplashScreen.preventAutoHideAsync();
@@ -174,7 +174,7 @@ const BaseApp: React.FunctionComponent<{
                 {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, dateString: dateString}))}
               </TabNavigator.Screen>
               <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString: dateString}}>
-                {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, dateString: dateString}))}
+                {state => WeatherScreen(withParams(state, {center_id: avalancheCenterId, dateString: dateString}))}
               </TabNavigator.Screen>
               <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
                 {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}

@@ -24,6 +24,21 @@ export type HomeStackParamList = {
 };
 export type HomeStackNavigationProps = NativeStackNavigationProp<HomeStackParamList>;
 
+export type WeatherStackParamList = {
+  stationList: {
+    center_id: AvalancheCenterID;
+    dateString: string;
+  };
+  stationDetail: {
+    center_id: AvalancheCenterID;
+    source: string;
+    station_id: number;
+    name: string;
+    dateString: string;
+  };
+};
+export type WeatherStackNavigationProps = NativeStackNavigationProp<WeatherStackParamList>;
+
 export type TelemetryStackParamList = {
   telemetryStations: {
     center_id: AvalancheCenterID;
