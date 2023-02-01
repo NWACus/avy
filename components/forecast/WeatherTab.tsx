@@ -160,11 +160,14 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
                 data: stations,
                 action: () => {
                   // Nested navigation to the stationDetail page of the Weather Data stack
+                  const dateString = apiDateString(date);
                   navigation.navigate('Weather Data', {
+                    center_id,
+                    dateString,
                     screen: 'stationDetail',
                     // Treat this as the first screen in the Weather Data stack - don't show a back button going to the stationList
                     initial: true,
-                    params: {center_id, station_ids: stations.map(s => s.id), name, dateString: apiDateString(date)},
+                    params: {center_id, station_ids: stations.map(s => s.id), name, dateString},
                   });
                 },
               }))}

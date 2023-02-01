@@ -23,6 +23,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import Constants from 'expo-constants';
 import * as Sentry from 'sentry-expo';
 
+import {merge} from 'lodash';
+
 import {focusManager, QueryClient, QueryClientProvider, useQueryClient} from 'react-query';
 
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
@@ -167,11 +169,17 @@ const BaseApp: React.FunctionComponent<{
                   }
                 },
               })}>
-              <TabNavigator.Screen name="Home">{() => <HomeTabScreen defaultCenterId={avalancheCenterId} defaultDateString={dateString} />}</TabNavigator.Screen>
-              <TabNavigator.Screen name="Observations">{() => <ObservationsTabScreen defaultCenterId={avalancheCenterId} defaultDateString={dateString} />}</TabNavigator.Screen>
-              <TabNavigator.Screen name="Weather Data">{() => <WeatherScreen defaultCenterId={avalancheCenterId} defaultDateString={dateString} />}</TabNavigator.Screen>
-              <TabNavigator.Screen name="Menu">
-                {() => <MenuStackScreen avalancheCenterId={avalancheCenterId} setAvalancheCenter={setAvalancheCenterId} staging={staging} setStaging={setStaging} />}
+              <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, dateString}}>
+                {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
+              </TabNavigator.Screen>
+              <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString}}>
+                {state => ObservationsTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
+              </TabNavigator.Screen>
+              <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString}}>
+                {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
+              </TabNavigator.Screen>
+              <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
+                {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
               </TabNavigator.Screen>
             </TabNavigator.Navigator>
           </View>
