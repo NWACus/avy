@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 
 import {AppStateStatus, Platform, StatusBar, StyleSheet, View} from 'react-native';
-import {NavigationContainer, ParamListBase, RouteProp} from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {AntDesign} from '@expo/vector-icons';
@@ -23,6 +23,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import Constants from 'expo-constants';
 import * as Sentry from 'sentry-expo';
 
+import {merge} from 'lodash';
+
 import {focusManager, QueryClient, QueryClientProvider, useQueryClient} from 'react-query';
 
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
@@ -32,11 +34,11 @@ import {TabNavigatorParamList} from 'routes';
 import {HomeTabScreen} from 'components/screens/HomeScreen';
 import {MenuStackScreen} from 'components/screens/MenuScreen';
 import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
-import {TelemetryTabScreen} from 'components/screens/TelemetryScreen';
 import {AvalancheCenterID} from './types/nationalAvalancheCenter';
 import {prefetchAllActiveForecasts} from './network/prefetchAllActiveForecasts';
 import {HTMLRendererConfig} from 'components/text/HTML';
 import {toISOStringUTC} from './utils/date';
+import {WeatherScreen} from 'components/screens/WeatherScreen';
 
 // The SplashScreen stays up until we've loaded all of our fonts and other assets
 SplashScreen.preventAutoHideAsync();
@@ -167,14 +169,14 @@ const BaseApp: React.FunctionComponent<{
                   }
                 },
               })}>
-              <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, dateString: dateString}}>
-                {state => HomeTabScreen(withParams(state, {center_id: avalancheCenterId, dateString: dateString}))}
+              <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, dateString}}>
+                {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
               </TabNavigator.Screen>
-              <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString: dateString}}>
-                {state => ObservationsTabScreen(withParams(state, {center_id: avalancheCenterId, dateString: dateString}))}
+              <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString}}>
+                {state => ObservationsTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
               </TabNavigator.Screen>
-              <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString: dateString}}>
-                {state => TelemetryTabScreen(withParams(state, {center_id: avalancheCenterId, dateString: dateString}))}
+              <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString}}>
+                {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
               </TabNavigator.Screen>
               <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
                 {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
@@ -186,22 +188,5 @@ const BaseApp: React.FunctionComponent<{
     </HTMLRendererConfig>
   );
 };
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-function withParams<U extends ParamListBase, V extends keyof U>(
-  state: {route: RouteProp<U, V>; navigation: any},
-  params: Readonly<U[V]>,
-): {route: RouteProp<U, V>; navigation: any} {
-  return {
-    ...state,
-    route: {
-      ...state.route,
-      params: {
-        ...state.route.params,
-        ...params,
-      },
-    },
-  };
-}
 
 export default App;
