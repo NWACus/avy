@@ -485,7 +485,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           dateString: apiDateString(date),
         });
       }}>
-      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width}>
+      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={200}>
         <View height={8} width="100%" bg={dangerColor.string()} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
         <VStack px={24} pt={4} pb={12} space={8}>
           <HStack space={8} alignItems="center">
