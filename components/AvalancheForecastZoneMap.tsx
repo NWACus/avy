@@ -11,6 +11,8 @@ import {
   GestureResponderEvent,
   TouchableOpacity,
   LayoutChangeEvent,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import MapView, {Region} from 'react-native-maps';
 import AnimatedMapView from 'react-native-maps';
@@ -135,7 +137,9 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           </VStack>
         </Center>
       )}
-      {!isLoading && !isError && <AvalancheForecastZoneCards key={center} date={date} zones={zones} selectedZone={selectedZone} controller={controller} />}
+      {!isLoading && !isError && (
+        <AvalancheForecastZoneCards key={center} date={date} zones={zones} selectedZone={selectedZone} setSelectedZone={setSelectedZone} controller={controller} />
+      )}
     </>
   );
 };
@@ -358,16 +362,19 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
   date: Date;
   zones: MapViewZone[];
   selectedZone: MapViewZone | null;
+  setSelectedZone: React.Dispatch<React.SetStateAction<MapViewZone>>;
   controller: AnimatedMapWithDrawerController;
-}> = ({date, zones, selectedZone, controller}) => {
+}> = ({date, zones, selectedZone, setSelectedZone, controller}) => {
   const {width} = useWindowDimensions();
 
   const [previousSelectedZone, setPreviousSelectedZone] = useState<MapViewZone | null>(null);
+  const [programaticallyScrolling, setProgramaticallyScrolling] = useState<boolean>(false);
 
+  const offsets = zones?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
   const flatListProps = {
     snapToAlignment: 'start',
     decelerationRate: 'fast',
-    snapToOffsets: zones?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width),
+    snapToOffsets: offsets,
     contentInset: {
       left: CARD_MARGIN * width,
       right: CARD_MARGIN * width,
@@ -394,9 +401,42 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
 
   const flatListRef = useRef(null);
 
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (!offsets || offsets.length === 0) {
+      return;
+    }
+    // we want to figure out what card the user scrolled to - so, we can figure out which card
+    // offset the center of the screen is at; by moving through the list backwards we can simply
+    // exit when we find an offset that's before the center of the screen (we know since we got
+    // that far in the iteration that the offset prior to that is on the other side of the center
+    // of the screen)
+    let index = 0;
+    const offset = event.nativeEvent.contentOffset.x + width / 2;
+    for (let i = offsets.length - 1; i >= 0; i--) {
+      if (offsets[i] <= offset) {
+        index = i;
+        break;
+      }
+    }
+    if (programaticallyScrolling) {
+      // when we're scrolling through the list programatically, the true state of the selection is
+      // the intended scroll target, not whichever card happens to be shown at the moment
+      const intendedIndex = zones.findIndex(z => z.zone_id === selectedZone.zone_id);
+      if (intendedIndex === index) {
+        // when the programmatic scroll reaches the intended index, we can call this programmatic
+        // scroll event finished
+        setProgramaticallyScrolling(false);
+      }
+    } else {
+      // if the *user* is scrolling this drawer, though, the true state of our selection is up to them
+      setSelectedZone(zones[index]);
+    }
+  };
+
   if (selectedZone !== previousSelectedZone) {
     if (selectedZone) {
       const index = zones.findIndex(z => z.zone_id === selectedZone.zone_id);
+      setProgramaticallyScrolling(true);
       flatListRef.current.scrollToIndex({index, animated: true, viewPosition: 0.5});
     }
     setPreviousSelectedZone(selectedZone);
@@ -415,6 +455,8 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
           transform: [controller.getTransform()],
         },
       ]}
+      onScroll={handleScroll}
+      scrollEventThrottle={200}
       {...panResponder.panHandlers}
       {...flatListProps}
       data={zones}
@@ -443,7 +485,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           dateString: apiDateString(date),
         });
       }}>
-      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width}>
+      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={200}>
         <View height={8} width="100%" bg={dangerColor.string()} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
         <VStack px={24} pt={4} pb={12} space={8}>
           <HStack space={8} alignItems="center">
