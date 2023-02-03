@@ -1,0 +1,59 @@
+name: 'update'
+description: 'Pushes an update to EAS and optionally leaves a PR comment'
+inputs:
+  channel:
+    description: 'The EAS channel to publish to'
+    required: true
+    type: string
+  message:
+    description: 'The message to attach to this update (visible in Expo Go)'
+    required: true
+    type: string
+  pull_request:
+    description: 'The associated pull request (if any). If set, will produce a comment on the PR with a QR code'
+    required: false
+    type: number
+  expo_token:
+    required: true
+    type: string
+    description: 'The Expo auth token'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🏗 Setup build environment
+      uses: ./.github/actions/setup
+      with:
+        install_expo: true
+        expo_token: ${{ expo_token }}
+
+    - name: 🚀 Publish preview
+      id: eas-update
+      shell: bash
+      run: |
+        output="$(eas update --branch=${{ inputs.channel }} --message="${{ inputs.message }}" --non-interactive --json)"
+        echo "ios_id=$( jq --raw-output '.[] | select(.platform == "ios" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
+        echo "android_id=$( jq --raw-output '.[] | select(.platform == "android" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
+
+    - name: Find existing preview comment (if any)
+      uses: peter-evans/find-comment@v2
+      id: find-comment
+      if: inputs.pull_request != 0
+      with:
+        issue-number: ${{ inputs.pull_request }}
+        body-includes: Preview in Expo Go
+
+    - name: Update preview comment
+      uses: peter-evans/create-or-update-comment@v2
+      if: inputs.pull_request != 0
+      with:
+        comment-id: ${{ steps.find-comment.outputs.comment-id }}
+        issue-number: ${{ inputs.pull_request }}
+        edit-mode: replace
+        body: |
+          ## Preview in Expo Go
+
+          iOS | Android
+          --- | ---
+          ![qrcode](https://qr.expo.dev/eas-update?updateId=${{ steps.eas-update.outputs.ios_id }}&appScheme=exp&host=u.expo.dev) | ![qrcode](https://qr.expo.dev/eas-update?updateId=${{ steps.eas-update.outputs.ios_id }}&appScheme=exp&host=u.expo.dev)
+          `exp://u.expo.dev/update/${{ steps.eas-update.outputs.ios_id }}` | `exp://u.expo.dev/update/${{ steps.eas-update.outputs.android_id }}`

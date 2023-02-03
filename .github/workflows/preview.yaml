@@ -16,44 +16,13 @@ jobs:
   ci:
     uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
 
-  publish:
+  publish_expo_update:
     needs: [ci]
     runs-on: ubuntu-latest
     steps:
-      - name: 🏗 Setup repo
-        uses: actions/checkout@v2
-
-      - name: 🏗 Setup build environment
-        uses: ./.github/actions/setup
+      - uses: ./.github/actions/expo/update.yaml
         with:
-          install_expo: true
+          pull_request: ${{ github.event.number }}
+          channel: 'pr-${{ github.event.number }}'
+          message: '${{ github.event.pull_request.title }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: 🚀 Publish preview
-        id: eas-update
-        shell: bash
-        run: |
-          output="$(eas update --branch=pr-${{ github.event.number }} --message="${{ github.event.pull_request.title }}" --non-interactive --json)"
-          echo "ios_id=$( jq --raw-output '.[] | select(.platform == "ios" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
-          echo "android_id=$( jq --raw-output '.[] | select(.platform == "android" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
-
-      - name: Find existing preview comment (if any)
-        uses: peter-evans/find-comment@v2
-        id: find-comment
-        with:
-          issue-number: ${{ github.event.number }}
-          body-includes: Preview in Expo Go
-
-      - name: Update preview comment
-        uses: peter-evans/create-or-update-comment@v2
-        with:
-          comment-id: ${{ steps.find-comment.outputs.comment-id }}
-          issue-number: ${{ github.event.number }}
-          edit-mode: replace
-          body: |
-            ## Preview in Expo Go
-
-            iOS | Android
-            --- | ---
-            ![qrcode](https://qr.expo.dev/eas-update?updateId=${{ steps.eas-update.outputs.ios_id }}&appScheme=exp&host=u.expo.dev) | ![qrcode](https://qr.expo.dev/eas-update?updateId=${{ steps.eas-update.outputs.ios_id }}&appScheme=exp&host=u.expo.dev)
-            `exp://u.expo.dev/update/${{ steps.eas-update.outputs.ios_id }})` | `exp://u.expo.dev/update/${{ steps.eas-update.outputs.android_id }})`
