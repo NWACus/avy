@@ -7,6 +7,7 @@ import {ApiError, OpenAPI, StationMetadata, TimeseriesDataService} from 'types/g
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import AvalancheCenterMetadata from 'hooks/useAvalancheCenterMetadata';
 import {toSnowboundStringUTC} from 'utils/date';
+import {EnglishUnit, MetricUnit, Unit, Variable} from 'types/snowbound';
 
 type Source = 'nwac' | 'snotel' | 'mesowest';
 
@@ -18,30 +19,12 @@ interface Props {
   endDate: Date;
 }
 
-type Variable =
-  | 'wind_speed'
-  | 'relative_humidity'
-  | 'precip_accum'
-  | 'wind_gust'
-  | 'snow_depth'
-  | 'snow_water_equiv'
-  | 'pressure'
-  | 'precip_accum_one_hour'
-  | 'equip_temperature'
-  | 'snow_depth_24h'
-  | 'intermittent_snow'
-  | 'wind_speed_min'
-  | 'air_temp'
-  | 'net_solar'
-  | 'wind_direction'
-  | 'solar_radiation';
-
 interface VariableDescriptor {
   variable: Variable;
   long_name: string;
-  default_unit: string;
-  english_unit: string;
-  metric_unit: string;
+  default_unit: Unit;
+  english_unit: EnglishUnit;
+  metric_unit: MetricUnit;
   rounding: number; // is this really a bool? looks like it's always 0 or 1 in limited testing. or is it a place signifier? no idea
 }
 

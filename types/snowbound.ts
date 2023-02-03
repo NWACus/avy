@@ -39,35 +39,64 @@ export enum SourceIdentifier {
 }
 
 // Variable names a measurement variable from a data-logger.
-export enum Variable {
-  AirTemperature = 'air_temp',
-  EquipmentTemperature = 'equip_temperature',
-  IntermittentSnow = 'intermittent_snow',
-  NetSolar = 'net_solar',
-  PrecipitationAccumulationOneHour = 'precip_accum_one_hour',
-  PrecipitationCumulativeSum = 'precip_cumsum',
-  Pressure = 'pressure',
-  RelativeHumidity = 'relative_humidity',
-  SnowDepth = 'snow_depth',
-  SnowDepth24h = 'snow_depth_24h',
-  SnowDepth24hr = 'snow_depth_24hr',
-  SolarRadiation = 'solar_radiation',
-  WindDirection = 'wind_direction',
-  WindGust = 'wind_gust',
-  WindSpeed = 'wind_speed',
-  WindSpeedMin = 'wind_speed_min',
-}
+export type Variable =
+  | 'wind_speed'
+  | 'relative_humidity'
+  | 'precip_accum'
+  | 'wind_gust'
+  | 'snow_depth'
+  | 'snow_water_equiv'
+  | 'pressure'
+  | 'precip_accum_one_hour'
+  | 'equip_temperature'
+  | 'snow_depth_24h'
+  | 'intermittent_snow'
+  | 'wind_speed_min'
+  | 'air_temp'
+  | 'net_solar'
+  | 'wind_direction'
+  | 'solar_radiation';
 
-export enum Unit {
-  DegreesFarenheit = 'fahrenheit',
-  DegreesOrdinal = 'degrees',
-  Inches = 'Inches',
-  MilliJoulesPerSquareMeter = 'mJ/m2',
-  WattsPerSquareMeter = 'W/m2',
-  MilliBar = 'millibar',
-  Percent = '%',
-  MilesPerHour = 'mph',
-}
+// Snowbound uses these unit types for both metric and english
+type UniversalUnit =
+  // Relative humidity
+  | '%'
+  // Net solar energy
+  | 'MJ/m**2'
+  // Solar radiation
+  | 'W/m2'
+  | 'W/m**2'
+  // Barometric pressure
+  | 'millibar'
+  // Wind direction
+  | 'degrees';
+
+export type EnglishUnit =
+  | UniversalUnit
+  // temp
+  | 'fahrenheit'
+  // precip depth
+  | 'Inches'
+  | 'inches'
+  // power
+  | 'mJ/m2'
+  // barometric pressure
+  | 'inch_Hg'
+  // wind speed
+  | 'mph';
+
+export type MetricUnit =
+  | UniversalUnit
+  // temp
+  | 'celsius'
+  // precip depth
+  | 'millmeters'
+  // barometric pressure
+  | 'pascal'
+  // wind speed
+  | 'm/s';
+
+export type Unit = EnglishUnit | MetricUnit;
 
 // NWACSummaryKeys are NWAC-specific keys for the station summary metadata.
 export enum NWACSummaryKey {
