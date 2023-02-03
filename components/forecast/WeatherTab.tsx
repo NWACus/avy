@@ -167,7 +167,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
                     screen: 'stationDetail',
                     // Treat this as the first screen in the Weather Data stack - don't show a back button going to the stationList
                     initial: true,
-                    params: {center_id, station_ids: stations.map(s => s.id), name, dateString},
+                    params: {center_id, station_stids: stations.map(s => s.stid), name, dateString},
                   });
                 },
               }))}

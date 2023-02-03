@@ -39,6 +39,16 @@ import {prefetchAllActiveForecasts} from './network/prefetchAllActiveForecasts';
 import {HTMLRendererConfig} from 'components/text/HTML';
 import {toISOStringUTC} from './utils/date';
 import {WeatherScreen} from 'components/screens/WeatherScreen';
+import axios from 'axios';
+
+// we're reading a field that was previously defined in app.json, so we know it's non-null:
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+if (Constants.expoConfig.extra!.log_requests) {
+  axios.interceptors.request.use(request => {
+    console.log('Request:', JSON.stringify({method: request.method, url: request.url, params: request.params}, null, 2));
+    return request;
+  });
+}
 
 // The SplashScreen stays up until we've loaded all of our fonts and other assets
 SplashScreen.preventAutoHideAsync();

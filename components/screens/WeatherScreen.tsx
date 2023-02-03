@@ -1,8 +1,10 @@
-import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
-import {TabNavigatorParamList, WeatherStackParamList} from 'routes';
-import {StyleSheet, View} from 'react-native';
 import React from 'react';
-import {Body} from 'components/text';
+
+import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
+
+import {TabNavigatorParamList, WeatherStackParamList} from 'routes';
+import {WeatherStationDetail} from 'components/weather_data/WeatherStationDetail';
+import {WeatherStationList} from 'components/weather_data/WeatherStationList';
 
 const WeatherStack = createNativeStackNavigator<WeatherStackParamList>();
 export const WeatherScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Weather Data'>) => {
@@ -21,30 +23,9 @@ export const WeatherScreen = ({route}: NativeStackScreenProps<TabNavigatorParamL
 };
 
 const StationListScreen = ({route}: NativeStackScreenProps<WeatherStackParamList, 'stationList'>) => {
-  const {center_id, dateString} = route.params;
-  return (
-    <View style={styles.fullScreen}>
-      <Body>
-        Weather station list {center_id} {dateString}
-      </Body>
-    </View>
-  );
+  return <WeatherStationList {...route.params} />;
 };
 
 const StationDetailScreen = ({route}: NativeStackScreenProps<WeatherStackParamList, 'stationDetail'>) => {
-  const {center_id, name, station_ids} = route.params;
-  return (
-    <View style={styles.fullScreen}>
-      <Body>
-        Weather station detail {center_id} {name} {station_ids.join(', ')}
-      </Body>
-    </View>
-  );
+  return <WeatherStationDetail {...route.params} />;
 };
-
-const styles = StyleSheet.create({
-  fullScreen: {
-    ...StyleSheet.absoluteFillObject,
-    flex: 1,
-  },
-});
