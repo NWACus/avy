@@ -10,6 +10,7 @@ export const toISOStringUTC = (date: Date) => formatInTimeZone(date, 'UTC', 'yyy
 
 // The National Avalanche Center API expects 'YYYY-MM-DD' date-strings in query parameters, and it operates in UTC.
 export const apiDateString = (date: Date) => formatInTimeZone(date, 'UTC', 'yyyy-MM-dd');
+export const toSnowboundStringUTC = (date: Date) => formatInTimeZone(date, 'UTC', 'yyyyMMddHHmm');
 
 // Forecasts expire in the middle of a calendar day, so the forecast that we expect to be valid at any given time during
 // the day changes based on the relationship of that time to the expected expiry time, as recorded for the avalanche

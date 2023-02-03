@@ -6,6 +6,7 @@ import {ClientContext, ClientProps} from 'clientContext';
 import {ApiError, OpenAPI, StationMetadata, TimeseriesDataService} from 'types/generated/snowbound';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import AvalancheCenterMetadata from 'hooks/useAvalancheCenterMetadata';
+import {toSnowboundStringUTC} from 'utils/date';
 
 type Source = 'nwac' | 'snotel' | 'mesowest';
 
@@ -44,18 +45,23 @@ interface VariableDescriptor {
   rounding: number; // is this really a bool? or is it a place signifier? no idea
 }
 
-interface Observations extends Record<Variable, number[] | null[]> {
+type Observations = Record<Variable, number[] | null[]> & {
   date_time: string[];
-}
+};
 
 interface Station extends StationMetadata {
   observations: Observations;
 }
 
-interface TimeSeries {
+export interface TimeSeries {
   UNITS: Record<string, string>;
   VARIABLES: VariableDescriptor[];
   STATION: Station[];
+}
+
+function floorToHour(date: Date) {
+  const MILLISECONDS_PER_HOUR = 60 * 60 * 1000; // milliseconds in an hour
+  return new Date(Math.floor(date.getTime() / MILLISECONDS_PER_HOUR) * MILLISECONDS_PER_HOUR);
 }
 
 export const useWeatherStationTimeseries = ({center, sources, stids, startDate, endDate}: Props) => {
@@ -67,26 +73,20 @@ export const useWeatherStationTimeseries = ({center, sources, stids, startDate, 
   return useQuery<TimeSeries, ApiError | Error>(
     ['timeseries', center, sourceString, stidString, startDate.toISOString(), endDate.toISOString()],
     async () => {
-      console.log('starting ');
       // Get the snowbound API token for the center
       const metadata = await AvalancheCenterMetadata.fetchQuery(queryClient, clientProps.nationalAvalancheCenterHost, center);
       const token = metadata.widget_config.stations.token;
 
       OpenAPI.BASE = clientProps.snowboundHost;
-      console.log('fetching ');
       const timeseries = await TimeseriesDataService.getStationDataTimeseriesWxV1StationDataTimeseriesGet({
         source: sourceString,
         stid: stidString,
-        startDate: '202301210000',
-        endDate: '202301210300',
-        //     startDate: 'tbd',
-        // endDate: 'tbd',
+        startDate: toSnowboundStringUTC(floorToHour(startDate)),
+        endDate: toSnowboundStringUTC(floorToHour(endDate)),
         output: 'mesowest',
         token,
       });
-      console.log('fetch complete ', JSON.stringify(timeseries, null, 2));
 
-      // TODO: filter out columns where there's just no data?
       return timeseries;
     },
     // {
