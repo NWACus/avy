@@ -23,21 +23,11 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v2
 
-      - name: 🏗 Setup Node
-        uses: actions/setup-node@v2
+      - name: 🏗 Setup build environment
+        uses: ./.github/actions/setup
         with:
-          node-version: 16.x
-          cache: yarn
-
-      - name: 🏗 Setup Expo
-        uses: expo/expo-github-action@v7
-        with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: 📦 Install dependencies
-        run: yarn install
+          install_expo: true
+          expo_token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 🚀 Publish preview
         id: eas-update

@@ -1,0 +1,31 @@
+name: 'setup'
+description: 'Check out the repo, install node, Expo, node_modules'
+inputs:
+  install_expo:
+    required: false
+    default: false
+    type: boolean
+    description: 'Run the expo install action'
+  expo_token:
+    required: false
+    type: string
+    description: 'The Expo auth token'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🏗 Setup Node
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+        cache: yarn
+    - name: 🏗 Setup Expo
+      uses: expo/expo-github-action@v7
+      if: inputs.install_expo && inputs.EXPO_TOKEN != ''
+      with:
+        expo-version: latest
+        eas-version: latest
+        token: ${{ inputs.EXPO_TOKEN }}
+    - name: 📦 Install dependencies
+      run: yarn install
+      shell: bash
