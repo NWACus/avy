@@ -35,7 +35,7 @@ const SmallHeaderWithTooltip = ({title, content, dialogTitle}) => (
   // the icon style is designed to make the circle "i" look natural next to the
   // text - neither `center` nor `baseline` alignment look good on their own
   <HStack space={6} alignItems="center">
-    <BodySemibold>{title}</BodySemibold>
+    <BodySemibold style={{flex: 1}}>{title}</BodySemibold>
     <InfoTooltip size={bodySize} title={dialogTitle || title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />
   </HStack>
 );
