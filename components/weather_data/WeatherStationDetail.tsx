@@ -4,7 +4,7 @@ import {ActivityIndicator, ScrollView, StyleSheet} from 'react-native';
 import {range} from 'lodash';
 
 import {Center, HStack, View, VStack} from 'components/core';
-import {Body, BodyXSm, BodyXSmBlack, Title1Black} from 'components/text';
+import {Body, BodySm, BodyXSm, BodyXSmBlack, Title1Black} from 'components/text';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {TimeSeries, useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {format} from 'date-fns';
@@ -21,7 +21,60 @@ const date = new Date();
 
 const formatDateTime = (input: string) => format(new Date(input), 'MM/dd HH:mm');
 
-const renderTable = (timeSeries: TimeSeries) => {
+// TODO: synthesized column PcpSum (cumulative precip) which is a running total of Pcp1 (precip_accum_one_hour)
+
+const preferredFieldOrder = {
+  date_time: 0,
+  air_temp: 1,
+  relative_humidity: 2,
+  wind_speed_min: 4,
+  wind_speed: 5,
+  wind_gust: 6,
+  wind_direction: 7,
+
+  precip_accum_one_hour: 10,
+  snow_depth_24h: 11,
+  snow_depth: 12,
+
+  precip_accum: 99,
+  snow_water_equiv: 99,
+  pressure: 99,
+  equip_temperature: 99,
+  intermittent_snow: 99,
+  net_solar: 99,
+  solar_radiation: 99,
+};
+
+const shortFieldMap = {
+  date_time: 'Time',
+  air_temp: 'Temp',
+  relative_humidity: 'RH',
+  wind_speed_min: 'Min',
+  wind_speed: 'Spd',
+  wind_gust: 'Gust',
+  wind_direction: 'Dir',
+  precip_accum: 'precip_accum',
+  snow_depth: 'SnoHt',
+  snow_water_equiv: 'snow_water_equiv',
+  pressure: 'Pres',
+  precip_accum_one_hour: 'Pcp1',
+  equip_temperature: 'EqTemp',
+  snow_depth_24h: '24Sno',
+  intermittent_snow: 'intermittent_snow',
+  net_solar: 'net_solar',
+  solar_radiation: 'SR',
+};
+
+const shortUnitsMap = {
+  fahrenheit: '°F',
+  inches: 'in',
+  degrees: 'deg',
+  millibar: 'mbar',
+};
+
+const shortUnits = (units: string) => shortUnitsMap[units] || units;
+
+const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = ({timeSeries}) => {
   if (timeSeries.STATION.length === 0) {
     return <Body>No data found.</Body>;
   }
@@ -35,16 +88,16 @@ const renderTable = (timeSeries: TimeSeries) => {
   const tableColumns: Column[] = [];
   const tableRows: Row[] = [];
   timeSeries.STATION.forEach(({elevation, observations}, stationIndex) => {
-    Object.entries(observations).forEach(([column, values]) => {
-      if (column === 'date_time' && stationIndex !== 0) {
+    Object.entries(observations).forEach(([field, values]) => {
+      if (field === 'date_time' && stationIndex !== 0) {
         // don't add multiple date time columns
         return;
       }
-      if (!values.find(v => v !== null)) {
-        // skip empty columns
+      if (values.findIndex(v => v !== null) === -1) {
+        // skip empty columns: when all values are null
         return;
       }
-      const columnIndex = tableColumns.push({field: column, elevation}) - 1;
+      const columnIndex = tableColumns.push({field, elevation}) - 1;
       values.forEach((value, rowIndex) => {
         const row = tableRows[rowIndex] || {date: times[rowIndex], cells: []};
         row.cells.push({colIdx: columnIndex, rowIdx: rowIndex, value: columnIndex === 0 ? times[rowIndex] : value});
@@ -67,7 +120,9 @@ const renderTable = (timeSeries: TimeSeries) => {
     } else if (columnB.field === 'date_time') {
       return 1;
     } else {
-      return columnA.field.localeCompare(columnB.field) || columnB.elevation - columnA.elevation;
+      // TODO: have to sort wind values together by name, *then* by elevation :eyeroll:
+      // or wait - do we onlt want wind values at the highest elevation
+      return preferredFieldOrder[columnA.field] - preferredFieldOrder[columnB.field] || columnB.elevation - columnA.elevation;
     }
   });
 
@@ -86,8 +141,9 @@ const renderTable = (timeSeries: TimeSeries) => {
             .map(({field, elevation, columnIndex}) => (
               <VStack key={columnIndex} justifyContent="flex-start" alignItems="stretch">
                 <VStack alignItems="center" justifyContent="flex-start" flex={1} py={rowPadding} px={columnPadding}>
-                  <BodyXSmBlack>{field}</BodyXSmBlack>
-                  <BodyXSmBlack>{field !== 'date_time' ? elevation : ' '}</BodyXSmBlack>
+                  <BodyXSmBlack>{shortFieldMap[field]}</BodyXSmBlack>
+                  <BodyXSmBlack>{field === 'date_time' ? 'PST' : shortUnits(timeSeries.UNITS[field])}</BodyXSmBlack>
+                  <BodyXSmBlack>{field !== 'date_time' ? `${elevation}'` : ' '}</BodyXSmBlack>
                 </VStack>
                 {sortedRows
                   .map(i => tableRows[i])
@@ -119,7 +175,8 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
       <VStack py={16} px={8}>
         <Title1Black>{name}</Title1Black>
         <Center bg={colorLookup('warning.200')} borderColor={colorLookup('warning.800')} borderWidth={1} py={8} my={8}>
-          <Body>This is a work in progress, don't freak out!</Body>
+          <Body>Work in progress</Body>
+          <BodySm>If something looks weird, don't freak out :)</BodySm>
         </Center>
         {isLoading && (
           <Center width="100%" height="100%">
@@ -131,7 +188,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
             <Body>Error loading weather station data.</Body>
           </Center>
         )}
-        {data && renderTable(data)}
+        {data && <TimeSeriesTable timeSeries={data} />}
       </VStack>
     </View>
   );
