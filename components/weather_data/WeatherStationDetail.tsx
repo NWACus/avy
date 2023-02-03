@@ -59,7 +59,7 @@ const renderTable = (timeSeries: TimeSeries) => {
     // Column sorting rules:
     // 1. time first
     // 2. preferred column sort after that
-    // 3. elevation ascending within same column
+    // 3. elevation descending within same column
     const columnA = tableColumns[a];
     const columnB = tableColumns[b];
     if (columnA.field === 'date_time') {
@@ -67,7 +67,7 @@ const renderTable = (timeSeries: TimeSeries) => {
     } else if (columnB.field === 'date_time') {
       return 1;
     } else {
-      return columnA.field.localeCompare(columnB.field) || columnA.elevation - columnB.elevation;
+      return columnA.field.localeCompare(columnB.field) || columnB.elevation - columnA.elevation;
     }
   });
 
