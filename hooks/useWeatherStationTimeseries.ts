@@ -42,7 +42,7 @@ interface VariableDescriptor {
   default_unit: string;
   english_unit: string;
   metric_unit: string;
-  rounding: number; // is this really a bool? or is it a place signifier? no idea
+  rounding: number; // is this really a bool? looks like it's always 0 or 1 in limited testing. or is it a place signifier? no idea
 }
 
 type Observations = Record<Variable, number[] | null[]> & {
@@ -60,7 +60,7 @@ export interface TimeSeries {
 }
 
 function floorToHour(date: Date) {
-  const MILLISECONDS_PER_HOUR = 60 * 60 * 1000; // milliseconds in an hour
+  const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
   return new Date(Math.floor(date.getTime() / MILLISECONDS_PER_HOUR) * MILLISECONDS_PER_HOUR);
 }
 
