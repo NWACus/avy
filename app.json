@@ -58,7 +58,8 @@
         "projectId": "47e2fd36-5165-4eb4-9a2d-21beec393379"
       },
       "sentry_dsn": "LOADED_FROM_ENVIRONMENT",
-      "avalanche_center": "NWAC"
+      "avalanche_center": "NWAC",
+      "log_requests": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
