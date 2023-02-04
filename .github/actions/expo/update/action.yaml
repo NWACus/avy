@@ -25,7 +25,7 @@ runs:
       uses: ./.github/actions/setup
       with:
         install_expo: true
-        expo_token: ${{ expo_token }}
+        expo_token: ${{ inputs.expo_token }}
 
     - name: 🚀 Publish preview
       id: eas-update
