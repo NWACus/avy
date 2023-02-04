@@ -6,7 +6,6 @@ on:
 
 jobs:
   publish_expo_update:
-    needs: [ci]
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
