@@ -1,0 +1,27 @@
+name: Channel delete
+description: Deletes an EAS channel and branch
+inputs:
+  channel:
+    description: 'The EAS channel to delete'
+    required: true
+    type: string
+  expo_token:
+    required: true
+    type: string
+    description: 'The Expo auth token'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🏗 Setup build environment
+      uses: ./.github/actions/setup
+      with:
+        install_expo: true
+        expo_token: ${{ inputs.expo_token }}
+
+    - name: 🚀 Publish preview
+      id: eas-update
+      shell: bash
+      run: |
+        eas channel:delete --non-interactive ${{ inputs.channel }}
+        eas branch:delete --non-interactive ${{ inputs.channel }}
