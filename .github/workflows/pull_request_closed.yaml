@@ -5,7 +5,7 @@ on:
     types: [closed]
 
 jobs:
-  publish_expo_update:
+  delete_expo_channel:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
