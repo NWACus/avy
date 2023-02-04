@@ -20,7 +20,11 @@ jobs:
     needs: [ci]
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/expo/update
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: Publish EAS update
+        uses: ./.github/actions/expo/update
         with:
           pull_request: ${{ github.event.number }}
           channel: 'pr-${{ github.event.number }}'
