@@ -1,0 +1,19 @@
+name: Pull Request Closed
+on:
+  pull_request:
+    # pull request closed events are fired for both merge & close
+    types: [closed]
+
+jobs:
+  publish_expo_update:
+    needs: [ci]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: Clean up preview channel
+        uses: ./.github/actions/expo/channel/delete
+        with:
+          channel: 'pr-${{ github.event.number }}'
+          expo_token: ${{ secrets.EXPO_TOKEN }}
