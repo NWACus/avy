@@ -61,7 +61,7 @@ const shortFieldMap = {
   equip_temperature: 'EqTemp',
   snow_depth_24h: '24Sno',
   intermittent_snow: 'intermittent_snow',
-  net_solar: 'net_solar',
+  net_solar: 'SR',
   solar_radiation: 'SR',
 };
 
@@ -95,6 +95,10 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = ({timeSeries}) => {
       }
       if (values.findIndex(v => v !== null) === -1) {
         // skip empty columns: when all values are null
+        return;
+      }
+      if (field === 'solar_radiation') {
+        // we don't display solar_radiation, only net_solar
         return;
       }
       const columnIndex = tableColumns.push({field, elevation}) - 1;
