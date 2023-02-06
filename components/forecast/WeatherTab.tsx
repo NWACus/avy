@@ -1,7 +1,7 @@
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {Center, HStack, View, VStack} from 'components/core';
 import {useLatestWeatherForecast} from 'hooks/useLatestWeatherForecast';
-import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize, Title3Black} from 'components/text';
+import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodyXSmBlack, bodyXSmSize, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {ActivityIndicator, StyleSheet} from 'react-native';
 import {colorLookup} from 'theme';
@@ -35,8 +35,8 @@ const SmallHeaderWithTooltip = ({title, content, dialogTitle}) => (
   // the icon style is designed to make the circle "i" look natural next to the
   // text - neither `center` nor `baseline` alignment look good on their own
   <HStack space={6} alignItems="center">
-    <BodySemibold style={{flex: 1}}>{title}</BodySemibold>
-    <InfoTooltip size={bodySize} title={dialogTitle || title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />
+    <BodyXSmBlack style={{flex: 1}}>{title}</BodyXSmBlack>
+    <InfoTooltip size={bodyXSmSize} title={dialogTitle || title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />
   </HStack>
 );
 
@@ -94,45 +94,49 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
               <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index === 0 ? colorLookup('light.200') : 'white'}>
                 <BodyBlack>{forecast.label}</BodyBlack>
                 <Body>{forecast.forecast}</Body>
-                <HStack justifyContent="space-between" alignItems="flex-start" pt={12} space={12}>
-                  <VStack flexBasis={0.5} flex={1}>
-                    <SmallHeaderWithTooltip title="5K ft Temps (°F)" dialogTitle="Temperature" content={helpStrings.weather.temperature} />
-                    <Body>
-                      {forecast.temperatures.high} (max) / {forecast.temperatures.low} (min)
-                    </Body>
-                  </VStack>
-                  <VStack flexBasis={0.5} flex={1}>
-                    <SmallHeaderWithTooltip title="Snow Level (ft)" dialogTitle="Snow Level" content={helpStrings.weather.snowLevelNoAsterisk} />
-                    {forecast.snowLevel.map(level => (
-                      <Body key={level.subperiod}>
-                        {Intl.NumberFormat().format(level.level)} {timeOfDayString(level.period, level.subperiod)}
+                <View borderWidth={1} borderColor={colorLookup('light.200')} mt={12}>
+                  <HStack justifyContent="space-between" alignItems="stretch" borderBottomWidth={1} borderColor={colorLookup('light.200')}>
+                    <VStack flexBasis={0.5} flex={1} m={12}>
+                      <SmallHeaderWithTooltip title="5K ft Temps (°F)" dialogTitle="Temperature" content={helpStrings.weather.temperature} />
+                      <Body>
+                        {forecast.temperatures.high} (max) / {forecast.temperatures.low} (min)
                       </Body>
-                    ))}
-                  </VStack>
-                </HStack>
-                <HStack justifyContent="space-between" alignItems="flex-start" pt={12} space={12}>
-                  <VStack flexBasis={0.5} flex={1}>
-                    <SmallHeaderWithTooltip title="Precipitation (in)" dialogTitle="Precipitation" content={helpStrings.weather.precipitation} />
-                    {Object.entries(forecast.precipitation).map(([zone, value]) => (
-                      <HStack key={zone} justifyContent="space-between" alignItems="flex-start" alignSelf="stretch">
-                        <View flex={1} flexGrow={2} pr={12}>
-                          <Body style={{flex: 1, flexBasis: 0.75}}>{zone}</Body>
-                        </View>
-                        <View flex={1} flexGrow={1}>
-                          <Body>{value}</Body>
-                        </View>
-                      </HStack>
-                    ))}
-                  </VStack>
-                  <VStack flexBasis={0.5} flex={1}>
-                    <SmallHeaderWithTooltip title="Ridgeline Winds (mph)" dialogTitle="Ridgeline Winds" content={helpStrings.weather.wind} />
-                    {forecast.winds.map(level => (
-                      <Body key={level.subperiod}>
-                        {level.speed} {timeOfDayString(level.period, level.subperiod)}
-                      </Body>
-                    ))}
-                  </VStack>
-                </HStack>
+                    </VStack>
+                    <View width={1} height="100%" bg={colorLookup('light.200')} flex={0} />
+                    <VStack flexBasis={0.5} flex={1} m={12}>
+                      <SmallHeaderWithTooltip title="Snow Level (ft)" dialogTitle="Snow Level" content={helpStrings.weather.snowLevelNoAsterisk} />
+                      {forecast.snowLevel.map(level => (
+                        <Body key={level.subperiod}>
+                          {Intl.NumberFormat().format(level.level)} {timeOfDayString(level.period, level.subperiod)}
+                        </Body>
+                      ))}
+                    </VStack>
+                  </HStack>
+                  <HStack justifyContent="space-between" alignItems="flex-start">
+                    <VStack flexBasis={0.5} flex={1} m={12}>
+                      <SmallHeaderWithTooltip title="Precipitation (in)" dialogTitle="Precipitation" content={helpStrings.weather.precipitation} />
+                      {Object.entries(forecast.precipitation).map(([zone, value]) => (
+                        <HStack key={zone} justifyContent="space-between" alignItems="flex-start" alignSelf="stretch">
+                          <View flex={1} flexGrow={2} pr={12}>
+                            <Body style={{flex: 1, flexBasis: 0.75}}>{zone}</Body>
+                          </View>
+                          <View flex={1} flexGrow={1}>
+                            <Body textAlign="right">{value}</Body>
+                          </View>
+                        </HStack>
+                      ))}
+                    </VStack>
+                    <View width={1} height="100%" bg={colorLookup('light.200')} flex={0} />
+                    <VStack flexBasis={0.5} flex={1} m={12}>
+                      <SmallHeaderWithTooltip title="Ridgeline Winds (mph)" dialogTitle="Ridgeline Winds" content={helpStrings.weather.wind} />
+                      {forecast.winds.map(level => (
+                        <Body key={level.subperiod}>
+                          {level.speed} {timeOfDayString(level.period, level.subperiod)}
+                        </Body>
+                      ))}
+                    </VStack>
+                  </HStack>
+                </View>
               </VStack>
             );
           })}

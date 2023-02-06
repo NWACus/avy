@@ -61,7 +61,7 @@ const shortFieldMap = {
   equip_temperature: 'EqTemp',
   snow_depth_24h: '24Sno',
   intermittent_snow: 'intermittent_snow',
-  net_solar: 'net_solar',
+  net_solar: 'SR',
   solar_radiation: 'SR',
 };
 
@@ -97,6 +97,10 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = ({timeSeries}) => {
         // skip empty columns: when all values are null
         return;
       }
+      if (field === 'solar_radiation') {
+        // we don't display solar_radiation, only net_solar
+        return;
+      }
       const columnIndex = tableColumns.push({field, elevation}) - 1;
       values.forEach((value, rowIndex) => {
         const row = tableRows[rowIndex] || {date: times[rowIndex], cells: []};
@@ -107,8 +111,8 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = ({timeSeries}) => {
   });
 
   // With the columns we have, what should the preferred ordering be?
-  const sortedColumns = range(tableColumns.length);
-  sortedColumns.sort((a, b) => {
+  const sortedColIndices = range(tableColumns.length);
+  sortedColIndices.sort((a, b) => {
     // Column sorting rules:
     // 1. time first
     // 2. preferred column sort after that
@@ -127,7 +131,7 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = ({timeSeries}) => {
   });
 
   // With the rows we have, what should the preferred ordering be?
-  const sortedRows = range(tableRows.length - 1, -1, -1); // descending by time
+  const sortedRowIndices = range(tableRows.length - 1, -1, -1); // descending by time
 
   const columnPadding = 3;
   const rowPadding = 2;
@@ -136,7 +140,7 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = ({timeSeries}) => {
     <ScrollView>
       <ScrollView horizontal>
         <HStack padding={8} justifyContent="space-between" alignItems="center" bg="white">
-          {sortedColumns
+          {sortedColIndices
             .map(i => ({...tableColumns[i], columnIndex: i}))
             .map(({field, elevation, columnIndex}) => (
               <VStack key={columnIndex} justifyContent="flex-start" alignItems="stretch">
@@ -145,7 +149,7 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = ({timeSeries}) => {
                   <BodyXSmBlack>{field === 'date_time' ? 'PST' : shortUnits(timeSeries.UNITS[field])}</BodyXSmBlack>
                   <BodyXSmBlack>{field !== 'date_time' ? `${elevation}'` : ' '}</BodyXSmBlack>
                 </VStack>
-                {sortedRows
+                {sortedRowIndices
                   .map(i => tableRows[i])
                   .map((row, index) => (
                     <Center flex={1} key={index} bg={colorLookup(index % 2 ? 'light.100' : 'light.300')} py={rowPadding} px={columnPadding}>
