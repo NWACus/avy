@@ -61,8 +61,9 @@ export const BodySm: React.FunctionComponent<TextWrapperProps> = props => (
 export const BodySmSemibold: React.FunctionComponent<TextWrapperProps> = props => <BodySm fontFamily="Lato_700Bold" {...props} />;
 export const BodySmBlack: React.FunctionComponent<TextWrapperProps> = props => <BodySm fontFamily="Lato_900Black" {...props} />;
 
+export const bodyXSmSize = 12;
 export const BodyXSm: React.FunctionComponent<TextWrapperProps> = props => (
-  <TextWrapper fontSize={12} lineHeight={18} fontFamily="Lato_400Regular" letterSpacing={-0.31} {...props} />
+  <TextWrapper fontSize={bodyXSmSize} lineHeight={18} fontFamily="Lato_400Regular" letterSpacing={-0.31} {...props} />
 );
 export const BodyXSmMedium: React.FunctionComponent<TextWrapperProps> = props => <BodyXSm fontFamily="Lato_400Regular" {...props} />;
 export const BodyXSmBlack: React.FunctionComponent<TextWrapperProps> = props => <BodyXSm fontFamily="Lato_900Black" {...props} />;
