@@ -103,7 +103,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
           startsCollapsed
           borderRadius={0}
           borderColor="white"
-          header={<HeaderWithTooltip title="Avalanche Problems" content={helpStrings.avalancheProblem} />}>
+          header={<HeaderWithTooltip title={`Avalanche Problem #${index + 1}`} content={helpStrings.avalancheProblem} />}>
           <AvalancheProblemCard key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
         </CollapsibleCard>
       ))}
