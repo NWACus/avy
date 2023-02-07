@@ -142,10 +142,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
           })}
         </VStack>
       </Card>
-      <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Synopsis</Title3Black>} startsCollapsed={true}>
-        <HTML source={{html: forecast.synopsis}} />
-      </CollapsibleCard>
-      <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Station Data</Title3Black>}>
+      <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Data</Title3Black>}>
         <VStack>
           {(weatherStationStatus === 'loading' || weatherStationStatus === 'idle') && (
             <View py={6}>
@@ -184,6 +181,9 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
           )}
         </VStack>
       </Card>
+      <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Synopsis</Title3Black>} startsCollapsed={true}>
+        <HTML source={{html: forecast.synopsis}} />
+      </CollapsibleCard>
     </VStack>
   );
 };
