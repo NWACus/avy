@@ -6,6 +6,7 @@ import {ObservationsListView} from 'components/observations/ObservationsListView
 import {ObservationDetailView} from 'components/observations/ObservationDetailView';
 import {Center} from 'components/core';
 import {Body} from 'components/text';
+import {ObservationsPortal} from 'components/observations/ObservationsPortal';
 
 const ObservationsStack = createNativeStackNavigator<ObservationsStackParamList>();
 export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Observations'>) => {
@@ -22,21 +23,13 @@ export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigat
 
 const ObservationsPortalScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observationsPortal'>) => {
   const {center_id, dateString} = route.params;
-  return (
-    <View style={styles.fullScreen}>
-      <Center width="100%" height="100%">
-        <Body>
-          this is the observations portal {center_id} {dateString}
-        </Body>
-      </Center>
-    </View>
-  );
+  return <ObservationsPortal center_id={center_id} date={new Date(dateString)} />;
 };
 
 const ObservationSubmitScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observationSubmit'>) => {
   const {center_id} = route.params;
   return (
-    <View style={styles.fullScreen}>
+    <View style={{...styles.fullScreen, backgroundColor: 'pink'}}>
       <Center width="100%" height="100%">
         <Body>this is the observation submit screen {center_id}</Body>
       </Center>
