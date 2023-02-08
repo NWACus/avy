@@ -55,7 +55,14 @@ export type TelemetryStackParamList = {
 export type TelemetryStackNavigationProps = NativeStackNavigationProp<TelemetryStackParamList>;
 
 export type ObservationsStackParamList = {
-  observations: {
+  observationsPortal: {
+    center_id: AvalancheCenterID;
+    dateString: string;
+  };
+  observationSubmit: {
+    center_id: AvalancheCenterID;
+  };
+  observationsList: {
     center_id: AvalancheCenterID;
     dateString: string;
   };

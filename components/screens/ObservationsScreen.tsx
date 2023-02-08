@@ -2,8 +2,8 @@ import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigat
 import {ObservationsStackParamList, TabNavigatorParamList} from 'routes';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {Observations} from 'components/Observations';
-import {Observation} from 'components/Observation';
+import {ObservationsListView} from 'components/observations/ObservationsListView';
+import {ObservationDetailView} from 'components/observations/ObservationDetailView';
 import {Center} from 'components/core';
 import {Body} from 'components/text';
 
@@ -14,7 +14,7 @@ export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigat
     <ObservationsStack.Navigator initialRouteName="observationsPortal" screenOptions={{headerShown: false}}>
       <ObservationsStack.Screen name="observationsPortal" component={ObservationsPortalScreen} initialParams={{center_id: center_id, dateString}} />
       <ObservationsStack.Screen name="observationSubmit" component={ObservationSubmitScreen} />
-      <ObservationsStack.Screen name="observationsList" component={ObservationsListScreen} initialParams={{center_id: center_id, dateString}} />
+      <ObservationsStack.Screen name="observationsList" component={ObservationsListScreen} />
       <ObservationsStack.Screen name="observation" component={ObservationScreen} />
     </ObservationsStack.Navigator>
   );
@@ -48,7 +48,7 @@ const ObservationsListScreen = ({route}: NativeStackScreenProps<ObservationsStac
   const {center_id, dateString} = route.params;
   return (
     <View style={styles.fullScreen}>
-      <Observations center_id={center_id} date={new Date(dateString)} />
+      <ObservationsListView center_id={center_id} date={new Date(dateString)} />
     </View>
   );
 };
@@ -57,7 +57,7 @@ const ObservationScreen = ({route}: NativeStackScreenProps<ObservationsStackPara
   const {id} = route.params;
   return (
     <View style={styles.fullScreen}>
-      <Observation id={id} />
+      <ObservationDetailView id={id} />
     </View>
   );
 };

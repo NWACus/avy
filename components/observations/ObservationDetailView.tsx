@@ -3,7 +3,7 @@ import {EverythingFragment, useObservationQuery} from 'hooks/useObservations';
 import {ActivityIndicator, View, ScrollView, StyleSheet} from 'react-native';
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {FontAwesome5, MaterialCommunityIcons, Fontisto} from '@expo/vector-icons';
-import {useMapLayer} from '../hooks/useMapLayer';
+import {useMapLayer} from '../../hooks/useMapLayer';
 import {
   Activity,
   AvalancheAspect,
@@ -27,16 +27,16 @@ import {
   FormatWindLoading,
   MapLayer,
   PartnerType,
-} from '../types/nationalAvalancheCenter';
-import {zone} from './Observations';
-import {HTML} from './text/HTML';
-import {AvalancheProblemImage} from './AvalancheProblemImage';
-import {NACIcon} from './icons/nac-icons';
+} from '../../types/nationalAvalancheCenter';
+import {zone} from './ObservationsListView';
+import {HTML} from '../text/HTML';
+import {AvalancheProblemImage} from '../AvalancheProblemImage';
+import {NACIcon} from '../icons/nac-icons';
 import {utcDateToLocalTimeString} from 'utils/date';
 import {Body, BodyBlack, FeatureTitleBlack, Title1Black} from 'components/text';
 import {HStack, VStack} from 'components/core';
 
-export const Observation: React.FunctionComponent<{
+export const ObservationDetailView: React.FunctionComponent<{
   id: string;
 }> = ({id}) => {
   const {
