@@ -26,7 +26,7 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
     ['PAC']: Image.resolveAssetSource(require('../assets/logos/PAC.png')),
     ['SNFAC']: Image.resolveAssetSource(require('../assets/logos/SNFAC.png')),
     ['SAC']: Image.resolveAssetSource(require('../assets/logos/SAC.png')),
-    ['WCMAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.svg')),
+    ['WCMAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
     ['CAIC']: Image.resolveAssetSource(require('../assets/logos/CAIC.jpg')),
     ['COAA']: Image.resolveAssetSource(require('../assets/logos/COAA.png')),
     ['CBAC']: Image.resolveAssetSource(require('../assets/logos/CBAC.png')),
@@ -69,7 +69,7 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
       return <Image style={s} source={require('../assets/logos/SAC.png')} />;
     },
     ['WCMAC']: (s: ImageStyle) => {
-      return <Image style={s} source={require('../assets/logos/WCMAC.svg')} />;
+      return <Image style={s} source={require('../assets/logos/WCMAC.png')} />;
     },
     ['CAIC']: (s: ImageStyle) => {
       return <Image style={s} source={require('../assets/logos/CAIC.jpg')} />;
@@ -124,7 +124,7 @@ export const preloadAvalancheCenterLogo = async (avalancheCenter: AvalancheCente
     case 'SAC':
       return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/SAC.png')).uri);
     case 'WCMAC':
-      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/WCMAC.svg')).uri);
+      return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
     case 'CAIC':
       return Image.prefetch(Image.resolveAssetSource(require('../assets/logos/CAIC.jpg')).uri);
     case 'COAA':
