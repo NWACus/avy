@@ -12,10 +12,10 @@ const ObservationsStack = createNativeStackNavigator<ObservationsStackParamList>
 export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Observations'>) => {
   const {center_id, dateString} = route.params;
   return (
-    <ObservationsStack.Navigator initialRouteName="observationsPortal" screenOptions={{headerShown: false}}>
-      <ObservationsStack.Screen name="observationsPortal" component={ObservationsPortalScreen} initialParams={{center_id: center_id, dateString}} />
+    <ObservationsStack.Navigator initialRouteName="observationsPortal">
+      <ObservationsStack.Screen name="observationsPortal" component={ObservationsPortalScreen} initialParams={{center_id: center_id, dateString}} options={{headerShown: false}} />
       <ObservationsStack.Screen name="observationSubmit" component={ObservationSubmitScreen} />
-      <ObservationsStack.Screen name="observationsList" component={ObservationsListScreen} />
+      <ObservationsStack.Screen name="observationsList" component={ObservationsListScreen} options={() => ({title: `${center_id} Observations`})} />
       <ObservationsStack.Screen name="observation" component={ObservationScreen} />
     </ObservationsStack.Navigator>
   );
@@ -29,9 +29,9 @@ const ObservationsPortalScreen = ({route}: NativeStackScreenProps<ObservationsSt
 const ObservationSubmitScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observationSubmit'>) => {
   const {center_id} = route.params;
   return (
-    <View style={{...styles.fullScreen, backgroundColor: 'pink'}}>
+    <View style={{...styles.fullScreen}}>
       <Center width="100%" height="100%">
-        <Body>this is the observation submit screen {center_id}</Body>
+        <Body>stay tuned for observation submission {center_id}</Body>
       </Center>
     </View>
   );
