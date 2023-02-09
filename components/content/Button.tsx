@@ -47,7 +47,7 @@ const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, onPre
   const {borderColor, textColor, pressedBackgroundColor, backgroundColor} = buttonStyle;
 
   return (
-    <View borderColor={borderColor} borderWidth={2} borderRadius={4} p={8} {...props} backgroundColor={pressed ? pressedBackgroundColor : backgroundColor}>
+    <View borderColor={borderColor} borderWidth={2} borderRadius={12} p={8} {...props} backgroundColor={pressed ? pressedBackgroundColor : backgroundColor}>
       <Pressable onPressIn={() => setIsPressed(true)} onPressOut={() => setIsPressed(false)} onPress={event => onPress?.(event)}>
         <Center>
           <Text style={{color: textColor}}>{children}</Text>
