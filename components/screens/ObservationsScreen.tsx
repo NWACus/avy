@@ -4,9 +4,8 @@ import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {ObservationsListView} from 'components/observations/ObservationsListView';
 import {ObservationDetailView} from 'components/observations/ObservationDetailView';
-import {Center} from 'components/core';
-import {Body} from 'components/text';
 import {ObservationsPortal} from 'components/observations/ObservationsPortal';
+import {ObservationSubmit} from 'components/observations/ObservationSubmit';
 
 const ObservationsStack = createNativeStackNavigator<ObservationsStackParamList>();
 export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Observations'>) => {
@@ -14,7 +13,7 @@ export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigat
   return (
     <ObservationsStack.Navigator initialRouteName="observationsPortal">
       <ObservationsStack.Screen name="observationsPortal" component={ObservationsPortalScreen} initialParams={{center_id: center_id, dateString}} options={{headerShown: false}} />
-      <ObservationsStack.Screen name="observationSubmit" component={ObservationSubmitScreen} />
+      <ObservationsStack.Screen name="observationSubmit" component={ObservationSubmitScreen} options={{headerShown: false}} />
       <ObservationsStack.Screen name="observationsList" component={ObservationsListScreen} options={() => ({title: `${center_id} Observations`})} />
       <ObservationsStack.Screen name="observation" component={ObservationScreen} />
     </ObservationsStack.Navigator>
@@ -28,13 +27,7 @@ const ObservationsPortalScreen = ({route}: NativeStackScreenProps<ObservationsSt
 
 const ObservationSubmitScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observationSubmit'>) => {
   const {center_id} = route.params;
-  return (
-    <View style={{...styles.fullScreen}}>
-      <Center width="100%" height="100%">
-        <Body>stay tuned for observation submission {center_id}</Body>
-      </Center>
-    </View>
-  );
+  return <ObservationSubmit center_id={center_id} />;
 };
 
 const ObservationsListScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observationsList'>) => {
