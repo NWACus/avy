@@ -4,7 +4,7 @@ import React from 'react';
 import {TextInput, TextInputProps} from 'react-native';
 import {colorLookup} from 'theme';
 import {merge} from 'lodash';
-import {useField} from 'formik';
+import {useController} from 'react-hook-form';
 
 interface TextFieldProps extends TextInputProps {
   name: string;
@@ -22,19 +22,19 @@ const textInputDefaultStyle = {
 };
 
 export const TextField: React.FC<TextFieldProps> = ({name, label, style, ...props}) => {
-  const [field, meta, helpers] = useField<string>({name});
+  const {field, fieldState} = useController({name});
   return (
     <VStack width="100%" space={4}>
       <BodyXSmBlack>{label}</BodyXSmBlack>
       <TextInput
-        onBlur={() => helpers.setTouched(!meta.touched)}
-        onChangeText={helpers.setValue}
+        onBlur={field.onBlur}
+        onChangeText={field.onChange}
         value={field.value}
         style={merge({}, textInputDefaultStyle, style)}
         placeholderTextColor={colorLookup('lightText')}
         {...props}></TextInput>
       {/* TODO: animate the appearance/disappearance of the error string */}
-      {meta.touched && meta.error && <BodyXSm color={colorLookup('error.900')}>{meta.error}</BodyXSm>}
+      {fieldState.error && <BodyXSm color={colorLookup('error.900')}>{fieldState.error.message}</BodyXSm>}
     </VStack>
   );
 };
