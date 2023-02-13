@@ -62,12 +62,20 @@ export const ObservationSubmit: React.FC<{
                 <Body>Help keep the NWAC community informed by submitting your observation.</Body>
                 <Divider direction="horizontal" />
                 <Title3Semibold>General Information</Title3Semibold>
-                <TextField name="name" label="Name" placeholder="John Doe" />
-                <TextField name="email" label="Email address" placeholder="you@domain.com" />
-                <TextField name="observationDate" label="Observation date" placeholder="this needs to be a date picker" />
+                <TextField name="name" label="Name" placeholder="Jane Doe" textContentType="name" />
+                <TextField
+                  name="email"
+                  label="Email address"
+                  placeholder="you@domain.com"
+                  textContentType="emailAddress"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <TextField name="observationDate" label="Observation date" placeholder="this needs to be a date picker" keyboardType="numbers-and-punctuation" />
                 <SelectField name="zone" label="Zone/Region" prompt="Select a zone or region" items={zones} />
                 <TextField name="activity" label="Activity" placeholder="this needs to be an activity picker" />
-                <TextField name="location" label="Location" placeholder="Tell us more about your route or trailhead" />
+                <TextField name="location" label="Location" placeholder="Tell us more about your route or trailhead" multiline />
                 <Divider direction="horizontal" />
                 <Title3Semibold>Map location</Title3Semibold>
                 <Body>tbd</Body>
