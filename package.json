@@ -21,6 +21,7 @@
   "dependencies": {
     "@expo-google-fonts/lato": "^0.2.2",
     "@expo/vector-icons": "^13.0.0",
+    "@hookform/resolvers": "^2.9.11",
     "@react-native-camera-roll/camera-roll": "^5.2.0",
     "@react-native-community/netinfo": "9.3.5",
     "@react-native-community/segmented-control": "^2.2.2",
@@ -55,6 +56,7 @@
     "lodash": "^4.17.21",
     "polylabel": "^1.1.0",
     "react": "18.1.0",
+    "react-hook-form": "^7.43.1",
     "react-native": "0.70.5",
     "react-native-collapsible": "^1.6.0",
     "react-native-gesture-handler": "~2.8.0",
