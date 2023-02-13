@@ -4,6 +4,7 @@ import {AppStateStatus, Platform, StatusBar, StyleSheet, View} from 'react-nativ
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {HoldMenuProvider} from 'react-native-hold-menu';
 import {AntDesign} from '@expo/vector-icons';
 import {
   useFonts,
@@ -161,38 +162,40 @@ const BaseApp: React.FunctionComponent<{
     <HTMLRendererConfig>
       <SafeAreaProvider>
         <NavigationContainer>
-          <StatusBar barStyle="dark-content" />
-          <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
-            <TabNavigator.Navigator
-              initialRouteName="Home"
-              screenOptions={({route}) => ({
-                headerShown: false,
-                tabBarIcon: ({color, size}) => {
-                  if (route.name === 'Home') {
-                    return <AntDesign name="search1" size={size} color={color} />;
-                  } else if (route.name === 'Observations') {
-                    return <AntDesign name="filetext1" size={size} color={color} />;
-                  } else if (route.name === 'Weather Data') {
-                    return <AntDesign name="barschart" size={size} color={color} />;
-                  } else if (route.name === 'Menu') {
-                    return <AntDesign name="bars" size={size} color={color} />;
-                  }
-                },
-              })}>
-              <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, dateString}}>
-                {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
-              </TabNavigator.Screen>
-              <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString}}>
-                {state => ObservationsTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
-              </TabNavigator.Screen>
-              <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString}}>
-                {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
-              </TabNavigator.Screen>
-              <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
-                {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-              </TabNavigator.Screen>
-            </TabNavigator.Navigator>
-          </View>
+          <HoldMenuProvider theme="light" paddingBottom={100}>
+            <StatusBar barStyle="dark-content" />
+            <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
+              <TabNavigator.Navigator
+                initialRouteName="Home"
+                screenOptions={({route}) => ({
+                  headerShown: false,
+                  tabBarIcon: ({color, size}) => {
+                    if (route.name === 'Home') {
+                      return <AntDesign name="search1" size={size} color={color} />;
+                    } else if (route.name === 'Observations') {
+                      return <AntDesign name="filetext1" size={size} color={color} />;
+                    } else if (route.name === 'Weather Data') {
+                      return <AntDesign name="barschart" size={size} color={color} />;
+                    } else if (route.name === 'Menu') {
+                      return <AntDesign name="bars" size={size} color={color} />;
+                    }
+                  },
+                })}>
+                <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, dateString}}>
+                  {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
+                </TabNavigator.Screen>
+                <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString}}>
+                  {state => ObservationsTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
+                </TabNavigator.Screen>
+                <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString}}>
+                  {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
+                </TabNavigator.Screen>
+                <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
+                  {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                </TabNavigator.Screen>
+              </TabNavigator.Navigator>
+            </View>
+          </HoldMenuProvider>
         </NavigationContainer>
       </SafeAreaProvider>
     </HTMLRendererConfig>
