@@ -1,4 +1,4 @@
-import {Divider, View, VStack} from 'components/core';
+import {Divider, HStack, View, VStack} from 'components/core';
 import {Body, BodySemibold, Title1, Title3Semibold} from 'components/text';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -41,23 +41,23 @@ export const ObservationSubmit: React.FC<{
 
   return (
     <FormProvider {...formContext}>
-      <View width="100%" height="100%" bg="white">
+      <View width="100%" height="100%" bg="#F6F8FC">
         {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
         <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
-          <VStack style={{height: '100%', width: '100%'}} alignItems="stretch">
-            <ScrollView style={{height: '100%', width: '100%'}}>
+          <VStack style={{height: '100%', width: '100%'}} alignItems="stretch" bg="#F6F8FC">
+            <HStack justifyContent="flex-end">
+              <AntDesign.Button
+                size={32}
+                color={colorLookup('darkText')}
+                name="close"
+                backgroundColor="#F6F8FC"
+                iconStyle={{marginRight: 8, marginTop: 0}}
+                style={{textAlign: 'center'}}
+                onPress={() => navigation.goBack()}
+              />
+            </HStack>
+            <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}}>
               <VStack width="100%" justifyContent="flex-start" alignItems="stretch" space={16} p={32}>
-                <View style={{alignSelf: 'flex-end', marginRight: -16, marginTop: -32}}>
-                  <AntDesign.Button
-                    size={32}
-                    color={colorLookup('darkText')}
-                    name="close"
-                    backgroundColor="white"
-                    iconStyle={{marginRight: 0}}
-                    style={{textAlign: 'center'}}
-                    onPress={() => navigation.goBack()}
-                  />
-                </View>
                 <Title1>Submit an observation</Title1>
                 <Body>Help keep the NWAC community informed by submitting your observation.</Body>
                 <Divider direction="horizontal" />
@@ -73,7 +73,6 @@ export const ObservationSubmit: React.FC<{
                 <Body>tbd</Body>
               </VStack>
             </ScrollView>
-            <View width="100%" height={1} mx={8} mt={8} bg="light.200" />
             <Button
               mx={8}
               my={16}
