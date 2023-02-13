@@ -12,12 +12,17 @@ import {Formik} from 'formik';
 import {createObservation, observationSchema} from 'components/observations/ObservationSchema';
 import {Button} from 'components/content/Button';
 import {TextField} from 'components/form/TextField';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {SelectField} from 'components/form/SelectField';
+import {uniq} from 'lodash';
 
 export const ObservationSubmit: React.FC<{
   center_id: AvalancheCenterID;
-}> = ({center_id: _center_id}) => {
+}> = ({center_id}) => {
+  const {data: center} = useAvalancheCenterMetadata(center_id);
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const initialValues = createObservation();
+  const zones = uniq(center?.zones?.filter(z => z.status === 'active')?.map(z => z.name));
 
   return (
     <View width="100%" height="100%" bg="white">
@@ -45,7 +50,7 @@ export const ObservationSubmit: React.FC<{
                 <TextField name="name" label="Name" placeholder="John Doe" />
                 <TextField name="email" label="Email address" placeholder="you@domain.com" />
                 <TextField name="date" label="Observation date" placeholder="this needs to be a date picker" />
-                <TextField name="zone" label="Zone/Region" placeholder="this needs to be a zone picker" />
+                <SelectField name="zone" label="Zone/Region" prompt="Select a zone or region" items={zones} />
                 <TextField name="activity" label="Activity" placeholder="this needs to be an activity picker" />
                 <TextField name="location" label="Location" placeholder="Tell us more about your route or trailhead" />
                 <Divider direction="horizontal" />

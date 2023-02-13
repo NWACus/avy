@@ -16,9 +16,9 @@ const textInputDefaultStyle = {
   color: colorLookup('darkText'),
   fontSize: 16,
   fontFamily: 'Lato_400Regular',
-  borderColor: colorLookup('lightText'),
-  borderWidth: 1,
-  borderRadius: 12,
+  borderColor: colorLookup('controlBorder'),
+  borderWidth: 2,
+  borderRadius: 4,
 };
 
 export const TextField: React.FC<TextFieldProps> = ({name, label, style, ...props}) => {

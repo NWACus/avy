@@ -6,6 +6,8 @@ export const COLORS = {
   lightText: '#999999',
   darkText: '#333333',
 
+  controlBorder: 'rgba(0, 0, 0, 0.15)',
+
   // AntDesign aliases (still referenced some places in Figma)
   'color-primary': '#1677FF',
 

@@ -12,7 +12,7 @@ export interface DropdownProps extends ViewProps {
   onSelectionChange?: (item: string) => void;
 }
 
-const borderColor = 'rgba(0, 0, 0, 0.15)';
+const borderColor = colorLookup('controlBorder');
 
 export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelectionChange, ...props}) => {
   const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
