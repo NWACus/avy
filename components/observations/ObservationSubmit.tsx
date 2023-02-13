@@ -1,5 +1,5 @@
 import {Divider, HStack, View, VStack} from 'components/core';
-import {Body, BodySemibold, Title1, Title3Semibold} from 'components/text';
+import {Body, BodySemibold, Title3Black, Title3Semibold} from 'components/text';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -47,20 +47,20 @@ export const ObservationSubmit: React.FC<{
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1}}>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <VStack style={{height: '100%', width: '100%'}} alignItems="stretch" bg="#F6F8FC">
-                <HStack justifyContent="flex-end">
+                <HStack justifyContent="flex-start" pb={8}>
                   <AntDesign.Button
-                    size={32}
+                    size={24}
                     color={colorLookup('darkText')}
-                    name="close"
+                    name="arrowleft"
                     backgroundColor="#F6F8FC"
-                    iconStyle={{marginRight: 8, marginTop: 0}}
+                    iconStyle={{marginLeft: 0, marginRight: 8}}
                     style={{textAlign: 'center'}}
                     onPress={() => navigation.goBack()}
                   />
+                  <Title3Black>Submit an observation</Title3Black>
                 </HStack>
                 <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}}>
-                  <VStack width="100%" justifyContent="flex-start" alignItems="stretch" space={16} p={32}>
-                    <Title1>Submit an observation</Title1>
+                  <VStack width="100%" justifyContent="flex-start" alignItems="stretch" space={16} px={32} pt={8} pb={8}>
                     <Body>Help keep the NWAC community informed by submitting your observation.</Body>
                     <Divider direction="horizontal" />
                     <Title3Semibold>General Information</Title3Semibold>
