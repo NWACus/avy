@@ -4,11 +4,14 @@ import {ActivityIndicator, ScrollView, StyleSheet} from 'react-native';
 import {range} from 'lodash';
 
 import {Center, HStack, View, VStack} from 'components/core';
-import {Body, BodySm, BodyXSm, BodyXSmBlack, Title1Black} from 'components/text';
+import {Body, BodySm, BodyXSm, BodyXSmBlack, Title1Black, Title3Black} from 'components/text';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {TimeSeries, useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {format} from 'date-fns';
 import {colorLookup} from 'theme';
+import {useNavigation} from '@react-navigation/native';
+import {AntDesign} from '@expo/vector-icons';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 interface Props {
   center_id: AvalancheCenterID;
@@ -165,6 +168,7 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = ({timeSeries}) => {
 };
 
 export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_stids}) => {
+  const navigation = useNavigation();
   const {isLoading, isError, data} = useWeatherStationTimeseries({
     center: center_id,
     sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
@@ -176,24 +180,40 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
 
   return (
     <View style={{...StyleSheet.absoluteFillObject}} bg="white">
-      <VStack py={16} px={8}>
-        <Title1Black>{name}</Title1Black>
-        <Center bg={colorLookup('warning.200')} borderColor={colorLookup('warning.800')} borderWidth={1} py={8} my={8}>
-          <Body>Work in progress</Body>
-          <BodySm>If something looks weird, don't freak out :)</BodySm>
-        </Center>
-        {isLoading && (
-          <Center width="100%" height="100%">
-            <ActivityIndicator size={'large'} />
-          </Center>
-        )}
-        {isError && (
-          <Center width="100%" height="100%">
-            <Body>Error loading weather station data.</Body>
-          </Center>
-        )}
-        {data && <TimeSeriesTable timeSeries={data} />}
-      </VStack>
+      {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
+      <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
+        <VStack width="100%" height="100%">
+          <HStack justifyContent="flex-start" pb={8}>
+            <AntDesign.Button
+              size={24}
+              color={colorLookup('darkText')}
+              name="arrowleft"
+              backgroundColor="white"
+              iconStyle={{marginLeft: 0, marginRight: 8}}
+              style={{textAlign: 'center'}}
+              onPress={() => navigation.goBack()}
+            />
+            <Title3Black>{name}</Title3Black>
+          </HStack>
+          <VStack py={16} px={8}>
+            <Center bg={colorLookup('warning.200')} borderColor={colorLookup('warning.800')} borderWidth={1} py={8} my={8}>
+              <Body>Work in progress</Body>
+              <BodySm>If something looks weird, don't freak out :)</BodySm>
+            </Center>
+            {isLoading && (
+              <Center width="100%" height="100%">
+                <ActivityIndicator size={'large'} />
+              </Center>
+            )}
+            {isError && (
+              <Center width="100%" height="100%">
+                <Body>Error loading weather station data.</Body>
+              </Center>
+            )}
+            {data && <TimeSeriesTable timeSeries={data} />}
+          </VStack>
+        </VStack>
+      </SafeAreaView>
     </View>
   );
 };
