@@ -6,6 +6,7 @@ export interface Observation {
   email: string;
   observationDate: Date;
   zone: string;
+  activity: string;
   location: string;
 }
 
@@ -14,7 +15,9 @@ export const createObservation = (initialValues: Partial<Observation> | null = n
     {
       name: '',
       email: '',
+      observationDate: null,
       zone: '',
+      activity: '',
       location: '',
     },
     initialValues,

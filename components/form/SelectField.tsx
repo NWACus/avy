@@ -2,9 +2,9 @@ import {HStack, View, VStack} from 'components/core';
 import {Body, bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
 import React from 'react';
 import {colorLookup} from 'theme';
-import {useField, useFormikContext} from 'formik';
 import {HoldItem} from 'react-native-hold-menu';
 import {AntDesign} from '@expo/vector-icons';
+import {useController, useFormContext} from 'react-hook-form';
 
 interface SelectFieldProps {
   name: string;
@@ -16,19 +16,12 @@ interface SelectFieldProps {
 const borderColor = colorLookup('controlBorder');
 
 export const SelectField: React.FC<SelectFieldProps> = ({name, label, items, prompt}) => {
-  const [field, meta, helpers] = useField<string>({name});
-  const {handleChange, handleBlur, setFieldTouched} = useFormikContext();
-  const {setValue} = helpers;
-  console.log('render select field:', field, meta);
-
+  const {setValue} = useFormContext();
+  const {field, fieldState} = useController({name});
   const menuItems = items.map(item => ({
     text: item,
     onPress: () => {
-      setValue(item, false);
-      handleChange(name);
-      setFieldTouched(name);
-      handleBlur(name);
-      console.log(`set ${name} to ${item}`);
+      setValue(name, item, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
     },
   }));
 
@@ -44,7 +37,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({name, label, items, pro
         </View>
       </HoldItem>
       {/* TODO: animate the appearance/disappearance of the error string */}
-      {meta.touched && meta.error && <BodyXSm color={colorLookup('error.900')}>{meta.error}</BodyXSm>}
+      {fieldState.error && <BodyXSm color={colorLookup('error.900')}>{fieldState.error.message}</BodyXSm>}
     </VStack>
   );
 };
