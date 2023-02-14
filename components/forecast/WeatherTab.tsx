@@ -70,19 +70,19 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
         <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Issued</AllCapsSmBlack>
-            <AllCapsSm style={{textTransform: 'none'}} color="lightText">
+            <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
               {utcDateToLocalTimeString(forecast.published_time)}
             </AllCapsSm>
           </VStack>
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Expires</AllCapsSmBlack>
-            <AllCapsSm style={{textTransform: 'none'}} color="lightText">
+            <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
               {utcDateToLocalTimeString(forecast.expires_time)}
             </AllCapsSm>
           </VStack>
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Author</AllCapsSmBlack>
-            <AllCapsSm style={{textTransform: 'none'}} color="lightText">
+            <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
               {forecast.author || 'Unknown'}
               {'\n'}
             </AllCapsSm>

@@ -123,25 +123,25 @@ export const ObservationSummaryCard: React.FunctionComponent<{
           {observation.instability.avalanches_caught && (
             <HStack space={8} alignItems="center">
               <NACIcon name="avalanche" size={32} color="black" />
-              <Body color="lightText">{'Caught in Avalanche(s)'}</Body>
+              <Body color="text.secondary">{'Caught in Avalanche(s)'}</Body>
             </HStack>
           )}
           {observation.instability.avalanches_observed && (
             <HStack space={8} alignItems="center">
               <NACIcon name="avalanche" size={32} color="black" />
-              <Body color="lightText">{'Avalanche(s) Observed'}</Body>
+              <Body color="text.secondary">{'Avalanche(s) Observed'}</Body>
             </HStack>
           )}
           {observation.instability.avalanches_triggered && (
             <HStack space={8} alignItems="center">
               <NACIcon name="avalanche" size={32} color="black" />
-              <Body color="lightText">{'Avalanche(s) Triggered'}</Body>
+              <Body color="text.secondary">{'Avalanche(s) Triggered'}</Body>
             </HStack>
           )}
           {observation.instability.collapsing && (
             <HStack space={8} alignItems="center">
               <MaterialCommunityIcons name="arrow-collapse-vertical" size={24} color="black" />
-              <Body color="lightText">
+              <Body color="text.secondary">
                 {observation.instability.collapsing_description && `${FormatAvalancheProblemDistribution(observation.instability.collapsing_description)} `}
                 {'Collapsing Observed'}
               </Body>
@@ -150,7 +150,7 @@ export const ObservationSummaryCard: React.FunctionComponent<{
           {observation.instability.cracking && (
             <HStack space={8} alignItems="center">
               <MaterialCommunityIcons name="lightning-bolt" size={24} color="black" />
-              <Body color="lightText">
+              <Body color="text.secondary">
                 {observation.instability.cracking_description && `${FormatAvalancheProblemDistribution(observation.instability.cracking_description)} `}
                 {'Cracking Observed'}
               </Body>
@@ -175,7 +175,7 @@ const IdentifiedInformation: React.FunctionComponent<{
   return (
     <VStack space={8} style={{flex: 1}}>
       <BodyBlack style={{textTransform: 'uppercase'}}>{header}</BodyBlack>
-      <Body color="lightText">{body}</Body>
+      <Body color="text.secondary">{body}</Body>
     </VStack>
   );
 };

@@ -21,7 +21,7 @@ export interface InfoTooltipProps {
 
 const htmlStyle = {fontSize: 14, lineHeight: 21, textAlign: 'center'} as const;
 
-export const InfoTooltip: React.FC<InfoTooltipProps> = ({title, content, color = 'darktext', size, ...props}) => {
+export const InfoTooltip: React.FC<InfoTooltipProps> = ({title, content, color = 'text', size, ...props}) => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const openModal = useCallback(() => {
     setShowModal(true);
@@ -43,7 +43,7 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({title, content, color =
               <Center width="100%" height="100%">
                 <VStack alignItems="center" bg="white" borderRadius={16} px={12} py={24} m={12} space={8}>
                   {/* unfortunate ant misspelling: infocirlce */}
-                  <AntDesign name="infocirlce" color={colorLookup('color-primary')} size={30} />
+                  <AntDesign name="infocirlce" color={colorLookup('primary')} size={30} />
                   <Title3Semibold>{title}</Title3Semibold>
                   <HTMLRendererConfig baseStyle={htmlStyle}>
                     <HTML source={{html: content}} />

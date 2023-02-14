@@ -1,15 +1,31 @@
 import {ColorValue} from 'react-native';
 
 export const COLORS = {
-  white: '#FFFFFF',
-  black: '#000000',
-  lightText: '#999999',
-  darkText: '#333333',
-
-  controlBorder: 'rgba(0, 0, 0, 0.15)',
-
-  // AntDesign aliases (still referenced some places in Figma)
-  'color-primary': '#1677FF',
+  //
+  // NWAC colors
+  //
+  // Primary
+  primary: '#096DD9',
+  'primary.hover': '#40A9FF',
+  'primary.active': '#096DD9',
+  'primary.outline': 'rgba(24, 144, 255, 0.2)',
+  //
+  // UI
+  blue1: 'rgba(24, 144, 255, 1)',
+  blue2: 'rgba(0, 80, 179, 1)',
+  blue3: 'rgba(0, 58, 140, 1)',
+  'NWAC-dark': 'rgba(20, 45, 86, 1)',
+  'NWAC-light': 'rgba(160, 204, 216, 1)',
+  //
+  // Neutral
+  text: 'rgba(0, 0, 0, 0.85)',
+  'text.secondary': 'rgba(0, 0, 0, 0.7)',
+  'text.tertiary': 'rgba(0, 0, 0, 0.45)',
+  disabled: 'rgba(0, 0, 0, 0.25)',
+  'border.base': 'rgba(0, 0, 0, 0.15)',
+  'border.split': 'rgba(0, 0, 0, 0.06)',
+  'background.base': 'rgba(0, 0, 0, 0.04)',
+  'background.light': 'rgba(0, 0, 0, 0.02)',
 
   // Color aliases from NativeBase
   'rose.50': '#fff1f2',

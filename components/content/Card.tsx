@@ -41,7 +41,7 @@ export interface CollapsibleCardProps extends CardProps {
 
 export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({startsCollapsed, header, children, ...props}) => {
   const [isCollapsed, setIsCollapsed] = useState(startsCollapsed);
-  const textColor = colorLookup('darkText');
+  const textColor = colorLookup('text');
 
   return (
     <Card

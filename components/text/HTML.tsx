@@ -28,7 +28,7 @@ export interface HTMLRendererConfigProps {
 const baseStyleDefaults: MixedStyleDeclaration = {
   fontSize: 16,
   fontFamily: 'Lato_400Regular',
-  color: colorLookup('darkText'),
+  color: colorLookup('text'),
 };
 
 const tagsStylesDefaults = {

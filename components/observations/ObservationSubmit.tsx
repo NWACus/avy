@@ -51,7 +51,7 @@ export const ObservationSubmit: React.FC<{
                 <HStack justifyContent="flex-start" pb={8}>
                   <AntDesign.Button
                     size={24}
-                    color={colorLookup('darkText')}
+                    color={colorLookup('text')}
                     name="arrowleft"
                     backgroundColor="#F6F8FC"
                     iconStyle={{marginLeft: 0, marginRight: 8}}
