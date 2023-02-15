@@ -13,7 +13,6 @@ export const Divider: React.FC<DividerProps> = React.memo(({children, style: ori
   const style: ViewStyle = {
     width: direction === 'horizontal' ? '100%' : size,
     height: direction === 'vertical' ? '100%' : size,
-    flex: 1,
   };
   merge(style, originalStyle);
   return (

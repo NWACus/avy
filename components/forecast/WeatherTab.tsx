@@ -70,19 +70,19 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
         <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Issued</AllCapsSmBlack>
-            <AllCapsSm style={{textTransform: 'none'}} color="lightText">
+            <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
               {utcDateToLocalTimeString(forecast.published_time)}
             </AllCapsSm>
           </VStack>
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Expires</AllCapsSmBlack>
-            <AllCapsSm style={{textTransform: 'none'}} color="lightText">
+            <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
               {utcDateToLocalTimeString(forecast.expires_time)}
             </AllCapsSm>
           </VStack>
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Author</AllCapsSmBlack>
-            <AllCapsSm style={{textTransform: 'none'}} color="lightText">
+            <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
               {forecast.author || 'Unknown'}
               {'\n'}
             </AllCapsSm>
@@ -168,7 +168,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
                     screen: 'stationDetail',
                     // Treat this as the first screen in the Weather Data stack - don't show a back button going to the stationList
                     initial: true,
-                    params: {center_id, station_stids: stations.map(s => s.stid), name, dateString},
+                    params: {center_id, station_stids: stations.map(s => s.stid), name, dateString, zoneName: zone.name},
                   });
                 },
               }))}

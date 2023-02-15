@@ -15,15 +15,15 @@ type PredefinedButtonStyle = 'normal' | 'primary' | 'destructive';
 
 const styles = {
   normal: {
-    borderColor: colorLookup('color-primary'),
-    textColor: colorLookup('color-primary'),
-    pressedBackgroundColor: tinycolor(colorLookup('color-primary')).setAlpha(0.2).toRgbString(),
+    borderColor: colorLookup('primary'),
+    textColor: colorLookup('primary'),
+    pressedBackgroundColor: tinycolor(colorLookup('primary')).setAlpha(0.2).toRgbString(),
   },
   primary: {
-    backgroundColor: colorLookup('color-primary'),
-    borderColor: colorLookup('color-primary'),
+    backgroundColor: colorLookup('primary'),
+    borderColor: colorLookup('primary'),
     textColor: colorLookup('white'),
-    pressedBackgroundColor: tinycolor(colorLookup('color-primary')).setAlpha(0.6).toRgbString(),
+    pressedBackgroundColor: tinycolor(colorLookup('primary')).setAlpha(0.6).toRgbString(),
   },
   destructive: {
     backgroundColor: colorLookup('red.700'),

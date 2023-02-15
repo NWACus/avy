@@ -13,10 +13,10 @@ interface TextFieldProps extends TextInputProps {
 
 const textInputDefaultStyle = {
   padding: 8,
-  color: colorLookup('darkText'),
+  color: colorLookup('text'),
   fontSize: 16,
   fontFamily: 'Lato_400Regular',
-  borderColor: colorLookup('controlBorder'),
+  borderColor: colorLookup('border.base'),
   borderWidth: 2,
   borderRadius: 4,
 };
@@ -31,7 +31,7 @@ export const TextField: React.FC<TextFieldProps> = ({name, label, style, ...prop
         onChangeText={field.onChange}
         value={field.value}
         style={merge({}, textInputDefaultStyle, style)}
-        placeholderTextColor={colorLookup('lightText')}
+        placeholderTextColor={colorLookup('text.secondary')}
         {...props}></TextInput>
       {/* TODO: animate the appearance/disappearance of the error string */}
       {fieldState.error && <BodyXSm color={colorLookup('error.900')}>{fieldState.error.message}</BodyXSm>}

@@ -13,7 +13,7 @@ interface SelectFieldProps {
   prompt: string;
 }
 
-const borderColor = colorLookup('controlBorder');
+const borderColor = colorLookup('border.base');
 
 export const SelectField: React.FC<SelectFieldProps> = ({name, label, items, prompt}) => {
   const {setValue} = useFormContext();
@@ -32,7 +32,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({name, label, items, pro
         <View borderColor={borderColor} borderWidth={2} borderRadius={4} p={8} flexDirection="column" justifyContent="center">
           <HStack justifyContent="space-between" alignItems="center">
             <Body>{field.value || prompt}</Body>
-            <AntDesign name="down" size={bodySize} color={colorLookup('darkText')} />
+            <AntDesign name="down" size={bodySize} color={colorLookup('text')} />
           </HStack>
         </View>
       </HoldItem>

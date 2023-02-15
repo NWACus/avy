@@ -4,16 +4,21 @@ import {ActivityIndicator, ScrollView, StyleSheet} from 'react-native';
 import {range} from 'lodash';
 
 import {Center, HStack, View, VStack} from 'components/core';
-import {Body, BodySm, BodyXSm, BodyXSmBlack, Title1Black} from 'components/text';
+import {Body, BodyBlack, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {TimeSeries, useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {format} from 'date-fns';
 import {colorLookup} from 'theme';
+import {useNavigation} from '@react-navigation/native';
+import {AntDesign} from '@expo/vector-icons';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {Card} from 'components/content/Card';
 
 interface Props {
   center_id: AvalancheCenterID;
   name: string;
   station_stids: string[];
+  zoneName: string;
 }
 
 // TODO: plumb through active date
@@ -74,7 +79,7 @@ const shortUnitsMap = {
 
 const shortUnits = (units: string) => shortUnitsMap[units] || units;
 
-const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = ({timeSeries}) => {
+const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = React.memo(({timeSeries}) => {
   if (timeSeries.STATION.length === 0) {
     return <Body>No data found.</Body>;
   }
@@ -139,7 +144,7 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = ({timeSeries}) => {
   return (
     <ScrollView>
       <ScrollView horizontal>
-        <HStack padding={8} justifyContent="space-between" alignItems="center" bg="white">
+        <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
           {sortedColIndices
             .map(i => ({...tableColumns[i], columnIndex: i}))
             .map(({field, elevation, columnIndex}) => (
@@ -162,9 +167,10 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = ({timeSeries}) => {
       </ScrollView>
     </ScrollView>
   );
-};
+});
 
-export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_stids}) => {
+export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_stids, zoneName}) => {
+  const navigation = useNavigation();
   const {isLoading, isError, data} = useWeatherStationTimeseries({
     center: center_id,
     sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
@@ -176,24 +182,36 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
 
   return (
     <View style={{...StyleSheet.absoluteFillObject}} bg="white">
-      <VStack py={16} px={8}>
-        <Title1Black>{name}</Title1Black>
-        <Center bg={colorLookup('warning.200')} borderColor={colorLookup('warning.800')} borderWidth={1} py={8} my={8}>
-          <Body>Work in progress</Body>
-          <BodySm>If something looks weird, don't freak out :)</BodySm>
-        </Center>
-        {isLoading && (
-          <Center width="100%" height="100%">
-            <ActivityIndicator size={'large'} />
-          </Center>
-        )}
-        {isError && (
-          <Center width="100%" height="100%">
-            <Body>Error loading weather station data.</Body>
-          </Center>
-        )}
-        {data && <TimeSeriesTable timeSeries={data} />}
-      </VStack>
+      {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
+      <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
+        <VStack width="100%" height="100%" alignItems="stretch">
+          <HStack justifyContent="flex-start">
+            <AntDesign.Button
+              size={24}
+              color={colorLookup('text')}
+              name="arrowleft"
+              backgroundColor="white"
+              iconStyle={{marginLeft: 0, marginRight: 8}}
+              style={{textAlign: 'center'}}
+              onPress={() => navigation.goBack()}
+            />
+            <Title3Black>{zoneName}</Title3Black>
+          </HStack>
+          <Card width="100%" height="100%" borderRadius={0} borderColor="white" header={<BodyBlack>{name}</BodyBlack>}>
+            {isLoading && (
+              <Center width="100%" height="100%">
+                <ActivityIndicator size={'large'} />
+              </Center>
+            )}
+            {isError && (
+              <Center width="100%" height="100%">
+                <Body>Error loading weather station data.</Body>
+              </Center>
+            )}
+            {data && <TimeSeriesTable timeSeries={data} />}
+          </Card>
+        </VStack>
+      </SafeAreaView>
     </View>
   );
 };

@@ -16,7 +16,7 @@ interface Props {
   sources: Source[];
 }
 
-interface ZoneResult {
+export interface ZoneResult {
   zoneId: number;
   name: string;
   stationGroups: Record<string, StationMetadata[]>;
