@@ -13,6 +13,8 @@ import {useNavigation} from '@react-navigation/native';
 import {AntDesign} from '@expo/vector-icons';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Card} from 'components/content/Card';
+import {InfoTooltip} from 'components/content/InfoTooltip';
+import {utcDateToLocalDateString} from 'utils/date';
 
 interface Props {
   center_id: AvalancheCenterID;
@@ -180,6 +182,11 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
     endDate: date,
   });
 
+  const warnings =
+    data?.STATION?.map(({name, station_note: notes}) => notes.map(({start_date, status, note}) => ({name, start_date, status, note})))
+      .flat()
+      .sort((a, b) => b.start_date.localeCompare(a.start_date)) || [];
+
   return (
     <View style={{...StyleSheet.absoluteFillObject}} bg="white">
       {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
@@ -197,7 +204,26 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
             />
             <Title3Black>{zoneName}</Title3Black>
           </HStack>
-          <Card width="100%" height="100%" borderRadius={0} borderColor="white" header={<BodyBlack>{name}</BodyBlack>}>
+          <Card
+            width="100%"
+            height="100%"
+            borderRadius={0}
+            borderColor="white"
+            header={
+              <HStack space={8}>
+                <BodyBlack>{name}</BodyBlack>
+                {warnings.length > 0 && (
+                  <InfoTooltip
+                    outlineIcon="bells"
+                    solidIcon="bells"
+                    title="Status Alerts"
+                    htmlStyle={{textAlign: 'left'}}
+                    content={warnings.map(w => `<h3>${w.name} (${utcDateToLocalDateString(w.start_date)})</h3><p>${w.note}</p>`).join('\n')}
+                    size={18}
+                  />
+                )}
+              </HStack>
+            }>
             {isLoading && (
               <Center width="100%" height="100%">
                 <ActivityIndicator size={'large'} />
