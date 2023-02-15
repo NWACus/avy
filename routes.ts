@@ -33,6 +33,7 @@ export type WeatherStackParamList = {
   stationDetail: {
     center_id: AvalancheCenterID;
     station_stids: string[];
+    zoneName: string;
     name: string;
     dateString: string;
   };

@@ -10,14 +10,9 @@ const WeatherStack = createNativeStackNavigator<WeatherStackParamList>();
 export const WeatherScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Weather Data'>) => {
   const {center_id, dateString} = route.params;
   return (
-    <WeatherStack.Navigator initialRouteName="stationList">
-      <WeatherStack.Screen
-        name="stationList"
-        component={StationListScreen}
-        initialParams={{center_id: center_id, dateString}}
-        options={({route: {params}}) => ({title: `${params.center_id} Weather Stations`})}
-      />
-      <WeatherStack.Screen name="stationDetail" component={StationDetailScreen} options={{headerShown: false}} />
+    <WeatherStack.Navigator initialRouteName="stationList" screenOptions={{headerShown: false}}>
+      <WeatherStack.Screen name="stationList" component={StationListScreen} initialParams={{center_id: center_id, dateString}} />
+      <WeatherStack.Screen name="stationDetail" component={StationDetailScreen} />
     </WeatherStack.Navigator>
   );
 };
