@@ -151,15 +151,22 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = React.memo(({timeSer
             .map(i => ({...tableColumns[i], columnIndex: i}))
             .map(({field, elevation, columnIndex}) => (
               <VStack key={columnIndex} justifyContent="flex-start" alignItems="stretch">
-                <VStack alignItems="center" justifyContent="flex-start" flex={1} py={rowPadding} px={columnPadding}>
-                  <BodyXSmBlack>{shortFieldMap[field]}</BodyXSmBlack>
-                  <BodyXSmBlack>{field === 'date_time' ? 'PST' : shortUnits(timeSeries.UNITS[field])}</BodyXSmBlack>
-                  <BodyXSmBlack>{field !== 'date_time' ? `${elevation}'` : ' '}</BodyXSmBlack>
+                <VStack alignItems="center" justifyContent="flex-start" flex={1} py={rowPadding} px={columnPadding} bg="blue2">
+                  <BodyXSmBlack color="white">{shortFieldMap[field]}</BodyXSmBlack>
+                  <BodyXSmBlack color="white">{field === 'date_time' ? 'PST' : shortUnits(timeSeries.UNITS[field])}</BodyXSmBlack>
+                  <BodyXSmBlack color="white">{field !== 'date_time' ? `${elevation}'` : ' '}</BodyXSmBlack>
                 </VStack>
                 {sortedRowIndices
                   .map(i => tableRows[i])
                   .map((row, index) => (
-                    <Center flex={1} key={index} bg={colorLookup(index % 2 ? 'light.100' : 'light.300')} py={rowPadding} px={columnPadding}>
+                    <Center
+                      flex={1}
+                      key={index}
+                      bg={colorLookup(index % 2 ? 'light.100' : 'light.300')}
+                      py={rowPadding}
+                      px={columnPadding}
+                      borderRightWidth={columnIndex === 0 ? 1 : 0}
+                      borderColor={colorLookup('text.tertiary')}>
                       <BodyXSm>{row.cells[columnIndex].value}</BodyXSm>
                     </Center>
                   ))}
