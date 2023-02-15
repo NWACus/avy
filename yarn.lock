@@ -6429,6 +6429,11 @@ eslint-module-utils@^2.7.3:
   dependencies:
     debug "^3.2.7"
 
+eslint-plugin-absolute-imports@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-absolute-imports/-/eslint-plugin-absolute-imports-0.0.3.tgz#b4eb9bff6e7a73e8bc66082ce892edc24b34fb68"
+  integrity sha512-7gjXEpfCWP8yqPEWU4Ozbfo2wOlV2y3tkHJeJ50kCmBGDr3osx0VRiCwIvvmVXhVA6mags9J4qva+AClmSnWvg==
+
 eslint-plugin-import@^2.26.0:
   version "2.26.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-import/-/eslint-plugin-import-2.26.0.tgz#f812dc47be4f2b72b478a021605a59fc6fe8b88b"

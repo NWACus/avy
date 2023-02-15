@@ -1,11 +1,12 @@
 {
   "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "plugin:react-hooks/recommended"],
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "eslint-plugin-absolute-imports"],
   "root": true,
   "ignorePatterns": ["babel.config.js", "metro.config.js", "dist", ".expo", "types/generated"],
   "reportUnusedDisableDirectives": true,
   "rules": {
+    "absolute-imports/only-absolute-imports": "error",
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {
