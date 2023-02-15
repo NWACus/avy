@@ -4,7 +4,7 @@ import {ActivityIndicator, ScrollView, StyleSheet} from 'react-native';
 import {range} from 'lodash';
 
 import {Center, HStack, View, VStack} from 'components/core';
-import {Body, BodyBlack, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
+import {Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {TimeSeries, useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {format} from 'date-fns';
@@ -210,7 +210,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
             borderRadius={0}
             borderColor="white"
             header={
-              <HStack space={8}>
+              <HStack space={8} alignItems="center">
                 <BodyBlack>{name}</BodyBlack>
                 {warnings.length > 0 && (
                   <InfoTooltip
@@ -219,7 +219,8 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
                     title="Status Alerts"
                     htmlStyle={{textAlign: 'left'}}
                     content={warnings.map(w => `<h3>${w.name} (${utcDateToLocalDateString(w.start_date)})</h3><p>${w.note}</p>`).join('\n')}
-                    size={18}
+                    size={bodySize}
+                    style={{paddingBottom: 0, paddingTop: 1}}
                   />
                 )}
               </HStack>
