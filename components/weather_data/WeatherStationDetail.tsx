@@ -1,10 +1,10 @@
-import React from 'react';
-import {ActivityIndicator, ScrollView, StyleSheet} from 'react-native';
+import React, {useState} from 'react';
+import {ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
 
 import {range} from 'lodash';
 
-import {Center, HStack, View, VStack} from 'components/core';
-import {Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
+import {Center, Divider, HStack, View, VStack} from 'components/core';
+import {AllCapsSm, Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {TimeSeries, useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {format} from 'date-fns';
@@ -12,7 +12,6 @@ import {colorLookup} from 'theme';
 import {useNavigation} from '@react-navigation/native';
 import {AntDesign} from '@expo/vector-icons';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {Card} from 'components/content/Card';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {utcDateToLocalDateString} from 'utils/date';
 
@@ -144,22 +143,29 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = React.memo(({timeSer
   const rowPadding = 2;
 
   return (
-    <ScrollView>
-      <ScrollView horizontal>
+    <ScrollView style={{width: '100%', height: '100%'}}>
+      <ScrollView horizontal style={{width: '100%', height: '100%'}}>
         <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
           {sortedColIndices
             .map(i => ({...tableColumns[i], columnIndex: i}))
             .map(({field, elevation, columnIndex}) => (
               <VStack key={columnIndex} justifyContent="flex-start" alignItems="stretch">
-                <VStack alignItems="center" justifyContent="flex-start" flex={1} py={rowPadding} px={columnPadding}>
-                  <BodyXSmBlack>{shortFieldMap[field]}</BodyXSmBlack>
-                  <BodyXSmBlack>{field === 'date_time' ? 'PST' : shortUnits(timeSeries.UNITS[field])}</BodyXSmBlack>
-                  <BodyXSmBlack>{field !== 'date_time' ? `${elevation}'` : ' '}</BodyXSmBlack>
+                <VStack alignItems="center" justifyContent="flex-start" flex={1} py={rowPadding} px={columnPadding} bg="blue2">
+                  <BodyXSmBlack color="white">{shortFieldMap[field]}</BodyXSmBlack>
+                  <BodyXSmBlack color="white">{field === 'date_time' ? 'PST' : shortUnits(timeSeries.UNITS[field])}</BodyXSmBlack>
+                  <BodyXSmBlack color="white">{field !== 'date_time' ? `${elevation}'` : ' '}</BodyXSmBlack>
                 </VStack>
                 {sortedRowIndices
                   .map(i => tableRows[i])
                   .map((row, index) => (
-                    <Center flex={1} key={index} bg={colorLookup(index % 2 ? 'light.100' : 'light.300')} py={rowPadding} px={columnPadding}>
+                    <Center
+                      flex={1}
+                      key={index}
+                      bg={colorLookup(index % 2 ? 'light.100' : 'light.300')}
+                      py={rowPadding}
+                      px={columnPadding}
+                      borderRightWidth={columnIndex === 0 ? 1 : 0}
+                      borderColor={colorLookup('text.tertiary')}>
                       <BodyXSm>{row.cells[columnIndex].value}</BodyXSm>
                     </Center>
                   ))}
@@ -172,13 +178,13 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = React.memo(({timeSer
 });
 
 export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_stids, zoneName}) => {
+  const [days, setDays] = useState(1);
   const navigation = useNavigation();
   const {isLoading, isError, data} = useWeatherStationTimeseries({
     center: center_id,
     sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
     stids: station_stids,
-    startDate: new Date(date.getTime() - 1 * 24 * 60 * 60 * 1000),
-    // TODO: support 24 hour / 7 day picker
+    startDate: new Date(date.getTime() - days * 24 * 60 * 60 * 1000),
     endDate: date,
   });
 
@@ -204,27 +210,34 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
             />
             <Title3Black>{zoneName}</Title3Black>
           </HStack>
-          <Card
-            width="100%"
-            height="100%"
-            borderRadius={0}
-            borderColor="white"
-            header={
-              <HStack space={8} alignItems="center">
-                <BodyBlack>{name}</BodyBlack>
-                {warnings.length > 0 && (
-                  <InfoTooltip
-                    outlineIcon="bells"
-                    solidIcon="bells"
-                    title="Status Alerts"
-                    htmlStyle={{textAlign: 'left'}}
-                    content={warnings.map(w => `<h3>${w.name} (${utcDateToLocalDateString(w.start_date)})</h3><p>${w.note}</p>`).join('\n')}
-                    size={bodySize}
-                    style={{paddingBottom: 0, paddingTop: 1}}
-                  />
-                )}
-              </HStack>
-            }>
+          <VStack width="100%" height="100%" p={16} space={8}>
+            <HStack space={8} alignItems="center">
+              <BodyBlack>{name}</BodyBlack>
+              {warnings.length > 0 && (
+                <InfoTooltip
+                  outlineIcon="bells"
+                  solidIcon="bells"
+                  title="Status Alerts"
+                  htmlStyle={{textAlign: 'left'}}
+                  content={warnings.map(w => `<h3>${w.name} (${utcDateToLocalDateString(w.start_date)})</h3><p>${w.note}</p>`).join('\n')}
+                  size={bodySize}
+                  style={{paddingBottom: 0, paddingTop: 1}}
+                />
+              )}
+            </HStack>
+            <Divider />
+            <HStack space={16} py={8}>
+              <TouchableOpacity onPress={() => setDays(1)} disabled={days === 1}>
+                <View style={days === 1 ? styles.buttonSelected : styles.button}>
+                  <AllCapsSm>24 hour</AllCapsSm>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setDays(7)} disabled={days === 7}>
+                <View style={days === 7 ? styles.buttonSelected : styles.button}>
+                  <AllCapsSm>7 day</AllCapsSm>
+                </View>
+              </TouchableOpacity>
+            </HStack>
             {isLoading && (
               <Center width="100%" height="100%">
                 <ActivityIndicator size={'large'} />
@@ -236,9 +249,24 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
               </Center>
             )}
             {data && <TimeSeriesTable timeSeries={data} />}
-          </Card>
+            {/* For some reason, the table is running off the bottom of the view, and I just don't have time to keep debugging this.
+             Adding the placeholder here does the trick. :dizzy_face: */}
+            <View height={16} />
+          </VStack>
         </VStack>
       </SafeAreaView>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  button: {
+    borderRadius: 12,
+    padding: 8,
+  },
+  buttonSelected: {
+    borderRadius: 12,
+    backgroundColor: colorLookup('primary.outline'),
+    padding: 8,
+  },
+});

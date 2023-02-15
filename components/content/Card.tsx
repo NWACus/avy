@@ -26,7 +26,7 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({hea
         <View bg="white" borderWidth={2} borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.200'} p={16}>
           <VStack space={noInternalSpace ? 0 : 8}>
             <>{header}</>
-            {noDivider || <Divider direction="horizontal" bg="light.200" />}
+            {noDivider || <Divider />}
             <>{children}</>
           </VStack>
         </View>
@@ -58,7 +58,7 @@ export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<Collapsi
       }>
       <Collapsible collapsed={isCollapsed} renderChildrenCollapsed>
         <VStack space={8} pt={8}>
-          <Divider direction="horizontal" bg="light.200" />
+          <Divider />
           <>{children}</>
         </VStack>
       </Collapsible>

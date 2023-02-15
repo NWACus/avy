@@ -67,7 +67,7 @@ export const ObservationSubmit: React.FC<{
               <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}}>
                 <VStack width="100%" justifyContent="flex-start" alignItems="stretch" space={16} px={32} pt={8} pb={8}>
                   <Body>Help keep the NWAC community informed by submitting your observation.</Body>
-                  <Divider direction="horizontal" />
+                  <Divider />
                   <Title3Semibold>General Information</Title3Semibold>
                   <TextField name="name" label="Name" placeholder="Jane Doe" textContentType="name" />
                   <TextField
@@ -83,7 +83,7 @@ export const ObservationSubmit: React.FC<{
                   <SelectField name="zone" label="Zone/Region" prompt="Select a zone or region" items={zones} />
                   <TextField name="activity" label="Activity" placeholder="this needs to be an activity picker" />
                   <TextField name="location" label="Location" placeholder="Tell us more about your route or trailhead" multiline />
-                  <Divider direction="horizontal" />
+                  <Divider />
                   <Title3Semibold>Map location</Title3Semibold>
                   <Body>tbd</Body>
                   <Button
