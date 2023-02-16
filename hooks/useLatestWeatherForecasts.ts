@@ -5,7 +5,6 @@ import axios, {AxiosError} from 'axios';
 import {QueryClient, useQuery} from 'react-query';
 
 import Log from 'network/log';
-import {getTimezoneOffset} from 'date-fns-tz';
 import {add, parse} from 'date-fns';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
@@ -343,8 +342,8 @@ export const fetchWeather = async () => {
   // Date hacking - convert a string like `Issued: 2:00 PM PST Wednesday, January 25, 2023`
   const publishedTimeComponents = str(doc.getElementsByClassName('forecast-date')[0]).split(' ');
   // Turn the string into `2:00 PM -08 Wednesday, January 25, 2023`
-  const timeZone = publishedTimeComponents[3];
-  const offsetHours = getTimezoneOffset(timeZone) / 1000 / 60 / 60;
+  // getTimezoneOffset('PST') = -28800000, but returns NaN on Android due to missing Intl data. I'm just hard-coding a workaround here
+  const offsetHours = -28800000 / 1000 / 60 / 60;
   const offsetString = `${offsetHours < 0 ? '-' : ''}${offsetHours < 10 ? '0' : ''}${Math.abs(offsetHours)}`;
   publishedTimeComponents[3] = offsetString;
   // Parse it into a Date object

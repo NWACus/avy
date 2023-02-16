@@ -1,6 +1,6 @@
 import {Divider, HStack, View, VStack} from 'components/core';
 import {Body, BodySemibold, Title3Black, Title3Semibold} from 'components/text';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {useNavigation} from '@react-navigation/native';
@@ -16,6 +16,7 @@ import {SelectField} from 'components/form/SelectField';
 import {uniq} from 'lodash';
 import {useForm, FormProvider} from 'react-hook-form';
 import {yupResolver} from '@hookform/resolvers/yup';
+import {useBackHandler} from '@react-native-community/hooks';
 
 export const ObservationSubmit: React.FC<{
   center_id: AvalancheCenterID;
@@ -40,6 +41,17 @@ export const ObservationSubmit: React.FC<{
     console.log('onSubmitErrorHandler -> error', {data});
   };
 
+  const onCloseHandler = useCallback(() => {
+    formContext.reset();
+    onClose ? onClose() : navigation.goBack();
+  }, [formContext, navigation, onClose]);
+
+  useBackHandler(() => {
+    onCloseHandler();
+    // Returning true marks the event as processed
+    return true;
+  });
+
   return (
     <FormProvider {...formContext}>
       <View width="100%" height="100%" bg="#F6F8FC">
@@ -56,10 +68,7 @@ export const ObservationSubmit: React.FC<{
                     backgroundColor="#F6F8FC"
                     iconStyle={{marginLeft: 0, marginRight: 8}}
                     style={{textAlign: 'center'}}
-                    onPress={() => {
-                      formContext.reset();
-                      onClose ? onClose() : navigation.goBack();
-                    }}
+                    onPress={onCloseHandler}
                   />
                   <Title3Black>Submit an observation</Title3Black>
                 </HStack>
