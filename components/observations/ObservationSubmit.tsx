@@ -17,6 +17,7 @@ import {uniq} from 'lodash';
 import {useForm, FormProvider} from 'react-hook-form';
 import {yupResolver} from '@hookform/resolvers/yup';
 import {useBackHandler} from '@react-native-community/hooks';
+import {DateField} from 'components/form/DateField';
 
 export const ObservationSubmit: React.FC<{
   center_id: AvalancheCenterID;
@@ -88,7 +89,7 @@ export const ObservationSubmit: React.FC<{
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
-                  <TextField name="observationDate" label="Observation date" placeholder="this needs to be a date picker" keyboardType="numbers-and-punctuation" />
+                  <DateField name="observationDate" label="Observation date" />
                   <SelectField name="zone" label="Zone/Region" prompt="Select a zone or region" items={zones} />
                   <TextField name="activity" label="Activity" placeholder="this needs to be an activity picker" />
                   <TextField name="location" label="Location" placeholder="Tell us more about your route or trailhead" multiline />
