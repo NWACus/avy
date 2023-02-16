@@ -23,6 +23,7 @@
     "@expo/vector-icons": "^13.0.0",
     "@hookform/resolvers": "^2.9.11",
     "@react-native-camera-roll/camera-roll": "^5.2.0",
+    "@react-native-community/hooks": "^3.0.0",
     "@react-native-community/netinfo": "9.3.5",
     "@react-native-community/segmented-control": "^2.2.2",
     "@react-native-community/slider": "4.2.4",
