@@ -15,7 +15,7 @@ export const createObservation = (initialValues: Partial<Observation> | null = n
     {
       name: '',
       email: '',
-      observationDate: null,
+      observationDate: new Date(),
       zone: '',
       activity: '',
       location: '',
