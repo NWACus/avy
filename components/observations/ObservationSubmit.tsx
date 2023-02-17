@@ -95,7 +95,12 @@ export const ObservationSubmit: React.FC<{
                       />
                       <DateField name="observationDate" label="Observation date" />
                       <SelectField name="zone" label="Zone/Region" prompt="Select a zone or region" items={zones} />
-                      <TextField name="activity" label="Activity" placeholder="this needs to be an activity picker" />
+                      <SelectField
+                        name="activity"
+                        label="Activity"
+                        prompt="What were you doing?"
+                        items={['Skiing/Snowboarding', 'Snowmobiling/Snowbiking', 'XC Skiing/Snowshoeing', 'Walking/Hiking', 'Driving', 'Other']}
+                      />
                       <TextField name="location" label="Location" placeholder="Tell us more about your route or trailhead" multiline />
                       <LocationField name="mapLocation" label="Latitude/Longitude" />
                     </VStack>

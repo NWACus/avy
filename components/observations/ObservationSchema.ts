@@ -7,7 +7,7 @@ export interface Observation {
   email: string;
   observationDate: Date;
   zone: string;
-  activity: string;
+  activity: string[];
   location: LatLng;
 }
 
@@ -18,7 +18,7 @@ export const createObservation = (initialValues: Partial<Observation> | null = n
       email: '',
       observationDate: new Date(),
       zone: '',
-      activity: '',
+      activity: [],
       location: '',
       mapLocation: null,
     },
@@ -36,7 +36,7 @@ export const observationSchema = Yup.object().shape({
 
   zone: Yup.string().required('You must select a region.'),
 
-  activity: Yup.string().required('You must select an activity.'),
+  activity: Yup.array().min(1, 'You must select at least one activity.').required('You must select at least one activity.'),
 
   location: Yup.string().required(requiredMsg),
 
