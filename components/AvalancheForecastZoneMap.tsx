@@ -14,7 +14,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import MapView, {MapViewProps, Region} from 'react-native-maps';
+import {Region} from 'react-native-maps';
 import AnimatedMapView from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
@@ -31,14 +31,8 @@ import {apiDateString, utcDateToLocalTimeString} from 'utils/date';
 import {TravelAdvice} from './helpers/travelAdvice';
 import {COLORS} from 'theme/colors';
 import {FontAwesome5} from '@expo/vector-icons';
-import {AvalancheForecastZonePolygon, toLatLngList} from 'components/AvalancheForecastZonePolygon';
-import {RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
-
-const defaultAvalancheCenterMapRegionBounds: RegionBounds = {
-  topLeft: {latitude: 0, longitude: 0},
-  bottomRight: {latitude: 0, longitude: 0},
-};
+import {defaultMapRegionForZones, ZoneMap} from 'components/content/ZoneMap';
 
 export interface MapProps {
   center: AvalancheCenterID;
@@ -527,33 +521,3 @@ const DangerLevelTitle: React.FunctionComponent<{
   const invalid: never = dangerLevel;
   throw new Error(`Unknown danger level: ${invalid}`);
 };
-
-interface ZoneMapProps extends MapViewProps {
-  animated: boolean;
-  zones: MapViewZone[];
-  selectedZone?: MapViewZone;
-  onPressPolygon: (zone: MapViewZone) => void;
-}
-
-export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones, selectedZone, onPressPolygon, children, ...props}, ref) => {
-  const [ready, setReady] = useState<boolean>(false);
-  const MapComponent = animated ? MapView.Animated : MapView;
-
-  return (
-    <MapComponent ref={ref} onLayout={() => setReady(true)} provider={'google'} {...props}>
-      {ready && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={selectedZone === zone} onPress={onPressPolygon} />)}
-      {children}
-    </MapComponent>
-  );
-});
-
-export function defaultMapRegionForZones(zones: MapViewZone[]) {
-  const avalancheCenterMapRegionBounds: RegionBounds = zones
-    ? zones.reduce((accumulator, currentValue) => updateBoundsToContain(accumulator, toLatLngList(currentValue.geometry)), defaultAvalancheCenterMapRegionBounds)
-    : defaultAvalancheCenterMapRegionBounds;
-  const avalancheCenterMapRegion: Region = regionFromBounds(avalancheCenterMapRegionBounds);
-  // give the polygons a little buffer in the region so we don't render them at the outskirts of the screen
-  avalancheCenterMapRegion.latitudeDelta *= 1.05;
-  avalancheCenterMapRegion.longitudeDelta *= 1.05;
-  return avalancheCenterMapRegion;
-}

@@ -4,7 +4,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, Image, Modal, TouchableOpacity} from 'react-native';
 import {colorLookup} from 'theme';
 import {useController} from 'react-hook-form';
-import {defaultMapRegionForZones, ZoneMap} from 'components/AvalancheForecastZoneMap';
+import {defaultMapRegionForZones, ZoneMap} from 'components/content/ZoneMap';
 import {useMapViewZones} from 'hooks/useMapViewZones';
 import {AntDesign, FontAwesome} from '@expo/vector-icons';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
