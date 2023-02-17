@@ -4,7 +4,7 @@ import {AppStateStatus, Platform, StatusBar, StyleSheet, View} from 'react-nativ
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {HoldMenuProvider} from 'react-native-hold-menu';
+import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {AntDesign} from '@expo/vector-icons';
 import {
   useFonts,
@@ -162,7 +162,7 @@ const BaseApp: React.FunctionComponent<{
     <HTMLRendererConfig>
       <SafeAreaProvider>
         <NavigationContainer>
-          <HoldMenuProvider theme="light" paddingBottom={100}>
+          <SelectProvider>
             <StatusBar barStyle="dark-content" />
             <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
               <TabNavigator.Navigator
@@ -195,7 +195,7 @@ const BaseApp: React.FunctionComponent<{
                 </TabNavigator.Screen>
               </TabNavigator.Navigator>
             </View>
-          </HoldMenuProvider>
+          </SelectProvider>
         </NavigationContainer>
       </SafeAreaProvider>
     </HTMLRendererConfig>
