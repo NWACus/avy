@@ -6,7 +6,6 @@ import {Platform, TouchableOpacity} from 'react-native';
 import {colorLookup} from 'theme';
 import {useController} from 'react-hook-form';
 import {utcDateToLocalDateString} from 'utils/date';
-import Animated, {FadeInUp, FadeOut} from 'react-native-reanimated';
 import {AntDesign} from '@expo/vector-icons';
 import {add} from 'date-fns';
 
@@ -61,9 +60,7 @@ export const DateField: React.FC<DateFieldProps> = ({name, label}) => {
       </TouchableOpacity>
 
       {datePickerVisible && Platform.OS === 'ios' && (
-        <Animated.View entering={FadeInUp.duration(400)} exiting={FadeOut.duration(200)}>
-          <DateTimePicker value={value || new Date()} mode="date" display="inline" onChange={onDateSelected} minimumDate={minimumDate} maximumDate={maximumDate} />
-        </Animated.View>
+        <DateTimePicker value={value || new Date()} mode="date" display="inline" onChange={onDateSelected} minimumDate={minimumDate} maximumDate={maximumDate} />
       )}
     </VStack>
   );

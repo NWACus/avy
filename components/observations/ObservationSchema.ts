@@ -1,5 +1,6 @@
 import * as Yup from 'yup';
 import {merge} from 'lodash';
+import {LatLng} from 'react-native-maps';
 
 export interface Observation {
   name: string;
@@ -7,7 +8,7 @@ export interface Observation {
   observationDate: Date;
   zone: string;
   activity: string;
-  location: string;
+  location: LatLng;
 }
 
 export const createObservation = (initialValues: Partial<Observation> | null = null): Observation =>
@@ -19,6 +20,7 @@ export const createObservation = (initialValues: Partial<Observation> | null = n
       zone: '',
       activity: '',
       location: '',
+      mapLocation: null,
     },
     initialValues,
   );
@@ -36,5 +38,12 @@ export const observationSchema = Yup.object().shape({
 
   activity: Yup.string().required('You must select an activity.'),
 
-  location: Yup.string().min(2, 'Please provide a location.'),
+  location: Yup.string().required(requiredMsg),
+
+  mapLocation: Yup.object()
+    .shape({
+      lat: Yup.number(),
+      lng: Yup.number(),
+    })
+    .required(requiredMsg),
 });

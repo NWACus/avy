@@ -1,4 +1,4 @@
-import {Divider, HStack, View, VStack} from 'components/core';
+import {HStack, View, VStack} from 'components/core';
 import {Body, BodySemibold, Title3Black, Title3Semibold} from 'components/text';
 import React, {useCallback} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -17,6 +17,8 @@ import {uniq} from 'lodash';
 import {useForm, FormProvider} from 'react-hook-form';
 import {yupResolver} from '@hookform/resolvers/yup';
 import {useBackHandler} from '@react-native-community/hooks';
+import {LocationField} from 'components/form/LocationField';
+import {CollapsibleCard} from 'components/content/Card';
 import {DateField} from 'components/form/DateField';
 
 export const ObservationSubmit: React.FC<{
@@ -75,28 +77,37 @@ export const ObservationSubmit: React.FC<{
                 </HStack>
               </TouchableWithoutFeedback>
               <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}}>
-                <VStack width="100%" justifyContent="flex-start" alignItems="stretch" space={16} px={32} pt={8} pb={8}>
-                  <Body>Help keep the NWAC community informed by submitting your observation.</Body>
-                  <Divider />
-                  <Title3Semibold>General Information</Title3Semibold>
-                  <TextField name="name" label="Name" placeholder="Jane Doe" textContentType="name" />
-                  <TextField
-                    name="email"
-                    label="Email address"
-                    placeholder="you@domain.com"
-                    textContentType="emailAddress"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
-                  <DateField name="observationDate" label="Observation date" />
-                  <SelectField name="zone" label="Zone/Region" prompt="Select a zone or region" items={zones} />
-                  <TextField name="activity" label="Activity" placeholder="this needs to be an activity picker" />
-                  <TextField name="location" label="Location" placeholder="Tell us more about your route or trailhead" multiline />
-                  <Divider />
-                  <Title3Semibold>Map location</Title3Semibold>
-                  <Body>tbd</Body>
+                <VStack width="100%" justifyContent="flex-start" alignItems="stretch" space={8} pt={8} pb={8}>
+                  <View px={16}>
+                    <Body>Help keep the NWAC community informed by submitting your observation.</Body>
+                  </View>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed={false} header={<Title3Semibold>General information</Title3Semibold>}>
+                    <VStack space={8}>
+                      <TextField name="name" label="Name" placeholder="Jane Doe" textContentType="name" />
+                      <TextField
+                        name="email"
+                        label="Email address"
+                        placeholder="you@domain.com"
+                        textContentType="emailAddress"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                      />
+                      <DateField name="observationDate" label="Observation date" />
+                      <SelectField name="zone" label="Zone/Region" prompt="Select a zone or region" items={zones} />
+                      <TextField name="activity" label="Activity" placeholder="this needs to be an activity picker" />
+                      <TextField name="location" label="Location" placeholder="Tell us more about your route or trailhead" multiline />
+                      <LocationField name="mapLocation" label="Latitude/Longitude" />
+                    </VStack>
+                  </CollapsibleCard>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Weather</Title3Semibold>}></CollapsibleCard>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Signs of instability</Title3Semibold>}></CollapsibleCard>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Avalanches</Title3Semibold>}></CollapsibleCard>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Snowpack</Title3Semibold>}></CollapsibleCard>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Observation summary</Title3Semibold>}></CollapsibleCard>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Media</Title3Semibold>}></CollapsibleCard>
                   <Button
+                    mx={16}
                     mt={16}
                     mb={32}
                     buttonStyle="primary"

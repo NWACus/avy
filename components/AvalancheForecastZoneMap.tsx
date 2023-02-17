@@ -14,7 +14,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import MapView, {Region} from 'react-native-maps';
+import MapView, {MapViewProps, Region} from 'react-native-maps';
 import AnimatedMapView from 'react-native-maps';
 import {useNavigation} from '@react-navigation/native';
 
@@ -46,12 +46,6 @@ export interface MapProps {
 }
 
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, date}: MapProps) => {
-  const [isReady, setIsReady] = useState<boolean>(false);
-
-  function setReady() {
-    setIsReady(true);
-  }
-
   const {isLoading, isError, data: zones} = useMapViewZones(center, date);
 
   const navigation = useNavigation<HomeStackNavigationProps>();
@@ -75,13 +69,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     [navigation, selectedZone, date],
   );
 
-  const avalancheCenterMapRegionBounds: RegionBounds = zones
-    ? zones.reduce((accumulator, currentValue) => updateBoundsToContain(accumulator, toLatLngList(currentValue.geometry)), defaultAvalancheCenterMapRegionBounds)
-    : defaultAvalancheCenterMapRegionBounds;
-  const avalancheCenterMapRegion: Region = regionFromBounds(avalancheCenterMapRegionBounds);
-  // give the polygons a little buffer in the region so we don't render them at the outskirts of the screen
-  avalancheCenterMapRegion.latitudeDelta *= 1.05;
-  avalancheCenterMapRegion.longitudeDelta *= 1.05;
+  const avalancheCenterMapRegion: Region = defaultMapRegionForZones(zones);
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
@@ -103,17 +91,18 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   return (
     <>
-      <MapView.Animated
+      <ZoneMap
         ref={mapView}
+        animated
         style={StyleSheet.absoluteFillObject}
-        initialRegion={avalancheCenterMapRegion}
-        onLayout={setReady}
         zoomEnabled={true}
         scrollEnabled={true}
-        provider={'google'}
-        onPress={onPressMapView}>
-        {isReady && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={selectedZone === zone} onPress={onPressPolygon} />)}
-      </MapView.Animated>
+        initialRegion={avalancheCenterMapRegion}
+        onPress={onPressMapView}
+        zones={zones}
+        selectedZone={selectedZone}
+        onPressPolygon={onPressPolygon}
+      />
       <SafeAreaView onLayout={(event: LayoutChangeEvent) => controller.animateUsingUpdatedTopElementsHeight(event.nativeEvent.layout.y + event.nativeEvent.layout.height)}>
         <View flex={1}>
           <DangerScale px={4} width="100%" position="absolute" top={12} />
@@ -538,3 +527,33 @@ const DangerLevelTitle: React.FunctionComponent<{
   const invalid: never = dangerLevel;
   throw new Error(`Unknown danger level: ${invalid}`);
 };
+
+interface ZoneMapProps extends MapViewProps {
+  animated: boolean;
+  zones: MapViewZone[];
+  selectedZone?: MapViewZone;
+  onPressPolygon: (zone: MapViewZone) => void;
+}
+
+export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones, selectedZone, onPressPolygon, children, ...props}, ref) => {
+  const [ready, setReady] = useState<boolean>(false);
+  const MapComponent = animated ? MapView.Animated : MapView;
+
+  return (
+    <MapComponent ref={ref} onLayout={() => setReady(true)} provider={'google'} {...props}>
+      {ready && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={selectedZone === zone} onPress={onPressPolygon} />)}
+      {children}
+    </MapComponent>
+  );
+});
+
+export function defaultMapRegionForZones(zones: MapViewZone[]) {
+  const avalancheCenterMapRegionBounds: RegionBounds = zones
+    ? zones.reduce((accumulator, currentValue) => updateBoundsToContain(accumulator, toLatLngList(currentValue.geometry)), defaultAvalancheCenterMapRegionBounds)
+    : defaultAvalancheCenterMapRegionBounds;
+  const avalancheCenterMapRegion: Region = regionFromBounds(avalancheCenterMapRegionBounds);
+  // give the polygons a little buffer in the region so we don't render them at the outskirts of the screen
+  avalancheCenterMapRegion.latitudeDelta *= 1.05;
+  avalancheCenterMapRegion.longitudeDelta *= 1.05;
+  return avalancheCenterMapRegion;
+}
