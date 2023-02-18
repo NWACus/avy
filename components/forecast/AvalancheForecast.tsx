@@ -2,10 +2,10 @@ import React, {useCallback, useEffect} from 'react';
 
 import {uniq} from 'lodash';
 
-import {ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
+import {ActivityIndicator, RefreshControl, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-import {HStack, View} from 'components/core';
+import {HStack, View, VStack} from 'components/core';
 
 import {AvalancheCenterID, AvalancheForecastZone, AvalancheForecastZoneSummary} from 'types/nationalAvalancheCenter';
 import {Tab, TabControl} from 'components/TabControl';
@@ -79,31 +79,61 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
     navigation.popToTop();
   }, [navigation]);
 
-  if (isForecastLoading || isCenterLoading || !center || !forecast) {
-    return <ActivityIndicator />;
-  }
-  if (isForecastError || isCenterError) {
+  if (isForecastLoading || isCenterLoading) {
     return (
-      <View>
-        {isCenterError && <Body>{`Could not fetch ${center_id} properties: ${centerError?.message}.`}</Body>}
-        {isForecastError && <Body>{`Could not fetch forecast for ${center_id} zone ${forecast_zone_id}: ${forecastError?.message}.`}</Body>}
-        {/* TODO(brian): we should add a "Try again" button and have that invoke `refetchByUser` */}
-      </View>
+      <HStack space={8} style={{flex: 1}}>
+        <VStack space={8} style={{flex: 1}} alignItems={'center'}>
+          <Body>
+            Loading current {center_id} avalanche forecast for zone {forecast_zone_id}...
+          </Body>
+          <ActivityIndicator />
+        </VStack>
+      </HStack>
+    );
+  }
+  if (!center) {
+    return (
+      <HStack space={8} style={{flex: 1}}>
+        <VStack space={8} style={{flex: 1}} alignItems={'center'}>
+          <Body>Could not fetch {center_id} properties: avalanche center not found.</Body>
+        </VStack>
+      </HStack>
     );
   }
 
   const zone: AvalancheForecastZone | undefined = center.zones.find(item => item.id === forecast_zone_id);
   if (!zone) {
-    const message = `No such zone ${forecast_zone_id} for center ${center_id}.`;
-    Alert.alert('Avalanche forecast zone not found', message, [
-      {
-        text: 'OK',
-      },
-    ]);
     return (
-      <View>
-        <Body>{message}</Body>
-      </View>
+      <HStack space={8} style={{flex: 1}}>
+        <VStack space={8} style={{flex: 1}} alignItems={'center'}>
+          <Body>
+            Could not find zone {forecast_zone_id} for center {center_id}.
+          </Body>
+        </VStack>
+      </HStack>
+    );
+  }
+
+  if (!forecast) {
+    return (
+      <HStack space={8} style={{flex: 1}}>
+        <VStack space={8} style={{flex: 1}} alignItems={'center'}>
+          <Body>
+            No current {center_id} avalanche forecast found for the {zone.name} zone.
+          </Body>
+        </VStack>
+      </HStack>
+    );
+  }
+  if (isForecastError || isCenterError) {
+    return (
+      <HStack space={8} style={{flex: 1}}>
+        <VStack space={8} style={{flex: 1}} alignItems={'center'}>
+          {isCenterError && <Body>{`Could not fetch ${center_id} properties: ${centerError?.message}.`}</Body>}
+          {isForecastError && <Body>{`Could not fetch forecast for ${center_id} zone ${forecast_zone_id}: ${forecastError?.message}.`}</Body>}
+          {/* TODO(brian): we should add a "Try again" button and have that invoke `refetchByUser` */}
+        </VStack>
+      </HStack>
     );
   }
 
