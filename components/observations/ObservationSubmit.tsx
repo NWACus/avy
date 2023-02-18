@@ -20,6 +20,8 @@ import {useBackHandler} from '@react-native-community/hooks';
 import {LocationField} from 'components/form/LocationField';
 import {CollapsibleCard} from 'components/content/Card';
 import {DateField} from 'components/form/DateField';
+import {SwitchField} from 'components/form/SwitchField';
+import {Conditional} from 'components/form/Conditional';
 
 export const ObservationSubmit: React.FC<{
   center_id: AvalancheCenterID;
@@ -81,6 +83,12 @@ export const ObservationSubmit: React.FC<{
                   <View px={16}>
                     <Body>Help keep the NWAC community informed by submitting your observation.</Body>
                   </View>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed={false} header={<Title3Semibold>Privacy</Title3Semibold>}>
+                    <VStack space={8}>
+                      <SwitchField name="visibility" label="Observation visibility" items={['Public', 'Private']} />
+                      <SelectField name="photoUsage" label="Photo usage" radio items={['Use anonymously', 'Use with photo credit', "Don't use"]} />
+                    </VStack>
+                  </CollapsibleCard>
                   <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed={false} header={<Title3Semibold>General information</Title3Semibold>}>
                     <VStack space={8}>
                       <TextField name="name" label="Name" placeholder="Jane Doe" textContentType="name" />
@@ -101,16 +109,45 @@ export const ObservationSubmit: React.FC<{
                         prompt="What were you doing?"
                         items={['Skiing/Snowboarding', 'Snowmobiling/Snowbiking', 'XC Skiing/Snowshoeing', 'Walking/Hiking', 'Driving', 'Other']}
                       />
-                      <TextField name="location" label="Location" placeholder="Tell us more about your route or trailhead" multiline />
+                      <TextField
+                        name="location"
+                        label="Location"
+                        placeholder="Please describe your observation location using common geographical place names (drainages, peak names, etc)."
+                        multiline
+                      />
                       <LocationField name="mapLocation" label="Latitude/Longitude" />
+                      <TextField name="route" label="Route" placeholder="Enter details of route taken, including aspects and elevations observed." multiline />
                     </VStack>
                   </CollapsibleCard>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Weather</Title3Semibold>}></CollapsibleCard>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Signs of instability</Title3Semibold>}></CollapsibleCard>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Avalanches</Title3Semibold>}></CollapsibleCard>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Signs of instability</Title3Semibold>}>
+                    <VStack space={8}>
+                      <SwitchField name="recent" label="Did you see recent avalanches?" items={['No', 'Yes']} />
+                      <Conditional name="recent" value="Yes">
+                        <SwitchField name="trigger" label="Did you trigger an avalanche?" items={['No', 'Yes']} />
+                        <Conditional name="trigger" value="Yes">
+                          <SwitchField name="caught" label="Were you caught?" items={['No', 'Yes']} pt={8} />
+                        </Conditional>
+                      </Conditional>
+                      <SwitchField name="cracking" label="Did you experience snowpack cracking?" items={['No', 'Yes']} />
+                      <Conditional name="cracking" value="Yes">
+                        <SelectField name="crackingExtent" label="How widespread was the cracking?" items={['Isolated', 'Widespread']} prompt=" " />
+                      </Conditional>
+                      <SwitchField name="collapsing" label="Did you experience snowpack collapsing?" items={['No', 'Yes']} />
+                      <Conditional name="collapsing" value="Yes">
+                        <SelectField name="collapsingExtent" label="How widespread was the collapsing?" items={['Isolated', 'Widespread']} prompt=" " />
+                      </Conditional>
+                      <TextField
+                        name="instabilityComments"
+                        label="Instability comments"
+                        placeholder="Note length and depth of cracking or collapsing, how recent were the observed avalanches, etc."
+                        multiline
+                      />
+                    </VStack>
+                  </CollapsibleCard>
                   <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Snowpack</Title3Semibold>}></CollapsibleCard>
                   <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Observation summary</Title3Semibold>}></CollapsibleCard>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Media</Title3Semibold>}></CollapsibleCard>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Weather</Title3Semibold>}></CollapsibleCard>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Photos</Title3Semibold>}></CollapsibleCard>
                   <Button
                     mx={16}
                     mt={16}
