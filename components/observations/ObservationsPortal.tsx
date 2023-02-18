@@ -21,7 +21,7 @@ export const ObservationsPortal: React.FC<{
         {/* these magic numbers are yanked out of Figma. They could probably be converted to percentages */}
         <Topo width={887.0152587890625} height={456.3430480957031} style={{position: 'absolute', left: -306.15625, bottom: -60}} />
         <VStack height="100%" width="100%" justifyContent="center" alignItems="stretch" space={16} px={32} pb={200}>
-          <Body textAlign="center">Help keep the NWAC community informed by submitting your observation.</Body>
+          <Body textAlign="center">Help keep the {center_id} community informed by submitting your observation.</Body>
           <Button buttonStyle="primary" onPress={() => navigation.navigate('observationSubmit', {center_id})}>
             <BodySemibold>Submit an observation</BodySemibold>
           </Button>
