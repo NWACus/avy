@@ -1,6 +1,6 @@
 import {View, VStack} from 'components/core';
 import {Body, BodySemibold} from 'components/text';
-import React, {useState} from 'react';
+import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import Topo from 'assets/topo.svg';
@@ -8,14 +8,12 @@ import {Button} from 'components/content/Button';
 import {useNavigation} from '@react-navigation/native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {apiDateString} from 'utils/date';
-import {ObservationSubmit} from 'components/observations/ObservationSubmit';
 
 export const ObservationsPortal: React.FC<{
   center_id: AvalancheCenterID;
   date: Date;
 }> = ({center_id, date}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
-  const [showSubmitView, setShowSubmitView] = useState(false);
   return (
     <View width="100%" height="100%" bg="#F6F8FC">
       {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
@@ -24,7 +22,7 @@ export const ObservationsPortal: React.FC<{
         <Topo width={887.0152587890625} height={456.3430480957031} style={{position: 'absolute', left: -306.15625, bottom: -60}} />
         <VStack height="100%" width="100%" justifyContent="center" alignItems="stretch" space={16} px={32} pb={200}>
           <Body textAlign="center">Help keep the NWAC community informed by submitting your observation.</Body>
-          <Button buttonStyle="primary" onPress={() => setShowSubmitView(true)}>
+          <Button buttonStyle="primary" onPress={() => navigation.navigate('observationSubmit', {center_id})}>
             <BodySemibold>Submit an observation</BodySemibold>
           </Button>
           <Button onPress={() => navigation.navigate('observationsList', {center_id, dateString: apiDateString(date)})}>
@@ -32,9 +30,6 @@ export const ObservationsPortal: React.FC<{
           </Button>
         </VStack>
       </SafeAreaView>
-      <View style={showSubmitView ? {width: '100%', height: '100%', position: 'absolute'} : {width: '100%', height: 0, display: 'none'}}>
-        <ObservationSubmit center_id={center_id} onClose={() => setShowSubmitView(false)} />
-      </View>
     </View>
   );
 };
