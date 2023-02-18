@@ -81,7 +81,7 @@ export const ObservationSubmit: React.FC<{
               <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}}>
                 <VStack width="100%" justifyContent="flex-start" alignItems="stretch" space={8} pt={8} pb={8}>
                   <View px={16}>
-                    <Body>Help keep the NWAC community informed by submitting your observation.</Body>
+                    <Body>Help keep the {center_id} community informed by submitting your observation.</Body>
                   </View>
                   <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed={false} header={<Title3Semibold>Privacy</Title3Semibold>}>
                     <VStack space={8}>
