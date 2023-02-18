@@ -10,7 +10,7 @@ import {CARD_MARGIN, CARD_SPACING, CARD_WIDTH} from './AvalancheForecastZoneMap'
 import {useNavigation} from '@react-navigation/native';
 import {TelemetryStackNavigationProps} from 'routes';
 import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
-import {apiDateString} from 'utils/date';
+import {toISOStringUTC} from 'utils/date';
 import {regionFromBounds, updateBoundsToContain} from './helpers/geographicCoordinates';
 
 export const TelemetryStationMap: React.FunctionComponent<{
@@ -153,7 +153,7 @@ export const TelemetryStationCard: React.FunctionComponent<{
           source: station.source,
           station_id: station.stid,
           name: station.name,
-          dateString: apiDateString(date),
+          dateString: toISOStringUTC(date),
         });
       }}
       style={{

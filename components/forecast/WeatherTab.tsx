@@ -6,7 +6,7 @@ import {HTML} from 'components/text/HTML';
 import {ActivityIndicator, StyleSheet} from 'react-native';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
-import {apiDateString, utcDateToLocalTimeString} from 'utils/date';
+import {toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import helpStrings from 'content/helpStrings';
 import {useWeatherStations} from 'hooks/useWeatherStations';
@@ -161,7 +161,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
                 data: stations,
                 action: () => {
                   // Nested navigation to the stationDetail page of the Weather Data stack
-                  const dateString = apiDateString(date);
+                  const dateString = toISOStringUTC(date);
                   navigation.navigate('Weather Data', {
                     center_id,
                     dateString,

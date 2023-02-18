@@ -16,7 +16,7 @@ import {useRefreshByUser} from 'hooks/useRefreshByUser';
 import {AvalancheTab} from './AvalancheTab';
 import {Body, FeatureTitleBlack} from 'components/text';
 import {Dropdown} from 'components/content/Dropdown';
-import {apiDateString} from 'utils/date';
+import {toISOStringUTC} from 'utils/date';
 import {HomeStackNavigationProps} from 'routes';
 import {AvalancheCenterLogo} from '../AvalancheCenterLogo';
 import {WeatherTab} from 'components/forecast/WeatherTab';
@@ -68,7 +68,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
           zoneName: zone.name,
           center_id: center_id,
           forecast_zone_id: zone.id,
-          dateString: apiDateString(date),
+          dateString: toISOStringUTC(date),
         });
       }
     },

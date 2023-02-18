@@ -27,7 +27,7 @@ import {HomeStackNavigationProps} from 'routes';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Body, BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
 import {colorFor} from './AvalancheDangerPyramid';
-import {apiDateString, utcDateToLocalTimeString} from 'utils/date';
+import {toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
 import {TravelAdvice} from './helpers/travelAdvice';
 import {COLORS} from 'theme/colors';
 import {FontAwesome5} from '@expo/vector-icons';
@@ -54,7 +54,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           zoneName: zone.name,
           center_id: zone.center_id,
           forecast_zone_id: zone.zone_id,
-          dateString: apiDateString(date),
+          dateString: toISOStringUTC(date),
         });
       } else {
         setSelectedZone(zone);
@@ -465,7 +465,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           zoneName: zone.name,
           center_id: zone.center_id,
           forecast_zone_id: zone.zone_id,
-          dateString: apiDateString(date),
+          dateString: toISOStringUTC(date),
         });
       }}>
       <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={200}>

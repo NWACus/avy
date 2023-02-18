@@ -7,7 +7,7 @@ import Topo from 'assets/topo.svg';
 import {Button} from 'components/content/Button';
 import {useNavigation} from '@react-navigation/native';
 import {ObservationsStackNavigationProps} from 'routes';
-import {apiDateString} from 'utils/date';
+import {toISOStringUTC} from 'utils/date';
 
 export const ObservationsPortal: React.FC<{
   center_id: AvalancheCenterID;
@@ -25,7 +25,7 @@ export const ObservationsPortal: React.FC<{
           <Button buttonStyle="primary" onPress={() => navigation.navigate('observationSubmit', {center_id})}>
             <BodySemibold>Submit an observation</BodySemibold>
           </Button>
-          <Button onPress={() => navigation.navigate('observationsList', {center_id, dateString: apiDateString(date)})}>
+          <Button onPress={() => navigation.navigate('observationsList', {center_id, dateString: toISOStringUTC(date)})}>
             <BodySemibold>View all observations</BodySemibold>
           </Button>
         </VStack>
