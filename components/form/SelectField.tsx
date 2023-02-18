@@ -9,7 +9,8 @@ interface SelectFieldProps {
   name: string;
   label: string;
   items: string[];
-  prompt: string;
+  prompt?: string;
+  radio?: boolean; // If true, will default to selecting first item and always enforce selection
 }
 
 const borderColor = colorLookup('border.base');
@@ -60,7 +61,7 @@ const selectStyles: SelectStyles = {
   },
 };
 
-export const SelectField: React.FC<SelectFieldProps> = ({name, label, items, prompt}) => {
+export const SelectField: React.FC<SelectFieldProps> = ({name, label, items, prompt, radio}) => {
   const {setValue} = useFormContext();
   const {
     field: {value},
@@ -101,10 +102,11 @@ export const SelectField: React.FC<SelectFieldProps> = ({name, label, items, pro
           persistentScrollbar: true,
         }}
         multiple={multiple}
-        clearable
+        clearable={!radio}
         options={menuItems}
         placeholderText={prompt}
         placeholderTextColor={colorLookup('text.secondary') as string}
+        defaultOption={radio && value === '' ? menuItems[0] : undefined}
       />
       {/* TODO: animate the appearance/disappearance of the error string */}
       {fieldState.error && <BodyXSm color={colorLookup('error.900')}>{fieldState.error.message}</BodyXSm>}

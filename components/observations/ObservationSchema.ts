@@ -3,6 +3,9 @@ import {merge} from 'lodash';
 import {LatLng} from 'react-native-maps';
 
 export interface Observation {
+  visibility: string;
+  photoUsage: string;
+
   name: string;
   email: string;
   observationDate: Date;
@@ -14,6 +17,8 @@ export interface Observation {
 export const createObservation = (initialValues: Partial<Observation> | null = null): Observation =>
   merge(
     {
+      visibility: 'Private',
+
       name: '',
       email: '',
       observationDate: new Date(),
