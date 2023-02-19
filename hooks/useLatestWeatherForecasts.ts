@@ -1,8 +1,8 @@
 import {DOMParser} from '@xmldom/xmldom';
 import {merge} from 'lodash';
 
+import {QueryClient, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
-import {QueryClient, useQuery} from 'react-query';
 
 import {add, parse} from 'date-fns';
 import Log from 'network/log';

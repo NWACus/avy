@@ -1,6 +1,6 @@
 import {Image} from 'react-native';
 
-import {QueryClient} from 'react-query';
+import {QueryClient} from '@tanstack/react-query';
 
 import Log from 'network/log';
 

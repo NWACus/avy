@@ -56,7 +56,7 @@ export const WeatherStationList: React.FC<Props> = ({center_id, dateString}) => 
           <HStack width="100%" py={8} px={16} bg="white">
             <Title1Black>Weather Stations</Title1Black>
           </HStack>
-          {(status === 'loading' || status === 'idle') && (
+          {status === 'loading' && (
             <Center flex={1} flexGrow={1} py={6}>
               <ActivityIndicator size="large" />
             </Center>

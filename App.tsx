@@ -26,7 +26,7 @@ import * as Sentry from 'sentry-expo';
 
 import {merge} from 'lodash';
 
-import {focusManager, QueryClient, QueryClientProvider, useQueryClient} from 'react-query';
+import {focusManager, QueryClient, QueryClientProvider, useQueryClient} from '@tanstack/react-query';
 
 import axios from 'axios';
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';

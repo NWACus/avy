@@ -1,7 +1,7 @@
 import React from 'react';
 
+import {useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
-import {useQuery} from 'react-query';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import {StationResponse} from 'types/snowbound';

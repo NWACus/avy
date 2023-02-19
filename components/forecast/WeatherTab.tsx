@@ -144,7 +144,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
       </Card>
       <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Data</Title3Black>}>
         <VStack>
-          {(weatherStationStatus === 'loading' || weatherStationStatus === 'idle') && (
+          {weatherStationStatus === 'loading' && (
             <View py={6}>
               <ActivityIndicator size={16} />
             </View>

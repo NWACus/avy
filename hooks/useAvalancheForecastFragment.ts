@@ -1,7 +1,7 @@
 import {useContext} from 'react';
 
+import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {add, areIntervalsOverlapping} from 'date-fns';
-import {useQuery, useQueryClient} from 'react-query';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import AvalancheForecastFragments from 'hooks/useAvalancheForecastFragments';
