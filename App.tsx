@@ -26,7 +26,10 @@ import * as Sentry from 'sentry-expo';
 
 import {merge} from 'lodash';
 
-import {focusManager, QueryClient, QueryClientProvider, useQueryClient} from '@tanstack/react-query';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {createAsyncStoragePersister} from '@tanstack/query-async-storage-persister';
+import {focusManager, QueryClient, useQueryClient} from '@tanstack/react-query';
+import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
 
 import axios from 'axios';
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
@@ -70,7 +73,16 @@ if (Sentry?.init) {
   }
 }
 
-const queryClient: QueryClient = new QueryClient();
+const queryClient: QueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      cacheTime: 1000 * 60 * 60 * 24, // 24 hours
+    },
+  },
+});
+const asyncStoragePersister = createAsyncStoragePersister({
+  storage: AsyncStorage,
+});
 
 const TabNavigator = createBottomTabNavigator<TabNavigatorParamList>();
 
@@ -93,9 +105,9 @@ const App = () => {
     useAppState(onAppStateChange);
 
     return (
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider client={queryClient} persistOptions={{persister: asyncStoragePersister}}>
         <AppWithClientContext />
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     );
   } catch (error) {
     Sentry.Native.captureException(error);

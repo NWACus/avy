@@ -16,7 +16,7 @@ export const Activity = {
   Driving: 'driving',
   Other: 'other',
 } as const;
-export type Activity = typeof Activity[keyof typeof Activity];
+export type Activity = (typeof Activity)[keyof typeof Activity];
 
 export const FormatActivity = (value: Activity): string => {
   return reverseLookup(Activity, value);
@@ -27,7 +27,7 @@ export const DangerTrend = {
   Steady: 'steady',
   Decreasing: 'decreasing',
 } as const;
-export type DangerTrend = typeof DangerTrend[keyof typeof DangerTrend];
+export type DangerTrend = (typeof DangerTrend)[keyof typeof DangerTrend];
 
 export const FormatDangerTrend = (value: DangerTrend): string => {
   return reverseLookup(DangerTrend, value);
@@ -38,7 +38,7 @@ export const DangerConfidence = {
   Moderate: 'moderate',
   Low: 'low',
 } as const;
-export type DangerConfidence = typeof DangerConfidence[keyof typeof DangerConfidence];
+export type DangerConfidence = (typeof DangerConfidence)[keyof typeof DangerConfidence];
 
 export const FormatDangerConfidence = (value: DangerConfidence): string => {
   return reverseLookup(DangerConfidence, value);
@@ -49,7 +49,7 @@ export const InstabilityDistribution = {
   Widespread: 'widespread',
   Low: 'low',
 } as const;
-export type InstabilityDistribution = typeof InstabilityDistribution[keyof typeof InstabilityDistribution];
+export type InstabilityDistribution = (typeof InstabilityDistribution)[keyof typeof InstabilityDistribution];
 
 export const FormatInstabilityDistribution = (value: InstabilityDistribution): string => {
   return reverseLookup(InstabilityDistribution, value);
@@ -63,7 +63,7 @@ export const CloudCover = {
   Overcast: 'overcast',
   Obscured: 'obscured',
 } as const;
-export type CloudCover = typeof CloudCover[keyof typeof CloudCover];
+export type CloudCover = (typeof CloudCover)[keyof typeof CloudCover];
 
 export const FormatCloudCover = (value: CloudCover): string => {
   return reverseLookup(CloudCover, value);
@@ -75,7 +75,7 @@ export const SnowAvailableForTransport = {
   'Moderate Amounts': 'moderate amounts',
   'Large Amounts': 'large amounts',
 } as const;
-export type SnowAvailableForTransport = typeof SnowAvailableForTransport[keyof typeof SnowAvailableForTransport];
+export type SnowAvailableForTransport = (typeof SnowAvailableForTransport)[keyof typeof SnowAvailableForTransport];
 
 export const FormatSnowAvailableForTransport = (value: SnowAvailableForTransport): string => {
   return reverseLookup(SnowAvailableForTransport, value);
@@ -89,7 +89,7 @@ export const WindLoading = {
   Previous: 'previous',
   Unknown: 'unknown',
 } as const;
-export type WindLoading = typeof WindLoading[keyof typeof WindLoading];
+export type WindLoading = (typeof WindLoading)[keyof typeof WindLoading];
 
 export const FormatWindLoading = (value: WindLoading): string => {
   return reverseLookup(WindLoading, value);
@@ -103,7 +103,7 @@ export const AvalancheDateUncertainty = {
   '+/- 1 month': '30',
   Estimated: 'estimated',
 } as const;
-export type AvalancheDateUncertainty = typeof AvalancheDateUncertainty[keyof typeof AvalancheDateUncertainty];
+export type AvalancheDateUncertainty = (typeof AvalancheDateUncertainty)[keyof typeof AvalancheDateUncertainty];
 
 export const FormatAvalancheDateUncertainty = (value: AvalancheDateUncertainty): string => {
   return reverseLookup(AvalancheDateUncertainty, value);
@@ -119,7 +119,7 @@ export const AvalancheAspect = {
   W: 'W',
   NW: 'NW',
 } as const;
-export type AvalancheAspect = typeof AvalancheAspect[keyof typeof AvalancheAspect];
+export type AvalancheAspect = (typeof AvalancheAspect)[keyof typeof AvalancheAspect];
 
 export const FormatAvalancheAspect = (value: AvalancheAspect): string => {
   return reverseLookup(AvalancheAspect, value);
@@ -137,7 +137,7 @@ export const AvalancheType = {
   'I-Ice Fall': 'I',
   'U-Unknown': 'U',
 } as const;
-export type AvalancheType = typeof AvalancheType[keyof typeof AvalancheType];
+export type AvalancheType = (typeof AvalancheType)[keyof typeof AvalancheType];
 
 export const FormatAvalancheType = (value: AvalancheType): string => {
   return reverseLookup(AvalancheType, value);
@@ -150,7 +150,7 @@ export const AvalancheBedSurface = {
   'G-Ground': 'G',
   'U-Unknown': 'U',
 } as const;
-export type AvalancheBedSurface = typeof AvalancheBedSurface[keyof typeof AvalancheBedSurface];
+export type AvalancheBedSurface = (typeof AvalancheBedSurface)[keyof typeof AvalancheBedSurface];
 
 export const FormatAvalancheBedSurface = (value: AvalancheBedSurface): string => {
   return reverseLookup(AvalancheBedSurface, value);
@@ -186,7 +186,7 @@ export const AvalancheTrigger = {
   'AH-Explosives from helicopter': 'AH',
   'AP-Pre-placed, remotely detonated explosive': 'AP',
 } as const;
-export type AvalancheTrigger = typeof AvalancheTrigger[keyof typeof AvalancheTrigger];
+export type AvalancheTrigger = (typeof AvalancheTrigger)[keyof typeof AvalancheTrigger];
 
 export const FormatAvalancheTrigger = (value: AvalancheTrigger): string => {
   return reverseLookup(AvalancheTrigger, value);
@@ -198,7 +198,7 @@ export const AvalancheCause = {
   'r-Remote': 'r',
   'y-Sympathetic': 'y',
 } as const;
-export type AvalancheCause = typeof AvalancheCause[keyof typeof AvalancheCause];
+export type AvalancheCause = (typeof AvalancheCause)[keyof typeof AvalancheCause];
 
 export const FormatAvalancheCause = (value: AvalancheCause): string => {
   return reverseLookup(AvalancheCause, value);
@@ -210,7 +210,7 @@ export const AvalancheProblemDistribution = {
   Specific: 'specific',
   Widespread: 'widespread',
 } as const;
-export type AvalancheProblemDistribution = typeof AvalancheProblemDistribution[keyof typeof AvalancheProblemDistribution];
+export type AvalancheProblemDistribution = (typeof AvalancheProblemDistribution)[keyof typeof AvalancheProblemDistribution];
 
 export const FormatAvalancheProblemDistribution = (value: AvalancheProblemDistribution): string => {
   return reverseLookup(AvalancheProblemDistribution, value);
@@ -223,7 +223,7 @@ export const AvalancheProblemSensitivity = {
   Reactive: 'reactive',
   Touchy: 'touchy',
 } as const;
-export type AvalancheProblemSensitivity = typeof AvalancheProblemSensitivity[keyof typeof AvalancheProblemSensitivity];
+export type AvalancheProblemSensitivity = (typeof AvalancheProblemSensitivity)[keyof typeof AvalancheProblemSensitivity];
 
 export const FormatAvalancheProblemSensitivity = (value: AvalancheProblemSensitivity): string => {
   return reverseLookup(AvalancheProblemSensitivity, value);
@@ -237,7 +237,7 @@ export const PartnerType = {
   Public: 'public',
   Other: 'other',
 } as const;
-export type PartnerType = typeof PartnerType[keyof typeof PartnerType];
+export type PartnerType = (typeof PartnerType)[keyof typeof PartnerType];
 
 export const FormatPartnerType = (value: PartnerType): string => {
   return reverseLookup(PartnerType, value);
