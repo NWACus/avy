@@ -36,3 +36,18 @@ export const AvalancheProblemIcon: React.FunctionComponent<AvalancheProblemIconP
 
   return <Image style={style} source={icons[problem]} />;
 };
+
+export const preloadAvalancheProblemIcons = async () => {
+  /* eslint-disable @typescript-eslint/no-var-requires */
+  return Promise.all([
+    Image.prefetch(Image.resolveAssetSource(require('../assets/problem-icons/DryLoose.png')).uri),
+    Image.prefetch(Image.resolveAssetSource(require('../assets/problem-icons/StormSlab.png')).uri),
+    Image.prefetch(Image.resolveAssetSource(require('../assets/problem-icons/WindSlab.png')).uri),
+    Image.prefetch(Image.resolveAssetSource(require('../assets/problem-icons/PersistentSlab.png')).uri),
+    Image.prefetch(Image.resolveAssetSource(require('../assets/problem-icons/DeepPersistentSlab.png')).uri),
+    Image.prefetch(Image.resolveAssetSource(require('../assets/problem-icons/WetLoose.png')).uri),
+    Image.prefetch(Image.resolveAssetSource(require('../assets/problem-icons/WetSlab.png')).uri),
+    Image.prefetch(Image.resolveAssetSource(require('../assets/problem-icons/CorniceFall.png')).uri),
+    Image.prefetch(Image.resolveAssetSource(require('../assets/problem-icons/Glide.png')).uri),
+  ]);
+};

@@ -5,6 +5,7 @@ import {QueryClient} from '@tanstack/react-query';
 import Log from 'network/log';
 
 import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
+import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import LatestAvalancheForecastQuery from 'hooks/useLatestAvalancheForecast';
 import AvalancheCenterMapLayerQuery from 'hooks/useMapLayer';
@@ -15,6 +16,10 @@ import {AvalancheCenter, AvalancheCenterID, MediaType, Product} from 'types/nati
 //
 export const prefetchAllActiveForecasts = async (queryClient: QueryClient, center_id: AvalancheCenterID, prefetchDate: Date, nationalAvalancheCenterHost: string) => {
   preloadAvalancheCenterLogo(center_id);
+  await queryClient.prefetchQuery({
+    queryKey: ['problem-images'],
+    queryFn: async () => preloadAvalancheProblemIcons(),
+  });
   await AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
   await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
 
