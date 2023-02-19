@@ -1,6 +1,6 @@
 import {FontAwesome5, Fontisto, MaterialCommunityIcons} from '@expo/vector-icons';
-import {AvalancheProblemImage} from 'components/AvalancheProblemImage';
 import {Card, CollapsibleCard} from 'components/content/Card';
+import {Carousel} from 'components/content/carousel';
 import {HStack, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {zone} from 'components/observations/ObservationsListView';
@@ -172,11 +172,7 @@ export const ObservationCard: React.FunctionComponent<{
                 <Title1Black>Observation Media</Title1Black>
               </HStack>
             }>
-            {observation.media
-              .filter(item => item.type === 'image')
-              .map((item, index) => (
-                <AvalancheProblemImage key={`media-item-${index}`} media={item} />
-              ))}
+            <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.media} displayCaptions={false} />
           </CollapsibleCard>
         )}
         {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanchesSummary) && (
@@ -221,11 +217,7 @@ export const ObservationCard: React.FunctionComponent<{
                     {item.media && item.media.length > 0 && (
                       <VStack space={8} style={{flex: 1}}>
                         <BodyBlack style={{textTransform: 'uppercase'}}>{'Avalanche Media'}</BodyBlack>
-                        {item.media
-                          .filter(mediaItem => mediaItem.type === 'image')
-                          .map((mediaItem, mediaIndex) => (
-                            <AvalancheProblemImage key={`avalanche-${index}-media-item-${mediaIndex}`} media={mediaItem} />
-                          ))}
+                        <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={item.media} displayCaptions={false} />
                       </VStack>
                     )}
                   </>
@@ -315,11 +307,7 @@ export const ObservationCard: React.FunctionComponent<{
                   <>
                     <VStack space={8} style={{flex: 1}}>
                       <BodyBlack style={{textTransform: 'uppercase'}}>{'Snowpack Media'}</BodyBlack>
-                      {observation.advancedFields.snowpackMedia
-                        .filter(item => item.type === 'image')
-                        .map((item, index) => (
-                          <AvalancheProblemImage key={`media-item-${index}`} media={item} />
-                        ))}
+                      <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.advancedFields.snowpackMedia} displayCaptions={false} />
                     </VStack>
                   </>
                 )}
