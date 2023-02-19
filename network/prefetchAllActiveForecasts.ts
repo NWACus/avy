@@ -15,10 +15,13 @@ import {AvalancheCenter, AvalancheCenterID, MediaType, Product} from 'types/nati
 // Note: you can enable preload logging by setting ENABLE_PREFETCH_LOGGING in network/log
 //
 export const prefetchAllActiveForecasts = async (queryClient: QueryClient, center_id: AvalancheCenterID, prefetchDate: Date, nationalAvalancheCenterHost: string) => {
-  preloadAvalancheCenterLogo(center_id);
   await queryClient.prefetchQuery({
     queryKey: ['problem-images'],
     queryFn: async () => preloadAvalancheProblemIcons(),
+  });
+  await queryClient.prefetchQuery({
+    queryKey: ['center-logo', {center: center_id}],
+    queryFn: async () => preloadAvalancheCenterLogo(center_id),
   });
   await AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
   await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
