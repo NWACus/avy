@@ -1,6 +1,8 @@
 import React from 'react';
-import {Image, ImageSourcePropType, ImageStyle} from 'react-native';
+import {ActivityIndicator, Image, ImageSourcePropType, ImageStyle} from 'react-native';
 
+import {QueryClient} from '@tanstack/react-query';
+import ImageCache, {useCachedImageURI} from 'hooks/useCachedImageURI';
 import {DangerLevel} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheDangerIconProps {
@@ -34,9 +36,25 @@ export const AvalancheDangerIcon: React.FunctionComponent<AvalancheDangerIconPro
   if (level === null) {
     level = DangerLevel.None;
   }
+  const {data: uri} = useCachedImageURI(Image.resolveAssetSource(icons[level]).uri);
+  if (!uri) {
+    return <ActivityIndicator />;
+  }
 
   const actualStyle: ImageStyle = {...style};
   actualStyle.width = undefined;
   actualStyle.aspectRatio = sizes[level].width / sizes[level].height;
-  return <Image style={actualStyle} source={icons[level]} />;
+  return <Image style={actualStyle} source={{uri: uri, cache: 'force-cache'}} />;
+};
+
+export const preloadAvalancheDangerIcons = async (queryClient: QueryClient) => {
+  /* eslint-disable @typescript-eslint/no-var-requires */
+  return Promise.all([
+    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/danger-icons/0.png')).uri),
+    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/danger-icons/1.png')).uri),
+    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/danger-icons/2.png')).uri),
+    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/danger-icons/3.png')).uri),
+    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/danger-icons/4.png')).uri),
+    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/danger-icons/5.png')).uri),
+  ]);
 };

@@ -28,7 +28,7 @@ import {merge} from 'lodash';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createAsyncStoragePersister} from '@tanstack/query-async-storage-persister';
-import {focusManager, QueryClient, useQueryClient} from '@tanstack/react-query';
+import {focusManager, QueryCache, QueryClient, useQueryClient} from '@tanstack/react-query';
 import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
 
 import axios from 'axios';
@@ -39,6 +39,7 @@ import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
 import {WeatherScreen} from 'components/screens/WeatherScreen';
 import {HTMLRendererConfig} from 'components/text/HTML';
 import {useAppState} from 'hooks/useAppState';
+import ImageCache from 'hooks/useCachedImageURI';
 import {useOnlineManager} from 'hooks/useOnlineManager';
 import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
 import {TabNavigatorParamList} from 'routes';
@@ -73,13 +74,17 @@ if (Sentry?.init) {
   }
 }
 
+const queryCache: QueryCache = new QueryCache();
+
 const queryClient: QueryClient = new QueryClient({
+  queryCache: queryCache,
   defaultOptions: {
     queries: {
       cacheTime: 1000 * 60 * 60 * 24, // 24 hours
     },
   },
 });
+
 const asyncStoragePersister = createAsyncStoragePersister({
   storage: AsyncStorage,
 });
@@ -100,6 +105,11 @@ const defaultDate = new Date();
 
 const App = () => {
   try {
+    // we need to subscribe to the react-query cache in order to remove
+    // images from the local filesystem when their TTL expires
+    React.useEffect(() => {
+      return queryCache.subscribe(event => ImageCache.cleanup(event));
+    }, []);
     useOnlineManager();
 
     useAppState(onAppStateChange);
