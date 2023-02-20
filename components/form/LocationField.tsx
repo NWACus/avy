@@ -8,7 +8,7 @@ import {defaultMapRegionForZones, ZoneMap} from 'components/content/ZoneMap';
 import {useMapViewZones} from 'hooks/useMapViewZones';
 import {AntDesign, FontAwesome} from '@expo/vector-icons';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
-import {LatLng, Region} from 'react-native-maps';
+import {Region} from 'react-native-maps';
 
 interface LocationFieldProps {
   name: string;
@@ -23,34 +23,30 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const {isLoading, isError, data: zones} = useMapViewZones('NWAC', new Date());
-  const [location, setLocation] = useState<LatLng>(value || {latitude: 0, longitude: 0});
   const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
   const [mapReady, setMapReady] = useState<boolean>(false);
 
   const toggleModal = useCallback(() => {
     setModalVisible(!modalVisible);
-    if (modalVisible) {
-      // We're closing the map, so update the form field
-      onChange(location);
-      console.log('set location to ', location);
-    }
-  }, [modalVisible, setModalVisible, onChange, location]);
+  }, [modalVisible, setModalVisible]);
 
   useEffect(() => {
-    if (zones) {
+    if (zones && !mapReady) {
+      const location = value || {latitude: 0, longitude: 0};
       const initialRegion = defaultMapRegionForZones(zones);
+      if (location.latitude !== 0 && location.longitude !== 0) {
+        initialRegion.latitude = location.latitude;
+        initialRegion.longitude = location.longitude;
+      }
       setInitialRegion(initialRegion);
-      setLocation({latitude: initialRegion.latitude, longitude: initialRegion.longitude});
       setMapReady(true);
+      if (!value) {
+        // Set the form value to the center of the map
+        // Note that we can call onChange with a Region because it's covariant with a LatLng
+        onChange(initialRegion);
+      }
     }
-  }, [zones, setInitialRegion, setLocation, setMapReady]);
-
-  const onRegionChange = useCallback(
-    (region: Region) => {
-      setLocation({latitude: region.latitude, longitude: region.longitude});
-    },
-    [setLocation],
-  );
+  }, [zones, setInitialRegion, onChange, value, mapReady, setMapReady]);
 
   return (
     <VStack width="100%" space={4}>
@@ -96,8 +92,8 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
                         style={{width: '100%', height: '100%'}}
                         zones={zones}
                         initialRegion={initialRegion}
-                        onRegionChange={onRegionChange}
-                        onRegionChangeComplete={onRegionChange}
+                        onRegionChange={onChange}
+                        onRegionChangeComplete={onChange}
                         onPressPolygon={() => undefined}
                       />
                       <Center width="100%" height="100%" position="absolute" backgroundColor={undefined} pointerEvents="none">
