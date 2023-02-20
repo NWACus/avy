@@ -34,13 +34,12 @@ export const prefetchAvalancheForecast = async (queryClient: QueryClient, nation
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, forecastId),
     queryFn: async () => {
-      Log.prefetch('starting forecast prefetch');
+      Log.prefetch(`prefetching avalanche forecast ${forecastId}`);
       const result = fetchProduct(nationalAvalancheCenterHost, forecastId);
-      Log.prefetch('forecast request finished');
+      Log.prefetch(`finished prefetching avalanche forecast ${forecastId}`);
       return result;
     },
   });
-  Log.prefetch(`avalanche forecast ${forecastId} data is cached with react-query`);
 };
 
 // TODO need to export?

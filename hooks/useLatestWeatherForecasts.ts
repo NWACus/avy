@@ -107,13 +107,12 @@ export const prefetchWeather = async (queryClient: QueryClient) => {
   await queryClient.prefetchQuery({
     queryKey: queryKey(),
     queryFn: async () => {
-      Log.prefetch('starting weather prefetch');
+      Log.prefetch(`prefetching latest weather forecast`);
       const result = await fetchWeather();
-      Log.prefetch('weather request finished');
+      Log.prefetch(`finished prefetching latest weather forecast`);
       return result;
     },
   });
-  Log.prefetch('avalanche center weather is cached with react-query');
 };
 
 export const fetchWeatherQuery = async (queryClient: QueryClient) =>

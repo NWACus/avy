@@ -56,13 +56,12 @@ const prefetchLatestAvalancheForecast = async (
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours),
     queryFn: async () => {
-      Log.prefetch('starting fragment prefetch');
+      Log.prefetch(`prefetching latest avalanche forecast for ${center_id} at ${requestedTime}`);
       const result = await fetchLatestAvalancheForecast(nationalAvalancheCenterHost, center_id, zone_id);
-      Log.prefetch('fragment request finished');
+      Log.prefetch(`finished prefetching latest avalanche forecast for ${center_id} at ${requestedTime}`);
       return result;
     },
   });
-  Log.prefetch('avalanche fragment data is cached with react-query');
 };
 
 const fetchLatestAvalancheForecast = async (nationalAvalancheCenterHost: string, center_id: string, zone_id: number) => {

@@ -29,13 +29,12 @@ const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nati
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id, date),
     queryFn: async () => {
-      Log.prefetch('starting fragment prefetch');
+      Log.prefetch(`prefetching forecast fragments for ${center_id} on ${date}`);
       const result = await fetchAvalancheForecastFragments(nationalAvalancheCenterHost, center_id, date);
-      Log.prefetch('fragment request finished');
+      Log.prefetch(`finished prefetching forecast fragments for ${center_id} on ${date}`);
       return result;
     },
   });
-  Log.prefetch('avalanche fragment data is cached with react-query');
 };
 
 const fetchAvalancheForecastFragmentsQuery = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: string, date: Date) =>
