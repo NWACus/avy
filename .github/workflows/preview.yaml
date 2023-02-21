@@ -2,7 +2,7 @@ name: preview
 on:
   pull_request:
     branches:
-      - main
+      - develop
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
