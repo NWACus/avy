@@ -9,13 +9,14 @@ interface TextWrapperProps extends TextProps {
   color?: TextStyle['color'];
   fontFamily?: TextStyle['fontFamily'];
   fontSize?: TextStyle['fontSize'];
+  fontStyle?: TextStyle['fontStyle'];
   letterSpacing?: TextStyle['letterSpacing'];
   lineHeight?: TextStyle['lineHeight'];
   textAlign?: TextStyle['textAlign'];
   textTransform?: TextStyle['textTransform'];
 }
 
-const TextWrapper: React.FC<TextWrapperProps> = ({color, fontFamily, fontSize, letterSpacing, lineHeight, textAlign, textTransform, children, ...props}) => {
+const TextWrapper: React.FC<TextWrapperProps> = ({color, fontFamily, fontSize, fontStyle, letterSpacing, lineHeight, textAlign, textTransform, children, ...props}) => {
   const style = omit(
     {
       color: colorLookup(color),
@@ -28,6 +29,9 @@ const TextWrapper: React.FC<TextWrapperProps> = ({color, fontFamily, fontSize, l
     },
     isUndefined,
   );
+  if (style.fontFamily && fontStyle === 'italic') {
+    style.fontFamily = style.fontFamily + '_Italic';
+  }
   return <Text {...merge({}, props, {style})}>{children}</Text>;
 };
 
