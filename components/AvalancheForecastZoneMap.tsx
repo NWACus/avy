@@ -25,6 +25,7 @@ import {defaultMapRegionForZones, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {TravelAdvice} from 'components/helpers/travelAdvice';
+import {PlacesSearchBar} from 'components/map/PlacesSearchBar';
 import {Body, BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
 import {MapViewZone, useMapViewZones} from 'hooks/useMapViewZones';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -109,6 +110,8 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
               });
             }}>
             <View height={12} />
+            <PlacesSearchBar px={24} />
+            <View height={8} />
             <DangerScale px={4} width="100%" />
           </VStack>
         </View>
