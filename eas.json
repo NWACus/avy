@@ -14,7 +14,8 @@
       "channel": "development"
     },
     "production": {
-      "channel": "production"
+      "channel": "production",
+      "autoIncrement": true
     }
   },
   "submit": {
