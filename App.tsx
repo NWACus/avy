@@ -21,7 +21,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import {AppStateStatus, Platform, StatusBar, StyleSheet, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
+import * as BackgroundFetch from 'expo-background-fetch';
 import Constants from 'expo-constants';
+import * as TaskManager from 'expo-task-manager';
 import * as Sentry from 'sentry-expo';
 
 import {merge} from 'lodash';
@@ -97,6 +99,16 @@ const queryClient: QueryClient = new QueryClient({
       cacheTime: 1000 * 60 * 60 * 24, // 24 hours
     },
   },
+});
+
+// on startup and periodically, reconcile the react-query link cache with the filesystem
+const BACKGROUND_CACHE_RECONCILIATION_TASK = 'background-cache-reconciliation';
+TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, async () => {
+  await ImageCache.reconcile(queryClient, queryCache);
+  return BackgroundFetch.BackgroundFetchResult.NewData;
+});
+BackgroundFetch.registerTaskAsync(BACKGROUND_CACHE_RECONCILIATION_TASK, {
+  minimumInterval: 60 * 60, // one hour, in seconds
 });
 
 const asyncStoragePersister = createAsyncStoragePersister({
