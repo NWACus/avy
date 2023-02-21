@@ -2,7 +2,7 @@ name: preview
 on:
   pull_request:
     branches:
-      - main
+      - develop
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
@@ -27,6 +27,6 @@ jobs:
         uses: ./.github/actions/expo/update
         with:
           pull_request: ${{ github.event.number }}
-          channel: 'xxx-pr-${{ github.event.number }}'
+          channel: 'yulia-pr-${{ github.event.number }}'
           message: '${{ github.event.pull_request.title }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
