@@ -28,7 +28,9 @@ function queryKey(uri: string) {
 
 const fetchCachedImageURI = async (uri: string) => {
   if (!uri.startsWith('http')) {
-    // this is already a local file, no need to download
+    // this is already a local file, no need to download. We hit this case in production
+    // with locally-bundled assets, for which we must use this hook in developer mode, as
+    // they are served over the local network in Expo Go, not bundled into the app.
     return uri;
   }
   await initialize();
