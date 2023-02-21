@@ -19,6 +19,7 @@ export type MapViewZone = {
   end_date: Date | null;
   geometry?: FeatureComponent;
   fillOpacity: number;
+  hasWarning: boolean;
 };
 
 export const useMapViewZones = (center_id: AvalancheCenterID, date: Date) => {
@@ -56,6 +57,7 @@ export const useMapViewZones = (center_id: AvalancheCenterID, date: Date) => {
           zone_id: feature.id,
           center_id,
           geometry: feature.geometry,
+          hasWarning: feature.properties.warning?.product === 'warning',
           ...feature.properties,
         };
         return accum;
