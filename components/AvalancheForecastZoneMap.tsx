@@ -97,9 +97,21 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         selectedZone={selectedZone}
         onPressPolygon={onPressPolygon}
       />
-      <SafeAreaView onLayout={(event: LayoutChangeEvent) => controller.animateUsingUpdatedTopElementsHeight(event.nativeEvent.layout.y + event.nativeEvent.layout.height)}>
-        <View flex={1}>
-          <DangerScale px={4} width="100%" position="absolute" top={12} />
+      <SafeAreaView>
+        <View>
+          <VStack
+            width="100%"
+            position="absolute"
+            flex={1}
+            onLayout={(event: LayoutChangeEvent) => {
+              // onLayout returns position relative to parent - we need position relative to screen
+              event.currentTarget.measureInWindow((x, y, width, height) => {
+                controller.animateUsingUpdatedTopElementsHeight(y + height);
+              });
+            }}>
+            <View height={12} />
+            <DangerScale px={4} width="100%" />
+          </VStack>
         </View>
       </SafeAreaView>
 
