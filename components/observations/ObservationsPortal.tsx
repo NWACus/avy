@@ -1,12 +1,12 @@
+import {useNavigation} from '@react-navigation/native';
+import Topo from 'assets/topo.svg';
+import {Button} from 'components/content/Button';
 import {View, VStack} from 'components/core';
 import {Body, BodySemibold} from 'components/text';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
-import Topo from 'assets/topo.svg';
-import {Button} from 'components/content/Button';
-import {useNavigation} from '@react-navigation/native';
 import {ObservationsStackNavigationProps} from 'routes';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {toISOStringUTC} from 'utils/date';
 
 export const ObservationsPortal: React.FC<{

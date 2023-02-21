@@ -1,13 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 
-import {AppStateStatus, Platform, StatusBar, StyleSheet, View} from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {SelectProvider} from '@mobile-reality/react-native-select-pro';
-import {AntDesign} from '@expo/vector-icons';
 import {
-  useFonts,
   Lato_100Thin,
   Lato_100Thin_Italic,
   Lato_300Light,
@@ -18,8 +11,15 @@ import {
   Lato_700Bold_Italic,
   Lato_900Black,
   Lato_900Black_Italic,
+  useFonts,
 } from '@expo-google-fonts/lato';
+import {AntDesign} from '@expo/vector-icons';
+import {SelectProvider} from '@mobile-reality/react-native-select-pro';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {NavigationContainer} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
+import {AppStateStatus, Platform, StatusBar, StyleSheet, View} from 'react-native';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import Constants from 'expo-constants';
 import * as Sentry from 'sentry-expo';
@@ -28,19 +28,19 @@ import {merge} from 'lodash';
 
 import {focusManager, QueryClient, QueryClientProvider, useQueryClient} from 'react-query';
 
+import axios from 'axios';
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
-import {useAppState} from 'hooks/useAppState';
-import {useOnlineManager} from 'hooks/useOnlineManager';
-import {TabNavigatorParamList} from 'routes';
 import {HomeTabScreen} from 'components/screens/HomeScreen';
 import {MenuStackScreen} from 'components/screens/MenuScreen';
 import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
-import {AvalancheCenterID} from './types/nationalAvalancheCenter';
-import {prefetchAllActiveForecasts} from './network/prefetchAllActiveForecasts';
-import {HTMLRendererConfig} from 'components/text/HTML';
-import {toISOStringUTC} from './utils/date';
 import {WeatherScreen} from 'components/screens/WeatherScreen';
-import axios from 'axios';
+import {HTMLRendererConfig} from 'components/text/HTML';
+import {useAppState} from 'hooks/useAppState';
+import {useOnlineManager} from 'hooks/useOnlineManager';
+import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
+import {TabNavigatorParamList} from 'routes';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {toISOStringUTC} from 'utils/date';
 
 // we're reading a field that was previously defined in app.json, so we know it's non-null:
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

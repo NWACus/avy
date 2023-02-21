@@ -4,11 +4,11 @@ import {QueryClient} from 'react-query';
 
 import Log from 'network/log';
 
-import {AvalancheCenter, AvalancheCenterID, MediaType, Product} from 'types/nationalAvalancheCenter';
-import AvalancheCenterMapLayerQuery from 'hooks/useMapLayer';
+import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import LatestAvalancheForecastQuery from 'hooks/useLatestAvalancheForecast';
-import {preloadAvalancheCenterLogo} from '../components/AvalancheCenterLogo';
+import AvalancheCenterMapLayerQuery from 'hooks/useMapLayer';
+import {AvalancheCenter, AvalancheCenterID, MediaType, Product} from 'types/nationalAvalancheCenter';
 
 //
 // Note: you can enable preload logging by setting ENABLE_PREFETCH_LOGGING in network/log

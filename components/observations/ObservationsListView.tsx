@@ -1,21 +1,21 @@
 import React from 'react';
 
-import {compareDesc, parseISO, sub} from 'date-fns';
-import {ActivityIndicator, View, FlatList} from 'react-native';
-import {ObservationsStackNavigationProps} from 'routes';
+import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {geoContains} from 'd3-geo';
-import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
+import {compareDesc, parseISO, sub} from 'date-fns';
+import {ActivityIndicator, FlatList, View} from 'react-native';
+import {ObservationsStackNavigationProps} from 'routes';
 
 import {Card} from 'components/content/Card';
-import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
-import {useMapLayer} from 'hooks/useMapLayer';
-import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from 'types/nationalAvalancheCenter';
+import {HStack, VStack} from 'components/core';
+import {NACIcon} from 'components/icons/nac-icons';
 import {Body, BodyBlack, Title3Semibold} from 'components/text';
 import {HTML} from 'components/text/HTML';
-import {NACIcon} from 'components/icons/nac-icons';
+import {useMapLayer} from 'hooks/useMapLayer';
+import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
+import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from 'types/nationalAvalancheCenter';
 import {apiDateString, utcDateToLocalTimeString} from 'utils/date';
-import {HStack, VStack} from 'components/core';
 
 // TODO: we could show the Avy center logo for obs that come from forecasters
 

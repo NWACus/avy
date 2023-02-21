@@ -1,8 +1,8 @@
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import {ViewProps, VStack} from 'components/core';
 import {BodyXSmBlack} from 'components/text';
 import React from 'react';
 import {useController} from 'react-hook-form';
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import {colorLookup} from 'theme';
 
 interface SwitchFieldProps extends ViewProps {

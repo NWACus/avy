@@ -1,9 +1,9 @@
 import React from 'react';
 
-import {Text, Image, StyleSheet, View, ActivityIndicator} from 'react-native';
+import {ActivityIndicator, Image, StyleSheet, Text, View} from 'react-native';
 
-import {MediaItem} from 'types/nationalAvalancheCenter';
 import {HTML} from 'components/text/HTML';
+import {MediaItem} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheProblemImageProps {
   media: MediaItem;

@@ -4,8 +4,8 @@ import {merge} from 'lodash';
 import axios, {AxiosError} from 'axios';
 import {QueryClient, useQuery} from 'react-query';
 
-import Log from 'network/log';
 import {add, parse} from 'date-fns';
+import Log from 'network/log';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 const LOG_LEVEL = 0;

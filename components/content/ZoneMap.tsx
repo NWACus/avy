@@ -2,9 +2,9 @@ import React, {useState} from 'react';
 
 import MapView, {MapViewProps, Region} from 'react-native-maps';
 
-import {MapViewZone} from 'hooks/useMapViewZones';
 import {AvalancheForecastZonePolygon, toLatLngList} from 'components/AvalancheForecastZonePolygon';
 import {RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
+import {MapViewZone} from 'hooks/useMapViewZones';
 
 const defaultAvalancheCenterMapRegionBounds: RegionBounds = {
   topLeft: {latitude: 0, longitude: 0},

@@ -1,4 +1,4 @@
-import {COLORS} from './colors';
+import {COLORS} from 'theme/colors';
 
 export {colorLookup} from './colors';
 

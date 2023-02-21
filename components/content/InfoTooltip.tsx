@@ -3,11 +3,11 @@ import {Button} from 'components/content/Button';
 import {Center, View, VStack} from 'components/core';
 import {Body, Title3Semibold} from 'components/text';
 import {HTML, HTMLRendererConfig, HTMLRendererConfigProps} from 'components/text/HTML';
+import {merge} from 'lodash';
 import React, {useCallback, useState} from 'react';
 import {ColorValue, Insets, Modal, TextStyle, TouchableWithoutFeedback, ViewStyle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
-import {merge} from 'lodash';
 
 export interface InfoTooltipProps {
   title: string;

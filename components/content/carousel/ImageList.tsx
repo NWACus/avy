@@ -2,10 +2,10 @@ import React, {PropsWithChildren, useCallback, useState} from 'react';
 
 import {FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent, ScrollView} from 'react-native';
 
-import {View, VStack} from 'components/core';
-import {MediaItem} from 'types/nationalAvalancheCenter';
-import {HTML} from 'components/text/HTML';
 import {NetworkImage, NetworkImageProps, NetworkImageState} from 'components/content/carousel/NetworkImage';
+import {View, VStack} from 'components/core';
+import {HTML} from 'components/text/HTML';
+import {MediaItem} from 'types/nationalAvalancheCenter';
 
 export interface ImageListProps extends Omit<FlatListProps<MediaItem>, 'data' | 'renderItem'> {
   imageHeight: number;

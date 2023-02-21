@@ -1,11 +1,11 @@
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
-import {ObservationsStackParamList, TabNavigatorParamList} from 'routes';
-import React from 'react';
-import {StyleSheet, View} from 'react-native';
-import {ObservationsListView} from 'components/observations/ObservationsListView';
 import {ObservationDetailView} from 'components/observations/ObservationDetailView';
+import {ObservationsListView} from 'components/observations/ObservationsListView';
 import {ObservationsPortal} from 'components/observations/ObservationsPortal';
 import {ObservationSubmit} from 'components/observations/ObservationSubmit';
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+import {ObservationsStackParamList, TabNavigatorParamList} from 'routes';
 
 const ObservationsStack = createNativeStackNavigator<ObservationsStackParamList>();
 export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Observations'>) => {

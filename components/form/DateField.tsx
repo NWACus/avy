@@ -1,13 +1,13 @@
+import {AntDesign} from '@expo/vector-icons';
 import DateTimePicker, {DateTimePickerAndroid, DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, bodySize, BodyXSmBlack} from 'components/text';
+import {add} from 'date-fns';
 import React, {useCallback, useState} from 'react';
+import {useController} from 'react-hook-form';
 import {Platform, TouchableOpacity} from 'react-native';
 import {colorLookup} from 'theme';
-import {useController} from 'react-hook-form';
 import {utcDateToLocalDateString} from 'utils/date';
-import {AntDesign} from '@expo/vector-icons';
-import {add} from 'date-fns';
 
 interface DateFieldProps {
   name: string;

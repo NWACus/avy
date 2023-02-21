@@ -2,24 +2,24 @@ import React, {useCallback, useEffect} from 'react';
 
 import {uniq} from 'lodash';
 
-import {ActivityIndicator, RefreshControl, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {ActivityIndicator, RefreshControl, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
 
 import {HStack, View, VStack} from 'components/core';
 
-import {AvalancheCenterID, AvalancheForecastZone, AvalancheForecastZoneSummary} from 'types/nationalAvalancheCenter';
 import {Tab, TabControl} from 'components/TabControl';
-import {useLatestAvalancheForecast} from 'hooks/useLatestAvalancheForecast';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {useLatestAvalancheForecast} from 'hooks/useLatestAvalancheForecast';
 import {useRefreshByUser} from 'hooks/useRefreshByUser';
+import {AvalancheCenterID, AvalancheForecastZone, AvalancheForecastZoneSummary} from 'types/nationalAvalancheCenter';
 
-import {AvalancheTab} from './AvalancheTab';
-import {Body, FeatureTitleBlack} from 'components/text';
+import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {Dropdown} from 'components/content/Dropdown';
-import {toISOStringUTC} from 'utils/date';
-import {HomeStackNavigationProps} from 'routes';
-import {AvalancheCenterLogo} from '../AvalancheCenterLogo';
+import {AvalancheTab} from 'components/forecast/AvalancheTab';
 import {WeatherTab} from 'components/forecast/WeatherTab';
+import {Body, FeatureTitleBlack} from 'components/text';
+import {HomeStackNavigationProps} from 'routes';
+import {toISOStringUTC} from 'utils/date';
 
 export interface AvalancheForecastProps {
   zoneName: string;

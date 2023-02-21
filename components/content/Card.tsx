@@ -1,12 +1,12 @@
 import React, {PropsWithChildren, ReactNode, useCallback, useState} from 'react';
 
-import Collapsible from 'react-native-collapsible';
 import {ColorValue, TouchableOpacity} from 'react-native';
+import Collapsible from 'react-native-collapsible';
 
 import {FontAwesome} from '@expo/vector-icons';
 
-import {colorLookup} from 'theme';
 import {Divider, HStack, View, ViewProps, VStack} from 'components/core';
+import {colorLookup} from 'theme';
 
 export interface CardProps extends ViewProps {
   header?: ReactNode;

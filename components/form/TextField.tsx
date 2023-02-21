@@ -1,10 +1,10 @@
 import {View, VStack} from 'components/core';
 import {BodyXSm, BodyXSmBlack} from 'components/text';
+import {merge} from 'lodash';
 import React from 'react';
+import {useController} from 'react-hook-form';
 import {TextInput, TextInputProps} from 'react-native';
 import {colorLookup} from 'theme';
-import {merge} from 'lodash';
-import {useController} from 'react-hook-form';
 
 interface TextFieldProps extends TextInputProps {
   name: string;

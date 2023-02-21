@@ -1,6 +1,6 @@
-import * as Yup from 'yup';
 import {merge} from 'lodash';
 import {LatLng} from 'react-native-maps';
+import * as Yup from 'yup';
 
 export interface Observation {
   visibility: string;

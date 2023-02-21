@@ -3,16 +3,16 @@ import {ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity} from 'react
 
 import {range} from 'lodash';
 
+import {AntDesign} from '@expo/vector-icons';
+import {useNavigation} from '@react-navigation/native';
+import {InfoTooltip} from 'components/content/InfoTooltip';
 import {Center, Divider, HStack, View, VStack} from 'components/core';
 import {AllCapsSm, Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
-import {TimeSeries, useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {format} from 'date-fns';
-import {colorLookup} from 'theme';
-import {useNavigation} from '@react-navigation/native';
-import {AntDesign} from '@expo/vector-icons';
+import {TimeSeries, useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {InfoTooltip} from 'components/content/InfoTooltip';
+import {colorLookup} from 'theme';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {utcDateToLocalDateString} from 'utils/date';
 
 interface Props {

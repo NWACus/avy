@@ -1,38 +1,37 @@
 import React, {MutableRefObject, useCallback, useRef, useState} from 'react';
 
+import {useNavigation} from '@react-navigation/native';
 import {
-  Animated,
   ActivityIndicator,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
+  Animated,
+  GestureResponderEvent,
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   PanResponder,
   PanResponderGestureState,
-  GestureResponderEvent,
+  StyleSheet,
+  Text,
   TouchableOpacity,
-  LayoutChangeEvent,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
+  useWindowDimensions,
 } from 'react-native';
-import {Region} from 'react-native-maps';
-import AnimatedMapView from 'react-native-maps';
-import {useNavigation} from '@react-navigation/native';
+import AnimatedMapView, {Region} from 'react-native-maps';
 
-import {Center, HStack, View, VStack} from 'components/core';
-import {DangerScale} from 'components/DangerScale';
-import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
-import {AvalancheDangerIcon} from './AvalancheDangerIcon';
-import {MapViewZone, useMapViewZones} from 'hooks/useMapViewZones';
-import {HomeStackNavigationProps} from 'routes';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {Body, BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
-import {colorFor} from './AvalancheDangerPyramid';
-import {toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
-import {TravelAdvice} from './helpers/travelAdvice';
-import {COLORS} from 'theme/colors';
 import {FontAwesome5} from '@expo/vector-icons';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
+import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
+import {colorFor} from 'components/AvalancheDangerPyramid';
 import {defaultMapRegionForZones, ZoneMap} from 'components/content/ZoneMap';
+import {Center, HStack, View, VStack} from 'components/core';
+import {DangerScale} from 'components/DangerScale';
+import {TravelAdvice} from 'components/helpers/travelAdvice';
+import {Body, BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
+import {MapViewZone, useMapViewZones} from 'hooks/useMapViewZones';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {HomeStackNavigationProps} from 'routes';
+import {COLORS} from 'theme/colors';
+import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
+import {toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
 
 export interface MapProps {
   center: AvalancheCenterID;

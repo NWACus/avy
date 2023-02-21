@@ -1,9 +1,9 @@
+import {AntDesign} from '@expo/vector-icons';
 import {HStack, ViewProps, VStack} from 'components/core';
+import {Body} from 'components/text';
 import React from 'react';
 import {TouchableOpacity} from 'react-native';
-import {Body} from 'components/text';
 import {colorLookup} from 'theme';
-import {AntDesign} from '@expo/vector-icons';
 
 interface Action<T> {
   label: string;

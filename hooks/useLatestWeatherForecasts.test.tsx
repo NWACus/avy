@@ -1,4 +1,4 @@
-import {fetchWeather} from './useLatestWeatherForecasts';
+import {fetchWeather} from 'hooks/useLatestWeatherForecasts';
 
 // Tests are skipped by default; not sure we want to let this constantly hit the server
 describe.skip('useLatestWeatherForecasts', () => {
