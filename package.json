@@ -13,7 +13,7 @@
     "graphql:schema": "get-graphql-schema https://api.avalanche.org/obs/v1/public/graphql > types/observations-schema.graphql",
     "ios": "expo start --ios",
     "postinstall": "patch-package",
-    "prettify": "npx prettier --write .",
+    "prettify": "eslint --fix . ; npx prettier --write .",
     "start": "expo start",
     "test": "jest",
     "web": "expo start --web"
