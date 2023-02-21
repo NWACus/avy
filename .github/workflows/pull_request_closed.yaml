@@ -14,5 +14,5 @@ jobs:
       - name: Clean up preview channel
         uses: ./.github/actions/expo/channel/delete
         with:
-          channel: 'xxx-pr-${{ github.event.number }}'
+          channel: 'yulia-pr-${{ github.event.number }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
