@@ -40,7 +40,7 @@ export const AvalancheProblemIcon: React.FunctionComponent<AvalancheProblemIconP
   style.flex = 1;
   style.aspectRatio = sizes[problem].width / sizes[problem].height;
 
-  return <Image style={style} source={{uri: uri, cache: 'force-cache'}} />;
+  return <Image style={style} source={{uri: uri}} />;
 };
 
 export const preloadAvalancheProblemIcons = async (queryClient: QueryClient) => {

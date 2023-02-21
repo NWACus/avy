@@ -58,7 +58,7 @@ export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, o
       )}
       {(status === 'success' || status === 'loading') && (
         <TouchableOpacity activeOpacity={0.8} onPress={() => onPress(index)} disabled={status !== 'success'}>
-          <Image source={{uri: cachedUri, cache: 'force-cache'}} {...croppedThumbnailProps} />
+          <Image source={{uri: cachedUri}} {...croppedThumbnailProps} />
         </TouchableOpacity>
       )}
     </Center>

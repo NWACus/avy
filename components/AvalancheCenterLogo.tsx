@@ -38,55 +38,55 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
 
   const images: Record<string, {(s: ImageStyle): ReactElement}> = {
     ['BTAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['CNFAIC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['FAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['GNFAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['IPAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['NWAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['MSAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['MWAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['PAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['SNFAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['SAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['WCMAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['CAIC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['COAA']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['CBAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['ESAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
     ['WAC']: (s: ImageStyle) => {
-      return <Image style={s} source={{uri: uri, cache: 'force-cache'}} />;
+      return <Image style={s} source={{uri: uri}} />;
     },
   };
   /* eslint-enable @typescript-eslint/no-var-requires */

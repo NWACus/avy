@@ -44,7 +44,7 @@ export const AvalancheDangerIcon: React.FunctionComponent<AvalancheDangerIconPro
   const actualStyle: ImageStyle = {...style};
   actualStyle.width = undefined;
   actualStyle.aspectRatio = sizes[level].width / sizes[level].height;
-  return <Image style={actualStyle} source={{uri: uri, cache: 'force-cache'}} />;
+  return <Image style={actualStyle} source={{uri: uri}} />;
 };
 
 export const preloadAvalancheDangerIcons = async (queryClient: QueryClient) => {
