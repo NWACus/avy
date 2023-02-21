@@ -4,12 +4,12 @@ import {LayoutChangeEvent, Modal} from 'react-native';
 
 import {AntDesign} from '@expo/vector-icons';
 
+import {ImageList} from 'components/content/carousel/ImageList';
 import {Center, HStack, View, ViewProps, VStack} from 'components/core';
-import {MediaItem} from 'types/nationalAvalancheCenter';
 import {BodySm} from 'components/text';
 import {HTMLRendererConfig} from 'components/text/HTML';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
-import {ImageList} from 'components/content/carousel/ImageList';
+import {MediaItem} from 'types/nationalAvalancheCenter';
 
 export interface ImageViewerModalProps extends ViewProps {
   visible: boolean;

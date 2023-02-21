@@ -2,9 +2,9 @@ import React from 'react';
 
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 
-import {TabNavigatorParamList, WeatherStackParamList} from 'routes';
 import {WeatherStationDetail} from 'components/weather_data/WeatherStationDetail';
 import {WeatherStationList} from 'components/weather_data/WeatherStationList';
+import {TabNavigatorParamList, WeatherStackParamList} from 'routes';
 
 const WeatherStack = createNativeStackNavigator<WeatherStackParamList>();
 export const WeatherScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Weather Data'>) => {

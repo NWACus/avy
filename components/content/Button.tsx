@@ -1,8 +1,8 @@
 import {Center, View, ViewProps} from 'components/core';
 import React, {useState} from 'react';
 import {ColorValue, GestureResponderEvent, Pressable, Text} from 'react-native';
-import tinycolor from 'tinycolor2';
 import {colorLookup} from 'theme';
+import tinycolor from 'tinycolor2';
 
 interface ButtonStyle {
   backgroundColor?: ColorValue;

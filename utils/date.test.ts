@@ -1,5 +1,5 @@
-import {apiDateString, fixMalformedISO8601DateString, nominalForecastDate, utcDateToLocalDateString, utcDateToLocalTimeString} from 'utils/date';
 import * as TimezoneMock from 'timezone-mock';
+import {apiDateString, fixMalformedISO8601DateString, nominalForecastDate, utcDateToLocalDateString, utcDateToLocalTimeString} from 'utils/date';
 
 describe('Dates', () => {
   describe('fixMalformedISO8601DateString', () => {

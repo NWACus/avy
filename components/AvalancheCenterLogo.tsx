@@ -1,6 +1,6 @@
 import React, {ReactElement} from 'react';
 import {Image, ImageStyle} from 'react-native';
-import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheCenterLogoProps {
   style: ImageStyle;

@@ -1,12 +1,12 @@
 import React from 'react';
 
-import {DangerLevel} from 'types/nationalAvalancheCenter';
-import {colorFor} from './AvalancheDangerPyramid';
-import {BodyXSmBlack} from 'components/text';
+import {colorFor} from 'components/AvalancheDangerPyramid';
+import {InfoTooltip} from 'components/content/InfoTooltip';
 import {Center, HStack, View} from 'components/core';
 import {dangerShortText} from 'components/helpers/dangerText';
-import {InfoTooltip} from 'components/content/InfoTooltip';
+import {BodyXSmBlack} from 'components/text';
 import helpStrings from 'content/helpStrings';
+import {DangerLevel} from 'types/nationalAvalancheCenter';
 
 export type DangerScaleProps = Omit<React.ComponentProps<typeof View>, 'children'>;
 

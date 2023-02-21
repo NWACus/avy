@@ -1,13 +1,13 @@
-import React from 'react';
-import {useTimeSeries} from 'hooks/useTimeseries';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
-import {StyleSheet, View, Text, ActivityIndicator, ScrollView, useWindowDimensions} from 'react-native';
+import {useTimeSeries} from 'hooks/useTimeseries';
+import React from 'react';
+import {ActivityIndicator, ScrollView, StyleSheet, Text, useWindowDimensions, View} from 'react-native';
 
-import {Chart, Line, HorizontalAxis, VerticalAxis} from 'react-native-responsive-linechart';
 import {scaleLinear, scaleTime} from 'd3';
-import {max, min, format} from 'date-fns';
+import {format, max, min} from 'date-fns';
+import {Chart, HorizontalAxis, Line, VerticalAxis} from 'react-native-responsive-linechart';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {Variable, VariableMetadata} from 'types/snowbound';
-import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
 
 export const TelemetryStationData: React.FunctionComponent<{
   center_id: AvalancheCenterID;

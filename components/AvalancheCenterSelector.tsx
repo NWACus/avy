@@ -1,14 +1,14 @@
 import React from 'react';
 
-import {Text, SectionList, SectionListData, StyleSheet, TouchableOpacity, ActivityIndicator, useWindowDimensions} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {ActivityIndicator, SectionList, SectionListData, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
 
-import {AvalancheCenterLogo} from './AvalancheCenterLogo';
+import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
+import {HStack, View, VStack} from 'components/core';
+import {Body} from 'components/text';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {TabNavigationProps} from 'routes';
-import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
-import {Body} from './text';
-import {HStack, View, VStack} from 'components/core';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 const avalancheCenterIDsByType: SectionListData<AvalancheCenterID>[] = [
   {

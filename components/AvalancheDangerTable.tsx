@@ -1,13 +1,13 @@
 import React from 'react';
 
-import {AvalancheDangerForecast, ElevationBandNames} from 'types/nationalAvalancheCenter';
 import {HStack, View, VStack} from 'components/core';
 import {dangerText} from 'components/helpers/dangerText';
-import {utcDateToLocalDateString} from 'utils/date';
 import {Body, Caption1, Caption1Semibold} from 'components/text';
+import {AvalancheDangerForecast, ElevationBandNames} from 'types/nationalAvalancheCenter';
+import {utcDateToLocalDateString} from 'utils/date';
 
-import {AvalancheDangerPyramid} from './AvalancheDangerPyramid';
-import {AvalancheDangerIcon, iconSize} from './AvalancheDangerIcon';
+import {AvalancheDangerIcon, iconSize} from 'components/AvalancheDangerIcon';
+import {AvalancheDangerPyramid} from 'components/AvalancheDangerPyramid';
 
 export type DangerTableSize = 'main' | 'outlook';
 

@@ -1,4 +1,4 @@
-import {ExpoConfig, ConfigContext} from '@expo/config';
+import {ConfigContext, ExpoConfig} from '@expo/config';
 
 export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   // `config` is the object loaded from app.json. Here, we fill in secrets that

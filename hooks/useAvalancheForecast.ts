@@ -8,8 +8,8 @@ import * as Sentry from 'sentry-expo';
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {useAvalancheForecastFragment} from 'hooks/useAvalancheForecastFragment';
 import {AvalancheCenterID, Product, productSchema} from 'types/nationalAvalancheCenter';
-import {useAvalancheForecastFragment} from './useAvalancheForecastFragment';
 import {ZodError} from 'zod';
 
 export const useAvalancheForecast = (center_id: AvalancheCenterID, forecast_zone_id: number, date: Date) => {

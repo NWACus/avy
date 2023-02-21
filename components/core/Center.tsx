@@ -1,8 +1,8 @@
-import * as React from 'react';
 import {merge} from 'lodash';
+import * as React from 'react';
 
+import {View, ViewProps} from 'components/core/View';
 import {ViewStyle} from 'react-native';
-import {View, ViewProps} from './View';
 
 const baseStyle: ViewStyle = {
   display: 'flex',

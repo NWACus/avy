@@ -9,8 +9,8 @@ import {AvalancheCenterCard, AvalancheCenterSelector} from 'components/Avalanche
 
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 
-import {MenuStackParamList, MenuStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
+import {MenuStackNavigationProps, MenuStackParamList} from 'routes';
 
 import {Divider, HStack, View, VStack} from 'components/core';
 
@@ -37,7 +37,7 @@ import {
   Title3Black,
   Title3Semibold,
 } from 'components/text';
-import {AvalancheCenterID} from '../../types/nationalAvalancheCenter';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 const MenuStack = createNativeStackNavigator<MenuStackParamList>();
 export const MenuStackScreen = (

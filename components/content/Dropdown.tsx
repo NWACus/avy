@@ -1,10 +1,10 @@
+import {AntDesign} from '@expo/vector-icons';
 import {HStack, View, ViewProps, VStack} from 'components/core';
+import {Body, bodySize} from 'components/text';
 import React, {useState} from 'react';
 import {LayoutChangeEvent, LayoutRectangle, Modal, StyleSheet, TouchableOpacity, TouchableWithoutFeedback} from 'react-native';
-import {Body, bodySize} from 'components/text';
 import {colorLookup} from 'theme';
 import tinycolor from 'tinycolor2';
-import {AntDesign} from '@expo/vector-icons';
 
 export interface DropdownProps extends ViewProps {
   items: string[];

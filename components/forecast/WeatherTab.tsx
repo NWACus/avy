@@ -1,19 +1,19 @@
+import {CompositeNavigationProp, useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {ActionList} from 'components/content/ActionList';
 import {Card, CollapsibleCard} from 'components/content/Card';
+import {InfoTooltip} from 'components/content/InfoTooltip';
 import {Center, HStack, View, VStack} from 'components/core';
-import {useLatestWeatherForecast} from 'hooks/useLatestWeatherForecast';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodyXSmBlack, bodyXSmSize, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
+import helpStrings from 'content/helpStrings';
+import {useLatestWeatherForecast} from 'hooks/useLatestWeatherForecast';
+import {useWeatherStations} from 'hooks/useWeatherStations';
 import {ActivityIndicator, StyleSheet} from 'react-native';
+import {HomeStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
 import {toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
-import {InfoTooltip} from 'components/content/InfoTooltip';
-import helpStrings from 'content/helpStrings';
-import {useWeatherStations} from 'hooks/useWeatherStations';
-import {ActionList} from 'components/content/ActionList';
-import {CompositeNavigationProp, useNavigation} from '@react-navigation/native';
-import {HomeStackParamList, TabNavigationProps} from 'routes';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 type ForecastNavigationProp = CompositeNavigationProp<NativeStackNavigationProp<HomeStackParamList, 'forecast'>, TabNavigationProps>;
 

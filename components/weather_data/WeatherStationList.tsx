@@ -1,15 +1,15 @@
 import React from 'react';
 import {ActivityIndicator, ScrollView, StyleSheet} from 'react-native';
 
+import {useNavigation} from '@react-navigation/native';
+import {ActionList} from 'components/content/ActionList';
+import {Card} from 'components/content/Card';
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, Title1Black, Title3Black} from 'components/text';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {useWeatherStations, ZoneResult} from 'hooks/useWeatherStations';
-import {Card} from 'components/content/Card';
-import {ActionList} from 'components/content/ActionList';
-import {useNavigation} from '@react-navigation/native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {WeatherStackNavigationProps} from 'routes';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 interface Props {
   center_id: AvalancheCenterID;

@@ -1,9 +1,15 @@
-import React from 'react';
-import {EverythingFragment, useObservationQuery} from 'hooks/useObservations';
-import {ActivityIndicator, View, ScrollView, StyleSheet} from 'react-native';
+import {FontAwesome5, Fontisto, MaterialCommunityIcons} from '@expo/vector-icons';
+import {AvalancheProblemImage} from 'components/AvalancheProblemImage';
 import {Card, CollapsibleCard} from 'components/content/Card';
-import {FontAwesome5, MaterialCommunityIcons, Fontisto} from '@expo/vector-icons';
-import {useMapLayer} from '../../hooks/useMapLayer';
+import {HStack, VStack} from 'components/core';
+import {NACIcon} from 'components/icons/nac-icons';
+import {zone} from 'components/observations/ObservationsListView';
+import {Body, BodyBlack, FeatureTitleBlack, Title1Black} from 'components/text';
+import {HTML} from 'components/text/HTML';
+import {useMapLayer} from 'hooks/useMapLayer';
+import {EverythingFragment, useObservationQuery} from 'hooks/useObservations';
+import React from 'react';
+import {ActivityIndicator, ScrollView, StyleSheet, View} from 'react-native';
 import {
   Activity,
   AvalancheAspect,
@@ -27,14 +33,8 @@ import {
   FormatWindLoading,
   MapLayer,
   PartnerType,
-} from '../../types/nationalAvalancheCenter';
-import {zone} from './ObservationsListView';
-import {HTML} from '../text/HTML';
-import {AvalancheProblemImage} from '../AvalancheProblemImage';
-import {NACIcon} from '../icons/nac-icons';
+} from 'types/nationalAvalancheCenter';
 import {utcDateToLocalTimeString} from 'utils/date';
-import {Body, BodyBlack, FeatureTitleBlack, Title1Black} from 'components/text';
-import {HStack, VStack} from 'components/core';
 
 export const ObservationDetailView: React.FunctionComponent<{
   id: string;

@@ -2,10 +2,10 @@ import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
 import {LatLng, Polygon} from 'react-native-maps';
 
-import {FeatureComponent} from 'types/nationalAvalancheCenter';
-import {colorFor} from './AvalancheDangerPyramid';
+import {colorFor} from 'components/AvalancheDangerPyramid';
 import {MapViewZone} from 'hooks/useMapViewZones';
-import {colorLookup} from '../theme';
+import {colorLookup} from 'theme';
+import {FeatureComponent} from 'types/nationalAvalancheCenter';
 
 const coordinateList = (geometry: FeatureComponent): number[][] => {
   let items: number[][] = [];

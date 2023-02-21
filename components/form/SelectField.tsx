@@ -1,9 +1,9 @@
+import {Select, SelectRef, SelectStyles} from '@mobile-reality/react-native-select-pro';
 import {VStack} from 'components/core';
 import {BodyXSm, BodyXSmBlack} from 'components/text';
 import React, {useEffect, useRef} from 'react';
-import {colorLookup} from 'theme';
 import {useController, useFormContext} from 'react-hook-form';
-import {Select, SelectRef, SelectStyles} from '@mobile-reality/react-native-select-pro';
+import {colorLookup} from 'theme';
 
 interface SelectFieldProps {
   name: string;

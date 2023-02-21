@@ -1,13 +1,13 @@
 import React from 'react';
 import {useQueries, useQuery} from 'react-query';
 
-import {useMapLayer} from './useMapLayer';
 import LatestAvalancheForecastQuery from 'hooks/useLatestAvalancheForecast';
+import {useMapLayer} from 'hooks/useMapLayer';
 
+import {ClientContext, ClientProps} from 'clientContext';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {AvalancheCenterID, DangerLevel, FeatureComponent} from 'types/nationalAvalancheCenter';
 import {apiDateString} from 'utils/date';
-import {useAvalancheCenterMetadata} from './useAvalancheCenterMetadata';
-import {ClientContext, ClientProps} from '../clientContext';
 
 export type MapViewZone = {
   center_id: AvalancheCenterID;

@@ -1,8 +1,8 @@
-import {NativeStackScreenProps, createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 
-import {ForecastScreen} from './ForecastScreen';
-import {MapScreen} from './MapScreen';
-import {TabNavigatorParamList, HomeStackParamList} from 'routes';
+import {ForecastScreen} from 'components/screens/ForecastScreen';
+import {MapScreen} from 'components/screens/MapScreen';
+import {HomeStackParamList, TabNavigatorParamList} from 'routes';
 
 const AvalancheCenterStack = createNativeStackNavigator<HomeStackParamList>();
 export const HomeTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Home'>) => {

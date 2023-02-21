@@ -1,5 +1,5 @@
-import * as React from 'react';
 import {isUndefined, merge, omit} from 'lodash';
+import * as React from 'react';
 
 import {Text, TextProps, TextStyle} from 'react-native';
 

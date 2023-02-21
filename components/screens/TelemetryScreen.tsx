@@ -1,9 +1,9 @@
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
-import {TabNavigatorParamList, TelemetryStackParamList} from 'routes';
-import {StyleSheet, View} from 'react-native';
 import {TelemetryStationData} from 'components/TelemetryStationData';
-import React from 'react';
 import {TelemetryStationMap} from 'components/TelemetryStationMap';
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+import {TabNavigatorParamList, TelemetryStackParamList} from 'routes';
 
 const TelemetryStack = createNativeStackNavigator<TelemetryStackParamList>();
 export const TelemetryTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Weather Data'>) => {

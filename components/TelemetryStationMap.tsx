@@ -1,17 +1,17 @@
 import React from 'react';
 
-import MapView, {Marker, Region} from 'react-native-maps';
 import {FontAwesome5} from '@expo/vector-icons';
-import {StationMetadata} from 'types/snowbound';
-import {useStations} from 'hooks/useStations';
-import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
-import {StyleSheet, ActivityIndicator, FlatList, TouchableOpacity, View, ViewStyle, Text, useWindowDimensions} from 'react-native';
-import {CARD_MARGIN, CARD_SPACING, CARD_WIDTH} from './AvalancheForecastZoneMap';
 import {useNavigation} from '@react-navigation/native';
+import {CARD_MARGIN, CARD_SPACING, CARD_WIDTH} from 'components/AvalancheForecastZoneMap';
+import {regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {useStations} from 'hooks/useStations';
+import {ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, ViewStyle} from 'react-native';
+import MapView, {Marker, Region} from 'react-native-maps';
 import {TelemetryStackNavigationProps} from 'routes';
-import {AvalancheCenterID} from '../types/nationalAvalancheCenter';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {StationMetadata} from 'types/snowbound';
 import {toISOStringUTC} from 'utils/date';
-import {regionFromBounds, updateBoundsToContain} from './helpers/geographicCoordinates';
 
 export const TelemetryStationMap: React.FunctionComponent<{
   center_id: AvalancheCenterID;
