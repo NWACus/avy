@@ -50,7 +50,18 @@ import {toISOStringUTC} from 'utils/date';
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 if (Constants.expoConfig.extra!.log_requests) {
   axios.interceptors.request.use(request => {
-    console.log('Request:', JSON.stringify({method: request.method, url: request.url, params: request.params}, null, 2));
+    console.log(
+      'Request:',
+      JSON.stringify(
+        {
+          method: request.method,
+          url: request.url,
+          params: request.params,
+        },
+        null,
+        2,
+      ),
+    );
     return request;
   });
 }
@@ -75,6 +86,9 @@ if (Sentry?.init) {
 }
 
 const queryCache: QueryCache = new QueryCache();
+// we need to subscribe to the react-query cache in order to remove
+// images from the local filesystem when their TTL expires
+queryCache.subscribe(event => ImageCache.cleanup(event));
 
 const queryClient: QueryClient = new QueryClient({
   queryCache: queryCache,
@@ -105,11 +119,6 @@ const defaultDate = new Date();
 
 const App = () => {
   try {
-    // we need to subscribe to the react-query cache in order to remove
-    // images from the local filesystem when their TTL expires
-    React.useEffect(() => {
-      return queryCache.subscribe(event => ImageCache.cleanup(event));
-    }, []);
     useOnlineManager();
 
     useAppState(onAppStateChange);
@@ -207,7 +216,18 @@ const BaseApp: React.FunctionComponent<{
                   {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
                 </TabNavigator.Screen>
                 <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString}}>
-                  {state => ObservationsTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
+                  {state =>
+                    ObservationsTabScreen(
+                      merge(state, {
+                        route: {
+                          params: {
+                            center_id: avalancheCenterId,
+                            dateString,
+                          },
+                        },
+                      }),
+                    )
+                  }
                 </TabNavigator.Screen>
                 <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString}}>
                   {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
