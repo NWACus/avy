@@ -22,7 +22,7 @@ jobs:
       - name: Publish EAS update
         uses: ./.github/actions/expo/update
         with:
-          channel: 'preview'
+          channel: 'yulia-preview'
           message: '${{ github.event.head_commit.message }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
