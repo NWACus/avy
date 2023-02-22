@@ -58,12 +58,6 @@ jobs:
         with:
           install_expo: true
           expo_token: ${{ secrets.EXPO_TOKEN }}
-          
-      - name: Replace USER value in eas.json
-        run: sed -i 's/$USER/${{ secrets.APPLE_USER }}/g' eas.json
-
-      - name: Replace USER value in eas.json
-        run: sed -i 's/$USER/${{ secrets.APPLE_USER }}/g' eas.json
 
       - name: Replace USER value in eas.json
         run: sed -i 's/$USER/${{ secrets.APPLE_USER }}/g' eas.json
