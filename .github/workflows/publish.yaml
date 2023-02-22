@@ -61,6 +61,12 @@ jobs:
 
       - name: Replace USER value in eas.json
         run: sed -i 's/$USER/${{ secrets.APPLE_USER }}/g' eas.json
+        
+      - name: Replace TEAM value in eas.json
+        run: sed -i 's/$TEAM/${{ secrets.TEAM }}/g' eas.json
+        
+      - name: Replace APP value in eas.json
+        run: sed -i 's/$APP/${{ secrets.APP }}/g' eas.json
 
       - name: 🚀 Build iOS app
         run: eas build --non-interactive --platform ios --profile production --auto-submit
