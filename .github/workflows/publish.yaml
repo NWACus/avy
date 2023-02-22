@@ -60,4 +60,4 @@ jobs:
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 🚀 Build iOS app
-        run: eas build --non-interactive --platform ios --profile production auto-submit-with-profile=production
+        run: eas build --non-interactive --platform ios --profile production --auto-submit
