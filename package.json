@@ -49,6 +49,7 @@
     "expo-dev-client": "~2.0.1",
     "expo-device": "~5.0.0",
     "expo-font": "~11.0.1",
+    "expo-image-picker": "~14.0.2",
     "expo-location": "~15.0.1",
     "expo-splash-screen": "~0.17.5",
     "expo-status-bar": "~1.4.2",

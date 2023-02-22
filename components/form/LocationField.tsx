@@ -90,7 +90,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
                       <ZoneMap
                         animated={false}
                         style={{width: '100%', height: '100%'}}
-                        zones={zones}
+                        zones={[]}
                         initialRegion={initialRegion}
                         onRegionChange={onChange}
                         onRegionChangeComplete={onChange}
