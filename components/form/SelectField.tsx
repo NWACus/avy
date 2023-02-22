@@ -1,14 +1,19 @@
 import {Select, SelectRef, SelectStyles} from '@mobile-reality/react-native-select-pro';
 import {VStack} from 'components/core';
-import {BodyXSm, BodyXSmBlack} from 'components/text';
+import {bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
 import React, {useEffect, useRef} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
 import {colorLookup} from 'theme';
 
+interface Item {
+  value: string;
+  label: string;
+}
+
 interface SelectFieldProps {
   name: string;
   label: string;
-  items: string[];
+  items: string[] | Item[];
   prompt?: string;
   radio?: boolean; // If true, will default to selecting first item and always enforce selection
 }
@@ -23,7 +28,7 @@ const selectStyles: SelectStyles = {
     },
     text: {
       color: colorLookup('text'),
-      fontSize: 16,
+      fontSize: bodySize,
       fontFamily: 'Lato_400Regular',
     },
     multiSelectedOption: {
@@ -46,7 +51,7 @@ const selectStyles: SelectStyles = {
   option: {
     text: {
       color: colorLookup('text'),
-      fontSize: 16,
+      fontSize: bodySize,
       fontFamily: 'Lato_400Regular',
     },
   },
@@ -67,10 +72,13 @@ export const SelectField: React.FC<SelectFieldProps> = ({name, label, items, pro
     field: {value},
     fieldState,
   } = useController({name});
-  const menuItems = items.map(item => ({
-    label: item,
-    value: item,
-  }));
+  const menuItems =
+    typeof items[0] === 'string'
+      ? (items as string[]).map(item => ({
+          label: item,
+          value: item,
+        }))
+      : (items as Item[]);
   const multiple = Array.isArray(value);
 
   const ref = useRef<SelectRef>(null);

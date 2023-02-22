@@ -18,6 +18,7 @@ export const createObservation = (initialValues: Partial<Observation> | null = n
   merge(
     {
       visibility: 'Private',
+      photoUsage: 'anonymous',
 
       name: '',
       email: '',

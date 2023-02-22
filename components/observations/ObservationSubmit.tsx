@@ -57,6 +57,8 @@ export const ObservationSubmit: React.FC<{
     return true;
   });
 
+  const formFieldSpacing = 16;
+
   return (
     <FormProvider {...formContext}>
       <View width="100%" height="100%" bg="#F6F8FC">
@@ -79,27 +81,38 @@ export const ObservationSubmit: React.FC<{
                 </HStack>
               </TouchableWithoutFeedback>
               <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}}>
-                <VStack width="100%" justifyContent="flex-start" alignItems="stretch" space={8} pt={8} pb={8}>
-                  <View px={16}>
+                <VStack width="100%" justifyContent="flex-start" alignItems="stretch" pt={8} pb={8}>
+                  <View px={16} pb={formFieldSpacing}>
                     <Body>Help keep the {center_id} community informed by submitting your observation.</Body>
                   </View>
                   <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed={false} header={<Title3Semibold>Privacy</Title3Semibold>}>
-                    <VStack space={8}>
+                    <VStack space={formFieldSpacing}>
                       <SwitchField name="visibility" label="Observation visibility" items={['Public', 'Private']} />
-                      <SelectField name="photoUsage" label="Photo usage" radio items={['Use anonymously', 'Use with photo credit', "Don't use"]} />
+                      <SelectField
+                        name="photoUsage"
+                        label="Photo usage"
+                        radio
+                        items={[
+                          {value: 'anonymous', label: 'Use anonymously'},
+                          {value: 'credit', label: 'Use with photo credit'},
+                          {value: 'private', label: "Don't use"},
+                        ]}
+                      />
                     </VStack>
                   </CollapsibleCard>
                   <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed={false} header={<Title3Semibold>General information</Title3Semibold>}>
-                    <VStack space={8}>
-                      <TextField name="name" label="Name" placeholder="Jane Doe" textContentType="name" />
+                    <VStack space={formFieldSpacing}>
+                      <TextField name="name" label="Name" textInputProps={{placeholder: 'Jane Doe', textContentType: 'name'}} />
                       <TextField
                         name="email"
                         label="Email address"
-                        placeholder="you@domain.com"
-                        textContentType="emailAddress"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoCorrect={false}
+                        textInputProps={{
+                          placeholder: 'you@domain.com',
+                          textContentType: 'emailAddress',
+                          keyboardType: 'email-address',
+                          autoCapitalize: 'none',
+                          autoCorrect: false,
+                        }}
                       />
                       <DateField name="observationDate" label="Observation date" />
                       <SelectField name="zone" label="Zone/Region" prompt="Select a zone or region" items={zones} />
@@ -107,47 +120,212 @@ export const ObservationSubmit: React.FC<{
                         name="activity"
                         label="Activity"
                         prompt="What were you doing?"
-                        items={['Skiing/Snowboarding', 'Snowmobiling/Snowbiking', 'XC Skiing/Snowshoeing', 'Walking/Hiking', 'Driving', 'Other']}
+                        items={[
+                          {
+                            label: 'Skiing/Snowboarding',
+                            value: 'skiing_snowboarding',
+                          },
+                          {
+                            label: 'Snowmobiling/Snowbiking',
+                            value: 'snowmobiling_snowbiking',
+                          },
+                          {
+                            label: 'XC Skiing/Snowshoeing',
+                            value: 'xcskiing_snowshoeing',
+                          },
+                          {
+                            label: 'Climbing',
+                            value: 'climbing',
+                          },
+                          {
+                            label: 'Walking/Hiking',
+                            value: 'walking',
+                          },
+                          {
+                            label: 'Driving',
+                            value: 'driving',
+                          },
+                          {
+                            label: 'Other',
+                            value: 'other',
+                          },
+                        ]}
                       />
                       <TextField
                         name="location"
                         label="Location"
-                        placeholder="Please describe your observation location using common geographical place names (drainages, peak names, etc)."
-                        multiline
+                        textInputProps={{
+                          placeholder: 'Please describe your observation location using common geographical place names (drainages, peak names, etc).',
+                          multiline: true,
+                        }}
                       />
                       <LocationField name="mapLocation" label="Latitude/Longitude" />
-                      <TextField name="route" label="Route" placeholder="Enter details of route taken, including aspects and elevations observed." multiline />
+                      <TextField
+                        name="route"
+                        label="Route"
+                        textInputProps={{
+                          placeholder: 'Enter details of route taken, including aspects and elevations observed.',
+                          multiline: true,
+                        }}
+                      />
                     </VStack>
                   </CollapsibleCard>
                   <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Signs of instability</Title3Semibold>}>
-                    <VStack space={8}>
-                      <SwitchField name="recent" label="Did you see recent avalanches?" items={['No', 'Yes']} />
+                    <VStack>
+                      <SwitchField name="recent" label="Did you see recent avalanches?" items={['No', 'Yes']} pb={formFieldSpacing} />
                       <Conditional name="recent" value="Yes">
-                        <SwitchField name="trigger" label="Did you trigger an avalanche?" items={['No', 'Yes']} />
-                        <Conditional name="trigger" value="Yes">
-                          <SwitchField name="caught" label="Were you caught?" items={['No', 'Yes']} pt={8} />
-                        </Conditional>
+                        <VStack>
+                          <View pb={formFieldSpacing}>
+                            <Body fontStyle="italic">Please provide more detail in the Avalanches section below.</Body>
+                          </View>
+                          <SwitchField name="trigger" label="Did you trigger an avalanche?" items={['No', 'Yes']} pb={formFieldSpacing} />
+                          <Conditional name="trigger" value="Yes">
+                            <SwitchField name="caught" label="Were you caught?" items={['No', 'Yes']} pb={formFieldSpacing} />
+                          </Conditional>
+                        </VStack>
                       </Conditional>
-                      <SwitchField name="cracking" label="Did you experience snowpack cracking?" items={['No', 'Yes']} />
-                      <Conditional name="cracking" value="Yes">
+                      <SwitchField name="cracking" label="Did you experience snowpack cracking?" items={['No', 'Yes']} pb={formFieldSpacing} />
+                      <Conditional name="cracking" value="Yes" space={formFieldSpacing}>
                         <SelectField name="crackingExtent" label="How widespread was the cracking?" items={['Isolated', 'Widespread']} prompt=" " />
                       </Conditional>
-                      <SwitchField name="collapsing" label="Did you experience snowpack collapsing?" items={['No', 'Yes']} />
-                      <Conditional name="collapsing" value="Yes">
+                      <SwitchField name="collapsing" label="Did you experience snowpack collapsing?" items={['No', 'Yes']} pb={formFieldSpacing} />
+                      <Conditional name="collapsing" value="Yes" space={formFieldSpacing}>
                         <SelectField name="collapsingExtent" label="How widespread was the collapsing?" items={['Isolated', 'Widespread']} prompt=" " />
                       </Conditional>
                       <TextField
                         name="instabilityComments"
                         label="Instability comments"
-                        placeholder="Note length and depth of cracking or collapsing, how recent were the observed avalanches, etc."
-                        multiline
+                        textInputProps={{
+                          placeholder: 'Note length and depth of cracking or collapsing, how recent were the observed avalanches, etc.',
+                          multiline: true,
+                        }}
+                        pb={formFieldSpacing}
                       />
                     </VStack>
                   </CollapsibleCard>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Snowpack</Title3Semibold>}></CollapsibleCard>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Observation summary</Title3Semibold>}></CollapsibleCard>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Weather</Title3Semibold>}></CollapsibleCard>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Photos</Title3Semibold>}></CollapsibleCard>
+                  <Conditional name="recent" value="Yes">
+                    <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Avalanches</Title3Semibold>}>
+                      <VStack space={formFieldSpacing}>
+                        <Body fontStyle="italic">coming soon</Body>
+                      </VStack>
+                    </CollapsibleCard>
+                  </Conditional>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Snowpack</Title3Semibold>}>
+                    <VStack space={formFieldSpacing}>
+                      <TextField
+                        name="snowpackSummary"
+                        label="Snowpack summary"
+                        textInputProps={{
+                          placeholder:
+                            'Snowpack tests/location/relevancy/results, layer extent, penetration, etc. You can submit images of your pit or profile in the photos section.',
+                          multiline: true,
+                        }}
+                      />
+                    </VStack>
+                  </CollapsibleCard>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Observation summary</Title3Semibold>}>
+                    <VStack space={formFieldSpacing}>
+                      <TextField
+                        name="observationSummary"
+                        label="Observation summary"
+                        textInputProps={{
+                          placeholder: 'Summarize the avalanche hazard; what are the key points of your observation? What avalanche problems did you observe?',
+                          multiline: true,
+                        }}
+                      />
+                    </VStack>
+                  </CollapsibleCard>
+
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Weather</Title3Semibold>}>
+                    <VStack space={formFieldSpacing}>
+                      <SelectField name="cloudCover" label="Cloud cover" items={['Clear', 'Few', 'Scattered', 'Broken', 'Overcast', 'Obscured']} />
+                      <TextField name="temperature" label="Temperature (F)" textInputProps={{autoComplete: 'off', autoCorrect: false, keyboardType: 'decimal-pad'}} />
+                      <TextField
+                        name="newRecentSnowfall"
+                        label="New/recent snowfall"
+                        textInputProps={{
+                          placeholder: 'Include new snow in the past 24 hours and/or recent storm totals.',
+                        }}
+                      />
+                      <TextField
+                        name="rainLineElevation"
+                        label="Rain line elevation"
+                        textInputProps={{
+                          placeholder: 'To what elevation did it rain?',
+                        }}
+                      />
+                      {/* TODO: make sure these values get lowercased when written */}
+                      <SelectField
+                        name="saft"
+                        label="SAFT (snow available for transport)"
+                        items={[
+                          {
+                            label: 'None',
+                            value: 'none',
+                          },
+                          {
+                            label: 'Small Amounts',
+                            // TODO: opened https://github.com/NationalAvalancheCenter/nac-vue-component-library/pull/16
+                            // to track fixing this typo
+                            value: 'small smounts',
+                          },
+                          {
+                            label: 'Moderate Amounts',
+                            value: 'moderate amounts',
+                          },
+                          {
+                            label: 'Large Amounts',
+                            value: 'large amounts',
+                          },
+                        ]}
+                      />
+                      <SelectField
+                        name="loading"
+                        label="Wind Loading"
+                        items={[
+                          {
+                            label: 'None',
+                            value: 'none',
+                          },
+                          {
+                            label: 'Light',
+                            value: 'light',
+                          },
+                          {
+                            label: 'Moderate',
+                            value: 'moderate',
+                          },
+                          {
+                            label: 'Intense',
+                            value: 'intense',
+                          },
+                          {
+                            label: 'Previous',
+                            value: 'previous',
+                          },
+                          {
+                            label: 'Unknown',
+                            value: 'unknown',
+                          },
+                        ]}
+                      />
+                      <TextField
+                        name="weatherSummary"
+                        label="Weather summary"
+                        textInputProps={{
+                          placeholder: 'Include factors such as weather trends, wind speed and direction, precip type and rate. Elaborate on above weather observations if needed.',
+                          multiline: true,
+                        }}
+                      />
+                    </VStack>
+                  </CollapsibleCard>
+
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Photos</Title3Semibold>}>
+                    <VStack space={formFieldSpacing}>
+                      <Body fontStyle="italic">coming soon</Body>
+                    </VStack>
+                  </CollapsibleCard>
+
                   <Button
                     mx={16}
                     mt={16}
