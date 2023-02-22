@@ -52,7 +52,15 @@
         }
       ]
     },
-    "plugins": ["sentry-expo"],
+    "plugins": [
+      "sentry-expo",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos so you can share your observations with NWAC forecasters."
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "47e2fd36-5165-4eb4-9a2d-21beec393379"

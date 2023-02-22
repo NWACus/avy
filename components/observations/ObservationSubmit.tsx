@@ -4,6 +4,7 @@ import {useBackHandler} from '@react-native-community/hooks';
 import {useNavigation} from '@react-navigation/native';
 import {Button} from 'components/content/Button';
 import {CollapsibleCard} from 'components/content/Card';
+import {ImageList} from 'components/content/carousel/ImageList';
 import {HStack, View, VStack} from 'components/core';
 import {Conditional} from 'components/form/Conditional';
 import {DateField} from 'components/form/DateField';
@@ -13,15 +14,16 @@ import {SwitchField} from 'components/form/SwitchField';
 import {TextField} from 'components/form/TextField';
 import {createObservation, observationSchema} from 'components/observations/ObservationSchema';
 import {Body, BodySemibold, Title3Black, Title3Semibold} from 'components/text';
+import * as ImagePicker from 'expo-image-picker';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {uniq} from 'lodash';
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {FormProvider, useForm} from 'react-hook-form';
 import {Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
 export const ObservationSubmit: React.FC<{
   center_id: AvalancheCenterID;
@@ -56,6 +58,25 @@ export const ObservationSubmit: React.FC<{
     // Returning true marks the event as processed
     return true;
   });
+
+  const maxImageCount = 8;
+  const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      aspect: [4, 3],
+      quality: 1,
+      orderedSelection: true,
+      selectionLimit: maxImageCount,
+    });
+
+    if (!result.canceled) {
+      const newImages = images.concat(result.assets).slice(0, maxImageCount);
+      setImages(newImages);
+    }
+  };
 
   const formFieldSpacing = 16;
 
@@ -322,7 +343,34 @@ export const ObservationSubmit: React.FC<{
 
                   <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Photos</Title3Semibold>}>
                     <VStack space={formFieldSpacing}>
-                      <Body fontStyle="italic">coming soon</Body>
+                      <Body>You can add up to {maxImageCount} images.</Body>
+                      {images.length > 0 && (
+                        <ImageList
+                          imageWidth={(4 * 140) / 3}
+                          imageHeight={140}
+                          media={images.map((i): MediaItem => ({url: {original: i.uri}, type: MediaType.Image, caption: ''}))}
+                          displayCaptions={false}
+                          imageSize="original"
+                          renderOverlay={index => (
+                            <View position="absolute" top={8} right={8}>
+                              <AntDesign.Button
+                                size={16}
+                                name="close"
+                                color="white"
+                                backgroundColor="rgba(0, 0, 0, 0.3)"
+                                iconStyle={{marginRight: 0}}
+                                style={{textAlign: 'center'}}
+                                onPress={() => {
+                                  setImages(images.filter((_v, i) => i !== index));
+                                }}
+                              />
+                            </View>
+                          )}
+                        />
+                      )}
+                      <Button buttonStyle="normal" onPress={pickImage} disabled={images.length === maxImageCount}>
+                        <BodySemibold>Select an image</BodySemibold>
+                      </Button>
                     </VStack>
                   </CollapsibleCard>
 

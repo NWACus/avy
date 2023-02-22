@@ -1,4 +1,4 @@
-import React, {PropsWithChildren, useCallback, useState} from 'react';
+import React, {PropsWithChildren, ReactElement, useCallback, useState} from 'react';
 
 import {FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent, ScrollView} from 'react-native';
 
@@ -18,6 +18,7 @@ export interface ImageListProps extends Omit<FlatListProps<MediaItem>, 'data' | 
   resizeMode?: NetworkImageProps['resizeMode'];
   onPress?: (index: number) => void;
   onScrollPositionChanged?: (index: number) => void;
+  renderOverlay?: (index: number) => ReactElement;
 }
 
 export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
@@ -31,6 +32,7 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
   displayCaptions = true,
   onPress = () => undefined,
   onScrollPositionChanged = () => undefined,
+  renderOverlay,
   ...props
 }) => {
   const cellWidth = imageWidth + space;
@@ -64,9 +66,10 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
             </ScrollView>
           </View>
         )}
+        {renderOverlay?.(index)}
       </VStack>
     ),
-    [imageHeight, imageWidth, loadingState, displayCaptions, imageSize, imageStyle, resizeMode, onPressCallback],
+    [imageHeight, imageWidth, loadingState, displayCaptions, imageSize, imageStyle, resizeMode, onPressCallback, renderOverlay],
   );
 
   const onScroll = useCallback(
