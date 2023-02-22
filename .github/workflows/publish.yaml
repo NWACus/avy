@@ -28,7 +28,7 @@ jobs:
 
   build-android:
     if: ${{ false }} # disable iOS builds until we migrate to a different Expo tier
-      
+
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
     needs: [ci]
     runs-on: ubuntu-latest
@@ -43,7 +43,7 @@ jobs:
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 🚀 Build Android app
-        run: eas build --non-interactive --platform android --profile preview 
+        run: eas build --non-interactive --platform android --profile preview
 
   build-ios:
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
