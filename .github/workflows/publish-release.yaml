@@ -1,8 +1,8 @@
-name: publish
+name: publish-release
 on:
   push:
     branches:
-      - main
+      - release
 
 defaults:
   run:
@@ -22,13 +22,13 @@ jobs:
       - name: Publish EAS update
         uses: ./.github/actions/expo/update
         with:
-          channel: 'yulia-preview'
+          channel: 'yulia-preview-release'
           message: '${{ github.event.head_commit.message }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
   build-android:
     if: ${{ false }} # disable iOS builds until we migrate to a different Expo tier
-      
+
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
     needs: [ci]
     runs-on: ubuntu-latest
@@ -42,8 +42,8 @@ jobs:
           install_expo: true
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🚀 Build Android app
-        run: eas build --non-interactive --platform android --profile preview 
+      - name: 🚀 Build and Submit Android app
+        run: eas build --non-interactive --platform android --profile production auto-submit-with-profile=production
 
   build-ios:
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
@@ -59,5 +59,5 @@ jobs:
           install_expo: true
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🚀 Build iOS app
+      - name: 🚀 Build and Submit iOS app
         run: eas build --non-interactive --platform ios --profile production auto-submit-with-profile=production
