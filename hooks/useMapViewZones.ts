@@ -1,5 +1,5 @@
+import {useQueries, useQuery} from '@tanstack/react-query';
 import React from 'react';
-import {useQueries, useQuery} from 'react-query';
 
 import LatestAvalancheForecastQuery from 'hooks/useLatestAvalancheForecast';
 import {useMapLayer} from 'hooks/useMapLayer';
@@ -29,8 +29,8 @@ export const useMapViewZones = (center_id: AvalancheCenterID, date: Date) => {
   const expiryTimeHours = metadata?.config.expires_time;
   const expiryTimeZone = metadata?.timezone;
 
-  const forecastResults = useQueries(
-    mapLayer
+  const forecastResults = useQueries({
+    queries: mapLayer
       ? mapLayer.features.map(feature => {
           return {
             queryKey: LatestAvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, center_id, feature.id, date, expiryTimeZone, expiryTimeHours),
@@ -40,7 +40,7 @@ export const useMapViewZones = (center_id: AvalancheCenterID, date: Date) => {
           };
         })
       : [],
-  );
+  });
 
   // This query executes as soon as `useMapLayer` finishes, but then tries to augment
   // data with anything found in `useAvalancheForecastFragments`.

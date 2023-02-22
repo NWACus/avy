@@ -1,11 +1,11 @@
-import {Image} from 'react-native';
-
-import {QueryClient} from 'react-query';
+import {QueryClient} from '@tanstack/react-query';
 
 import Log from 'network/log';
 
 import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
+import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
+import ImageCache from 'hooks/useCachedImageURI';
 import LatestAvalancheForecastQuery from 'hooks/useLatestAvalancheForecast';
 import AvalancheCenterMapLayerQuery from 'hooks/useMapLayer';
 import {AvalancheCenter, AvalancheCenterID, MediaType, Product} from 'types/nationalAvalancheCenter';
@@ -14,7 +14,8 @@ import {AvalancheCenter, AvalancheCenterID, MediaType, Product} from 'types/nati
 // Note: you can enable preload logging by setting ENABLE_PREFETCH_LOGGING in network/log
 //
 export const prefetchAllActiveForecasts = async (queryClient: QueryClient, center_id: AvalancheCenterID, prefetchDate: Date, nationalAvalancheCenterHost: string) => {
-  preloadAvalancheCenterLogo(center_id);
+  preloadAvalancheProblemIcons(queryClient);
+  preloadAvalancheCenterLogo(queryClient, center_id);
   await AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
   await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
 
@@ -30,15 +31,9 @@ export const prefetchAllActiveForecasts = async (queryClient: QueryClient, cente
         .flat()
         .filter(item => item != null)
         .filter(item => item.type === MediaType.Image) // TODO: handle prefetching other types of media
-        .forEach(async item => {
-          await queryClient.prefetchQuery({
-            queryKey: ['url', item.url.original],
-            queryFn: async () => {
-              await Image.prefetch(item.url.original);
-              Log.prefetch('prefetched image', item.url.original);
-            },
-          });
-        });
+        .map(item => [item.url.thumbnail, item.url.original])
+        .flat()
+        .forEach(async url => ImageCache.prefetch(queryClient, url));
     });
 
   Log.prefetch('preload complete!');

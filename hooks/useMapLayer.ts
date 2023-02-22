@@ -1,7 +1,7 @@
 import React from 'react';
 
+import {QueryClient, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
-import {QueryClient, useQuery} from 'react-query';
 
 import * as Sentry from 'sentry-expo';
 
@@ -29,13 +29,12 @@ export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalanc
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id),
     queryFn: async () => {
-      Log.prefetch('starting map layer prefetch');
+      Log.prefetch(`prefetching avalanche center map layer for ${center_id}`);
       const result = await fetchMapLayer(nationalAvalancheCenterHost, center_id);
-      Log.prefetch('map layer request finished');
+      Log.prefetch(`finished prefetching avalanche center map layer for ${center_id}`);
       return result;
     },
   });
-  Log.prefetch('avalanche center map layer is cached with react-query');
 };
 
 const fetchMapLayerQuery = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) =>

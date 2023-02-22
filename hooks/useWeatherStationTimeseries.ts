@@ -1,6 +1,6 @@
 import {useContext} from 'react';
 
-import {useQuery, useQueryClient} from 'react-query';
+import {useQuery, useQueryClient} from '@tanstack/react-query';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import AvalancheCenterMetadata from 'hooks/useAvalancheCenterMetadata';

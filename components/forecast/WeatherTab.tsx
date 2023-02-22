@@ -9,7 +9,7 @@ import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
 import {useLatestWeatherForecast} from 'hooks/useLatestWeatherForecast';
 import {useWeatherStations} from 'hooks/useWeatherStations';
-import {ActivityIndicator, StyleSheet} from 'react-native';
+import {ActivityIndicator} from 'react-native';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
@@ -41,8 +41,11 @@ const SmallHeaderWithTooltip = ({title, content, dialogTitle}) => (
 );
 
 export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) => {
-  const {isLoading, isError, data: forecast} = useLatestWeatherForecast(center_id, zone);
-  const {status: weatherStationStatus, data: weatherStationsByZone} = useWeatherStations({center: center_id, sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel']});
+  const {isLoading, isError, data: forecast, error: forecastError} = useLatestWeatherForecast(center_id, zone);
+  const {status: weatherStationStatus, data: weatherStationsByZone} = useWeatherStations({
+    center: center_id,
+    sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
+  });
 
   const navigation = useNavigation<ForecastNavigationProp>();
 
@@ -52,14 +55,19 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
 
   if (isLoading) {
     return (
-      <Center style={StyleSheet.absoluteFillObject}>
-        <ActivityIndicator />
+      <Center style={{flex: 1}}>
+        <VStack space={8} style={{flex: 1}} alignItems={'center'}>
+          <Body>Loading current weather forecast for the {zone.name} zone...</Body>
+          <ActivityIndicator />
+        </VStack>
       </Center>
     );
   } else if (isError) {
     return (
-      <Center style={StyleSheet.absoluteFillObject}>
-        <Body>Could not fetch weather forecast for zone {zone.name}</Body>
+      <Center style={{flex: 1}}>
+        <Body>
+          Could not fetch weather forecast for the {zone.name} zone: {forecastError?.message}
+        </Body>
       </Center>
     );
   }
@@ -144,7 +152,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
       </Card>
       <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Data</Title3Black>}>
         <VStack>
-          {(weatherStationStatus === 'loading' || weatherStationStatus === 'idle') && (
+          {weatherStationStatus === 'loading' && (
             <View py={6}>
               <ActivityIndicator size={16} />
             </View>
@@ -168,7 +176,13 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
                     screen: 'stationDetail',
                     // Treat this as the first screen in the Weather Data stack - don't show a back button going to the stationList
                     initial: true,
-                    params: {center_id, station_stids: stations.map(s => s.stid), name, dateString, zoneName: zone.name},
+                    params: {
+                      center_id,
+                      station_stids: stations.map(s => s.stid),
+                      name,
+                      dateString,
+                      zoneName: zone.name,
+                    },
                   });
                 },
               }))}

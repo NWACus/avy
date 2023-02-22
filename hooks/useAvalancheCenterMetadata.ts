@@ -1,7 +1,7 @@
 import React from 'react';
 
+import {QueryClient, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
-import {QueryClient, useQuery} from 'react-query';
 
 import * as Sentry from 'sentry-expo';
 
@@ -29,13 +29,12 @@ export const prefetchAvalancheCenterMetadata = async (queryClient: QueryClient, 
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id),
     queryFn: async () => {
-      Log.prefetch('starting metadata prefetch');
+      Log.prefetch(`prefetching center metadata for ${center_id}`);
       const result = await fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id);
-      Log.prefetch('metadata request finished');
+      Log.prefetch(`finished prefetching center metadata for ${center_id}`);
       return result;
     },
   });
-  Log.prefetch('avalanche center metadata is cached with react-query');
 };
 
 export const fetchAvalancheCenterMetadataQuery = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) =>

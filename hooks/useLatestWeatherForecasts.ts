@@ -1,8 +1,8 @@
 import {DOMParser} from '@xmldom/xmldom';
 import {merge} from 'lodash';
 
+import {QueryClient, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
-import {QueryClient, useQuery} from 'react-query';
 
 import {add, parse} from 'date-fns';
 import Log from 'network/log';
@@ -107,13 +107,12 @@ export const prefetchWeather = async (queryClient: QueryClient) => {
   await queryClient.prefetchQuery({
     queryKey: queryKey(),
     queryFn: async () => {
-      Log.prefetch('starting weather prefetch');
+      Log.prefetch(`prefetching latest weather forecast`);
       const result = await fetchWeather();
-      Log.prefetch('weather request finished');
+      Log.prefetch(`finished prefetching latest weather forecast`);
       return result;
     },
   });
-  Log.prefetch('avalanche center weather is cached with react-query');
 };
 
 export const fetchWeatherQuery = async (queryClient: QueryClient) =>
