@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 
-import MapView, {MapViewProps, Region} from 'react-native-maps';
+import MapView, {MapViewProps, MAP_TYPES, Region} from 'react-native-maps';
 
 import {AvalancheForecastZonePolygon, toLatLngList} from 'components/AvalancheForecastZonePolygon';
 import {RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
@@ -23,7 +23,7 @@ export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones
   const MapComponent = animated ? MapView.Animated : MapView;
 
   return (
-    <MapComponent ref={ref} onLayout={() => setReady(true)} provider={'google'} {...props}>
+    <MapComponent ref={ref} onLayout={() => setReady(true)} provider={'google'} mapType={MAP_TYPES.TERRAIN} {...props}>
       {ready && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={selectedZone === zone} onPress={onPressPolygon} />)}
       {children}
     </MapComponent>
