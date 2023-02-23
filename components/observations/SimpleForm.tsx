@@ -124,7 +124,7 @@ export const SimpleForm: React.FC<{
                   </View>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Privacy</Title3Semibold>}>
                     <VStack space={formFieldSpacing} mt={8}>
-                      <SwitchField name="visibility" label="Observation visibility" items={['Public', 'Private']} />
+                      <SwitchField name="private" label="Observation visibility" items={['Public', 'Private']} />
                       <SelectField
                         name="photoUsage"
                         label="Photo usage"
@@ -161,7 +161,7 @@ export const SimpleForm: React.FC<{
                           autoCorrect: false,
                         }}
                       />
-                      <DateField name="observationDate" label="Observation date" />
+                      <DateField name="start_date" label="Observation date" />
                       <SelectField
                         name="zone"
                         label="Zone/Region"
@@ -220,7 +220,7 @@ export const SimpleForm: React.FC<{
                           multiline: true,
                         }}
                       />
-                      <LocationField name="mapLocation" label="Latitude/Longitude" />
+                      <LocationField name="location_point" label="Latitude/Longitude" />
                     </VStack>
                   </Card>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Signs of instability</Title3Semibold>}>
@@ -251,10 +251,10 @@ export const SimpleForm: React.FC<{
                     <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Avalanches</Title3Semibold>}>
                       <VStack space={formFieldSpacing} mt={8}>
                         <TextField
-                          name="avalancheComments"
+                          name="avalanches_summary"
                           label="Observed avalanches"
                           ref={element => {
-                            fieldRefs.current.push({field: 'avalancheComments', ref: element});
+                            fieldRefs.current.push({field: 'avalanches_summary', ref: element});
                           }}
                           textInputProps={{
                             placeholder: `• Location, aspect, and elevation
@@ -272,10 +272,10 @@ export const SimpleForm: React.FC<{
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Field Notes</Title3Semibold>}>
                     <VStack space={formFieldSpacing} mt={8}>
                       <TextField
-                        name="fieldNotes"
+                        name="observation_summary"
                         label="What did you observe?"
                         ref={element => {
-                          fieldRefs.current.push({field: 'fieldNotes', ref: element});
+                          fieldRefs.current.push({field: 'observation_summary', ref: element});
                         }}
                         textInputProps={{
                           placeholder: `• Signs of instability

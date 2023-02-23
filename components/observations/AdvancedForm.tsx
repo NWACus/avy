@@ -135,7 +135,7 @@ export const AdvancedForm: React.FC<{
                           autoCorrect: false,
                         }}
                       />
-                      <DateField name="observationDate" label="Observation date" />
+                      <DateField name="start_date" label="Observation date" />
                       <SelectField name="zone" label="Zone/Region" prompt="Select a zone or region" items={zones} />
                       <SelectField
                         name="activity"
@@ -180,7 +180,7 @@ export const AdvancedForm: React.FC<{
                           multiline: true,
                         }}
                       />
-                      <LocationField name="mapLocation" label="Latitude/Longitude" />
+                      <LocationField name="location_point" label="Latitude/Longitude" />
                       <TextField
                         name="route"
                         label="Route"

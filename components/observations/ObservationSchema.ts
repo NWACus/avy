@@ -3,59 +3,63 @@ import {LatLng} from 'react-native-maps';
 import * as Yup from 'yup';
 
 export interface Observation {
-  visibility: string;
+  private: boolean;
   photoUsage: string;
 
   name: string;
   email: string;
-  observationDate: Date;
+  start_date: Date;
   zone: string;
   activity: string[];
   location: LatLng;
 
-  fieldNotes: string;
+  avalanches_summary: string;
+
+  observation_summary: string;
 }
 
 export const createObservation = (initialValues: Partial<Observation> | null = null): Observation =>
   merge(
     {
-      visibility: 'Private',
+      private: false,
       photoUsage: 'anonymous',
 
       name: '',
       email: '',
-      observationDate: new Date(),
+      start_date: new Date(),
       zone: '',
       activity: [],
       location: '',
-      mapLocation: null,
+      location_point: null,
     },
     initialValues,
   );
 
-const requiredMsg = 'This field is required.';
+const required = 'This field is required.';
 const tooShort = 'This value is too short.';
 const tooLong = 'This value is too long.';
 
 export const observationSchema = Yup.object().shape({
-  name: Yup.string().min(2, tooShort).max(50, tooLong).required(requiredMsg),
+  name: Yup.string().min(2, tooShort).max(50, tooLong).required(required),
 
-  email: Yup.string().email("That doesn't look like an email address.").required(requiredMsg),
+  email: Yup.string().email("That doesn't look like an email address.").required(required),
 
-  observationDate: Yup.date().required(requiredMsg),
+  start_date: Yup.date().required(required),
 
   zone: Yup.string().required('You must select a region.'),
 
   activity: Yup.array().min(1, 'You must select at least one activity.').required('You must select at least one activity.'),
 
-  location: Yup.string().min(8, tooShort).max(256, tooLong).required(requiredMsg),
+  location: Yup.string().min(8, tooShort).max(256, tooLong).required(required),
 
-  mapLocation: Yup.object()
+  location_point: Yup.object()
     .shape({
       lat: Yup.number(),
       lng: Yup.number(),
     })
-    .required(requiredMsg),
+    .required(required),
 
-  fieldNotes: Yup.string().min(8, tooShort).max(1024, tooLong).required(requiredMsg),
+  observation_summary: Yup.string().min(8, tooShort).max(1024, tooLong).required(required),
+
+  avalanches_summary: Yup.string().max(1024, tooLong),
 });
