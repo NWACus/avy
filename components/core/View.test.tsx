@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 
-import {View} from './View';
+import {View} from 'components/core/View';
 
 describe('View', () => {
   it("sets top-level properties on the wrapped View's style property", () => {

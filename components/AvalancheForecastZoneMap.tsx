@@ -1,44 +1,37 @@
 import React, {MutableRefObject, useCallback, useRef, useState} from 'react';
 
+import {useNavigation} from '@react-navigation/native';
 import {
-  Animated,
   ActivityIndicator,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
+  Animated,
+  GestureResponderEvent,
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   PanResponder,
   PanResponderGestureState,
-  GestureResponderEvent,
+  StyleSheet,
+  Text,
   TouchableOpacity,
-  LayoutChangeEvent,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
+  useWindowDimensions,
 } from 'react-native';
-import MapView, {Region} from 'react-native-maps';
-import AnimatedMapView from 'react-native-maps';
-import {useNavigation} from '@react-navigation/native';
+import AnimatedMapView, {Region} from 'react-native-maps';
 
+import {FontAwesome5} from '@expo/vector-icons';
+import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
+import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
+import {colorFor} from 'components/AvalancheDangerPyramid';
+import {defaultMapRegionForZones, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
-import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
-import {AvalancheDangerIcon} from './AvalancheDangerIcon';
-import {MapViewZone, useMapViewZones} from 'hooks/useMapViewZones';
-import {HomeStackNavigationProps} from 'routes';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {TravelAdvice} from 'components/helpers/travelAdvice';
 import {Body, BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
-import {colorFor} from './AvalancheDangerPyramid';
-import {apiDateString, utcDateToLocalTimeString} from 'utils/date';
-import {TravelAdvice} from './helpers/travelAdvice';
+import {MapViewZone, useMapViewZones} from 'hooks/useMapViewZones';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {HomeStackNavigationProps} from 'routes';
 import {COLORS} from 'theme/colors';
-import {FontAwesome5} from '@expo/vector-icons';
-import {AvalancheForecastZonePolygon, toLatLngList} from 'components/AvalancheForecastZonePolygon';
-import {RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
-import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
-
-const defaultAvalancheCenterMapRegionBounds: RegionBounds = {
-  topLeft: {latitude: 0, longitude: 0},
-  bottomRight: {latitude: 0, longitude: 0},
-};
+import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
+import {toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
 
 export interface MapProps {
   center: AvalancheCenterID;
@@ -46,12 +39,6 @@ export interface MapProps {
 }
 
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, date}: MapProps) => {
-  const [isReady, setIsReady] = useState<boolean>(false);
-
-  function setReady() {
-    setIsReady(true);
-  }
-
   const {isLoading, isError, data: zones} = useMapViewZones(center, date);
 
   const navigation = useNavigation<HomeStackNavigationProps>();
@@ -66,7 +53,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           zoneName: zone.name,
           center_id: zone.center_id,
           forecast_zone_id: zone.zone_id,
-          dateString: apiDateString(date),
+          dateString: toISOStringUTC(date),
         });
       } else {
         setSelectedZone(zone);
@@ -75,13 +62,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     [navigation, selectedZone, date],
   );
 
-  const avalancheCenterMapRegionBounds: RegionBounds = zones
-    ? zones.reduce((accumulator, currentValue) => updateBoundsToContain(accumulator, toLatLngList(currentValue.geometry)), defaultAvalancheCenterMapRegionBounds)
-    : defaultAvalancheCenterMapRegionBounds;
-  const avalancheCenterMapRegion: Region = regionFromBounds(avalancheCenterMapRegionBounds);
-  // give the polygons a little buffer in the region so we don't render them at the outskirts of the screen
-  avalancheCenterMapRegion.latitudeDelta *= 1.05;
-  avalancheCenterMapRegion.longitudeDelta *= 1.05;
+  const avalancheCenterMapRegion: Region = defaultMapRegionForZones(zones);
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
@@ -103,20 +84,33 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   return (
     <>
-      <MapView.Animated
+      <ZoneMap
         ref={mapView}
+        animated
         style={StyleSheet.absoluteFillObject}
-        initialRegion={avalancheCenterMapRegion}
-        onLayout={setReady}
         zoomEnabled={true}
         scrollEnabled={true}
-        provider={'google'}
-        onPress={onPressMapView}>
-        {isReady && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={selectedZone === zone} onPress={onPressPolygon} />)}
-      </MapView.Animated>
-      <SafeAreaView onLayout={(event: LayoutChangeEvent) => controller.animateUsingUpdatedTopElementsHeight(event.nativeEvent.layout.y + event.nativeEvent.layout.height)}>
-        <View flex={1}>
-          <DangerScale px={4} width="100%" position="absolute" top={12} />
+        initialRegion={avalancheCenterMapRegion}
+        onPress={onPressMapView}
+        zones={zones}
+        selectedZone={selectedZone}
+        onPressPolygon={onPressPolygon}
+      />
+      <SafeAreaView>
+        <View>
+          <VStack
+            width="100%"
+            position="absolute"
+            flex={1}
+            onLayout={(event: LayoutChangeEvent) => {
+              // onLayout returns position relative to parent - we need position relative to screen
+              event.currentTarget.measureInWindow((x, y, width, height) => {
+                controller.animateUsingUpdatedTopElementsHeight(y + height);
+              });
+            }}>
+            <View height={12} />
+            <DangerScale px={4} width="100%" />
+          </VStack>
         </View>
       </SafeAreaView>
 
@@ -482,7 +476,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           zoneName: zone.name,
           center_id: zone.center_id,
           forecast_zone_id: zone.zone_id,
-          dateString: apiDateString(date),
+          dateString: toISOStringUTC(date),
         });
       }}>
       <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={200}>

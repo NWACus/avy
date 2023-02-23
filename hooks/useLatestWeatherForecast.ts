@@ -1,5 +1,5 @@
+import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {fetchWeatherQuery, WeatherForecast} from 'hooks/useLatestWeatherForecasts';
-import {useQuery, useQueryClient} from 'react-query';
 import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
 
 export const useLatestWeatherForecast = (center_id: AvalancheCenterID, zone: AvalancheForecastZone) => {

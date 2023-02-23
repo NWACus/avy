@@ -1,5 +1,5 @@
-import {LatLng, Region} from 'react-native-maps';
 import {geoContains} from 'd3-geo';
+import {LatLng, Region} from 'react-native-maps';
 import {Feature, LineString} from 'types/nationalAvalancheCenter';
 
 export interface RegionBounds {

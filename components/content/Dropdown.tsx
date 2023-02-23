@@ -1,10 +1,10 @@
+import {AntDesign} from '@expo/vector-icons';
 import {HStack, View, ViewProps, VStack} from 'components/core';
+import {Body, bodySize} from 'components/text';
 import React, {useState} from 'react';
 import {LayoutChangeEvent, LayoutRectangle, Modal, StyleSheet, TouchableOpacity, TouchableWithoutFeedback} from 'react-native';
-import {Body, bodySize} from 'components/text';
 import {colorLookup} from 'theme';
 import tinycolor from 'tinycolor2';
-import {AntDesign} from '@expo/vector-icons';
 
 export interface DropdownProps extends ViewProps {
   items: string[];
@@ -12,7 +12,7 @@ export interface DropdownProps extends ViewProps {
   onSelectionChange?: (item: string) => void;
 }
 
-const borderColor = 'rgba(0, 0, 0, 0.15)';
+const borderColor = colorLookup('border.base');
 
 export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelectionChange, ...props}) => {
   const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
@@ -34,7 +34,7 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
           }}>
           <HStack justifyContent="space-between" alignItems="center">
             <Body>{selectedItem}</Body>
-            <AntDesign name={dropdownVisible ? 'up' : 'down'} size={bodySize} color={colorLookup('darkText')} />
+            <AntDesign name={dropdownVisible ? 'up' : 'down'} size={bodySize} color={colorLookup('text')} />
           </HStack>
         </TouchableOpacity>
       </View>
@@ -60,7 +60,7 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
                     setDropdownVisible(false);
                     onSelectionChange?.(item);
                   }}>
-                  <View px={8} key={item} bg={item === selectedItem ? tinycolor(colorLookup('color-primary')).setAlpha(0.1).toRgbString() : undefined}>
+                  <View px={8} key={item} bg={item === selectedItem ? tinycolor(colorLookup('primary')).setAlpha(0.1).toRgbString() : undefined}>
                     <View py={8} borderTopWidth={index > 0 ? 2 : 0} borderColor={borderColor}>
                       <Body key={item}>{item}</Body>
                     </View>

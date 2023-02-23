@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {useQuery, UseQueryOptions} from 'react-query';
-import {useFetch} from './observations-fetcher';
+import {useQuery, UseQueryOptions} from '@tanstack/react-query';
+import {useFetch} from 'hooks/observations-fetcher';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends {[key: string]: unknown}> = {[K in keyof T]: T[K]};

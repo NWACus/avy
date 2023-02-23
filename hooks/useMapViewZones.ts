@@ -1,13 +1,13 @@
+import {useQueries, useQuery} from '@tanstack/react-query';
 import React from 'react';
-import {useQueries, useQuery} from 'react-query';
 
-import {useMapLayer} from './useMapLayer';
 import LatestAvalancheForecastQuery from 'hooks/useLatestAvalancheForecast';
+import {useMapLayer} from 'hooks/useMapLayer';
 
+import {ClientContext, ClientProps} from 'clientContext';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {AvalancheCenterID, DangerLevel, FeatureComponent} from 'types/nationalAvalancheCenter';
 import {apiDateString} from 'utils/date';
-import {useAvalancheCenterMetadata} from './useAvalancheCenterMetadata';
-import {ClientContext, ClientProps} from '../clientContext';
 
 export type MapViewZone = {
   center_id: AvalancheCenterID;
@@ -19,6 +19,7 @@ export type MapViewZone = {
   end_date: Date | null;
   geometry?: FeatureComponent;
   fillOpacity: number;
+  hasWarning: boolean;
 };
 
 export const useMapViewZones = (center_id: AvalancheCenterID, date: Date) => {
@@ -28,8 +29,8 @@ export const useMapViewZones = (center_id: AvalancheCenterID, date: Date) => {
   const expiryTimeHours = metadata?.config.expires_time;
   const expiryTimeZone = metadata?.timezone;
 
-  const forecastResults = useQueries(
-    mapLayer
+  const forecastResults = useQueries({
+    queries: mapLayer
       ? mapLayer.features.map(feature => {
           return {
             queryKey: LatestAvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, center_id, feature.id, date, expiryTimeZone, expiryTimeHours),
@@ -39,7 +40,7 @@ export const useMapViewZones = (center_id: AvalancheCenterID, date: Date) => {
           };
         })
       : [],
-  );
+  });
 
   // This query executes as soon as `useMapLayer` finishes, but then tries to augment
   // data with anything found in `useAvalancheForecastFragments`.
@@ -56,6 +57,7 @@ export const useMapViewZones = (center_id: AvalancheCenterID, date: Date) => {
           zone_id: feature.id,
           center_id,
           geometry: feature.geometry,
+          hasWarning: feature.properties.warning?.product === 'warning',
           ...feature.properties,
         };
         return accum;

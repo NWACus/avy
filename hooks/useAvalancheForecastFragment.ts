@@ -1,12 +1,12 @@
 import {useContext} from 'react';
 
-import {useQuery, useQueryClient} from 'react-query';
+import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {add, areIntervalsOverlapping} from 'date-fns';
 
-import {AvalancheCenterID, Product} from 'types/nationalAvalancheCenter';
-import {apiDateString} from 'utils/date';
 import {ClientContext, ClientProps} from 'clientContext';
 import AvalancheForecastFragments from 'hooks/useAvalancheForecastFragments';
+import {AvalancheCenterID, Product} from 'types/nationalAvalancheCenter';
+import {apiDateString} from 'utils/date';
 
 export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forecast_zone_id: number, date: Date) => {
   const queryClient = useQueryClient();

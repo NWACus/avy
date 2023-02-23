@@ -9,8 +9,8 @@ import {AvalancheCenterCard, AvalancheCenterSelector} from 'components/Avalanche
 
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 
-import {MenuStackParamList, MenuStackNavigationProps} from 'routes';
 import {useNavigation} from '@react-navigation/native';
+import {MenuStackNavigationProps, MenuStackParamList} from 'routes';
 
 import {Divider, HStack, View, VStack} from 'components/core';
 
@@ -37,7 +37,7 @@ import {
   Title3Black,
   Title3Semibold,
 } from 'components/text';
-import {AvalancheCenterID} from '../../types/nationalAvalancheCenter';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 const MenuStack = createNativeStackNavigator<MenuStackParamList>();
 export const MenuStackScreen = (
@@ -70,7 +70,7 @@ export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolea
       <SafeAreaView style={styles.fullscreen}>
         <VStack pt={16} px={16} space={16} style={styles.fullscreen}>
           <FeatureTitleBlack>Settings</FeatureTitleBlack>
-          <Divider direction="horizontal" bg="light.200" />
+          <Divider />
           {Updates.channel !== 'production' && (
             <VStack space={16}>
               <Title1Black>Debug Settings</Title1Black>

@@ -1,16 +1,16 @@
 import React, {useState} from 'react';
 
-import {AvalancheProblem, ElevationBandNames, MediaType} from 'types/nationalAvalancheCenter';
-import {AnnotatedDangerRose} from './DangerRose';
-import {AvalancheProblemIcon} from './AvalancheProblemIcon';
-import {AvalancheProblemLikelihoodLine} from './AvalancheProblemLikelihoodLine';
-import {AvalancheProblemSizeLine} from './AvalancheProblemSizeLine';
-import {HTML} from 'components/text/HTML';
-import {Center, HStack, VStack} from 'components/core';
-import {AllCapsSm, allCapsSmLineHeight, Caption1Semibold} from 'components/text';
+import {AvalancheProblemIcon} from 'components/AvalancheProblemIcon';
+import {AvalancheProblemLikelihoodLine} from 'components/AvalancheProblemLikelihoodLine';
+import {AvalancheProblemSizeLine} from 'components/AvalancheProblemSizeLine';
 import {Card, CardProps} from 'components/content/Card';
-import {colorLookup} from 'theme';
 import {Carousel} from 'components/content/carousel';
+import {Center, HStack, VStack} from 'components/core';
+import {AnnotatedDangerRose} from 'components/DangerRose';
+import {AllCapsSm, allCapsSmLineHeight, Caption1Semibold} from 'components/text';
+import {HTML} from 'components/text/HTML';
+import {colorLookup} from 'theme';
+import {AvalancheProblem, ElevationBandNames, MediaType} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheProblemCardProps {
   problem: AvalancheProblem;

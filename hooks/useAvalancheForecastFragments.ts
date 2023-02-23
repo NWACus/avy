@@ -1,7 +1,7 @@
 import React from 'react';
 
+import {QueryClient, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
-import {QueryClient, useQuery} from 'react-query';
 import {add, sub} from 'date-fns';
 
 import * as Sentry from 'sentry-expo';
@@ -10,8 +10,8 @@ import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import {AvalancheCenterID, Product, productArraySchema} from 'types/nationalAvalancheCenter';
-import {ZodError} from 'zod';
 import {apiDateString} from 'utils/date';
+import {ZodError} from 'zod';
 
 export const useAvalancheForecastFragments = (center_id: AvalancheCenterID, date: Date) => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
@@ -29,13 +29,12 @@ const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nati
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id, date),
     queryFn: async () => {
-      Log.prefetch('starting fragment prefetch');
+      Log.prefetch(`prefetching forecast fragments for ${center_id} on ${date}`);
       const result = await fetchAvalancheForecastFragments(nationalAvalancheCenterHost, center_id, date);
-      Log.prefetch('fragment request finished');
+      Log.prefetch(`finished prefetching forecast fragments for ${center_id} on ${date}`);
       return result;
     },
   });
-  Log.prefetch('avalanche fragment data is cached with react-query');
 };
 
 const fetchAvalancheForecastFragmentsQuery = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: string, date: Date) =>

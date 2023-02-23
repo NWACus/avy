@@ -1,12 +1,11 @@
 import {DOMParser} from '@xmldom/xmldom';
 import {merge} from 'lodash';
 
+import {QueryClient, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
-import {QueryClient, useQuery} from 'react-query';
 
-import Log from 'network/log';
-import {getTimezoneOffset} from 'date-fns-tz';
 import {add, parse} from 'date-fns';
+import Log from 'network/log';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 const LOG_LEVEL = 0;
@@ -108,13 +107,12 @@ export const prefetchWeather = async (queryClient: QueryClient) => {
   await queryClient.prefetchQuery({
     queryKey: queryKey(),
     queryFn: async () => {
-      Log.prefetch('starting weather prefetch');
+      Log.prefetch(`prefetching latest weather forecast`);
       const result = await fetchWeather();
-      Log.prefetch('weather request finished');
+      Log.prefetch(`finished prefetching latest weather forecast`);
       return result;
     },
   });
-  Log.prefetch('avalanche center weather is cached with react-query');
 };
 
 export const fetchWeatherQuery = async (queryClient: QueryClient) =>
@@ -302,7 +300,7 @@ export const fetchWeather = async () => {
       const period = tempsPeriods[idx];
       const forecast = zones[zoneName].find(f => f.label === period.label);
       if (forecast) {
-        const [_temp, high, low] = cell.match(/(\d+)\s*\/\s*(\d+)/);
+        const [_temp, high, low] = cell.match(/(-?\d+)\s*\/\s*(-?\d+)/);
         forecast['temperatures'] = {low: Number(low), high: Number(high)};
       } else {
         LOG_LEVEL > 1 && console.warn(`Temps: could not find forecast for ${period.label}`, zones);
@@ -343,8 +341,8 @@ export const fetchWeather = async () => {
   // Date hacking - convert a string like `Issued: 2:00 PM PST Wednesday, January 25, 2023`
   const publishedTimeComponents = str(doc.getElementsByClassName('forecast-date')[0]).split(' ');
   // Turn the string into `2:00 PM -08 Wednesday, January 25, 2023`
-  const timeZone = publishedTimeComponents[3];
-  const offsetHours = getTimezoneOffset(timeZone) / 1000 / 60 / 60;
+  // getTimezoneOffset('PST') = -28800000, but returns NaN on Android due to missing Intl data. I'm just hard-coding a workaround here
+  const offsetHours = -28800000 / 1000 / 60 / 60;
   const offsetString = `${offsetHours < 0 ? '-' : ''}${offsetHours < 10 ? '0' : ''}${Math.abs(offsetHours)}`;
   publishedTimeComponents[3] = offsetString;
   // Parse it into a Date object

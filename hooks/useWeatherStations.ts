@@ -1,13 +1,13 @@
 import {useContext} from 'react';
 
-import {useQuery, useQueryClient} from 'react-query';
+import {useQuery, useQueryClient} from '@tanstack/react-query';
 
 import {ClientContext, ClientProps} from 'clientContext';
-import {ApiError, OpenAPI, StationMetadata, StationMetadataService} from 'types/generated/snowbound';
-import {AvalancheCenterID, Feature} from 'types/nationalAvalancheCenter';
+import {boundsForRegions, featureBounds, pointInFeature} from 'components/helpers/geographicCoordinates';
 import AvalancheCenterMetadata from 'hooks/useAvalancheCenterMetadata';
 import MapLayer from 'hooks/useMapLayer';
-import {boundsForRegions, featureBounds, pointInFeature} from 'components/helpers/geographicCoordinates';
+import {ApiError, OpenAPI, StationMetadata, StationMetadataService} from 'types/generated/snowbound';
+import {AvalancheCenterID, Feature} from 'types/nationalAvalancheCenter';
 
 type Source = 'nwac' | 'snotel' | 'mesowest';
 
@@ -16,7 +16,7 @@ interface Props {
   sources: Source[];
 }
 
-interface ZoneResult {
+export interface ZoneResult {
   zoneId: number;
   name: string;
   stationGroups: Record<string, StationMetadata[]>;

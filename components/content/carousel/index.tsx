@@ -1,10 +1,10 @@
 import React, {PropsWithChildren, useCallback, useState} from 'react';
 
-import {View, ViewProps} from 'components/core';
-import {MediaItem} from 'types/nationalAvalancheCenter';
-import {HTMLRendererConfig} from 'components/text/HTML';
 import {ImageList} from 'components/content/carousel/ImageList';
 import {ImageViewerModal} from 'components/content/carousel/ImageViewerModal';
+import {View, ViewProps} from 'components/core';
+import {HTMLRendererConfig} from 'components/text/HTML';
+import {MediaItem} from 'types/nationalAvalancheCenter';
 
 export interface CarouselProps extends ViewProps {
   thumbnailHeight: number;

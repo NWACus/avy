@@ -1,7 +1,7 @@
 // useAvalancheForecastFragments pulls in Sentry, which makes Jest blow up
 jest.mock('@sentry/react-native', () => ({init: () => jest.fn()}));
 
-import {updateBoundsToContain, RegionBounds, regionFromBounds, boundsForRegions} from 'components/helpers/geographicCoordinates';
+import {boundsForRegions, RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
 import {LatLng} from 'react-native-maps';
 
 describe('AvalancheForecastZonePolygon', () => {

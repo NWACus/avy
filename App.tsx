@@ -1,12 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 
-import {AppStateStatus, Platform, StatusBar, StyleSheet, View} from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {AntDesign} from '@expo/vector-icons';
 import {
-  useFonts,
   Lato_100Thin,
   Lato_100Thin_Italic,
   Lato_300Light,
@@ -17,35 +11,59 @@ import {
   Lato_700Bold_Italic,
   Lato_900Black,
   Lato_900Black_Italic,
+  useFonts,
 } from '@expo-google-fonts/lato';
+import {AntDesign} from '@expo/vector-icons';
+import {SelectProvider} from '@mobile-reality/react-native-select-pro';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {NavigationContainer} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
+import {AppStateStatus, Platform, StatusBar, StyleSheet, View} from 'react-native';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
+import * as BackgroundFetch from 'expo-background-fetch';
 import Constants from 'expo-constants';
+import * as TaskManager from 'expo-task-manager';
 import * as Sentry from 'sentry-expo';
 
 import {merge} from 'lodash';
 
-import {focusManager, QueryClient, QueryClientProvider, useQueryClient} from 'react-query';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {createAsyncStoragePersister} from '@tanstack/query-async-storage-persister';
+import {focusManager, QueryCache, QueryClient, useQueryClient} from '@tanstack/react-query';
+import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
 
+import axios from 'axios';
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
-import {useAppState} from 'hooks/useAppState';
-import {useOnlineManager} from 'hooks/useOnlineManager';
-import {TabNavigatorParamList} from 'routes';
 import {HomeTabScreen} from 'components/screens/HomeScreen';
 import {MenuStackScreen} from 'components/screens/MenuScreen';
 import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
-import {AvalancheCenterID} from './types/nationalAvalancheCenter';
-import {prefetchAllActiveForecasts} from './network/prefetchAllActiveForecasts';
-import {HTMLRendererConfig} from 'components/text/HTML';
-import {toISOStringUTC} from './utils/date';
 import {WeatherScreen} from 'components/screens/WeatherScreen';
-import axios from 'axios';
+import {HTMLRendererConfig} from 'components/text/HTML';
+import {useAppState} from 'hooks/useAppState';
+import ImageCache from 'hooks/useCachedImageURI';
+import {useOnlineManager} from 'hooks/useOnlineManager';
+import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
+import {TabNavigatorParamList} from 'routes';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {toISOStringUTC} from 'utils/date';
 
 // we're reading a field that was previously defined in app.json, so we know it's non-null:
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 if (Constants.expoConfig.extra!.log_requests) {
   axios.interceptors.request.use(request => {
-    console.log('Request:', JSON.stringify({method: request.method, url: request.url, params: request.params}, null, 2));
+    console.log(
+      'Request:',
+      JSON.stringify(
+        {
+          method: request.method,
+          url: request.url,
+          params: request.params,
+        },
+        null,
+        2,
+      ),
+    );
     return request;
   });
 }
@@ -69,7 +87,33 @@ if (Sentry?.init) {
   }
 }
 
-const queryClient: QueryClient = new QueryClient();
+const queryCache: QueryCache = new QueryCache();
+// we need to subscribe to the react-query cache in order to remove
+// images from the local filesystem when their TTL expires
+queryCache.subscribe(event => ImageCache.cleanup(event));
+
+const queryClient: QueryClient = new QueryClient({
+  queryCache: queryCache,
+  defaultOptions: {
+    queries: {
+      cacheTime: 1000 * 60 * 60 * 24, // 24 hours
+    },
+  },
+});
+
+// on startup and periodically, reconcile the react-query link cache with the filesystem
+const BACKGROUND_CACHE_RECONCILIATION_TASK = 'background-cache-reconciliation';
+TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, async () => {
+  await ImageCache.reconcile(queryClient, queryCache);
+  return BackgroundFetch.BackgroundFetchResult.NewData;
+});
+BackgroundFetch.registerTaskAsync(BACKGROUND_CACHE_RECONCILIATION_TASK, {
+  minimumInterval: 60 * 60, // one hour, in seconds
+});
+
+const asyncStoragePersister = createAsyncStoragePersister({
+  storage: AsyncStorage,
+});
 
 const TabNavigator = createBottomTabNavigator<TabNavigatorParamList>();
 
@@ -92,9 +136,9 @@ const App = () => {
     useAppState(onAppStateChange);
 
     return (
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider client={queryClient} persistOptions={{persister: asyncStoragePersister}}>
         <AppWithClientContext />
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     );
   } catch (error) {
     Sentry.Native.captureException(error);
@@ -161,38 +205,51 @@ const BaseApp: React.FunctionComponent<{
     <HTMLRendererConfig>
       <SafeAreaProvider>
         <NavigationContainer>
-          <StatusBar barStyle="dark-content" />
-          <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
-            <TabNavigator.Navigator
-              initialRouteName="Home"
-              screenOptions={({route}) => ({
-                headerShown: false,
-                tabBarIcon: ({color, size}) => {
-                  if (route.name === 'Home') {
-                    return <AntDesign name="search1" size={size} color={color} />;
-                  } else if (route.name === 'Observations') {
-                    return <AntDesign name="filetext1" size={size} color={color} />;
-                  } else if (route.name === 'Weather Data') {
-                    return <AntDesign name="barschart" size={size} color={color} />;
-                  } else if (route.name === 'Menu') {
-                    return <AntDesign name="bars" size={size} color={color} />;
+          <SelectProvider>
+            <StatusBar barStyle="dark-content" />
+            <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
+              <TabNavigator.Navigator
+                initialRouteName="Home"
+                screenOptions={({route}) => ({
+                  headerShown: false,
+                  tabBarIcon: ({color, size}) => {
+                    if (route.name === 'Home') {
+                      return <AntDesign name="search1" size={size} color={color} />;
+                    } else if (route.name === 'Observations') {
+                      return <AntDesign name="filetext1" size={size} color={color} />;
+                    } else if (route.name === 'Weather Data') {
+                      return <AntDesign name="barschart" size={size} color={color} />;
+                    } else if (route.name === 'Menu') {
+                      return <AntDesign name="bars" size={size} color={color} />;
+                    }
+                  },
+                })}>
+                <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, dateString}}>
+                  {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
+                </TabNavigator.Screen>
+                <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString}}>
+                  {state =>
+                    ObservationsTabScreen(
+                      merge(state, {
+                        route: {
+                          params: {
+                            center_id: avalancheCenterId,
+                            dateString,
+                          },
+                        },
+                      }),
+                    )
                   }
-                },
-              })}>
-              <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, dateString}}>
-                {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
-              </TabNavigator.Screen>
-              <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString}}>
-                {state => ObservationsTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
-              </TabNavigator.Screen>
-              <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString}}>
-                {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
-              </TabNavigator.Screen>
-              <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
-                {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-              </TabNavigator.Screen>
-            </TabNavigator.Navigator>
-          </View>
+                </TabNavigator.Screen>
+                <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString}}>
+                  {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
+                </TabNavigator.Screen>
+                <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
+                  {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                </TabNavigator.Screen>
+              </TabNavigator.Navigator>
+            </View>
+          </SelectProvider>
         </NavigationContainer>
       </SafeAreaProvider>
     </HTMLRendererConfig>

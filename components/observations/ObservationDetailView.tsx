@@ -1,9 +1,15 @@
-import React from 'react';
-import {EverythingFragment, useObservationQuery} from 'hooks/useObservations';
-import {ActivityIndicator, View, ScrollView, StyleSheet} from 'react-native';
+import {FontAwesome5, Fontisto, MaterialCommunityIcons} from '@expo/vector-icons';
 import {Card, CollapsibleCard} from 'components/content/Card';
-import {FontAwesome5, MaterialCommunityIcons, Fontisto} from '@expo/vector-icons';
-import {useMapLayer} from '../../hooks/useMapLayer';
+import {Carousel} from 'components/content/carousel';
+import {HStack, VStack} from 'components/core';
+import {NACIcon} from 'components/icons/nac-icons';
+import {zone} from 'components/observations/ObservationsListView';
+import {Body, BodyBlack, FeatureTitleBlack, Title1Black} from 'components/text';
+import {HTML} from 'components/text/HTML';
+import {useMapLayer} from 'hooks/useMapLayer';
+import {EverythingFragment, useObservationQuery} from 'hooks/useObservations';
+import React from 'react';
+import {ActivityIndicator, ScrollView, StyleSheet, View} from 'react-native';
 import {
   Activity,
   AvalancheAspect,
@@ -27,14 +33,8 @@ import {
   FormatWindLoading,
   MapLayer,
   PartnerType,
-} from '../../types/nationalAvalancheCenter';
-import {zone} from './ObservationsListView';
-import {HTML} from '../text/HTML';
-import {AvalancheProblemImage} from '../AvalancheProblemImage';
-import {NACIcon} from '../icons/nac-icons';
+} from 'types/nationalAvalancheCenter';
 import {utcDateToLocalTimeString} from 'utils/date';
-import {Body, BodyBlack, FeatureTitleBlack, Title1Black} from 'components/text';
-import {HStack, VStack} from 'components/core';
 
 export const ObservationDetailView: React.FunctionComponent<{
   id: string;
@@ -119,25 +119,25 @@ export const ObservationCard: React.FunctionComponent<{
               {observation.instability.avalanches_caught && (
                 <HStack space={8} alignItems="center">
                   <NACIcon name="avalanche" size={32} color="black" />
-                  <Body color="lightText">{'Caught in Avalanche(s)'}</Body>
+                  <Body color="text.secondary">{'Caught in Avalanche(s)'}</Body>
                 </HStack>
               )}
               {observation.instability.avalanches_observed && (
                 <HStack space={8} alignItems="center">
                   <NACIcon name="avalanche" size={32} color="black" />
-                  <Body color="lightText">{'Avalanche(s) Observed'}</Body>
+                  <Body color="text.secondary">{'Avalanche(s) Observed'}</Body>
                 </HStack>
               )}
               {observation.instability.avalanches_triggered && (
                 <HStack space={8} alignItems="center">
                   <NACIcon name="avalanche" size={32} color="black" />
-                  <Body color="lightText">{'Avalanche(s) Triggered'}</Body>
+                  <Body color="text.secondary">{'Avalanche(s) Triggered'}</Body>
                 </HStack>
               )}
               {observation.instability.collapsing && (
                 <HStack space={8} alignItems="center">
                   <MaterialCommunityIcons name="arrow-collapse-vertical" size={24} color="black" />
-                  <Body color="lightText">
+                  <Body color="text.secondary">
                     {observation.instability.collapsing_description && `${FormatAvalancheProblemDistribution(observation.instability.collapsing_description)} `}
                     {'Collapsing Observed'}
                   </Body>
@@ -146,7 +146,7 @@ export const ObservationCard: React.FunctionComponent<{
               {observation.instability.cracking && (
                 <HStack space={8} alignItems="center">
                   <MaterialCommunityIcons name="lightning-bolt" size={24} color="black" />
-                  <Body color="lightText">
+                  <Body color="text.secondary">
                     {observation.instability.cracking_description && `${FormatAvalancheProblemDistribution(observation.instability.cracking_description)} `}
                     {'Cracking Observed'}
                   </Body>
@@ -172,11 +172,7 @@ export const ObservationCard: React.FunctionComponent<{
                 <Title1Black>Observation Media</Title1Black>
               </HStack>
             }>
-            {observation.media
-              .filter(item => item.type === 'image')
-              .map((item, index) => (
-                <AvalancheProblemImage key={`media-item-${index}`} media={item} />
-              ))}
+            <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.media} displayCaptions={false} />
           </CollapsibleCard>
         )}
         {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanchesSummary) && (
@@ -221,11 +217,7 @@ export const ObservationCard: React.FunctionComponent<{
                     {item.media && item.media.length > 0 && (
                       <VStack space={8} style={{flex: 1}}>
                         <BodyBlack style={{textTransform: 'uppercase'}}>{'Avalanche Media'}</BodyBlack>
-                        {item.media
-                          .filter(mediaItem => mediaItem.type === 'image')
-                          .map((mediaItem, mediaIndex) => (
-                            <AvalancheProblemImage key={`avalanche-${index}-media-item-${mediaIndex}`} media={mediaItem} />
-                          ))}
+                        <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={item.media} displayCaptions={false} />
                       </VStack>
                     )}
                   </>
@@ -315,11 +307,7 @@ export const ObservationCard: React.FunctionComponent<{
                   <>
                     <VStack space={8} style={{flex: 1}}>
                       <BodyBlack style={{textTransform: 'uppercase'}}>{'Snowpack Media'}</BodyBlack>
-                      {observation.advancedFields.snowpackMedia
-                        .filter(item => item.type === 'image')
-                        .map((item, index) => (
-                          <AvalancheProblemImage key={`media-item-${index}`} media={item} />
-                        ))}
+                      <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.advancedFields.snowpackMedia} displayCaptions={false} />
                     </VStack>
                   </>
                 )}
@@ -345,7 +333,7 @@ const IdentifiedInformation: React.FunctionComponent<{
   return (
     <VStack space={8} style={{flex: 1}}>
       <BodyBlack style={{textTransform: 'uppercase'}}>{header}</BodyBlack>
-      <Body color="lightText">{body}</Body>
+      <Body color="text.secondary">{body}</Body>
     </VStack>
   );
 };
@@ -357,7 +345,7 @@ const IdentifiedWeatherInformation: React.FunctionComponent<{
   return (
     <VStack space={8} style={{flex: 1}}>
       <BodyBlack style={{textTransform: 'uppercase'}}>{header}</BodyBlack>
-      <Body color="lightText" style={{textTransform: 'capitalize', fontStyle: body === '' ? 'italic' : 'normal'}}>
+      <Body color="text.secondary" style={{textTransform: 'capitalize', fontStyle: body === '' ? 'italic' : 'normal'}}>
         {body || 'Not Observed'}
       </Body>
     </VStack>

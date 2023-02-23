@@ -2,18 +2,18 @@ import React from 'react';
 
 import {addDays} from 'date-fns';
 
-import {AvalancheDangerForecast, AvalancheForecastZone, DangerLevel, ElevationBandNames, ForecastPeriod, Product} from 'types/nationalAvalancheCenter';
-import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
+import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
 import {Card, CollapsibleCard} from 'components/content/Card';
-import {HTML} from 'components/text/HTML';
-import {utcDateToLocalTimeString} from 'utils/date';
-import {AllCapsSm, AllCapsSmBlack, BodyBlack, bodySize, Title3Black} from 'components/text';
-import {HStack, View, VStack} from 'components/core';
 import {Carousel} from 'components/content/carousel';
 import {InfoTooltip} from 'components/content/InfoTooltip';
+import {HStack, View, VStack} from 'components/core';
+import {AllCapsSm, AllCapsSmBlack, BodyBlack, bodySize, Title3Black} from 'components/text';
+import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
+import {AvalancheDangerForecast, AvalancheForecastZone, DangerLevel, ElevationBandNames, ForecastPeriod, Product} from 'types/nationalAvalancheCenter';
+import {utcDateToLocalTimeString} from 'utils/date';
 
 interface AvalancheTabProps {
   zone: AvalancheForecastZone;
@@ -61,19 +61,19 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
         <HStack justifyContent="space-evenly" space={8}>
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Issued</AllCapsSmBlack>
-            <AllCapsSm style={{textTransform: 'none'}} color="lightText">
+            <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
               {utcDateToLocalTimeString(forecast.published_time)}
             </AllCapsSm>
           </VStack>
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Expires</AllCapsSmBlack>
-            <AllCapsSm style={{textTransform: 'none'}} color="lightText">
+            <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
               {utcDateToLocalTimeString(forecast.expires_time)}
             </AllCapsSm>
           </VStack>
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Author</AllCapsSmBlack>
-            <AllCapsSm style={{textTransform: 'none'}} color="lightText">
+            <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
               {forecast.author || 'Unknown'}
               {'\n'}
             </AllCapsSm>

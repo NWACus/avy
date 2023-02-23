@@ -2,8 +2,8 @@ import React from 'react';
 
 import * as _ from 'lodash';
 
-import Svg, {Path, SvgProps} from 'react-native-svg';
 import {StyleSheet} from 'react-native';
+import Svg, {Path, SvgProps} from 'react-native-svg';
 
 import Color from 'color';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 
+import {Caption1, Caption1Semibold} from 'components/text';
 import {DangerLevel} from 'types/nationalAvalancheCenter';
-import {Caption1, Caption1Semibold} from '../text';
 
 export const TravelAdvice: React.FunctionComponent<{dangerLevel: DangerLevel}> = ({dangerLevel}) => {
   switch (dangerLevel) {

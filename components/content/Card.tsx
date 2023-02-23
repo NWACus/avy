@@ -1,12 +1,12 @@
 import React, {PropsWithChildren, ReactNode, useCallback, useState} from 'react';
 
-import Collapsible from 'react-native-collapsible';
 import {ColorValue, TouchableOpacity} from 'react-native';
+import Collapsible from 'react-native-collapsible';
 
 import {FontAwesome} from '@expo/vector-icons';
 
-import {colorLookup} from 'theme';
 import {Divider, HStack, View, ViewProps, VStack} from 'components/core';
+import {colorLookup} from 'theme';
 
 export interface CardProps extends ViewProps {
   header?: ReactNode;
@@ -26,7 +26,7 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({hea
         <View bg="white" borderWidth={2} borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.200'} p={16}>
           <VStack space={noInternalSpace ? 0 : 8}>
             <>{header}</>
-            {noDivider || <Divider direction="horizontal" bg="light.200" />}
+            {noDivider || <Divider />}
             <>{children}</>
           </VStack>
         </View>
@@ -41,7 +41,7 @@ export interface CollapsibleCardProps extends CardProps {
 
 export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({startsCollapsed, header, children, ...props}) => {
   const [isCollapsed, setIsCollapsed] = useState(startsCollapsed);
-  const textColor = colorLookup('darkText');
+  const textColor = colorLookup('text');
 
   return (
     <Card
@@ -58,7 +58,7 @@ export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<Collapsi
       }>
       <Collapsible collapsed={isCollapsed} renderChildrenCollapsed>
         <VStack space={8} pt={8}>
-          <Divider direction="horizontal" bg="light.200" />
+          <Divider />
           <>{children}</>
         </VStack>
       </Collapsible>

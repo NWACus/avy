@@ -1,17 +1,17 @@
 import React from 'react';
 
+import {QueryClient, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
-import {QueryClient, useQuery} from 'react-query';
 
 import * as Sentry from 'sentry-expo';
 
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {AvalancheCenterID, Product, productSchema} from 'types/nationalAvalancheCenter';
-import {ZodError} from 'zod';
 import {nominalForecastDate} from 'utils/date';
-import {useAvalancheCenterMetadata} from './useAvalancheCenterMetadata';
+import {ZodError} from 'zod';
 
 export const useLatestAvalancheForecast = (center_id: AvalancheCenterID, zone_id: number, requestedTime: Date) => {
   const {data: metadata} = useAvalancheCenterMetadata(center_id);
@@ -56,13 +56,12 @@ const prefetchLatestAvalancheForecast = async (
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours),
     queryFn: async () => {
-      Log.prefetch('starting fragment prefetch');
+      Log.prefetch(`prefetching latest avalanche forecast for ${center_id} at ${requestedTime}`);
       const result = await fetchLatestAvalancheForecast(nationalAvalancheCenterHost, center_id, zone_id);
-      Log.prefetch('fragment request finished');
+      Log.prefetch(`finished prefetching latest avalanche forecast for ${center_id} at ${requestedTime}`);
       return result;
     },
   });
-  Log.prefetch('avalanche fragment data is cached with react-query');
 };
 
 const fetchLatestAvalancheForecast = async (nationalAvalancheCenterHost: string, center_id: string, zone_id: number) => {

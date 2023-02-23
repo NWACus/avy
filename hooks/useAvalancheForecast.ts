@@ -1,15 +1,15 @@
 import React from 'react';
 
+import {QueryClient, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
-import {QueryClient, useQuery} from 'react-query';
 
 import * as Sentry from 'sentry-expo';
 
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {useAvalancheForecastFragment} from 'hooks/useAvalancheForecastFragment';
 import {AvalancheCenterID, Product, productSchema} from 'types/nationalAvalancheCenter';
-import {useAvalancheForecastFragment} from './useAvalancheForecastFragment';
 import {ZodError} from 'zod';
 
 export const useAvalancheForecast = (center_id: AvalancheCenterID, forecast_zone_id: number, date: Date) => {
@@ -34,13 +34,12 @@ export const prefetchAvalancheForecast = async (queryClient: QueryClient, nation
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, forecastId),
     queryFn: async () => {
-      Log.prefetch('starting forecast prefetch');
+      Log.prefetch(`prefetching avalanche forecast ${forecastId}`);
       const result = fetchProduct(nationalAvalancheCenterHost, forecastId);
-      Log.prefetch('forecast request finished');
+      Log.prefetch(`finished prefetching avalanche forecast ${forecastId}`);
       return result;
     },
   });
-  Log.prefetch(`avalanche forecast ${forecastId} data is cached with react-query`);
 };
 
 // TODO need to export?
