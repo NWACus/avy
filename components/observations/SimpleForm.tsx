@@ -3,7 +3,7 @@ import {yupResolver} from '@hookform/resolvers/yup';
 import {useBackHandler} from '@react-native-community/hooks';
 import {useNavigation} from '@react-navigation/native';
 import {Button} from 'components/content/Button';
-import {CollapsibleCard} from 'components/content/Card';
+import {Card} from 'components/content/Card';
 import {ImageList} from 'components/content/carousel/ImageList';
 import {HStack, View, VStack} from 'components/core';
 import {Conditional} from 'components/form/Conditional';
@@ -17,9 +17,9 @@ import {Body, BodySemibold, Title3Black, Title3Semibold} from 'components/text';
 import * as ImagePicker from 'expo-image-picker';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {uniq} from 'lodash';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {FormProvider, useForm} from 'react-hook-form';
-import {Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback} from 'react-native';
+import {Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View as RNView} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
@@ -41,11 +41,27 @@ export const SimpleForm: React.FC<{
     shouldUnregister: true,
   });
 
+  const fieldRefs = useRef<{ref: RNView; field: string}[]>([]);
+  const scrollViewRef = useRef(null);
+
   const onSubmitHandler = data => {
     console.log('onSubmitHandler -> success', {data});
   };
-  const onSubmitErrorHandler = data => {
-    console.log('onSubmitErrorHandler -> error', {data});
+  const onSubmitErrorHandler = errors => {
+    // scroll to the first field with an error
+    fieldRefs.current.some(({ref, field}) => {
+      if (errors[field]) {
+        ref.measureLayout(
+          scrollViewRef.current,
+          (_left, top) => {
+            scrollViewRef.current.scrollTo({y: top});
+          },
+          () => undefined,
+        );
+        return true;
+      }
+      return false;
+    });
   };
 
   const onCloseHandler = useCallback(() => {
@@ -101,13 +117,13 @@ export const SimpleForm: React.FC<{
                   <Title3Black>Submit an observation</Title3Black>
                 </HStack>
               </TouchableWithoutFeedback>
-              <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}}>
+              <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}} ref={scrollViewRef}>
                 <VStack width="100%" justifyContent="flex-start" alignItems="stretch" pt={8} pb={8}>
                   <View px={16} pb={formFieldSpacing}>
                     <Body>Help keep the {center_id} community informed by submitting your observation.</Body>
                   </View>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed={false} header={<Title3Semibold>Privacy</Title3Semibold>}>
-                    <VStack space={formFieldSpacing}>
+                  <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Privacy</Title3Semibold>}>
+                    <VStack space={formFieldSpacing} mt={8}>
                       <SwitchField name="visibility" label="Observation visibility" items={['Public', 'Private']} />
                       <SelectField
                         name="photoUsage"
@@ -120,13 +136,23 @@ export const SimpleForm: React.FC<{
                         ]}
                       />
                     </VStack>
-                  </CollapsibleCard>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed={false} header={<Title3Semibold>General information</Title3Semibold>}>
-                    <VStack space={formFieldSpacing}>
-                      <TextField name="name" label="Name" textInputProps={{placeholder: 'Jane Doe', textContentType: 'name'}} />
+                  </Card>
+                  <Card borderRadius={0} borderColor="white" header={<Title3Semibold>General information</Title3Semibold>}>
+                    <VStack space={formFieldSpacing} mt={8}>
+                      <TextField
+                        name="name"
+                        label="Name"
+                        textInputProps={{placeholder: 'Jane Doe', textContentType: 'name'}}
+                        ref={element => {
+                          fieldRefs.current.push({field: 'name', ref: element});
+                        }}
+                      />
                       <TextField
                         name="email"
                         label="Email address"
+                        ref={element => {
+                          fieldRefs.current.push({field: 'email', ref: element});
+                        }}
                         textInputProps={{
                           placeholder: 'you@domain.com',
                           textContentType: 'emailAddress',
@@ -136,11 +162,22 @@ export const SimpleForm: React.FC<{
                         }}
                       />
                       <DateField name="observationDate" label="Observation date" />
-                      <SelectField name="zone" label="Zone/Region" prompt="Select a zone or region" items={zones} />
+                      <SelectField
+                        name="zone"
+                        label="Zone/Region"
+                        prompt="Select a zone or region"
+                        items={zones}
+                        ref={element => {
+                          fieldRefs.current.push({field: 'zone', ref: element});
+                        }}
+                      />
                       <SelectField
                         name="activity"
                         label="Activity"
                         prompt="What were you doing?"
+                        ref={element => {
+                          fieldRefs.current.push({field: 'activity', ref: element});
+                        }}
                         items={[
                           {
                             label: 'Skiing/Snowboarding',
@@ -175,6 +212,9 @@ export const SimpleForm: React.FC<{
                       <TextField
                         name="location"
                         label="Location"
+                        ref={element => {
+                          fieldRefs.current.push({field: 'location', ref: element});
+                        }}
                         textInputProps={{
                           placeholder: 'Please describe your observation location using common geographical place names (drainages, peak names, etc).',
                           multiline: true,
@@ -182,9 +222,9 @@ export const SimpleForm: React.FC<{
                       />
                       <LocationField name="mapLocation" label="Latitude/Longitude" />
                     </VStack>
-                  </CollapsibleCard>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Signs of instability</Title3Semibold>}>
-                    <VStack>
+                  </Card>
+                  <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Signs of instability</Title3Semibold>}>
+                    <VStack mt={8}>
                       <SwitchField name="recent" label="Did you see recent avalanches?" items={['No', 'Yes']} pb={formFieldSpacing} />
                       <Conditional name="recent" value="Yes">
                         <VStack>
@@ -206,56 +246,50 @@ export const SimpleForm: React.FC<{
                         <SelectField name="collapsingExtent" label="How widespread was the collapsing?" items={['Isolated', 'Widespread']} prompt=" " />
                       </Conditional>
                     </VStack>
-                  </CollapsibleCard>
+                  </Card>
                   <Conditional name="recent" value="Yes">
-                    <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Avalanches</Title3Semibold>}>
-                      <VStack space={formFieldSpacing}>
+                    <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Avalanches</Title3Semibold>}>
+                      <VStack space={formFieldSpacing} mt={8}>
                         <TextField
                           name="avalancheComments"
                           label="Observed avalanches"
+                          ref={element => {
+                            fieldRefs.current.push({field: 'avalancheComments', ref: element});
+                          }}
                           textInputProps={{
-                            placeholder: `Location, aspect, and elevation
-                          How recently did it occur?
-                          Natural or triggered?
-                          Was anyone caught?
-                          Avalanche size, width, and depth`,
+                            placeholder: `• Location, aspect, and elevation
+• How recently did it occur?
+• Natural or triggered?
+• Was anyone caught?
+• Avalanche size, width, and depth`,
                             multiline: true,
                           }}
                           pb={formFieldSpacing}
                         />
                       </VStack>
-                    </CollapsibleCard>
+                    </Card>
                   </Conditional>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Field Notes</Title3Semibold>}>
-                    <VStack space={formFieldSpacing}>
+                  <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Field Notes</Title3Semibold>}>
+                    <VStack space={formFieldSpacing} mt={8}>
                       <TextField
                         name="fieldNotes"
                         label="What did you observe?"
+                        ref={element => {
+                          fieldRefs.current.push({field: 'fieldNotes', ref: element});
+                        }}
                         textInputProps={{
-                          placeholder: `Signs of instability
-                            Snowpack test results
-                            How cautiously or aggressively did you travel?
-                            Weather observations
-                            Overall impression of stability`,
+                          placeholder: `• Signs of instability
+• Snowpack test results
+• How cautiously or aggressively did you travel?
+• Weather observations
+• Overall impression of stability`,
                           multiline: true,
                         }}
                       />
                     </VStack>
-                  </CollapsibleCard>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Observation summary</Title3Semibold>}>
-                    <VStack space={formFieldSpacing}>
-                      <TextField
-                        name="observationSummary"
-                        label="Observation summary"
-                        textInputProps={{
-                          placeholder: 'Summarize the avalanche hazard; what are the key points of your observation? What avalanche problems did you observe?',
-                          multiline: true,
-                        }}
-                      />
-                    </VStack>
-                  </CollapsibleCard>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Photos</Title3Semibold>}>
-                    <VStack space={formFieldSpacing}>
+                  </Card>
+                  <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Photos</Title3Semibold>}>
+                    <VStack space={formFieldSpacing} mt={8}>
                       <Body>You can add up to {maxImageCount} images.</Body>
                       {images.length > 0 && (
                         <ImageList
@@ -285,7 +319,7 @@ export const SimpleForm: React.FC<{
                         <BodySemibold>Select an image</BodySemibold>
                       </Button>
                     </VStack>
-                  </CollapsibleCard>
+                  </Card>
 
                   <Button
                     mx={16}
