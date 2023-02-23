@@ -300,7 +300,7 @@ export const fetchWeather = async () => {
       const period = tempsPeriods[idx];
       const forecast = zones[zoneName].find(f => f.label === period.label);
       if (forecast) {
-        const [_temp, high, low] = cell.match(/(\d+)\s*\/\s*(\d+)/);
+        const [_temp, high, low] = cell.match(/(-?\d+)\s*\/\s*(-?\d+)/);
         forecast['temperatures'] = {low: Number(low), high: Number(high)};
       } else {
         LOG_LEVEL > 1 && console.warn(`Temps: could not find forecast for ${period.label}`, zones);
