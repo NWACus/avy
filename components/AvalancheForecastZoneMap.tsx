@@ -104,6 +104,11 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           <VStack
             width="100%"
             position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            mt={8}
+            px={4}
             flex={1}
             onLayout={(event: LayoutChangeEvent) => {
               // onLayout returns position relative to parent - we need position relative to screen
@@ -111,8 +116,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
                 controller.animateUsingUpdatedTopElementsHeight(y + height);
               });
             }}>
-            <View height={12} />
-            <DangerScale px={4} width="100%" />
+            <DangerScale width="100%" />
           </VStack>
         </View>
       </SafeAreaView>
