@@ -1,8 +1,9 @@
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useTimeSeries} from 'hooks/useTimeseries';
 import React from 'react';
-import {ActivityIndicator, ScrollView, StyleSheet, Text, useWindowDimensions, View} from 'react-native';
+import {ScrollView, StyleSheet, Text, useWindowDimensions, View} from 'react-native';
 
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {scaleLinear, scaleTime} from 'd3';
 import {format, max, min} from 'date-fns';
 import {Chart, HorizontalAxis, Line, VerticalAxis} from 'react-native-responsive-linechart';
@@ -14,24 +15,13 @@ export const TelemetryStationData: React.FunctionComponent<{
   source: string;
   station_id: number;
 }> = ({center_id, source, station_id}) => {
-  const {isLoading: isMetadataLoading, isError: isMetadataError, data: avalancheCenter, error: metadataError} = useAvalancheCenterMetadata(center_id);
-  const {
-    isLoading: isTimeseriesLoading,
-    isError: isTimeseriesError,
-    data: timeseries,
-    error: timeseriesError,
-  } = useTimeSeries(station_id, source, avalancheCenter?.widget_config?.stations?.token);
+  const centerResult = useAvalancheCenterMetadata(center_id);
+  const avalancheCenter = centerResult.data;
+  const timeseriesResult = useTimeSeries(station_id, source, avalancheCenter?.widget_config?.stations?.token);
+  const timeseries = timeseriesResult.data;
 
-  if (isMetadataLoading || isTimeseriesLoading) {
-    return <ActivityIndicator />;
-  }
-  if (isMetadataError || isTimeseriesError) {
-    return (
-      <View>
-        {isMetadataError && <Text>{`Could not fetch ${center_id} properties: ${metadataError?.message}.`}</Text>}
-        {isTimeseriesError && <Text>{`Could not fetch telemetry data for ${station_id}: ${timeseriesError?.message}.`}</Text>}
-      </View>
-    );
+  if (incompleteQueryState(centerResult, timeseriesResult)) {
+    return <QueryState results={[centerResult, timeseriesResult]} />;
   }
 
   const allTimeseries: Record<

@@ -1,23 +1,23 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 
 import {uniq} from 'lodash';
 
 import {useNavigation} from '@react-navigation/native';
-import {ActivityIndicator, RefreshControl, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
+import {ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
+import * as Sentry from 'sentry-expo';
 
-import {HStack, View, VStack} from 'components/core';
+import {HStack, View} from 'components/core';
 
 import {Tab, TabControl} from 'components/TabControl';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
-import {useLatestAvalancheForecast} from 'hooks/useLatestAvalancheForecast';
-import {useRefreshByUser} from 'hooks/useRefreshByUser';
-import {AvalancheCenterID, AvalancheForecastZone, AvalancheForecastZoneSummary} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
 
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {Dropdown} from 'components/content/Dropdown';
+import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {AvalancheTab} from 'components/forecast/AvalancheTab';
 import {WeatherTab} from 'components/forecast/WeatherTab';
-import {Body, FeatureTitleBlack} from 'components/text';
+import {FeatureTitleBlack} from 'components/text';
 import {HomeStackNavigationProps} from 'routes';
 import {toISOStringUTC} from 'utils/date';
 
@@ -33,29 +33,10 @@ const ObservationsTab = () => {
 };
 
 export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> = ({center_id, date, forecast_zone_id}: AvalancheForecastProps) => {
-  const {isLoading: isCenterLoading, isError: isCenterError, data: center, error: centerError, refetch: refetchCenter} = useAvalancheCenterMetadata(center_id);
-  const {
-    isLoading: isForecastLoading,
-    isError: isForecastError,
-    data: forecast,
-    error: forecastError,
-    refetch: refetchForecast,
-  } = useLatestAvalancheForecast(center_id, forecast_zone_id, date); // TODO(skuznets): when we refactor to show previous forecasts, we will need two wrappers for the logic under the fetching, choosing either to fetch the latest, or for a specific date
-  const {isRefetchingByUser, refetchByUser} = useRefreshByUser(refetchCenter, refetchForecast);
+  const centerResult = useAvalancheCenterMetadata(center_id);
+  const center = centerResult.data;
 
-  // When navigating from elsewhere in the app, the screen title should already
-  // be set to the zone name. But if we warp directly to a forecast link, we
-  // need to load the zone name dynamically.
   const navigation = useNavigation<HomeStackNavigationProps>();
-  useEffect(() => {
-    if (forecast) {
-      const thisZone: AvalancheForecastZoneSummary | undefined = forecast.forecast_zone.find(zone => zone.id === forecast_zone_id);
-      if (thisZone) {
-        navigation.setOptions({title: thisZone.name});
-      }
-    }
-  }, [forecast, forecast_zone_id, navigation]);
-
   const onZoneChange = useCallback(
     zoneName => {
       if (center) {
@@ -79,68 +60,20 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
     navigation.popToTop();
   }, [navigation]);
 
-  if (isForecastLoading || isCenterLoading) {
-    return (
-      <HStack space={8} style={{flex: 1}}>
-        <VStack space={8} style={{flex: 1}} alignItems={'center'}>
-          <Body>
-            Loading current {center_id} avalanche forecast for zone {forecast_zone_id}...
-          </Body>
-          <ActivityIndicator />
-        </VStack>
-      </HStack>
-    );
-  }
-  if (!center) {
-    return (
-      <HStack space={8} style={{flex: 1}}>
-        <VStack space={8} style={{flex: 1}} alignItems={'center'}>
-          <Body>Could not fetch {center_id} properties: avalanche center not found.</Body>
-        </VStack>
-      </HStack>
-    );
+  if (incompleteQueryState(centerResult)) {
+    return <QueryState results={[centerResult]} />;
   }
 
   const zone: AvalancheForecastZone | undefined = center.zones.find(item => item.id === forecast_zone_id);
   if (!zone) {
-    return (
-      <HStack space={8} style={{flex: 1}}>
-        <VStack space={8} style={{flex: 1}} alignItems={'center'}>
-          <Body>
-            Could not find zone {forecast_zone_id} for center {center_id}.
-          </Body>
-        </VStack>
-      </HStack>
-    );
-  }
-
-  if (!forecast) {
-    return (
-      <HStack space={8} style={{flex: 1}}>
-        <VStack space={8} style={{flex: 1}} alignItems={'center'}>
-          <Body>
-            No current {center_id} avalanche forecast found for the {zone.name} zone.
-          </Body>
-        </VStack>
-      </HStack>
-    );
-  }
-  if (isForecastError || isCenterError) {
-    return (
-      <HStack space={8} style={{flex: 1}}>
-        <VStack space={8} style={{flex: 1}} alignItems={'center'}>
-          {isCenterError && <Body>{`Could not fetch ${center_id} properties: ${centerError?.message}.`}</Body>}
-          {isForecastError && <Body>{`Could not fetch forecast for ${center_id} zone ${forecast_zone_id}: ${forecastError?.message}.`}</Body>}
-          {/* TODO(brian): we should add a "Try again" button and have that invoke `refetchByUser` */}
-        </VStack>
-      </HStack>
-    );
+    Sentry.Native.captureException(new Error(`Avalanche center ${center_id} had no zone with id ${forecast_zone_id}: ${JSON.stringify(center)}`));
+    return <NotFound />;
   }
 
   const zones = uniq(center.zones.filter(z => z.status === 'active').map(z => z.name));
 
   return (
-    <ScrollView style={StyleSheet.absoluteFillObject} refreshControl={<RefreshControl refreshing={isRefetchingByUser} onRefresh={refetchByUser} />}>
+    <ScrollView style={StyleSheet.absoluteFillObject}>
       <HStack justifyContent="space-between" alignItems="center" space={8} width="100%" height={64}>
         <View pl={8} py={8}>
           <TouchableOpacity onPress={onReturnToMapView}>
@@ -153,7 +86,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
       </HStack>
       <TabControl backgroundColor="white">
         <Tab title="Avalanche">
-          <AvalancheTab zone={zone} forecast={forecast} />
+          <AvalancheTab elevationBandNames={zone.config.elevation_band_names} center={center} center_id={center_id} forecast_zone_id={forecast_zone_id} date={date} />
         </Tab>
         <Tab title="Weather">
           <WeatherTab zone={zone} center_id={center_id} date={date} />

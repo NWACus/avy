@@ -2,7 +2,6 @@ import React, {MutableRefObject, useCallback, useRef, useState} from 'react';
 
 import {useNavigation} from '@react-navigation/native';
 import {
-  ActivityIndicator,
   Animated,
   GestureResponderEvent,
   LayoutChangeEvent,
@@ -17,19 +16,18 @@ import {
 } from 'react-native';
 import AnimatedMapView, {Region} from 'react-native-maps';
 
-import {FontAwesome5} from '@expo/vector-icons';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {colorFor} from 'components/AvalancheDangerPyramid';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {defaultMapRegionForZones, ZoneMap} from 'components/content/ZoneMap';
-import {Center, HStack, View, VStack} from 'components/core';
+import {HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {TravelAdvice} from 'components/helpers/travelAdvice';
-import {Body, BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
+import {BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
 import {MapViewZone, useMapViewZones} from 'hooks/useMapViewZones';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps} from 'routes';
-import {COLORS} from 'theme/colors';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
 import {toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
 
@@ -39,7 +37,8 @@ export interface MapProps {
 }
 
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, date}: MapProps) => {
-  const {isLoading, isError, data: zones} = useMapViewZones(center, date);
+  const zonesResult = useMapViewZones(center, date);
+  const zones = zonesResult.data;
 
   const navigation = useNavigation<HomeStackNavigationProps>();
   const [selectedZone, setSelectedZone] = useState<MapViewZone | null>(null);
@@ -82,6 +81,10 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     controller.animateUsingUpdatedTabBarHeight(tabBarHeight);
   }, [tabBarHeight, controller]);
 
+  if (incompleteQueryState(zonesResult)) {
+    return <QueryState results={[zonesResult]} />;
+  }
+
   return (
     <>
       <ZoneMap
@@ -114,26 +117,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         </View>
       </SafeAreaView>
 
-      {isLoading && (
-        <Center width="100%" height="100%" position="absolute" top={0}>
-          <ActivityIndicator size={'large'} />
-        </Center>
-      )}
-      {isError && (
-        <Center width="100%" position="absolute" bottom={6}>
-          <VStack space={8}>
-            <Center bg={COLORS['warning.200']} px={24} py={16} borderRadius={4}>
-              <HStack space={8} flexShrink={1}>
-                <FontAwesome5 name="exclamation-triangle" size={16} color={COLORS['warning.700']} />
-                <Body>Unable to load forecast data</Body>
-              </HStack>
-            </Center>
-          </VStack>
-        </Center>
-      )}
-      {!isLoading && !isError && (
-        <AvalancheForecastZoneCards key={center} date={date} zones={zones} selectedZone={selectedZone} setSelectedZone={setSelectedZone} controller={controller} />
-      )}
+      <AvalancheForecastZoneCards key={center} date={date} zones={zones} selectedZone={selectedZone} setSelectedZone={setSelectedZone} controller={controller} />
     </>
   );
 };

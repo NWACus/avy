@@ -1,11 +1,12 @@
 import {AntDesign, FontAwesome} from '@expo/vector-icons';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {defaultMapRegionForZones, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, bodySize, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
 import {useMapViewZones} from 'hooks/useMapViewZones';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {ActivityIndicator, Image, Modal, TouchableOpacity} from 'react-native';
+import {Image, Modal, TouchableOpacity} from 'react-native';
 import {Region} from 'react-native-maps';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
@@ -22,7 +23,8 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
   } = useController({name});
   const [modalVisible, setModalVisible] = useState(false);
 
-  const {isLoading, isError, data: zones} = useMapViewZones('NWAC', new Date());
+  const zonesResult = useMapViewZones('NWAC', new Date());
+  const zones = zonesResult.data;
   const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
   const [mapReady, setMapReady] = useState<boolean>(false);
 
@@ -83,8 +85,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
                   />
                 </HStack>
                 <Center width="100%" height="100%">
-                  {isLoading && <ActivityIndicator size="large" />}
-                  {isError && <Body>Error loading map. Please try again.</Body>}
+                  {incompleteQueryState(zonesResult) && <QueryState results={[zonesResult]} />}
                   {mapReady && (
                     <>
                       <ZoneMap

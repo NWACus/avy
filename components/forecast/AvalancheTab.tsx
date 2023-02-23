@@ -2,22 +2,37 @@ import React from 'react';
 
 import {addDays} from 'date-fns';
 
+import {useNavigation} from '@react-navigation/native';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {Carousel} from 'components/content/carousel';
 import {InfoTooltip} from 'components/content/InfoTooltip';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, BodyBlack, bodySize, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
-import {AvalancheDangerForecast, AvalancheForecastZone, DangerLevel, ElevationBandNames, ForecastPeriod, Product} from 'types/nationalAvalancheCenter';
+import {useLatestAvalancheForecast} from 'hooks/useLatestAvalancheForecast';
+import {HomeStackNavigationProps} from 'routes';
+import {
+  AvalancheCenter,
+  AvalancheCenterID,
+  AvalancheDangerForecast,
+  AvalancheForecastZoneSummary,
+  DangerLevel,
+  ElevationBandNames,
+  ForecastPeriod,
+} from 'types/nationalAvalancheCenter';
 import {utcDateToLocalTimeString} from 'utils/date';
 
 interface AvalancheTabProps {
-  zone: AvalancheForecastZone;
-  forecast: Product;
+  elevationBandNames: ElevationBandNames;
+  center_id: AvalancheCenterID;
+  center: AvalancheCenter;
+  date: Date;
+  forecast_zone_id: number;
 }
 
 const HeaderWithTooltip = ({title, content}) => (
@@ -29,7 +44,27 @@ const HeaderWithTooltip = ({title, content}) => (
   </HStack>
 );
 
-export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.memo(({zone, forecast}) => {
+export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.memo(({elevationBandNames, center_id, center, forecast_zone_id, date}) => {
+  const forecastResult = useLatestAvalancheForecast(center_id, center, forecast_zone_id, date); // TODO(skuznets): when we refactor to show previous forecasts, we will need two wrappers for the logic under the fetching, choosing either to fetch the latest, or for a specific date
+  const forecast = forecastResult.data;
+
+  // When navigating from elsewhere in the app, the screen title should already
+  // be set to the zone name. But if we warp directly to a forecast link, we
+  // need to load the zone name dynamically.
+  const navigation = useNavigation<HomeStackNavigationProps>();
+  React.useEffect(() => {
+    if (forecast) {
+      const thisZone: AvalancheForecastZoneSummary | undefined = forecast.forecast_zone.find(zone => zone.id === forecast_zone_id);
+      if (thisZone) {
+        navigation.setOptions({title: thisZone.name});
+      }
+    }
+  }, [forecast, forecast_zone_id, navigation]);
+
+  if (incompleteQueryState(forecastResult)) {
+    return <QueryState results={[forecastResult]} />;
+  }
+
   let currentDanger: AvalancheDangerForecast | undefined = forecast.danger.find(item => item.valid_day === ForecastPeriod.Current);
   if (!currentDanger || !currentDanger.upper) {
     // sometimes, we get an entry of nulls for today
@@ -52,8 +87,6 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
       valid_day: ForecastPeriod.Tomorrow,
     };
   }
-
-  const elevationBandNames: ElevationBandNames = zone.config.elevation_band_names;
 
   return (
     <VStack space={8} bgColor={'#f0f2f5'}>

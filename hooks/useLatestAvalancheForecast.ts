@@ -8,13 +8,11 @@ import * as Sentry from 'sentry-expo';
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
-import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
-import {AvalancheCenterID, Product, productSchema} from 'types/nationalAvalancheCenter';
+import {AvalancheCenter, AvalancheCenterID, Product, productSchema} from 'types/nationalAvalancheCenter';
 import {nominalForecastDate} from 'utils/date';
 import {ZodError} from 'zod';
 
-export const useLatestAvalancheForecast = (center_id: AvalancheCenterID, zone_id: number, requestedTime: Date) => {
-  const {data: metadata} = useAvalancheCenterMetadata(center_id);
+export const useLatestAvalancheForecast = (center_id: AvalancheCenterID, metadata: AvalancheCenter, zone_id: number, requestedTime: Date) => {
   const expiryTimeHours = metadata?.config.expires_time;
   const expiryTimeZone = metadata?.timezone;
 
