@@ -3,6 +3,7 @@ import {VStack} from 'components/core';
 import {bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
 import React, {useEffect, useRef} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
+import {View as RNView} from 'react-native';
 import {colorLookup} from 'theme';
 
 interface Item {
@@ -66,7 +67,7 @@ const selectStyles: SelectStyles = {
   },
 };
 
-export const SelectField: React.FC<SelectFieldProps> = ({name, label, items, prompt, radio}) => {
+export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, label, items, prompt, radio}, viewRef) => {
   const {setValue} = useFormContext();
   const {
     field: {value},
@@ -90,7 +91,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({name, label, items, pro
   }, [ref, value, multiple]);
 
   return (
-    <VStack width="100%" space={4}>
+    <VStack width="100%" space={4} ref={viewRef}>
       <BodyXSmBlack>{label}</BodyXSmBlack>
       <Select
         ref={ref}
@@ -120,4 +121,4 @@ export const SelectField: React.FC<SelectFieldProps> = ({name, label, items, pro
       {fieldState.error && <BodyXSm color={colorLookup('error.900')}>{fieldState.error.message}</BodyXSm>}
     </VStack>
   );
-};
+});

@@ -12,6 +12,8 @@ export interface Observation {
   zone: string;
   activity: string[];
   location: LatLng;
+
+  fieldNotes: string;
 }
 
 export const createObservation = (initialValues: Partial<Observation> | null = null): Observation =>
@@ -32,9 +34,11 @@ export const createObservation = (initialValues: Partial<Observation> | null = n
   );
 
 const requiredMsg = 'This field is required.';
+const tooShort = 'This value is too short.';
+const tooLong = 'This value is too long.';
 
 export const observationSchema = Yup.object().shape({
-  name: Yup.string().min(2, 'That name is too short.').max(50, 'That name is too long.').required(requiredMsg),
+  name: Yup.string().min(2, tooShort).max(50, tooLong).required(requiredMsg),
 
   email: Yup.string().email("That doesn't look like an email address.").required(requiredMsg),
 
@@ -44,7 +48,7 @@ export const observationSchema = Yup.object().shape({
 
   activity: Yup.array().min(1, 'You must select at least one activity.').required('You must select at least one activity.'),
 
-  location: Yup.string().required(requiredMsg),
+  location: Yup.string().min(8, tooShort).max(256, tooLong).required(requiredMsg),
 
   mapLocation: Yup.object()
     .shape({
@@ -52,4 +56,6 @@ export const observationSchema = Yup.object().shape({
       lng: Yup.number(),
     })
     .required(requiredMsg),
+
+  fieldNotes: Yup.string().min(8, tooShort).max(1024, tooLong).required(requiredMsg),
 });
