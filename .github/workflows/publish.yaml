@@ -27,6 +27,8 @@ jobs:
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
   build-android:
+    if: ${{ false }} # 2.22.202 - disable Android builds on this action at this time
+
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
     needs: [ci]
     runs-on: ubuntu-latest
