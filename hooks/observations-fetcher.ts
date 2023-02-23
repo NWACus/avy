@@ -9,7 +9,7 @@ export const useFetch = <TData, TVariables>(query: string, options?: RequestInit
   const clientProps = React.useContext<ClientProps>(ClientContext);
   // TODO(skuznets): how to support options?
   return async (variables?: TVariables) => {
-    const url = `${clientProps.nationalAvalancheCenterHost}/obs/v1/public/graphql`;
+    const url = `${clientProps.observationsUrlPrefix}/obs/v1/public/graphql`;
     const {data} = await axios.post(url, {
       query: query,
       variables: variables,
