@@ -25,7 +25,7 @@ import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, MediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
-export const ObservationSubmit: React.FC<{
+export const SimpleForm: React.FC<{
   center_id: AvalancheCenterID;
   onClose?: () => void;
 }> = ({center_id, onClose}) => {
@@ -181,14 +181,6 @@ export const ObservationSubmit: React.FC<{
                         }}
                       />
                       <LocationField name="mapLocation" label="Latitude/Longitude" />
-                      <TextField
-                        name="route"
-                        label="Route"
-                        textInputProps={{
-                          placeholder: 'Enter details of route taken, including aspects and elevations observed.',
-                          multiline: true,
-                        }}
-                      />
                     </VStack>
                   </CollapsibleCard>
                   <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Signs of instability</Title3Semibold>}>
@@ -213,32 +205,38 @@ export const ObservationSubmit: React.FC<{
                       <Conditional name="collapsing" value="Yes" space={formFieldSpacing}>
                         <SelectField name="collapsingExtent" label="How widespread was the collapsing?" items={['Isolated', 'Widespread']} prompt=" " />
                       </Conditional>
-                      <TextField
-                        name="instabilityComments"
-                        label="Instability comments"
-                        textInputProps={{
-                          placeholder: 'Note length and depth of cracking or collapsing, how recent were the observed avalanches, etc.',
-                          multiline: true,
-                        }}
-                        pb={formFieldSpacing}
-                      />
                     </VStack>
                   </CollapsibleCard>
                   <Conditional name="recent" value="Yes">
                     <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Avalanches</Title3Semibold>}>
                       <VStack space={formFieldSpacing}>
-                        <Body fontStyle="italic">coming soon</Body>
+                        <TextField
+                          name="avalancheComments"
+                          label="Observed avalanches"
+                          textInputProps={{
+                            placeholder: `Location, aspect, and elevation
+                          How recently did it occur?
+                          Natural or triggered?
+                          Was anyone caught?
+                          Avalanche size, width, and depth`,
+                            multiline: true,
+                          }}
+                          pb={formFieldSpacing}
+                        />
                       </VStack>
                     </CollapsibleCard>
                   </Conditional>
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Snowpack</Title3Semibold>}>
+                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Field Notes</Title3Semibold>}>
                     <VStack space={formFieldSpacing}>
                       <TextField
-                        name="snowpackSummary"
-                        label="Snowpack summary"
+                        name="fieldNotes"
+                        label="What did you observe?"
                         textInputProps={{
-                          placeholder:
-                            'Snowpack tests/location/relevancy/results, layer extent, penetration, etc. You can submit images of your pit or profile in the photos section.',
+                          placeholder: `Signs of instability
+                            Snowpack test results
+                            How cautiously or aggressively did you travel?
+                            Weather observations
+                            Overall impression of stability`,
                           multiline: true,
                         }}
                       />
@@ -256,91 +254,6 @@ export const ObservationSubmit: React.FC<{
                       />
                     </VStack>
                   </CollapsibleCard>
-
-                  <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Weather</Title3Semibold>}>
-                    <VStack space={formFieldSpacing}>
-                      <SelectField name="cloudCover" label="Cloud cover" items={['Clear', 'Few', 'Scattered', 'Broken', 'Overcast', 'Obscured']} />
-                      <TextField name="temperature" label="Temperature (F)" textInputProps={{autoComplete: 'off', autoCorrect: false, keyboardType: 'decimal-pad'}} />
-                      <TextField
-                        name="newRecentSnowfall"
-                        label="New/recent snowfall"
-                        textInputProps={{
-                          placeholder: 'Include new snow in the past 24 hours and/or recent storm totals.',
-                        }}
-                      />
-                      <TextField
-                        name="rainLineElevation"
-                        label="Rain line elevation"
-                        textInputProps={{
-                          placeholder: 'To what elevation did it rain?',
-                        }}
-                      />
-                      {/* TODO: make sure these values get lowercased when written */}
-                      <SelectField
-                        name="saft"
-                        label="SAFT (snow available for transport)"
-                        items={[
-                          {
-                            label: 'None',
-                            value: 'none',
-                          },
-                          {
-                            label: 'Small Amounts',
-                            // TODO: opened https://github.com/NationalAvalancheCenter/nac-vue-component-library/pull/16
-                            // to track fixing this typo
-                            value: 'small smounts',
-                          },
-                          {
-                            label: 'Moderate Amounts',
-                            value: 'moderate amounts',
-                          },
-                          {
-                            label: 'Large Amounts',
-                            value: 'large amounts',
-                          },
-                        ]}
-                      />
-                      <SelectField
-                        name="loading"
-                        label="Wind Loading"
-                        items={[
-                          {
-                            label: 'None',
-                            value: 'none',
-                          },
-                          {
-                            label: 'Light',
-                            value: 'light',
-                          },
-                          {
-                            label: 'Moderate',
-                            value: 'moderate',
-                          },
-                          {
-                            label: 'Intense',
-                            value: 'intense',
-                          },
-                          {
-                            label: 'Previous',
-                            value: 'previous',
-                          },
-                          {
-                            label: 'Unknown',
-                            value: 'unknown',
-                          },
-                        ]}
-                      />
-                      <TextField
-                        name="weatherSummary"
-                        label="Weather summary"
-                        textInputProps={{
-                          placeholder: 'Include factors such as weather trends, wind speed and direction, precip type and rate. Elaborate on above weather observations if needed.',
-                          multiline: true,
-                        }}
-                      />
-                    </VStack>
-                  </CollapsibleCard>
-
                   <CollapsibleCard borderRadius={0} borderColor="white" startsCollapsed header={<Title3Semibold>Photos</Title3Semibold>}>
                     <VStack space={formFieldSpacing}>
                       <Body>You can add up to {maxImageCount} images.</Body>

@@ -2,7 +2,7 @@ import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigat
 import {ObservationDetailView} from 'components/observations/ObservationDetailView';
 import {ObservationsListView} from 'components/observations/ObservationsListView';
 import {ObservationsPortal} from 'components/observations/ObservationsPortal';
-import {ObservationSubmit} from 'components/observations/ObservationSubmit';
+import {SimpleForm} from 'components/observations/SimpleForm';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {ObservationsStackParamList, TabNavigatorParamList} from 'routes';
@@ -27,7 +27,7 @@ const ObservationsPortalScreen = ({route}: NativeStackScreenProps<ObservationsSt
 
 const ObservationSubmitScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observationSubmit'>) => {
   const {center_id} = route.params;
-  return <ObservationSubmit center_id={center_id} />;
+  return <SimpleForm center_id={center_id} />;
 };
 
 const ObservationsListScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observationsList'>) => {
