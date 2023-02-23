@@ -1,6 +1,7 @@
 import {FontAwesome5, Fontisto, MaterialCommunityIcons} from '@expo/vector-icons';
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {Carousel} from 'components/content/carousel';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {zone} from 'components/observations/ObservationsListView';
@@ -9,7 +10,7 @@ import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {EverythingFragment, useObservationQuery} from 'hooks/useObservations';
 import React from 'react';
-import {ActivityIndicator, ScrollView, StyleSheet, View} from 'react-native';
+import {ScrollView, StyleSheet} from 'react-native';
 import {
   Activity,
   AvalancheAspect,
@@ -39,31 +40,15 @@ import {utcDateToLocalTimeString} from 'utils/date';
 export const ObservationDetailView: React.FunctionComponent<{
   id: string;
 }> = ({id}) => {
-  const {
-    isLoading: isObservationLoading,
-    isError: isObservationError,
-    data: observation,
-    error: observationError,
-  } = useObservationQuery({
+  const observationResult = useObservationQuery({
     id: id,
   });
-  const {
-    isLoading: isMapLoading,
-    isError: isMapError,
-    data: mapLayer,
-    error: mapError,
-  } = useMapLayer(observation?.getSingleObservation.centerId?.toUpperCase() as AvalancheCenterID);
+  const observation = observationResult.data;
+  const mapResult = useMapLayer(observation?.getSingleObservation.centerId?.toUpperCase() as AvalancheCenterID);
+  const mapLayer = mapResult.data;
 
-  if (isObservationLoading || isMapLoading || !observation) {
-    return <ActivityIndicator />;
-  }
-  if (isObservationError || isMapError) {
-    return (
-      <View>
-        {isMapError && <Body>{`Could not fetch ${observation.getSingleObservation.centerId} map layer: ${mapError}.`}</Body>}
-        {isObservationError && <Body>{`Could not fetch ${observation.getSingleObservation.centerId} observation ${id}: ${observationError}.`}</Body>}
-      </View>
-    );
+  if (incompleteQueryState(observationResult, mapResult)) {
+    return <QueryState results={[observationResult, mapResult]} />;
   }
 
   return <ObservationCard observation={observation.getSingleObservation} mapLayer={mapLayer} />;

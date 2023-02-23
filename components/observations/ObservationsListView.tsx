@@ -4,10 +4,11 @@ import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {geoContains} from 'd3-geo';
 import {compareDesc, parseISO, sub} from 'date-fns';
-import {ActivityIndicator, FlatList, View} from 'react-native';
+import {FlatList} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 
 import {Card} from 'components/content/Card';
+import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {HStack, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {Body, BodyBlack, Title3Semibold} from 'components/text';
@@ -23,39 +24,25 @@ export const ObservationsListView: React.FunctionComponent<{
   center_id: AvalancheCenterID;
   date: Date;
 }> = ({center_id, date}) => {
-  const {isLoading: isMapLoading, isError: isMapError, data: mapLayer, error: mapError} = useMapLayer(center_id);
+  const mapResult = useMapLayer(center_id);
+  const mapLayer = mapResult.data;
 
   const startDate: string = apiDateString(sub(date, {months: 1}));
   const endDate: string = apiDateString(date);
-  const {
-    isLoading: isObservationsLoading,
-    isError: isObservationsError,
-    data: observations,
-    error: observationsError,
-  } = useObservationsQuery({
+  const observationsResult = useObservationsQuery({
     center: center_id,
     startDate: startDate,
     endDate: endDate,
   });
+  const observations = observationsResult.data;
 
-  if (isMapLoading || isObservationsLoading || !observations) {
-    return <ActivityIndicator />;
+  if (incompleteQueryState(observationsResult, mapResult)) {
+    return <QueryState results={[observationsResult, mapResult]} />;
   }
-  if (isMapError || isObservationsError) {
-    return (
-      <View>
-        {isMapError && <Body>{`Could not fetch ${center_id} map layer: ${mapError}.`}</Body>}
-        {isObservationsError && <Body>{`Could not fetch ${center_id} observations: ${observationsError}.`}</Body>}
-      </View>
-    );
-  }
+
   if (!observations.getObservationList || observations.getObservationList.length === 0) {
     // TODO: when cleaning this up, fix it so that it renders the date in the user's locale, not UTC date
-    return (
-      <View>
-        <Body>{`No observations were recorded for ${center_id} between ${startDate} and ${endDate}.`}</Body>
-      </View>
-    );
+    return <NotFound />;
   }
 
   observations.getObservationList.sort((a, b) => compareDesc(parseISO(a.createdAt), parseISO(b.createdAt)));

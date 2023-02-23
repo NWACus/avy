@@ -3,10 +3,11 @@ import React from 'react';
 import {FontAwesome5} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {CARD_MARGIN, CARD_SPACING, CARD_WIDTH} from 'components/AvalancheForecastZoneMap';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useStations} from 'hooks/useStations';
-import {ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, ViewStyle} from 'react-native';
+import {FlatList, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View, ViewStyle} from 'react-native';
 import MapView, {Marker, Region} from 'react-native-maps';
 import {TelemetryStackNavigationProps} from 'routes';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -29,11 +30,13 @@ export const TelemetryStationMap: React.FunctionComponent<{
     setIsReady(true);
   }
 
-  const {isLoading: isMetadataLoading, isError: isMetadataError, data: avalancheCenter, error: metadataError} = useAvalancheCenterMetadata(center_id);
+  const centerResult = useAvalancheCenterMetadata(center_id);
+  const avalancheCenter = centerResult.data;
 
   const [page, setPage] = React.useState<number>(1);
   const [telemetryStations, setTelemetryStations] = React.useState<Record<number, StationMetadata>>({}); // Set uses === for equality, and we need by ID
-  const {isLoading: isStationLoading, isError: isStationError, data: stations, error: stationError} = useStations(avalancheCenter?.widget_config?.stations?.token, page);
+  const stationsResult = useStations(avalancheCenter?.widget_config?.stations?.token, page);
+  const stations = stationsResult.data;
 
   // TODO: when switching between centers, this pagination impl keeps previous centers' stations :|
   React.useEffect(() => {
@@ -64,16 +67,8 @@ export const TelemetryStationMap: React.FunctionComponent<{
     longitudeDelta: 1.05 * region.longitudeDelta,
   };
 
-  if (isMetadataLoading || isStationLoading) {
-    return <ActivityIndicator />;
-  }
-  if (isMetadataError || isStationError) {
-    return (
-      <View>
-        {isMetadataError && <Text>{`Could not fetch ${center_id} properties: ${metadataError?.message}.`}</Text>}
-        {isStationError && <Text>{`Could not fetch telemetry stations for ${center_id}: ${stationError?.message}.`}</Text>}
-      </View>
-    );
+  if (incompleteQueryState(centerResult, stationsResult)) {
+    return <QueryState results={[centerResult, stationsResult]} />;
   }
 
   if (isList) {

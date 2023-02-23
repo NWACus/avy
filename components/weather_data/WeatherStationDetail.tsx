@@ -1,11 +1,12 @@
 import React, {useState} from 'react';
-import {ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
+import {ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
 
 import {range} from 'lodash';
 
 import {AntDesign} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {InfoTooltip} from 'components/content/InfoTooltip';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {Center, Divider, HStack, View, VStack} from 'components/core';
 import {AllCapsSm, Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
 import {format} from 'date-fns';
@@ -180,7 +181,7 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = React.memo(({timeSer
 export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_stids, zoneName}) => {
   const [days, setDays] = useState(1);
   const navigation = useNavigation();
-  const {isLoading, isError, data} = useWeatherStationTimeseries({
+  const timeseries = useWeatherStationTimeseries({
     center: center_id,
     sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
     stids: station_stids,
@@ -188,6 +189,11 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
     endDate: date,
   });
 
+  if (incompleteQueryState(timeseries)) {
+    return <QueryState results={[timeseries]} />;
+  }
+
+  const data = timeseries.data;
   const warnings =
     data?.STATION?.map(({name, station_note: notes}) => notes.map(({start_date, status, note}) => ({name, start_date, status, note})))
       .flat()
@@ -238,17 +244,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
                 </View>
               </TouchableOpacity>
             </HStack>
-            {isLoading && (
-              <Center width="100%" height="100%">
-                <ActivityIndicator size={'large'} />
-              </Center>
-            )}
-            {isError && (
-              <Center width="100%" height="100%">
-                <Body>Error loading weather station data.</Body>
-              </Center>
-            )}
-            {data && <TimeSeriesTable timeSeries={data} />}
+            <TimeSeriesTable timeSeries={data} />
             {/* For some reason, the table is running off the bottom of the view, and I just don't have time to keep debugging this.
              Adding the placeholder here does the trick. :dizzy_face: */}
             <View height={16} />

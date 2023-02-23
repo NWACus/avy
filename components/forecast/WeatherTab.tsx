@@ -3,13 +3,13 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {ActionList} from 'components/content/ActionList';
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {InfoTooltip} from 'components/content/InfoTooltip';
-import {Center, HStack, View, VStack} from 'components/core';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
+import {HStack, View, VStack} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodyXSmBlack, bodyXSmSize, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
 import {useLatestWeatherForecast} from 'hooks/useLatestWeatherForecast';
 import {useWeatherStations} from 'hooks/useWeatherStations';
-import {ActivityIndicator} from 'react-native';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
@@ -41,36 +41,23 @@ const SmallHeaderWithTooltip = ({title, content, dialogTitle}) => (
 );
 
 export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) => {
-  const {isLoading, isError, data: forecast, error: forecastError} = useLatestWeatherForecast(center_id, zone);
-  const {status: weatherStationStatus, data: weatherStationsByZone} = useWeatherStations({
+  const forecastResult = useLatestWeatherForecast(center_id, zone);
+  const forecast = forecastResult.data;
+  const stationsResult = useWeatherStations({
     center: center_id,
     sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
   });
+  const weatherStationsByZone = stationsResult.data;
 
   const navigation = useNavigation<ForecastNavigationProp>();
+
+  if (incompleteQueryState(forecastResult, stationsResult)) {
+    return <QueryState results={[forecastResult, stationsResult]} />;
+  }
 
   // In the UI, we show weather station groups, which may contain 1 or more weather stations.
   // Example: Alpental Ski Area shows 3 weather stations.
   const groupedWeatherStations = Object.entries(weatherStationsByZone?.find(zoneData => zoneData.zoneId === zone.id)?.stationGroups || {}).sort((a, b) => a[0].localeCompare(b[0]));
-
-  if (isLoading) {
-    return (
-      <Center style={{flex: 1}}>
-        <VStack space={8} style={{flex: 1}} alignItems={'center'}>
-          <Body>Loading current weather forecast for the {zone.name} zone...</Body>
-          <ActivityIndicator />
-        </VStack>
-      </Center>
-    );
-  } else if (isError) {
-    return (
-      <Center style={{flex: 1}}>
-        <Body>
-          Could not fetch weather forecast for the {zone.name} zone: {forecastError?.message}
-        </Body>
-      </Center>
-    );
-  }
 
   return (
     <VStack space={8} bgColor={'#f0f2f5'}>
@@ -152,17 +139,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
       </Card>
       <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Data</Title3Black>}>
         <VStack>
-          {weatherStationStatus === 'loading' && (
-            <View py={6}>
-              <ActivityIndicator size={16} />
-            </View>
-          )}
-          {weatherStationStatus === 'error' && (
-            <HStack py={6}>
-              <Body>Error loading weather stations.</Body>
-            </HStack>
-          )}
-          {weatherStationStatus === 'success' && groupedWeatherStations.length > 0 && (
+          {groupedWeatherStations.length > 0 && (
             <ActionList
               actions={groupedWeatherStations.map(([name, stations]) => ({
                 label: name,
@@ -188,7 +165,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
               }))}
             />
           )}
-          {weatherStationStatus === 'success' && groupedWeatherStations.length === 0 && (
+          {groupedWeatherStations.length === 0 && (
             <HStack py={6}>
               <Body>No weather stations in this zone.</Body>
             </HStack>
