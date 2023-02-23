@@ -14,11 +14,18 @@
       "channel": "development"
     },
     "production": {
-      "channel": "production"
+      "channel": "production",
+      "autoIncrement": true
     }
   },
   "submit": {
-    "production": {},
+    "production": {
+      "ios": {
+        "appleId": "$IOS_USER_ID",
+        "appleTeamId": "$IOS_TEAM_ID",
+        "ascAppId": "$IOS_APP_ID"
+      }
+    },
     "preview": {
       "android": {
         "track": "internal",
