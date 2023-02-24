@@ -196,7 +196,7 @@ export const mediaItemSchema = z.object({
   id: z.number().optional(),
   url: mediaLinksSchema,
   type: mediaTypeSchema,
-  caption: z.string(),
+  caption: z.string().optional().nullable(),
 });
 export type MediaItem = z.infer<typeof mediaItemSchema>;
 

@@ -14,6 +14,7 @@ import {NACIcon} from 'components/icons/nac-icons';
 import {Body, BodyBlack, Title3Semibold} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
+import {useNWACObservations} from 'hooks/useNWACObservations';
 import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from 'types/nationalAvalancheCenter';
 import {apiDateString, utcDateToLocalTimeString} from 'utils/date';
@@ -27,34 +28,38 @@ export const ObservationsListView: React.FunctionComponent<{
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
-  const startDate: string = apiDateString(sub(date, {months: 1}));
-  const endDate: string = apiDateString(date);
+  const startDate = sub(date, {weeks: 1});
+  const endDate = date;
   const observationsResult = useObservationsQuery({
     center: center_id,
-    startDate: startDate,
-    endDate: endDate,
+    startDate: apiDateString(startDate),
+    endDate: apiDateString(endDate),
   });
-  const observations = observationsResult.data;
+  const nacObservations = observationsResult.data;
+  const nwacObservationsResult = useNWACObservations(center_id, startDate, endDate);
+  const nwacObservations = nwacObservationsResult.data;
+  const observations = nacObservations?.getObservationList.concat(nwacObservations?.getObservationList);
 
-  if (incompleteQueryState(observationsResult, mapResult)) {
-    return <QueryState results={[observationsResult, mapResult]} />;
+  if (incompleteQueryState(observationsResult, nwacObservationsResult, mapResult)) {
+    return <QueryState results={[observationsResult, nwacObservationsResult, mapResult]} />;
   }
 
-  if (!observations.getObservationList || observations.getObservationList.length === 0) {
+  if (!observations || observations.length === 0) {
     // TODO: when cleaning this up, fix it so that it renders the date in the user's locale, not UTC date
     return <NotFound />;
   }
 
-  observations.getObservationList.sort((a, b) => compareDesc(parseISO(a.createdAt), parseISO(b.createdAt)));
+  observations.sort((a, b) => compareDesc(parseISO(a.createdAt), parseISO(b.createdAt)));
 
   return (
     <FlatList
-      data={observations.getObservationList.map(observation => ({
+      data={observations.map(observation => ({
         id: observation.id,
         observation: observation,
-        zone: zone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng),
+        source: nwacObservations?.getObservationList.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
+        zone: zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
       }))}
-      renderItem={({item}) => <ObservationSummaryCard observation={item.observation} zone={item.zone} />}
+      renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}
     />
   );
 };
@@ -72,9 +77,10 @@ export const zone = (mapLayer: MapLayer, lat: number, long: number): string => {
 };
 
 export const ObservationSummaryCard: React.FunctionComponent<{
+  source: string;
   observation: OverviewFragment;
   zone: string;
-}> = ({zone, observation}) => {
+}> = ({source, zone, observation}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const anySignsOfInstability =
     observation.instability.avalanches_caught ||
@@ -88,9 +94,15 @@ export const ObservationSummaryCard: React.FunctionComponent<{
       borderRadius={8}
       borderColor="white"
       onPress={() => {
-        navigation.navigate('observation', {
-          id: observation.id,
-        });
+        if (source === 'nwac') {
+          navigation.navigate('nwacObservation', {
+            id: observation.id,
+          });
+        } else {
+          navigation.navigate('observation', {
+            id: observation.id,
+          });
+        }
       }}
       header={
         <HStack alignContent="flex-start" flexWrap="wrap" alignItems="center" space={8}>

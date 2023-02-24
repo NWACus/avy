@@ -128,27 +128,27 @@ export type ObservationQuery = {
   getSingleObservation: {
     __typename?: 'ObservationGraphPublic';
     id: any;
-    centerId: string;
-    createdAt: any;
-    lastUpdated: any;
     status: string;
     private: boolean;
-    observerType: string;
     organization: string;
     name?: string | null;
-    startDate?: any | null;
-    endDate?: any | null;
     activity: Array<string>;
-    locationName: string;
     route?: string | null;
     instability: any;
-    instabilitySummary?: string | null;
-    observationSummary: string;
     media?: any | null;
     urls?: Array<string> | null;
-    avalanchesSummary?: string | null;
     numberMedia: number;
-    locationPoint: {__typename?: 'CoordinatesGraph'; lat?: number | null; lng?: number | null};
+    center_id: string;
+    created_at: any;
+    last_updated: any;
+    observer_type: string;
+    start_date?: any | null;
+    end_date?: any | null;
+    location_name: string;
+    instability_summary?: string | null;
+    observation_summary: string;
+    avalanches_summary?: string | null;
+    location_point: {__typename?: 'CoordinatesGraph'; lat?: number | null; lng?: number | null};
     avalanches: Array<{
       __typename?: 'AvalancheObservationGraph';
       id: any;
@@ -175,22 +175,22 @@ export type ObservationQuery = {
       comments?: string | null;
       media?: any | null;
     }>;
-    advancedFields?: {
+    advanced_fields?: {
       __typename?: 'AdvancedFieldsGraphPublic';
       id: any;
-      observationId: any;
-      observedTerrain?: string | null;
-      timeInField: any;
-      weatherSummary?: string | null;
       weather?: any | null;
-      avalancheComments?: string | null;
-      snowpackSummary?: string | null;
       snowpack?: any | null;
-      snowpackMedia?: any | null;
-      avalancheProblems?: any | null;
-      avalancheProblemsComments?: string | null;
-      terrainUse?: string | null;
-      bottomLine?: string | null;
+      observation_id: any;
+      observed_terrain?: string | null;
+      time_in_field: any;
+      weather_summary?: string | null;
+      avalanche_comments?: string | null;
+      snowpack_summary?: string | null;
+      snowpack_media?: any | null;
+      avalanche_problems?: any | null;
+      avalanche_problems_comments?: string | null;
+      terrain_use?: string | null;
+      bottom_line?: string | null;
     } | null;
   };
 };
@@ -231,27 +231,27 @@ export type OverviewFragment = {
 export type EverythingFragment = {
   __typename?: 'ObservationGraphPublic';
   id: any;
-  centerId: string;
-  createdAt: any;
-  lastUpdated: any;
   status: string;
   private: boolean;
-  observerType: string;
   organization: string;
   name?: string | null;
-  startDate?: any | null;
-  endDate?: any | null;
   activity: Array<string>;
-  locationName: string;
   route?: string | null;
   instability: any;
-  instabilitySummary?: string | null;
-  observationSummary: string;
   media?: any | null;
   urls?: Array<string> | null;
-  avalanchesSummary?: string | null;
   numberMedia: number;
-  locationPoint: {__typename?: 'CoordinatesGraph'; lat?: number | null; lng?: number | null};
+  center_id: string;
+  created_at: any;
+  last_updated: any;
+  observer_type: string;
+  start_date?: any | null;
+  end_date?: any | null;
+  location_name: string;
+  instability_summary?: string | null;
+  observation_summary: string;
+  avalanches_summary?: string | null;
+  location_point: {__typename?: 'CoordinatesGraph'; lat?: number | null; lng?: number | null};
   avalanches: Array<{
     __typename?: 'AvalancheObservationGraph';
     id: any;
@@ -278,22 +278,22 @@ export type EverythingFragment = {
     comments?: string | null;
     media?: any | null;
   }>;
-  advancedFields?: {
+  advanced_fields?: {
     __typename?: 'AdvancedFieldsGraphPublic';
     id: any;
-    observationId: any;
-    observedTerrain?: string | null;
-    timeInField: any;
-    weatherSummary?: string | null;
     weather?: any | null;
-    avalancheComments?: string | null;
-    snowpackSummary?: string | null;
     snowpack?: any | null;
-    snowpackMedia?: any | null;
-    avalancheProblems?: any | null;
-    avalancheProblemsComments?: string | null;
-    terrainUse?: string | null;
-    bottomLine?: string | null;
+    observation_id: any;
+    observed_terrain?: string | null;
+    time_in_field: any;
+    weather_summary?: string | null;
+    avalanche_comments?: string | null;
+    snowpack_summary?: string | null;
+    snowpack_media?: any | null;
+    avalanche_problems?: any | null;
+    avalanche_problems_comments?: string | null;
+    terrain_use?: string | null;
+    bottom_line?: string | null;
   } | null;
 };
 
@@ -315,29 +315,29 @@ export const OverviewFragmentDoc = `
 export const EverythingFragmentDoc = `
     fragment everything on ObservationGraphPublic {
   id
-  centerId
-  createdAt
-  lastUpdated
+  center_id: centerId
+  created_at: createdAt
+  last_updated: lastUpdated
   status
   private
-  observerType
+  observer_type: observerType
   organization
   name
-  startDate
-  endDate
+  start_date: startDate
+  end_date: endDate
   activity
-  locationPoint {
+  location_point: locationPoint {
     lat
     lng
   }
-  locationName
+  location_name: locationName
   route
   instability
-  instabilitySummary
-  observationSummary
+  instability_summary: instabilitySummary
+  observation_summary: observationSummary
   media
   urls
-  avalanchesSummary
+  avalanches_summary: avalanchesSummary
   avalanches {
     id
     observationId
@@ -363,21 +363,21 @@ export const EverythingFragmentDoc = `
     comments
     media
   }
-  advancedFields {
+  advanced_fields: advancedFields {
     id
-    observationId
-    observedTerrain
-    timeInField
-    weatherSummary
+    observation_id: observationId
+    observed_terrain: observedTerrain
+    time_in_field: timeInField
+    weather_summary: weatherSummary
     weather
-    avalancheComments
-    snowpackSummary
+    avalanche_comments: avalancheComments
+    snowpack_summary: snowpackSummary
     snowpack
-    snowpackMedia
-    avalancheProblems
-    avalancheProblemsComments
-    terrainUse
-    bottomLine
+    snowpack_media: snowpackMedia
+    avalanche_problems: avalancheProblems
+    avalanche_problems_comments: avalancheProblemsComments
+    terrain_use: terrainUse
+    bottom_line: bottomLine
   }
   numberMedia
 }

@@ -52,6 +52,10 @@ import {toISOStringUTC} from 'utils/date';
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 if (Constants.expoConfig.extra!.log_requests) {
   axios.interceptors.request.use(request => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (!request.url.includes(Constants.expoConfig.extra!.log_requests_matching)) {
+      return request;
+    }
     console.log(
       'Request:',
       JSON.stringify(
@@ -59,12 +63,31 @@ if (Constants.expoConfig.extra!.log_requests) {
           method: request.method,
           url: request.url,
           params: request.params,
+          data: request.data,
         },
         null,
         2,
       ),
     );
     return request;
+  });
+  axios.interceptors.response.use(response => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (!response.config.url.includes(Constants.expoConfig.extra!.log_requests_matching)) {
+      return response;
+    }
+    console.log(
+      'Response:',
+      JSON.stringify(
+        {
+          status: response.status,
+          data: response.data,
+        },
+        null,
+        2,
+      ),
+    );
+    return response;
   });
 }
 

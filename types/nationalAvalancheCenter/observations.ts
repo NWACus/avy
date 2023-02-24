@@ -1,3 +1,7 @@
+import {AvalancheProblemName} from 'types/nationalAvalancheCenter/enums';
+import {avalancheCenterIDSchema, avalancheProblemLocationSchema, mediaItemSchema} from 'types/nationalAvalancheCenter/schemas';
+import {z} from 'zod';
+
 const Unknown = 'Unknown';
 
 function reverseLookup<T extends PropertyKey, U extends PropertyKey>(mapping: Record<T, U>, lookup: U): string {
@@ -242,3 +246,127 @@ export type PartnerType = (typeof PartnerType)[keyof typeof PartnerType];
 export const FormatPartnerType = (value: PartnerType): string => {
   return reverseLookup(PartnerType, value);
 };
+// from the client-side schema at https://github.com/NationalAvalancheCenter/nac-vue-component-library/blob/main/constants/observations.js
+export const observationSchema = z.object({
+  organization: z.string().nullable(),
+  center_id: z.preprocess(s => String(s).toUpperCase(), avalancheCenterIDSchema),
+  observer_type: z.nativeEnum(PartnerType),
+  name: z.string().nullable(),
+  phone: z.string().nullable(),
+  email: z.string().email().nullable(),
+  created_at: z.string().nullable(),
+  start_date: z.string().nullable(),
+  end_date: z.string().nullable(),
+  activity: z.array(z.nativeEnum(Activity)),
+  location_point: z
+    .object({
+      lng: z.number().nullable(),
+      lat: z.number().nullable(),
+    })
+    .nullable(),
+  location_name: z.string(),
+  route: z.string(),
+  instability: z.object({
+    avalanches_observed: z.boolean(),
+    avalanches_triggered: z.boolean(),
+    avalanches_caught: z.boolean(),
+    cracking: z.boolean(),
+    cracking_description: z.nativeEnum(InstabilityDistribution).or(z.string().length(0)).nullable(),
+    collapsing: z.boolean(),
+    collapsing_description: z.nativeEnum(InstabilityDistribution).or(z.string().length(0)).nullable(),
+  }),
+  instability_summary: z.string(),
+  observation_summary: z.string(),
+  media: z.array(mediaItemSchema).nullable(),
+  // urls: z.array(z.string()).nullable(), // what even is this?
+  avalanches_summary: z.string(),
+  avalanches: z
+    .array(
+      z.object({
+        date: z.string().nullable(),
+        dateAccuracy: z.nativeEnum(AvalancheDateUncertainty).or(z.string().length(0)).nullable(),
+        location: z.string().nullable(),
+        number: z.number().nullable(),
+        avalancheType: z.nativeEnum(AvalancheType).or(z.string().length(0)).nullable(),
+        cause: z.nativeEnum(AvalancheCause).or(z.string().length(0)).nullable(),
+        trigger: z.nativeEnum(AvalancheTrigger).or(z.string().length(0)).nullable(),
+        avgCrownDepth: z.number().nullable(),
+        dSize: z.string().nullable(),
+        rSize: z.string().nullable(),
+        bedSfc: z.nativeEnum(AvalancheBedSurface).or(z.string().length(0)).nullable(),
+        elevation: z.number().or(z.string()).nullable(),
+        verticalFall: z.number().or(z.string()).nullable(),
+        width: z.number().nullable(),
+        slopeAngle: z.number().nullable(),
+        aspect: z.nativeEnum(AvalancheAspect).or(z.string().length(0)).nullable(),
+        weakLayerType: z.string().nullable(), // TODO: this is clearly an enum somewhere, it's not anywhere I can see..
+        weakLayerDate: z.string().nullable(),
+        comments: z.string().nullable(),
+        media: z.array(mediaItemSchema).nullable(),
+      }),
+    )
+    .nullable(),
+  advanced_fields: z
+    .object({
+      observation_id: z.string(),
+      observed_terrain: z.string().nullable(),
+      time_in_field: z
+        .object({
+          start: z.string().nullable(),
+          end: z.string().nullable(),
+        })
+
+        .nullable(),
+      weather: z
+        .object({
+          air_temp: z.string().nullable(),
+          cloud_cover: z.nativeEnum(CloudCover).or(z.string().length(0)).nullable(),
+          recent_snowfall: z.string().nullable(),
+          rain_elevation: z.string().nullable(),
+          snow_avail_for_transport: z.nativeEnum(SnowAvailableForTransport).or(z.string().length(0)).nullable(),
+          wind_loading: z.nativeEnum(WindLoading).or(z.string().length(0)).nullable(),
+        })
+
+        .nullable(),
+      weather_summary: z.string().nullable(),
+      snowpack: z.object({}).nullable(), // TODO: what's in here?
+      snowpack_summary: z.string().nullable(),
+      snowpack_media: z.array(mediaItemSchema).nullable(),
+      avalanche_problems: z
+        .array(
+          z.object({
+            rank: z.number(),
+            type: z.nativeEnum(AvalancheProblemName).or(z.string().length(0)).nullable(),
+            depth: z.string().nullable(),
+            layer: z.string().nullable(),
+            location: z.array(avalancheProblemLocationSchema).nullable(),
+            distribution: z.nativeEnum(AvalancheProblemDistribution).or(z.string().length(0)).nullable(),
+            sensitivity: z.nativeEnum(AvalancheProblemSensitivity).or(z.string().length(0)).nullable(),
+            d_size: z.array(z.string()).nullable(),
+            comments: z.string().nullable(),
+          }),
+        )
+
+        .nullable(),
+      avalanche_problems_comments: z.string().nullable(),
+      terrain_use: z.string().nullable(),
+      bottom_line: z.string().nullable(),
+      danger_rating: z
+        .object({
+          rating: z.array(
+            z.object({
+              upper: z.number(),
+              middle: z.number(),
+              loweer: z.number(),
+            }),
+          ),
+          confidence: z.nativeEnum(DangerConfidence).or(z.string().length(0)),
+          trend: z.nativeEnum(DangerTrend).or(z.string().length(0)),
+        })
+
+        .nullable(),
+    })
+
+    .nullable(),
+});
+export type Observation = z.infer<typeof observationSchema>;

@@ -8,9 +8,11 @@ import {zone} from 'components/observations/ObservationsListView';
 import {Body, BodyBlack, FeatureTitleBlack, Title1Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
-import {EverythingFragment, useObservationQuery} from 'hooks/useObservations';
+import {useNWACObservation} from 'hooks/useNWACObservation';
+import {useObservationQuery} from 'hooks/useObservations';
 import React from 'react';
 import {ScrollView, StyleSheet} from 'react-native';
+import * as Sentry from 'sentry-expo';
 import {
   Activity,
   AvalancheAspect,
@@ -20,22 +22,42 @@ import {
   AvalancheDateUncertainty,
   AvalancheTrigger,
   AvalancheType,
+  CloudCover,
   FormatActivity,
   FormatAvalancheAspect,
   FormatAvalancheBedSurface,
   FormatAvalancheCause,
   FormatAvalancheDateUncertainty,
-  FormatAvalancheProblemDistribution,
   FormatAvalancheTrigger,
   FormatAvalancheType,
   FormatCloudCover,
+  FormatInstabilityDistribution,
   FormatPartnerType,
   FormatSnowAvailableForTransport,
   FormatWindLoading,
+  InstabilityDistribution,
   MapLayer,
-  PartnerType,
+  Observation,
+  observationSchema,
+  SnowAvailableForTransport,
+  WindLoading,
 } from 'types/nationalAvalancheCenter';
 import {utcDateToLocalTimeString} from 'utils/date';
+
+export const NWACObservationDetailView: React.FunctionComponent<{
+  id: string;
+}> = ({id}) => {
+  const observationResult = useNWACObservation(parseInt(id));
+  const observation = observationResult.data;
+  const mapResult = useMapLayer(observation?.center_id);
+  const mapLayer = mapResult.data;
+
+  if (incompleteQueryState(observationResult, mapResult)) {
+    return <QueryState results={[observationResult, mapResult]} />;
+  }
+
+  return <ObservationCard observation={observation} mapLayer={mapLayer} />;
+};
 
 export const ObservationDetailView: React.FunctionComponent<{
   id: string;
@@ -44,18 +66,30 @@ export const ObservationDetailView: React.FunctionComponent<{
     id: id,
   });
   const observation = observationResult.data;
-  const mapResult = useMapLayer(observation?.getSingleObservation.centerId?.toUpperCase() as AvalancheCenterID);
+  const mapResult = useMapLayer(observation?.getSingleObservation.center_id?.toUpperCase() as AvalancheCenterID);
   const mapLayer = mapResult.data;
 
   if (incompleteQueryState(observationResult, mapResult)) {
     return <QueryState results={[observationResult, mapResult]} />;
   }
 
-  return <ObservationCard observation={observation.getSingleObservation} mapLayer={mapLayer} />;
+  const parseResult = observationSchema.deepPartial().safeParse(observation.getSingleObservation);
+  if (parseResult.success === false) {
+    console.log('unparsable observation', id, parseResult.error, JSON.stringify(observation.getSingleObservation, null, 2));
+    Sentry.Native.captureException(parseResult.error, {
+      tags: {
+        zod_error: true,
+        id,
+      },
+    });
+    throw parseResult.error;
+  } else {
+    return <ObservationCard observation={parseResult.data} mapLayer={mapLayer} />;
+  }
 };
 
 export const ObservationCard: React.FunctionComponent<{
-  observation: EverythingFragment;
+  observation: Observation;
   mapLayer: MapLayer;
 }> = ({observation, mapLayer}) => {
   const anySignsOfInstability =
@@ -72,17 +106,17 @@ export const ObservationCard: React.FunctionComponent<{
           marginTop={2}
           borderRadius={0}
           borderColor="white"
-          header={<FeatureTitleBlack>{`${FormatPartnerType(observation.observerType as PartnerType)} Field Observation`}</FeatureTitleBlack>}>
+          header={<FeatureTitleBlack>{`${FormatPartnerType(observation.observer_type)} Field Observation`}</FeatureTitleBlack>}>
           <VStack space={8}>
             <HStack flexWrap="wrap" space={8} alignItems="flex-start">
-              <IdentifiedInformation header={'Submitted'} body={utcDateToLocalTimeString(observation.createdAt)} />
-              {observation.endDate && <IdentifiedInformation header={'Expires'} body={utcDateToLocalTimeString(observation.endDate)} />}
+              <IdentifiedInformation header={'Submitted'} body={utcDateToLocalTimeString(observation.created_at)} />
+              {observation.end_date && <IdentifiedInformation header={'Expires'} body={utcDateToLocalTimeString(observation.end_date)} />}
               <IdentifiedInformation header={'Author(s)'} body={observation.name || 'Unknown'} />
-              <IdentifiedInformation header={'Activity'} body={activityDisplayName(observation.activity)} />
+              {observation.activity && <IdentifiedInformation header={'Activity'} body={activityDisplayName(observation.activity)} />}
             </HStack>
             <HStack flexWrap="wrap" space={8} alignItems="flex-start">
-              <IdentifiedInformation header={'Zone/Region'} body={zone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng)} />
-              <IdentifiedInformation header={'Location'} body={observation.locationName} />
+              <IdentifiedInformation header={'Zone/Region'} body={zone(mapLayer, observation.location_point?.lat, observation.location_point?.lng)} />
+              <IdentifiedInformation header={'Location'} body={observation.location_name} />
               <IdentifiedInformation header={'Route'} body={observation.route} />
             </HStack>
           </VStack>
@@ -97,7 +131,7 @@ export const ObservationCard: React.FunctionComponent<{
               <Title1Black>Observation Summary</Title1Black>
             </HStack>
           }>
-          <HTML source={{html: observation.observationSummary}} />
+          <HTML source={{html: observation.observation_summary}} />
           {anySignsOfInstability && (
             <VStack space={8} style={{flex: 1}}>
               <BodyBlack style={{textTransform: 'uppercase'}}>{'Signs Of Instability'}</BodyBlack>
@@ -123,7 +157,8 @@ export const ObservationCard: React.FunctionComponent<{
                 <HStack space={8} alignItems="center">
                   <MaterialCommunityIcons name="arrow-collapse-vertical" size={24} color="black" />
                   <Body color="text.secondary">
-                    {observation.instability.collapsing_description && `${FormatAvalancheProblemDistribution(observation.instability.collapsing_description)} `}
+                    {observation.instability.collapsing_description &&
+                      `${FormatInstabilityDistribution(observation.instability.collapsing_description as InstabilityDistribution)} `}
                     {'Collapsing Observed'}
                   </Body>
                 </HStack>
@@ -132,17 +167,17 @@ export const ObservationCard: React.FunctionComponent<{
                 <HStack space={8} alignItems="center">
                   <MaterialCommunityIcons name="lightning-bolt" size={24} color="black" />
                   <Body color="text.secondary">
-                    {observation.instability.cracking_description && `${FormatAvalancheProblemDistribution(observation.instability.cracking_description)} `}
+                    {observation.instability.cracking_description && `${FormatInstabilityDistribution(observation.instability.cracking_description as InstabilityDistribution)} `}
                     {'Cracking Observed'}
                   </Body>
                 </HStack>
               )}
             </VStack>
           )}
-          {observation.instabilitySummary && (
+          {observation.instability_summary && (
             <VStack space={8} style={{flex: 1}}>
               <BodyBlack style={{textTransform: 'uppercase'}}>{'Instability Comments'}</BodyBlack>
-              <HTML source={{html: observation.instabilitySummary}} />
+              <HTML source={{html: observation.instability_summary}} />
             </VStack>
           )}
         </CollapsibleCard>
@@ -160,7 +195,7 @@ export const ObservationCard: React.FunctionComponent<{
             <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.media} displayCaptions={false} />
           </CollapsibleCard>
         )}
-        {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanchesSummary) && (
+        {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanches_summary) && (
           <CollapsibleCard
             startsCollapsed={false}
             borderRadius={0}
@@ -216,15 +251,15 @@ export const ObservationCard: React.FunctionComponent<{
                   </>
                 </VStack>
               ))}
-            {observation.avalanchesSummary && (
+            {observation.avalanches_summary && (
               <VStack space={8} style={{flex: 1}}>
                 <BodyBlack style={{textTransform: 'uppercase'}}>{'Avalanche Summary'}</BodyBlack>
-                <HTML source={{html: observation.avalanchesSummary}} />
+                <HTML source={{html: observation.avalanches_summary}} />
               </VStack>
             )}
           </CollapsibleCard>
         )}
-        {observation.advancedFields && (observation.advancedFields.weather || observation.advancedFields.weatherSummary) && (
+        {observation.advanced_fields && (observation.advanced_fields.weather || observation.advanced_fields.weather_summary) && (
           <CollapsibleCard
             startsCollapsed={false}
             borderRadius={0}
@@ -236,38 +271,38 @@ export const ObservationCard: React.FunctionComponent<{
               </HStack>
             }>
             <>
-              {observation.advancedFields.weather && (
+              {observation.advanced_fields.weather && (
                 <>
                   <HStack flexWrap="wrap" space={8}>
-                    <IdentifiedWeatherInformation header={'Cloud Cover'} body={FormatCloudCover(observation.advancedFields.weather.cloud_cover)} />
-                    <IdentifiedWeatherInformation header={'Temperature (F)'} body={observation.advancedFields.weather.air_temp} />
-                    <IdentifiedWeatherInformation header={'New or Recent Snowfall'} body={observation.advancedFields.weather.recent_snowfall} />
+                    <IdentifiedWeatherInformation header={'Cloud Cover'} body={FormatCloudCover(observation.advanced_fields.weather.cloud_cover as CloudCover)} />
+                    <IdentifiedWeatherInformation header={'Temperature (F)'} body={observation.advanced_fields.weather.air_temp} />
+                    <IdentifiedWeatherInformation header={'New or Recent Snowfall'} body={observation.advanced_fields.weather.recent_snowfall} />
                   </HStack>
                   <HStack flexWrap="wrap" space={8}>
-                    <IdentifiedWeatherInformation header={'Rain/Snow Line (ft)'} body={observation.advancedFields.weather.rain_elevation} />
+                    <IdentifiedWeatherInformation header={'Rain/Snow Line (ft)'} body={observation.advanced_fields.weather.rain_elevation} />
                     <IdentifiedWeatherInformation
                       header={'Snow Available For Transport'}
-                      body={FormatSnowAvailableForTransport(observation.advancedFields.weather.snow_avail_for_transport)}
+                      body={FormatSnowAvailableForTransport(observation.advanced_fields.weather.snow_avail_for_transport as SnowAvailableForTransport)}
                     />
-                    <IdentifiedWeatherInformation header={'Wind Loading'} body={FormatWindLoading(observation.advancedFields.weather.wind_loading)} />
+                    <IdentifiedWeatherInformation header={'Wind Loading'} body={FormatWindLoading(observation.advanced_fields.weather.wind_loading as WindLoading)} />
                   </HStack>
                 </>
               )}
             </>
             <>
-              {observation.advancedFields.weatherSummary && (
+              {observation.advanced_fields.weather_summary && (
                 <VStack space={8} style={{flex: 1}}>
                   <BodyBlack style={{textTransform: 'uppercase'}}>{'Weather Summary'}</BodyBlack>
-                  <HTML source={{html: observation.advancedFields.weatherSummary}} />
+                  <HTML source={{html: observation.advanced_fields.weather_summary}} />
                 </VStack>
               )}
             </>
           </CollapsibleCard>
         )}
-        {observation.advancedFields &&
-          (observation.advancedFields.snowpack ||
-            (observation.advancedFields.snowpackMedia && observation.advancedFields.snowpackMedia.length > 0) ||
-            observation.advancedFields.snowpackSummary) && (
+        {observation.advanced_fields &&
+          (observation.advanced_fields.snowpack ||
+            (observation.advanced_fields.snowpack_media && observation.advanced_fields.snowpack_media.length > 0) ||
+            observation.advanced_fields.snowpack_summary) && (
             <CollapsibleCard
               startsCollapsed={false}
               borderRadius={0}
@@ -278,21 +313,21 @@ export const ObservationCard: React.FunctionComponent<{
                   <Title1Black>Snowpack Observations</Title1Black>
                 </HStack>
               }>
-              <>{observation.advancedFields.snowpack && <>{/* we don't know what fields could be in this thing ... */}</>}</>
+              <>{observation.advanced_fields.snowpack && <>{/* we don't know what fields could be in this thing ... */}</>}</>
               <>
-                {observation.advancedFields.snowpackSummary && (
+                {observation.advanced_fields.snowpack_summary && (
                   <VStack space={8} style={{flex: 1}}>
                     <BodyBlack style={{textTransform: 'uppercase'}}>{'Snowpack Summary'}</BodyBlack>
-                    <HTML source={{html: observation.advancedFields.snowpackSummary}} />
+                    <HTML source={{html: observation.advanced_fields.snowpack_summary}} />
                   </VStack>
                 )}
               </>
               <>
-                {observation.advancedFields.snowpackMedia && observation.advancedFields.snowpackMedia.length > 0 && (
+                {observation.advanced_fields.snowpack_media && observation.advanced_fields.snowpack_media.length > 0 && (
                   <>
                     <VStack space={8} style={{flex: 1}}>
                       <BodyBlack style={{textTransform: 'uppercase'}}>{'Snowpack Media'}</BodyBlack>
-                      <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.advancedFields.snowpackMedia} displayCaptions={false} />
+                      <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.advanced_fields.snowpack_media} displayCaptions={false} />
                     </VStack>
                   </>
                 )}
@@ -305,7 +340,7 @@ export const ObservationCard: React.FunctionComponent<{
 };
 
 const activityDisplayName = (activity: string[]): string => {
-  if (activity.length < 1) {
+  if (!activity || activity.length < 1) {
     FormatActivity(Activity.Other);
   }
   return FormatActivity(activity[0] as Activity);

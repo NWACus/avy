@@ -21,7 +21,6 @@ const config: CodegenConfig = {
           isReactHook: true,
           errorType: 'AxiosError', // this doesn't seem to take effect ... why ?
         },
-        legacyMode: true,
       },
     },
   },

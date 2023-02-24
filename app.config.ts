@@ -13,6 +13,7 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   config.hooks!.postPublish![0]!.config!.authToken = process.env.SENTRY_API_TOKEN;
   config.extra!.sentry_dsn = process.env.SENTRY_DSN;
   config.extra!.log_requests = process.env.LOG_REQUESTS != null;
+  config.extra!.log_requests_matching = process.env.LOG_REQUESTS_MATCHING != null ? process.env.LOG_REQUESTS_MATCHING : 'https';
 
   return config;
 };

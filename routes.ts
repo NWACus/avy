@@ -70,6 +70,9 @@ export type ObservationsStackParamList = {
   observation: {
     id: string;
   };
+  nwacObservation: {
+    id: string;
+  };
 };
 export type ObservationsStackNavigationProps = NativeStackNavigationProp<ObservationsStackParamList>;
 
