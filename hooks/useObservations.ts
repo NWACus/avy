@@ -212,6 +212,7 @@ export type ObservationsQuery = {
     locationName: string;
     instability: any;
     observationSummary: string;
+    media?: any | null;
     locationPoint: {__typename?: 'CoordinatesGraph'; lat?: number | null; lng?: number | null};
   }>;
 };
@@ -225,6 +226,7 @@ export type OverviewFragment = {
   locationName: string;
   instability: any;
   observationSummary: string;
+  media?: any | null;
   locationPoint: {__typename?: 'CoordinatesGraph'; lat?: number | null; lng?: number | null};
 };
 
@@ -310,6 +312,7 @@ export const OverviewFragmentDoc = `
   locationName
   instability
   observationSummary
+  media
 }
     `;
 export const EverythingFragmentDoc = `
