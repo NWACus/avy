@@ -11,6 +11,14 @@ export type TabNavigatorParamList = {
 };
 export type TabNavigationProps = BottomTabNavigationProp<TabNavigatorParamList>;
 
+type WeatherStationDetailPageProps = {
+  center_id: AvalancheCenterID;
+  station_stids: string[];
+  zoneName: string;
+  name: string;
+  dateString: string;
+};
+
 export type HomeStackParamList = {
   avalancheCenter: {
     center_id: AvalancheCenterID;
@@ -22,6 +30,7 @@ export type HomeStackParamList = {
     forecast_zone_id: number;
     dateString: string;
   };
+  stationDetail: WeatherStationDetailPageProps;
 };
 export type HomeStackNavigationProps = NativeStackNavigationProp<HomeStackParamList>;
 
@@ -30,13 +39,7 @@ export type WeatherStackParamList = {
     center_id: AvalancheCenterID;
     dateString: string;
   };
-  stationDetail: {
-    center_id: AvalancheCenterID;
-    station_stids: string[];
-    zoneName: string;
-    name: string;
-    dateString: string;
-  };
+  stationDetail: WeatherStationDetailPageProps;
 };
 export type WeatherStackNavigationProps = NativeStackNavigationProp<WeatherStackParamList>;
 
