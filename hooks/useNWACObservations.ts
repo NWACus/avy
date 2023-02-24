@@ -91,6 +91,7 @@ export const fetchNWACObservations = async (nwacHost: string, center_id: Avalanc
         instability: object.content.instability,
         observationSummary: object.content.observation_summary,
         locationPoint: object.content.location_point,
+        media: object.content.media,
       })),
     };
   }

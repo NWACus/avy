@@ -8,6 +8,7 @@ import {FlatList} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 
 import {Card} from 'components/content/Card';
+import {Carousel} from 'components/content/carousel';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {HStack, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
@@ -163,6 +164,7 @@ export const ObservationSummaryCard: React.FunctionComponent<{
           <HTML source={{html: observation.observationSummary}} />
         </VStack>
       )}
+      {observation.media && observation.media.length > 0 && <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.media} displayCaptions={false} />}
     </Card>
   );
 };
