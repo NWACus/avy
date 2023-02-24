@@ -67,7 +67,7 @@ const selectStyles: SelectStyles = {
   },
 };
 
-export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, label, items, prompt, radio}, viewRef) => {
+export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, label, items, prompt, radio}, ref) => {
   const {setValue} = useFormContext();
   const {
     field: {value},
@@ -82,19 +82,19 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
       : (items as Item[]);
   const multiple = Array.isArray(value);
 
-  const ref = useRef<SelectRef>(null);
+  const selectRef = useRef<SelectRef>(null);
   useEffect(() => {
     // Make sure the internal state is cleared when the form is cleared
     if ((multiple && value.length === 0) || (!multiple && value === '')) {
-      ref.current.clear();
+      selectRef.current.clear();
     }
-  }, [ref, value, multiple]);
+  }, [selectRef, value, multiple]);
 
   return (
-    <VStack width="100%" space={4} ref={viewRef}>
+    <VStack width="100%" space={4} ref={ref}>
       <BodyXSmBlack>{label}</BodyXSmBlack>
       <Select
-        ref={ref}
+        ref={selectRef}
         onSelect={({value: selectedValue}) => {
           const newValue = multiple ? value.concat([selectedValue]) : selectedValue;
           setValue(name, newValue, {shouldValidate: true, shouldDirty: true, shouldTouch: true});

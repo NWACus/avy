@@ -2,6 +2,7 @@ import {AntDesign} from '@expo/vector-icons';
 import {yupResolver} from '@hookform/resolvers/yup';
 import {useBackHandler} from '@react-native-community/hooks';
 import {useNavigation} from '@react-navigation/native';
+import {ClientContext, ClientProps} from 'clientContext';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {ImageList} from 'components/content/carousel/ImageList';
@@ -12,7 +13,8 @@ import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField} from 'components/form/TextField';
-import {createObservation, observationSchema} from 'components/observations/ObservationSchema';
+import {createObservation, Observation, observationSchema} from 'components/observations/ObservationSchema';
+import {uploadImage} from 'components/observations/submitTask';
 import {Body, BodySemibold, Title3Black, Title3Semibold} from 'components/text';
 import * as ImagePicker from 'expo-image-picker';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
@@ -44,9 +46,13 @@ export const SimpleForm: React.FC<{
   const fieldRefs = useRef<{ref: RNView; field: string}[]>([]);
   const scrollViewRef = useRef(null);
 
-  const onSubmitHandler = data => {
-    console.log('onSubmitHandler -> success', {data});
+  const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
+
+  const onSubmitHandler = async (data: Observation) => {
+    console.log('onSubmitHandler -> success', data);
+    await Promise.all(images.map(({uri}) => uploadImage({apiPrefix: nationalAvalancheCenterHost, uri, name: data.name, center_id})));
   };
+
   const onSubmitErrorHandler = errors => {
     // scroll to the first field with an error
     fieldRefs.current.some(({ref, field}) => {
