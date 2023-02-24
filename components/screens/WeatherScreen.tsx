@@ -21,6 +21,6 @@ const StationListScreen = ({route}: NativeStackScreenProps<WeatherStackParamList
   return <WeatherStationList {...route.params} />;
 };
 
-const StationDetailScreen = ({route}: NativeStackScreenProps<WeatherStackParamList, 'stationDetail'>) => {
+export const StationDetailScreen = ({route}: NativeStackScreenProps<WeatherStackParamList, 'stationDetail'>) => {
   return <WeatherStationDetail {...route.params} />;
 };
