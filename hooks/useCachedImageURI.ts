@@ -5,12 +5,20 @@ import Log from 'network/log';
 
 const rootDirectory = FileSystem.cacheDirectory + 'image-cache/';
 const queryKeyPrefix = 'image';
+let promise = null;
 export const initialize = async () => {
-  const info = await FileSystem.getInfoAsync(rootDirectory);
-  if (info.exists && info.isDirectory) {
-    return;
+  if (!promise) {
+    promise = new Promise(resolve => {
+      (async () => {
+        const info = await FileSystem.getInfoAsync(rootDirectory);
+        if (!info.exists || !info.isDirectory) {
+          await FileSystem.makeDirectoryAsync(rootDirectory);
+        }
+        resolve(true);
+      })();
+    });
   }
-  await FileSystem.makeDirectoryAsync(rootDirectory);
+  return promise;
 };
 
 export const useCachedImageURI = (uri: string) => {
