@@ -16,6 +16,7 @@ export const useMapLayer = (center_id: AvalancheCenterID) => {
   return useQuery<MapLayer, AxiosError | ZodError>({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id),
     queryFn: async () => fetchMapLayer(nationalAvalancheCenterHost, center_id),
+    enabled: !!center_id,
     staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
     cacheTime: Infinity, // hold on to this cached data forever
   });

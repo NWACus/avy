@@ -8,6 +8,8 @@ export const fixMalformedISO8601DateString = (date: string) => (MISSING_TIMEZONE
 
 export const toISOStringUTC = (date: Date) => formatInTimeZone(date, 'UTC', 'yyyy-MM-dd HH:mm:ssXXX');
 
+export const toDateTimeInterfaceATOM = (date: Date) => formatInTimeZone(date, 'UTC', "yyyy-MM-dd'T'HH:mm:ssXXX");
+
 // The National Avalanche Center API expects 'YYYY-MM-DD' date-strings in query parameters, and it operates in UTC.
 export const apiDateString = (date: Date) => formatInTimeZone(date, 'UTC', 'yyyy-MM-dd');
 export const toSnowboundStringUTC = (date: Date) => formatInTimeZone(date, 'UTC', 'yyyyMMddHHmm');
@@ -32,6 +34,20 @@ export const nominalForecastDate = (requestedTime: Date, expiryTimeZone: string,
   }
 };
 
+// NWAC aims to publish weather forecasts at 7a and 2p Pacific Time, daily. Expire halfway between that.
+export const nominalNWACWeatherForecastDate = (requestedTime: Date): string => {
+  const expiryTimeZone = 'America/Los_Angeles';
+  const expiryTimeHours = 10;
+  // requestedTime is in UTC, expiryTimeHours is relative to the locale-specific start of day
+  const expiryTimeString = `${formatInTimeZone(requestedTime, expiryTimeZone, 'yyyy-MM-dd')} ${String(expiryTimeHours).padStart(2, '0')}:00:00`;
+  const expiryTime = toDate(expiryTimeString, {timeZone: expiryTimeZone});
+  if (isAfter(expiryTime, requestedTime)) {
+    return `${formatInTimeZone(requestedTime, expiryTimeZone, 'yyyy-MM-dd')} morning`;
+  } else {
+    return `${formatInTimeZone(requestedTime, expiryTimeZone, 'yyyy-MM-dd')} afternoon`;
+  }
+};
+
 export const utcDateToLocalTimeString = (date: Date | string | undefined): string => {
   if (date == null) {
     return 'Unknown';
@@ -46,4 +62,12 @@ export const utcDateToLocalDateString = (date: Date | string | undefined): strin
   }
   const d = typeof date === 'string' ? new Date(date) : date;
   return format(d, `EEEE, MMMM d, yyyy`);
+};
+
+export const utcDateToDayOfWeekString = (date: Date | string | undefined): string => {
+  if (date == null) {
+    return 'Unknown';
+  }
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return format(d, `EEEE`);
 };

@@ -8,12 +8,19 @@ import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import ImageCache from 'hooks/useCachedImageURI';
 import LatestAvalancheForecastQuery from 'hooks/useLatestAvalancheForecast';
 import AvalancheCenterMapLayerQuery from 'hooks/useMapLayer';
+import NWACWeatherForecastQuery from 'hooks/useNWACWeatherForecast';
 import {AvalancheCenter, AvalancheCenterID, MediaType, Product} from 'types/nationalAvalancheCenter';
 
 //
 // Note: you can enable preload logging by setting ENABLE_PREFETCH_LOGGING in network/log
 //
-export const prefetchAllActiveForecasts = async (queryClient: QueryClient, center_id: AvalancheCenterID, prefetchDate: Date, nationalAvalancheCenterHost: string) => {
+export const prefetchAllActiveForecasts = async (
+  queryClient: QueryClient,
+  center_id: AvalancheCenterID,
+  prefetchDate: Date,
+  nationalAvalancheCenterHost: string,
+  nwacHost: string,
+) => {
   preloadAvalancheProblemIcons(queryClient);
   preloadAvalancheCenterLogo(queryClient, center_id);
   await AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
@@ -23,6 +30,7 @@ export const prefetchAllActiveForecasts = async (queryClient: QueryClient, cente
   metadata?.zones
     .filter(zone => zone.status === 'active')
     .forEach(async zone => {
+      NWACWeatherForecastQuery.prefetch(queryClient, nwacHost, zone.id, prefetchDate);
       await LatestAvalancheForecastQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, prefetchDate, metadata?.timezone, metadata?.config.expires_time);
       const forecastData = queryClient.getQueryData<Product>(
         LatestAvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, center_id, zone.id, prefetchDate, metadata?.timezone, metadata?.config.expires_time),

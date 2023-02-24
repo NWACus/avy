@@ -26,29 +26,29 @@ fragment overview on ObservationGraphPublic {
 
 fragment everything on ObservationGraphPublic {
   id
-  centerId
-  createdAt
-  lastUpdated
+  center_id: centerId
+  created_at: createdAt
+  last_updated: lastUpdated
   status
   private
-  observerType
+  observer_type: observerType
   organization
   name
-  startDate
-  endDate
+  start_date: startDate
+  end_date: endDate
   activity
-  locationPoint {
+  location_point: locationPoint {
     lat
     lng
   }
-  locationName
+  location_name: locationName
   route
   instability
-  instabilitySummary
-  observationSummary
+  instability_summary: instabilitySummary
+  observation_summary: observationSummary
   media
   urls
-  avalanchesSummary
+  avalanches_summary: avalanchesSummary
   avalanches {
     id
     observationId
@@ -74,21 +74,21 @@ fragment everything on ObservationGraphPublic {
     comments
     media
   }
-  advancedFields {
+  advanced_fields: advancedFields {
     id
-    observationId
-    observedTerrain
-    timeInField
-    weatherSummary
+    observation_id: observationId
+    observed_terrain: observedTerrain
+    time_in_field: timeInField
+    weather_summary: weatherSummary
     weather
-    avalancheComments
-    snowpackSummary
+    avalanche_comments: avalancheComments
+    snowpack_summary: snowpackSummary
     snowpack
-    snowpackMedia
-    avalancheProblems
-    avalancheProblemsComments
-    terrainUse
-    bottomLine
+    snowpack_media: snowpackMedia
+    avalanche_problems: avalancheProblems
+    avalanche_problems_comments: avalancheProblemsComments
+    terrain_use: terrainUse
+    bottom_line: bottomLine
   }
   numberMedia
 }

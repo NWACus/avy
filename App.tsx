@@ -50,8 +50,14 @@ import {toISOStringUTC} from 'utils/date';
 
 // we're reading a field that was previously defined in app.json, so we know it's non-null:
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-if (Constants.expoConfig.extra!.log_requests) {
+const log_network = Constants.expoConfig.extra!.log_network;
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const log_matching = Constants.expoConfig.extra!.log_network_matching;
+if (log_network === 'all' || log_network === 'requests') {
   axios.interceptors.request.use(request => {
+    if (!request.url.includes(log_matching)) {
+      return request;
+    }
     console.log(
       'Request:',
       JSON.stringify(
@@ -59,12 +65,32 @@ if (Constants.expoConfig.extra!.log_requests) {
           method: request.method,
           url: request.url,
           params: request.params,
+          data: request.data,
         },
         null,
         2,
       ),
     );
     return request;
+  });
+}
+if (log_network === 'all' || log_network === 'responses') {
+  axios.interceptors.response.use(response => {
+    if (!response.config.url.includes(log_matching)) {
+      return response;
+    }
+    console.log(
+      'Response:',
+      JSON.stringify(
+        {
+          status: response.status,
+          data: response.data,
+        },
+        null,
+        2,
+      ),
+    );
+    return response;
   });
 }
 
@@ -168,13 +194,13 @@ const BaseApp: React.FunctionComponent<{
   const [date] = React.useState<Date>(defaultDate);
   const dateString = toISOStringUTC(date);
 
-  const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
+  const {nationalAvalancheCenterHost, nwacHost} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
   useEffect(() => {
     (async () => {
-      await prefetchAllActiveForecasts(queryClient, avalancheCenterId, date, nationalAvalancheCenterHost);
+      await prefetchAllActiveForecasts(queryClient, avalancheCenterId, date, nationalAvalancheCenterHost, nwacHost);
     })();
-  }, [queryClient, avalancheCenterId, date, nationalAvalancheCenterHost]);
+  }, [queryClient, avalancheCenterId, date, nationalAvalancheCenterHost, nwacHost]);
 
   const [fontsLoaded] = useFonts({
     Lato_100Thin,

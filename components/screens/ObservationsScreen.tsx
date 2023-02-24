@@ -1,5 +1,5 @@
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
-import {ObservationDetailView} from 'components/observations/ObservationDetailView';
+import {NWACObservationDetailView, ObservationDetailView} from 'components/observations/ObservationDetailView';
 import {ObservationsListView} from 'components/observations/ObservationsListView';
 import {ObservationsPortal} from 'components/observations/ObservationsPortal';
 import {SimpleForm} from 'components/observations/SimpleForm';
@@ -16,6 +16,7 @@ export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigat
       <ObservationsStack.Screen name="observationSubmit" component={ObservationSubmitScreen} options={{headerShown: false}} />
       <ObservationsStack.Screen name="observationsList" component={ObservationsListScreen} options={() => ({title: `${center_id} Observations`})} />
       <ObservationsStack.Screen name="observation" component={ObservationScreen} />
+      <ObservationsStack.Screen name="nwacObservation" component={NWACObservationScreen} />
     </ObservationsStack.Navigator>
   );
 };
@@ -44,6 +45,15 @@ const ObservationScreen = ({route}: NativeStackScreenProps<ObservationsStackPara
   return (
     <View style={styles.fullScreen}>
       <ObservationDetailView id={id} />
+    </View>
+  );
+};
+
+const NWACObservationScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'nwacObservation'>) => {
+  const {id} = route.params;
+  return (
+    <View style={styles.fullScreen}>
+      <NWACObservationDetailView id={id} />
     </View>
   );
 };
