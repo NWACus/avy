@@ -50,10 +50,12 @@ import {toISOStringUTC} from 'utils/date';
 
 // we're reading a field that was previously defined in app.json, so we know it's non-null:
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-if (Constants.expoConfig.extra!.log_requests) {
+const log_network = Constants.expoConfig.extra!.log_network;
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const log_matching = Constants.expoConfig.extra!.log_network_matching;
+if (log_network === 'all' || log_network === 'requests') {
   axios.interceptors.request.use(request => {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    if (!request.url.includes(Constants.expoConfig.extra!.log_requests_matching)) {
+    if (!request.url.includes(log_matching)) {
       return request;
     }
     console.log(
@@ -71,9 +73,10 @@ if (Constants.expoConfig.extra!.log_requests) {
     );
     return request;
   });
+}
+if (log_network === 'all' || log_network === 'responses') {
   axios.interceptors.response.use(response => {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    if (!response.config.url.includes(Constants.expoConfig.extra!.log_requests_matching)) {
+    if (!response.config.url.includes(log_matching)) {
       return response;
     }
     console.log(
