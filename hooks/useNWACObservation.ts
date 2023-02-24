@@ -16,7 +16,7 @@ export const useNWACObservation = (id: number) => {
 
   return useQuery<Observation, AxiosError | ZodError>({
     queryKey: queryKey(nwacHost, id),
-    queryFn: () => fetchNWACObservations(nwacHost, id),
+    queryFn: () => fetchNWACObservation(nwacHost, id),
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
@@ -26,12 +26,12 @@ function queryKey(nwacHost: string, id: number) {
   return ['nwac-observation', {host: nwacHost, id: id}];
 }
 
-export const prefetchNWACObservations = async (queryClient: QueryClient, nwacHost: string, id: number) => {
+export const prefetchNWACObservation = async (queryClient: QueryClient, nwacHost: string, id: number) => {
   await queryClient.prefetchQuery({
     queryKey: queryKey(nwacHost, id),
     queryFn: async () => {
       Log.prefetch(`prefetching NWAC observation ${id}`);
-      const result = fetchNWACObservations(nwacHost, id);
+      const result = fetchNWACObservation(nwacHost, id);
       Log.prefetch(`finished prefetching NWAC observation ${id}`);
       return result;
     },
@@ -54,7 +54,7 @@ const nwacObservationSchema = z.object({
   }),
 });
 
-export const fetchNWACObservations = async (nwacHost: string, id: number): Promise<Observation> => {
+export const fetchNWACObservation = async (nwacHost: string, id: number): Promise<Observation> => {
   const url = `${nwacHost}/api/v2/observation/${id}`;
   const {data} = await axios.get(url);
 
@@ -75,6 +75,6 @@ export const fetchNWACObservations = async (nwacHost: string, id: number): Promi
 
 export default {
   queryKey,
-  fetch: fetchNWACObservations,
-  prefetch: prefetchNWACObservations,
+  fetch: fetchNWACObservation,
+  prefetch: prefetchNWACObservation,
 };

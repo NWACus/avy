@@ -4,7 +4,7 @@ import {z} from 'zod';
 
 const Unknown = 'Unknown';
 
-function reverseLookup<T extends PropertyKey, U extends PropertyKey>(mapping: Record<T, U>, lookup: U): string {
+export function reverseLookup<T extends PropertyKey, U extends PropertyKey>(mapping: Record<T, U>, lookup: U): string {
   return Object.entries(mapping)
     .filter(([_, value]) => value === lookup)
     .map(([key, _]) => key)

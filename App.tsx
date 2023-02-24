@@ -191,13 +191,13 @@ const BaseApp: React.FunctionComponent<{
   const [date] = React.useState<Date>(defaultDate);
   const dateString = toISOStringUTC(date);
 
-  const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
+  const {nationalAvalancheCenterHost, nwacHost} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
   useEffect(() => {
     (async () => {
-      await prefetchAllActiveForecasts(queryClient, avalancheCenterId, date, nationalAvalancheCenterHost);
+      await prefetchAllActiveForecasts(queryClient, avalancheCenterId, date, nationalAvalancheCenterHost, nwacHost);
     })();
-  }, [queryClient, avalancheCenterId, date, nationalAvalancheCenterHost]);
+  }, [queryClient, avalancheCenterId, date, nationalAvalancheCenterHost, nwacHost]);
 
   const [fontsLoaded] = useFonts({
     Lato_100Thin,

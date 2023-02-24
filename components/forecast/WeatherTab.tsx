@@ -8,12 +8,12 @@ import {HStack, View, VStack} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodyXSmBlack, bodyXSmSize, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
-import {useLatestWeatherForecast} from 'hooks/useLatestWeatherForecast';
+import {FormatTimeOfDay, useNWACWeatherForecast} from 'hooks/useNWACWeatherForecast';
 import {useWeatherStations} from 'hooks/useWeatherStations';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
-import {toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
+import {toISOStringUTC, utcDateToDayOfWeekString, utcDateToLocalTimeString} from 'utils/date';
 
 type ForecastNavigationProp = CompositeNavigationProp<NativeStackNavigationProp<HomeStackParamList, 'forecast'>, TabNavigationProps>;
 
@@ -22,14 +22,6 @@ interface WeatherTabProps {
   center_id: AvalancheCenterID;
   date: Date;
 }
-
-const timeOfDayString = (period: 'day' | 'night', subperiod: 'early' | 'late') => {
-  if (period === 'day') {
-    return subperiod === 'early' ? 'morning' : 'afternoon';
-  } else {
-    return subperiod === 'early' ? 'evening' : 'overnight';
-  }
-};
 
 const SmallHeaderWithTooltip = ({title, content, dialogTitle}) => (
   // the icon style is designed to make the circle "i" look natural next to the
@@ -41,8 +33,8 @@ const SmallHeaderWithTooltip = ({title, content, dialogTitle}) => (
 );
 
 export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) => {
-  const forecastResult = useLatestWeatherForecast(center_id, zone);
-  const forecast = forecastResult.data;
+  const nwacForecastResult = useNWACWeatherForecast(zone.id, date);
+  const nwacForecast = nwacForecastResult.data;
   const stationsResult = useWeatherStations({
     center: center_id,
     sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
@@ -51,14 +43,40 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
 
   const navigation = useNavigation<ForecastNavigationProp>();
 
-  if (incompleteQueryState(forecastResult, stationsResult)) {
-    return <QueryState results={[forecastResult, stationsResult]} />;
+  if (incompleteQueryState(nwacForecastResult, stationsResult)) {
+    return <QueryState results={[nwacForecastResult, stationsResult]} />;
   }
 
   // In the UI, we show weather station groups, which may contain 1 or more weather stations.
   // Example: Alpental Ski Area shows 3 weather stations.
   const groupedWeatherStations = Object.entries(weatherStationsByZone?.find(zoneData => zoneData.zoneId === zone.id)?.stationGroups || {}).sort((a, b) => a[0].localeCompare(b[0]));
 
+  const author = `${nwacForecast.forecaster.first_name} ${nwacForecast.forecaster.last_name}`;
+
+  // we are guaranteed to get some multiple of 2 forecasts and twice that many periods
+  const nwacPeriodData = nwacForecast.sub_periods.map((period, index) => ({
+    period: period.toLowerCase(),
+    snow_level: nwacForecast.snow_levels[index].elevation,
+    ridgeline_winds: nwacForecast.ridgeline_winds[index],
+  }));
+  const nwacForecasts = nwacForecast.weather_forecasts.map((f, i) => ({
+    title: `${utcDateToDayOfWeekString(f.date)} ${FormatTimeOfDay(f.time_of_day)}`,
+    description: f.description,
+    five_thousand_foot_temperatures: nwacForecast.five_thousand_foot_temperatures[i],
+    precipitation: nwacForecast.precipitation_by_location.map(l => ({
+      name: l.name,
+      value: l.precipitation[i].value,
+    })),
+    snow_levels: nwacPeriodData.slice(2 * i, 2 * (i + 1)).map(p => ({
+      period: p.period,
+      level: p.snow_level,
+    })),
+    ridgeline_winds: nwacPeriodData.slice(2 * i, 2 * (i + 1)).map(p => ({
+      period: p.period,
+      direction: p.ridgeline_winds.direction,
+      speed: p.ridgeline_winds.speed,
+    })),
+  }));
   return (
     <VStack space={8} bgColor={'#f0f2f5'}>
       <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
@@ -66,75 +84,67 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Issued</AllCapsSmBlack>
             <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-              {utcDateToLocalTimeString(forecast.published_time)}
-            </AllCapsSm>
-          </VStack>
-          <VStack space={8} style={{flex: 1}}>
-            <AllCapsSmBlack>Expires</AllCapsSmBlack>
-            <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-              {utcDateToLocalTimeString(forecast.expires_time)}
+              {utcDateToLocalTimeString(nwacForecast.mountain_weather_forecast.publish_date)}
             </AllCapsSm>
           </VStack>
           <VStack space={8} style={{flex: 1}}>
             <AllCapsSmBlack>Author</AllCapsSmBlack>
             <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-              {forecast.author || 'Unknown'}
+              {author || 'Unknown'}
               {'\n'}
             </AllCapsSm>
           </VStack>
         </HStack>
         <VStack alignItems="stretch" pt={4}>
-          {forecast.data.slice(0, 2).map((forecast, index) => {
-            return (
-              <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index === 0 ? colorLookup('light.200') : 'white'}>
-                <BodyBlack>{forecast.label}</BodyBlack>
-                <Body>{forecast.forecast}</Body>
-                <View borderWidth={1} borderColor={colorLookup('light.200')} mt={12}>
-                  <HStack justifyContent="space-between" alignItems="stretch" borderBottomWidth={1} borderColor={colorLookup('light.200')}>
-                    <VStack flexBasis={0.5} flex={1} m={12}>
-                      <SmallHeaderWithTooltip title="5K ft Temps (°F)" dialogTitle="Temperature" content={helpStrings.weather.temperature} />
-                      <Body>
-                        {forecast.temperatures.high} (max) / {forecast.temperatures.low} (min)
+          {nwacForecasts.map((f, index) => (
+            <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index === 0 ? colorLookup('light.200') : 'white'}>
+              <BodyBlack>{f.title}</BodyBlack>
+              <Body>{f.description}</Body>
+              <View borderWidth={1} borderColor={colorLookup('light.200')} mt={12}>
+                <HStack justifyContent="space-between" alignItems="stretch" borderBottomWidth={1} borderColor={colorLookup('light.200')}>
+                  <VStack flexBasis={0.5} flex={1} m={12}>
+                    <SmallHeaderWithTooltip title="5K ft Temps (°F)" dialogTitle="Temperature" content={helpStrings.weather.temperature} />
+                    <Body>
+                      {f.five_thousand_foot_temperatures.max} (max) / {f.five_thousand_foot_temperatures.min} (min)
+                    </Body>
+                  </VStack>
+                  <View width={1} height="100%" bg={colorLookup('light.200')} flex={0} />
+                  <VStack flexBasis={0.5} flex={1} m={12}>
+                    <SmallHeaderWithTooltip title="Snow Level (ft)" dialogTitle="Snow Level" content={helpStrings.weather.snowLevelNoAsterisk} />
+                    {f.snow_levels.map(({level, period}, lindex) => (
+                      <Body key={`forecast-${index}-snow-level-${lindex}`}>
+                        {Intl.NumberFormat().format(level)} {period}
                       </Body>
-                    </VStack>
-                    <View width={1} height="100%" bg={colorLookup('light.200')} flex={0} />
-                    <VStack flexBasis={0.5} flex={1} m={12}>
-                      <SmallHeaderWithTooltip title="Snow Level (ft)" dialogTitle="Snow Level" content={helpStrings.weather.snowLevelNoAsterisk} />
-                      {forecast.snowLevel.map(level => (
-                        <Body key={level.subperiod}>
-                          {Intl.NumberFormat().format(level.level)} {timeOfDayString(level.period, level.subperiod)}
-                        </Body>
-                      ))}
-                    </VStack>
-                  </HStack>
-                  <HStack justifyContent="space-between" alignItems="flex-start">
-                    <VStack flexBasis={0.5} flex={1} m={12}>
-                      <SmallHeaderWithTooltip title="Precipitation (in)" dialogTitle="Precipitation" content={helpStrings.weather.precipitation} />
-                      {Object.entries(forecast.precipitation).map(([zone, value]) => (
-                        <HStack key={zone} justifyContent="space-between" alignItems="flex-start" alignSelf="stretch">
-                          <View flex={1} flexGrow={2} pr={12}>
-                            <Body style={{flex: 1, flexBasis: 0.75}}>{zone}</Body>
-                          </View>
-                          <View flex={1} flexGrow={1}>
-                            <Body textAlign="right">{value}</Body>
-                          </View>
-                        </HStack>
-                      ))}
-                    </VStack>
-                    <View width={1} height="100%" bg={colorLookup('light.200')} flex={0} />
-                    <VStack flexBasis={0.5} flex={1} m={12}>
-                      <SmallHeaderWithTooltip title="Ridgeline Winds (mph)" dialogTitle="Ridgeline Winds" content={helpStrings.weather.wind} />
-                      {forecast.winds.map(level => (
-                        <Body key={level.subperiod}>
-                          {level.speed} {timeOfDayString(level.period, level.subperiod)}
-                        </Body>
-                      ))}
-                    </VStack>
-                  </HStack>
-                </View>
-              </VStack>
-            );
-          })}
+                    ))}
+                  </VStack>
+                </HStack>
+                <HStack justifyContent="space-between" alignItems="flex-start">
+                  <VStack flexBasis={0.5} flex={1} m={12}>
+                    <SmallHeaderWithTooltip title="Precipitation (in)" dialogTitle="Precipitation" content={helpStrings.weather.precipitation} />
+                    {f.precipitation.map(({name, value}) => (
+                      <HStack key={name} justifyContent="space-between" alignItems="flex-start" alignSelf="stretch">
+                        <View flex={1} flexGrow={2} pr={12}>
+                          <Body style={{flex: 1, flexBasis: 0.75}}>{name}</Body>
+                        </View>
+                        <View flex={1} flexGrow={1}>
+                          <Body textAlign="right">{value}</Body>
+                        </View>
+                      </HStack>
+                    ))}
+                  </VStack>
+                  <View width={1} height="100%" bg={colorLookup('light.200')} flex={0} />
+                  <VStack flexBasis={0.5} flex={1} m={12}>
+                    <SmallHeaderWithTooltip title="Ridgeline Winds (mph)" dialogTitle="Ridgeline Winds" content={helpStrings.weather.wind} />
+                    {f.ridgeline_winds.map(({direction, speed, period}, lindex) => (
+                      <Body key={`forecast-${index}-winds-${lindex}`}>
+                        {direction} {speed} {period}
+                      </Body>
+                    ))}
+                  </VStack>
+                </HStack>
+              </View>
+            </VStack>
+          ))}
         </VStack>
       </Card>
       <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Data</Title3Black>}>
@@ -173,8 +183,14 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
         </VStack>
       </Card>
       <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Synopsis</Title3Black>} startsCollapsed={true}>
-        <HTML source={{html: forecast.synopsis}} />
+        <HTML source={{html: nwacForecast.mountain_weather_forecast.synopsis_day1_day2}} />
       </CollapsibleCard>
+      <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Extended Synopsis</Title3Black>} startsCollapsed={true}>
+        <HTML source={{html: nwacForecast.mountain_weather_forecast.extended_synopsis}} />
+      </CollapsibleCard>
+      <Card marginTop={1} borderRadius={0} borderColor="white">
+        <HTML source={{html: nwacForecast.mountain_weather_forecast.special_header_notes}} />
+      </Card>
     </VStack>
   );
 };
