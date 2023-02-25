@@ -127,16 +127,17 @@ const nwacWeatherForecastMetaSchema = z.object({
 
 export const fetchNWACWeatherForecast = async (nwacHost: string, zone_id: number, requestedTime: Date): Promise<NWACWeatherForecast> => {
   const url = `${nwacHost}/api/v1/mountain-weather-region-forecast`;
+  const params = {
+    zone_id: zone_id,
+    published_datetime: toDateTimeInterfaceATOM(requestedTime),
+  };
   const {data} = await axios.get(url, {
-    params: {
-      zone_id: zone_id,
-      published_datetime: toDateTimeInterfaceATOM(requestedTime),
-    },
+    params: params,
   });
 
   const parseResult = nwacWeatherForecastMetaSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn(`unparsable weather forecast`, url, parseResult.error, JSON.stringify(data, null, 2));
+    console.warn(`unparsable weather forecast`, url, JSON.stringify(params), parseResult.error, JSON.stringify(data, null, 2));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

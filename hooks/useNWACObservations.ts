@@ -72,16 +72,17 @@ export const fetchNWACObservations = async (nwacHost: string, center_id: Avalanc
     return {getObservationList: []};
   }
   const url = `${nwacHost}/api/v2/observations`;
+  const params = {
+    published_after: toDateTimeInterfaceATOM(published_after),
+    published_before: toDateTimeInterfaceATOM(published_before),
+  };
   const {data} = await axios.get(url, {
-    params: {
-      published_after: toDateTimeInterfaceATOM(published_after),
-      published_before: toDateTimeInterfaceATOM(published_before),
-    },
+    params: params,
   });
 
   const parseResult = nwacObservationsSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn(`unparsable observations`, url, parseResult.error, JSON.stringify(data, null, 2));
+    console.warn(`unparsable observations`, url, JSON.stringify(params), parseResult.error, JSON.stringify(data, null, 2));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,
