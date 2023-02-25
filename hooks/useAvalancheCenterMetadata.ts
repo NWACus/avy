@@ -53,7 +53,7 @@ const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string,
 
   const parseResult = avalancheCenterSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn(`unparsable avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data, null, 2));
+    console.warn(`unparsable avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

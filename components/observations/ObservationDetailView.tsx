@@ -75,7 +75,7 @@ export const ObservationDetailView: React.FunctionComponent<{
 
   const parseResult = observationSchema.deepPartial().safeParse(observation.getSingleObservation);
   if (parseResult.success === false) {
-    console.log('unparsable observation', id, parseResult.error, JSON.stringify(observation.getSingleObservation, null, 2));
+    console.log('unparsable observation', id, parseResult.error, JSON.stringify(observation.getSingleObservation));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

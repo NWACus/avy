@@ -82,7 +82,7 @@ export const fetchNWACObservations = async (nwacHost: string, center_id: Avalanc
 
   const parseResult = nwacObservationsSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn(`unparsable observations`, url, JSON.stringify(params), parseResult.error, JSON.stringify(data, null, 2));
+    console.warn(`unparsable observations`, url, JSON.stringify(params), parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

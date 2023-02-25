@@ -48,7 +48,7 @@ export const fetchProduct = async (nationalAvalancheCenterHost: string, forecast
 
   const parseResult = productSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn(`unparsable forecast`, url, parseResult.error, JSON.stringify(data, null, 2));
+    console.warn(`unparsable forecast`, url, parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

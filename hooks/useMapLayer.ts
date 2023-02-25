@@ -54,7 +54,7 @@ const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: Ava
 
   const parseResult = mapLayerSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn(`unparsable map layer for avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data, null, 2));
+    console.warn(`unparsable map layer for avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,
