@@ -246,11 +246,14 @@ export type PartnerType = (typeof PartnerType)[keyof typeof PartnerType];
 export const FormatPartnerType = (value: PartnerType): string => {
   return reverseLookup(PartnerType, value);
 };
+
 // from the client-side schema at https://github.com/NationalAvalancheCenter/nac-vue-component-library/blob/main/constants/observations.js
 export const observationSchema = z.object({
   organization: z.string().nullable(),
   center_id: z.preprocess(s => String(s).toUpperCase(), avalancheCenterIDSchema),
   observer_type: z.nativeEnum(PartnerType),
+  status: z.string().default('published'),
+  private: z.boolean().default(false),
   name: z.string().nullable(),
   phone: z.string().nullable(),
   email: z.string().email().nullable(),
