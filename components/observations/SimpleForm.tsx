@@ -246,11 +246,7 @@ export const SimpleForm: React.FC<{
                           multiline: true,
                         }}
                       />
-<<<<<<< HEAD
-                      <LocationField name="location_point" label="Latitude/Longitude" />
-=======
                       <LocationField name="mapLocation" label="Latitude/Longitude" center={center_id} />
->>>>>>> be84bad (form/LocationField: fetch the correct center's map)
                     </VStack>
                   </Card>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Signs of instability</Title3Semibold>}>

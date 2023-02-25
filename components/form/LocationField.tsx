@@ -42,21 +42,12 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label, center
   );
 
   useEffect(() => {
-<<<<<<< HEAD
-    if (zones && !mapReady) {
+    if (mapLayer && !mapReady) {
       const location = value || {lat: 0, lng: 0};
-      const initialRegion = defaultMapRegionForZones(zones);
+      const initialRegion = defaultMapRegionForGeometries(mapLayer.features.map(feature => feature.geometry));
       if (location.lat !== 0 && location.lng !== 0) {
         initialRegion.latitude = location.lat;
         initialRegion.longitude = location.lng;
-=======
-    if (mapLayer && !mapReady) {
-      const location = value || {latitude: 0, longitude: 0};
-      const initialRegion = defaultMapRegionForGeometries(mapLayer.features.map(feature => feature.geometry));
-      if (location.latitude !== 0 && location.longitude !== 0) {
-        initialRegion.latitude = location.latitude;
-        initialRegion.longitude = location.longitude;
->>>>>>> be84bad (form/LocationField: fetch the correct center's map)
       }
       setInitialRegion(initialRegion);
       setMapReady(true);
@@ -65,11 +56,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label, center
         onChangeRegion(initialRegion);
       }
     }
-<<<<<<< HEAD
-  }, [zones, setInitialRegion, onChangeRegion, value, mapReady, setMapReady]);
-=======
-  }, [mapLayer, setInitialRegion, onChange, value, mapReady, setMapReady]);
->>>>>>> be84bad (form/LocationField: fetch the correct center's map)
+  }, [mapLayer, setInitialRegion, onChangeRegion, value, mapReady, setMapReady]);
 
   return (
     <VStack width="100%" space={4}>
@@ -112,7 +99,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label, center
                       <ZoneMap
                         animated={false}
                         style={{width: '100%', height: '100%'}}
-                        zones={zones}
+                        zones={[]}
                         initialRegion={initialRegion}
                         onRegionChange={onChangeRegion}
                         onRegionChangeComplete={onChangeRegion}
