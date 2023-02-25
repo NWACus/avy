@@ -27,12 +27,12 @@ export type MapViewZone = {
 interface ZoneMapProps extends MapViewProps {
   animated: boolean;
   zones: MapViewZone[];
-  selectedZone?: MapViewZone;
+  selectedZoneId?: number;
   renderFillColor?: boolean;
   onPressPolygon: (zone: MapViewZone) => void;
 }
 
-export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones, selectedZone, onPressPolygon, renderFillColor = true, children, ...props}, ref) => {
+export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones, selectedZoneId, onPressPolygon, renderFillColor = true, children, ...props}, ref) => {
   const [ready, setReady] = useState<boolean>(false);
   const MapComponent = animated ? MapView.Animated : MapView;
 
@@ -40,7 +40,7 @@ export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones
     <MapComponent ref={ref} onLayout={() => setReady(true)} provider={'google'} mapType={MAP_TYPES.TERRAIN} {...props}>
       {ready &&
         zones?.map(zone => (
-          <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={selectedZone === zone} renderFillColor={renderFillColor} onPress={onPressPolygon} />
+          <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={selectedZoneId === zone.zone_id} renderFillColor={renderFillColor} onPress={onPressPolygon} />
         ))}
       {children}
     </MapComponent>

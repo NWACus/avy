@@ -47,13 +47,13 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const warningResults = useMapLayerAvalancheWarnings(center, requestedTime, mapLayer);
 
   const navigation = useNavigation<HomeStackNavigationProps>();
-  const [selectedZone, setSelectedZone] = useState<MapViewZone | null>(null);
+  const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
   const onPressMapView = useCallback(() => {
-    setSelectedZone(null);
+    setSelectedZoneId(null);
   }, []);
   const onPressPolygon = useCallback(
     (zone: MapViewZone) => {
-      if (selectedZone === zone) {
+      if (selectedZoneId === zone.zone_id) {
         navigation.navigate('forecast', {
           zoneName: zone.name,
           center_id: zone.center_id,
@@ -61,10 +61,10 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           requestedTime: formatRequestedTime(requestedTime),
         });
       } else {
-        setSelectedZone(zone);
+        setSelectedZoneId(zone.zone_id);
       }
     },
-    [navigation, selectedZone, requestedTime],
+    [navigation, selectedZoneId, requestedTime],
   );
 
   const avalancheCenterMapRegion: Region = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
@@ -141,7 +141,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         initialRegion={avalancheCenterMapRegion}
         onPress={onPressMapView}
         zones={zones}
-        selectedZone={selectedZone}
+        selectedZoneId={selectedZoneId}
         onPressPolygon={onPressPolygon}
       />
       <SafeAreaView>
@@ -166,7 +166,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         </View>
       </SafeAreaView>
 
-      <AvalancheForecastZoneCards key={center} date={requestedTime} zones={zones} selectedZone={selectedZone} setSelectedZone={setSelectedZone} controller={controller} />
+      <AvalancheForecastZoneCards key={center} date={requestedTime} zones={zones} selectedZoneId={selectedZoneId} setSelectedZoneId={setSelectedZoneId} controller={controller} />
     </>
   );
 };
@@ -388,13 +388,13 @@ class AnimatedMapWithDrawerController {
 const AvalancheForecastZoneCards: React.FunctionComponent<{
   date: RequestedTime;
   zones: MapViewZone[];
-  selectedZone: MapViewZone | null;
-  setSelectedZone: React.Dispatch<React.SetStateAction<MapViewZone>>;
+  selectedZoneId: number | null;
+  setSelectedZoneId: React.Dispatch<React.SetStateAction<number>>;
   controller: AnimatedMapWithDrawerController;
-}> = ({date, zones, selectedZone, setSelectedZone, controller}) => {
+}> = ({date, zones, selectedZoneId, setSelectedZoneId, controller}) => {
   const {width} = useWindowDimensions();
 
-  const [previousSelectedZone, setPreviousSelectedZone] = useState<MapViewZone | null>(null);
+  const [previousSelectedZoneId, setPreviousSelectedZoneId] = useState<number | null>(null);
   const [programaticallyScrolling, setProgramaticallyScrolling] = useState<boolean>(false);
 
   const offsets = zones?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
@@ -411,9 +411,9 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
 
   // The list view has drawer-like behavior - it can be swiped into view, or swiped away.
   // These values control the state that's driven through gestures & animation.
-  if (selectedZone && controller.state !== AnimatedDrawerState.Visible) {
+  if (selectedZoneId && controller.state !== AnimatedDrawerState.Visible) {
     controller.setState(AnimatedDrawerState.Visible);
-  } else if (!selectedZone && controller.state === AnimatedDrawerState.Visible) {
+  } else if (!selectedZoneId && controller.state === AnimatedDrawerState.Visible) {
     controller.setState(AnimatedDrawerState.Docked);
   }
 
@@ -448,7 +448,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
     if (programaticallyScrolling) {
       // when we're scrolling through the list programatically, the true state of the selection is
       // the intended scroll target, not whichever card happens to be shown at the moment
-      const intendedIndex = zones.findIndex(z => z.zone_id === selectedZone.zone_id);
+      const intendedIndex = zones.findIndex(z => z.zone_id === selectedZoneId);
       if (intendedIndex === index) {
         // when the programmatic scroll reaches the intended index, we can call this programmatic
         // scroll event finished
@@ -456,17 +456,17 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
       }
     } else {
       // if the *user* is scrolling this drawer, though, the true state of our selection is up to them
-      setSelectedZone(zones[index]);
+      setSelectedZoneId(zones[index].zone_id);
     }
   };
 
-  if (selectedZone !== previousSelectedZone) {
-    if (selectedZone) {
-      const index = zones.findIndex(z => z.zone_id === selectedZone.zone_id);
+  if (selectedZoneId !== previousSelectedZoneId) {
+    if (selectedZoneId) {
+      const index = zones.findIndex(z => z.zone_id === selectedZoneId);
       setProgramaticallyScrolling(true);
       flatListRef.current.scrollToIndex({index, animated: true, viewPosition: 0.5});
     }
-    setPreviousSelectedZone(selectedZone);
+    setPreviousSelectedZoneId(selectedZoneId);
   }
 
   return (
