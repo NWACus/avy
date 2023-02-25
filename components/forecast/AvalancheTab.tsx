@@ -147,7 +147,9 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
                   </HStack>
                 </VStack>
               </VStack>
-              <Title3 color={'white'}>{warning.bottom_line}</Title3>
+              <View pr={8}>
+                <Title3 color={'white'}>{warning.bottom_line}</Title3>
+              </View>
             </VStack>
           </HStack>
         </View>
