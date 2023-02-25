@@ -46,7 +46,6 @@ import {useOnlineManager} from 'hooks/useOnlineManager';
 import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
 import {TabNavigatorParamList} from 'routes';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
-import {toISOStringUTC} from 'utils/date';
 
 // we're reading a field that was previously defined in app.json, so we know it's non-null:
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -151,11 +150,6 @@ const onAppStateChange = (status: AppStateStatus) => {
   }
 };
 
-// For now, we are implicitly interested in today's forecast.
-// If you want to investigate an issue on a different day, you can change this value.
-// TODO: add a date picker
-const defaultDate = new Date();
-
 const App = () => {
   try {
     useOnlineManager();
@@ -192,16 +186,14 @@ const BaseApp: React.FunctionComponent<{
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({staging, setStaging}) => {
   const [avalancheCenterId, setAvalancheCenterId] = React.useState(Constants.expoConfig.extra.avalanche_center as AvalancheCenterID);
-  const [date] = React.useState<Date>(defaultDate);
-  const dateString = toISOStringUTC(date);
 
   const {nationalAvalancheCenterHost, nwacHost} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
   useEffect(() => {
     (async () => {
-      await prefetchAllActiveForecasts(queryClient, avalancheCenterId, date, nationalAvalancheCenterHost, nwacHost);
+      await prefetchAllActiveForecasts(queryClient, avalancheCenterId, nationalAvalancheCenterHost, nwacHost);
     })();
-  }, [queryClient, avalancheCenterId, date, nationalAvalancheCenterHost, nwacHost]);
+  }, [queryClient, avalancheCenterId, nationalAvalancheCenterHost, nwacHost]);
 
   const [fontsLoaded] = useFonts({
     Lato_100Thin,
@@ -251,28 +243,27 @@ const BaseApp: React.FunctionComponent<{
                     }
                   },
                 })}>
-                <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, dateString}}>
-                  {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
+                <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                  {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
                 </TabNavigator.Screen>
-                <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString}}>
+                <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
                   {state =>
                     ObservationsTabScreen(
                       merge(state, {
                         route: {
                           params: {
                             center_id: avalancheCenterId,
-                            dateString,
                           },
                         },
                       }),
                     )
                   }
                 </TabNavigator.Screen>
-                <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString}}>
-                  {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
+                <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                  {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
                 </TabNavigator.Screen>
-                <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
-                  {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                  {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
                 </TabNavigator.Screen>
               </TabNavigator.Navigator>
             </View>

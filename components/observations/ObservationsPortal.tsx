@@ -7,12 +7,12 @@ import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {ObservationsStackNavigationProps} from 'routes';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
-import {toISOStringUTC} from 'utils/date';
+import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 export const ObservationsPortal: React.FC<{
   center_id: AvalancheCenterID;
-  date: Date;
-}> = ({center_id, date}) => {
+  requestedTime: RequestedTime;
+}> = ({center_id, requestedTime}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   return (
     <View width="100%" height="100%" bg="#F6F8FC">
@@ -25,7 +25,7 @@ export const ObservationsPortal: React.FC<{
           <Button buttonStyle="primary" onPress={() => navigation.navigate('observationSubmit', {center_id})}>
             <BodySemibold>Submit an observation</BodySemibold>
           </Button>
-          <Button onPress={() => navigation.navigate('observationsList', {center_id, dateString: toISOStringUTC(date)})}>
+          <Button onPress={() => navigation.navigate('observationsList', {center_id, requestedTime: formatRequestedTime(requestedTime)})}>
             <BodySemibold>View all observations</BodySemibold>
           </Button>
         </VStack>

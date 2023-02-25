@@ -19,12 +19,12 @@ import {AvalancheTab} from 'components/forecast/AvalancheTab';
 import {WeatherTab} from 'components/forecast/WeatherTab';
 import {FeatureTitleBlack} from 'components/text';
 import {HomeStackNavigationProps} from 'routes';
-import {toISOStringUTC} from 'utils/date';
+import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 export interface AvalancheForecastProps {
   zoneName: string;
   center_id: AvalancheCenterID;
-  date: Date;
+  requestedTime: RequestedTime;
   forecast_zone_id: number;
 }
 
@@ -32,7 +32,7 @@ const ObservationsTab = () => {
   return <FeatureTitleBlack>Observations coming soon</FeatureTitleBlack>;
 };
 
-export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> = ({center_id, date, forecast_zone_id}: AvalancheForecastProps) => {
+export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> = ({center_id, requestedTime, forecast_zone_id}: AvalancheForecastProps) => {
   const centerResult = useAvalancheCenterMetadata(center_id);
   const center = centerResult.data;
 
@@ -49,11 +49,11 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
           zoneName: zone.name,
           center_id: center_id,
           forecast_zone_id: zone.id,
-          dateString: toISOStringUTC(date),
+          requestedTime: formatRequestedTime(requestedTime),
         });
       }
     },
-    [navigation, center, center_id, date],
+    [navigation, center, center_id, requestedTime],
   );
 
   const onReturnToMapView = useCallback(() => {
@@ -86,10 +86,16 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
       </HStack>
       <TabControl backgroundColor="white">
         <Tab title="Avalanche">
-          <AvalancheTab elevationBandNames={zone.config.elevation_band_names} center={center} center_id={center_id} forecast_zone_id={forecast_zone_id} date={date} />
+          <AvalancheTab
+            elevationBandNames={zone.config.elevation_band_names}
+            center={center}
+            center_id={center_id}
+            forecast_zone_id={forecast_zone_id}
+            requestedTime={requestedTime}
+          />
         </Tab>
         <Tab title="Weather">
-          <WeatherTab zone={zone} center_id={center_id} date={date} />
+          <WeatherTab zone={zone} center_id={center_id} requestedTime={requestedTime} />
         </Tab>
         <Tab title="Observations">
           <ObservationsTab />

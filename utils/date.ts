@@ -1,5 +1,5 @@
-import {add, format, isAfter} from 'date-fns';
-import {formatInTimeZone, toDate} from 'date-fns-tz';
+import {add, isAfter} from 'date-fns';
+import {format, formatInTimeZone, toDate} from 'date-fns-tz';
 
 const MISSING_TIMEZONE = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?$/;
 
@@ -22,16 +22,20 @@ export const toSnowboundStringUTC = (date: Date) => formatInTimeZone(date, 'UTC'
 // |  01/01 09:00  |   18 (hours)    |  01/01              |
 // |  01/01 18:00  |   18 (hours)    |  01/02              |
 // |  01/01 20:00  |   18 (hours)    |  01/02              |
-export const nominalForecastDate = (requestedTime: Date, expiryTimeZone: string, expiryTimeHours: number): string => {
+export const nominalForecastDate = (requestedTime: Date, expiryTimeZone: string, expiryTimeHours: number): Date => {
   // requestedTime is in UTC, expiryTimeHours is relative to the locale-specific start of day
   const expiryTimeString = `${formatInTimeZone(requestedTime, expiryTimeZone, 'yyyy-MM-dd')} ${String(expiryTimeHours).padStart(2, '0')}:00:00`;
   const expiryTime = toDate(expiryTimeString, {timeZone: expiryTimeZone});
   if (isAfter(expiryTime, requestedTime)) {
-    return formatInTimeZone(requestedTime, expiryTimeZone, 'yyyy-MM-dd');
+    return requestedTime;
   } else {
     const tomorrow = add(requestedTime, {days: 1});
-    return formatInTimeZone(tomorrow, expiryTimeZone, 'yyyy-MM-dd');
+    return tomorrow;
   }
+};
+
+export const nominalForecastDateString = (requestedTime: Date, expiryTimeZone: string, expiryTimeHours: number): string => {
+  return formatInTimeZone(nominalForecastDate(requestedTime, expiryTimeZone, expiryTimeHours), expiryTimeZone, 'yyyy-MM-dd');
 };
 
 // NWAC aims to publish weather forecasts at 7a and 2p Pacific Time, daily. Expire halfway between that.
@@ -70,4 +74,36 @@ export const utcDateToDayOfWeekString = (date: Date | string | undefined): strin
   }
   const d = typeof date === 'string' ? new Date(date) : date;
   return format(d, `EEEE`);
+};
+
+// Due to the structure of the NAC API, we are forced to use two different fetching paradigms for data -
+// either we're looking for the latest data we can get, or we need something from the past. When we are fetching
+// the latest data, we still record the time at which we're asking to allow us to be more efficient with the
+// cache during forecast cut-over times. When we're fetching a previous forecast, we normalize the date to ensure that
+// we can cache a request for e.g. 01-01-2001 01:00:00 the same as 01-01-2001 02:00:00, since those will net the
+// same result.
+export type RequestedTime = Date | 'latest';
+export type RequestedTimeString = string | 'latest';
+export const requestedTimeToUTCDate = (requestedTime: RequestedTime): Date => {
+  if (requestedTime !== 'latest') {
+    return toDate(new Date(requestedTime), {timeZone: 'UTC'});
+  }
+
+  return toDate(new Date(), {timeZone: 'UTC'});
+};
+
+export const formatRequestedTime = (requestedTime: RequestedTime): RequestedTimeString => {
+  if (requestedTime !== 'latest') {
+    return toISOStringUTC(requestedTime);
+  }
+
+  return 'latest';
+};
+
+export const parseRequestedTimeString = (requestedTime: RequestedTimeString): RequestedTime => {
+  if (requestedTime !== 'latest') {
+    return toDate(requestedTime, {timeZone: 'UTC'});
+  }
+
+  return 'latest';
 };

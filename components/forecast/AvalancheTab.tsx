@@ -14,7 +14,7 @@ import {HStack, View, VStack} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, BodyBlack, bodySize, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
-import {useLatestAvalancheForecast} from 'hooks/useLatestAvalancheForecast';
+import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {HomeStackNavigationProps} from 'routes';
 import {
   AvalancheCenter,
@@ -25,13 +25,13 @@ import {
   ElevationBandNames,
   ForecastPeriod,
 } from 'types/nationalAvalancheCenter';
-import {utcDateToLocalTimeString} from 'utils/date';
+import {RequestedTime, utcDateToLocalTimeString} from 'utils/date';
 
 interface AvalancheTabProps {
   elevationBandNames: ElevationBandNames;
   center_id: AvalancheCenterID;
   center: AvalancheCenter;
-  date: Date;
+  requestedTime: RequestedTime;
   forecast_zone_id: number;
 }
 
@@ -44,8 +44,8 @@ const HeaderWithTooltip = ({title, content}) => (
   </HStack>
 );
 
-export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.memo(({elevationBandNames, center_id, center, forecast_zone_id, date}) => {
-  const forecastResult = useLatestAvalancheForecast(center_id, center, forecast_zone_id, date); // TODO(skuznets): when we refactor to show previous forecasts, we will need two wrappers for the logic under the fetching, choosing either to fetch the latest, or for a specific date
+export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.memo(({elevationBandNames, center_id, center, forecast_zone_id, requestedTime}) => {
+  const forecastResult = useAvalancheForecast(center_id, center, forecast_zone_id, requestedTime);
   const forecast = forecastResult.data;
 
   // When navigating from elsewhere in the app, the screen title should already

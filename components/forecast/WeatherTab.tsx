@@ -13,14 +13,14 @@ import {useWeatherStations} from 'hooks/useWeatherStations';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
-import {toISOStringUTC, utcDateToDayOfWeekString, utcDateToLocalTimeString} from 'utils/date';
+import {formatRequestedTime, RequestedTime, utcDateToDayOfWeekString, utcDateToLocalTimeString} from 'utils/date';
 
 type ForecastNavigationProp = CompositeNavigationProp<NativeStackNavigationProp<HomeStackParamList, 'forecast'>, TabNavigationProps>;
 
 interface WeatherTabProps {
   zone: AvalancheForecastZone;
   center_id: AvalancheCenterID;
-  date: Date;
+  requestedTime: RequestedTime;
 }
 
 const SmallHeaderWithTooltip = ({title, content, dialogTitle}) => (
@@ -32,8 +32,8 @@ const SmallHeaderWithTooltip = ({title, content, dialogTitle}) => (
   </HStack>
 );
 
-export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) => {
-  const nwacForecastResult = useNWACWeatherForecast(zone.id, date);
+export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requestedTime}) => {
+  const nwacForecastResult = useNWACWeatherForecast(zone.id, requestedTime);
   const nwacForecast = nwacForecastResult.data;
   const stationsResult = useWeatherStations({
     center: center_id,
@@ -155,12 +155,11 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, date}) =
                 label: name,
                 data: stations,
                 action: () => {
-                  const dateString = toISOStringUTC(date);
                   navigation.navigate('stationDetail', {
                     center_id,
                     station_stids: stations.map(s => s.stid),
                     name,
-                    dateString,
+                    requestedTime: formatRequestedTime(requestedTime),
                     zoneName: zone.name,
                   });
                 },

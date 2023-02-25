@@ -1,21 +1,27 @@
 import React from 'react';
 
-import {Button, SectionList, StyleSheet, Switch} from 'react-native';
+import {SectionList, StyleSheet, Switch} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import * as Updates from 'expo-updates';
 
-import {AvalancheCenterCard, AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
+import {AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
-import {MenuStackNavigationProps, MenuStackParamList} from 'routes';
+import {MenuStackNavigationProps, MenuStackParamList, TabNavigatorParamList} from 'routes';
 
 import {Divider, HStack, View, VStack} from 'components/core';
 
 import * as Application from 'expo-application';
 
+import {QueryCache} from '@tanstack/react-query';
+import {ActionList} from 'components/content/ActionList';
+import {Button} from 'components/content/Button';
+import {ForecastScreen} from 'components/screens/ForecastScreen';
+import {MapScreen} from 'components/screens/MapScreen';
 import {
   AllCapsSm,
   AllCapsSmBlack,
@@ -40,28 +46,34 @@ import {
   Title3Semibold,
 } from 'components/text';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {toISOStringUTC} from 'utils/date';
 
 const MenuStack = createNativeStackNavigator<MenuStackParamList>();
 export const MenuStackScreen = (
+  {route}: NativeStackScreenProps<TabNavigatorParamList, 'Menu'>,
+  queryCache: QueryCache,
   avalancheCenterId: AvalancheCenterID,
   setAvalancheCenter: React.Dispatch<React.SetStateAction<AvalancheCenterID>>,
   staging: boolean,
   setStaging: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
+  const {center_id, requestedTime} = route.params;
   return (
     <MenuStack.Navigator initialRouteName="menu">
-      <MenuStack.Screen name="menu" component={MenuScreen(avalancheCenterId, staging, setStaging)} options={{title: `Settings`}} />
+      <MenuStack.Screen name="menu" component={MenuScreen(queryCache, avalancheCenterId, staging, setStaging)} options={{title: `Settings`}} />
       <MenuStack.Screen
         name="avalancheCenterSelector"
         component={AvalancheCenterSelectorScreen(avalancheCenterId, setAvalancheCenter)}
         options={{title: `Choose An Avalanche Center`}}
       />
       <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text style preview`}} />
+      <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
+      <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
     </MenuStack.Navigator>
   );
 };
 
-export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolean, setStaging: React.Dispatch<React.SetStateAction<boolean>>) => {
+export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheCenterID, staging: boolean, setStaging: React.Dispatch<React.SetStateAction<boolean>>) => {
   const toggleStaging = React.useCallback(() => {
     setStaging(!staging);
 
@@ -77,6 +89,14 @@ export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolea
             Version: {Application.nativeApplicationVersion} Build Version: {Application.nativeBuildVersion}
           </BodyBlack>
           <Divider />
+          <Button
+            buttonStyle="primary"
+            onPress={() => {
+              AsyncStorage.clear();
+              queryCache.clear();
+            }}>
+            <Body>Reset the query cache</Body>
+          </Button>
           {Updates.channel !== 'production' && (
             <VStack space={16}>
               <Title1Black>Debug Settings</Title1Black>
@@ -84,17 +104,56 @@ export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolea
                 <BodyBlack>Use staging environment</BodyBlack>
                 <Switch value={staging} onValueChange={toggleStaging} />
               </HStack>
-              <VStack alignItems="flex-start">
-                <BodyBlack>Choose Avalanche Center</BodyBlack>
-                <AvalancheCenterCard
-                  avalancheCenterId={avalancheCenterId}
-                  selected={false}
-                  onPress={() => {
-                    navigation.navigate('avalancheCenterSelector');
-                  }}
-                />
-              </VStack>
-              <Button onPress={() => navigation.navigate('textStylePreview')} title="Open text style preview" />
+              <ActionList
+                actions={[
+                  {
+                    label: 'Choose avalanche center',
+                    data: 'Avalanche Center Selector',
+                    action: () => {
+                      navigation.navigate('avalancheCenterSelector');
+                    },
+                  },
+                ]}
+              />
+              <Title1Black>Design Previews</Title1Black>
+              <ActionList
+                actions={[
+                  {
+                    label: 'Open text style preview',
+                    data: 'Text Style Preview',
+                    action: () => {
+                      navigation.navigate('textStylePreview');
+                    },
+                  },
+                ]}
+              />
+              <Title1Black>Quality Assurance Links</Title1Black>
+              <ActionList
+                actions={[
+                  {
+                    label: 'View map layer with active warning',
+                    data: 'Map Layer With Active Warning',
+                    action: () => {
+                      navigation.navigate('avalancheCenter', {
+                        center_id: 'NWAC',
+                        requestedTime: toISOStringUTC(new Date('2023-02-20T12:21:00-0800')),
+                      });
+                    },
+                  },
+                  {
+                    label: 'View forecast with active warning',
+                    data: 'Forecast With Active Warning',
+                    action: () => {
+                      navigation.navigate('forecast', {
+                        zoneName: 'West Slopes Central',
+                        center_id: 'NWAC',
+                        forecast_zone_id: 1130,
+                        requestedTime: toISOStringUTC(new Date('2023-02-20T12:21:00-0800')),
+                      });
+                    },
+                  },
+                ]}
+              />
             </VStack>
           )}
         </VStack>

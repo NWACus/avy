@@ -10,15 +10,16 @@ import Log from 'network/log';
 import {ClientContext, ClientProps} from 'clientContext';
 import {logQueryKey} from 'hooks/logger';
 import {reverseLookup} from 'types/nationalAvalancheCenter';
-import {nominalNWACWeatherForecastDate, toDateTimeInterfaceATOM} from 'utils/date';
+import {nominalNWACWeatherForecastDate, RequestedTime, requestedTimeToUTCDate, toDateTimeInterfaceATOM} from 'utils/date';
 import {z, ZodError} from 'zod';
 
-export const useNWACWeatherForecast = (zone_id: number, requestedTime: Date) => {
+export const useNWACWeatherForecast = (zone_id: number, requestedTime: RequestedTime) => {
   const {nwacHost} = React.useContext<ClientProps>(ClientContext);
+  const date = requestedTimeToUTCDate(requestedTime);
 
   return useQuery<NWACWeatherForecast, AxiosError | ZodError>({
-    queryKey: queryKey(nwacHost, zone_id, requestedTime),
-    queryFn: () => fetchNWACWeatherForecast(nwacHost, zone_id, requestedTime),
+    queryKey: queryKey(nwacHost, zone_id, date),
+    queryFn: () => fetchNWACWeatherForecast(nwacHost, zone_id, date),
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });

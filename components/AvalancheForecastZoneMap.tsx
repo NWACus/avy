@@ -29,17 +29,16 @@ import {MapViewZone, useMapViewZones} from 'hooks/useMapViewZones';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps} from 'routes';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
-import {toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
+import {formatRequestedTime, RequestedTime, utcDateToLocalTimeString} from 'utils/date';
 
 export interface MapProps {
   center: AvalancheCenterID;
-  date: Date;
+  requestedTime: RequestedTime;
 }
 
-export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, date}: MapProps) => {
-  const zonesResult = useMapViewZones(center, date);
-  const zones = zonesResult.data;
-
+const zonesResult = useMapViewZones(center, date);
+const zones = zonesResult.data;
+export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, requestedTime}: MapProps) => {
   const navigation = useNavigation<HomeStackNavigationProps>();
   const [selectedZone, setSelectedZone] = useState<MapViewZone | null>(null);
   const onPressMapView = useCallback(() => {
@@ -52,13 +51,13 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           zoneName: zone.name,
           center_id: zone.center_id,
           forecast_zone_id: zone.zone_id,
-          dateString: toISOStringUTC(date),
+          requestedTime: formatRequestedTime(requestedTime),
         });
       } else {
         setSelectedZone(zone);
       }
     },
-    [navigation, selectedZone, date],
+    [navigation, selectedZone, requestedTime],
   );
 
   const avalancheCenterMapRegion: Region = defaultMapRegionForZones(zones);
@@ -341,7 +340,7 @@ class AnimatedMapWithDrawerController {
 }
 
 const AvalancheForecastZoneCards: React.FunctionComponent<{
-  date: Date;
+  date: RequestedTime;
   zones: MapViewZone[];
   selectedZone: MapViewZone | null;
   setSelectedZone: React.Dispatch<React.SetStateAction<MapViewZone>>;
@@ -448,7 +447,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
 };
 
 const AvalancheForecastZoneCard: React.FunctionComponent<{
-  date: Date;
+  date: RequestedTime;
   zone: MapViewZone;
 }> = ({date, zone}) => {
   const {width} = useWindowDimensions();
@@ -464,7 +463,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           zoneName: zone.name,
           center_id: zone.center_id,
           forecast_zone_id: zone.zone_id,
-          dateString: toISOStringUTC(date),
+          requestedTime: formatRequestedTime(date),
         });
       }}>
       <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={200}>

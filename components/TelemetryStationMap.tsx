@@ -12,12 +12,12 @@ import MapView, {Marker, Region} from 'react-native-maps';
 import {TelemetryStackNavigationProps} from 'routes';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {StationMetadata} from 'types/snowbound';
-import {toISOStringUTC} from 'utils/date';
+import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 export const TelemetryStationMap: React.FunctionComponent<{
   center_id: AvalancheCenterID;
-  date: Date;
-}> = ({center_id, date}) => {
+  requestedTime: RequestedTime;
+}> = ({center_id, requestedTime}) => {
   const {width} = useWindowDimensions();
   const [isReady, setIsReady] = React.useState<boolean>(false);
   const [isList, setIsList] = React.useState<boolean>(false);
@@ -79,7 +79,7 @@ export const TelemetryStationMap: React.FunctionComponent<{
             id: station.id,
             station: station,
           }))}
-          renderItem={({item}) => <TelemetryStationCard center_id={center_id} date={date} station={item.station} style={styles.verticalCard} />}
+          renderItem={({item}) => <TelemetryStationCard center_id={center_id} requestedTime={requestedTime} station={item.station} style={styles.verticalCard} />}
         />
         <TouchableOpacity onPress={toggleList}>
           <View style={styles.toggle}>
@@ -119,7 +119,7 @@ export const TelemetryStationMap: React.FunctionComponent<{
               id: station.id,
               station: station,
             }))}
-            renderItem={({item}) => <TelemetryStationCard center_id={center_id} date={date} station={item.station} style={styles.verticalCard} />}
+            renderItem={({item}) => <TelemetryStationCard center_id={center_id} requestedTime={requestedTime} station={item.station} style={styles.verticalCard} />}
           />
           <TouchableOpacity onPress={toggleList}>
             <View style={styles.toggle}>
@@ -134,10 +134,10 @@ export const TelemetryStationMap: React.FunctionComponent<{
 
 export const TelemetryStationCard: React.FunctionComponent<{
   center_id: AvalancheCenterID;
-  date: Date;
+  requestedTime: RequestedTime;
   station: StationMetadata;
   style: ViewStyle;
-}> = ({center_id, date, station, style}) => {
+}> = ({center_id, requestedTime, station, style}) => {
   const {width} = useWindowDimensions();
   const navigation = useNavigation<TelemetryStackNavigationProps>();
   return (
@@ -148,7 +148,7 @@ export const TelemetryStationCard: React.FunctionComponent<{
           source: station.source,
           station_id: station.stid,
           name: station.name,
-          dateString: toISOStringUTC(date),
+          requestedTime: formatRequestedTime(requestedTime),
         });
       }}
       style={{
