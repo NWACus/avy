@@ -38,7 +38,7 @@
       "config": {
         "googleMaps": {"apiKey": "LOADED_FROM_ENVIRONMENT"}
       },
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "FOREGROUND_SERVICE"]
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "FOREGROUND_SERVICE", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
     },
     "hooks": {
       "postPublish": [
