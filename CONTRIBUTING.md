@@ -17,6 +17,12 @@ For development, you will need a number of environment variables set to secret v
 - `SENTRY_API_TOKEN`
 - `SENTRY_DSN`
 
+These secrets can be uploaded to the Expo servers if they ever become out-of-sync with:
+
+```shell
+eas secret:push --env-file=.env
+```
+
 ## Logging
 
 Runtime logging can be enabled in development mode by running `npx expo start` with the following environment variables set:
