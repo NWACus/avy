@@ -35,8 +35,12 @@ export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones
 });
 
 export function defaultMapRegionForZones(zones: MapViewZone[]) {
-  const avalancheCenterMapRegionBounds: RegionBounds = zones
-    ? zones.reduce((accumulator, currentValue) => updateBoundsToContain(accumulator, toLatLngList(currentValue.geometry)), defaultAvalancheCenterMapRegionBounds)
+  return defaultMapRegionForGeometries(zones.map(zone => zone.geometry));
+}
+
+export function defaultMapRegionForGeometries(geometries: FeatureComponent[]) {
+  const avalancheCenterMapRegionBounds: RegionBounds = geometries
+    ? geometries.reduce((accumulator, currentValue) => updateBoundsToContain(accumulator, toLatLngList(currentValue)), defaultAvalancheCenterMapRegionBounds)
     : defaultAvalancheCenterMapRegionBounds;
   const avalancheCenterMapRegion: Region = regionFromBounds(avalancheCenterMapRegionBounds);
   // give the polygons a little buffer in the region so we don't render them at the outskirts of the screen
