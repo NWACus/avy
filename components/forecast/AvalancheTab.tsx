@@ -124,9 +124,9 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
       </Card>
       {warning.expires_time && (
         <View mx={16} py={16} borderRadius={10} borderColor={'#333333'} backgroundColor={'#333333'}>
-          <HStack mx={12} space={16}>
+          <HStack ml={12} space={16}>
             <View backgroundColor={colorFor(DangerLevel.High).string()} width={4} height={'100%'} borderRadius={12}></View>
-            <VStack space={16}>
+            <VStack space={16} pr={8}>
               <VStack space={8}>
                 <HStack space={8} alignItems={'flex-start'}>
                   <Feather name="alert-triangle" size={24} color={colorFor(DangerLevel.High).string()} />
