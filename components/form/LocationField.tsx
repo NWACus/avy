@@ -1,6 +1,6 @@
 import {AntDesign, FontAwesome} from '@expo/vector-icons';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
-import {defaultMapRegionForGeometries, defaultMapRegionForZones, ZoneMap} from 'components/content/ZoneMap';
+import {defaultMapRegionForGeometries, defaultMapRegionForZones, MapViewZone, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, bodySize, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
 import {useMapLayer} from 'hooks/useMapLayer';
@@ -58,6 +58,16 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label, center
     }
   }, [mapLayer, setInitialRegion, onChangeRegion, value, mapReady, setMapReady]);
 
+  const zones: MapViewZone[] = mapLayer.features.map(feature => ({
+    zone_id: feature.id,
+    center_id: center,
+    geometry: feature.geometry,
+    hasWarning: feature.properties.warning?.product === 'warning',
+    start_date: feature.properties.start_date,
+    end_date: feature.properties.end_date,
+    fillOpacity: feature.properties.fillOpacity,
+  }));
+
   return (
     <VStack width="100%" space={4}>
       <BodyXSmBlack>{label}</BodyXSmBlack>
@@ -99,7 +109,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label, center
                       <ZoneMap
                         animated={false}
                         style={{width: '100%', height: '100%'}}
-                        zones={[]}
+                        zones={zones}
                         initialRegion={initialRegion}
                         onRegionChange={onChangeRegion}
                         onRegionChangeComplete={onChangeRegion}
