@@ -3,7 +3,7 @@ import {Animated} from 'react-native';
 import {LatLng, Polygon} from 'react-native-maps';
 
 import {colorFor} from 'components/AvalancheDangerPyramid';
-import {MapViewZone} from 'hooks/useMapViewZones';
+import {MapViewZone} from 'components/content/ZoneMap';
 import {colorLookup} from 'theme';
 import {FeatureComponent} from 'types/nationalAvalancheCenter';
 
@@ -73,11 +73,13 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
 
   if (useAnimation) {
     const fillColor = animationProgress.interpolate({
-      inputRange: [0, 1, 2, 3],
+      inputRange: [0, 1, 2, 3, 4, 5],
       outputRange: [
+        colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
         colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
         colorFor(zone.danger_level).alpha(1).string(),
         colorFor(zone.danger_level).alpha(1).string(),
+        colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
         colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
       ],
     });
