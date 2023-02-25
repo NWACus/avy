@@ -24,6 +24,9 @@
         "appleId": "$IOS_USER_ID",
         "appleTeamId": "$IOS_TEAM_ID",
         "ascAppId": "$IOS_APP_ID"
+      },
+      "android": {
+        "releaseStatus": "draft"
       }
     },
     "preview": {
