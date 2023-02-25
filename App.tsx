@@ -19,6 +19,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
 import {AppStateStatus, Platform, StatusBar, StyleSheet, View} from 'react-native';
+import {RootSiblingParent} from 'react-native-root-siblings';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import * as BackgroundFetch from 'expo-background-fetch';
@@ -223,48 +224,50 @@ const BaseApp: React.FunctionComponent<{
       <SafeAreaProvider>
         <NavigationContainer>
           <SelectProvider>
-            <StatusBar barStyle="dark-content" />
-            <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
-              <TabNavigator.Navigator
-                initialRouteName="Home"
-                screenOptions={({route}) => ({
-                  headerShown: false,
-                  tabBarIcon: ({color, size}) => {
-                    if (route.name === 'Home') {
-                      return <AntDesign name="search1" size={size} color={color} />;
-                    } else if (route.name === 'Observations') {
-                      return <AntDesign name="filetext1" size={size} color={color} />;
-                    } else if (route.name === 'Weather Data') {
-                      return <AntDesign name="barschart" size={size} color={color} />;
-                    } else if (route.name === 'Menu') {
-                      return <AntDesign name="bars" size={size} color={color} />;
-                    }
-                  },
-                })}>
-                <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
-                  {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
-                </TabNavigator.Screen>
-                <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
-                  {state =>
-                    ObservationsTabScreen(
-                      merge(state, {
-                        route: {
-                          params: {
-                            center_id: avalancheCenterId,
+            <RootSiblingParent>
+              <StatusBar barStyle="dark-content" />
+              <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
+                <TabNavigator.Navigator
+                  initialRouteName="Home"
+                  screenOptions={({route}) => ({
+                    headerShown: false,
+                    tabBarIcon: ({color, size}) => {
+                      if (route.name === 'Home') {
+                        return <AntDesign name="search1" size={size} color={color} />;
+                      } else if (route.name === 'Observations') {
+                        return <AntDesign name="filetext1" size={size} color={color} />;
+                      } else if (route.name === 'Weather Data') {
+                        return <AntDesign name="barschart" size={size} color={color} />;
+                      } else if (route.name === 'Menu') {
+                        return <AntDesign name="bars" size={size} color={color} />;
+                      }
+                    },
+                  })}>
+                  <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                    {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
+                  </TabNavigator.Screen>
+                  <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                    {state =>
+                      ObservationsTabScreen(
+                        merge(state, {
+                          route: {
+                            params: {
+                              center_id: avalancheCenterId,
+                            },
                           },
-                        },
-                      }),
-                    )
-                  }
-                </TabNavigator.Screen>
-                <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
-                  {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
-                </TabNavigator.Screen>
-                <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
-                  {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-                </TabNavigator.Screen>
-              </TabNavigator.Navigator>
-            </View>
+                        }),
+                      )
+                    }
+                  </TabNavigator.Screen>
+                  <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                    {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
+                  </TabNavigator.Screen>
+                  <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                    {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                  </TabNavigator.Screen>
+                </TabNavigator.Navigator>
+              </View>
+            </RootSiblingParent>
           </SelectProvider>
         </NavigationContainer>
       </SafeAreaProvider>
