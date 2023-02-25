@@ -20,12 +20,14 @@ import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {colorFor} from 'components/AvalancheDangerPyramid';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
-import {defaultMapRegionForZones, ZoneMap} from 'components/content/ZoneMap';
+import {defaultMapRegionForGeometries, MapViewZone, ZoneMap} from 'components/content/ZoneMap';
 import {HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {TravelAdvice} from 'components/helpers/travelAdvice';
 import {BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
-import {MapViewZone, useMapViewZones} from 'hooks/useMapViewZones';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {useMapLayer} from 'hooks/useMapLayer';
+import {useMapLayerAvalancheForecasts, useMapLayerAvalancheWarnings} from 'hooks/useMapLayerForecasts';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps} from 'routes';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
@@ -36,9 +38,14 @@ export interface MapProps {
   requestedTime: RequestedTime;
 }
 
-const zonesResult = useMapViewZones(center, date);
-const zones = zonesResult.data;
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, requestedTime}: MapProps) => {
+  const mapLayerResult = useMapLayer(center);
+  const mapLayer = mapLayerResult.data;
+  const metadataResult = useAvalancheCenterMetadata(center);
+  const metadata = metadataResult.data;
+  const forecastResults = useMapLayerAvalancheForecasts(center, requestedTime, mapLayer, metadata);
+  const warningResults = useMapLayerAvalancheWarnings(center, requestedTime, mapLayer);
+
   const navigation = useNavigation<HomeStackNavigationProps>();
   const [selectedZone, setSelectedZone] = useState<MapViewZone | null>(null);
   const onPressMapView = useCallback(() => {
@@ -60,7 +67,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     [navigation, selectedZone, requestedTime],
   );
 
-  const avalancheCenterMapRegion: Region = defaultMapRegionForZones(zones);
+  const avalancheCenterMapRegion: Region = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
@@ -80,9 +87,48 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     controller.animateUsingUpdatedTabBarHeight(tabBarHeight);
   }, [tabBarHeight, controller]);
 
-  if (incompleteQueryState(zonesResult)) {
-    return <QueryState results={[zonesResult]} />;
+  if (incompleteQueryState(mapLayerResult, metadataResult, ...forecastResults, ...warningResults)) {
+    return <QueryState results={[mapLayerResult, metadataResult, ...forecastResults, ...warningResults]} />;
   }
+
+  // default to the values in the map layer, but update it with the forecasts and wranings we've fetched
+  const zonesById: Record<number, MapViewZone> = mapLayer.features.reduce((accum, feature) => {
+    accum[feature.id] = {
+      zone_id: feature.id,
+      center_id: center,
+      geometry: feature.geometry,
+      hasWarning: feature.properties.warning?.product === 'warning',
+      ...feature.properties,
+    };
+    return accum;
+  }, {});
+  forecastResults
+    .map(result => result.data) // get data from the results
+    .filter(data => data) // only operate on results that have succeeded
+    .forEach(forecast => {
+      forecast.forecast_zone?.forEach(({id}) => {
+        const mapViewZoneData = zonesById[id];
+        if (mapViewZoneData) {
+          const currentDanger = forecast.danger?.find(d => d.valid_day === 'current');
+          if (currentDanger) {
+            mapViewZoneData.danger_level = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
+          }
+          mapViewZoneData.danger = forecast.danger_level_text;
+          mapViewZoneData.start_date = forecast.published_time;
+          mapViewZoneData.end_date = forecast.expires_time;
+        }
+      });
+    });
+  warningResults
+    .map(result => result.data) // get data from the results
+    .filter(data => data) // only operate on results that have succeeded
+    .forEach(warning => {
+      const mapViewZoneData = zonesById[warning.zone_id];
+      if (mapViewZoneData && warning.expires_time) {
+        mapViewZoneData.hasWarning = true;
+      }
+    });
+  const zones = Object.keys(zonesById).map(k => zonesById[k]);
 
   return (
     <>
@@ -120,7 +166,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         </View>
       </SafeAreaView>
 
-      <AvalancheForecastZoneCards key={center} date={date} zones={zones} selectedZone={selectedZone} setSelectedZone={setSelectedZone} controller={controller} />
+      <AvalancheForecastZoneCards key={center} date={requestedTime} zones={zones} selectedZone={selectedZone} setSelectedZone={setSelectedZone} controller={controller} />
     </>
   );
 };

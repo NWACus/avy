@@ -4,11 +4,24 @@ import MapView, {MapViewProps, MAP_TYPES, Region} from 'react-native-maps';
 
 import {AvalancheForecastZonePolygon, toLatLngList} from 'components/AvalancheForecastZonePolygon';
 import {RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
-import {MapViewZone} from 'hooks/useMapViewZones';
+import {AvalancheCenterID, DangerLevel, FeatureComponent} from 'types/nationalAvalancheCenter';
 
 const defaultAvalancheCenterMapRegionBounds: RegionBounds = {
   topLeft: {latitude: 0, longitude: 0},
   bottomRight: {latitude: 0, longitude: 0},
+};
+
+export type MapViewZone = {
+  center_id: AvalancheCenterID;
+  zone_id?: number;
+  name?: string;
+  danger_level?: DangerLevel;
+  danger?: string;
+  start_date: Date | null;
+  end_date: Date | null;
+  geometry?: FeatureComponent;
+  fillOpacity: number;
+  hasWarning: boolean;
 };
 
 interface ZoneMapProps extends MapViewProps {
