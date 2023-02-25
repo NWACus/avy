@@ -3,8 +3,6 @@ import React from 'react';
 import {SectionList, StyleSheet, Switch} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-import * as Updates from 'expo-updates';
-
 import {AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -13,13 +11,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
 import {MenuStackNavigationProps, MenuStackParamList, TabNavigatorParamList} from 'routes';
 
-import {Divider, HStack, View, VStack} from 'components/core';
+import {HStack, View, VStack} from 'components/core';
 
 import * as Application from 'expo-application';
+import * as Updates from 'expo-updates';
 
 import {QueryCache} from '@tanstack/react-query';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
+import {Card} from 'components/content/Card';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
 import {
@@ -69,6 +69,7 @@ export const MenuStackScreen = (
       <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text style preview`}} />
       <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
       <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
+      <MenuStack.Screen name="about" component={AboutScreen} options={() => ({title: 'About This App'})} />
     </MenuStack.Navigator>
   );
 };
@@ -85,10 +86,17 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
       <SafeAreaView style={styles.fullscreen}>
         <VStack pt={16} px={16} space={16} style={styles.fullscreen}>
           <FeatureTitleBlack>Settings</FeatureTitleBlack>
-          <BodyBlack>
-            Version: {Application.nativeApplicationVersion} Build Version: {Application.nativeBuildVersion}
-          </BodyBlack>
-          <Divider />
+          <ActionList
+            actions={[
+              {
+                label: 'About this app',
+                data: 'About',
+                action: () => {
+                  navigation.navigate('about');
+                },
+              },
+            ]}
+          />
           <Button
             buttonStyle="primary"
             onPress={() => {
@@ -241,6 +249,61 @@ export const AvalancheCenterSelectorScreen = (avalancheCenterId: AvalancheCenter
   return function (_: NativeStackScreenProps<MenuStackParamList, 'avalancheCenterSelector'>) {
     return <AvalancheCenterSelector currentCenterId={avalancheCenterId} setAvalancheCenter={setAvalancheCenter} />;
   };
+};
+
+export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
+  return (
+    <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
+      <VStack space={8} bgColor={'#f0f2f5'} width="100%" height="100%">
+        <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Version Information</Title3Black>}>
+          <VStack space={16}>
+            <HStack justifyContent="space-evenly" space={8}>
+              <VStack space={4} style={{flex: 1}}>
+                <AllCapsSmBlack>Version</AllCapsSmBlack>
+                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                  {Application.nativeApplicationVersion}
+                </AllCapsSm>
+              </VStack>
+              <VStack space={4} style={{flex: 1}}>
+                <AllCapsSmBlack>Build Version</AllCapsSmBlack>
+                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                  {Application.nativeBuildVersion}
+                </AllCapsSm>
+              </VStack>
+            </HStack>
+            <HStack justifyContent="space-evenly" space={8}>
+              <VStack space={4} style={{flex: 1}}>
+                <AllCapsSmBlack>Update Channel</AllCapsSmBlack>
+                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                  {Updates.channel || 'unknown'}
+                </AllCapsSm>
+              </VStack>
+              <VStack space={4} style={{flex: 1}}>
+                <AllCapsSmBlack>Release Channel</AllCapsSmBlack>
+                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                  {Updates.releaseChannel || 'unknown'}
+                </AllCapsSm>
+              </VStack>
+            </HStack>
+            <HStack justifyContent="space-evenly" space={8}>
+              <VStack space={4} style={{flex: 1}}>
+                <AllCapsSmBlack>Runtime Version</AllCapsSmBlack>
+                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                  {Updates.runtimeVersion || 'unknown'}
+                </AllCapsSm>
+              </VStack>
+              <VStack space={4} style={{flex: 1}}>
+                <AllCapsSmBlack>Update ID</AllCapsSmBlack>
+                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                  {Updates.updateId || 'unknown'}
+                </AllCapsSm>
+              </VStack>
+            </HStack>
+          </VStack>
+        </Card>
+      </VStack>
+    </SafeAreaView>
+  );
 };
 
 const styles = StyleSheet.create({

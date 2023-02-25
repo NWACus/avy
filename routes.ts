@@ -94,5 +94,6 @@ export type MenuStackParamList = {
     forecast_zone_id: number;
     requestedTime: RequestedTimeString;
   };
+  about: undefined;
 };
 export type MenuStackNavigationProps = NativeStackNavigationProp<MenuStackParamList>;
