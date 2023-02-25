@@ -14,6 +14,8 @@ import {MenuStackNavigationProps, MenuStackParamList} from 'routes';
 
 import {Divider, HStack, View, VStack} from 'components/core';
 
+import * as Application from 'expo-application';
+
 import {
   AllCapsSm,
   AllCapsSmBlack,
@@ -62,6 +64,7 @@ export const MenuStackScreen = (
 export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolean, setStaging: React.Dispatch<React.SetStateAction<boolean>>) => {
   const toggleStaging = React.useCallback(() => {
     setStaging(!staging);
+
     console.log(`Switching to ${staging ? 'production' : 'staging'} environment`);
   }, [staging, setStaging]);
   const navigation = useNavigation<MenuStackNavigationProps>();
@@ -70,6 +73,9 @@ export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolea
       <SafeAreaView style={styles.fullscreen}>
         <VStack pt={16} px={16} space={16} style={styles.fullscreen}>
           <FeatureTitleBlack>Settings</FeatureTitleBlack>
+          <BodyBlack>
+            Version: {Application.nativeApplicationVersion} Build Version: {Application.nativeBuildVersion}
+          </BodyBlack>
           <Divider />
           {Updates.channel !== 'production' && (
             <VStack space={16}>
