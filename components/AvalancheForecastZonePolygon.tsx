@@ -28,15 +28,21 @@ export const toLatLngList = (geometry: FeatureComponent): LatLng[] => {
 export interface AvalancheForecastZonePolygonProps {
   zone: MapViewZone;
   selected: boolean;
+  renderFillColor: boolean;
   onPress: (zone: MapViewZone) => void;
 }
 
 const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
 
-export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({zone, selected, onPress}: AvalancheForecastZonePolygonProps) => {
+export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({
+  zone,
+  selected,
+  onPress,
+  renderFillColor,
+}: AvalancheForecastZonePolygonProps) => {
   const outline = colorLookup('gray.700');
   const highlight = colorLookup('blue.100');
-  const useAnimation = zone.hasWarning;
+  const useAnimation = zone.hasWarning && renderFillColor;
   const animationProgress = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     if (useAnimation) {
@@ -77,7 +83,8 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
     });
     return <AnimatedPolygon fillColor={fillColor} {...polygonProps} />;
   } else {
-    const fillColor = colorFor(zone.danger_level).alpha(zone.fillOpacity).string();
+    const fillOpacity = renderFillColor ? zone.fillOpacity : 0;
+    const fillColor = colorFor(zone.danger_level).alpha(fillOpacity).string();
     return <Polygon fillColor={fillColor} {...polygonProps} />;
   }
 };

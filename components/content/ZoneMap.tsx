@@ -15,16 +15,20 @@ interface ZoneMapProps extends MapViewProps {
   animated: boolean;
   zones: MapViewZone[];
   selectedZone?: MapViewZone;
+  renderFillColor?: boolean;
   onPressPolygon: (zone: MapViewZone) => void;
 }
 
-export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones, selectedZone, onPressPolygon, children, ...props}, ref) => {
+export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones, selectedZone, onPressPolygon, renderFillColor = true, children, ...props}, ref) => {
   const [ready, setReady] = useState<boolean>(false);
   const MapComponent = animated ? MapView.Animated : MapView;
 
   return (
     <MapComponent ref={ref} onLayout={() => setReady(true)} provider={'google'} mapType={MAP_TYPES.TERRAIN} {...props}>
-      {ready && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={selectedZone === zone} onPress={onPressPolygon} />)}
+      {ready &&
+        zones?.map(zone => (
+          <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={selectedZone === zone} renderFillColor={renderFillColor} onPress={onPressPolygon} />
+        ))}
       {children}
     </MapComponent>
   );
