@@ -6,6 +6,7 @@ import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
+import AvalancheWarningQuery from 'hooks/useAvalancheWarning';
 import ImageCache from 'hooks/useCachedImageURI';
 import AvalancheCenterMapLayerQuery from 'hooks/useMapLayer';
 import NWACWeatherForecastQuery from 'hooks/useNWACWeatherForecast';
@@ -28,6 +29,7 @@ export const prefetchAllActiveForecasts = async (queryClient: QueryClient, cente
     .filter(zone => zone.status === 'active')
     .forEach(async zone => {
       NWACWeatherForecastQuery.prefetch(queryClient, nwacHost, zone.id, currentDateTime);
+      AvalancheWarningQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime);
       await AvalancheForecastQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime, metadata?.timezone, metadata?.config.expires_time);
       const forecastData = queryClient.getQueryData<Product>(
         AvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, center_id, zone.id, requestedTime, metadata?.timezone, metadata?.config.expires_time),
