@@ -1,7 +1,8 @@
 import {AntDesign} from '@expo/vector-icons';
-import {yupResolver} from '@hookform/resolvers/yup';
+import {zodResolver} from '@hookform/resolvers/zod';
 import {useBackHandler} from '@react-native-community/hooks';
 import {useNavigation} from '@react-navigation/native';
+import {ClientContext, ClientProps} from 'clientContext';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {ImageList} from 'components/content/carousel/ImageList';
@@ -12,42 +13,59 @@ import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField} from 'components/form/TextField';
-import {createObservation, observationSchema} from 'components/observations/ObservationSchema';
+import {createObservation, simpleObservationFormSchema} from 'components/observations/ObservationSchema';
+import {uploadImage} from 'components/observations/submitTask';
 import {Body, BodySemibold, Title3Black, Title3Semibold} from 'components/text';
 import * as ImagePicker from 'expo-image-picker';
-import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
-import {uniq} from 'lodash';
-import React, {useCallback, useRef, useState} from 'react';
-import {FormProvider, useForm} from 'react-hook-form';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {FormProvider, useForm, useWatch} from 'react-hook-form';
 import {Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View as RNView} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, MediaItem, MediaType} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, InstabilityDistribution, MediaItem, MediaType, Observation} from 'types/nationalAvalancheCenter';
 
 export const SimpleForm: React.FC<{
   center_id: AvalancheCenterID;
   onClose?: () => void;
 }> = ({center_id, onClose}) => {
-  const {data: center} = useAvalancheCenterMetadata(center_id);
-  const zones = uniq(center?.zones?.filter(z => z.status === 'active')?.map(z => z.name));
+  // const {data: center} = useAvalancheCenterMetadata(center_id);
+  // const zones = uniq(center?.zones?.filter(z => z.status === 'active')?.map(z => z.name));
 
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const formContext = useForm({
     defaultValues: createObservation(),
-    resolver: yupResolver(observationSchema),
+    resolver: zodResolver(simpleObservationFormSchema),
     mode: 'onBlur',
     shouldFocusError: false,
     shouldUnregister: true,
   });
 
+  const collapsing = useWatch({control: formContext.control, name: 'instability.collapsing'});
+  useEffect(() => {
+    if (!collapsing) {
+      formContext.setValue('instability.collapsing_description', undefined);
+    }
+  }, [collapsing, formContext]);
+  const cracking = useWatch({control: formContext.control, name: 'instability.cracking'});
+  useEffect(() => {
+    if (!cracking) {
+      formContext.setValue('instability.cracking_description', undefined);
+    }
+  }, [cracking, formContext]);
+
   const fieldRefs = useRef<{ref: RNView; field: string}[]>([]);
   const scrollViewRef = useRef(null);
 
-  const onSubmitHandler = data => {
-    console.log('onSubmitHandler -> success', {data});
+  const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
+
+  const onSubmitHandler = async (data: Observation) => {
+    console.log('onSubmitHandler -> success', data);
+    await Promise.all(images.map(({uri}) => uploadImage({apiPrefix: nationalAvalancheCenterHost, uri, name: data.name, center_id})));
   };
+
   const onSubmitErrorHandler = errors => {
+    console.log('submit error', JSON.stringify(errors, null, 2), '\nform values: ', JSON.stringify(formContext.getValues(), null, 2));
     // scroll to the first field with an error
     fieldRefs.current.some(({ref, field}) => {
       if (errors[field]) {
@@ -124,7 +142,14 @@ export const SimpleForm: React.FC<{
                   </View>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Privacy</Title3Semibold>}>
                     <VStack space={formFieldSpacing} mt={8}>
-                      <SwitchField name="visibility" label="Observation visibility" items={['Public', 'Private']} />
+                      <SwitchField
+                        name="private"
+                        label="Observation visibility"
+                        items={[
+                          {label: 'Public', value: false},
+                          {label: 'Private', value: true},
+                        ]}
+                      />
                       <SelectField
                         name="photoUsage"
                         label="Photo usage"
@@ -161,8 +186,9 @@ export const SimpleForm: React.FC<{
                           autoCorrect: false,
                         }}
                       />
-                      <DateField name="observationDate" label="Observation date" />
-                      <SelectField
+                      <DateField name="start_date" label="Observation date" />
+                      {/* TODO get zone automatically based on lat/lng */}
+                      {/* <SelectField
                         name="zone"
                         label="Zone/Region"
                         prompt="Select a zone or region"
@@ -170,7 +196,7 @@ export const SimpleForm: React.FC<{
                         ref={element => {
                           fieldRefs.current.push({field: 'zone', ref: element});
                         }}
-                      />
+                      /> */}
                       <SelectField
                         name="activity"
                         label="Activity"
@@ -210,51 +236,107 @@ export const SimpleForm: React.FC<{
                         ]}
                       />
                       <TextField
-                        name="location"
+                        name="location_name"
                         label="Location"
                         ref={element => {
-                          fieldRefs.current.push({field: 'location', ref: element});
+                          fieldRefs.current.push({field: 'location_name', ref: element});
                         }}
                         textInputProps={{
                           placeholder: 'Please describe your observation location using common geographical place names (drainages, peak names, etc).',
                           multiline: true,
                         }}
                       />
-                      <LocationField name="mapLocation" label="Latitude/Longitude" />
+                      <LocationField name="location_point" label="Latitude/Longitude" />
                     </VStack>
                   </Card>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Signs of instability</Title3Semibold>}>
                     <VStack mt={8}>
-                      <SwitchField name="recent" label="Did you see recent avalanches?" items={['No', 'Yes']} pb={formFieldSpacing} />
-                      <Conditional name="recent" value="Yes">
+                      <SwitchField
+                        name="instability.avalanches_observed"
+                        label="Did you see recent avalanches?"
+                        items={[
+                          {label: 'No', value: false},
+                          {label: 'Yes', value: true},
+                        ]}
+                        pb={formFieldSpacing}
+                      />
+                      <Conditional name="instability.avalanches_observed" value={true}>
                         <VStack>
                           <View pb={formFieldSpacing}>
                             <Body fontStyle="italic">Please provide more detail in the Avalanches section below.</Body>
                           </View>
-                          <SwitchField name="trigger" label="Did you trigger an avalanche?" items={['No', 'Yes']} pb={formFieldSpacing} />
-                          <Conditional name="trigger" value="Yes">
-                            <SwitchField name="caught" label="Were you caught?" items={['No', 'Yes']} pb={formFieldSpacing} />
+                          <SwitchField
+                            name="instability.avalanches_triggered"
+                            label="Did you trigger an avalanche?"
+                            items={[
+                              {label: 'No', value: false},
+                              {label: 'Yes', value: true},
+                            ]}
+                            pb={formFieldSpacing}
+                          />
+                          <Conditional name="instability.avalanches_triggered" value={true}>
+                            <SwitchField
+                              name="instability.avalanches_caught"
+                              label="Were you caught?"
+                              items={[
+                                {label: 'No', value: false},
+                                {label: 'Yes', value: true},
+                              ]}
+                              pb={formFieldSpacing}
+                            />
                           </Conditional>
                         </VStack>
                       </Conditional>
-                      <SwitchField name="cracking" label="Did you experience snowpack cracking?" items={['No', 'Yes']} pb={formFieldSpacing} />
-                      <Conditional name="cracking" value="Yes" space={formFieldSpacing}>
-                        <SelectField name="crackingExtent" label="How widespread was the cracking?" items={['Isolated', 'Widespread']} prompt=" " />
+                      <SwitchField
+                        name="instability.cracking"
+                        label="Did you experience snowpack cracking?"
+                        items={[
+                          {label: 'No', value: false},
+                          {label: 'Yes', value: true},
+                        ]}
+                        pb={formFieldSpacing}
+                      />
+                      <Conditional name="instability.cracking" value={true} space={formFieldSpacing}>
+                        <SelectField
+                          name="instability.cracking_description"
+                          label="How widespread was the cracking?"
+                          items={[
+                            {value: InstabilityDistribution.Isolated, label: 'Isolated'},
+                            {value: InstabilityDistribution.Widespread, label: 'Widespread'},
+                          ]}
+                          prompt=" "
+                        />
                       </Conditional>
-                      <SwitchField name="collapsing" label="Did you experience snowpack collapsing?" items={['No', 'Yes']} pb={formFieldSpacing} />
-                      <Conditional name="collapsing" value="Yes" space={formFieldSpacing}>
-                        <SelectField name="collapsingExtent" label="How widespread was the collapsing?" items={['Isolated', 'Widespread']} prompt=" " />
+                      <SwitchField
+                        name="instability.collapsing"
+                        label="Did you experience snowpack collapsing?"
+                        items={[
+                          {label: 'No', value: false},
+                          {label: 'Yes', value: true},
+                        ]}
+                        pb={formFieldSpacing}
+                      />
+                      <Conditional name="instability.collapsing" value={true} space={formFieldSpacing}>
+                        <SelectField
+                          name="instability.collapsing_description"
+                          label="How widespread was the collapsing?"
+                          items={[
+                            {value: InstabilityDistribution.Isolated, label: 'Isolated'},
+                            {value: InstabilityDistribution.Widespread, label: 'Widespread'},
+                          ]}
+                          prompt=" "
+                        />
                       </Conditional>
                     </VStack>
                   </Card>
-                  <Conditional name="recent" value="Yes">
+                  <Conditional name="instability.avalanches_observed" value={true}>
                     <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Avalanches</Title3Semibold>}>
                       <VStack space={formFieldSpacing} mt={8}>
                         <TextField
-                          name="avalancheComments"
+                          name="avalanches_summary"
                           label="Observed avalanches"
                           ref={element => {
-                            fieldRefs.current.push({field: 'avalancheComments', ref: element});
+                            fieldRefs.current.push({field: 'avalanches_summary', ref: element});
                           }}
                           textInputProps={{
                             placeholder: `• Location, aspect, and elevation
@@ -272,10 +354,10 @@ export const SimpleForm: React.FC<{
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Field Notes</Title3Semibold>}>
                     <VStack space={formFieldSpacing} mt={8}>
                       <TextField
-                        name="fieldNotes"
+                        name="observation_summary"
                         label="What did you observe?"
                         ref={element => {
-                          fieldRefs.current.push({field: 'fieldNotes', ref: element});
+                          fieldRefs.current.push({field: 'observation_summary', ref: element});
                         }}
                         textInputProps={{
                           placeholder: `• Signs of instability
@@ -333,6 +415,7 @@ export const SimpleForm: React.FC<{
                       formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
                     }}>
                     <BodySemibold>Submit your observation</BodySemibold>
+                    {/* TODO add an activity spinner here and disable the button while we're working */}
                   </Button>
                 </VStack>
               </ScrollView>

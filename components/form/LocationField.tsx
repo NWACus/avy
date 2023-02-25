@@ -32,23 +32,29 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
     setModalVisible(!modalVisible);
   }, [modalVisible, setModalVisible]);
 
+  const onChangeRegion = useCallback(
+    (region: Region) => {
+      onChange({lat: region.latitude, lng: region.longitude});
+    },
+    [onChange],
+  );
+
   useEffect(() => {
     if (zones && !mapReady) {
-      const location = value || {latitude: 0, longitude: 0};
+      const location = value || {lat: 0, lng: 0};
       const initialRegion = defaultMapRegionForZones(zones);
-      if (location.latitude !== 0 && location.longitude !== 0) {
-        initialRegion.latitude = location.latitude;
-        initialRegion.longitude = location.longitude;
+      if (location.lat !== 0 && location.lng !== 0) {
+        initialRegion.latitude = location.lat;
+        initialRegion.longitude = location.lng;
       }
       setInitialRegion(initialRegion);
       setMapReady(true);
       if (!value) {
         // Set the form value to the center of the map
-        // Note that we can call onChange with a Region because it's covariant with a LatLng
-        onChange(initialRegion);
+        onChangeRegion(initialRegion);
       }
     }
-  }, [zones, setInitialRegion, onChange, value, mapReady, setMapReady]);
+  }, [zones, setInitialRegion, onChangeRegion, value, mapReady, setMapReady]);
 
   return (
     <VStack width="100%" space={4}>
@@ -56,7 +62,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
       <TouchableOpacity onPress={toggleModal}>
         <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
           <View p={8}>
-            <Body>{value ? `${value.latitude}, ${value.longitude}` : 'Select a location'}</Body>
+            <Body>{value ? `${value.lat}, ${value.lng}` : 'Select a location'}</Body>
           </View>
           <Center px={8} borderLeftWidth={2} borderColor={colorLookup('border.base')}>
             <FontAwesome name="map-marker" color={colorLookup('text')} size={bodySize} />
@@ -91,11 +97,12 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
                       <ZoneMap
                         animated={false}
                         style={{width: '100%', height: '100%'}}
-                        zones={[]}
+                        zones={zones}
                         initialRegion={initialRegion}
-                        onRegionChange={onChange}
-                        onRegionChangeComplete={onChange}
+                        onRegionChange={onChangeRegion}
+                        onRegionChangeComplete={onChangeRegion}
                         onPressPolygon={() => undefined}
+                        renderFillColor={false}
                       />
                       <Center width="100%" height="100%" position="absolute" backgroundColor={undefined} pointerEvents="none">
                         <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40, transform: [{translateY: -20}]}} />
