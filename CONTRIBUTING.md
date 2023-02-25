@@ -17,6 +17,20 @@ For development, you will need a number of environment variables set to secret v
 - `SENTRY_API_TOKEN`
 - `SENTRY_DSN`
 
+## Logging
+
+Runtime logging can be enabled in development mode by running `npx expo start` with the following environment variables set:
+
+`$LOG_NETWORK`:
+
+- `'queries'`: queries issues to `react-query` will be logged along with their query keys; note that these may be fulfilled by the cache
+- `'requests'`: outgoing requests using `axios` will be logged
+- `'responses'`: incoming responses using `axios` will be logged along with their result status code
+- `'response-bodies'`: incoming response bodies using `axios` will be logged
+- `'all'`: all of the above will be logged
+
+`$LOG_NETWORK_MATCHING`: the value of this variable will be used to filter what is logged, using simple sub-string matches on the formatted URL with query parameters (e.g. `url.includes(log_network_matching)`).
+
 # NAC Staging Access
 
 Register for a new account at http://centers.avalanche.org/ under the NWAC center, forward this request to Chris Lundy.
