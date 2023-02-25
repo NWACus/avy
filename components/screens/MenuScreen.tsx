@@ -73,7 +73,9 @@ export const MenuScreen = (avalancheCenterId: AvalancheCenterID, staging: boolea
       <SafeAreaView style={styles.fullscreen}>
         <VStack pt={16} px={16} space={16} style={styles.fullscreen}>
           <FeatureTitleBlack>Settings</FeatureTitleBlack>
-          <BodyBlack> Version: {Application.nativeApplicationVersion} Build Version: {Application.nativeBuildVersion} </BodyBlack>
+          <BodyBlack>
+            Version: {Application.nativeApplicationVersion} Build Version: {Application.nativeBuildVersion}
+          </BodyBlack>
           <Divider />
           {Updates.channel !== 'production' && (
             <VStack space={16}>
