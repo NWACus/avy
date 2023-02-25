@@ -3,6 +3,7 @@ import {QueryClient} from '@tanstack/react-query';
 import Log from 'network/log';
 
 import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
+import {preloadAvalancheDangerIcons} from 'components/AvalancheDangerIcon';
 import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
@@ -20,8 +21,9 @@ export const prefetchAllActiveForecasts = async (queryClient: QueryClient, cente
   const requestedTime = 'latest';
   const currentDateTime = requestedTimeToUTCDate(requestedTime);
   preloadAvalancheProblemIcons(queryClient);
+  preloadAvalancheDangerIcons(queryClient);
   preloadAvalancheCenterLogo(queryClient, center_id);
-  await AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
+  AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
   await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
 
   const metadata = queryClient.getQueryData<AvalancheCenter>(AvalancheCenterMetadataQuery.queryKey(nationalAvalancheCenterHost, center_id));
