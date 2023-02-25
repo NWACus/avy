@@ -1,28 +1,32 @@
 import {AntDesign, FontAwesome} from '@expo/vector-icons';
-import {defaultMapRegionForZones, ZoneMap} from 'components/content/ZoneMap';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
+import {defaultMapRegionForGeometries, defaultMapRegionForZones, MapViewZone, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, bodySize, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
-import {useMapViewZones} from 'hooks/useMapViewZones';
+import {useMapLayer} from 'hooks/useMapLayer';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {ActivityIndicator, Image, Modal, TouchableOpacity} from 'react-native';
+import {Image, Modal, TouchableOpacity} from 'react-native';
 import {Region} from 'react-native-maps';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 interface LocationFieldProps {
   name: string;
   label: string;
+  center: AvalancheCenterID;
 }
 
-export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
+export const LocationField: React.FC<LocationFieldProps> = ({name, label, center}) => {
   const {
     field: {onChange, value},
     fieldState: {error},
   } = useController({name});
   const [modalVisible, setModalVisible] = useState(false);
 
-  const {isLoading, isError, data: zones} = useMapViewZones('NWAC', new Date());
+  const mapLayerResult = useMapLayer(center);
+  const mapLayer = mapLayerResult.data;
   const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
   const [mapReady, setMapReady] = useState<boolean>(false);
 
@@ -30,23 +34,39 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
     setModalVisible(!modalVisible);
   }, [modalVisible, setModalVisible]);
 
+  const onChangeRegion = useCallback(
+    (region: Region) => {
+      onChange({lat: region.latitude, lng: region.longitude});
+    },
+    [onChange],
+  );
+
   useEffect(() => {
-    if (zones && !mapReady) {
-      const location = value || {latitude: 0, longitude: 0};
-      const initialRegion = defaultMapRegionForZones(zones);
-      if (location.latitude !== 0 && location.longitude !== 0) {
-        initialRegion.latitude = location.latitude;
-        initialRegion.longitude = location.longitude;
+    if (mapLayer && !mapReady) {
+      const location = value || {lat: 0, lng: 0};
+      const initialRegion = defaultMapRegionForGeometries(mapLayer.features.map(feature => feature.geometry));
+      if (location.lat !== 0 && location.lng !== 0) {
+        initialRegion.latitude = location.lat;
+        initialRegion.longitude = location.lng;
       }
       setInitialRegion(initialRegion);
       setMapReady(true);
       if (!value) {
         // Set the form value to the center of the map
-        // Note that we can call onChange with a Region because it's covariant with a LatLng
-        onChange(initialRegion);
+        onChangeRegion(initialRegion);
       }
     }
-  }, [zones, setInitialRegion, onChange, value, mapReady, setMapReady]);
+  }, [mapLayer, setInitialRegion, onChangeRegion, value, mapReady, setMapReady]);
+
+  const zones: MapViewZone[] = mapLayer.features.map(feature => ({
+    zone_id: feature.id,
+    center_id: center,
+    geometry: feature.geometry,
+    hasWarning: feature.properties.warning?.product === 'warning',
+    start_date: feature.properties.start_date,
+    end_date: feature.properties.end_date,
+    fillOpacity: feature.properties.fillOpacity,
+  }));
 
   return (
     <VStack width="100%" space={4}>
@@ -54,7 +74,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
       <TouchableOpacity onPress={toggleModal}>
         <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
           <View p={8}>
-            <Body>{value ? `${value.latitude}, ${value.longitude}` : 'Select a location'}</Body>
+            <Body>{value ? `${value.lat}, ${value.lng}` : 'Select a location'}</Body>
           </View>
           <Center px={8} borderLeftWidth={2} borderColor={colorLookup('border.base')}>
             <FontAwesome name="map-marker" color={colorLookup('text')} size={bodySize} />
@@ -83,18 +103,18 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
                   />
                 </HStack>
                 <Center width="100%" height="100%">
-                  {isLoading && <ActivityIndicator size="large" />}
-                  {isError && <Body>Error loading map. Please try again.</Body>}
+                  {incompleteQueryState(mapLayerResult) && <QueryState results={[mapLayerResult]} />}
                   {mapReady && (
                     <>
                       <ZoneMap
                         animated={false}
                         style={{width: '100%', height: '100%'}}
-                        zones={[]}
+                        zones={zones}
                         initialRegion={initialRegion}
-                        onRegionChange={onChange}
-                        onRegionChangeComplete={onChange}
+                        onRegionChange={onChangeRegion}
+                        onRegionChangeComplete={onChangeRegion}
                         onPressPolygon={() => undefined}
+                        renderFillColor={false}
                       />
                       <Center width="100%" height="100%" position="absolute" backgroundColor={undefined} pointerEvents="none">
                         <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40, transform: [{translateY: -20}]}} />

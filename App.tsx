@@ -33,7 +33,7 @@ import {createAsyncStoragePersister} from '@tanstack/query-async-storage-persist
 import {focusManager, QueryCache, QueryClient, useQueryClient} from '@tanstack/react-query';
 import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
 
-import axios from 'axios';
+import axios, {AxiosRequestConfig} from 'axios';
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
 import {HomeTabScreen} from 'components/screens/HomeScreen';
 import {MenuStackScreen} from 'components/screens/MenuScreen';
@@ -46,25 +46,49 @@ import {useOnlineManager} from 'hooks/useOnlineManager';
 import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
 import {TabNavigatorParamList} from 'routes';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
-import {toISOStringUTC} from 'utils/date';
 
 // we're reading a field that was previously defined in app.json, so we know it's non-null:
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-if (Constants.expoConfig.extra!.log_requests) {
+const log_network = Constants.expoConfig.extra!.log_network;
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const log_matching = Constants.expoConfig.extra!.log_network_matching;
+const encodeParams = params => {
+  return Object.entries(params)
+    .map(kv => kv.map(encodeURIComponent).join('='))
+    .join('&');
+};
+const formatURI = (request: AxiosRequestConfig): string => {
+  let msg = `${request.method.toUpperCase()} ${request.url}`;
+  if (request.params && Object.keys(request.params).length !== 0) {
+    msg += `?${encodeParams(request.params)}`;
+  }
+  if (request.data) {
+    msg += ` data: ${request.data}`;
+  }
+  return msg;
+};
+
+if (log_network === 'all' || log_network.includes('requests')) {
   axios.interceptors.request.use(request => {
-    console.log(
-      'Request:',
-      JSON.stringify(
-        {
-          method: request.method,
-          url: request.url,
-          params: request.params,
-        },
-        null,
-        2,
-      ),
-    );
+    if (log_matching && !formatURI(request).includes(log_matching)) {
+      return request;
+    }
+    console.log(`=> ${formatURI(request)}`);
     return request;
+  });
+}
+
+if (log_network === 'all' || log_network.includes('responses')) {
+  axios.interceptors.response.use(response => {
+    if (log_matching && !formatURI(response.config).includes(log_matching)) {
+      return response;
+    }
+    const msg = `${response.status} ${formatURI(response.config)}:`;
+    console.log(`<= ${msg}`);
+    if (log_network.includes('response-bodies')) {
+      console.log(`<= ${JSON.stringify(response.data)}`);
+    }
+    return response;
   });
 }
 
@@ -124,11 +148,6 @@ const onAppStateChange = (status: AppStateStatus) => {
   }
 };
 
-// For now, we are implicitly interested in today's forecast.
-// If you want to investigate an issue on a different day, you can change this value.
-// TODO: add a date picker
-const defaultDate = new Date();
-
 const App = () => {
   try {
     useOnlineManager();
@@ -165,16 +184,14 @@ const BaseApp: React.FunctionComponent<{
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({staging, setStaging}) => {
   const [avalancheCenterId, setAvalancheCenterId] = React.useState(Constants.expoConfig.extra.avalanche_center as AvalancheCenterID);
-  const [date] = React.useState<Date>(defaultDate);
-  const dateString = toISOStringUTC(date);
 
-  const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
+  const {nationalAvalancheCenterHost, nwacHost} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
   useEffect(() => {
     (async () => {
-      await prefetchAllActiveForecasts(queryClient, avalancheCenterId, date, nationalAvalancheCenterHost);
+      await prefetchAllActiveForecasts(queryClient, avalancheCenterId, nationalAvalancheCenterHost, nwacHost);
     })();
-  }, [queryClient, avalancheCenterId, date, nationalAvalancheCenterHost]);
+  }, [queryClient, avalancheCenterId, nationalAvalancheCenterHost, nwacHost]);
 
   const [fontsLoaded] = useFonts({
     Lato_100Thin,
@@ -224,28 +241,27 @@ const BaseApp: React.FunctionComponent<{
                     }
                   },
                 })}>
-                <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, dateString}}>
-                  {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
+                <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                  {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
                 </TabNavigator.Screen>
-                <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, dateString}}>
+                <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
                   {state =>
                     ObservationsTabScreen(
                       merge(state, {
                         route: {
                           params: {
                             center_id: avalancheCenterId,
-                            dateString,
                           },
                         },
                       }),
                     )
                   }
                 </TabNavigator.Screen>
-                <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, dateString}}>
-                  {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, dateString}}}))}
+                <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                  {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
                 </TabNavigator.Screen>
-                <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
-                  {() => MenuStackScreen(avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                  {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
                 </TabNavigator.Screen>
               </TabNavigator.Navigator>
             </View>

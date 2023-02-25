@@ -5,13 +5,18 @@ import React from 'react';
 import {useController} from 'react-hook-form';
 import {colorLookup} from 'theme';
 
-interface SwitchFieldProps extends ViewProps {
-  name: string;
+interface Item<T> {
+  value: T;
   label: string;
-  items: string[];
 }
 
-export const SwitchField: React.FC<SwitchFieldProps> = ({name, label, items, ...props}) => {
+interface SwitchFieldProps<T> extends ViewProps {
+  name: string;
+  label: string;
+  items: Item<T>[];
+}
+
+export function SwitchField<T>({name, label, items, ...props}: SwitchFieldProps<T>) {
   const {
     field: {value, onChange},
   } = useController({name});
@@ -21,12 +26,15 @@ export const SwitchField: React.FC<SwitchFieldProps> = ({name, label, items, ...
       <BodyXSmBlack>{label}</BodyXSmBlack>
       <SegmentedControl
         fontStyle={{color: colorLookup('text') as string, fontSize: 16, fontFamily: 'Lato_400Regular'}}
-        values={items}
-        selectedIndex={Math.max(items.indexOf(value), 0)}
+        values={items.map(i => i.label)}
+        selectedIndex={Math.max(
+          items.findIndex(i => i.value === value),
+          0,
+        )}
         onChange={event => {
-          onChange(items[event.nativeEvent.selectedSegmentIndex]);
+          onChange(items[event.nativeEvent.selectedSegmentIndex].value);
         }}
       />
     </VStack>
   );
-};
+}

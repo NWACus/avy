@@ -12,7 +12,12 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   config.android!.config!.googleMaps!.apiKey = process.env.ANDROID_GOOGLE_MAPS_API_KEY;
   config.hooks!.postPublish![0]!.config!.authToken = process.env.SENTRY_API_TOKEN;
   config.extra!.sentry_dsn = process.env.SENTRY_DSN;
-  config.extra!.log_requests = process.env.LOG_REQUESTS != null;
+  if (process.env.LOG_NETWORK != null) {
+    config.extra!.log_network = process.env.LOG_NETWORK;
+  } else if (process.env.LOG_REQUESTS != null) {
+    config.extra!.log_network = 'requests';
+  }
+  config.extra!.log_network_matching = process.env.LOG_NETWORK_MATCHING != null ? process.env.LOG_NETWORK_MATCHING : 'https';
 
   return config;
 };

@@ -8,6 +8,7 @@ import * as Sentry from 'sentry-expo';
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {logQueryKey} from 'hooks/logger';
 import {AvalancheCenterID, MapLayer, mapLayerSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
@@ -16,13 +17,14 @@ export const useMapLayer = (center_id: AvalancheCenterID) => {
   return useQuery<MapLayer, AxiosError | ZodError>({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id),
     queryFn: async () => fetchMapLayer(nationalAvalancheCenterHost, center_id),
+    enabled: !!center_id,
     staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
     cacheTime: Infinity, // hold on to this cached data forever
   });
 };
 
 function queryKey(nationalAvalancheCenterHost: string, center_id: string) {
-  return ['map-layer', {host: nationalAvalancheCenterHost, center: center_id}];
+  return logQueryKey(['map-layer', {host: nationalAvalancheCenterHost, center: center_id}]);
 }
 
 export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {
@@ -52,7 +54,7 @@ const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: Ava
 
   const parseResult = mapLayerSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn(`unparsable map layer for avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data, null, 2));
+    console.warn(`unparsable map layer for avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

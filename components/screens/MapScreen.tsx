@@ -4,12 +4,13 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
 import {AvalancheForecastZoneMap} from 'components/AvalancheForecastZoneMap';
 import {HomeStackParamList} from 'routes';
+import {parseRequestedTimeString} from 'utils/date';
 
 export const MapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'avalancheCenter'>) => {
-  const {center_id, dateString} = route.params;
+  const {center_id, requestedTime} = route.params;
   return (
     <View style={{...styles.container}}>
-      <AvalancheForecastZoneMap center={center_id} date={new Date(dateString)} />
+      <AvalancheForecastZoneMap center={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />
     </View>
   );
 };

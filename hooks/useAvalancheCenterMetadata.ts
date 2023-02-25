@@ -8,6 +8,7 @@ import * as Sentry from 'sentry-expo';
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {logQueryKey} from 'hooks/logger';
 import {AvalancheCenter, AvalancheCenterID, avalancheCenterSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
@@ -22,7 +23,7 @@ export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID) => {
 };
 
 function queryKey(nationalAvalancheCenterHost: string, center_id: string) {
-  return ['center-metadata', {host: nationalAvalancheCenterHost, center: center_id}];
+  return logQueryKey(['center-metadata', {host: nationalAvalancheCenterHost, center: center_id}]);
 }
 
 export const prefetchAvalancheCenterMetadata = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {
@@ -52,7 +53,7 @@ const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string,
 
   const parseResult = avalancheCenterSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn(`unparsable avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data, null, 2));
+    console.warn(`unparsable avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

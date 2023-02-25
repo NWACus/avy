@@ -2,7 +2,6 @@ import React, {MutableRefObject, useCallback, useRef, useState} from 'react';
 
 import {useNavigation} from '@react-navigation/native';
 import {
-  ActivityIndicator,
   Animated,
   GestureResponderEvent,
   LayoutChangeEvent,
@@ -17,52 +16,59 @@ import {
 } from 'react-native';
 import AnimatedMapView, {Region} from 'react-native-maps';
 
-import {FontAwesome5} from '@expo/vector-icons';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {colorFor} from 'components/AvalancheDangerPyramid';
-import {defaultMapRegionForZones, ZoneMap} from 'components/content/ZoneMap';
-import {Center, HStack, View, VStack} from 'components/core';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
+import {defaultMapRegionForGeometries, MapViewZone, ZoneMap} from 'components/content/ZoneMap';
+import {HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {TravelAdvice} from 'components/helpers/travelAdvice';
-import {Body, BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
-import {MapViewZone, useMapViewZones} from 'hooks/useMapViewZones';
+import {BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {useMapLayer} from 'hooks/useMapLayer';
+import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts';
+import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps} from 'routes';
-import {COLORS} from 'theme/colors';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
-import {toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
+import {formatRequestedTime, RequestedTime, utcDateToLocalTimeString} from 'utils/date';
 
 export interface MapProps {
   center: AvalancheCenterID;
-  date: Date;
+  requestedTime: RequestedTime;
 }
 
-export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, date}: MapProps) => {
-  const {isLoading, isError, data: zones} = useMapViewZones(center, date);
+export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, requestedTime}: MapProps) => {
+  const mapLayerResult = useMapLayer(center);
+  const mapLayer = mapLayerResult.data;
+  const metadataResult = useAvalancheCenterMetadata(center);
+  const metadata = metadataResult.data;
+  const forecastResults = useMapLayerAvalancheForecasts(center, requestedTime, mapLayer, metadata);
+  const warningResults = useMapLayerAvalancheWarnings(center, requestedTime, mapLayer);
 
   const navigation = useNavigation<HomeStackNavigationProps>();
-  const [selectedZone, setSelectedZone] = useState<MapViewZone | null>(null);
+  const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
   const onPressMapView = useCallback(() => {
-    setSelectedZone(null);
+    setSelectedZoneId(null);
   }, []);
   const onPressPolygon = useCallback(
     (zone: MapViewZone) => {
-      if (selectedZone === zone) {
+      if (selectedZoneId === zone.zone_id) {
         navigation.navigate('forecast', {
           zoneName: zone.name,
           center_id: zone.center_id,
           forecast_zone_id: zone.zone_id,
-          dateString: toISOStringUTC(date),
+          requestedTime: formatRequestedTime(requestedTime),
         });
       } else {
-        setSelectedZone(zone);
+        setSelectedZoneId(zone.zone_id);
       }
     },
-    [navigation, selectedZone, date],
+    [navigation, selectedZoneId, requestedTime],
   );
 
-  const avalancheCenterMapRegion: Region = defaultMapRegionForZones(zones);
+  const avalancheCenterMapRegion: Region = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
@@ -82,6 +88,49 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     controller.animateUsingUpdatedTabBarHeight(tabBarHeight);
   }, [tabBarHeight, controller]);
 
+  if (incompleteQueryState(mapLayerResult, metadataResult, ...forecastResults, ...warningResults)) {
+    return <QueryState results={[mapLayerResult, metadataResult, ...forecastResults, ...warningResults]} />;
+  }
+
+  // default to the values in the map layer, but update it with the forecasts and wranings we've fetched
+  const zonesById: Record<number, MapViewZone> = mapLayer.features.reduce((accum, feature) => {
+    accum[feature.id] = {
+      zone_id: feature.id,
+      center_id: center,
+      geometry: feature.geometry,
+      hasWarning: feature.properties.warning?.product === 'warning',
+      ...feature.properties,
+    };
+    return accum;
+  }, {});
+  forecastResults
+    .map(result => result.data) // get data from the results
+    .filter(data => data) // only operate on results that have succeeded
+    .forEach(forecast => {
+      forecast.forecast_zone?.forEach(({id}) => {
+        const mapViewZoneData = zonesById[id];
+        if (mapViewZoneData) {
+          const currentDanger = forecast.danger?.find(d => d.valid_day === 'current');
+          if (currentDanger) {
+            mapViewZoneData.danger_level = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
+          }
+          mapViewZoneData.danger = forecast.danger_level_text;
+          mapViewZoneData.start_date = forecast.published_time;
+          mapViewZoneData.end_date = forecast.expires_time;
+        }
+      });
+    });
+  warningResults
+    .map(result => result.data) // get data from the results
+    .filter(data => data) // only operate on results that have succeeded
+    .forEach(warning => {
+      const mapViewZoneData = zonesById[warning.zone_id];
+      if (mapViewZoneData && warning.expires_time) {
+        mapViewZoneData.hasWarning = true;
+      }
+    });
+  const zones = Object.keys(zonesById).map(k => zonesById[k]);
+
   return (
     <>
       <ZoneMap
@@ -93,7 +142,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         initialRegion={avalancheCenterMapRegion}
         onPress={onPressMapView}
         zones={zones}
-        selectedZone={selectedZone}
+        selectedZoneId={selectedZoneId}
         onPressPolygon={onPressPolygon}
       />
       <SafeAreaView>
@@ -101,6 +150,11 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           <VStack
             width="100%"
             position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            mt={8}
+            px={4}
             flex={1}
             onLayout={(event: LayoutChangeEvent) => {
               // onLayout returns position relative to parent - we need position relative to screen
@@ -108,32 +162,12 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
                 controller.animateUsingUpdatedTopElementsHeight(y + height);
               });
             }}>
-            <View height={12} />
-            <DangerScale px={4} width="100%" />
+            <DangerScale width="100%" />
           </VStack>
         </View>
       </SafeAreaView>
 
-      {isLoading && (
-        <Center width="100%" height="100%" position="absolute" top={0}>
-          <ActivityIndicator size={'large'} />
-        </Center>
-      )}
-      {isError && (
-        <Center width="100%" position="absolute" bottom={6}>
-          <VStack space={8}>
-            <Center bg={COLORS['warning.200']} px={24} py={16} borderRadius={4}>
-              <HStack space={8} flexShrink={1}>
-                <FontAwesome5 name="exclamation-triangle" size={16} color={COLORS['warning.700']} />
-                <Body>Unable to load forecast data</Body>
-              </HStack>
-            </Center>
-          </VStack>
-        </Center>
-      )}
-      {!isLoading && !isError && (
-        <AvalancheForecastZoneCards key={center} date={date} zones={zones} selectedZone={selectedZone} setSelectedZone={setSelectedZone} controller={controller} />
-      )}
+      <AvalancheForecastZoneCards key={center} date={requestedTime} zones={zones} selectedZoneId={selectedZoneId} setSelectedZoneId={setSelectedZoneId} controller={controller} />
     </>
   );
 };
@@ -353,15 +387,15 @@ class AnimatedMapWithDrawerController {
 }
 
 const AvalancheForecastZoneCards: React.FunctionComponent<{
-  date: Date;
+  date: RequestedTime;
   zones: MapViewZone[];
-  selectedZone: MapViewZone | null;
-  setSelectedZone: React.Dispatch<React.SetStateAction<MapViewZone>>;
+  selectedZoneId: number | null;
+  setSelectedZoneId: React.Dispatch<React.SetStateAction<number>>;
   controller: AnimatedMapWithDrawerController;
-}> = ({date, zones, selectedZone, setSelectedZone, controller}) => {
+}> = ({date, zones, selectedZoneId, setSelectedZoneId, controller}) => {
   const {width} = useWindowDimensions();
 
-  const [previousSelectedZone, setPreviousSelectedZone] = useState<MapViewZone | null>(null);
+  const [previousSelectedZoneId, setPreviousSelectedZoneId] = useState<number | null>(null);
   const [programaticallyScrolling, setProgramaticallyScrolling] = useState<boolean>(false);
 
   const offsets = zones?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
@@ -378,9 +412,9 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
 
   // The list view has drawer-like behavior - it can be swiped into view, or swiped away.
   // These values control the state that's driven through gestures & animation.
-  if (selectedZone && controller.state !== AnimatedDrawerState.Visible) {
+  if (selectedZoneId && controller.state !== AnimatedDrawerState.Visible) {
     controller.setState(AnimatedDrawerState.Visible);
-  } else if (!selectedZone && controller.state === AnimatedDrawerState.Visible) {
+  } else if (!selectedZoneId && controller.state === AnimatedDrawerState.Visible) {
     controller.setState(AnimatedDrawerState.Docked);
   }
 
@@ -415,7 +449,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
     if (programaticallyScrolling) {
       // when we're scrolling through the list programatically, the true state of the selection is
       // the intended scroll target, not whichever card happens to be shown at the moment
-      const intendedIndex = zones.findIndex(z => z.zone_id === selectedZone.zone_id);
+      const intendedIndex = zones.findIndex(z => z.zone_id === selectedZoneId);
       if (intendedIndex === index) {
         // when the programmatic scroll reaches the intended index, we can call this programmatic
         // scroll event finished
@@ -423,17 +457,17 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
       }
     } else {
       // if the *user* is scrolling this drawer, though, the true state of our selection is up to them
-      setSelectedZone(zones[index]);
+      setSelectedZoneId(zones[index].zone_id);
     }
   };
 
-  if (selectedZone !== previousSelectedZone) {
-    if (selectedZone) {
-      const index = zones.findIndex(z => z.zone_id === selectedZone.zone_id);
+  if (selectedZoneId !== previousSelectedZoneId) {
+    if (selectedZoneId) {
+      const index = zones.findIndex(z => z.zone_id === selectedZoneId);
       setProgramaticallyScrolling(true);
       flatListRef.current.scrollToIndex({index, animated: true, viewPosition: 0.5});
     }
-    setPreviousSelectedZone(selectedZone);
+    setPreviousSelectedZoneId(selectedZoneId);
   }
 
   return (
@@ -460,7 +494,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
 };
 
 const AvalancheForecastZoneCard: React.FunctionComponent<{
-  date: Date;
+  date: RequestedTime;
   zone: MapViewZone;
 }> = ({date, zone}) => {
   const {width} = useWindowDimensions();
@@ -476,7 +510,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           zoneName: zone.name,
           center_id: zone.center_id,
           forecast_zone_id: zone.zone_id,
-          dateString: toISOStringUTC(date),
+          requestedTime: formatRequestedTime(date),
         });
       }}>
       <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={200}>

@@ -3,7 +3,7 @@ import {Animated} from 'react-native';
 import {LatLng, Polygon} from 'react-native-maps';
 
 import {colorFor} from 'components/AvalancheDangerPyramid';
-import {MapViewZone} from 'hooks/useMapViewZones';
+import {MapViewZone} from 'components/content/ZoneMap';
 import {colorLookup} from 'theme';
 import {FeatureComponent} from 'types/nationalAvalancheCenter';
 
@@ -28,15 +28,21 @@ export const toLatLngList = (geometry: FeatureComponent): LatLng[] => {
 export interface AvalancheForecastZonePolygonProps {
   zone: MapViewZone;
   selected: boolean;
+  renderFillColor: boolean;
   onPress: (zone: MapViewZone) => void;
 }
 
 const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
 
-export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({zone, selected, onPress}: AvalancheForecastZonePolygonProps) => {
+export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({
+  zone,
+  selected,
+  onPress,
+  renderFillColor,
+}: AvalancheForecastZonePolygonProps) => {
   const outline = colorLookup('gray.700');
   const highlight = colorLookup('blue.100');
-  const useAnimation = zone.hasWarning;
+  const useAnimation = zone.hasWarning && renderFillColor;
   const animationProgress = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     if (useAnimation) {
@@ -67,17 +73,20 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
 
   if (useAnimation) {
     const fillColor = animationProgress.interpolate({
-      inputRange: [0, 1, 2, 3],
+      inputRange: [0, 1, 2, 3, 4, 5],
       outputRange: [
+        colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
         colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
         colorFor(zone.danger_level).alpha(1).string(),
         colorFor(zone.danger_level).alpha(1).string(),
+        colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
         colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
       ],
     });
     return <AnimatedPolygon fillColor={fillColor} {...polygonProps} />;
   } else {
-    const fillColor = colorFor(zone.danger_level).alpha(zone.fillOpacity).string();
+    const fillOpacity = renderFillColor ? zone.fillOpacity : 0;
+    const fillColor = colorFor(zone.danger_level).alpha(fillOpacity).string();
     return <Polygon fillColor={fillColor} {...polygonProps} />;
   }
 };

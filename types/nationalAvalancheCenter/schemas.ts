@@ -196,7 +196,7 @@ export const mediaItemSchema = z.object({
   id: z.number().optional(),
   url: mediaLinksSchema,
   type: mediaTypeSchema,
-  caption: z.string(),
+  caption: z.string().optional().nullable(),
 });
 export type MediaItem = z.infer<typeof mediaItemSchema>;
 
@@ -291,7 +291,6 @@ export type AvalancheForecastZone = z.infer<typeof avalancheForecastZoneSchema>;
 
 export const productSchema = z.object({
   id: z.number(),
-  product_type: productTypeSchema,
   status: productStatusSchema,
   author: z.string().nullable(),
   published_time: datePipeline.nullable(),
@@ -383,3 +382,20 @@ export const mapLayerSchema = z.object({
   features: z.array(featureSchema),
 });
 export type MapLayer = z.infer<typeof mapLayerSchema>;
+
+// AvalancheWarning describes an avalanche warning.
+export const avalancheWarningSchema = z.object({
+  id: z.number().nullable(),
+  published_time: datePipeline.nullable(),
+  expires_time: datePipeline.nullable(),
+  updated_at: datePipeline.nullable(),
+  created_at: datePipeline.nullable(),
+  reason: z.string().nullable(),
+  affected_area: z.string().nullable(),
+  bottom_line: z.string().nullable(),
+  hazard_discussion: z.string().nullable(),
+});
+const avalancheWarningResultSchema = avalancheWarningSchema.extend({
+  zone_id: z.number(),
+});
+export type AvalancheWarning = z.infer<typeof avalancheWarningResultSchema>;

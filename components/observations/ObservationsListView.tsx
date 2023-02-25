@@ -4,70 +4,64 @@ import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {geoContains} from 'd3-geo';
 import {compareDesc, parseISO, sub} from 'date-fns';
-import {ActivityIndicator, FlatList, View} from 'react-native';
+import {FlatList} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 
 import {Card} from 'components/content/Card';
+import {Carousel} from 'components/content/carousel';
+import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {HStack, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {Body, BodyBlack, Title3Semibold} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
+import {useNWACObservations} from 'hooks/useNWACObservations';
 import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from 'types/nationalAvalancheCenter';
-import {apiDateString, utcDateToLocalTimeString} from 'utils/date';
+import {apiDateString, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTimeString} from 'utils/date';
 
 // TODO: we could show the Avy center logo for obs that come from forecasters
 
 export const ObservationsListView: React.FunctionComponent<{
   center_id: AvalancheCenterID;
-  date: Date;
-}> = ({center_id, date}) => {
-  const {isLoading: isMapLoading, isError: isMapError, data: mapLayer, error: mapError} = useMapLayer(center_id);
+  requestedTime: RequestedTime;
+}> = ({center_id, requestedTime}) => {
+  const mapResult = useMapLayer(center_id);
+  const mapLayer = mapResult.data;
 
-  const startDate: string = apiDateString(sub(date, {months: 1}));
-  const endDate: string = apiDateString(date);
-  const {
-    isLoading: isObservationsLoading,
-    isError: isObservationsError,
-    data: observations,
-    error: observationsError,
-  } = useObservationsQuery({
+  const date = requestedTimeToUTCDate(requestedTime);
+  const startDate = sub(date, {weeks: 1});
+  const endDate = date;
+  const observationsResult = useObservationsQuery({
     center: center_id,
-    startDate: startDate,
-    endDate: endDate,
+    startDate: apiDateString(startDate),
+    endDate: apiDateString(endDate),
   });
+  const nacObservations = observationsResult.data;
+  const nwacObservationsResult = useNWACObservations(center_id, startDate, endDate);
+  const nwacObservations = nwacObservationsResult.data;
+  const observations = nacObservations?.getObservationList.concat(nwacObservations?.getObservationList);
 
-  if (isMapLoading || isObservationsLoading || !observations) {
-    return <ActivityIndicator />;
+  if (incompleteQueryState(observationsResult, nwacObservationsResult, mapResult)) {
+    return <QueryState results={[observationsResult, nwacObservationsResult, mapResult]} />;
   }
-  if (isMapError || isObservationsError) {
-    return (
-      <View>
-        {isMapError && <Body>{`Could not fetch ${center_id} map layer: ${mapError}.`}</Body>}
-        {isObservationsError && <Body>{`Could not fetch ${center_id} observations: ${observationsError}.`}</Body>}
-      </View>
-    );
-  }
-  if (!observations.getObservationList || observations.getObservationList.length === 0) {
+
+  if (!observations || observations.length === 0) {
     // TODO: when cleaning this up, fix it so that it renders the date in the user's locale, not UTC date
-    return (
-      <View>
-        <Body>{`No observations were recorded for ${center_id} between ${startDate} and ${endDate}.`}</Body>
-      </View>
-    );
+    return <NotFound />;
   }
 
-  observations.getObservationList.sort((a, b) => compareDesc(parseISO(a.createdAt), parseISO(b.createdAt)));
+  observations.sort((a, b) => compareDesc(parseISO(a.createdAt), parseISO(b.createdAt)));
 
   return (
     <FlatList
-      data={observations.getObservationList.map(observation => ({
+      data={observations.map(observation => ({
         id: observation.id,
         observation: observation,
-        zone: zone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng),
+        source: nwacObservations?.getObservationList.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
+        zone: zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
       }))}
-      renderItem={({item}) => <ObservationSummaryCard observation={item.observation} zone={item.zone} />}
+      renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}
     />
   );
 };
@@ -85,9 +79,10 @@ export const zone = (mapLayer: MapLayer, lat: number, long: number): string => {
 };
 
 export const ObservationSummaryCard: React.FunctionComponent<{
+  source: string;
   observation: OverviewFragment;
   zone: string;
-}> = ({zone, observation}) => {
+}> = ({source, zone, observation}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const anySignsOfInstability =
     observation.instability.avalanches_caught ||
@@ -101,9 +96,15 @@ export const ObservationSummaryCard: React.FunctionComponent<{
       borderRadius={8}
       borderColor="white"
       onPress={() => {
-        navigation.navigate('observation', {
-          id: observation.id,
-        });
+        if (source === 'nwac') {
+          navigation.navigate('nwacObservation', {
+            id: observation.id,
+          });
+        } else {
+          navigation.navigate('observation', {
+            id: observation.id,
+          });
+        }
       }}
       header={
         <HStack alignContent="flex-start" flexWrap="wrap" alignItems="center" space={8}>
@@ -164,6 +165,7 @@ export const ObservationSummaryCard: React.FunctionComponent<{
           <HTML source={{html: observation.observationSummary}} />
         </VStack>
       )}
+      {observation.media && observation.media.length > 0 && <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.media} displayCaptions={false} />}
     </Card>
   );
 };

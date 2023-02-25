@@ -9,6 +9,7 @@ import * as Sentry from 'sentry-expo';
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {logQueryKey} from 'hooks/logger';
 import {AvalancheCenterID, Product, productArraySchema} from 'types/nationalAvalancheCenter';
 import {apiDateString} from 'utils/date';
 import {ZodError} from 'zod';
@@ -22,7 +23,7 @@ export const useAvalancheForecastFragments = (center_id: AvalancheCenterID, date
 };
 
 function queryKey(nationalAvalancheCenterHost: string, center_id: string, date: Date) {
-  return ['forecast-fragments', {host: nationalAvalancheCenterHost, center: center_id, date: apiDateString(date)}];
+  return logQueryKey(['forecast-fragments', {host: nationalAvalancheCenterHost, center: center_id, date: apiDateString(date)}]);
 }
 
 const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: string, date: Date) => {
@@ -48,17 +49,18 @@ const fetchAvalancheForecastFragmentsQuery = async (queryClient: QueryClient, na
 
 const fetchAvalancheForecastFragments = async (nationalAvalancheCenterHost: string, center_id: string, date: Date) => {
   const url = `${nationalAvalancheCenterHost}/v2/public/products`;
+  const params = {
+    avalanche_center_id: center_id,
+    date_start: apiDateString(sub(date, {days: 2})),
+    date_end: apiDateString(add(date, {days: 1})),
+  };
   const {data} = await axios.get(url, {
-    params: {
-      avalanche_center_id: center_id,
-      date_start: apiDateString(sub(date, {days: 2})),
-      date_end: apiDateString(add(date, {days: 1})),
-    },
+    params: params,
   });
 
   const parseResult = productArraySchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn('unparsable forecast fragments', url, parseResult.error, JSON.stringify(data, null, 2));
+    console.warn('unparsable forecast fragments', url, JSON.stringify(params), parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

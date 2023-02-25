@@ -1,9 +1,10 @@
 import React from 'react';
 
 import {useNavigation} from '@react-navigation/native';
-import {ActivityIndicator, SectionList, SectionListData, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
+import {SectionList, SectionListData, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
 
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
 import {Body} from 'components/text';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
@@ -53,36 +54,11 @@ interface AvalancheCenterCardProps {
 
 export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = ({avalancheCenterId, selected, onPress}: AvalancheCenterCardProps) => {
   const {width} = useWindowDimensions();
-  const {isLoading, isError, data: avalancheCenter, error} = useAvalancheCenterMetadata(avalancheCenterId);
-  if (isLoading) {
-    return <ActivityIndicator style={styles.item} />;
+  const centerResult = useAvalancheCenterMetadata(avalancheCenterId);
+  if (incompleteQueryState(centerResult)) {
+    return <QueryState results={[centerResult]} />;
   }
-  if (isError) {
-    return (
-      <View>
-        <View bg="light.100">
-          <VStack>
-            <HStack justifyContent="flex-start" alignItems="center">
-              <Body color="light.400">{`Could not fetch data for ${avalancheCenterId}: ${error?.message}.`}</Body>
-            </HStack>
-          </VStack>
-        </View>
-      </View>
-    );
-  }
-  if (!avalancheCenter) {
-    return (
-      <View>
-        <View bg="light.100">
-          <VStack>
-            <HStack justifyContent="flex-start" alignItems="center">
-              <Body color="light.400">{`No metadata found for ${avalancheCenterId}.`}</Body>
-            </HStack>
-          </VStack>
-        </View>
-      </View>
-    );
-  }
+  const avalancheCenter = centerResult.data;
 
   return (
     <View>

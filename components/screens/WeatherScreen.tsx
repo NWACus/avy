@@ -8,10 +8,10 @@ import {TabNavigatorParamList, WeatherStackParamList} from 'routes';
 
 const WeatherStack = createNativeStackNavigator<WeatherStackParamList>();
 export const WeatherScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Weather Data'>) => {
-  const {center_id, dateString} = route.params;
+  const {center_id, requestedTime} = route.params;
   return (
     <WeatherStack.Navigator initialRouteName="stationList" screenOptions={{headerShown: false}}>
-      <WeatherStack.Screen name="stationList" component={StationListScreen} initialParams={{center_id: center_id, dateString}} />
+      <WeatherStack.Screen name="stationList" component={StationListScreen} initialParams={{center_id: center_id, requestedTime}} />
       <WeatherStack.Screen name="stationDetail" component={StationDetailScreen} />
     </WeatherStack.Navigator>
   );
@@ -21,6 +21,6 @@ const StationListScreen = ({route}: NativeStackScreenProps<WeatherStackParamList
   return <WeatherStationList {...route.params} />;
 };
 
-const StationDetailScreen = ({route}: NativeStackScreenProps<WeatherStackParamList, 'stationDetail'>) => {
+export const StationDetailScreen = ({route}: NativeStackScreenProps<WeatherStackParamList, 'stationDetail'>) => {
   return <WeatherStationDetail {...route.params} />;
 };
