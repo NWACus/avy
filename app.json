@@ -68,7 +68,7 @@
       "sentry_dsn": "LOADED_FROM_ENVIRONMENT",
       "avalanche_center": "NWAC",
       "log_network": "",
-      "log_network_matching": "https"
+      "log_network_matching": ""
     },
     "web": {
       "favicon": "./assets/favicon.png"

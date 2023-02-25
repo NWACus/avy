@@ -17,7 +17,7 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   } else if (process.env.LOG_REQUESTS != null) {
     config.extra!.log_network = 'requests';
   }
-  config.extra!.log_requests_matching = process.env.LOG_NETWORK_MATCHING != null ? process.env.LOG_NETWORK_MATCHING : 'https';
+  config.extra!.log_network_matching = process.env.LOG_NETWORK_MATCHING != null ? process.env.LOG_NETWORK_MATCHING : 'https';
 
   return config;
 };

@@ -4,6 +4,7 @@ import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {add, areIntervalsOverlapping} from 'date-fns';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {logQueryKey} from 'hooks/logger';
 import AvalancheForecastFragments from 'hooks/useAvalancheForecastFragments';
 import {AvalancheCenterID, Product} from 'types/nationalAvalancheCenter';
 import {apiDateString} from 'utils/date';
@@ -13,11 +14,11 @@ export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forec
   const {nationalAvalancheCenterHost} = useContext<ClientProps>(ClientContext);
 
   return useQuery<Product, Error>(
-    ['products', center_id, forecast_zone_id, apiDateString(date)],
     async () => {
       const fragments = await AvalancheForecastFragments.fetchQuery(queryClient, nationalAvalancheCenterHost, center_id, date);
       return fragments?.find(forecast => isBetween(forecast.published_time, forecast.expires_time, date) && forecast.forecast_zone.find(zone => zone.id === forecast_zone_id));
     },
+    logQueryKey(['products', center_id, forecast_zone_id, apiDateString(date)]),
     {
       staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
       cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)

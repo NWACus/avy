@@ -33,7 +33,7 @@ import {createAsyncStoragePersister} from '@tanstack/query-async-storage-persist
 import {focusManager, QueryCache, QueryClient, useQueryClient} from '@tanstack/react-query';
 import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
 
-import axios from 'axios';
+import axios, {AxiosRequestConfig} from 'axios';
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
 import {HomeTabScreen} from 'components/screens/HomeScreen';
 import {MenuStackScreen} from 'components/screens/MenuScreen';
@@ -53,43 +53,44 @@ import {toISOStringUTC} from 'utils/date';
 const log_network = Constants.expoConfig.extra!.log_network;
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const log_matching = Constants.expoConfig.extra!.log_network_matching;
-if (log_network === 'all' || log_network === 'requests') {
+const encodeParams = params => {
+  return Object.entries(params)
+    .map(kv => kv.map(encodeURIComponent).join('='))
+    .join('&');
+};
+const formatURI = (request: AxiosRequestConfig): string => {
+  let msg = `${request.method.toUpperCase()} ${request.url}`;
+  if (request.params && Object.keys(request.params).length !== 0) {
+    msg += `?${encodeParams(request.params)}`;
+  }
+  if (request.data) {
+    msg += ` data: ${request.data}`;
+  }
+  return msg;
+};
+
+if (log_network === 'all' || log_network.includes('requests')) {
   axios.interceptors.request.use(request => {
-    if (!request.url.includes(log_matching)) {
+    if (log_matching && !formatURI(request).includes(log_matching)) {
+      console.log(`skipping request ${formatURI(request)} due to filter ${log_matching}`);
       return request;
     }
-    console.log(
-      'Request:',
-      JSON.stringify(
-        {
-          method: request.method,
-          url: request.url,
-          params: request.params,
-          data: request.data,
-        },
-        null,
-        2,
-      ),
-    );
+    console.log(`=> ${formatURI(request)}`);
     return request;
   });
 }
-if (log_network === 'all' || log_network === 'responses') {
+
+if (log_network === 'all' || log_network.includes('responses')) {
   axios.interceptors.response.use(response => {
-    if (!response.config.url.includes(log_matching)) {
+    if (log_matching && !formatURI(response.config).includes(log_matching)) {
+      console.log(`skipping response ${formatURI(response.config)} due to filter ${log_matching}`);
       return response;
     }
-    console.log(
-      'Response:',
-      JSON.stringify(
-        {
-          status: response.status,
-          data: response.data,
-        },
-        null,
-        2,
-      ),
-    );
+    const msg = `${response.status} ${formatURI(response.config)}:`;
+    console.log(`<= ${msg}`);
+    if (log_network.includes('response-bodies')) {
+      console.log(`<= ${JSON.stringify(response.data)}`);
+    }
     return response;
   });
 }

@@ -3,6 +3,7 @@ import {useContext} from 'react';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {logQueryKey} from 'hooks/logger';
 import AvalancheCenterMetadata from 'hooks/useAvalancheCenterMetadata';
 import {ApiError, OpenAPI, StationMetadata, TimeseriesDataService} from 'types/generated/snowbound';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -54,7 +55,7 @@ export const useWeatherStationTimeseries = ({center, sources, stids, startDate, 
   const stidString = stids.join(',');
 
   return useQuery<TimeSeries, ApiError | Error>(
-    ['timeseries', center, sourceString, stidString, startDate.toISOString(), endDate.toISOString()],
+    logQueryKey(['timeseries', center, sourceString, stidString, startDate.toISOString(), endDate.toISOString()]),
     async () => {
       // Get the snowbound API token for the center
       const metadata = await AvalancheCenterMetadata.fetchQuery(queryClient, clientProps.nationalAvalancheCenterHost, center);

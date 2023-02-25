@@ -9,6 +9,7 @@ import * as Sentry from 'sentry-expo';
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {logQueryKey} from 'hooks/logger';
 import {AvalancheCenterID, Product, productArraySchema} from 'types/nationalAvalancheCenter';
 import {apiDateString} from 'utils/date';
 import {ZodError} from 'zod';
@@ -22,7 +23,7 @@ export const useAvalancheForecastFragments = (center_id: AvalancheCenterID, date
 };
 
 function queryKey(nationalAvalancheCenterHost: string, center_id: string, date: Date) {
-  return ['forecast-fragments', {host: nationalAvalancheCenterHost, center: center_id, date: apiDateString(date)}];
+  return logQueryKey(['forecast-fragments', {host: nationalAvalancheCenterHost, center: center_id, date: apiDateString(date)}]);
 }
 
 const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: string, date: Date) => {

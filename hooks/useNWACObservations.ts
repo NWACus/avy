@@ -8,6 +8,7 @@ import * as Sentry from 'sentry-expo';
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {logQueryKey} from 'hooks/logger';
 import {ObservationsQuery} from 'hooks/useObservations';
 import {AvalancheCenterID, observationSchema} from 'types/nationalAvalancheCenter';
 import {toDateTimeInterfaceATOM} from 'utils/date';
@@ -25,7 +26,15 @@ export const useNWACObservations = (center_id: AvalancheCenterID, published_afte
 };
 
 function queryKey(nwacHost: string, center_id: AvalancheCenterID, published_after: Date, published_before: Date) {
-  return ['nwac-observations', {host: nwacHost, center_id: center_id, published_after: published_after, published_before: published_before}];
+  return logQueryKey([
+    'nwac-observations',
+    {
+      host: nwacHost,
+      center_id: center_id,
+      published_after: published_after,
+      published_before: published_before,
+    },
+  ]);
 }
 
 export const prefetchNWACObservations = async (queryClient: QueryClient, nwacHost: string, center_id: AvalancheCenterID, published_after: Date, published_before: Date) => {

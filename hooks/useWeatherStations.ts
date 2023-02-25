@@ -4,6 +4,7 @@ import {useQuery, useQueryClient} from '@tanstack/react-query';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import {boundsForRegions, featureBounds, pointInFeature} from 'components/helpers/geographicCoordinates';
+import {logQueryKey} from 'hooks/logger';
 import AvalancheCenterMetadata from 'hooks/useAvalancheCenterMetadata';
 import MapLayer from 'hooks/useMapLayer';
 import {ApiError, OpenAPI, StationMetadata, StationMetadataService} from 'types/generated/snowbound';
@@ -73,7 +74,7 @@ export const useWeatherStations = ({center, sources}: Props) => {
   const sourceString = sources.join(',');
 
   return useQuery<ZoneResult[], ApiError | Error>(
-    ['stations', sourceString],
+    logQueryKey(['stations', sourceString]),
     async () => {
       // Get the snowbound API token for the center
       const metadata = await AvalancheCenterMetadata.fetchQuery(queryClient, clientProps.nationalAvalancheCenterHost, center);

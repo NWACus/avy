@@ -8,6 +8,7 @@ import * as Sentry from 'sentry-expo';
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {logQueryKey} from 'hooks/logger';
 import {AvalancheCenterID, MapLayer, mapLayerSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
@@ -23,7 +24,7 @@ export const useMapLayer = (center_id: AvalancheCenterID) => {
 };
 
 function queryKey(nationalAvalancheCenterHost: string, center_id: string) {
-  return ['map-layer', {host: nationalAvalancheCenterHost, center: center_id}];
+  return logQueryKey(['map-layer', {host: nationalAvalancheCenterHost, center: center_id}]);
 }
 
 export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {

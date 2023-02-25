@@ -8,6 +8,7 @@ import * as Sentry from 'sentry-expo';
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {logQueryKey} from 'hooks/logger';
 import {reverseLookup} from 'types/nationalAvalancheCenter';
 import {nominalNWACWeatherForecastDate, toDateTimeInterfaceATOM} from 'utils/date';
 import {z, ZodError} from 'zod';
@@ -24,14 +25,14 @@ export const useNWACWeatherForecast = (zone_id: number, requestedTime: Date) => 
 };
 
 function queryKey(nwacHost: string, zone_id: number, requestedTime: Date) {
-  return [
+  return logQueryKey([
     'nwac-weather',
     {
       host: nwacHost,
       zone_id: zone_id,
       requestedTime: nominalNWACWeatherForecastDate(requestedTime),
     },
-  ];
+  ]);
 }
 
 export const prefetchNWACWeatherForecast = async (queryClient: QueryClient, nwacHost: string, zone_id: number, requestedTime: Date) => {
