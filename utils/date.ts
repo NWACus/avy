@@ -68,11 +68,11 @@ export const utcDateToLocalDateString = (date: Date | string | undefined): strin
   return format(d, `EEEE, MMMM d, yyyy`);
 };
 
-export const utcDateToDayOfWeekString = (date: Date | string | undefined): string => {
+export const pacificDateToDayOfWeekString = (date: Date | string | undefined): string => {
   if (date == null) {
     return 'Unknown';
   }
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === 'string' ? toDate(date, {timeZone: 'America/Los_Angeles'}) : date;
   return format(d, `EEEE`);
 };
 

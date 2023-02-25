@@ -13,7 +13,7 @@ import {useWeatherStations} from 'hooks/useWeatherStations';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
-import {formatRequestedTime, RequestedTime, utcDateToDayOfWeekString, utcDateToLocalTimeString} from 'utils/date';
+import {formatRequestedTime, pacificDateToDayOfWeekString, RequestedTime, utcDateToLocalTimeString} from 'utils/date';
 
 type ForecastNavigationProp = CompositeNavigationProp<NativeStackNavigationProp<HomeStackParamList, 'forecast'>, TabNavigationProps>;
 
@@ -60,7 +60,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     ridgeline_winds: nwacForecast.ridgeline_winds[index],
   }));
   const nwacForecasts = nwacForecast.weather_forecasts.map((f, i) => ({
-    title: `${utcDateToDayOfWeekString(f.date)} ${FormatTimeOfDay(f.time_of_day)}`,
+    title: `${pacificDateToDayOfWeekString(f.date)} ${FormatTimeOfDay(f.time_of_day)}`,
     description: f.description,
     five_thousand_foot_temperatures: nwacForecast.five_thousand_foot_temperatures[i],
     precipitation: nwacForecast.precipitation_by_location.map(l => ({
