@@ -8,6 +8,7 @@ import * as Sentry from 'sentry-expo';
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {roundToNearestMinutes} from 'date-fns';
 import {logQueryKey} from 'hooks/logger';
 import {ObservationsQuery} from 'hooks/useObservations';
 import {AvalancheCenterID, observationSchema} from 'types/nationalAvalancheCenter';
@@ -31,10 +32,15 @@ function queryKey(nwacHost: string, center_id: AvalancheCenterID, published_afte
     {
       host: nwacHost,
       center_id: center_id,
-      published_after: published_after,
-      published_before: published_before,
+      published_after: roundDate(published_after),
+      published_before: roundDate(published_before),
     },
   ]);
+}
+
+// we want to cache our responses, so we need them to align with some less-volatile boundaries
+function roundDate(date: Date): Date {
+  return roundToNearestMinutes(date, {nearestTo: 15});
 }
 
 export const prefetchNWACObservations = async (queryClient: QueryClient, nwacHost: string, center_id: AvalancheCenterID, published_after: Date, published_before: Date) => {
@@ -73,8 +79,8 @@ export const fetchNWACObservations = async (nwacHost: string, center_id: Avalanc
   }
   const url = `${nwacHost}/api/v2/observations`;
   const params = {
-    published_after: toDateTimeInterfaceATOM(published_after),
-    published_before: toDateTimeInterfaceATOM(published_before),
+    published_after: toDateTimeInterfaceATOM(roundDate(published_after)),
+    published_before: toDateTimeInterfaceATOM(roundDate(published_before)),
   };
   const {data} = await axios.get(url, {
     params: params,

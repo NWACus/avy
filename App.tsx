@@ -71,7 +71,6 @@ const formatURI = (request: AxiosRequestConfig): string => {
 if (log_network === 'all' || log_network.includes('requests')) {
   axios.interceptors.request.use(request => {
     if (log_matching && !formatURI(request).includes(log_matching)) {
-      console.log(`skipping request ${formatURI(request)} due to filter ${log_matching}`);
       return request;
     }
     console.log(`=> ${formatURI(request)}`);
@@ -82,7 +81,6 @@ if (log_network === 'all' || log_network.includes('requests')) {
 if (log_network === 'all' || log_network.includes('responses')) {
   axios.interceptors.response.use(response => {
     if (log_matching && !formatURI(response.config).includes(log_matching)) {
-      console.log(`skipping response ${formatURI(response.config)} due to filter ${log_matching}`);
       return response;
     }
     const msg = `${response.status} ${formatURI(response.config)}:`;
