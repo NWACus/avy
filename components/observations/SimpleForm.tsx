@@ -17,8 +17,6 @@ import {createObservation, simpleObservationFormSchema} from 'components/observa
 import {uploadImage} from 'components/observations/submitTask';
 import {Body, BodySemibold, Title3Black, Title3Semibold} from 'components/text';
 import * as ImagePicker from 'expo-image-picker';
-import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
-import {uniq} from 'lodash';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormProvider, useForm, useWatch} from 'react-hook-form';
 import {Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View as RNView} from 'react-native';
@@ -31,19 +29,13 @@ export const SimpleForm: React.FC<{
   center_id: AvalancheCenterID;
   onClose?: () => void;
 }> = ({center_id, onClose}) => {
-  const {data: center} = useAvalancheCenterMetadata(center_id);
-  const zones = uniq(center?.zones?.filter(z => z.status === 'active')?.map(z => z.name));
+  // const {data: center} = useAvalancheCenterMetadata(center_id);
+  // const zones = uniq(center?.zones?.filter(z => z.status === 'active')?.map(z => z.name));
 
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const formContext = useForm({
     defaultValues: createObservation(),
     resolver: zodResolver(simpleObservationFormSchema),
-    // resolver: async (data, context, options) => {
-    //   // you can debug your validation schema here
-    //   console.log('formData', data);
-    //   console.log('validation result', await zodResolver(simpleObservationFormSchema)(data, context, options));
-    //   return zodResolver(simpleObservationFormSchema)(data, context, options);
-    // },
     mode: 'onBlur',
     shouldFocusError: false,
     shouldUnregister: true,
@@ -61,8 +53,6 @@ export const SimpleForm: React.FC<{
       formContext.setValue('instability.cracking_description', undefined);
     }
   }, [cracking, formContext]);
-
-  console.log('form values', formContext.getValues());
 
   const fieldRefs = useRef<{ref: RNView; field: string}[]>([]);
   const scrollViewRef = useRef(null);
