@@ -2,8 +2,10 @@ import React from 'react';
 
 import {addDays} from 'date-fns';
 
+import {Feather} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
+import {colorFor} from 'components/AvalancheDangerPyramid';
 import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
 import {Card, CollapsibleCard} from 'components/content/Card';
@@ -11,10 +13,12 @@ import {Carousel} from 'components/content/carousel';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
-import {AllCapsSm, AllCapsSmBlack, BodyBlack, bodySize, Title3Black} from 'components/text';
+import {AllCapsSm, AllCapsSmBlack, BodyBlack, bodySize, BodySmSemibold, Title3, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
-import {useLatestAvalancheForecast} from 'hooks/useLatestAvalancheForecast';
+import {toDate} from 'date-fns-tz';
+import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
+import {useAvalancheWarning} from 'hooks/useAvalancheWarning';
 import {HomeStackNavigationProps} from 'routes';
 import {
   AvalancheCenter,
@@ -25,13 +29,13 @@ import {
   ElevationBandNames,
   ForecastPeriod,
 } from 'types/nationalAvalancheCenter';
-import {utcDateToLocalTimeString} from 'utils/date';
+import {RequestedTime, utcDateToLocalTimeString} from 'utils/date';
 
 interface AvalancheTabProps {
   elevationBandNames: ElevationBandNames;
   center_id: AvalancheCenterID;
   center: AvalancheCenter;
-  date: Date;
+  requestedTime: RequestedTime;
   forecast_zone_id: number;
 }
 
@@ -44,9 +48,11 @@ const HeaderWithTooltip = ({title, content}) => (
   </HStack>
 );
 
-export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.memo(({elevationBandNames, center_id, center, forecast_zone_id, date}) => {
-  const forecastResult = useLatestAvalancheForecast(center_id, center, forecast_zone_id, date); // TODO(skuznets): when we refactor to show previous forecasts, we will need two wrappers for the logic under the fetching, choosing either to fetch the latest, or for a specific date
+export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.memo(({elevationBandNames, center_id, center, forecast_zone_id, requestedTime}) => {
+  const forecastResult = useAvalancheForecast(center_id, center, forecast_zone_id, requestedTime);
   const forecast = forecastResult.data;
+  const warningResult = useAvalancheWarning(center_id, forecast_zone_id, requestedTime);
+  const warning = warningResult.data;
 
   // When navigating from elsewhere in the app, the screen title should already
   // be set to the zone name. But if we warp directly to a forecast link, we
@@ -61,9 +67,12 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
     }
   }, [forecast, forecast_zone_id, navigation]);
 
-  if (incompleteQueryState(forecastResult)) {
-    return <QueryState results={[forecastResult]} />;
+  if (incompleteQueryState(forecastResult, warningResult)) {
+    return <QueryState results={[forecastResult, warningResult]} />;
   }
+
+  // very much not clear why sometimes (perhaps after hydrating?) the time fields are strings, not dates
+  const publishedTime = typeof forecast.published_time === 'string' ? toDate(forecast.published_time) : forecast.published_time;
 
   let currentDanger: AvalancheDangerForecast | undefined = forecast.danger.find(item => item.valid_day === ForecastPeriod.Current);
   if (!currentDanger || !currentDanger.upper) {
@@ -113,6 +122,36 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
           </VStack>
         </HStack>
       </Card>
+      {warning.expires_time && (
+        <View mx={16} py={16} borderRadius={10} borderColor={'#333333'} backgroundColor={'#333333'}>
+          <HStack ml={12} space={16}>
+            <View backgroundColor={colorFor(DangerLevel.High).string()} width={4} height={'100%'} borderRadius={12}></View>
+            <VStack space={16} pr={8}>
+              <VStack space={8}>
+                <HStack space={8} alignItems={'flex-start'}>
+                  <Feather name="alert-triangle" size={24} color={colorFor(DangerLevel.High).string()} />
+                  <Title3Black color="white">AVALANCHE WARNING</Title3Black>
+                </HStack>
+                <VStack>
+                  <HStack px={4} space={2}>
+                    <BodySmSemibold color="white">Issued:</BodySmSemibold>
+                    <AllCapsSm style={{textTransform: 'none'}} color="white">
+                      {utcDateToLocalTimeString(warning.published_time)}
+                    </AllCapsSm>
+                  </HStack>
+                  <HStack px={4} space={2}>
+                    <BodySmSemibold color="white">Expires:</BodySmSemibold>
+                    <AllCapsSm style={{textTransform: 'none'}} color="white">
+                      {utcDateToLocalTimeString(warning.expires_time)}
+                    </AllCapsSm>
+                  </HStack>
+                </VStack>
+              </VStack>
+              <Title3 color={'white'}>{warning.bottom_line}</Title3>
+            </VStack>
+          </HStack>
+        </View>
+      )}
       <Card
         borderRadius={0}
         borderColor="white"
@@ -125,10 +164,10 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
         <HTML source={{html: forecast.bottom_line}} />
       </Card>
       <Card borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Avalanche Danger" content={helpStrings.avalancheDanger} />}>
-        <AvalancheDangerTable date={addDays(forecast.published_time, 1)} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
+        <AvalancheDangerTable date={addDays(publishedTime, 1)} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
       </Card>
       <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Outlook" content={helpStrings.avalancheDangerOutlook} />}>
-        <AvalancheDangerTable date={addDays(forecast.published_time, 2)} forecast={outlookDanger} elevation_band_names={elevationBandNames} size={'outlook'} />
+        <AvalancheDangerTable date={addDays(publishedTime, 2)} forecast={outlookDanger} elevation_band_names={elevationBandNames} size={'outlook'} />
       </CollapsibleCard>
       {forecast.forecast_avalanche_problems.map((problem, index) => (
         <CollapsibleCard

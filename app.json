@@ -38,7 +38,7 @@
       "config": {
         "googleMaps": {"apiKey": "LOADED_FROM_ENVIRONMENT"}
       },
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "FOREGROUND_SERVICE"]
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "FOREGROUND_SERVICE", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
     },
     "hooks": {
       "postPublish": [
@@ -68,7 +68,7 @@
       "sentry_dsn": "LOADED_FROM_ENVIRONMENT",
       "avalanche_center": "NWAC",
       "log_network": "",
-      "log_network_matching": "https"
+      "log_network_matching": ""
     },
     "web": {
       "favicon": "./assets/favicon.png"

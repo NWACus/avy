@@ -8,6 +8,7 @@ import * as Sentry from 'sentry-expo';
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {logQueryKey} from 'hooks/logger';
 import {Observation, observationSchema} from 'types/nationalAvalancheCenter';
 import {z, ZodError} from 'zod';
 
@@ -23,7 +24,7 @@ export const useNWACObservation = (id: number) => {
 };
 
 function queryKey(nwacHost: string, id: number) {
-  return ['nwac-observation', {host: nwacHost, id: id}];
+  return logQueryKey(['nwac-observation', {host: nwacHost, id: id}]);
 }
 
 export const prefetchNWACObservation = async (queryClient: QueryClient, nwacHost: string, id: number) => {
@@ -60,7 +61,7 @@ export const fetchNWACObservation = async (nwacHost: string, id: number): Promis
 
   const parseResult = nwacObservationSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn(`unparsable observation`, url, parseResult.error, JSON.stringify(data, null, 2));
+    console.warn(`unparsable observation`, url, parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

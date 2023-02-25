@@ -8,6 +8,8 @@ import * as Sentry from 'sentry-expo';
 import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
+import {roundToNearestMinutes} from 'date-fns';
+import {logQueryKey} from 'hooks/logger';
 import {ObservationsQuery} from 'hooks/useObservations';
 import {AvalancheCenterID, observationSchema} from 'types/nationalAvalancheCenter';
 import {toDateTimeInterfaceATOM} from 'utils/date';
@@ -25,7 +27,20 @@ export const useNWACObservations = (center_id: AvalancheCenterID, published_afte
 };
 
 function queryKey(nwacHost: string, center_id: AvalancheCenterID, published_after: Date, published_before: Date) {
-  return ['nwac-observations', {host: nwacHost, center_id: center_id, published_after: published_after, published_before: published_before}];
+  return logQueryKey([
+    'nwac-observations',
+    {
+      host: nwacHost,
+      center_id: center_id,
+      published_after: roundDate(published_after),
+      published_before: roundDate(published_before),
+    },
+  ]);
+}
+
+// we want to cache our responses, so we need them to align with some less-volatile boundaries
+function roundDate(date: Date): Date {
+  return roundToNearestMinutes(date, {nearestTo: 15});
 }
 
 export const prefetchNWACObservations = async (queryClient: QueryClient, nwacHost: string, center_id: AvalancheCenterID, published_after: Date, published_before: Date) => {
@@ -63,16 +78,17 @@ export const fetchNWACObservations = async (nwacHost: string, center_id: Avalanc
     return {getObservationList: []};
   }
   const url = `${nwacHost}/api/v2/observations`;
+  const params = {
+    published_after: toDateTimeInterfaceATOM(roundDate(published_after)),
+    published_before: toDateTimeInterfaceATOM(roundDate(published_before)),
+  };
   const {data} = await axios.get(url, {
-    params: {
-      published_after: toDateTimeInterfaceATOM(published_after),
-      published_before: toDateTimeInterfaceATOM(published_before),
-    },
+    params: params,
   });
 
   const parseResult = nwacObservationsSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn(`unparsable observations`, url, parseResult.error, JSON.stringify(data, null, 2));
+    console.warn(`unparsable observations`, url, JSON.stringify(params), parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

@@ -18,17 +18,18 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from 'types/nationalAvalancheCenter';
-import {apiDateString, utcDateToLocalTimeString} from 'utils/date';
+import {apiDateString, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTimeString} from 'utils/date';
 
 // TODO: we could show the Avy center logo for obs that come from forecasters
 
 export const ObservationsListView: React.FunctionComponent<{
   center_id: AvalancheCenterID;
-  date: Date;
-}> = ({center_id, date}) => {
+  requestedTime: RequestedTime;
+}> = ({center_id, requestedTime}) => {
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
+  const date = requestedTimeToUTCDate(requestedTime);
   const startDate = sub(date, {weeks: 1});
   const endDate = date;
   const observationsResult = useObservationsQuery({

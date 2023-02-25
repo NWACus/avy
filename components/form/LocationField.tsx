@@ -1,30 +1,32 @@
 import {AntDesign, FontAwesome} from '@expo/vector-icons';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
-import {defaultMapRegionForZones, ZoneMap} from 'components/content/ZoneMap';
+import {defaultMapRegionForGeometries, defaultMapRegionForZones, MapViewZone, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, bodySize, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
-import {useMapViewZones} from 'hooks/useMapViewZones';
+import {useMapLayer} from 'hooks/useMapLayer';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useController} from 'react-hook-form';
 import {Image, Modal, TouchableOpacity} from 'react-native';
 import {Region} from 'react-native-maps';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 interface LocationFieldProps {
   name: string;
   label: string;
+  center: AvalancheCenterID;
 }
 
-export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
+export const LocationField: React.FC<LocationFieldProps> = ({name, label, center}) => {
   const {
     field: {onChange, value},
     fieldState: {error},
   } = useController({name});
   const [modalVisible, setModalVisible] = useState(false);
 
-  const zonesResult = useMapViewZones('NWAC', new Date());
-  const zones = zonesResult.data;
+  const mapLayerResult = useMapLayer(center);
+  const mapLayer = mapLayerResult.data;
   const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
   const [mapReady, setMapReady] = useState<boolean>(false);
 
@@ -40,9 +42,9 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
   );
 
   useEffect(() => {
-    if (zones && !mapReady) {
+    if (mapLayer && !mapReady) {
       const location = value || {lat: 0, lng: 0};
-      const initialRegion = defaultMapRegionForZones(zones);
+      const initialRegion = defaultMapRegionForGeometries(mapLayer.features.map(feature => feature.geometry));
       if (location.lat !== 0 && location.lng !== 0) {
         initialRegion.latitude = location.lat;
         initialRegion.longitude = location.lng;
@@ -54,7 +56,17 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
         onChangeRegion(initialRegion);
       }
     }
-  }, [zones, setInitialRegion, onChangeRegion, value, mapReady, setMapReady]);
+  }, [mapLayer, setInitialRegion, onChangeRegion, value, mapReady, setMapReady]);
+
+  const zones: MapViewZone[] = mapLayer.features.map(feature => ({
+    zone_id: feature.id,
+    center_id: center,
+    geometry: feature.geometry,
+    hasWarning: feature.properties.warning?.product === 'warning',
+    start_date: feature.properties.start_date,
+    end_date: feature.properties.end_date,
+    fillOpacity: feature.properties.fillOpacity,
+  }));
 
   return (
     <VStack width="100%" space={4}>
@@ -91,7 +103,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label}) => {
                   />
                 </HStack>
                 <Center width="100%" height="100%">
-                  {incompleteQueryState(zonesResult) && <QueryState results={[zonesResult]} />}
+                  {incompleteQueryState(mapLayerResult) && <QueryState results={[mapLayerResult]} />}
                   {mapReady && (
                     <>
                       <ZoneMap

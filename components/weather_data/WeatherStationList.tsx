@@ -13,10 +13,10 @@ import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 interface Props {
   center_id: AvalancheCenterID;
-  dateString: string;
+  requestedTime: string;
 }
 
-const StationList = (navigation: WeatherStackNavigationProps, center_id: AvalancheCenterID, dateString: string, zones: ZoneResult[]) => {
+const StationList = (navigation: WeatherStackNavigationProps, center_id: AvalancheCenterID, requestedTime: string, zones: ZoneResult[]) => {
   const data = zones
     .map(zone => ({
       zoneName: zone.name,
@@ -25,7 +25,7 @@ const StationList = (navigation: WeatherStackNavigationProps, center_id: Avalanc
           label: k,
           data: v,
           action: (name, data) => {
-            navigation.navigate('stationDetail', {center_id, station_stids: data.map(s => s.stid), name, dateString, zoneName: zone.name});
+            navigation.navigate('stationDetail', {center_id, station_stids: data.map(s => s.stid), name, requestedTime, zoneName: zone.name});
           },
         }))
         .sort((a, b) => a.label.localeCompare(b.label)),
@@ -44,7 +44,7 @@ const StationList = (navigation: WeatherStackNavigationProps, center_id: Avalanc
   );
 };
 
-export const WeatherStationList: React.FC<Props> = ({center_id, dateString}) => {
+export const WeatherStationList: React.FC<Props> = ({center_id, requestedTime}) => {
   const navigation = useNavigation<WeatherStackNavigationProps>();
   const {status, data: zones} = useWeatherStations({center: center_id, sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel']});
 
@@ -66,7 +66,7 @@ export const WeatherStationList: React.FC<Props> = ({center_id, dateString}) => 
               <Body>Error loading weather stations.</Body>
             </Center>
           )}
-          {zones && StationList(navigation, center_id, dateString, zones)}
+          {zones && StationList(navigation, center_id, requestedTime, zones)}
         </VStack>
       </SafeAreaView>
     </View>
