@@ -16,7 +16,6 @@ export type MapViewZone = {
   zone_id?: number;
   name?: string;
   danger_level?: DangerLevel;
-  danger?: string;
   start_date: Date | null;
   end_date: Date | null;
   geometry?: FeatureComponent;
