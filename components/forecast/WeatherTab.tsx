@@ -10,8 +10,10 @@ import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
 import {add} from 'date-fns';
 import {FormatTimeOfDay, useNWACWeatherForecast} from 'hooks/useNWACWeatherForecast';
+import {useRefresh} from 'hooks/useRefresh';
 import {useWeatherStations} from 'hooks/useWeatherStations';
-import {ScrollView} from 'react-native';
+import React from 'react';
+import {RefreshControl, ScrollView} from 'react-native';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
@@ -42,6 +44,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
   });
   const weatherStationsByZone = stationsResult.data;
+  const {isRefreshing, refresh} = useRefresh(nwacForecastResult.refetch, stationsResult.refetch);
 
   const navigation = useNavigation<ForecastNavigationProp>();
 
@@ -93,7 +96,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   // 😵‍💫 😵‍💫 😵‍💫
   const expires_time = isPublishedMorning ? add(start, {hours: 14 - offsetHours}) : add(start, {hours: 7 - offsetHours, days: 1});
   return (
-    <ScrollView>
+    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}>
       <VStack space={8} bgColor={'#f0f2f5'}>
         <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
           <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>

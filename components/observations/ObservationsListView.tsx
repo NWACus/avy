@@ -4,7 +4,7 @@ import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {geoContains} from 'd3-geo';
 import {compareDesc, parseISO, sub} from 'date-fns';
-import {FlatList} from 'react-native';
+import {FlatList, RefreshControl} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 
 import {Card} from 'components/content/Card';
@@ -17,6 +17,7 @@ import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
+import {useRefresh} from 'hooks/useRefresh';
 import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from 'types/nationalAvalancheCenter';
 import {notFound} from 'types/requests';
 import {apiDateString, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTimeString} from 'utils/date';
@@ -43,6 +44,7 @@ export const ObservationsListView: React.FunctionComponent<{
   const nwacObservationsResult = useNWACObservations(center_id, startDate, endDate);
   const nwacObservations = nwacObservationsResult.data;
   const observations = nacObservations?.getObservationList.concat(nwacObservations?.getObservationList);
+  const {isRefreshing, refresh} = useRefresh(mapResult.refetch, observationsResult.refetch, nwacObservationsResult.refetch);
 
   if (incompleteQueryState(observationsResult, nwacObservationsResult, mapResult)) {
     return <QueryState results={[observationsResult, nwacObservationsResult, mapResult]} />;
@@ -67,6 +69,7 @@ export const ObservationsListView: React.FunctionComponent<{
 
   return (
     <FlatList
+      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}
       data={displayedObservations.map(observation => ({
         id: observation.id,
         observation: observation,

@@ -19,7 +19,8 @@ import helpStrings from 'content/helpStrings';
 import {toDate} from 'date-fns-tz';
 import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {useAvalancheWarning} from 'hooks/useAvalancheWarning';
-import {ScrollView} from 'react-native';
+import {useRefresh} from 'hooks/useRefresh';
+import {RefreshControl, ScrollView} from 'react-native';
 import {HomeStackNavigationProps} from 'routes';
 import {
   AvalancheCenter,
@@ -55,6 +56,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
   const forecast = forecastResult.data;
   const warningResult = useAvalancheWarning(center_id, forecast_zone_id, requestedTime);
   const warning = warningResult.data;
+  const {isRefreshing, refresh} = useRefresh(forecastResult.refetch, warningResult.refetch);
 
   // When navigating from elsewhere in the app, the screen title should already
   // be set to the zone name. But if we warp directly to a forecast link, we
@@ -100,7 +102,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
   }
 
   return (
-    <ScrollView>
+    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}>
       <VStack space={8} bgColor={'#f0f2f5'}>
         <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Avalanche Forecast</Title3Black>}>
           <HStack justifyContent="space-evenly" space={8}>
