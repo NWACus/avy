@@ -19,6 +19,7 @@ import {AvalancheTab} from 'components/forecast/AvalancheTab';
 import {WeatherTab} from 'components/forecast/WeatherTab';
 import {FeatureTitleBlack} from 'components/text';
 import {HomeStackNavigationProps} from 'routes';
+import {notFound} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 export interface AvalancheForecastProps {
@@ -67,7 +68,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
   const zone: AvalancheForecastZone | undefined = center.zones.find(item => item.id === forecast_zone_id);
   if (!zone) {
     Sentry.Native.captureException(new Error(`Avalanche center ${center_id} had no zone with id ${forecast_zone_id}: ${JSON.stringify(center)}`));
-    return <NotFound />;
+    return <NotFound what={[notFound('avalanche forecast zone')]} />;
   }
 
   const zones = uniq(center.zones.filter(z => z.status === 'active').map(z => z.name));

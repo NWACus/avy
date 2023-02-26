@@ -21,7 +21,7 @@ interface AspectCardProps extends Omit<CardProps, 'children'> {
   caption: string;
 }
 const AspectCard: React.FC<AspectCardProps> = ({caption, ...props}) => (
-  <Card flex={1} flexBasis={'35%'} flexGrow={1} borderColor={colorLookup('light.200')} borderRadius={8} mb={8} {...props}>
+  <Card flex={1} flexBasis={'35%'} flexGrow={1} borderColor={colorLookup('light.300')} borderRadius={8} mb={8} {...props}>
     {/* Always force the caption to take the space of two lines - this makes things line up on narrow screens,
         where "Aspect/Elevation" doesn't fit on a single line */}
     <Center height={2 * allCapsSmLineHeight}>

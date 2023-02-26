@@ -22,9 +22,9 @@ export function ActionList<T>({actions, ...props}: ActionListProps<T>) {
     <VStack {...props}>
       {actions.map(({label, data, action}) => (
         <TouchableOpacity onPress={() => action && action(label, data)} key={label}>
-          <HStack borderBottomWidth={1} borderColor={colorLookup('light.200')} py={8} justifyContent="space-between">
+          <HStack borderBottomWidth={1} borderColor={colorLookup('light.300')} py={8} justifyContent="space-between">
             <Body style={{flex: 1, flexGrow: 1}}>{label}</Body>
-            <AntDesign name={'right'} color={colorLookup('light.200')} size={24} />
+            <AntDesign name={'right'} color={colorLookup('light.300')} size={24} />
           </HStack>
         </TouchableOpacity>
       ))}

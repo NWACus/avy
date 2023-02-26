@@ -7,13 +7,14 @@ import {ClientContext, ClientProps} from 'clientContext';
 import {logQueryKey} from 'hooks/logger';
 import AvalancheForecastFragments from 'hooks/useAvalancheForecastFragments';
 import {AvalancheCenterID, Product} from 'types/nationalAvalancheCenter';
+import {notFound, NotFound} from 'types/requests';
 import {apiDateString} from 'utils/date';
 
 export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forecast_zone_id: number, date: Date) => {
   const queryClient = useQueryClient();
   const {nationalAvalancheCenterHost} = useContext<ClientProps>(ClientContext);
 
-  return useQuery<Product, Error>(
+  return useQuery<Product | NotFound, Error>(
     logQueryKey(['products', center_id, forecast_zone_id, apiDateString(date)]),
     async () => fetchAvalancheForecastFragment(queryClient, nationalAvalancheCenterHost, center_id, forecast_zone_id, date),
     {
@@ -35,9 +36,15 @@ const fetchAvalancheForecastFragment = async (
   center_id: AvalancheCenterID,
   forecast_zone_id: number,
   date: Date,
-) => {
+): Promise<Product | NotFound> => {
   const fragments = await AvalancheForecastFragments.fetchQuery(queryClient, nationalAvalancheCenterHost, center_id, date);
-  return fragments?.find(forecast => isBetween(forecast.published_time, forecast.expires_time, date) && forecast.forecast_zone.find(zone => zone.id === forecast_zone_id));
+  const fragment = fragments?.find(
+    forecast => isBetween(forecast.published_time, forecast.expires_time, date) && forecast.forecast_zone.find(zone => zone.id === forecast_zone_id),
+  );
+  if (!fragments || !fragment) {
+    return notFound('avalanche forecast');
+  }
+  return fragment;
 };
 
 export default {

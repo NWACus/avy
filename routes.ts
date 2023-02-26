@@ -95,5 +95,8 @@ export type MenuStackParamList = {
     requestedTime: RequestedTimeString;
   };
   about: undefined;
+  outcome: {
+    which: string;
+  };
 };
 export type MenuStackNavigationProps = NativeStackNavigationProp<MenuStackParamList>;

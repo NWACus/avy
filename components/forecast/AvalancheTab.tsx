@@ -29,6 +29,7 @@ import {
   ElevationBandNames,
   ForecastPeriod,
 } from 'types/nationalAvalancheCenter';
+import {isNotFound} from 'types/requests';
 import {RequestedTime, utcDateToLocalTimeString} from 'utils/date';
 
 interface AvalancheTabProps {
@@ -59,7 +60,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
   // need to load the zone name dynamically.
   const navigation = useNavigation<HomeStackNavigationProps>();
   React.useEffect(() => {
-    if (forecast) {
+    if (forecast && !isNotFound(forecast)) {
       const thisZone: AvalancheForecastZoneSummary | undefined = forecast.forecast_zone.find(zone => zone.id === forecast_zone_id);
       if (thisZone) {
         navigation.setOptions({title: thisZone.name});
@@ -67,7 +68,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
     }
   }, [forecast, forecast_zone_id, navigation]);
 
-  if (incompleteQueryState(forecastResult, warningResult)) {
+  if (incompleteQueryState(forecastResult, warningResult) || isNotFound(forecast)) {
     return <QueryState results={[forecastResult, warningResult]} />;
   }
 

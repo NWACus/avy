@@ -32,6 +32,7 @@ import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps} from 'routes';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
+import {isNotFound} from 'types/requests';
 import {formatRequestedTime, RequestedTime, utcDateToLocalTimeString} from 'utils/date';
 
 export interface MapProps {
@@ -107,6 +108,9 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     .map(result => result.data) // get data from the results
     .filter(data => data) // only operate on results that have succeeded
     .forEach(forecast => {
+      if (isNotFound(forecast)) {
+        return;
+      }
       forecast.forecast_zone?.forEach(({id}) => {
         const mapViewZoneData = zonesById[id];
         if (mapViewZoneData) {
@@ -114,7 +118,6 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           if (currentDanger) {
             mapViewZoneData.danger_level = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
           }
-          mapViewZoneData.danger = forecast.danger_level_text;
           mapViewZoneData.start_date = forecast.published_time;
           mapViewZoneData.end_date = forecast.expires_time;
         }
@@ -518,7 +521,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
         <VStack px={24} pt={4} pb={12} space={8}>
           <HStack space={8} alignItems="center">
             <AvalancheDangerIcon style={{height: 32}} level={zone.danger_level} />
-            <DangerLevelTitle dangerLevel={zone.danger_level} danger={zone.danger} />
+            <DangerLevelTitle dangerLevel={zone.danger_level} />
           </HStack>
           <Title3Black>{zone.name}</Title3Black>
           <VStack py={8}>
@@ -542,14 +545,13 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
 
 const DangerLevelTitle: React.FunctionComponent<{
   dangerLevel: DangerLevel;
-  danger: string;
-}> = ({dangerLevel, danger}) => {
+}> = ({dangerLevel}) => {
   switch (dangerLevel) {
     case DangerLevel.GeneralInformation:
     case DangerLevel.None:
       return (
         <BodySmSemibold>
-          <Text style={{textTransform: 'capitalize'}}>{danger}</Text>
+          <Text style={{textTransform: 'capitalize'}}>{DangerLevel[dangerLevel]}</Text>
         </BodySmSemibold>
       );
     case DangerLevel.Low:
@@ -559,7 +561,7 @@ const DangerLevelTitle: React.FunctionComponent<{
     case DangerLevel.Extreme:
       return (
         <BodySmSemibold>
-          {dangerLevel} - <Text style={{textTransform: 'capitalize'}}>{danger}</Text> Avalanche Danger
+          {dangerLevel} - <Text style={{textTransform: 'capitalize'}}>{DangerLevel[dangerLevel]}</Text> Avalanche Danger
         </BodySmSemibold>
       );
   }

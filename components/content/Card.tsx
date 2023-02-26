@@ -23,7 +23,7 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({hea
   return (
     <View {...boxProps}>
       <TouchableOpacity onPress={pressHandler} disabled={!onPress}>
-        <View bg="white" borderWidth={2} borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.200'} p={16}>
+        <View bg="white" borderWidth={2} borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.300'} p={16}>
           <VStack space={noInternalSpace ? 0 : 8}>
             <>{header}</>
             {noDivider || <Divider />}

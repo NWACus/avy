@@ -12,6 +12,7 @@ import {logQueryKey} from 'hooks/logger';
 import AvalancheForecastByID from 'hooks/useAvalancheForecastById';
 import AvalancheForecastFragment from 'hooks/useAvalancheForecastFragment';
 import {AvalancheCenter, AvalancheCenterID, Product, productSchema} from 'types/nationalAvalancheCenter';
+import {isNotFound, NotFound} from 'types/requests';
 import {nominalForecastDate, nominalForecastDateString, RequestedTime} from 'utils/date';
 import {ZodError} from 'zod';
 
@@ -22,7 +23,7 @@ export const useAvalancheForecast = (center_id: AvalancheCenterID, center: Avala
   const expiryTimeHours = center?.config.expires_time;
   const expiryTimeZone = center?.timezone;
 
-  return useQuery<Product, AxiosError | ZodError>({
+  return useQuery<Product | NotFound, AxiosError | ZodError>({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours),
     queryFn: async () => fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours),
     enabled: !!expiryTimeHours,
@@ -102,8 +103,11 @@ const fetchAvalancheForecast = async (
       zone_id,
       nominalForecastDate(requested_time, expiryTimeZone, expiryTimeHours),
     );
-    const forecast = await AvalancheForecastByID.fetch(nationalAvalancheCenterHost, fragment.id);
-    return forecast;
+    if (isNotFound(fragment)) {
+      return fragment;
+    } else {
+      return await AvalancheForecastByID.fetch(nationalAvalancheCenterHost, fragment.id);
+    }
   }
 };
 
