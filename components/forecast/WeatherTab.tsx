@@ -199,9 +199,14 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
       <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Extended Synopsis</Title3Black>} startsCollapsed={true}>
         <HTML source={{html: nwacForecast.mountain_weather_forecast.extended_synopsis}} />
       </CollapsibleCard>
-      <Card marginTop={1} borderRadius={0} borderColor="white">
-        <HTML source={{html: nwacForecast.mountain_weather_forecast.special_header_notes}} />
-      </Card>
+      <Card
+        marginTop={1}
+        borderRadius={0}
+        borderColor="white"
+        header={<HTML source={{html: nwacForecast.mountain_weather_forecast.special_header_notes}} />}
+        noDivider
+        noInternalSpace
+      />
     </VStack>
   );
 };
