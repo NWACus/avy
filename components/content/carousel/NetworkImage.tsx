@@ -24,7 +24,7 @@ export interface NetworkImageProps {
   resizeMode?: 'cover' | 'contain';
 }
 
-const defaultImageStyle = {borderRadius: 16, borderColor: colorLookup('light.200'), borderWidth: 1};
+const defaultImageStyle = {borderRadius: 16, borderColor: colorLookup('light.300'), borderWidth: 1};
 
 export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateChange, index, onPress, imageStyle: imageStyleProp, resizeMode = 'cover'}) => {
   const {status, data: cachedUri} = useCachedImageURI(uri);

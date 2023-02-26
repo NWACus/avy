@@ -97,18 +97,18 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
         </HStack>
         <VStack alignItems="stretch" pt={4}>
           {nwacForecasts.map((f, index) => (
-            <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index === 0 ? colorLookup('light.200') : 'white'}>
+            <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index === 0 ? colorLookup('light.300') : 'white'}>
               <BodyBlack>{f.title}</BodyBlack>
               <Body>{f.description}</Body>
-              <View borderWidth={1} borderColor={colorLookup('light.200')} mt={12}>
-                <HStack justifyContent="space-between" alignItems="stretch" borderBottomWidth={1} borderColor={colorLookup('light.200')}>
+              <View borderWidth={1} borderColor={colorLookup('light.300')} mt={12}>
+                <HStack justifyContent="space-between" alignItems="stretch" borderBottomWidth={1} borderColor={colorLookup('light.300')}>
                   <VStack flexBasis={0.5} flex={1} m={12}>
                     <SmallHeaderWithTooltip title="5K ft Temps (°F)" dialogTitle="Temperature" content={helpStrings.weather.temperature} />
                     <Body>
                       {f.five_thousand_foot_temperatures.max} (max) / {f.five_thousand_foot_temperatures.min} (min)
                     </Body>
                   </VStack>
-                  <View width={1} height="100%" bg={colorLookup('light.200')} flex={0} />
+                  <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
                   <VStack flexBasis={0.5} flex={1} m={12}>
                     <SmallHeaderWithTooltip title="Snow Level (ft)" dialogTitle="Snow Level" content={helpStrings.weather.snowLevelNoAsterisk} />
                     {f.snow_levels.map(({level, period}, lindex) => (
@@ -132,7 +132,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
                       </HStack>
                     ))}
                   </VStack>
-                  <View width={1} height="100%" bg={colorLookup('light.200')} flex={0} />
+                  <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
                   <VStack flexBasis={0.5} flex={1} m={12}>
                     <SmallHeaderWithTooltip title="Ridgeline Winds (mph)" dialogTitle="Ridgeline Winds" content={helpStrings.weather.wind} />
                     {f.ridgeline_winds.map(({direction, speed, period}, lindex) => (
