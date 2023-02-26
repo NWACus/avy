@@ -26,7 +26,8 @@ import {apiDateString, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTime
 export const ObservationsListView: React.FunctionComponent<{
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
-}> = ({center_id, requestedTime}) => {
+  zone_name?: string;
+}> = ({center_id, requestedTime, zone_name}) => {
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
@@ -48,15 +49,25 @@ export const ObservationsListView: React.FunctionComponent<{
   }
 
   if (!observations || observations.length === 0) {
-    // TODO: when cleaning this up, fix it so that it renders the date in the user's locale, not UTC date
     return <NotFound what={[notFound('observations')]} />;
   }
 
   observations.sort((a, b) => compareDesc(parseISO(a.createdAt), parseISO(b.createdAt)));
 
+  let displayedObservations: OverviewFragment[] = [];
+  if (zone_name) {
+    displayedObservations = observations.filter(observation => zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng) === zone_name);
+  } else {
+    displayedObservations = observations;
+  }
+
+  if (!displayedObservations || displayedObservations.length === 0) {
+    return <NotFound what={[notFound('observations')]} />;
+  }
+
   return (
     <FlatList
-      data={observations.map(observation => ({
+      data={displayedObservations.map(observation => ({
         id: observation.id,
         observation: observation,
         source: nwacObservations?.getObservationList.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',

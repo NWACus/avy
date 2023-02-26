@@ -11,6 +11,7 @@ import helpStrings from 'content/helpStrings';
 import {add} from 'date-fns';
 import {FormatTimeOfDay, useNWACWeatherForecast} from 'hooks/useNWACWeatherForecast';
 import {useWeatherStations} from 'hooks/useWeatherStations';
+import {ScrollView} from 'react-native';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
@@ -92,121 +93,123 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   // 😵‍💫 😵‍💫 😵‍💫
   const expires_time = isPublishedMorning ? add(start, {hours: 14 - offsetHours}) : add(start, {hours: 7 - offsetHours, days: 1});
   return (
-    <VStack space={8} bgColor={'#f0f2f5'}>
-      <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
-        <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
-          <VStack space={8} style={{flex: 1}}>
-            <AllCapsSmBlack>Issued</AllCapsSmBlack>
-            <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-              {utcDateToLocalTimeString(nwacForecast.mountain_weather_forecast.publish_date)}
-            </AllCapsSm>
-          </VStack>
-          <VStack space={8} style={{flex: 1}}>
-            <AllCapsSmBlack>Expires</AllCapsSmBlack>
-            <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-              {utcDateToLocalTimeString(expires_time)}
-            </AllCapsSm>
-          </VStack>
-          <VStack space={8} style={{flex: 1}}>
-            <AllCapsSmBlack>Author</AllCapsSmBlack>
-            <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-              {author || 'Unknown'}
-              {'\n'}
-            </AllCapsSm>
-          </VStack>
-        </HStack>
-        <VStack alignItems="stretch" pt={4}>
-          {nwacForecasts.map((f, index) => (
-            <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index === 0 ? colorLookup('light.300') : 'white'}>
-              <BodyBlack>{f.title}</BodyBlack>
-              <Body>{f.description}</Body>
-              <View borderWidth={1} borderColor={colorLookup('light.300')} mt={12}>
-                <HStack justifyContent="space-between" alignItems="stretch" borderBottomWidth={1} borderColor={colorLookup('light.300')}>
-                  <VStack flexBasis={0.5} flex={1} m={12}>
-                    <SmallHeaderWithTooltip title="5K ft Temps (°F)" dialogTitle="Temperature" content={helpStrings.weather.temperature} />
-                    <Body>
-                      {f.five_thousand_foot_temperatures.max} (max) / {f.five_thousand_foot_temperatures.min} (min)
-                    </Body>
-                  </VStack>
-                  <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
-                  <VStack flexBasis={0.5} flex={1} m={12}>
-                    <SmallHeaderWithTooltip title="Snow Level (ft)" dialogTitle="Snow Level" content={helpStrings.weather.snowLevelNoAsterisk} />
-                    {f.snow_levels.map(({level, period}, lindex) => (
-                      <Body key={`forecast-${index}-snow-level-${lindex}`}>
-                        {Intl.NumberFormat().format(level)} {period}
-                      </Body>
-                    ))}
-                  </VStack>
-                </HStack>
-                <HStack justifyContent="space-between" alignItems="flex-start">
-                  <VStack flexBasis={0.5} flex={1} m={12}>
-                    <SmallHeaderWithTooltip title="Precipitation (in)" dialogTitle="Precipitation" content={helpStrings.weather.precipitation} />
-                    {f.precipitation.map(({name, value}) => (
-                      <HStack key={name} justifyContent="space-between" alignItems="flex-start" alignSelf="stretch">
-                        <View flex={1} flexGrow={2} pr={12}>
-                          <Body style={{flex: 1, flexBasis: 0.75}}>{name}</Body>
-                        </View>
-                        <View flex={1} flexGrow={1}>
-                          <Body textAlign="right">{value}</Body>
-                        </View>
-                      </HStack>
-                    ))}
-                  </VStack>
-                  <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
-                  <VStack flexBasis={0.5} flex={1} m={12}>
-                    <SmallHeaderWithTooltip title="Ridgeline Winds (mph)" dialogTitle="Ridgeline Winds" content={helpStrings.weather.wind} />
-                    {f.ridgeline_winds.map(({direction, speed, period}, lindex) => (
-                      <Body key={`forecast-${index}-winds-${lindex}`}>
-                        {direction} {speed} {period}
-                      </Body>
-                    ))}
-                  </VStack>
-                </HStack>
-              </View>
+    <ScrollView>
+      <VStack space={8} bgColor={'#f0f2f5'}>
+        <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
+          <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
+            <VStack space={8} style={{flex: 1}}>
+              <AllCapsSmBlack>Issued</AllCapsSmBlack>
+              <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                {utcDateToLocalTimeString(nwacForecast.mountain_weather_forecast.publish_date)}
+              </AllCapsSm>
             </VStack>
-          ))}
-        </VStack>
-      </Card>
-      <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Data</Title3Black>}>
-        <VStack>
-          {groupedWeatherStations.length > 0 && (
-            <ActionList
-              actions={groupedWeatherStations.map(([name, stations]) => ({
-                label: name,
-                data: stations,
-                action: () => {
-                  navigation.navigate('stationDetail', {
-                    center_id,
-                    station_stids: stations.map(s => s.stid),
-                    name,
-                    requestedTime: formatRequestedTime(requestedTime),
-                    zoneName: zone.name,
-                  });
-                },
-              }))}
-            />
-          )}
-          {groupedWeatherStations.length === 0 && (
-            <HStack py={6}>
-              <Body>No weather stations in this zone.</Body>
-            </HStack>
-          )}
-        </VStack>
-      </Card>
-      <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Synopsis</Title3Black>} startsCollapsed={true}>
-        <HTML source={{html: nwacForecast.mountain_weather_forecast.synopsis_day1_day2}} />
-      </CollapsibleCard>
-      <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Extended Synopsis</Title3Black>} startsCollapsed={true}>
-        <HTML source={{html: nwacForecast.mountain_weather_forecast.extended_synopsis}} />
-      </CollapsibleCard>
-      <Card
-        marginTop={1}
-        borderRadius={0}
-        borderColor="white"
-        header={<HTML source={{html: nwacForecast.mountain_weather_forecast.special_header_notes}} />}
-        noDivider
-        noInternalSpace
-      />
-    </VStack>
+            <VStack space={8} style={{flex: 1}}>
+              <AllCapsSmBlack>Expires</AllCapsSmBlack>
+              <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                {utcDateToLocalTimeString(expires_time)}
+              </AllCapsSm>
+            </VStack>
+            <VStack space={8} style={{flex: 1}}>
+              <AllCapsSmBlack>Author</AllCapsSmBlack>
+              <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                {author || 'Unknown'}
+                {'\n'}
+              </AllCapsSm>
+            </VStack>
+          </HStack>
+          <VStack alignItems="stretch" pt={4}>
+            {nwacForecasts.map((f, index) => (
+              <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index === 0 ? colorLookup('light.300') : 'white'}>
+                <BodyBlack>{f.title}</BodyBlack>
+                <Body>{f.description}</Body>
+                <View borderWidth={1} borderColor={colorLookup('light.300')} mt={12}>
+                  <HStack justifyContent="space-between" alignItems="stretch" borderBottomWidth={1} borderColor={colorLookup('light.300')}>
+                    <VStack flexBasis={0.5} flex={1} m={12}>
+                      <SmallHeaderWithTooltip title="5K ft Temps (°F)" dialogTitle="Temperature" content={helpStrings.weather.temperature} />
+                      <Body>
+                        {f.five_thousand_foot_temperatures.max} (max) / {f.five_thousand_foot_temperatures.min} (min)
+                      </Body>
+                    </VStack>
+                    <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
+                    <VStack flexBasis={0.5} flex={1} m={12}>
+                      <SmallHeaderWithTooltip title="Snow Level (ft)" dialogTitle="Snow Level" content={helpStrings.weather.snowLevelNoAsterisk} />
+                      {f.snow_levels.map(({level, period}, lindex) => (
+                        <Body key={`forecast-${index}-snow-level-${lindex}`}>
+                          {Intl.NumberFormat().format(level)} {period}
+                        </Body>
+                      ))}
+                    </VStack>
+                  </HStack>
+                  <HStack justifyContent="space-between" alignItems="flex-start">
+                    <VStack flexBasis={0.5} flex={1} m={12}>
+                      <SmallHeaderWithTooltip title="Precipitation (in)" dialogTitle="Precipitation" content={helpStrings.weather.precipitation} />
+                      {f.precipitation.map(({name, value}) => (
+                        <HStack key={name} justifyContent="space-between" alignItems="flex-start" alignSelf="stretch">
+                          <View flex={1} flexGrow={2} pr={12}>
+                            <Body style={{flex: 1, flexBasis: 0.75}}>{name}</Body>
+                          </View>
+                          <View flex={1} flexGrow={1}>
+                            <Body textAlign="right">{value}</Body>
+                          </View>
+                        </HStack>
+                      ))}
+                    </VStack>
+                    <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
+                    <VStack flexBasis={0.5} flex={1} m={12}>
+                      <SmallHeaderWithTooltip title="Ridgeline Winds (mph)" dialogTitle="Ridgeline Winds" content={helpStrings.weather.wind} />
+                      {f.ridgeline_winds.map(({direction, speed, period}, lindex) => (
+                        <Body key={`forecast-${index}-winds-${lindex}`}>
+                          {direction} {speed} {period}
+                        </Body>
+                      ))}
+                    </VStack>
+                  </HStack>
+                </View>
+              </VStack>
+            ))}
+          </VStack>
+        </Card>
+        <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Data</Title3Black>}>
+          <VStack>
+            {groupedWeatherStations.length > 0 && (
+              <ActionList
+                actions={groupedWeatherStations.map(([name, stations]) => ({
+                  label: name,
+                  data: stations,
+                  action: () => {
+                    navigation.navigate('stationDetail', {
+                      center_id,
+                      station_stids: stations.map(s => s.stid),
+                      name,
+                      requestedTime: formatRequestedTime(requestedTime),
+                      zoneName: zone.name,
+                    });
+                  },
+                }))}
+              />
+            )}
+            {groupedWeatherStations.length === 0 && (
+              <HStack py={6}>
+                <Body>No weather stations in this zone.</Body>
+              </HStack>
+            )}
+          </VStack>
+        </Card>
+        <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Synopsis</Title3Black>} startsCollapsed={true}>
+          <HTML source={{html: nwacForecast.mountain_weather_forecast.synopsis_day1_day2}} />
+        </CollapsibleCard>
+        <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Extended Synopsis</Title3Black>} startsCollapsed={true}>
+          <HTML source={{html: nwacForecast.mountain_weather_forecast.extended_synopsis}} />
+        </CollapsibleCard>
+        <Card
+          marginTop={1}
+          borderRadius={0}
+          borderColor="white"
+          header={<HTML source={{html: nwacForecast.mountain_weather_forecast.special_header_notes}} />}
+          noDivider
+          noInternalSpace
+        />
+      </VStack>
+    </ScrollView>
   );
 };
