@@ -70,6 +70,7 @@ export const fetchNWACObservation = async (nwacHost: string, id: number): Promis
     });
     throw parseResult.error;
   } else {
+    parseResult.data.objects.content.created_at = parseResult.data.objects.content.start_date;
     return parseResult.data.objects.content;
   }
 };

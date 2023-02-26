@@ -3,7 +3,7 @@ import React, {useCallback} from 'react';
 import {uniq} from 'lodash';
 
 import {useNavigation} from '@react-navigation/native';
-import {ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
+import {TouchableOpacity} from 'react-native';
 import * as Sentry from 'sentry-expo';
 
 import {HStack, View} from 'components/core';
@@ -16,8 +16,8 @@ import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {Dropdown} from 'components/content/Dropdown';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {AvalancheTab} from 'components/forecast/AvalancheTab';
+import {ObservationsTab} from 'components/forecast/ObservationsTab';
 import {WeatherTab} from 'components/forecast/WeatherTab';
-import {FeatureTitleBlack} from 'components/text';
 import {HomeStackNavigationProps} from 'routes';
 import {notFound} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
@@ -28,10 +28,6 @@ export interface AvalancheForecastProps {
   requestedTime: RequestedTime;
   forecast_zone_id: number;
 }
-
-const ObservationsTab = () => {
-  return <FeatureTitleBlack>Observations coming soon</FeatureTitleBlack>;
-};
 
 export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> = ({center_id, requestedTime, forecast_zone_id}: AvalancheForecastProps) => {
   const centerResult = useAvalancheCenterMetadata(center_id);
@@ -74,7 +70,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
   const zones = uniq(center.zones.filter(z => z.status === 'active').map(z => z.name));
 
   return (
-    <ScrollView style={StyleSheet.absoluteFillObject}>
+    <>
       <HStack justifyContent="space-between" alignItems="center" space={8} width="100%" height={64}>
         <View pl={8} py={8}>
           <TouchableOpacity onPress={onReturnToMapView}>
@@ -99,9 +95,9 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
           <WeatherTab zone={zone} center_id={center_id} requestedTime={requestedTime} />
         </Tab>
         <Tab title="Observations">
-          <ObservationsTab />
+          <ObservationsTab zone_name={zone.name} center_id={center_id} requestedTime={requestedTime} />
         </Tab>
       </TabControl>
-    </ScrollView>
+    </>
   );
 };
