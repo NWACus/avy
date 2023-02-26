@@ -18,6 +18,7 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {AvalancheCenterID, FormatAvalancheProblemDistribution, FormatPartnerType, MapLayer, PartnerType} from 'types/nationalAvalancheCenter';
+import {notFound} from 'types/requests';
 import {apiDateString, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTimeString} from 'utils/date';
 
 // TODO: we could show the Avy center logo for obs that come from forecasters
@@ -48,7 +49,7 @@ export const ObservationsListView: React.FunctionComponent<{
 
   if (!observations || observations.length === 0) {
     // TODO: when cleaning this up, fix it so that it renders the date in the user's locale, not UTC date
-    return <NotFound />;
+    return <NotFound what={[notFound('observations')]} />;
   }
 
   observations.sort((a, b) => compareDesc(parseISO(a.createdAt), parseISO(b.createdAt)));

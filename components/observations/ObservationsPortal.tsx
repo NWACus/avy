@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import Topo from 'assets/topo.svg';
+import Topo from 'assets/illustrations/topo.svg';
 import {Button} from 'components/content/Button';
 import {View, VStack} from 'components/core';
 import {Body, BodySemibold} from 'components/text';

@@ -32,6 +32,7 @@ import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps} from 'routes';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
+import {isNotFound} from 'types/requests';
 import {formatRequestedTime, RequestedTime, utcDateToLocalTimeString} from 'utils/date';
 
 export interface MapProps {
@@ -107,6 +108,9 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     .map(result => result.data) // get data from the results
     .filter(data => data) // only operate on results that have succeeded
     .forEach(forecast => {
+      if (isNotFound(forecast)) {
+        return;
+      }
       forecast.forecast_zone?.forEach(({id}) => {
         const mapViewZoneData = zonesById[id];
         if (mapViewZoneData) {

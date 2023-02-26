@@ -1,11 +1,12 @@
 import React from 'react';
-import {ActivityIndicator, ScrollView, StyleSheet} from 'react-native';
+import {ScrollView, StyleSheet} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
 import {ActionList} from 'components/content/ActionList';
 import {Card} from 'components/content/Card';
-import {Center, HStack, View, VStack} from 'components/core';
-import {Body, Title1Black, Title3Black} from 'components/text';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
+import {HStack, View, VStack} from 'components/core';
+import {Title1Black, Title3Black} from 'components/text';
 import {useWeatherStations, ZoneResult} from 'hooks/useWeatherStations';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {WeatherStackNavigationProps} from 'routes';
@@ -46,7 +47,8 @@ const StationList = (navigation: WeatherStackNavigationProps, center_id: Avalanc
 
 export const WeatherStationList: React.FC<Props> = ({center_id, requestedTime}) => {
   const navigation = useNavigation<WeatherStackNavigationProps>();
-  const {status, data: zones} = useWeatherStations({center: center_id, sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel']});
+  const stationsResult = useWeatherStations({center: center_id, sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel']});
+  const zones = stationsResult.data;
 
   return (
     <View style={{...StyleSheet.absoluteFillObject}} bg="white">
@@ -56,17 +58,7 @@ export const WeatherStationList: React.FC<Props> = ({center_id, requestedTime}) 
           <HStack width="100%" py={8} px={16} bg="white">
             <Title1Black>Weather Stations</Title1Black>
           </HStack>
-          {status === 'loading' && (
-            <Center flex={1} flexGrow={1} py={6}>
-              <ActivityIndicator size="large" />
-            </Center>
-          )}
-          {status === 'error' && (
-            <Center flex={1} flexGrow={1} py={6}>
-              <Body>Error loading weather stations.</Body>
-            </Center>
-          )}
-          {zones && StationList(navigation, center_id, requestedTime, zones)}
+          {incompleteQueryState(stationsResult) ? <QueryState results={[stationsResult]} /> : StationList(navigation, center_id, requestedTime, zones)}
         </VStack>
       </SafeAreaView>
     </View>

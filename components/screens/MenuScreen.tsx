@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {ReactNode} from 'react';
 
-import {SectionList, StyleSheet, Switch} from 'react-native';
+import {ScrollView, SectionList, StyleSheet, Switch} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
@@ -20,6 +20,7 @@ import {QueryCache} from '@tanstack/react-query';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
+import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
 import {
@@ -59,7 +60,7 @@ export const MenuStackScreen = (
 ) => {
   const {center_id, requestedTime} = route.params;
   return (
-    <MenuStack.Navigator initialRouteName="menu">
+    <MenuStack.Navigator initialRouteName="menu" screenOptions={() => ({headerShown: false})}>
       <MenuStack.Screen name="menu" component={MenuScreen(queryCache, avalancheCenterId, staging, setStaging)} options={{title: `Settings`}} />
       <MenuStack.Screen
         name="avalancheCenterSelector"
@@ -70,6 +71,7 @@ export const MenuStackScreen = (
       <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
       <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
       <MenuStack.Screen name="about" component={AboutScreen} options={() => ({title: 'About This App'})} />
+      <MenuStack.Screen name="outcome" component={OutcomeScreen} options={() => ({headerShown: false})} />
     </MenuStack.Navigator>
   );
 };
@@ -83,89 +85,158 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
   const navigation = useNavigation<MenuStackNavigationProps>();
   return function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
     return (
-      <SafeAreaView style={styles.fullscreen}>
-        <VStack pt={16} px={16} space={16} style={styles.fullscreen}>
-          <FeatureTitleBlack>Settings</FeatureTitleBlack>
-          <ActionList
-            actions={[
-              {
-                label: 'About this app',
-                data: 'About',
-                action: () => {
-                  navigation.navigate('about');
-                },
-              },
-            ]}
-          />
-          <Button
-            buttonStyle="primary"
-            onPress={() => {
-              AsyncStorage.clear();
-              queryCache.clear();
-            }}>
-            <Body>Reset the query cache</Body>
-          </Button>
-          {Updates.channel !== 'production' && (
-            <VStack space={16}>
-              <Title1Black>Debug Settings</Title1Black>
-              <HStack justifyContent="space-between" alignItems="center" space={16}>
-                <BodyBlack>Use staging environment</BodyBlack>
-                <Switch value={staging} onValueChange={toggleStaging} />
-              </HStack>
+      <View style={{...StyleSheet.absoluteFillObject}} bg="white">
+        {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
+        <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
+          <VStack width="100%" height="100%" justifyContent="space-between" alignItems="stretch" bg="background.base" pt={4} px={4} space={4}>
+            <Card borderRadius={0} borderColor="white" header={<Title1Black>Menu</Title1Black>} noDivider noInternalSpace />
+            <Card borderRadius={0} borderColor="white" header={<Title3Black>Settings</Title3Black>}>
               <ActionList
                 actions={[
                   {
-                    label: 'Choose avalanche center',
-                    data: 'Avalanche Center Selector',
+                    label: 'About this app',
+                    data: 'About',
                     action: () => {
-                      navigation.navigate('avalancheCenterSelector');
+                      navigation.navigate('about');
                     },
                   },
                 ]}
               />
-              <Title1Black>Design Previews</Title1Black>
-              <ActionList
-                actions={[
-                  {
-                    label: 'Open text style preview',
-                    data: 'Text Style Preview',
-                    action: () => {
-                      navigation.navigate('textStylePreview');
-                    },
-                  },
-                ]}
-              />
-              <Title1Black>Quality Assurance Links</Title1Black>
-              <ActionList
-                actions={[
-                  {
-                    label: 'View map layer with active warning',
-                    data: 'Map Layer With Active Warning',
-                    action: () => {
-                      navigation.navigate('avalancheCenter', {
-                        center_id: 'NWAC',
-                        requestedTime: toISOStringUTC(new Date('2023-02-20T12:21:00-0800')),
-                      });
-                    },
-                  },
-                  {
-                    label: 'View forecast with active warning',
-                    data: 'Forecast With Active Warning',
-                    action: () => {
-                      navigation.navigate('forecast', {
-                        zoneName: 'West Slopes Central',
-                        center_id: 'NWAC',
-                        forecast_zone_id: 1130,
-                        requestedTime: toISOStringUTC(new Date('2023-02-20T12:21:00-0800')),
-                      });
-                    },
-                  },
-                ]}
-              />
-            </VStack>
-          )}
-        </VStack>
-      </SafeAreaView>
+            </Card>
+            {Updates.channel !== 'production' && (
+              <>
+                <Card mb={4} borderRadius={0} borderColor="white" header={<Title1Black>Testing</Title1Black>} noDivider noInternalSpace />
+                <ScrollView style={{width: '100%', height: '100%'}}>
+                  <VStack space={4}>
+                    <Card borderRadius={0} borderColor="white" header={<Title3Black>Debug Settings</Title3Black>}>
+                      <VStack space={4}>
+                        <HStack justifyContent="space-between" alignItems="center" space={16}>
+                          <BodyBlack>Use staging environment</BodyBlack>
+                          <Switch value={staging} onValueChange={toggleStaging} />
+                        </HStack>
+                        <Button
+                          buttonStyle="primary"
+                          onPress={() => {
+                            AsyncStorage.clear();
+                            queryCache.clear();
+                          }}>
+                          <Body>Reset the query cache</Body>
+                        </Button>
+                        <ActionList
+                          actions={[
+                            {
+                              label: 'Choose avalanche center',
+                              data: 'Avalanche Center Selector',
+                              action: () => {
+                                navigation.navigate('avalancheCenterSelector');
+                              },
+                            },
+                          ]}
+                        />
+                      </VStack>
+                    </Card>
+                    <Card borderRadius={0} borderColor="white" header={<Title3Black>Design Previews</Title3Black>}>
+                      <ActionList
+                        actions={[
+                          {
+                            label: 'Open text style preview',
+                            data: 'Text Style Preview',
+                            action: () => {
+                              navigation.navigate('textStylePreview');
+                            },
+                          },
+                        ]}
+                      />
+                    </Card>
+                    <Card borderRadius={0} borderColor="white" header={<Title3Black>Screens</Title3Black>}>
+                      <ActionList
+                        actions={[
+                          {
+                            label: 'View map layer with active warning',
+                            data: 'Map Layer With Active Warning',
+                            action: () => {
+                              navigation.navigate('avalancheCenter', {
+                                center_id: 'NWAC',
+                                requestedTime: toISOStringUTC(new Date('2023-02-20T12:21:00-0800')),
+                              });
+                            },
+                          },
+                          {
+                            label: 'View forecast with active warning',
+                            data: 'Forecast With Active Warning',
+                            action: () => {
+                              navigation.navigate('forecast', {
+                                zoneName: 'West Slopes Central',
+                                center_id: 'NWAC',
+                                forecast_zone_id: 1130,
+                                requestedTime: toISOStringUTC(new Date('2023-02-20T12:21:00-0800')),
+                              });
+                            },
+                          },
+                          {
+                            label: "View a forecast we can't find",
+                            data: 'Forecast With Not-Found Error',
+                            action: () => {
+                              navigation.navigate('forecast', {
+                                zoneName: 'West Slopes Central',
+                                center_id: 'NWAC',
+                                forecast_zone_id: 1130,
+                                requestedTime: toISOStringUTC(new Date('2000-01-01T00:00:00-0800')),
+                              });
+                            },
+                          },
+                        ]}
+                      />
+                    </Card>
+                    <Card borderRadius={0} borderColor="white" header={<Title3Black>Components</Title3Black>}>
+                      <ActionList
+                        actions={[
+                          {
+                            label: 'View connection lost outcome',
+                            data: 'Connection Lost',
+                            action: () => {
+                              navigation.navigate('outcome', {
+                                which: 'connection',
+                              });
+                            },
+                          },
+                          {
+                            label: 'View terminal error outcome',
+                            data: 'Terminal Error',
+                            action: () => {
+                              navigation.navigate('outcome', {
+                                which: 'terminal-error',
+                              });
+                            },
+                          },
+                          {
+                            label: 'View retryable error outcome',
+                            data: 'Retryable Error',
+                            action: () => {
+                              navigation.navigate('outcome', {
+                                which: 'retryable-error',
+                              });
+                            },
+                          },
+                          {
+                            label: 'View not found outcome',
+                            data: 'Not Found',
+                            action: () => {
+                              navigation.navigate('outcome', {
+                                which: 'not-found',
+                              });
+                            },
+                          },
+                        ]}
+                      />
+                    </Card>
+                  </VStack>
+                </ScrollView>
+              </>
+            )}
+          </VStack>
+        </SafeAreaView>
+      </View>
     );
   };
 };
@@ -302,6 +373,30 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
           </VStack>
         </Card>
       </VStack>
+    </SafeAreaView>
+  );
+};
+
+export const OutcomeScreen = ({route}: NativeStackScreenProps<MenuStackParamList, 'outcome'>) => {
+  const {which} = route.params;
+  let outcome: ReactNode = <View></View>;
+  switch (which) {
+    case 'connection':
+      outcome = <ConnectionLost />;
+      break;
+    case 'terminal-error':
+      outcome = <InternalError />;
+      break;
+    case 'retryable-error':
+      outcome = <InternalError />;
+      break;
+    case 'not-found':
+      outcome = <NotFound />;
+      break;
+  }
+  return (
+    <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
+      {outcome}
     </SafeAreaView>
   );
 };
