@@ -13,6 +13,7 @@ jobs:
     uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
 
   publish-update-bundle:
+    if: ${{ false }} 
     needs: [ci]
     runs-on: ubuntu-latest
     steps:
@@ -27,8 +28,6 @@ jobs:
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
   build-android:
-    if: ${{ false }} # disable iOS builds until we migrate to a different Expo tier
-
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
     needs: [ci]
     runs-on: ubuntu-latest
@@ -46,7 +45,7 @@ jobs:
         run: eas build --non-interactive --platform android --profile preview
 
   build-ios:
-    # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
+    if: ${{ false }} # disable iOS builds until we migrate to a different Expo tier
     needs: [ci]
     runs-on: ubuntu-latest
     steps:
