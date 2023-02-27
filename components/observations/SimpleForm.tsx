@@ -22,7 +22,7 @@ import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField} from 'components/form/TextField';
-import {createObservation, ObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationSchema';
+import {defaultObservationFormData, ObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
 import {submitObservation} from 'components/observations/submitObservation';
 import {Body, BodySemibold, Title3Black, Title3Semibold} from 'components/text';
 import {ObservationsStackNavigationProps} from 'routes';
@@ -35,7 +35,7 @@ export const SimpleForm: React.FC<{
 }> = ({center_id, onClose}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const formContext = useForm({
-    defaultValues: createObservation(),
+    defaultValues: defaultObservationFormData(),
     resolver: zodResolver(simpleObservationFormSchema),
     mode: 'onBlur',
     shouldFocusError: false,
@@ -66,6 +66,8 @@ export const SimpleForm: React.FC<{
       console.log('do the mutation', observationFormData);
       return submitObservation({center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
     },
+    // TODO: make these toasts look nicer
+    // TODO: toasts are sitting on top of the nav bar
     onMutate: () => {
       Toast.show('Uploading your observation...', {
         duration: Toast.durations.LONG,
@@ -101,8 +103,10 @@ export const SimpleForm: React.FC<{
   });
 
   const onSubmitHandler = async (data: ObservationFormData) => {
+    // TODO: plumb through additional data: private vs public, photo credit value
+    // TODO: add the zone, based on whichever lat/lng have been selected
+    // TODO: add a spinner to the submit button so it's clearer that something is happening
     data.uploadPaths = images.map(image => image.uri);
-    console.log('onSubmitHandler -> success', data);
     mutation.reset();
     mutation.mutate(data);
   };

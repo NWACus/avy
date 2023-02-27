@@ -2,7 +2,7 @@ import {merge} from 'lodash';
 import {Activity, InstabilityDistribution, Observation, PartnerType} from 'types/nationalAvalancheCenter';
 import {z} from 'zod';
 
-export const createObservation = (initialValues: Partial<Observation> | null = null): ObservationFormData =>
+export const defaultObservationFormData = (initialValues: Partial<Observation> | null = null): ObservationFormData =>
   merge(
     {
       activity: [],

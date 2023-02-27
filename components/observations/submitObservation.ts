@@ -1,9 +1,10 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import {isUndefined, omit} from 'lodash';
+import md5 from 'md5';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ObservationFormData} from 'components/observations/ObservationSchema';
+import {ObservationFormData} from 'components/observations/ObservationFormData';
 import {AvalancheCenterID, MediaItem, mediaItemSchema, Observation} from 'types/nationalAvalancheCenter';
 import {apiDateString} from 'utils/date';
 
@@ -21,30 +22,13 @@ const extensionToMimeType = (extension: string) => {
 
 const imageUploadCachePrefix = 'IMAGE_UPLOAD_CACHE';
 
+// TODO: should put an expiration time on these cache entries and clear them less aggressively.
 export const clearUploadCache = async () => {
   const keys = await AsyncStorage.getAllKeys();
   keys.filter(k => k.startsWith(imageUploadCachePrefix)).map(async k => await AsyncStorage.removeItem(k));
 };
 
 const uploadImage = async ({apiPrefix, uri, name, center_id}: {apiPrefix: string; center_id: AvalancheCenterID; uri: string; name: string | undefined}): Promise<MediaItem> => {
-  // TODO: apply tags to uploaded images so we can
-  // - identify images uploaded by mobile app
-  // - identify images uploaded in developer mode
-
-  // If we've already uploaded this image once, don't do it again.
-  const imageCacheKey = `${imageUploadCachePrefix}:${uri}`;
-  const cached = await AsyncStorage.getItem(imageCacheKey);
-  if (cached) {
-    console.log(`Image ${uri} has already been uploaded, using cached media item`);
-    try {
-      return Promise.resolve(mediaItemSchema.parse(JSON.parse(cached)));
-    } catch (error) {
-      console.warn(`Unable to load cached image data for ${uri}, uploading it again`);
-      await AsyncStorage.removeItem(imageCacheKey);
-      // fallthrough
-    }
-  }
-
   // This weird use of `slice` is because the version of Hermes that Expo is currently pinned to doesn't support `at()`
   const filename = uri.split('/').slice(-1)[0];
   const extension = filename.split('.').slice(-1)[0] || '';
@@ -60,9 +44,26 @@ const uploadImage = async ({apiPrefix, uri, name, center_id}: {apiPrefix: string
       taken_by: name,
       access: 'anonymous', // TODO: plumb through use with photo credit / don't use
       source: 'public',
+      // TODO would be nice to tag images that came from this app, but haven't figured that out yet
     },
     isUndefined,
   );
+
+  // If we've already uploaded this image once, don't do it again.
+  const payloadHash = md5(payload);
+  const imageCacheKey = `${imageUploadCachePrefix}:${payloadHash}`;
+  const cached = await AsyncStorage.getItem(imageCacheKey);
+  if (cached) {
+    console.log(`Image ${uri} has already been uploaded, using cached media item`);
+    try {
+      return Promise.resolve(mediaItemSchema.parse(JSON.parse(cached)));
+    } catch (error) {
+      console.warn(`Unable to load cached image data for ${uri}, uploading it again`);
+      await AsyncStorage.removeItem(imageCacheKey);
+      // fallthrough
+    }
+  }
+
   const response = await axios.post<MediaItem>(`${apiPrefix}/v2/public/media`, payload, {
     headers: {
       // Public API uses the Origin header to determine who's authorized to call it
