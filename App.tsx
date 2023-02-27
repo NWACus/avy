@@ -36,6 +36,7 @@ import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
 
 import axios, {AxiosRequestConfig} from 'axios';
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
+import {clearUploadCache} from 'components/observations/submitObservation';
 import {HomeTabScreen} from 'components/screens/HomeScreen';
 import {MenuStackScreen} from 'components/screens/MenuScreen';
 import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
@@ -139,6 +140,8 @@ BackgroundFetch.registerTaskAsync(BACKGROUND_CACHE_RECONCILIATION_TASK, {
 const asyncStoragePersister = createAsyncStoragePersister({
   storage: AsyncStorage,
 });
+
+clearUploadCache();
 
 const TabNavigator = createBottomTabNavigator<TabNavigatorParamList>();
 

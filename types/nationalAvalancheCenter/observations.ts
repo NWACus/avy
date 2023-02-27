@@ -268,7 +268,7 @@ export const observationSchema = z.object({
     })
     .nullable(),
   location_name: z.string(),
-  route: z.string(),
+  route: z.string().nullable(),
   instability: z.object({
     avalanches_observed: z.boolean(),
     avalanches_triggered: z.boolean(),
@@ -278,11 +278,11 @@ export const observationSchema = z.object({
     collapsing: z.boolean(),
     collapsing_description: z.nativeEnum(InstabilityDistribution).or(z.string().length(0)).nullable(),
   }),
-  instability_summary: z.string(),
+  instability_summary: z.string().nullable(),
   observation_summary: z.string(),
   media: z.array(mediaItemSchema).nullable(),
   // urls: z.array(z.string()).nullable(), // what even is this?
-  avalanches_summary: z.string(),
+  avalanches_summary: z.string().nullable(),
   avalanches: z
     .array(
       z.object({

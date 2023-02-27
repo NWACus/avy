@@ -193,7 +193,7 @@ export const avalancheDangerForecastSchema = z.object({
 export type AvalancheDangerForecast = z.infer<typeof avalancheDangerForecastSchema>;
 
 export const mediaItemSchema = z.object({
-  id: z.number().optional(),
+  id: z.number().or(z.string()).optional(),
   url: mediaLinksSchema,
   type: mediaTypeSchema,
   caption: z.string().optional().nullable(),

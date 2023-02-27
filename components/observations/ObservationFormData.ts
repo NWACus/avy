@@ -2,7 +2,7 @@ import {merge} from 'lodash';
 import {Activity, InstabilityDistribution, Observation, PartnerType} from 'types/nationalAvalancheCenter';
 import {z} from 'zod';
 
-export const createObservation = (initialValues: Partial<Observation> | null = null): Observation =>
+export const defaultObservationFormData = (initialValues: Partial<Observation> | null = null): ObservationFormData =>
   merge(
     {
       activity: [],
@@ -53,6 +53,7 @@ export const simpleObservationFormSchema = z
     ),
     name: z.string({required_error: required}).min(2, tooShort).max(50, tooLong),
     observation_summary: z.string({required_error: required}).min(8, tooShort).max(1024, tooLong),
+    private: z.boolean(),
     start_date: z.date({required_error: required}),
   })
   .superRefine((arg, ctx) => {
@@ -107,3 +108,7 @@ export const simpleObservationFormSchema = z
 
     return z.NEVER;
   });
+
+export interface ObservationFormData extends z.infer<typeof simpleObservationFormSchema> {
+  uploadPaths: string[];
+}
