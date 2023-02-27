@@ -13,6 +13,7 @@ import {useObservationQuery} from 'hooks/useObservations';
 import React from 'react';
 import {ScrollView, StyleSheet} from 'react-native';
 import * as Sentry from 'sentry-expo';
+import {colorLookup} from 'theme';
 import {
   Activity,
   AvalancheAspect,
@@ -101,7 +102,7 @@ export const ObservationCard: React.FunctionComponent<{
 
   return (
     <ScrollView style={StyleSheet.absoluteFillObject}>
-      <VStack space={8} bgColor={'#f0f2f5'}>
+      <VStack space={8} backgroundColor={colorLookup('background.base')}>
         <Card
           marginTop={2}
           borderRadius={0}

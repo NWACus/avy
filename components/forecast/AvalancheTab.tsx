@@ -22,6 +22,7 @@ import {useAvalancheWarning} from 'hooks/useAvalancheWarning';
 import {useRefresh} from 'hooks/useRefresh';
 import {RefreshControl, ScrollView} from 'react-native';
 import {HomeStackNavigationProps} from 'routes';
+import {colorLookup} from 'theme';
 import {
   AvalancheCenter,
   AvalancheCenterID,
@@ -103,7 +104,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
 
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}>
-      <VStack space={8} bgColor={'#f0f2f5'}>
+      <VStack space={8} backgroundColor={colorLookup('background.base')}>
         <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Avalanche Forecast</Title3Black>}>
           <HStack justifyContent="space-evenly" space={8}>
             <VStack space={8} style={{flex: 1}}>
