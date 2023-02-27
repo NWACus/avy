@@ -98,5 +98,7 @@ export type MenuStackParamList = {
   outcome: {
     which: string;
   };
+
+  expoConfig: undefined;
 };
 export type MenuStackNavigationProps = NativeStackNavigationProp<MenuStackParamList>;
