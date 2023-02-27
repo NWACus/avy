@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - preview
+      - release
 
 defaults:
   run:
@@ -13,6 +14,7 @@ jobs:
     uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
 
   publish-update-bundle:
+    if: github.head_ref == 'preview'
     needs: [ci]
     runs-on: ubuntu-latest
     steps:
