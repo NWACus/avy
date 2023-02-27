@@ -13,7 +13,7 @@ jobs:
     uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
 
   publish-update-bundle:
-    if: ${{ false }} 
+    if: ${{ false }}
     needs: [ci]
     runs-on: ubuntu-latest
     steps:
