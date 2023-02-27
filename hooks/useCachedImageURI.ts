@@ -88,7 +88,8 @@ const reconcileCachedImages = async (queryClient: QueryClient, queryCache: Query
   const fileLinks = queries.map(query => query.state.data as string);
   const fileLinksToQueryKeys = queries.reduce((accumulator, query) => (accumulator[query.state.data as string] = query.queryKey), {});
   // then, figure out all the files we have on disk
-  const files = await FileSystem.readDirectoryAsync(rootDirectory);
+  const fileNames = await FileSystem.readDirectoryAsync(rootDirectory);
+  const files = fileNames.map(fileName => rootDirectory + fileName);
   // now, we can reconcile the two caches
 
   // first, remove links from react-query that do not have corresponding files on disk.
