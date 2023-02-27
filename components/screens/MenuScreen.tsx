@@ -46,6 +46,7 @@ import {
   Title3Black,
   Title3Semibold,
 } from 'components/text';
+import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {toISOStringUTC} from 'utils/date';
 
@@ -325,7 +326,7 @@ export const AvalancheCenterSelectorScreen = (avalancheCenterId: AvalancheCenter
 export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
   return (
     <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
-      <VStack space={8} bgColor={'#f0f2f5'} width="100%" height="100%">
+      <VStack space={8} backgroundColor={colorLookup('background.base')} width="100%" height="100%">
         <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Version Information</Title3Black>}>
           <VStack space={16}>
             <HStack justifyContent="space-evenly" space={8}>

@@ -97,7 +97,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   const expires_time = isPublishedMorning ? add(start, {hours: 14 - offsetHours}) : add(start, {hours: 7 - offsetHours, days: 1});
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}>
-      <VStack space={8} bgColor={'#f0f2f5'}>
+      <VStack space={8} backgroundColor={colorLookup('background.base')}>
         <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
           <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
             <VStack space={8} style={{flex: 1}}>
