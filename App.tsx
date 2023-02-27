@@ -132,7 +132,7 @@ TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, async () => {
   return BackgroundFetch.BackgroundFetchResult.NewData;
 });
 BackgroundFetch.registerTaskAsync(BACKGROUND_CACHE_RECONCILIATION_TASK, {
-  minimumInterval: 60 * 60, // one hour, in seconds
+  minimumInterval: 15 * 60, // fifteen minutes, in seconds
 });
 
 const asyncStoragePersister = createAsyncStoragePersister({
