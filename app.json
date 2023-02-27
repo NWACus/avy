@@ -25,7 +25,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "us.nwac.forecast",
       "config": {
-        "googleMapsApiKey": "LOADED_FROM_ENVIRONMENT"
+        "googleMapsApiKey": "LOADED_FROM_ENVIRONMENT",
+        "appleId": "LOADED_FROM_ENVIRONMENT",
+        "appleTeamId": "LOADED_FROM_ENVIRONMENT",
+        "ascAppId": "LOADED_FROM_ENVIRONMENT"
       },
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "The app is requesting access to the photo library to enable submission of avalanche observations that can include photos and/or video to provide context of an avalanche that was observed."

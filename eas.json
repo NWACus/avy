@@ -19,13 +19,7 @@
     }
   },
   "submit": {
-    "production": {
-      "ios": {
-        "appleId": "$USER",
-        "appleTeamId": "$TEAM",
-        "ascAppId": "$APP"
-      }
-    },
+    "production": {},
     "preview": {
       "android": {
         "track": "internal",
