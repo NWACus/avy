@@ -2,7 +2,7 @@ name: publish
 on:
   push:
     branches:
-      - main
+      - release
 
 defaults:
   run:
@@ -13,7 +13,6 @@ jobs:
     uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
 
   publish-update-bundle:
-    if: ${{ false }}
     needs: [ci]
     runs-on: ubuntu-latest
     steps:
@@ -23,12 +22,12 @@ jobs:
       - name: Publish EAS update
         uses: ./.github/actions/expo/update
         with:
-          channel: 'yulia-preview'
+          channel: '{{ github.head_ref }}'
           message: '${{ github.event.head_commit.message }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
-  build-android:
-    if: ${{ false }}
+  build-and-submit-android-and-ios:
+    if: github.head_ref == 'preview' || github.head_ref == 'release'
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
     needs: [ci]
     runs-on: ubuntu-latest
@@ -42,21 +41,5 @@ jobs:
           install_expo: true
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🚀 Build Android app
-        run: eas build --non-interactive --platform android --profile preview
-
-  build-ios:
-    needs: [ci]
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🏗 Setup repo
-        uses: actions/checkout@v2
-
-      - name: 🏗 Setup build environment
-        uses: ./.github/actions/setup
-        with:
-          install_expo: true
-          expo_token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: 🚀 Build iOS app
-        run: eas build --non-interactive --platform ios --profile production --auto-submit
+      - name: 🚀 Build and submit Android and IOS apps
+        run: ./eas_build_and_submit.sh
