@@ -12,6 +12,9 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   config.android!.config!.googleMaps!.apiKey = process.env.ANDROID_GOOGLE_MAPS_API_KEY;
   config.hooks!.postPublish![0]!.config!.authToken = process.env.SENTRY_API_TOKEN;
   config.extra!.sentry_dsn = process.env.SENTRY_DSN;
+  config.extra!.eas!.appleId = process.env.IOS_APPLE_USER;
+  config.extra!.eas!.appleTeamId = process.env.IOS_TEAM_ID;
+  config.extra!.eas!.ascAppId = process.env.IOS_APP_ID;
   config.extra!.log_requests = process.env.LOG_REQUESTS != null;
 
   return config;
