@@ -9,9 +9,6 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   // we're overwriting fields that were previously defined in app.json, so we know they're non-null:
   /* eslint-disable @typescript-eslint/no-non-null-assertion */
   config.ios!.config!.googleMapsApiKey = process.env.IOS_GOOGLE_MAPS_API_KEY;
-  config.ios!.config!.appleId = process.env.IOS_APPLE_USER;
-  config.ios!.config!.appleTeamId = process.env.IOS_TEAM_ID;
-  config.ios!.config!.ascAppId = process.env.IOS_APP_ID;
   config.android!.config!.googleMaps!.apiKey = process.env.ANDROID_GOOGLE_MAPS_API_KEY;
   config.hooks!.postPublish![0]!.config!.authToken = process.env.SENTRY_API_TOKEN;
   config.extra!.sentry_dsn = process.env.SENTRY_DSN;
