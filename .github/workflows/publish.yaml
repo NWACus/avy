@@ -28,7 +28,7 @@ jobs:
           message: '${{ github.event.head_commit.message }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
-  build-android:
+  build-and-submit-android:
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
     needs: [ci]
     runs-on: ubuntu-latest
@@ -45,7 +45,7 @@ jobs:
       - name: 🚀 Build Android app
         run: eas build --non-interactive --platform android --profile production --auto-submit
 
-  build-ios:
+  build-and-submit-ios:
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
     needs: [ci]
     runs-on: ubuntu-latest
