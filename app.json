@@ -24,6 +24,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "us.nwac.forecast",
+      "buildNumber": "9",
       "config": {
         "googleMapsApiKey": "LOADED_FROM_ENVIRONMENT"
       },
