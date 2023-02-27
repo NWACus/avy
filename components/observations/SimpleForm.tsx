@@ -2,6 +2,15 @@ import {AntDesign} from '@expo/vector-icons';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useBackHandler} from '@react-native-community/hooks';
 import {useNavigation} from '@react-navigation/native';
+import {useMutation} from '@tanstack/react-query';
+import {AxiosError} from 'axios';
+import * as ImagePicker from 'expo-image-picker';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {FormProvider, useForm, useWatch} from 'react-hook-form';
+import {Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View as RNView} from 'react-native';
+import Toast from 'react-native-root-toast';
+import {SafeAreaView} from 'react-native-safe-area-context';
+
 import {ClientContext, ClientProps} from 'clientContext';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
@@ -13,14 +22,9 @@ import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField} from 'components/form/TextField';
-import {createObservation, simpleObservationFormSchema} from 'components/observations/ObservationSchema';
-import {uploadImage} from 'components/observations/submitTask';
+import {createObservation, ObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationSchema';
+import {submitObservation} from 'components/observations/submitObservation';
 import {Body, BodySemibold, Title3Black, Title3Semibold} from 'components/text';
-import * as ImagePicker from 'expo-image-picker';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FormProvider, useForm, useWatch} from 'react-hook-form';
-import {Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View as RNView} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, InstabilityDistribution, MediaItem, MediaType, Observation} from 'types/nationalAvalancheCenter';
@@ -29,9 +33,6 @@ export const SimpleForm: React.FC<{
   center_id: AvalancheCenterID;
   onClose?: () => void;
 }> = ({center_id, onClose}) => {
-  // const {data: center} = useAvalancheCenterMetadata(center_id);
-  // const zones = uniq(center?.zones?.filter(z => z.status === 'active')?.map(z => z.name));
-
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const formContext = useForm({
     defaultValues: createObservation(),
@@ -41,6 +42,7 @@ export const SimpleForm: React.FC<{
     shouldUnregister: true,
   });
 
+  // When collapsing/cracking are toggled off, make sure the dependent fields are also cleared
   const collapsing = useWatch({control: formContext.control, name: 'instability.collapsing'});
   useEffect(() => {
     if (!collapsing) {
@@ -59,9 +61,50 @@ export const SimpleForm: React.FC<{
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
 
-  const onSubmitHandler = async (data: Observation) => {
+  const mutation = useMutation<Observation, AxiosError, ObservationFormData>({
+    mutationFn: async (observationFormData: ObservationFormData) => {
+      console.log('do the mutation', observationFormData);
+      return submitObservation({center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
+    },
+    onMutate: () => {
+      Toast.show('Uploading your observation...', {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+    },
+    onSuccess: () => {
+      Toast.show('Your observation was received!', {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+    },
+    onError: error => {
+      Toast.show('There was an error uploading your observation', {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+      console.log('mutation failed', error);
+    },
+    retry: true,
+  });
+
+  const onSubmitHandler = async (data: ObservationFormData) => {
+    data.uploadPaths = images.map(image => image.uri);
     console.log('onSubmitHandler -> success', data);
-    await Promise.all(images.map(({uri}) => uploadImage({apiPrefix: nationalAvalancheCenterHost, uri, name: data.name, center_id})));
+    mutation.reset();
+    mutation.mutate(data);
   };
 
   const onSubmitErrorHandler = errors => {
