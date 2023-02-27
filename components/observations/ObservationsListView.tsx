@@ -17,6 +17,7 @@ import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {useRefresh} from 'hooks/useRefresh';
 import {FlatList, RefreshControl} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
+import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MapLayer, PartnerType} from 'types/nationalAvalancheCenter';
 import {notFound} from 'types/requests';
 import {apiDateString, RequestedTime, requestedTimeToUTCDate, utcDateToLocalDateString} from 'utils/date';
@@ -67,16 +68,18 @@ export const ObservationsListView: React.FunctionComponent<{
   }
 
   return (
-    <FlatList
-      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}
-      data={displayedObservations.map(observation => ({
-        id: observation.id,
-        observation: observation,
-        source: nwacObservations?.getObservationList.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
-        zone: zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
-      }))}
-      renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}
-    />
+    <VStack space={8} backgroundColor={colorLookup('background.base')} pt={4}>
+      <FlatList
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}
+        data={displayedObservations.map(observation => ({
+          id: observation.id,
+          observation: observation,
+          source: nwacObservations?.getObservationList.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
+          zone: zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
+        }))}
+        renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}
+      />
+    </VStack>
   );
 };
 
