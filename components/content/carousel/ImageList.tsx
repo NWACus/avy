@@ -59,7 +59,7 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
             setLoadingState(loadingState);
           }}
         />
-        {displayCaptions && (
+        {displayCaptions && item.caption && (
           <View flex={1} px={32}>
             <ScrollView bounces={false}>
               <HTML source={{html: item.caption}} />
