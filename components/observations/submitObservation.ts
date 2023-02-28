@@ -1,11 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
-import {isUndefined, omit} from 'lodash';
 import md5 from 'md5';
 
 import {ObservationFormData} from 'components/observations/ObservationFormData';
-import {AvalancheCenterID, MediaItem, mediaItemSchema, Observation} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MediaItem, mediaItemSchema, MediaUsage, Observation} from 'types/nationalAvalancheCenter';
 import {apiDateString} from 'utils/date';
 
 const extensionToMimeType = (extension: string) => {
@@ -28,33 +27,38 @@ export const clearUploadCache = async () => {
   keys.filter(k => k.startsWith(imageUploadCachePrefix)).map(async k => await AsyncStorage.removeItem(k));
 };
 
-const uploadImage = async ({apiPrefix, uri, name, center_id}: {apiPrefix: string; center_id: AvalancheCenterID; uri: string; name: string | undefined}): Promise<MediaItem> => {
+interface UploadImageOptions {
+  apiPrefix: string;
+  center_id: AvalancheCenterID;
+  uri: string;
+  name: string;
+  photoUsage: MediaUsage;
+}
+
+const uploadImage = async ({apiPrefix, uri, name, center_id, photoUsage}: UploadImageOptions): Promise<MediaItem> => {
   // This weird use of `slice` is because the version of Hermes that Expo is currently pinned to doesn't support `at()`
   const filename = uri.split('/').slice(-1)[0];
   const extension = filename.split('.').slice(-1)[0] || '';
 
   const base64Data = await FileSystem.readAsStringAsync(uri, {encoding: 'base64'});
-  const payload = omit(
-    {
-      file: `data:${extensionToMimeType(extension)};base64,${base64Data}`,
-      type: 'image',
-      file_name: filename,
-      center_id,
-      forecast_zone_id: [],
-      taken_by: name,
-      access: 'anonymous', // TODO: plumb through use with photo credit / don't use
-      source: 'public',
-      // TODO would be nice to tag images that came from this app, but haven't figured that out yet
-    },
-    isUndefined,
-  );
+  const payload = {
+    file: `data:${extensionToMimeType(extension)};base64,${base64Data}`,
+    type: 'image',
+    file_name: filename,
+    center_id,
+    forecast_zone_id: [],
+    taken_by: name,
+    access: photoUsage,
+    source: 'public',
+    // TODO would be nice to tag images that came from this app, but haven't figured that out yet
+  };
 
-  // If we've already uploaded this image once, don't do it again.
-  const payloadHash = md5(payload);
+  // If we've already uploaded this image once with a particular set of settings, don't do it again.
+  const payloadHash = md5(JSON.stringify(payload));
   const imageCacheKey = `${imageUploadCachePrefix}:${payloadHash}`;
   const cached = await AsyncStorage.getItem(imageCacheKey);
   if (cached) {
-    console.log(`Image ${uri} has already been uploaded, using cached media item`);
+    console.log(`Image ${uri} has already been uploaded, using cached media item for ${payload}`);
     try {
       return Promise.resolve(mediaItemSchema.parse(JSON.parse(cached)));
     } catch (error) {
@@ -83,14 +87,15 @@ export const submitObservation = async ({
   center_id: AvalancheCenterID;
   observationFormData: ObservationFormData;
 }): Promise<Partial<Observation>> => {
-  // TODO: how to avoid double-uploading images?
+  const {photoUsage, name} = observationFormData;
   const media = await Promise.all(
     observationFormData.uploadPaths.map(uri =>
       uploadImage({
         apiPrefix,
         uri,
-        name: observationFormData.name,
+        name,
         center_id,
+        photoUsage,
       }),
     ),
   );
