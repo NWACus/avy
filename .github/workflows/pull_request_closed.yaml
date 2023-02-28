@@ -1,6 +1,8 @@
 name: Pull Request Closed
 on:
   pull_request:
+    branches:
+      - main
     # pull request closed events are fired for both merge & close
     types: [closed]
 
@@ -11,7 +13,7 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v2
 
-      - name: Clean up preview channel
+      - name: Clean up PR channel
         uses: ./.github/actions/expo/channel/delete
         with:
           channel: 'xxx-pr-${{ github.event.number }}'
