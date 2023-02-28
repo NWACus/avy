@@ -12,13 +12,13 @@
       "distribution": "internal",
       "channel": "main"
     },
-    "production": {
-      "channel": "production",
+    "release": {
+      "channel": "release",
       "autoIncrement": true
     }
   },
   "submit": {
-    "production": {
+    "release": {
       "ios": {
         "appleId": "IOS_USER_ID",
         "appleTeamId": "IOS_TEAM_ID",
