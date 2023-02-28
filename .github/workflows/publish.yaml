@@ -9,7 +9,7 @@ on:
 defaults:
   run:
     shell: bash
-    
+
 env:
   IOS_USER_ID: ${{ secrets.IOS_USER_ID }}
   IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
