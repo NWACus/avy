@@ -98,7 +98,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}>
       <VStack space={8} backgroundColor={colorLookup('background.base')}>
-        <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
+        <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
           <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
             <VStack space={8} style={{flex: 1}}>
               <AllCapsSmBlack>Issued</AllCapsSmBlack>

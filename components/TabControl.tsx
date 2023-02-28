@@ -32,7 +32,24 @@ export const TabControl: React.FunctionComponent<TabControlProps> = ({children, 
 
   return (
     <VStack style={{width: '100%', backgroundColor}}>
-      <HStack justifyContent="space-evenly" alignItems="center" width="100%" backgroundColor={backgroundColor} paddingTop={8}>
+      <HStack
+        justifyContent="space-evenly"
+        alignItems="center"
+        width="100%"
+        backgroundColor={backgroundColor}
+        paddingTop={8}
+        style={{
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.23,
+          shadowRadius: 2.62,
+
+          elevation: 4,
+          marginBottom: 8,
+        }}>
         {React.Children.map(children, (child, index) => {
           const selected = selectedIndex === index;
           return (
