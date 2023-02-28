@@ -14,6 +14,7 @@ import {MenuStackNavigationProps, MenuStackParamList, TabNavigatorParamList} fro
 import {HStack, View, VStack} from 'components/core';
 
 import * as Application from 'expo-application';
+import Constants from 'expo-constants';
 import * as Updates from 'expo-updates';
 
 import {QueryCache} from '@tanstack/react-query';
@@ -73,6 +74,7 @@ export const MenuStackScreen = (
       <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
       <MenuStack.Screen name="about" component={AboutScreen} options={() => ({title: 'About This App'})} />
       <MenuStack.Screen name="outcome" component={OutcomeScreen} options={() => ({headerShown: false})} />
+      <MenuStack.Screen name="expoConfig" component={ExpoConfigScreen} />
     </MenuStack.Navigator>
   );
 };
@@ -130,6 +132,13 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                               data: 'Avalanche Center Selector',
                               action: () => {
                                 navigation.navigate('avalancheCenterSelector');
+                              },
+                            },
+                            {
+                              label: 'View Expo configuration',
+                              data: 'Expo Configuration',
+                              action: () => {
+                                navigation.navigate('expoConfig');
                               },
                             },
                           ]}
@@ -398,6 +407,18 @@ export const OutcomeScreen = ({route}: NativeStackScreenProps<MenuStackParamList
   return (
     <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
       {outcome}
+    </SafeAreaView>
+  );
+};
+
+export const ExpoConfigScreen = (_: NativeStackScreenProps<MenuStackParamList, 'expoConfig'>) => {
+  return (
+    <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
+      <ScrollView>
+        <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Expo Configuration</Title3Black>}>
+          <Body>{JSON.stringify(Constants.expoConfig, null, 2)}</Body>
+        </Card>
+      </ScrollView>
     </SafeAreaView>
   );
 };
