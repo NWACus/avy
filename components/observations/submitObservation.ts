@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
-import {isUndefined, omit} from 'lodash';
 import md5 from 'md5';
 
 import {ObservationFormData} from 'components/observations/ObservationFormData';
@@ -32,7 +31,7 @@ interface UploadImageOptions {
   apiPrefix: string;
   center_id: AvalancheCenterID;
   uri: string;
-  name: string | undefined;
+  name: string;
   photoUsage: MediaUsage;
 }
 
@@ -42,22 +41,19 @@ const uploadImage = async ({apiPrefix, uri, name, center_id, photoUsage}: Upload
   const extension = filename.split('.').slice(-1)[0] || '';
 
   const base64Data = await FileSystem.readAsStringAsync(uri, {encoding: 'base64'});
-  const payload = omit(
-    {
-      file: `data:${extensionToMimeType(extension)};base64,${base64Data}`,
-      type: 'image',
-      file_name: filename,
-      center_id,
-      forecast_zone_id: [],
-      taken_by: name,
-      access: photoUsage,
-      source: 'public',
-      // TODO would be nice to tag images that came from this app, but haven't figured that out yet
-    },
-    isUndefined,
-  );
+  const payload = {
+    file: `data:${extensionToMimeType(extension)};base64,${base64Data}`,
+    type: 'image',
+    file_name: filename,
+    center_id,
+    forecast_zone_id: [],
+    taken_by: name,
+    access: photoUsage,
+    source: 'public',
+    // TODO would be nice to tag images that came from this app, but haven't figured that out yet
+  };
 
-  // If we've already uploaded this image once, don't do it again.
+  // If we've already uploaded this image once with a particular set of settings, don't do it again.
   const payloadHash = md5(JSON.stringify(payload));
   const imageCacheKey = `${imageUploadCachePrefix}:${payloadHash}`;
   const cached = await AsyncStorage.getItem(imageCacheKey);

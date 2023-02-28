@@ -95,6 +95,7 @@
     "@testing-library/react-native": "^11.5.0",
     "@types/color": "^3.0.3",
     "@types/jest": "^29.2.4",
+    "@types/md5": "^2.3.2",
     "@types/polylabel": "^1.0.5",
     "@types/react": "~18.0.24",
     "@types/react-native": "~0.70.6",
