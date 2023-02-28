@@ -15,7 +15,7 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {useRefresh} from 'hooks/useRefresh';
-import {FlatList, RefreshControl} from 'react-native';
+import {FlatList, FlatListProps, RefreshControl} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MapLayer, PartnerType} from 'types/nationalAvalancheCenter';
@@ -24,11 +24,20 @@ import {apiDateString, RequestedTime, requestedTimeToUTCDate, utcDateToLocalDate
 
 // TODO: we could show the Avy center logo for obs that come from forecasters
 
-export const ObservationsListView: React.FunctionComponent<{
+interface ObservationsListViewItem {
+  id: OverviewFragment['id'];
+  observation: OverviewFragment;
+  source: 'nwac' | 'nac';
+  zone: string;
+}
+
+interface ObservationsListViewProps extends Omit<FlatListProps<ObservationsListViewItem>, 'data' | 'renderItem'> {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
   zone_name?: string;
-}> = ({center_id, requestedTime, zone_name}) => {
+}
+
+export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, zone_name, ...props}) => {
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
@@ -68,18 +77,18 @@ export const ObservationsListView: React.FunctionComponent<{
   }
 
   return (
-    <VStack space={8} backgroundColor={colorLookup('background.base')} pt={4}>
-      <FlatList
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}
-        data={displayedObservations.map(observation => ({
-          id: observation.id,
-          observation: observation,
-          source: nwacObservations?.getObservationList.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
-          zone: zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
-        }))}
-        renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}
-      />
-    </VStack>
+    <FlatList
+      style={{backgroundColor: colorLookup('background.base')}}
+      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}
+      data={displayedObservations.map(observation => ({
+        id: observation.id,
+        observation: observation,
+        source: nwacObservations?.getObservationList.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
+        zone: zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
+      }))}
+      renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}
+      {...props}
+    />
   );
 };
 

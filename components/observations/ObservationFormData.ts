@@ -77,6 +77,8 @@ export const simpleObservationFormSchema = z
     }
 
     // if instability.cracking, then we'll want cracking_description to be set
+    // cracking_description is an enum, so no max length validation is required -
+    // it just needs to be set
     if (arg.instability?.cracking) {
       const {cracking_description} = arg.instability;
       if (!cracking_description || cracking_description.length === 0) {
@@ -85,28 +87,18 @@ export const simpleObservationFormSchema = z
           message: required,
           path: ['instability', 'cracking_description'],
         });
-      } else if (cracking_description.length > 1024) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: tooLong,
-          path: ['instability', 'cracking_description'],
-        });
       }
     }
 
     // if instability.collapsing, then we'll want collapsing_description to be set
+    // collapsing_description is an enum, so no max length validation is required -
+    // it just needs to be set
     if (arg.instability?.collapsing) {
       const {collapsing_description} = arg.instability;
       if (!collapsing_description || collapsing_description.length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: required,
-          path: ['instability', 'collapsing_description'],
-        });
-      } else if (collapsing_description.length > 1024) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: tooLong,
           path: ['instability', 'collapsing_description'],
         });
       }
