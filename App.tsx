@@ -13,12 +13,12 @@ import {
   Lato_900Black_Italic,
   useFonts,
 } from '@expo-google-fonts/lato';
-import {AntDesign} from '@expo/vector-icons';
+import {Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
 import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
-import {AppStateStatus, Platform, StatusBar, StyleSheet, View} from 'react-native';
+import {AppStateStatus, Image, Platform, StatusBar, StyleSheet, View} from 'react-native';
 import {RootSiblingParent} from 'react-native-root-siblings';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
@@ -237,13 +237,13 @@ const BaseApp: React.FunctionComponent<{
                     headerShown: false,
                     tabBarIcon: ({color, size}) => {
                       if (route.name === 'Home') {
-                        return <AntDesign name="search1" size={size} color={color} />;
+                        return <Image style={{tintColor: color, width: size, height: size}} resizeMode="contain" source={require('assets/icons/tab_bar/home.png')} />;
                       } else if (route.name === 'Observations') {
-                        return <AntDesign name="filetext1" size={size} color={color} />;
+                        return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;
                       } else if (route.name === 'Weather Data') {
-                        return <AntDesign name="barschart" size={size} color={color} />;
+                        return <Ionicons name="stats-chart-outline" size={size} color={color} />;
                       } else if (route.name === 'Menu') {
-                        return <AntDesign name="bars" size={size} color={color} />;
+                        return <MaterialCommunityIcons name="dots-horizontal" size={size} color={color} />;
                       }
                     },
                   })}>
