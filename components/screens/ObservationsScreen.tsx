@@ -65,8 +65,9 @@ const ObservationsListScreen = ({route}: NativeStackScreenProps<ObservationsStac
   );
 };
 
-const ObservationScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observation'>) => {
+export const ObservationScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observation'>) => {
   const {id} = route.params;
+  console.log('navigating to NAC observation', id);
   return (
     <View style={styles.fullScreen}>
       <ObservationDetailView id={id} />
@@ -74,8 +75,9 @@ const ObservationScreen = ({route}: NativeStackScreenProps<ObservationsStackPara
   );
 };
 
-const NWACObservationScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'nwacObservation'>) => {
+export const NWACObservationScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'nwacObservation'>) => {
   const {id} = route.params;
+  console.log('navigating to NWAC observation', id);
   return (
     <View style={styles.fullScreen}>
       <NWACObservationDetailView id={id} />

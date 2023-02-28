@@ -12,7 +12,7 @@ import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {zone} from 'components/observations/ObservationsListView';
-import {Body, BodyBlack, FeatureTitleBlack, Title1Black, Title3Black} from 'components/text';
+import {Body, BodyBlack, Title1Black, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNWACObservation} from 'hooks/useNWACObservation';
@@ -125,11 +125,7 @@ export const ObservationCard: React.FunctionComponent<{
           </HStack>
           <ScrollView style={{height: '100%', width: '100%'}}>
             <VStack space={8} backgroundColor={colorLookup('background.base')}>
-              <Card
-                marginTop={2}
-                borderRadius={0}
-                borderColor="white"
-                header={<FeatureTitleBlack>{`${FormatPartnerType(observation.observer_type)} Field Observation`}</FeatureTitleBlack>}>
+              <Card marginTop={2} borderRadius={0} borderColor="white" noDivider header={null}>
                 <VStack space={8}>
                   <HStack flexWrap="wrap" space={8} alignItems="flex-start">
                     <IdentifiedInformation header={'Submitted'} body={utcDateToLocalTimeString(observation.created_at)} />

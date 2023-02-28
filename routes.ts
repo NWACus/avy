@@ -94,6 +94,12 @@ export type MenuStackParamList = {
     forecast_zone_id: number;
     requestedTime: RequestedTimeString;
   };
+  observation: {
+    id: string;
+  };
+  nwacObservation: {
+    id: string;
+  };
   about: undefined;
   outcome: {
     which: string;

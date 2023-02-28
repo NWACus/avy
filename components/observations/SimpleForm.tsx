@@ -108,9 +108,6 @@ export const SimpleForm: React.FC<{
       mutation.reset();
       return;
     }
-    // TODO: plumb through additional data: private vs public, photo credit value
-    // TODO: add the zone, based on whichever lat/lng have been selected
-    // TODO: add a spinner to the submit button so it's clearer that something is happening
     data.uploadPaths = images.map(image => image.uri);
     mutation.mutate(data);
   };
@@ -297,7 +294,14 @@ export const SimpleForm: React.FC<{
                           multiline: true,
                         }}
                       />
-                      <LocationField name="location_point" label="Latitude/Longitude" center={center_id} />
+                      <LocationField
+                        name="location_point"
+                        label="Latitude/Longitude"
+                        center={center_id}
+                        ref={element => {
+                          fieldRefs.current.push({field: 'location_point', ref: element});
+                        }}
+                      />
                     </VStack>
                   </Card>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Signs of instability</Title3Semibold>}>
