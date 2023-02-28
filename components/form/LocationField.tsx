@@ -6,7 +6,7 @@ import {Body, bodySize, BodyXSm, BodyXSmBlack, Title3Black} from 'components/tex
 import {useMapLayer} from 'hooks/useMapLayer';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {Image, Modal, TouchableOpacity} from 'react-native';
+import {Image, Modal, TouchableOpacity, View as RNView} from 'react-native';
 import {Region} from 'react-native-maps';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
@@ -18,7 +18,7 @@ interface LocationFieldProps {
   center: AvalancheCenterID;
 }
 
-export const LocationField: React.FC<LocationFieldProps> = ({name, label, center}) => {
+export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center}, ref) => {
   const {
     field: {onChange, value},
     fieldState: {error},
@@ -65,7 +65,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label, center
   }));
 
   return (
-    <VStack width="100%" space={4}>
+    <VStack width="100%" space={4} ref={ref}>
       <BodyXSmBlack>{label}</BodyXSmBlack>
       <TouchableOpacity onPress={toggleModal}>
         <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
@@ -125,4 +125,4 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label, center
       )}
     </VStack>
   );
-};
+});
