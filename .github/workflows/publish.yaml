@@ -24,12 +24,12 @@ jobs:
       - name: Publish EAS update
         uses: ./.github/actions/expo/update
         with:
-          channel: '{{ github.head_ref }}'
+          channel: '${{ github.head_ref }}'
           message: '${{ github.event.head_commit.message }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
   build-and-submit-android-and-ios:
-    if: github.head_ref == 'preview' || github.head_ref == 'release'
+    if: ${{ github.head_ref }} == 'preview' || ${{ github.head_ref }} == 'release'
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
     needs: [ci]
     runs-on: ubuntu-latest
