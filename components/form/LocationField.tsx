@@ -51,10 +51,6 @@ export const LocationField: React.FC<LocationFieldProps> = ({name, label, center
       }
       setInitialRegion(initialRegion);
       setMapReady(true);
-      if (!value) {
-        // Set the form value to the center of the map
-        onChangeRegion(initialRegion);
-      }
     }
   }, [mapLayer, setInitialRegion, onChangeRegion, value, mapReady, setMapReady]);
 

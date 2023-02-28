@@ -23,7 +23,6 @@ export const defaultObservationFormData = (initialValues: Partial<Observation> |
     initialValues,
   );
 const required = 'This field is required.';
-const tooShort = 'This value is too short.';
 const tooLong = 'This value is too long.';
 
 // For the form, we have specific rules that we require for any new observations
@@ -42,7 +41,7 @@ export const simpleObservationFormSchema = z
       collapsing: z.boolean(),
       collapsing_description: z.nativeEnum(InstabilityDistribution).optional(),
     }),
-    location_name: z.string({required_error: required}).min(8, tooShort).max(256, tooLong),
+    location_name: z.string({required_error: required}).max(256, tooLong),
     location_point: z.object(
       {
         lat: z.number(),
@@ -50,8 +49,8 @@ export const simpleObservationFormSchema = z
       },
       {required_error: required},
     ),
-    name: z.string({required_error: required}).min(2, tooShort).max(50, tooLong),
-    observation_summary: z.string({required_error: required}).min(8, tooShort).max(1024, tooLong),
+    name: z.string({required_error: required}).max(50, tooLong),
+    observation_summary: z.string({required_error: required}).max(1024, tooLong),
     photoUsage: z.nativeEnum(MediaUsage, {required_error: required}),
     private: z.boolean(),
     start_date: z.date({required_error: required}),
@@ -62,16 +61,10 @@ export const simpleObservationFormSchema = z
     // if instability.avalanches_observed, then we'll want avalanches_summary to exist
     if (arg.instability?.avalanches_observed) {
       const {avalanches_summary} = arg;
-      if (!avalanches_summary) {
+      if (!avalanches_summary || avalanches_summary.length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: required,
-          path: ['avalanches_summary'],
-        });
-      } else if (avalanches_summary.length < 8) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: tooShort,
           path: ['avalanches_summary'],
         });
       } else if (avalanches_summary.length > 1024) {
@@ -92,6 +85,12 @@ export const simpleObservationFormSchema = z
           message: required,
           path: ['instability', 'cracking_description'],
         });
+      } else if (cracking_description.length > 1024) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: tooLong,
+          path: ['instability', 'cracking_description'],
+        });
       }
     }
 
@@ -102,6 +101,12 @@ export const simpleObservationFormSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: required,
+          path: ['instability', 'collapsing_description'],
+        });
+      } else if (collapsing_description.length > 1024) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: tooLong,
           path: ['instability', 'collapsing_description'],
         });
       }
