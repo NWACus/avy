@@ -1,12 +1,11 @@
 import {merge} from 'lodash';
-import {Activity, InstabilityDistribution, Observation, PartnerType} from 'types/nationalAvalancheCenter';
+import {Activity, InstabilityDistribution, MediaUsage, Observation, PartnerType} from 'types/nationalAvalancheCenter';
 import {z} from 'zod';
 
 export const defaultObservationFormData = (initialValues: Partial<Observation> | null = null): ObservationFormData =>
   merge(
     {
       activity: [],
-      center_id: 'NWAC',
       instability: {
         avalanches_observed: false,
         avalanches_triggered: false,
@@ -16,7 +15,7 @@ export const defaultObservationFormData = (initialValues: Partial<Observation> |
       },
       media: [],
       observer_type: PartnerType.Public,
-      photoUsage: 'anonymous',
+      photoUsage: MediaUsage.Credit,
       private: false,
       start_date: new Date(),
       status: 'published',
@@ -53,6 +52,7 @@ export const simpleObservationFormSchema = z
     ),
     name: z.string({required_error: required}).min(2, tooShort).max(50, tooLong),
     observation_summary: z.string({required_error: required}).min(8, tooShort).max(1024, tooLong),
+    photoUsage: z.nativeEnum(MediaUsage, {required_error: required}),
     private: z.boolean(),
     start_date: z.date({required_error: required}),
   })
@@ -82,6 +82,7 @@ export const simpleObservationFormSchema = z
         });
       }
     }
+
     // if instability.cracking, then we'll want cracking_description to be set
     if (arg.instability?.cracking) {
       const {cracking_description} = arg.instability;

@@ -103,6 +103,12 @@ export enum MediaType {
   // TODO(skuznets): more exist, no idea what they are
 }
 
+export enum MediaUsage {
+  Anonymous = 'anonymous', // can be re-used, but keep author anonymous
+  Credit = 'credit', // can be re-used, but give credit
+  Private = 'private', // do not re-use, for forecasters only
+}
+
 export enum AvalancheCenterType {
   Nonprofit = 'nonprofit',
   State = 'state',
