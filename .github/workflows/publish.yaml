@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - release
+      - main
 
 defaults:
   run:
