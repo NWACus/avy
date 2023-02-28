@@ -1,7 +1,7 @@
 #!/bin/bash
 
-sed -i 's/$IOS_USER_ID/$IOS_USER_ID/g' eas.json
-sed -i 's/$IOS_TEAM_ID/$IOS_TEAM_ID/g' eas.json
-sed -i 's/$IOS_APP_ID/$IOS_APP_ID/g' eas.json
+sed -i 's/IOS_USER_ID/${IOS_USER_ID}/g' eas.json
+sed -i 's/IOS_TEAM_ID/${IOS_TEAM_ID}/g' eas.json
+sed -i 's/IOS_APP_ID/${IOS_APP_ID}/g' eas.json
 
-eas build --non-interactive --platform all --profile $PROFILE --auto-submit
+eas build --non-interactive --platform all --profile ${PROFILE} --auto-submit
