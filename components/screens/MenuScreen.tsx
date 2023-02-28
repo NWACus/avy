@@ -24,6 +24,7 @@ import {Card} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
+import {NWACObservationScreen, ObservationScreen} from 'components/screens/ObservationsScreen';
 import {
   AllCapsSm,
   AllCapsSmBlack,
@@ -72,6 +73,8 @@ export const MenuStackScreen = (
       <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text style preview`}} />
       <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
       <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
+      <MenuStack.Screen name="observation" component={ObservationScreen} />
+      <MenuStack.Screen name="nwacObservation" component={NWACObservationScreen} />
       <MenuStack.Screen name="about" component={AboutScreen} options={() => ({title: 'About This App'})} />
       <MenuStack.Screen name="outcome" component={OutcomeScreen} options={() => ({headerShown: false})} />
       <MenuStack.Screen name="expoConfig" component={ExpoConfigScreen} />
@@ -163,7 +166,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                         actions={[
                           {
                             label: 'View map layer with active warning',
-                            data: 'Map Layer With Active Warning',
+                            data: null,
                             action: () => {
                               navigation.navigate('avalancheCenter', {
                                 center_id: 'NWAC',
@@ -173,7 +176,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                           },
                           {
                             label: 'View forecast with active warning',
-                            data: 'Forecast With Active Warning',
+                            data: null,
                             action: () => {
                               navigation.navigate('forecast', {
                                 zoneName: 'West Slopes Central',
@@ -185,13 +188,22 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                           },
                           {
                             label: "View a forecast we can't find",
-                            data: 'Forecast With Not-Found Error',
+                            data: null,
                             action: () => {
                               navigation.navigate('forecast', {
                                 zoneName: 'West Slopes Central',
                                 center_id: 'NWAC',
                                 forecast_zone_id: 1130,
                                 requestedTime: toISOStringUTC(new Date('2000-01-01T00:00:00-0800')),
+                              });
+                            },
+                          },
+                          {
+                            label: 'NWAC pro observation with avalanches',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('nwacObservation', {
+                                id: '20312',
                               });
                             },
                           },
