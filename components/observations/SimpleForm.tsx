@@ -7,7 +7,7 @@ import {AxiosError} from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormProvider, useForm, useWatch} from 'react-hook-form';
-import {Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View as RNView} from 'react-native';
+import {ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View as RNView} from 'react-native';
 import Toast from 'react-native-root-toast';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
@@ -103,11 +103,15 @@ export const SimpleForm: React.FC<{
   });
 
   const onSubmitHandler = async (data: ObservationFormData) => {
+    // Submit button turns into a cancel button
+    if (mutation.isLoading) {
+      mutation.reset();
+      return;
+    }
     // TODO: plumb through additional data: private vs public, photo credit value
     // TODO: add the zone, based on whichever lat/lng have been selected
     // TODO: add a spinner to the submit button so it's clearer that something is happening
     data.uploadPaths = images.map(image => image.uri);
-    mutation.reset();
     mutation.mutate(data);
   };
 
@@ -453,17 +457,26 @@ export const SimpleForm: React.FC<{
                   <Button
                     mx={16}
                     mt={16}
-                    mb={32}
                     buttonStyle="primary"
+                    disabled={mutation.isSuccess}
                     onPress={async () => {
                       // Force validation errors to show up on fields that haven't been visited yet
                       await formContext.trigger();
                       // Then try to submit the form
                       formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
                     }}>
-                    <BodySemibold>Submit your observation</BodySemibold>
-                    {/* TODO add an activity spinner here and disable the button while we're working */}
+                    {mutation.isLoading && (
+                      <HStack space={8} alignItems="center" pt={3}>
+                        <ActivityIndicator size="small" />
+                        <BodySemibold color={colorLookup('white')}>Cancel submission</BodySemibold>
+                      </HStack>
+                    )}
+                    {!mutation.isLoading && <BodySemibold>Submit your observation</BodySemibold>}
                   </Button>
+                  <VStack mx={16} mt={16} mb={32}>
+                    {mutation.isSuccess && <Body>Thanks for your observation!</Body>}
+                    {mutation.isError && <Body color={colorLookup('error.900')}>There was an error submitting your observation.</Body>}
+                  </VStack>
                 </VStack>
               </ScrollView>
             </VStack>
