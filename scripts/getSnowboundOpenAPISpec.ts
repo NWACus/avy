@@ -1,3 +1,4 @@
+/* eslint no-console: 0 */
 import axios from 'axios';
 
 // This script takes the OpenAPI spec from Snowbound and forcibly adds the `token` query param to all HTTP request paths
