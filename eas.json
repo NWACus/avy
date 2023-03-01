@@ -4,13 +4,14 @@
     "appVersionSource": "remote"
   },
   "build": {
+    "main": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "main"
+    },
     "preview": {
       "channel": "preview",
       "autoIncrement": true
-    },
-    "main": {
-      "distribution": "internal",
-      "channel": "main"
     },
     "release": {
       "channel": "release",
@@ -18,7 +19,7 @@
     }
   },
   "submit": {
-    "release": {
+    "preview": {
       "ios": {
         "appleId": "IOS_USER_ID",
         "appleTeamId": "IOS_TEAM_ID",
@@ -28,14 +29,11 @@
         "releaseStatus": "draft"
       }
     },
-    "preview": {
+    "release": {
       "ios": {
         "appleId": "IOS_USER_ID",
         "appleTeamId": "IOS_TEAM_ID",
         "ascAppId": "IOS_APP_ID"
-      },
-      "android": {
-        "releaseStatus": "draft"
       }
     }
   }
