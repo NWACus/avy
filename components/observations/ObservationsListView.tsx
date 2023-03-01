@@ -157,10 +157,10 @@ export const ObservationSummaryCard: React.FunctionComponent<{
           </View>
         </HStack>
       }>
-      <HStack space={8} justifyContent="space-between">
-        <HStack space={8} alignItems={'flex-start'}>
+      <HStack space={48} justifyContent="space-between" alignItems={'flex-start'}>
+        <HStack space={8} alignItems={'flex-start'} flex={1}>
           <Feather name="map-pin" size={20} color="black" />
-          <VStack space={4} alignItems={'flex-start'}>
+          <VStack space={4} alignItems={'flex-start'} flex={1}>
             <BodyBlack>{zone}</BodyBlack>
             <Body>{observation.locationName}</Body>
             <HStack space={8}>
@@ -169,7 +169,9 @@ export const ObservationSummaryCard: React.FunctionComponent<{
             </HStack>
           </VStack>
         </HStack>
-        {observation.media && observation.media.length > 0 && <Carousel thumbnailHeight={52} thumbnailAspectRatio={1} media={[observation.media[0]]} displayCaptions={false} />}
+        <View width={52} flex={0} mx={8}>
+          {observation.media && observation.media.length > 0 && <Carousel thumbnailHeight={52} thumbnailAspectRatio={1} media={[observation.media[0]]} displayCaptions={false} />}
+        </View>
       </HStack>
     </Card>
   );
