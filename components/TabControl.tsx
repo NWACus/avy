@@ -31,7 +31,7 @@ export const TabControl: React.FunctionComponent<TabControlProps> = ({children, 
   } as const;
 
   return (
-    <VStack style={{width: '100%', backgroundColor}}>
+    <VStack style={{width: '100%', flex: 1, flexGrow: 1, justifyContent: 'space-between', backgroundColor}}>
       <HStack
         justifyContent="space-evenly"
         alignItems="center"

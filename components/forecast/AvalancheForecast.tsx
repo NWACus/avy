@@ -6,7 +6,7 @@ import {useNavigation} from '@react-navigation/native';
 import {TouchableOpacity} from 'react-native';
 import * as Sentry from 'sentry-expo';
 
-import {HStack, View} from 'components/core';
+import {HStack, View, VStack} from 'components/core';
 
 import {Tab, TabControl} from 'components/TabControl';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
@@ -70,7 +70,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
   const zones = uniq(center.zones.filter(z => z.status === 'active').map(z => z.name));
 
   return (
-    <>
+    <VStack style={{height: '100%', width: '100%', justifyContent: 'space-between'}}>
       <HStack justifyContent="space-between" alignItems="center" space={8} width="100%" height={64}>
         <View pl={8} py={8}>
           <TouchableOpacity onPress={onReturnToMapView}>
@@ -98,6 +98,6 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
           <ObservationsTab zone_name={zone.name} center_id={center_id} requestedTime={requestedTime} />
         </Tab>
       </TabControl>
-    </>
+    </VStack>
   );
 };
