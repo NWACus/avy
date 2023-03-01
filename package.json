@@ -59,6 +59,7 @@
     "expo-image-manipulator": "~11.0.0",
     "expo-image-picker": "~14.0.2",
     "expo-location": "~15.0.1",
+    "expo-mail-composer": "~12.0.0",
     "expo-splash-screen": "~0.17.5",
     "expo-status-bar": "~1.4.2",
     "expo-updates": "^0.15.6",

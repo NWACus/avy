@@ -51,6 +51,8 @@ import {TabNavigatorParamList} from 'routes';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 require('date-time-format-timezone');
 
+log.info('App starting');
+
 // we're reading a field that was previously defined in app.json, so we know it's non-null:
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const log_network = Constants.expoConfig.extra!.log_network;

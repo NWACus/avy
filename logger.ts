@@ -1,7 +1,9 @@
 import * as FileSystem from 'expo-file-system';
 import {fileAsyncTransport, logger, mapConsoleTransport} from 'react-native-logs';
 
-const LOG_PATH = FileSystem.cacheDirectory + 'log.txt';
+// react-native-logs always logs to FS.documentDirectory
+const LOG_PATH = 'log.txt';
+export const logFilePath = FileSystem.documentDirectory + LOG_PATH;
 
 const config = {
   levels: {
@@ -24,6 +26,5 @@ const config = {
 };
 
 const log = logger.createLogger(config);
-log.info('Logger initialized');
 
 export default log;
