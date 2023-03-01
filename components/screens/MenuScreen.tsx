@@ -1,7 +1,8 @@
-import log from 'logger';
+import log, {logFilePath} from 'logger';
 import React, {ReactNode} from 'react';
 
 import {ScrollView, SectionList, StyleSheet, Switch} from 'react-native';
+import Toast from 'react-native-root-toast';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
@@ -16,6 +17,7 @@ import {HStack, View, VStack} from 'components/core';
 
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
+import * as MailComposer from 'expo-mail-composer';
 import * as Updates from 'expo-updates';
 
 import {QueryCache} from '@tanstack/react-query';
@@ -23,6 +25,7 @@ import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
+import {clearUploadCache} from 'components/observations/submitObservation';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
 import {NWACObservationScreen, ObservationScreen} from 'components/screens/ObservationsScreen';
@@ -116,19 +119,42 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                 <ScrollView style={{width: '100%', height: '100%'}}>
                   <VStack space={4}>
                     <Card borderRadius={0} borderColor="white" header={<Title3Black>Debug Settings</Title3Black>}>
-                      <VStack space={4}>
-                        <HStack justifyContent="space-between" alignItems="center" space={16}>
-                          <BodyBlack>Use staging environment</BodyBlack>
-                          <Switch value={staging} onValueChange={toggleStaging} />
-                        </HStack>
+                      <VStack space={12}>
                         <Button
-                          buttonStyle="primary"
+                          buttonStyle="normal"
+                          onPress={async () => {
+                            if (await MailComposer.isAvailableAsync()) {
+                              MailComposer.composeAsync({
+                                recipients: ['developer@nwac.us'],
+                                subject: 'NWAC app log files',
+                                attachments: [logFilePath],
+                              });
+                            } else {
+                              Toast.show('Email is not configured!', {
+                                duration: Toast.durations.LONG,
+                                position: Toast.positions.BOTTOM,
+                                shadow: true,
+                                animation: true,
+                                hideOnPress: true,
+                                delay: 0,
+                              });
+                            }
+                          }}>
+                          <Body>Email log file</Body>
+                        </Button>
+                        <Button
+                          buttonStyle="normal"
                           onPress={() => {
                             AsyncStorage.clear();
                             queryCache.clear();
+                            clearUploadCache();
                           }}>
                           <Body>Reset the query cache</Body>
                         </Button>
+                        <HStack justifyContent="space-between" alignItems="center" space={16}>
+                          <Body>Use staging environment</Body>
+                          <Switch value={staging} onValueChange={toggleStaging} />
+                        </HStack>
                         <ActionList
                           actions={[
                             {
