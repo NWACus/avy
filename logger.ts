@@ -1,6 +1,7 @@
-import {logger, mapConsoleTransport} from 'react-native-logs';
+import * as FileSystem from 'expo-file-system';
+import {fileAsyncTransport, logger, mapConsoleTransport} from 'react-native-logs';
 
-// import RNFS from "react-native-fs";
+const LOG_PATH = FileSystem.cacheDirectory + 'log.txt';
 
 const config = {
   levels: {
@@ -9,7 +10,7 @@ const config = {
     warn: 2,
     error: 3,
   },
-  transport: mapConsoleTransport,
+  transport: [mapConsoleTransport, fileAsyncTransport],
   transportOptions: {
     mapLevels: {
       debug: 'log',
@@ -17,9 +18,12 @@ const config = {
       warn: 'warn',
       error: 'error',
     },
+    FS: FileSystem,
+    fileName: LOG_PATH,
   },
 };
 
 const log = logger.createLogger(config);
+log.info('Logger initialized');
 
 export default log;
