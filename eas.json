@@ -5,23 +5,36 @@
   },
   "build": {
     "preview": {
-      "distribution": "internal",
-      "channel": "preview"
+      "channel": "preview",
+      "autoIncrement": true
     },
-    "development": {
-      "developmentClient": true,
+    "main": {
       "distribution": "internal",
-      "channel": "development"
+      "channel": "main"
     },
-    "production": {
-      "channel": "production"
+    "release": {
+      "channel": "release",
+      "autoIncrement": true
     }
   },
   "submit": {
-    "production": {},
-    "preview": {
+    "release": {
+      "ios": {
+        "appleId": "IOS_USER_ID",
+        "appleTeamId": "IOS_TEAM_ID",
+        "ascAppId": "IOS_APP_ID"
+      },
       "android": {
-        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    },
+    "preview": {
+      "ios": {
+        "appleId": "IOS_USER_ID",
+        "appleTeamId": "IOS_TEAM_ID",
+        "ascAppId": "IOS_APP_ID"
+      },
+      "android": {
         "releaseStatus": "draft"
       }
     }

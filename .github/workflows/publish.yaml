@@ -2,11 +2,18 @@ name: publish
 on:
   push:
     branches:
+      - preview
+      - release
       - main
 
 defaults:
   run:
     shell: bash
+
+env:
+  IOS_USER_ID: ${{ secrets.IOS_USER_ID }}
+  IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+  IOS_APP_ID: ${{ secrets.IOS_APP_ID }}
 
 jobs:
   ci:
@@ -22,11 +29,12 @@ jobs:
       - name: Publish EAS update
         uses: ./.github/actions/expo/update
         with:
-          channel: 'preview'
+          channel: '${GITHUB_REF##*/}'
           message: '${{ github.event.head_commit.message }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
-  build-android:
+  build-and-submit-android-and-ios:
+    if: ${{ github.head_ref }} == 'preview' || ${{ github.head_ref }} == 'release'
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
     needs: [ci]
     runs-on: ubuntu-latest
@@ -40,24 +48,5 @@ jobs:
           install_expo: true
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🚀 Build Android app
-        run: eas build --non-interactive --platform android --profile preview
-
-  build-ios:
-    if: ${{ false }} # disable iOS builds until we migrate to a different Expo tier
-
-    # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
-    needs: [ci]
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🏗 Setup repo
-        uses: actions/checkout@v2
-
-      - name: 🏗 Setup build environment
-        uses: ./.github/actions/setup
-        with:
-          install_expo: true
-          expo_token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: 🚀 Build iOS app
-        run: eas build --non-interactive --platform ios --profile preview
+      - name: 🚀 Build and submit Android and IOS apps
+        run: ./eas_build_and_submit.sh
