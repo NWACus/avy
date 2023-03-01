@@ -198,6 +198,84 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                               });
                             },
                           },
+                        ]}
+                      />
+                    </Card>
+                    <Card borderRadius={0} borderColor="white" header={<Title3Black>Observations</Title3Black>}>
+                      <ActionList
+                        actions={[
+                          {
+                            label: '1: simple',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('observation', {
+                                id: '65450a80-1f57-468b-a51e-8c19789e0fab',
+                              });
+                            },
+                          },
+                          {
+                            label: '2: simple',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('observation', {
+                                id: '249e927f-aa0e-4e93-90fc-c9a54bc480d8',
+                              });
+                            },
+                          },
+                          {
+                            label: '3: simple: icons',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('observation', {
+                                id: '441f400b-56ac-498c-8754-f9d407796a82',
+                              });
+                            },
+                          },
+                          {
+                            label: '4: complex: weather',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('observation', {
+                                id: 'b8d347d1-7597-47be-9247-adc117100a69',
+                              });
+                            },
+                          },
+                          {
+                            label: '5: complex: weather, snowpack',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('observation', {
+                                id: '2d2f37b4-f46b-4ef2-967d-b018d41d0f2d',
+                              });
+                            },
+                          },
+                          {
+                            label: '6: complex: snowpack',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('observation', {
+                                id: '999d1e0c-154e-43f8-b15f-6585eac4d985',
+                              });
+                            },
+                          },
+                          {
+                            label: '7: complex: avalanches',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('observation', {
+                                id: '4b80e7fc-0011-4fdf-8d86-f2534c1d981c',
+                              });
+                            },
+                          },
+                          {
+                            label: '8: complex: avalanches',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('observation', {
+                                id: '5910e9e7-fe6e-46de-af08-9df9be9192e2',
+                              });
+                            },
+                          },
                           {
                             label: 'NWAC pro observation with avalanches',
                             data: null,
