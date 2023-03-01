@@ -20,6 +20,10 @@ if [[ -z "${PROFILE:-}" ]]; then
   echo "[ERROR] \$PROFILE is required."
   exit 1
 fi
+if [[ -z "${PLATFORM:-}" ]]; then
+  echo "[ERROR] \$PLATFORM is required."
+  exit 1
+fi
 
 function cleanup() {
   mv eas.json.tmpl eas.json
@@ -34,5 +38,5 @@ jq  < eas.json.tmpl > eas.json \
   '.submit.release.ios={appleId:$IOS_USER_ID,appleTeamId:$IOS_TEAM_ID,ascAppId:$IOS_APP_ID} | .submit.preview.ios=.submit.release.ios'
 
 set -o xtrace
-eas build --non-interactive --platform all --profile "${PROFILE}" --auto-submit
+eas build --non-interactive --platform "${PLATFORM}" --profile "${PROFILE}" --auto-submit
 set +o xtrace
