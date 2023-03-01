@@ -108,7 +108,7 @@ export const SimpleForm: React.FC<{
       mutation.reset();
       return;
     }
-    data.uploadPaths = images.map(image => image.uri);
+    data.images = images;
     mutation.mutate(data);
   };
 
@@ -152,6 +152,7 @@ export const SimpleForm: React.FC<{
       quality: 1,
       orderedSelection: true,
       selectionLimit: maxImageCount,
+      exif: true,
     });
 
     if (!result.canceled) {
