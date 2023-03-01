@@ -1,3 +1,4 @@
+import log from 'logger';
 import React from 'react';
 import {ScrollView, StyleSheet} from 'react-native';
 
@@ -81,7 +82,7 @@ export const ObservationDetailView: React.FunctionComponent<{
 
   const parseResult = observationSchema.deepPartial().safeParse(observation.getSingleObservation);
   if (parseResult.success === false) {
-    console.log('unparsable observation', id, parseResult.error, JSON.stringify(observation.getSingleObservation));
+    log.info('unparsable observation', id, parseResult.error, JSON.stringify(observation.getSingleObservation));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

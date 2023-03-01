@@ -1,3 +1,4 @@
+import log from 'logger';
 import React from 'react';
 
 import {QueryClient, useQuery} from '@tanstack/react-query';
@@ -54,7 +55,7 @@ const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: Ava
 
   const parseResult = mapLayerSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn(`unparsable map layer for avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data));
+    log.warn(`unparsable map layer for avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

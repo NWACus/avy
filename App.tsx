@@ -1,3 +1,4 @@
+import log from 'logger';
 import React, {useCallback, useEffect} from 'react';
 
 import {
@@ -76,7 +77,7 @@ if (log_network === 'all' || log_network.includes('requests')) {
     if (log_matching && !formatURI(request).includes(log_matching)) {
       return request;
     }
-    console.log(`=> ${formatURI(request)}`);
+    log.info(`=> ${formatURI(request)}`);
     return request;
   });
 }
@@ -87,9 +88,9 @@ if (log_network === 'all' || log_network.includes('responses')) {
       return response;
     }
     const msg = `${response.status} ${formatURI(response.config)}:`;
-    console.log(`<= ${msg}`);
+    log.info(`<= ${msg}`);
     if (log_network.includes('response-bodies')) {
-      console.log(`<= ${JSON.stringify(response.data)}`);
+      log.info(`<= ${JSON.stringify(response.data)}`);
     }
     return response;
   });
@@ -104,7 +105,7 @@ if (Sentry?.init) {
   const dsn = Constants.expoConfig.extra!.sentry_dsn;
   // Only initialize Sentry if we can find the correct env setup
   if (dsn === 'LOADED_FROM_ENVIRONMENT') {
-    console.warn('Sentry integration not configured, check your environment');
+    log.warn('Sentry integration not configured, check your environment');
   } else {
     Sentry.init({
       dsn,

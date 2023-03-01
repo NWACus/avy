@@ -1,3 +1,4 @@
+import log from 'logger';
 import * as React from 'react';
 
 import {View as RNView, ViewProps as RNViewProps, ViewStyle as RNViewStyle} from 'react-native';
@@ -147,7 +148,7 @@ const validateProp = (prop: ViewStyleProp, value): void => {
     // Dimensions as strings must either specify 'pt' or '%'
     if (value !== 'auto' && value.slice(-2) !== 'pt' && value.slice(-1) !== '%') {
       const error = `Invalid string value "${value}" for property ${prop}: string dimensions must specify pt or %`;
-      console.error(error);
+      log.error(error);
       throw new Error(error);
     }
   }
