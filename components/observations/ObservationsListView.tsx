@@ -79,7 +79,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   return (
     <FlatList
-      style={{backgroundColor: colorLookup('background.base')}}
+      style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
       refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}
       data={displayedObservations.map(observation => ({
         id: observation.id,
