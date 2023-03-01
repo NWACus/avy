@@ -1,0 +1,29 @@
+name: publish
+on:
+  push:
+    branches:
+      - preview
+      - release
+      - main
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
+
+  publish-update-bundle:
+    needs: [ci]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: Publish EAS update
+        uses: ./.github/actions/expo/update
+        with:
+          channel: ${{ github.head_ref }}
+          message: '${{ github.event.head_commit.message }}'
+          expo_token: ${{ secrets.EXPO_TOKEN }}

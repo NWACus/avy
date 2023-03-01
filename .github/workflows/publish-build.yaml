@@ -4,7 +4,6 @@ on:
     branches:
       - preview
       - release
-      - main
 
 defaults:
   run:
@@ -14,27 +13,13 @@ env:
   IOS_USER_ID: ${{ secrets.IOS_USER_ID }}
   IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
   IOS_APP_ID: ${{ secrets.IOS_APP_ID }}
+  PROFILE: ${{ github.head_ref }}
 
 jobs:
   ci:
     uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
 
-  publish-update-bundle:
-    needs: [ci]
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🏗 Setup repo
-        uses: actions/checkout@v2
-
-      - name: Publish EAS update
-        uses: ./.github/actions/expo/update
-        with:
-          channel: '${GITHUB_REF##*/}'
-          message: '${{ github.event.head_commit.message }}'
-          expo_token: ${{ secrets.EXPO_TOKEN }}
-
   build-and-submit-android-and-ios:
-    if: ${{ github.head_ref }} == 'preview' || ${{ github.head_ref }} == 'release'
     # CI ideally *shouldn't* fail post-merge, but you could imagine criss-crossing PRs that break tests
     needs: [ci]
     runs-on: ubuntu-latest
