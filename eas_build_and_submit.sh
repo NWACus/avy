@@ -35,3 +35,4 @@ jq  < eas.json.tmpl > eas.json \
 
 set -o xtrace
 eas build --non-interactive --platform all --profile "${PROFILE}" --auto-submit
+set +o xtrace
