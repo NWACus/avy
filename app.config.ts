@@ -1,4 +1,5 @@
 import {ConfigContext, ExpoConfig} from '@expo/config';
+import md5 from 'md5';
 
 export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   // `config` is the object loaded from app.json. Here, we fill in secrets that
@@ -9,6 +10,12 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   // we're overwriting fields that were previously defined in app.json, so we know they're non-null:
   /* eslint-disable @typescript-eslint/no-non-null-assertion */
   config.ios!.config!.googleMapsApiKey = process.env.IOS_GOOGLE_MAPS_API_KEY;
+  config.extra!.googleMapsApiKey = {
+    ios: process.env.IOS_GOOGLE_MAPS_API_KEY,
+    android: process.env.ANDROID_GOOGLE_MAPS_API_KEY,
+    ios_md5: md5(process.env.IOS_GOOGLE_MAPS_API_KEY),
+    android_md5: md5(process.env.ANDROID_GOOGLE_MAPS_API_KEY),
+  };
   config.android!.config!.googleMaps!.apiKey = process.env.ANDROID_GOOGLE_MAPS_API_KEY;
   config.hooks!.postPublish![0]!.config!.authToken = process.env.SENTRY_API_TOKEN;
   config.extra!.sentry_dsn = process.env.SENTRY_DSN;
