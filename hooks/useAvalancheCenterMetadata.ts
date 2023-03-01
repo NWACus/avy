@@ -1,3 +1,4 @@
+import log from 'logger';
 import React from 'react';
 
 import {QueryClient, useQuery} from '@tanstack/react-query';
@@ -53,7 +54,7 @@ const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string,
 
   const parseResult = avalancheCenterSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn(`unparsable avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data));
+    log.warn(`unparsable avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

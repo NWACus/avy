@@ -5,6 +5,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useMutation} from '@tanstack/react-query';
 import {AxiosError} from 'axios';
 import * as ImagePicker from 'expo-image-picker';
+import log from 'logger';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormProvider, useForm, useWatch} from 'react-hook-form';
 import {ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View as RNView} from 'react-native';
@@ -63,7 +64,7 @@ export const SimpleForm: React.FC<{
 
   const mutation = useMutation<Observation, AxiosError, ObservationFormData>({
     mutationFn: async (observationFormData: ObservationFormData) => {
-      console.log('do the mutation', observationFormData);
+      log.info('do the mutation', observationFormData);
       return submitObservation({center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
     },
     // TODO: make these toasts look nicer
@@ -97,7 +98,7 @@ export const SimpleForm: React.FC<{
         hideOnPress: true,
         delay: 0,
       });
-      console.log('mutation failed', error);
+      log.info('mutation failed', error);
     },
     retry: true,
   });
@@ -113,7 +114,7 @@ export const SimpleForm: React.FC<{
   };
 
   const onSubmitErrorHandler = errors => {
-    console.log('submit error', JSON.stringify(errors, null, 2), '\nform values: ', JSON.stringify(formContext.getValues(), null, 2));
+    log.info('submit error', JSON.stringify(errors, null, 2), '\nform values: ', JSON.stringify(formContext.getValues(), null, 2));
     // scroll to the first field with an error
     fieldRefs.current.some(({ref, field}) => {
       if (errors[field]) {

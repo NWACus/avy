@@ -3,6 +3,7 @@ import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
 import {ImagePickerAsset} from 'expo-image-picker';
+import log from 'logger';
 import md5 from 'md5';
 
 import {ObservationFormData} from 'components/observations/ObservationFormData';
@@ -79,11 +80,11 @@ const uploadImage = async ({apiPrefix, image, name, center_id, photoUsage}: Uplo
   const imageCacheKey = `${imageUploadCachePrefix}:${payloadHash}`;
   const cached = await AsyncStorage.getItem(imageCacheKey);
   if (cached) {
-    console.log(`Image ${image.uri} has already been uploaded, using cached media item for ${payload}`);
+    log.info(`Image ${image.uri} has already been uploaded, using cached media item for ${payload}`);
     try {
       return Promise.resolve(mediaItemSchema.parse(JSON.parse(cached)));
     } catch (error) {
-      console.warn(`Unable to load cached image data for ${image.uri}, uploading it again`);
+      log.warn(`Unable to load cached image data for ${image.uri}, uploading it again`);
       await AsyncStorage.removeItem(imageCacheKey);
       // fallthrough
     }
@@ -121,7 +122,7 @@ export const submitObservation = async ({
       }),
     ),
   );
-  console.log('media', media);
+  log.info('media', media);
 
   const url = `${apiPrefix}/obs/v1/public/observation/`;
   const payload = {

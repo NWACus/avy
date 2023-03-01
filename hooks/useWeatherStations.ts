@@ -1,3 +1,4 @@
+import log from 'logger';
 import {useContext} from 'react';
 
 import {useQuery, useQueryClient} from '@tanstack/react-query';
@@ -104,9 +105,9 @@ export const useWeatherStations = ({center, sources}: Props) => {
           const {lat: latitude, lng: longitude} = s.coordinates;
           const matchingZones = dataByZone.filter(zoneData => pointInFeature({latitude, longitude}, zoneData.feature));
           if (matchingZones.length === 0) {
-            console.warn(`Unable to find matching zone for weather station ${s.id}, ${s.name}, ${s.coordinates}`);
+            log.warn(`Unable to find matching zone for weather station ${s.id}, ${s.name}, ${s.coordinates}`);
           } else if (matchingZones.length > 1) {
-            console.warn(`Found multiple matching zones for weather station ${s.id}, ${s.name}, ${s.coordinates}: ${matchingZones.map(z => z.feature.properties.name).join(',')}`);
+            log.warn(`Found multiple matching zones for weather station ${s.id}, ${s.name}, ${s.coordinates}: ${matchingZones.map(z => z.feature.properties.name).join(',')}`);
           } else {
             // Mapped station to a single zone. Now, should it appear in the UI as part of a group?
             const groupMapping = Object.entries(stationGroupMapping).find(([_name, stids]) => stids.includes(s.stid));

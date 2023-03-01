@@ -1,3 +1,4 @@
+import log from 'logger';
 import React, {ReactNode} from 'react';
 
 import {ScrollView, SectionList, StyleSheet, Switch} from 'react-native';
@@ -86,7 +87,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
   const toggleStaging = React.useCallback(() => {
     setStaging(!staging);
 
-    console.log(`Switching to ${staging ? 'production' : 'staging'} environment`);
+    log.info(`Switching to ${staging ? 'production' : 'staging'} environment`);
   }, [staging, setStaging]);
   const navigation = useNavigation<MenuStackNavigationProps>();
   return function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {

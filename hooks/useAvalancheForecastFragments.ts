@@ -1,3 +1,4 @@
+import log from 'logger';
 import React from 'react';
 
 import {QueryClient, useQuery} from '@tanstack/react-query';
@@ -60,7 +61,7 @@ const fetchAvalancheForecastFragments = async (nationalAvalancheCenterHost: stri
 
   const parseResult = productArraySchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn('unparsable forecast fragments', url, JSON.stringify(params), parseResult.error, JSON.stringify(data));
+    log.warn('unparsable forecast fragments', url, JSON.stringify(params), parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

@@ -1,3 +1,4 @@
+import log from 'logger';
 import React from 'react';
 
 import {QueryClient, useQuery} from '@tanstack/react-query';
@@ -88,7 +89,7 @@ export const fetchNWACObservations = async (nwacHost: string, center_id: Avalanc
 
   const parseResult = nwacObservationsSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn(`unparsable observations`, url, JSON.stringify(params), parseResult.error, JSON.stringify(data));
+    log.warn(`unparsable observations`, url, JSON.stringify(params), parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

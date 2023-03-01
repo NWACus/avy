@@ -1,3 +1,4 @@
+import log from 'logger';
 import React from 'react';
 
 import {QueryClient, useQuery, useQueryClient} from '@tanstack/react-query';
@@ -123,7 +124,7 @@ const fetchLatestAvalancheForecast = async (nationalAvalancheCenterHost: string,
 
   const parseResult = productSchema.safeParse(data);
   if (parseResult.success === false) {
-    console.warn('unparsable forecast', url, parseResult.error, JSON.stringify(data));
+    log.warn('unparsable forecast', url, parseResult.error, JSON.stringify(data));
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

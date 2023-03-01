@@ -1,3 +1,4 @@
+import log from 'logger';
 import React from 'react';
 
 import {Feather, MaterialCommunityIcons} from '@expo/vector-icons';
@@ -99,7 +100,7 @@ export const zone = (mapLayer: MapLayer, lat: number, long: number): string => {
   } else if (matchingFeatures.length > 1) {
     // TODO: this happens almost 100% ... why?
     // also, seems like the widget is naming things with more specificity than just the forecast zones? e.g. teton village
-    console.log(`(${long},${lat}) matched ${matchingFeatures.length} features: ${matchingFeatures}`);
+    log.info(`(${long},${lat}) matched ${matchingFeatures.length} features: ${matchingFeatures}`);
   }
   return matchingFeatures[0];
 };
