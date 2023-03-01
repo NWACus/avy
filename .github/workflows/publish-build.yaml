@@ -27,7 +27,7 @@ jobs:
           install_expo: true
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🚀 Build and submit Android and IOS apps
+      - name: 🚀 Build Android app
         env:
           IOS_USER_ID: ${{ secrets.IOS_USER_ID }}
           IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
@@ -50,7 +50,7 @@ jobs:
           install_expo: true
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🚀 Build and submit Android and IOS apps
+      - name: 🚀 Build IOS app
         env:
           IOS_USER_ID: ${{ secrets.IOS_USER_ID }}
           IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
