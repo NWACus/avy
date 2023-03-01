@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
+import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
+import {ImagePickerAsset} from 'expo-image-picker';
 import md5 from 'md5';
 
 import {ObservationFormData} from 'components/observations/ObservationFormData';
@@ -30,19 +32,38 @@ export const clearUploadCache = async () => {
 interface UploadImageOptions {
   apiPrefix: string;
   center_id: AvalancheCenterID;
-  uri: string;
+  image: ImagePickerAsset;
   name: string;
   photoUsage: MediaUsage;
 }
 
-const uploadImage = async ({apiPrefix, uri, name, center_id, photoUsage}: UploadImageOptions): Promise<MediaItem> => {
+const getImageData = async (image: ImagePickerAsset): Promise<{imageDataBase64: string; mimeType: string; filename: string}> => {
+  const {uri} = image;
+
   // This weird use of `slice` is because the version of Hermes that Expo is currently pinned to doesn't support `at()`
   const filename = uri.split('/').slice(-1)[0];
   const extension = filename.split('.').slice(-1)[0] || '';
 
-  const base64Data = await FileSystem.readAsStringAsync(uri, {encoding: 'base64'});
+  const orientation = image.exif?.Orientation;
+  if (typeof orientation !== 'number' || orientation <= 1) {
+    const imageDataBase64 = await FileSystem.readAsStringAsync(uri, {encoding: 'base64'});
+    return {imageDataBase64, filename, mimeType: extensionToMimeType(extension)};
+  } else {
+    // This is an image with a non-standard orientation, and it's not handled correctly by the NAC image
+    // pipeline (you get things like flipped thumbnails). More info on EXIF orientation: https://sirv.com/help/articles/rotate-photos-to-be-upright/
+    //
+    // The solution is pretty simple: allow the expo image manipulation library to save a copy, which
+    // writes the image with a "normal" orientation and applies any necessary transforms to make it look correct.
+    const result = await manipulateAsync(uri, [], {format: SaveFormat.JPEG, base64: true});
+    return {imageDataBase64: result.base64, filename, mimeType: 'image/jpeg'};
+  }
+};
+
+const uploadImage = async ({apiPrefix, image, name, center_id, photoUsage}: UploadImageOptions): Promise<MediaItem> => {
+  const {imageDataBase64, filename, mimeType} = await getImageData(image);
+
   const payload = {
-    file: `data:${extensionToMimeType(extension)};base64,${base64Data}`,
+    file: `data:${mimeType};base64,${imageDataBase64}`,
     type: 'image',
     file_name: filename,
     center_id,
@@ -58,11 +79,11 @@ const uploadImage = async ({apiPrefix, uri, name, center_id, photoUsage}: Upload
   const imageCacheKey = `${imageUploadCachePrefix}:${payloadHash}`;
   const cached = await AsyncStorage.getItem(imageCacheKey);
   if (cached) {
-    console.log(`Image ${uri} has already been uploaded, using cached media item for ${payload}`);
+    console.log(`Image ${image.uri} has already been uploaded, using cached media item for ${payload}`);
     try {
       return Promise.resolve(mediaItemSchema.parse(JSON.parse(cached)));
     } catch (error) {
-      console.warn(`Unable to load cached image data for ${uri}, uploading it again`);
+      console.warn(`Unable to load cached image data for ${image.uri}, uploading it again`);
       await AsyncStorage.removeItem(imageCacheKey);
       // fallthrough
     }
@@ -88,11 +109,12 @@ export const submitObservation = async ({
   observationFormData: ObservationFormData;
 }): Promise<Partial<Observation>> => {
   const {photoUsage, name} = observationFormData;
+  // TODO: probably should upload these sequentially instead of in parallel
   const media = await Promise.all(
-    observationFormData.uploadPaths.map(uri =>
+    observationFormData.images.map(image =>
       uploadImage({
         apiPrefix,
-        uri,
+        image,
         name,
         center_id,
         photoUsage,

@@ -1,6 +1,8 @@
+import {ImagePickerAsset} from 'expo-image-picker';
 import {merge} from 'lodash';
-import {Activity, InstabilityDistribution, MediaUsage, Observation, PartnerType} from 'types/nationalAvalancheCenter';
 import {z} from 'zod';
+
+import {Activity, InstabilityDistribution, MediaUsage, Observation, PartnerType} from 'types/nationalAvalancheCenter';
 
 export const defaultObservationFormData = (initialValues: Partial<Observation> | null = null): ObservationFormData =>
   merge(
@@ -108,5 +110,5 @@ export const simpleObservationFormSchema = z
   });
 
 export interface ObservationFormData extends z.infer<typeof simpleObservationFormSchema> {
-  uploadPaths: string[];
+  images: ImagePickerAsset[];
 }

@@ -56,6 +56,7 @@
     "expo-device": "~5.0.0",
     "expo-file-system": "~15.1.1",
     "expo-font": "~11.0.1",
+    "expo-image-manipulator": "~11.0.0",
     "expo-image-picker": "~14.0.2",
     "expo-location": "~15.0.1",
     "expo-splash-screen": "~0.17.5",
