@@ -1,7 +1,37 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-sed -i "s/IOS_USER_ID/${IOS_USER_ID}/g" eas.json
-sed -i "s/IOS_TEAM_ID/${IOS_TEAM_ID}/g" eas.json
-sed -i "s/IOS_APP_ID/${IOS_APP_ID}/g" eas.json
+set -o errexit
+set -o nounset
+set -o pipefail
 
-eas build --non-interactive --platform all --profile ${GITHUB_REF##*/} --auto-submit
+if [[ -z "${IOS_USER_ID:-}" ]]; then
+  echo "[ERROR] \$IOS_USER_ID is required."
+  exit 1
+fi
+if [[ -z "${IOS_TEAM_ID:-}" ]]; then
+  echo "[ERROR] \$IOS_TEAM_ID is required."
+  exit 1
+fi
+if [[ -z "${IOS_APP_ID:-}" ]]; then
+  echo "[ERROR] \$IOS_APP_ID is required."
+  exit 1
+fi
+if [[ -z "${PROFILE:-}" ]]; then
+  echo "[ERROR] \$PROFILE is required."
+  exit 1
+fi
+
+function cleanup() {
+  mv eas.json.tmpl eas.json
+}
+trap cleanup EXIT
+
+mv eas.json eas.json.tmpl
+jq  < eas.json.tmpl > eas.json \
+  --arg IOS_USER_ID "${IOS_USER_ID}" \
+  --arg IOS_TEAM_ID "${IOS_TEAM_ID}" \
+  --arg IOS_APP_ID "${IOS_APP_ID}" \
+  '.submit.release.ios={appleId:$IOS_USER_ID,appleTeamId:$IOS_TEAM_ID,ascAppId:$IOS_APP_ID} | .submit.preview.ios=.submit.release.ios'
+
+set -o xtrace
+eas build --non-interactive --platform all --profile "${PROFILE}" --auto-submit
