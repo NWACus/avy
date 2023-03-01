@@ -5,6 +5,13 @@ import {fileAsyncTransport, logger, mapConsoleTransport} from 'react-native-logs
 const LOG_PATH = 'log.txt';
 export const logFilePath = FileSystem.documentDirectory + LOG_PATH;
 
+// Always delete the log file on startup
+if (process.env.NODE_ENV !== 'test') {
+  (async () => {
+    await FileSystem.deleteAsync(logFilePath);
+  })();
+}
+
 const config = {
   levels: {
     debug: 0,
@@ -12,7 +19,8 @@ const config = {
     warn: 2,
     error: 3,
   },
-  transport: [mapConsoleTransport, fileAsyncTransport],
+  // filesystem isn't available in test
+  transport: process.env.NODE_ENV !== 'test' ? [mapConsoleTransport, fileAsyncTransport] : [mapConsoleTransport],
   transportOptions: {
     mapLevels: {
       debug: 'log',
