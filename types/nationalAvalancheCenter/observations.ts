@@ -339,14 +339,7 @@ export const observationSchema = z.object({
         .array(
           z.object({
             rank: z.number(),
-            type: z.preprocess(s => {
-              if (s === 'Cornice') {
-                return AvalancheProblemName.CorniceFall;
-              }
-              if (s === 'Glide') {
-                return AvalancheProblemName.Glide;
-              }
-            }, z.nativeEnum(AvalancheProblemName).or(z.string().length(0)).optional().nullable()),
+            type: z.nativeEnum(AvalancheProblemName).or(z.string().length(0)).nullable(),
             depth: z.string().nullable(),
             layer: z.string().nullable(),
             location: z.array(avalancheProblemLocationSchema).nullable(),
