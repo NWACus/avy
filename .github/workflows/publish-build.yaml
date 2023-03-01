@@ -32,7 +32,7 @@ jobs:
           IOS_USER_ID: ${{ secrets.IOS_USER_ID }}
           IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
           IOS_APP_ID: ${{ secrets.IOS_APP_ID }}
-          PROFILE: ${{ github.head_ref }}
+          PROFILE: ${{ github.ref_name }}
           PLATFORM: 'android'
         run: ./eas_build_and_submit.sh
 
@@ -55,6 +55,6 @@ jobs:
           IOS_USER_ID: ${{ secrets.IOS_USER_ID }}
           IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
           IOS_APP_ID: ${{ secrets.IOS_APP_ID }}
-          PROFILE: ${{ github.head_ref }}
+          PROFILE: ${{ github.ref_name }}
           PLATFORM: 'ios'
         run: ./eas_build_and_submit.sh
