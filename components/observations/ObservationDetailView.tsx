@@ -237,21 +237,28 @@ export const ObservationCard: React.FunctionComponent<{
                     observation.avalanches.length > 0 &&
                     observation.avalanches.map((item, index) => (
                       <VStack space={8} style={{flex: 1}} key={`avalanche-${index}`}>
-                        <BodyBlack>{`#${index + 1}: ${item.location || 'Unknown location'}`}</BodyBlack>
+                        <BodyBlack>{`#${index + 1}${item.location ? `: ${item.location}` : ''}`}</BodyBlack>
                         {item.comments && <HTML source={{html: item.comments}} />}
                         <TableRow
-                          label={`Date (${FormatAvalancheDateUncertainty(item.dateAccuracy as AvalancheDateUncertainty)})`}
+                          label={`Date${item.dateAccuracy ? ` (${FormatAvalancheDateUncertainty(item.dateAccuracy as AvalancheDateUncertainty)})` : ''}`}
                           value={`${utcDateToLocalTimeString(item.date)}`}
                         />
-                        <TableRow label={'Location'} value={item.location} />
-                        <TableRow label={'Size'} value={`D${item.dSize}-R${item.rSize}`} />
-                        <TableRow label={'Trigger'} value={`${FormatAvalancheTrigger(item.trigger as AvalancheTrigger)} - ${FormatAvalancheCause(item.cause as AvalancheCause)}`} />
-                        <TableRow label={'Start Zone'} value={`${FormatAvalancheAspect(item.aspect as AvalancheAspect)}, ${item.slopeAngle}° at ${item.elevation}ft`} />
+                        {item.dSize && item.rSize && <TableRow label={'Size'} value={`D${item.dSize}-R${item.rSize}`} />}
+                        {item.trigger && item.cause && (
+                          <TableRow
+                            label={'Trigger'}
+                            value={`${FormatAvalancheTrigger(item.trigger as AvalancheTrigger)} - ${FormatAvalancheCause(item.cause as AvalancheCause)}`}
+                          />
+                        )}
+                        <TableRow
+                          label={'Start Zone'}
+                          value={`${FormatAvalancheAspect(item.aspect as AvalancheAspect)}${item.slopeAngle ? `, ${item.slopeAngle}°` : ''} at ${item.elevation}ft`}
+                        />
                         {item.verticalFall && <TableRow label={'Vertical Fall'} value={`${item.verticalFall}ft`} />}
-                        <TableRow label={'Crown Thickness'} value={`${item.avgCrownDepth}cm`} />
-                        <TableRow label={'Width'} value={`${item.width}ft`} />
-                        <TableRow label={'Type'} value={FormatAvalancheType(item.avalancheType as AvalancheType)} />
-                        <TableRow label={'Bed Surface'} value={FormatAvalancheBedSurface(item.bedSfc as AvalancheBedSurface)} />
+                        {item.avgCrownDepth && <TableRow label={'Crown Thickness'} value={`${item.avgCrownDepth}cm`} />}
+                        {item.width && <TableRow label={'Width'} value={`${item.width}ft`} />}
+                        {item.avalancheType && <TableRow label={'Type'} value={FormatAvalancheType(item.avalancheType as AvalancheType)} />}
+                        {item.verticalFall && <TableRow label={'Bed Surface'} value={FormatAvalancheBedSurface(item.bedSfc as AvalancheBedSurface)} />}
                         {item.media && item.media.length > 0 && <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={item.media} displayCaptions={false} />}
                       </VStack>
                     ))}
