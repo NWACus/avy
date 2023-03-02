@@ -153,7 +153,7 @@ export const ObservationCard: React.FunctionComponent<{
               </View>
               <Card borderRadius={0} borderColor="white" header={<Title3Black>Summary</Title3Black>}>
                 <VStack space={8} width="100%">
-                  {observation.location_point && (
+                  {observation.location_point?.lat && observation.location_point?.lng && (
                     <ZoneMap
                       style={{width: '100%', height: 200}}
                       animated={false}
