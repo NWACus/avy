@@ -1,6 +1,8 @@
 import log from 'logger';
 import React from 'react';
 
+import * as Sentry from 'sentry-expo';
+
 import {QueryClient, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
 
@@ -42,18 +44,16 @@ export const fetchNACObservation = async (host: string, id: string): Promise<Obs
   const url = `${host}/obs/v1/public/observation/${id}`;
   const {data} = await axios.get(url);
 
-  const parseResult = observationSchema.safeParse(data);
+  const parseResult = observationSchema.deepPartial().safeParse(data);
   if (parseResult.success === false) {
     log.warn(`unparsable observation`, url, parseResult.error, JSON.stringify(data));
-    // Sentry.Native.captureException(parseResult.error, {
-    //   tags: {
-    //     zod_error: true,
-    //     url,
-    //   },
-    // });
-    // throw parseResult.error;
-    // this is probably bullshit
-    return data as Observation;
+    Sentry.Native.captureException(parseResult.error, {
+      tags: {
+        zod_error: true,
+        url,
+      },
+    });
+    throw parseResult.error;
   } else {
     return parseResult.data;
   }
