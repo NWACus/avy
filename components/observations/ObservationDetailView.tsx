@@ -14,7 +14,7 @@ import {ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {zone} from 'components/observations/ObservationsListView';
-import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize, Title1Black, Title3Black} from 'components/text';
+import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNWACObservation} from 'hooks/useNWACObservation';
@@ -185,35 +185,41 @@ export const ObservationCard: React.FunctionComponent<{
                   {/* Avalanche section */}
                   <HStack space={8}>
                     <NACIcon name="avalanche" size={bodySize} color={colorLookup('darkText')} />
-                    <BodySemibold style={{width: '100%'}}>Avalanches</BodySemibold>
+                    <BodyBlack style={{width: '100%'}}>Avalanches</BodyBlack>
                   </HStack>
-                  <TableRow label="Avalanches Observed?" value={yesNo(observation.instability.avalanches_observed)} />
-                  <TableRow label="Avalanches Triggered?" value={yesNo(observation.instability.avalanches_triggered)} />
-                  <TableRow label="Caught In Avalanches?" value={yesNo(observation.instability.avalanches_caught)} />
+                  <VStack space={8} width="100%" px={8}>
+                    <TableRow label="Observed?" value={yesNo(observation.instability.avalanches_observed)} />
+                    <TableRow label="Triggered?" value={yesNo(observation.instability.avalanches_triggered)} />
+                    <TableRow label="Anyone caught?" value={yesNo(observation.instability.avalanches_caught)} />
+                  </VStack>
                   {/* Collapsing section */}
                   <HStack space={8} mt={8}>
                     <MaterialCommunityIcons name="arrow-collapse-vertical" size={bodySize} color="black" />
-                    <BodySemibold>Collapsing</BodySemibold>
+                    <BodyBlack>Collapsing</BodyBlack>
                   </HStack>
-                  <TableRow
-                    label="Collapsing observed?"
-                    value={
-                      observation.instability.collapsing
-                        ? FormatInstabilityDistribution(observation.instability.collapsing_description as InstabilityDistribution)
-                        : 'None Observed'
-                    }
-                  />
+                  <VStack space={8} width="100%" px={8}>
+                    <TableRow
+                      label="Observed?"
+                      value={
+                        observation.instability.collapsing
+                          ? FormatInstabilityDistribution(observation.instability.collapsing_description as InstabilityDistribution)
+                          : 'None Observed'
+                      }
+                    />
+                  </VStack>
                   {/* Cracking section */}
                   <HStack space={8} mt={8}>
                     <MaterialCommunityIcons name="lightning-bolt" size={bodySize} color="black" />
-                    <BodySemibold>Cracking</BodySemibold>
+                    <BodyBlack>Cracking</BodyBlack>
                   </HStack>
-                  <TableRow
-                    label="Cracking observed?"
-                    value={
-                      observation.instability.cracking ? FormatInstabilityDistribution(observation.instability.cracking_description as InstabilityDistribution) : 'None Observed'
-                    }
-                  />
+                  <VStack space={8} width="100%" px={8}>
+                    <TableRow
+                      label="Observed?"
+                      value={
+                        observation.instability.cracking ? FormatInstabilityDistribution(observation.instability.cracking_description as InstabilityDistribution) : 'None Observed'
+                      }
+                    />
+                  </VStack>
                   {observation.instability_summary && <HTML source={{html: observation.instability_summary}} />}
                 </VStack>
               </Card>
@@ -223,68 +229,32 @@ export const ObservationCard: React.FunctionComponent<{
                 </Card>
               )}
               {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanches_summary) && (
-                <Card
-                  borderRadius={0}
-                  borderColor="white"
-                  header={
-                    <HStack space={8} alignItems="center">
-                      <NACIcon name="avalanche" size={48} color="black" />
-                      <Title1Black>Avalanches</Title1Black>
-                    </HStack>
-                  }>
+                <Card borderRadius={0} borderColor="white" header={<Title3Black>Avalanches</Title3Black>}>
+                  <VStack space={8} width="100%">
+                    {observation.avalanches_summary && <HTML source={{html: observation.avalanches_summary}} />}
+                  </VStack>
                   {observation.avalanches &&
                     observation.avalanches.length > 0 &&
                     observation.avalanches.map((item, index) => (
                       <VStack space={8} style={{flex: 1}} key={`avalanche-${index}`}>
-                        <HStack space={8} alignItems="center">
-                          <IdentifiedInformation
-                            header={'Date'}
-                            body={`${utcDateToLocalTimeString(item.date)} (${FormatAvalancheDateUncertainty(item.dateAccuracy as AvalancheDateUncertainty)})`}
-                          />
-                          <IdentifiedInformation header={'Location'} body={item.location} />
-                          <IdentifiedInformation header={'Size'} body={`D${item.dSize}-R${item.rSize}`} />
-                        </HStack>
-                        <HStack space={8} alignItems="center">
-                          <IdentifiedInformation
-                            header={'Trigger'}
-                            body={`${FormatAvalancheTrigger(item.trigger as AvalancheTrigger)} - ${FormatAvalancheCause(item.cause as AvalancheCause)}`}
-                          />
-                          <IdentifiedInformation
-                            header={'Start Zone'}
-                            body={`${FormatAvalancheAspect(item.aspect as AvalancheAspect)}, ${item.slopeAngle}° at ${item.elevation}ft`}
-                          />
-                          <IdentifiedInformation header={'Vertical Fall'} body={`${item.verticalFall}ft`} />
-                        </HStack>
-                        <HStack space={8} alignItems="center">
-                          <IdentifiedInformation header={'Crown Thickness'} body={`${item.avgCrownDepth}cm`} />
-                          <IdentifiedInformation header={'Width'} body={`${item.width}ft`} />
-                          <IdentifiedInformation header={'Type'} body={FormatAvalancheType(item.avalancheType as AvalancheType)} />
-                          <IdentifiedInformation header={'Bed Surface'} body={FormatAvalancheBedSurface(item.bedSfc as AvalancheBedSurface)} />
-                        </HStack>
-                        <>
-                          {item.media && item.media.length > 0 && (
-                            <VStack space={8} style={{flex: 1}}>
-                              <BodyBlack style={{textTransform: 'uppercase'}}>{'Avalanche Media'}</BodyBlack>
-                              <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={item.media} displayCaptions={false} />
-                            </VStack>
-                          )}
-                        </>
-                        <>
-                          {item.comments && (
-                            <VStack space={8} style={{flex: 1}}>
-                              <BodyBlack style={{textTransform: 'uppercase'}}>{'Avalanche Comments'}</BodyBlack>
-                              <HTML source={{html: item.comments}} />
-                            </VStack>
-                          )}
-                        </>
+                        <BodyBlack>{`#${index + 1}: ${item.location || 'Unknown location'}`}</BodyBlack>
+                        {item.comments && <HTML source={{html: item.comments}} />}
+                        <TableRow
+                          label={`Date (${FormatAvalancheDateUncertainty(item.dateAccuracy as AvalancheDateUncertainty)})`}
+                          value={`${utcDateToLocalTimeString(item.date)}`}
+                        />
+                        <TableRow label={'Location'} value={item.location} />
+                        <TableRow label={'Size'} value={`D${item.dSize}-R${item.rSize}`} />
+                        <TableRow label={'Trigger'} value={`${FormatAvalancheTrigger(item.trigger as AvalancheTrigger)} - ${FormatAvalancheCause(item.cause as AvalancheCause)}`} />
+                        <TableRow label={'Start Zone'} value={`${FormatAvalancheAspect(item.aspect as AvalancheAspect)}, ${item.slopeAngle}° at ${item.elevation}ft`} />
+                        {item.verticalFall && <TableRow label={'Vertical Fall'} value={`${item.verticalFall}ft`} />}
+                        <TableRow label={'Crown Thickness'} value={`${item.avgCrownDepth}cm`} />
+                        <TableRow label={'Width'} value={`${item.width}ft`} />
+                        <TableRow label={'Type'} value={FormatAvalancheType(item.avalancheType as AvalancheType)} />
+                        <TableRow label={'Bed Surface'} value={FormatAvalancheBedSurface(item.bedSfc as AvalancheBedSurface)} />
+                        {item.media && item.media.length > 0 && <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={item.media} displayCaptions={false} />}
                       </VStack>
                     ))}
-                  {observation.avalanches_summary && (
-                    <VStack space={8} style={{flex: 1}}>
-                      <BodyBlack style={{textTransform: 'uppercase'}}>{'Avalanche Summary'}</BodyBlack>
-                      <HTML source={{html: observation.avalanches_summary}} />
-                    </VStack>
-                  )}
                 </Card>
               )}
               {observation.advanced_fields && (observation.advanced_fields.weather || observation.advanced_fields.weather_summary) && (
