@@ -1,19 +1,20 @@
 import log from 'logger';
 import React from 'react';
-import {ScrollView, StyleSheet} from 'react-native';
+import {Image, ScrollView, StyleSheet} from 'react-native';
 
-import {AntDesign, FontAwesome5, Fontisto, MaterialCommunityIcons} from '@expo/vector-icons';
+import {AntDesign, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import * as Sentry from 'sentry-expo';
 
-import {Card, CollapsibleCard} from 'components/content/Card';
+import {Card} from 'components/content/Card';
 import {Carousel} from 'components/content/carousel';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
-import {HStack, View, VStack} from 'components/core';
+import {ZoneMap} from 'components/content/ZoneMap';
+import {Center, HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {zone} from 'components/observations/ObservationsListView';
-import {Body, BodyBlack, Title1Black, Title3Black} from 'components/text';
+import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize, Title1Black, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNWACObservation} from 'hooks/useNWACObservation';
@@ -39,7 +40,6 @@ import {
   FormatAvalancheType,
   FormatCloudCover,
   FormatInstabilityDistribution,
-  FormatPartnerType,
   FormatSnowAvailableForTransport,
   FormatWindLoading,
   InstabilityDistribution,
@@ -95,18 +95,27 @@ export const ObservationDetailView: React.FunctionComponent<{
   }
 };
 
+const dataTableFlex = [1, 1];
+const dataTableSpace = 16;
+
+const TableRow = ({label, value}: {label: string; value: string}) => (
+  <HStack justifyContent="space-between" alignItems="center" width="100%" space={dataTableSpace}>
+    <View flex={dataTableFlex[0]}>
+      <BodySemibold>{label}</BodySemibold>
+    </View>
+    <View flex={dataTableFlex[1]}>
+      <Body>{value}</Body>
+    </View>
+  </HStack>
+);
+
+const yesNo = (value: boolean) => (value ? 'Yes' : 'No');
+
 export const ObservationCard: React.FunctionComponent<{
   observation: Observation;
   mapLayer: MapLayer;
 }> = ({observation, mapLayer}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
-
-  const anySignsOfInstability =
-    observation.instability.avalanches_caught ||
-    observation.instability.avalanches_observed ||
-    observation.instability.avalanches_triggered ||
-    observation.instability.collapsing ||
-    observation.instability.cracking;
 
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
@@ -122,105 +131,100 @@ export const ObservationCard: React.FunctionComponent<{
               style={{textAlign: 'center'}}
               onPress={() => navigation.goBack()}
             />
-            <Title3Black>{`${FormatPartnerType(observation.observer_type)} Field Observation`}</Title3Black>
+            <Title3Black>{`${zone(mapLayer, observation.location_point?.lat, observation.location_point?.lng)} Observation`}</Title3Black>
           </HStack>
           <ScrollView style={{height: '100%', width: '100%'}}>
             <VStack space={8} backgroundColor={colorLookup('background.base')}>
-              <Card marginTop={2} borderRadius={0} borderColor="white" noDivider header={null}>
-                <VStack space={8}>
-                  <HStack flexWrap="wrap" space={8} alignItems="flex-start">
-                    <IdentifiedInformation header={'Submitted'} body={utcDateToLocalTimeString(observation.created_at)} />
-                    {observation.end_date && <IdentifiedInformation header={'Expires'} body={utcDateToLocalTimeString(observation.end_date)} />}
-                    <IdentifiedInformation header={'Author(s)'} body={observation.name || 'Unknown'} />
-                    {observation.activity && <IdentifiedInformation header={'Activity'} body={activityDisplayName(observation.activity)} />}
-                  </HStack>
-                  <HStack flexWrap="wrap" space={8} alignItems="flex-start">
-                    <IdentifiedInformation header={'Zone/Region'} body={zone(mapLayer, observation.location_point?.lat, observation.location_point?.lng)} />
-                    <IdentifiedInformation header={'Location'} body={observation.location_name} />
-                    <IdentifiedInformation header={'Route'} body={observation.route} />
-                  </HStack>
+              <View bg="white" py={8} px={16}>
+                <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
+                  <VStack space={8} style={{flex: 1}}>
+                    <AllCapsSmBlack>Submitted</AllCapsSmBlack>
+                    <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                      {utcDateToLocalTimeString(observation.created_at)}
+                    </AllCapsSm>
+                  </VStack>
+                  <VStack space={8} style={{flex: 1}}>
+                    <AllCapsSmBlack>Author</AllCapsSmBlack>
+                    <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                      {observation.name || 'Unknown'}
+                    </AllCapsSm>
+                  </VStack>
+                </HStack>
+              </View>
+              <Card borderRadius={0} borderColor="white" header={<Title3Black>Summary</Title3Black>}>
+                <VStack space={8} width="100%">
+                  {observation.location_point && (
+                    <ZoneMap
+                      style={{width: '100%', height: 200}}
+                      animated={false}
+                      zones={[]}
+                      onPressPolygon={() => undefined}
+                      pitchEnabled={false}
+                      rotateEnabled={false}
+                      scrollEnabled={false}
+                      zoomEnabled={false}
+                      initialRegion={{
+                        latitude: observation.location_point.lat,
+                        longitude: observation.location_point.lng,
+                        latitudeDelta: 0.075,
+                        longitudeDelta: 0.075,
+                      }}>
+                      <Center width="100%" height="100%" position="absolute" backgroundColor={undefined} pointerEvents="none">
+                        <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40, transform: [{translateY: -20}]}} />
+                      </Center>
+                    </ZoneMap>
+                  )}
+                  <TableRow label="Location" value={observation.location_name} />
+                  <TableRow label="Route" value={observation.route || 'Not specified'} />
+                  <TableRow label="Activity" value={activityDisplayName(observation.activity)} />
+                  {observation.observation_summary && <HTML source={{html: observation.observation_summary}} />}
                 </VStack>
               </Card>
-              <CollapsibleCard
-                startsCollapsed={false}
-                borderRadius={0}
-                borderColor="white"
-                header={
-                  <HStack space={8} alignItems="center">
-                    <FontAwesome5 name="info-circle" size={24} color="black" />
-                    <Title1Black>Observation Summary</Title1Black>
+              <Card borderRadius={0} borderColor="white" header={<Title3Black>Signs of Unstable Snow</Title3Black>}>
+                <VStack space={8} width="100%">
+                  {/* Avalanche section */}
+                  <HStack space={8}>
+                    <NACIcon name="avalanche" size={bodySize} color={colorLookup('darkText')} />
+                    <BodySemibold style={{width: '100%'}}>Avalanches</BodySemibold>
                   </HStack>
-                }>
-                <HTML source={{html: observation.observation_summary}} />
-                {anySignsOfInstability && (
-                  <VStack space={8} style={{flex: 1}}>
-                    <BodyBlack style={{textTransform: 'uppercase'}}>{'Signs Of Instability'}</BodyBlack>
-                    {observation.instability.avalanches_caught && (
-                      <HStack space={8} alignItems="center">
-                        <NACIcon name="avalanche" size={32} color="black" />
-                        <Body color="text.secondary">{'Caught in Avalanche(s)'}</Body>
-                      </HStack>
-                    )}
-                    {observation.instability.avalanches_observed && (
-                      <HStack space={8} alignItems="center">
-                        <NACIcon name="avalanche" size={32} color="black" />
-                        <Body color="text.secondary">{'Avalanche(s) Observed'}</Body>
-                      </HStack>
-                    )}
-                    {observation.instability.avalanches_triggered && (
-                      <HStack space={8} alignItems="center">
-                        <NACIcon name="avalanche" size={32} color="black" />
-                        <Body color="text.secondary">{'Avalanche(s) Triggered'}</Body>
-                      </HStack>
-                    )}
-                    {observation.instability.collapsing && (
-                      <HStack space={8} alignItems="center">
-                        <MaterialCommunityIcons name="arrow-collapse-vertical" size={24} color="black" />
-                        <Body color="text.secondary">
-                          {observation.instability.collapsing_description &&
-                            `${FormatInstabilityDistribution(observation.instability.collapsing_description as InstabilityDistribution)} `}
-                          {'Collapsing Observed'}
-                        </Body>
-                      </HStack>
-                    )}
-                    {observation.instability.cracking && (
-                      <HStack space={8} alignItems="center">
-                        <MaterialCommunityIcons name="lightning-bolt" size={24} color="black" />
-                        <Body color="text.secondary">
-                          {observation.instability.cracking_description &&
-                            `${FormatInstabilityDistribution(observation.instability.cracking_description as InstabilityDistribution)} `}
-                          {'Cracking Observed'}
-                        </Body>
-                      </HStack>
-                    )}
-                  </VStack>
-                )}
-                {observation.instability_summary && (
-                  <VStack space={8} style={{flex: 1}}>
-                    <BodyBlack style={{textTransform: 'uppercase'}}>{'Instability Comments'}</BodyBlack>
-                    <HTML source={{html: observation.instability_summary}} />
-                  </VStack>
-                )}
-              </CollapsibleCard>
+                  <TableRow label="Avalanches Observed?" value={yesNo(observation.instability.avalanches_observed)} />
+                  <TableRow label="Avalanches Triggered?" value={yesNo(observation.instability.avalanches_triggered)} />
+                  <TableRow label="Caught In Avalanches?" value={yesNo(observation.instability.avalanches_caught)} />
+                  {/* Collapsing section */}
+                  <HStack space={8} mt={8}>
+                    <MaterialCommunityIcons name="arrow-collapse-vertical" size={bodySize} color="black" />
+                    <BodySemibold>Collapsing</BodySemibold>
+                  </HStack>
+                  <TableRow
+                    label="Collapsing observed?"
+                    value={
+                      observation.instability.collapsing
+                        ? FormatInstabilityDistribution(observation.instability.collapsing_description as InstabilityDistribution)
+                        : 'None Observed'
+                    }
+                  />
+                  {/* Cracking section */}
+                  <HStack space={8} mt={8}>
+                    <MaterialCommunityIcons name="lightning-bolt" size={bodySize} color="black" />
+                    <BodySemibold>Cracking</BodySemibold>
+                  </HStack>
+                  <TableRow
+                    label="Cracking observed?"
+                    value={
+                      observation.instability.cracking ? FormatInstabilityDistribution(observation.instability.cracking_description as InstabilityDistribution) : 'None Observed'
+                    }
+                  />
+                  {observation.instability_summary && <HTML source={{html: observation.instability_summary}} />}
+                </VStack>
+              </Card>
               {observation.media && observation.media.length > 0 && (
-                <CollapsibleCard
-                  startsCollapsed={false}
-                  borderRadius={0}
-                  borderColor="white"
-                  header={
-                    <HStack space={8} alignItems="center">
-                      <FontAwesome5 name="photo-video" size={24} color="black" />
-                      <Title1Black>Observation Media</Title1Black>
-                    </HStack>
-                  }>
+                <Card borderRadius={0} borderColor="white" header={<Title3Black>Media</Title3Black>}>
                   <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.media} displayCaptions={false} />
-                </CollapsibleCard>
+                </Card>
               )}
               {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanches_summary) && (
-                <CollapsibleCard
-                  startsCollapsed={false}
+                <Card
                   borderRadius={0}
-                  borderWidth={0}
                   borderColor="white"
                   header={
                     <HStack space={8} alignItems="center">
@@ -281,82 +285,41 @@ export const ObservationCard: React.FunctionComponent<{
                       <HTML source={{html: observation.avalanches_summary}} />
                     </VStack>
                   )}
-                </CollapsibleCard>
+                </Card>
               )}
               {observation.advanced_fields && (observation.advanced_fields.weather || observation.advanced_fields.weather_summary) && (
-                <CollapsibleCard
-                  startsCollapsed={false}
-                  borderRadius={0}
-                  borderColor="white"
-                  header={
-                    <HStack space={8} alignItems="center">
-                      <MaterialCommunityIcons name="weather-snowy-heavy" size={24} color="black" />
-                      <Title1Black>Weather</Title1Black>
-                    </HStack>
-                  }>
-                  <>
+                <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather</Title3Black>}>
+                  <VStack space={8} width="100%">
+                    {observation.advanced_fields.weather_summary && <HTML source={{html: observation.advanced_fields.weather_summary}} />}
                     {observation.advanced_fields.weather && (
-                      <>
-                        <HStack flexWrap="wrap" space={8}>
-                          <IdentifiedWeatherInformation header={'Cloud Cover'} body={FormatCloudCover(observation.advanced_fields.weather.cloud_cover as CloudCover)} />
-                          <IdentifiedWeatherInformation header={'Temperature (F)'} body={observation.advanced_fields.weather.air_temp} />
-                          <IdentifiedWeatherInformation header={'New or Recent Snowfall'} body={observation.advanced_fields.weather.recent_snowfall} />
-                        </HStack>
-                        <HStack flexWrap="wrap" space={8}>
-                          <IdentifiedWeatherInformation header={'Rain/Snow Line (ft)'} body={observation.advanced_fields.weather.rain_elevation} />
-                          <IdentifiedWeatherInformation
-                            header={'Snow Available For Transport'}
-                            body={FormatSnowAvailableForTransport(observation.advanced_fields.weather.snow_avail_for_transport as SnowAvailableForTransport)}
-                          />
-                          <IdentifiedWeatherInformation header={'Wind Loading'} body={FormatWindLoading(observation.advanced_fields.weather.wind_loading as WindLoading)} />
-                        </HStack>
-                      </>
-                    )}
-                  </>
-                  <>
-                    {observation.advanced_fields.weather_summary && (
-                      <VStack space={8} style={{flex: 1}}>
-                        <BodyBlack style={{textTransform: 'uppercase'}}>{'Weather Summary'}</BodyBlack>
-                        <HTML source={{html: observation.advanced_fields.weather_summary}} />
+                      <VStack space={8} width="100%">
+                        <TableRow label={'Cloud Cover'} value={FormatCloudCover(observation.advanced_fields.weather.cloud_cover as CloudCover)} />
+                        <TableRow label={'Temperature (F)'} value={observation.advanced_fields.weather.air_temp || 'Unknown'} />
+                        <TableRow label={'New or Recent Snowfall'} value={observation.advanced_fields.weather.recent_snowfall} />
+                        <TableRow label={'Rain/Snow Line (ft)'} value={observation.advanced_fields.weather.rain_elevation || 'Unknown'} />
+                        <TableRow
+                          label={'Snow Available For Transport'}
+                          value={FormatSnowAvailableForTransport(observation.advanced_fields.weather.snow_avail_for_transport as SnowAvailableForTransport)}
+                        />
+                        <TableRow label={'Wind Loading'} value={FormatWindLoading(observation.advanced_fields.weather.wind_loading as WindLoading)} />
                       </VStack>
                     )}
-                  </>
-                </CollapsibleCard>
+                  </VStack>
+                </Card>
               )}
               {observation.advanced_fields &&
                 (observation.advanced_fields.snowpack ||
                   (observation.advanced_fields.snowpack_media && observation.advanced_fields.snowpack_media.length > 0) ||
                   observation.advanced_fields.snowpack_summary) && (
-                  <CollapsibleCard
-                    startsCollapsed={false}
-                    borderRadius={0}
-                    borderColor="white"
-                    header={
-                      <HStack space={8} alignItems="center">
-                        <Fontisto name="snowflake" size={24} color="black" />
-                        <Title1Black>Snowpack Observations</Title1Black>
-                      </HStack>
-                    }>
-                    <>{observation.advanced_fields.snowpack && <>{/* we don't know what fields could be in this thing ... */}</>}</>
-                    <>
-                      {observation.advanced_fields.snowpack_summary && (
-                        <VStack space={8} style={{flex: 1}}>
-                          <BodyBlack style={{textTransform: 'uppercase'}}>{'Snowpack Summary'}</BodyBlack>
-                          <HTML source={{html: observation.advanced_fields.snowpack_summary}} />
-                        </VStack>
-                      )}
-                    </>
-                    <>
+                  <Card borderRadius={0} borderColor="white" header={<Title3Black>Snowpack</Title3Black>}>
+                    <VStack space={8} width="100%">
+                      {observation.advanced_fields.snowpack_summary && <HTML source={{html: observation.advanced_fields.snowpack_summary}} />}
                       {observation.advanced_fields.snowpack_media && observation.advanced_fields.snowpack_media.length > 0 && (
-                        <>
-                          <VStack space={8} style={{flex: 1}}>
-                            <BodyBlack style={{textTransform: 'uppercase'}}>{'Snowpack Media'}</BodyBlack>
-                            <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.advanced_fields.snowpack_media} displayCaptions={false} />
-                          </VStack>
-                        </>
+                        <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.advanced_fields.snowpack_media} displayCaptions={false} />
                       )}
-                    </>
-                  </CollapsibleCard>
+                      {observation.advanced_fields.snowpack && <>{/* we don't know what fields could be in this thing ... */}</>}
+                    </VStack>
+                  </Card>
                 )}
             </VStack>
           </ScrollView>
@@ -366,9 +329,9 @@ export const ObservationCard: React.FunctionComponent<{
   );
 };
 
-const activityDisplayName = (activity: string[]): string => {
+const activityDisplayName = (activity: string[] | undefined): string => {
   if (!activity || activity.length < 1) {
-    FormatActivity(Activity.Other);
+    return FormatActivity(Activity.Other);
   }
   return FormatActivity(activity[0] as Activity);
 };
@@ -381,20 +344,6 @@ const IdentifiedInformation: React.FunctionComponent<{
     <VStack space={8} style={{flex: 1}}>
       <BodyBlack style={{textTransform: 'uppercase'}}>{header}</BodyBlack>
       <Body color="text.secondary">{body}</Body>
-    </VStack>
-  );
-};
-
-const IdentifiedWeatherInformation: React.FunctionComponent<{
-  header: string;
-  body: string;
-}> = ({header, body}) => {
-  return (
-    <VStack space={8} style={{flex: 1}}>
-      <BodyBlack style={{textTransform: 'uppercase'}}>{header}</BodyBlack>
-      <Body color="text.secondary" style={{textTransform: 'capitalize', fontStyle: body === '' ? 'italic' : 'normal'}}>
-        {body || 'Not Observed'}
-      </Body>
     </VStack>
   );
 };
