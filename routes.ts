@@ -31,7 +31,16 @@ export type HomeStackParamList = {
     forecast_zone_id: number;
     requestedTime: RequestedTimeString;
   };
+  // While in the home stack, we can display these pages:
+  // - weather station detail
+  // - observation detail (nwac & nac)
   stationDetail: WeatherStationDetailPageProps;
+  observation: {
+    id: string;
+  };
+  nwacObservation: {
+    id: string;
+  };
 };
 export type HomeStackNavigationProps = NativeStackNavigationProp<HomeStackParamList>;
 

@@ -2,6 +2,7 @@ import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigat
 
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
+import {NWACObservationScreen, ObservationScreen} from 'components/screens/ObservationsScreen';
 import {StationDetailScreen} from 'components/screens/WeatherScreen';
 import {HomeStackParamList, TabNavigatorParamList} from 'routes';
 
@@ -13,6 +14,8 @@ export const HomeTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamL
       <AvalancheCenterStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} />
       <AvalancheCenterStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} />
       <AvalancheCenterStack.Screen name="stationDetail" component={StationDetailScreen} />
+      <AvalancheCenterStack.Screen name="observation" component={ObservationScreen} />
+      <AvalancheCenterStack.Screen name="nwacObservation" component={NWACObservationScreen} />
     </AvalancheCenterStack.Navigator>
   );
 };
