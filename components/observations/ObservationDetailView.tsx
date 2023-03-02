@@ -1,12 +1,11 @@
-import log from 'logger';
 import React from 'react';
 import {Image, ScrollView, StyleSheet} from 'react-native';
 
 import {AntDesign, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import * as Sentry from 'sentry-expo';
 
+import {colorFor} from 'components/AvalancheDangerPyramid';
 import {Card} from 'components/content/Card';
 import {Carousel} from 'components/content/carousel';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
@@ -17,8 +16,8 @@ import {zone} from 'components/observations/ObservationsListView';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
+import {useNACObservation} from 'hooks/useNACObservation';
 import {useNWACObservation} from 'hooks/useNWACObservation';
-import {useObservationQuery} from 'hooks/useObservations';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
@@ -31,6 +30,7 @@ import {
   AvalancheTrigger,
   AvalancheType,
   CloudCover,
+  DangerLevel,
   FormatActivity,
   FormatAvalancheAspect,
   FormatAvalancheBedSurface,
@@ -45,7 +45,6 @@ import {
   InstabilityDistribution,
   MapLayer,
   Observation,
-  observationSchema,
   SnowAvailableForTransport,
   WindLoading,
 } from 'types/nationalAvalancheCenter';
@@ -69,30 +68,15 @@ export const NWACObservationDetailView: React.FunctionComponent<{
 export const ObservationDetailView: React.FunctionComponent<{
   id: string;
 }> = ({id}) => {
-  const observationResult = useObservationQuery({
-    id: id,
-  });
-  const observation = observationResult.data;
-  const mapResult = useMapLayer(observation?.getSingleObservation.center_id?.toUpperCase() as AvalancheCenterID);
+  const observationResult = useNACObservation(id);
+  const mapResult = useMapLayer(observationResult.data?.center_id?.toUpperCase() as AvalancheCenterID);
   const mapLayer = mapResult.data;
 
   if (incompleteQueryState(observationResult, mapResult)) {
     return <QueryState results={[observationResult, mapResult]} />;
   }
 
-  const parseResult = observationSchema.deepPartial().safeParse(observation.getSingleObservation);
-  if (parseResult.success === false) {
-    log.info('unparsable observation', id, parseResult.error, JSON.stringify(observation.getSingleObservation));
-    Sentry.Native.captureException(parseResult.error, {
-      tags: {
-        zod_error: true,
-        id,
-      },
-    });
-    throw parseResult.error;
-  } else {
-    return <ObservationCard observation={parseResult.data} mapLayer={mapLayer} />;
-  }
+  return <ObservationCard observation={observationResult.data} mapLayer={mapLayer} />;
 };
 
 const dataTableFlex = [1, 1];
@@ -116,6 +100,7 @@ export const ObservationCard: React.FunctionComponent<{
   mapLayer: MapLayer;
 }> = ({observation, mapLayer}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
+  const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
 
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
@@ -184,7 +169,7 @@ export const ObservationCard: React.FunctionComponent<{
                 <VStack space={8} width="100%">
                   {/* Avalanche section */}
                   <HStack space={8}>
-                    <NACIcon name="avalanche" size={bodySize} color={colorLookup('darkText')} />
+                    <NACIcon name="avalanche" size={bodySize} color={avalanches ? colorFor(DangerLevel.High).string() : colorLookup('darkText')} />
                     <BodyBlack style={{width: '100%'}}>Avalanches</BodyBlack>
                   </HStack>
                   <VStack space={8} width="100%" px={8}>
@@ -194,7 +179,11 @@ export const ObservationCard: React.FunctionComponent<{
                   </VStack>
                   {/* Collapsing section */}
                   <HStack space={8} mt={8}>
-                    <MaterialCommunityIcons name="arrow-collapse-vertical" size={bodySize} color="black" />
+                    <MaterialCommunityIcons
+                      name="arrow-collapse-vertical"
+                      size={bodySize}
+                      color={observation.instability.collapsing ? colorFor(DangerLevel.Considerable).string() : colorLookup('darkText')}
+                    />
                     <BodyBlack>Collapsing</BodyBlack>
                   </HStack>
                   <VStack space={8} width="100%" px={8}>
@@ -209,7 +198,11 @@ export const ObservationCard: React.FunctionComponent<{
                   </VStack>
                   {/* Cracking section */}
                   <HStack space={8} mt={8}>
-                    <MaterialCommunityIcons name="lightning-bolt" size={bodySize} color="black" />
+                    <MaterialCommunityIcons
+                      name="lightning-bolt"
+                      size={bodySize}
+                      color={observation.instability.cracking ? colorFor(DangerLevel.Considerable).string() : colorLookup('darkText')}
+                    />
                     <BodyBlack>Cracking</BodyBlack>
                   </HStack>
                   <VStack space={8} width="100%" px={8}>
