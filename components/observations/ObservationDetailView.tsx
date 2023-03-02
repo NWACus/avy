@@ -305,15 +305,3 @@ const activityDisplayName = (activity: string[] | undefined): string => {
   }
   return FormatActivity(activity[0] as Activity);
 };
-
-const IdentifiedInformation: React.FunctionComponent<{
-  header: string;
-  body: string;
-}> = ({header, body}) => {
-  return (
-    <VStack space={8} style={{flex: 1}}>
-      <BodyBlack style={{textTransform: 'uppercase'}}>{header}</BodyBlack>
-      <Body color="text.secondary">{body}</Body>
-    </VStack>
-  );
-};
