@@ -5,6 +5,7 @@ import {AntDesign, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
+import {colorFor} from 'components/AvalancheDangerPyramid';
 import {Card} from 'components/content/Card';
 import {Carousel} from 'components/content/carousel';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
@@ -29,6 +30,7 @@ import {
   AvalancheTrigger,
   AvalancheType,
   CloudCover,
+  DangerLevel,
   FormatActivity,
   FormatAvalancheAspect,
   FormatAvalancheBedSurface,
@@ -98,6 +100,7 @@ export const ObservationCard: React.FunctionComponent<{
   mapLayer: MapLayer;
 }> = ({observation, mapLayer}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
+  const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
 
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
@@ -166,7 +169,7 @@ export const ObservationCard: React.FunctionComponent<{
                 <VStack space={8} width="100%">
                   {/* Avalanche section */}
                   <HStack space={8}>
-                    <NACIcon name="avalanche" size={bodySize} color={colorLookup('darkText')} />
+                    <NACIcon name="avalanche" size={bodySize} color={avalanches ? colorFor(DangerLevel.High).string() : colorLookup('darkText')} />
                     <BodyBlack style={{width: '100%'}}>Avalanches</BodyBlack>
                   </HStack>
                   <VStack space={8} width="100%" px={8}>
@@ -176,7 +179,11 @@ export const ObservationCard: React.FunctionComponent<{
                   </VStack>
                   {/* Collapsing section */}
                   <HStack space={8} mt={8}>
-                    <MaterialCommunityIcons name="arrow-collapse-vertical" size={bodySize} color="black" />
+                    <MaterialCommunityIcons
+                      name="arrow-collapse-vertical"
+                      size={bodySize}
+                      color={observation.instability.collapsing ? colorFor(DangerLevel.Considerable).string() : colorLookup('darkText')}
+                    />
                     <BodyBlack>Collapsing</BodyBlack>
                   </HStack>
                   <VStack space={8} width="100%" px={8}>
@@ -191,7 +198,11 @@ export const ObservationCard: React.FunctionComponent<{
                   </VStack>
                   {/* Cracking section */}
                   <HStack space={8} mt={8}>
-                    <MaterialCommunityIcons name="lightning-bolt" size={bodySize} color="black" />
+                    <MaterialCommunityIcons
+                      name="lightning-bolt"
+                      size={bodySize}
+                      color={observation.instability.cracking ? colorFor(DangerLevel.Considerable).string() : colorLookup('darkText')}
+                    />
                     <BodyBlack>Cracking</BodyBlack>
                   </HStack>
                   <VStack space={8} width="100%" px={8}>
