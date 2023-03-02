@@ -24,6 +24,6 @@ jobs:
       - name: Publish EAS update
         uses: ./.github/actions/expo/update
         with:
-          channel: ${{ github.head_ref }}
+          channel: ${{ github.ref_name }}
           message: '${{ github.event.head_commit.message }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
