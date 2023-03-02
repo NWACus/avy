@@ -1,11 +1,9 @@
-import log from 'logger';
 import React from 'react';
 import {Image, ScrollView, StyleSheet} from 'react-native';
 
 import {AntDesign, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import * as Sentry from 'sentry-expo';
 
 import {Card} from 'components/content/Card';
 import {Carousel} from 'components/content/carousel';
@@ -17,8 +15,8 @@ import {zone} from 'components/observations/ObservationsListView';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
+import {useNACObservation} from 'hooks/useNACObservation';
 import {useNWACObservation} from 'hooks/useNWACObservation';
-import {useObservationQuery} from 'hooks/useObservations';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
@@ -45,7 +43,6 @@ import {
   InstabilityDistribution,
   MapLayer,
   Observation,
-  observationSchema,
   SnowAvailableForTransport,
   WindLoading,
 } from 'types/nationalAvalancheCenter';
@@ -69,30 +66,15 @@ export const NWACObservationDetailView: React.FunctionComponent<{
 export const ObservationDetailView: React.FunctionComponent<{
   id: string;
 }> = ({id}) => {
-  const observationResult = useObservationQuery({
-    id: id,
-  });
-  const observation = observationResult.data;
-  const mapResult = useMapLayer(observation?.getSingleObservation.center_id?.toUpperCase() as AvalancheCenterID);
+  const observationResult = useNACObservation(id);
+  const mapResult = useMapLayer(observationResult.data?.center_id?.toUpperCase() as AvalancheCenterID);
   const mapLayer = mapResult.data;
 
   if (incompleteQueryState(observationResult, mapResult)) {
     return <QueryState results={[observationResult, mapResult]} />;
   }
 
-  const parseResult = observationSchema.deepPartial().safeParse(observation.getSingleObservation);
-  if (parseResult.success === false) {
-    log.info('unparsable observation', id, parseResult.error, JSON.stringify(observation.getSingleObservation));
-    Sentry.Native.captureException(parseResult.error, {
-      tags: {
-        zod_error: true,
-        id,
-      },
-    });
-    throw parseResult.error;
-  } else {
-    return <ObservationCard observation={parseResult.data} mapLayer={mapLayer} />;
-  }
+  return <ObservationCard observation={observationResult.data} mapLayer={mapLayer} />;
 };
 
 const dataTableFlex = [1, 1];
