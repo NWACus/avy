@@ -1,5 +1,6 @@
 name: publish-update
 on:
+  workflow_dispatch: {}
   push:
     branches:
       - preview
