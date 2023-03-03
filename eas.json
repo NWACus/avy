@@ -1,6 +1,6 @@
 {
   "cli": {
-    "version": ">= 0.60.0",
+    "version": ">= 3.7.2",
     "appVersionSource": "remote"
   },
   "build": {
@@ -24,6 +24,9 @@
         "appleId": "IOS_USER_ID",
         "appleTeamId": "IOS_TEAM_ID",
         "ascAppId": "IOS_APP_ID"
+      },
+      "android": {
+        "track": "internal"
       }
     },
     "release": {
