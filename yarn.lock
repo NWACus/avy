@@ -3418,7 +3418,7 @@
     "@tanstack/query-core" "4.24.9"
     use-sync-external-store "^1.2.0"
 
-"@testing-library/jest-native@^5.4.1":
+"@testing-library/jest-native@^5.4.2":
   version "5.4.2"
   resolved "https://registry.yarnpkg.com/@testing-library/jest-native/-/jest-native-5.4.2.tgz#6b0c987cc57f8d900763e763025d00d26ccbc85f"
   integrity sha512-Vo/CE1uvCVH1H8YPoOEXLXVsm+BjzSQTq35+wkri1fr0O5D+A2WZ+m3ni5g6f1OCzNKNGIAHmisBEWkDs1P1mw==
