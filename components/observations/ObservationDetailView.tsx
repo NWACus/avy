@@ -1,3 +1,5 @@
+import log from 'logger';
+
 import React from 'react';
 import {Image, ScrollView, StyleSheet} from 'react-native';
 
@@ -6,7 +8,7 @@ import {useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {colorFor} from 'components/AvalancheDangerPyramid';
-import {Card} from 'components/content/Card';
+import {Card, CardProps} from 'components/content/Card';
 import {Carousel} from 'components/content/carousel';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {ZoneMap} from 'components/content/ZoneMap';
@@ -93,6 +95,36 @@ export const TableRow = ({label, value}: {label: string; value: string}) => (
   </HStack>
 );
 
+export const WeatherCard = ({observation, ...props}: {observation: Observation} & CardProps) => {
+  const {weather = {}, weather_summary = ''} = observation.advanced_fields || {};
+  // observation.advanced_fields.weather might be missing, or might be an object that's filled with empty strings -
+  // in either of those cases, we don't have weather data to render.
+  const hasWeatherEntries = Object.entries(weather || {}).some(([_k, v]) => Boolean(v));
+
+  if (!hasWeatherEntries && !weather_summary) {
+    return null;
+  }
+
+  const {cloud_cover, air_temp, recent_snowfall, rain_elevation, snow_avail_for_transport, wind_loading} = weather;
+
+  return (
+    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Weather</BodyBlack>} {...props}>
+      <VStack space={8} width="100%">
+        {/* Using Boolean() here so that we don't end up rendering empty strings inline */}
+        {Boolean(weather_summary) && <HTML source={{html: weather_summary}} />}
+        {Boolean(cloud_cover) && <TableRow label={'Cloud Cover'} value={FormatCloudCover(cloud_cover as CloudCover)} />}
+        {Boolean(air_temp) && <TableRow label={'Temperature (F)'} value={air_temp || 'Unknown'} />}
+        {Boolean(recent_snowfall) && <TableRow label={'New or Recent Snowfall'} value={recent_snowfall} />}
+        {Boolean(rain_elevation) && <TableRow label={'Rain/Snow Line (ft)'} value={rain_elevation || 'Unknown'} />}
+        {Boolean(snow_avail_for_transport) && (
+          <TableRow label={'Snow Available For Transport'} value={FormatSnowAvailableForTransport(snow_avail_for_transport as SnowAvailableForTransport)} />
+        )}
+        {Boolean(wind_loading) && <TableRow label={'Wind Loading'} value={FormatWindLoading(wind_loading as WindLoading)} />}
+      </VStack>
+    </Card>
+  );
+};
+
 export const ObservationCard: React.FunctionComponent<{
   observation: Observation;
   mapLayer: MapLayer;
@@ -100,6 +132,7 @@ export const ObservationCard: React.FunctionComponent<{
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const {avalanches_observed, avalanches_triggered, avalanches_caught} = observation.instability;
 
+  log.info(observation);
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
       <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
@@ -262,37 +295,7 @@ export const ObservationCard: React.FunctionComponent<{
                     ))}
                 </Card>
               )}
-              {observation.advanced_fields &&
-                // observation.advanced_fields.weather is an object that's filled with empty strings by default
-                (Object.entries(observation.advanced_fields.weather).some(([_k, v]) => Boolean(v)) || observation.advanced_fields.weather_summary) && (
-                  <Card borderRadius={0} borderColor="white" header={<BodyBlack>Weather</BodyBlack>}>
-                    <VStack space={8} width="100%">
-                      {/* Using Boolean() here so that we don't end up rendering empty strings inline */}
-                      {Boolean(observation.advanced_fields.weather_summary) && <HTML source={{html: observation.advanced_fields.weather_summary}} />}
-                      {Boolean(observation.advanced_fields.weather.cloud_cover) && (
-                        <TableRow label={'Cloud Cover'} value={FormatCloudCover(observation.advanced_fields.weather.cloud_cover as CloudCover)} />
-                      )}
-                      {Boolean(observation.advanced_fields.weather.air_temp) && (
-                        <TableRow label={'Temperature (F)'} value={observation.advanced_fields.weather.air_temp || 'Unknown'} />
-                      )}
-                      {Boolean(observation.advanced_fields.weather.recent_snowfall) && (
-                        <TableRow label={'New or Recent Snowfall'} value={observation.advanced_fields.weather.recent_snowfall} />
-                      )}
-                      {Boolean(observation.advanced_fields.weather.rain_elevation) && (
-                        <TableRow label={'Rain/Snow Line (ft)'} value={observation.advanced_fields.weather.rain_elevation || 'Unknown'} />
-                      )}
-                      {Boolean(observation.advanced_fields.weather.snow_avail_for_transport) && (
-                        <TableRow
-                          label={'Snow Available For Transport'}
-                          value={FormatSnowAvailableForTransport(observation.advanced_fields.weather.snow_avail_for_transport as SnowAvailableForTransport)}
-                        />
-                      )}
-                      {Boolean(observation.advanced_fields.weather.wind_loading) && (
-                        <TableRow label={'Wind Loading'} value={FormatWindLoading(observation.advanced_fields.weather.wind_loading as WindLoading)} />
-                      )}
-                    </VStack>
-                  </Card>
-                )}
+              <WeatherCard observation={observation} />
               {observation.advanced_fields &&
                 (observation.advanced_fields.snowpack ||
                   (observation.advanced_fields.snowpack_media && observation.advanced_fields.snowpack_media.length > 0) ||
