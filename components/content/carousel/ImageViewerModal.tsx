@@ -1,6 +1,6 @@
 import React, {PropsWithChildren} from 'react';
 
-import {ScrollView} from 'react-native';
+import {ScrollView, TouchableOpacity} from 'react-native';
 
 import ImageView from 'react-native-image-viewing';
 
@@ -20,6 +20,14 @@ export interface ImageViewerModalProps extends ViewProps {
 
 const htmlStyle = {fontSize: 12, textAlign: 'center', color: 'white'} as const;
 
+const RoundButton = ({onPress, ...props}) => (
+  <TouchableOpacity onPress={onPress}>
+    <Center height={32} width={32} backgroundColor="#333333" borderRadius={16} {...props}>
+      <AntDesign size={24} color="white" name="close" />
+    </Center>
+  </TouchableOpacity>
+);
+
 export const ImageViewerModal: React.FunctionComponent<PropsWithChildren<ImageViewerModalProps>> = ({visible, media, startIndex, onClose, ..._props}) => {
   const HeaderComponent = ({imageIndex}) => (
     <SafeAreaProvider>
@@ -31,15 +39,7 @@ export const ImageViewerModal: React.FunctionComponent<PropsWithChildren<ImageVi
               {imageIndex + 1} / {media.length}
             </BodySm>
           </Center>
-          <AntDesign.Button
-            size={32}
-            color="white"
-            name="close"
-            backgroundColor="#333333"
-            iconStyle={{marginRight: 0}}
-            style={{textAlign: 'center', paddingRight: 8}}
-            onPress={onClose}
-          />
+          <RoundButton onPress={onClose} marginRight={16} />
         </HStack>
       </SafeAreaView>
     </SafeAreaProvider>
