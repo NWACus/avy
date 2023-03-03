@@ -30,5 +30,5 @@ jobs:
           IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
           IOS_APP_ID: ${{ secrets.IOS_APP_ID }}
           PROFILE: ${{ github.ref_name }}
-          PLATFORM: 'android'
+          PLATFORM: 'ios'
         run: ./eas_build_and_submit.sh
