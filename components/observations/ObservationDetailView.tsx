@@ -82,7 +82,7 @@ export const ObservationDetailView: React.FunctionComponent<{
 const dataTableFlex = [1, 1];
 const dataTableSpace = 16;
 
-const TableRow = ({label, value}: {label: string; value: string}) => (
+export const TableRow = ({label, value}: {label: string; value: string}) => (
   <HStack justifyContent="space-between" alignItems="center" width="100%" space={dataTableSpace}>
     <View flex={dataTableFlex[0]}>
       <BodySemibold>{label}</BodySemibold>

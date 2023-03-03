@@ -8,7 +8,7 @@ export const logFilePath = FileSystem.documentDirectory + LOG_PATH;
 // Always delete the log file on startup
 if (process.env.NODE_ENV !== 'test') {
   (async () => {
-    await FileSystem.deleteAsync(logFilePath);
+    await FileSystem.deleteAsync(logFilePath, {idempotent: true});
   })();
 }
 
