@@ -1,5 +1,3 @@
-import log from 'logger';
-
 import React from 'react';
 import {Image, ScrollView, StyleSheet} from 'react-native';
 
@@ -113,9 +111,9 @@ export const WeatherCard = ({observation, ...props}: {observation: Observation} 
         {/* Using Boolean() here so that we don't end up rendering empty strings inline */}
         {Boolean(weather_summary) && <HTML source={{html: weather_summary}} />}
         {Boolean(cloud_cover) && <TableRow label={'Cloud Cover'} value={FormatCloudCover(cloud_cover as CloudCover)} />}
-        {Boolean(air_temp) && <TableRow label={'Temperature (F)'} value={air_temp || 'Unknown'} />}
+        {Boolean(air_temp) && <TableRow label={'Temperature (F)'} value={air_temp} />}
         {Boolean(recent_snowfall) && <TableRow label={'New or Recent Snowfall'} value={recent_snowfall} />}
-        {Boolean(rain_elevation) && <TableRow label={'Rain/Snow Line (ft)'} value={rain_elevation || 'Unknown'} />}
+        {Boolean(rain_elevation) && <TableRow label={'Rain/Snow Line (ft)'} value={rain_elevation} />}
         {Boolean(snow_avail_for_transport) && (
           <TableRow label={'Snow Available For Transport'} value={FormatSnowAvailableForTransport(snow_avail_for_transport as SnowAvailableForTransport)} />
         )}
@@ -142,7 +140,6 @@ export const ObservationCard: React.FunctionComponent<{
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const {avalanches_observed, avalanches_triggered, avalanches_caught} = observation.instability;
 
-  log.info(observation);
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
       <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
