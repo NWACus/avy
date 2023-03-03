@@ -25,6 +25,7 @@ import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
+import {TableRow} from 'components/observations/ObservationDetailView';
 import {clearUploadCache} from 'components/observations/submitObservation';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
@@ -453,51 +454,16 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
   return (
     <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
       <VStack space={8} backgroundColor={colorLookup('background.base')} width="100%" height="100%">
-        <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Version Information</Title3Black>}>
-          <VStack space={16}>
-            <HStack justifyContent="space-evenly" space={8}>
-              <VStack space={4} style={{flex: 1}}>
-                <AllCapsSmBlack>Version</AllCapsSmBlack>
-                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                  {Application.nativeApplicationVersion}
-                </AllCapsSm>
-              </VStack>
-              <VStack space={4} style={{flex: 1}}>
-                <AllCapsSmBlack>Build Version</AllCapsSmBlack>
-                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                  {Application.nativeBuildVersion}
-                </AllCapsSm>
-              </VStack>
-            </HStack>
-            <HStack justifyContent="space-evenly" space={8}>
-              <VStack space={4} style={{flex: 1}}>
-                <AllCapsSmBlack>Update Channel</AllCapsSmBlack>
-                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                  {Updates.channel || 'unknown'}
-                </AllCapsSm>
-              </VStack>
-              <VStack space={4} style={{flex: 1}}>
-                <AllCapsSmBlack>Release Channel</AllCapsSmBlack>
-                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                  {Updates.releaseChannel || 'unknown'}
-                </AllCapsSm>
-              </VStack>
-            </HStack>
-            <HStack justifyContent="space-evenly" space={8}>
-              <VStack space={4} style={{flex: 1}}>
-                <AllCapsSmBlack>Runtime Version</AllCapsSmBlack>
-                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                  {Updates.runtimeVersion || 'unknown'}
-                </AllCapsSm>
-              </VStack>
-              <VStack space={4} style={{flex: 1}}>
-                <AllCapsSmBlack>Update ID</AllCapsSmBlack>
-                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                  {Updates.updateId || 'unknown'}
-                </AllCapsSm>
-              </VStack>
-            </HStack>
-          </VStack>
+        <Card marginTop={8} borderRadius={0} borderColor="white" header={<Title3Black>Versions</Title3Black>}>
+          <TableRow label="Application Version" value={Application.nativeApplicationVersion || 'unknown'} />
+          <TableRow label="Build Version" value={Application.nativeBuildVersion || 'unknown'} />
+          <TableRow label="Runtime Version" value={Updates.runtimeVersion || 'unknown'} />
+        </Card>
+        <Card borderRadius={0} borderColor="white" header={<Title3Black>Updates</Title3Black>}>
+          <TableRow label="Release Channel" value={Updates.releaseChannel || 'unknown'} />
+          <TableRow label="Update Version" value={Updates.channel || 'unknown'} />
+          <TableRow label="Update Group ID" value={Constants.manifest2?.metadata?.['updateGroup'] || 'unknown'} />
+          <TableRow label="Update ID" value={Updates.updateId || 'unknown'} />
         </Card>
       </VStack>
     </SafeAreaView>
