@@ -1,5 +1,6 @@
 name: publish-build
 on:
+  workflow_dispatch: {}
   push:
     branches:
       - preview
