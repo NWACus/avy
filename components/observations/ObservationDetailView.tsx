@@ -93,14 +93,12 @@ const TableRow = ({label, value}: {label: string; value: string}) => (
   </HStack>
 );
 
-const yesNo = (value: boolean) => (value ? 'Yes' : 'No');
-
 export const ObservationCard: React.FunctionComponent<{
   observation: Observation;
   mapLayer: MapLayer;
 }> = ({observation, mapLayer}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
-  const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
+  const {avalanches_observed, avalanches_triggered, avalanches_caught} = observation.instability;
 
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
@@ -136,7 +134,7 @@ export const ObservationCard: React.FunctionComponent<{
                   </VStack>
                 </HStack>
               </View>
-              <Card borderRadius={0} borderColor="white" header={<Title3Black>Summary</Title3Black>}>
+              <Card borderRadius={0} borderColor="white" header={<BodyBlack>Summary</BodyBlack>}>
                 <VStack space={8} width="100%">
                   {observation.location_point?.lat && observation.location_point?.lng && (
                     <ZoneMap
@@ -163,66 +161,68 @@ export const ObservationCard: React.FunctionComponent<{
                   <TableRow label="Route" value={observation.route || 'Not specified'} />
                   <TableRow label="Activity" value={activityDisplayName(observation.activity)} />
                   {observation.observation_summary && <HTML source={{html: observation.observation_summary}} />}
-                </VStack>
-              </Card>
-              <Card borderRadius={0} borderColor="white" header={<Title3Black>Signs of Unstable Snow</Title3Black>}>
-                <VStack space={8} width="100%">
+                  <View pt={8}>
+                    <BodySemibold>Signs of Instability</BodySemibold>
+                  </View>
                   {/* Avalanche section */}
                   <HStack space={8}>
-                    <NACIcon name="avalanche" size={bodySize} color={avalanches ? colorFor(DangerLevel.High).string() : colorLookup('darkText')} />
-                    <BodyBlack style={{width: '100%'}}>Avalanches</BodyBlack>
+                    <NACIcon name="avalanche" size={bodySize} color={avalanches_observed ? colorFor(DangerLevel.High).string() : colorLookup('darkText')} />
+                    <Body>{avalanches_observed ? 'Avalanche(s) Observed' : 'No Avalanche(s) Observed'}</Body>
                   </HStack>
-                  <VStack space={8} width="100%" px={8}>
-                    <TableRow label="Observed?" value={yesNo(observation.instability.avalanches_observed)} />
-                    <TableRow label="Triggered?" value={yesNo(observation.instability.avalanches_triggered)} />
-                    <TableRow label="Anyone caught?" value={yesNo(observation.instability.avalanches_caught)} />
-                  </VStack>
+                  {avalanches_triggered && (
+                    <HStack space={8}>
+                      <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />
+                      <Body>{'Avalanche(s) Triggered'}</Body>
+                    </HStack>
+                  )}
+                  {avalanches_caught && (
+                    <HStack space={8}>
+                      <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />
+                      <Body>{'Caught In Avalanche'}</Body>
+                    </HStack>
+                  )}
                   {/* Collapsing section */}
-                  <HStack space={8} mt={8}>
+                  <HStack space={8}>
                     <MaterialCommunityIcons
-                      name="arrow-collapse-vertical"
+                      name="flag"
                       size={bodySize}
                       color={observation.instability.collapsing ? colorFor(DangerLevel.Considerable).string() : colorLookup('darkText')}
                     />
-                    <BodyBlack>Collapsing</BodyBlack>
+                    <Body>
+                      {observation.instability.collapsing
+                        ? `${FormatInstabilityDistribution(observation.instability.collapsing_description as InstabilityDistribution)} Collapsing`
+                        : 'No Collapsing Observed'}
+                    </Body>
                   </HStack>
-                  <VStack space={8} width="100%" px={8}>
-                    <TableRow
-                      label="Observed?"
-                      value={
-                        observation.instability.collapsing
-                          ? FormatInstabilityDistribution(observation.instability.collapsing_description as InstabilityDistribution)
-                          : 'None Observed'
-                      }
-                    />
-                  </VStack>
                   {/* Cracking section */}
-                  <HStack space={8} mt={8}>
+                  <HStack space={8}>
                     <MaterialCommunityIcons
-                      name="lightning-bolt"
+                      name="flag"
                       size={bodySize}
                       color={observation.instability.cracking ? colorFor(DangerLevel.Considerable).string() : colorLookup('darkText')}
                     />
-                    <BodyBlack>Cracking</BodyBlack>
+                    <Body>
+                      {observation.instability.cracking
+                        ? `${FormatInstabilityDistribution(observation.instability.cracking_description as InstabilityDistribution)} Cracking`
+                        : 'No Cracking Observed'}
+                    </Body>
                   </HStack>
-                  <VStack space={8} width="100%" px={8}>
-                    <TableRow
-                      label="Observed?"
-                      value={
-                        observation.instability.cracking ? FormatInstabilityDistribution(observation.instability.cracking_description as InstabilityDistribution) : 'None Observed'
-                      }
-                    />
-                  </VStack>
-                  {observation.instability_summary && <HTML source={{html: observation.instability_summary}} />}
+
+                  {observation.instability_summary && (
+                    <VStack pt={8} space={8} width="100%">
+                      <BodySemibold>Instability Comments</BodySemibold>
+                      <HTML source={{html: observation.instability_summary}} />
+                    </VStack>
+                  )}
                 </VStack>
               </Card>
               {observation.media && observation.media.length > 0 && (
-                <Card borderRadius={0} borderColor="white" header={<Title3Black>Media</Title3Black>}>
+                <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>}>
                   <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.media} displayCaptions={false} />
                 </Card>
               )}
               {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanches_summary) && (
-                <Card borderRadius={0} borderColor="white" header={<Title3Black>Avalanches</Title3Black>}>
+                <Card borderRadius={0} borderColor="white" header={<BodyBlack>Avalanches</BodyBlack>}>
                   <VStack space={8} width="100%">
                     {observation.avalanches_summary && <HTML source={{html: observation.avalanches_summary}} />}
                   </VStack>
@@ -252,36 +252,52 @@ export const ObservationCard: React.FunctionComponent<{
                         {item.width && <TableRow label={'Width'} value={`${item.width}ft`} />}
                         {item.avalancheType && <TableRow label={'Type'} value={FormatAvalancheType(item.avalancheType as AvalancheType)} />}
                         {item.verticalFall && <TableRow label={'Bed Surface'} value={FormatAvalancheBedSurface(item.bedSfc as AvalancheBedSurface)} />}
-                        {item.media && item.media.length > 0 && <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={item.media} displayCaptions={false} />}
+                        {item.media && item.media.length > 0 && (
+                          <VStack pt={8} space={8} width="100%">
+                            <BodySemibold>Media</BodySemibold>
+                            <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={item.media} displayCaptions={false} />
+                          </VStack>
+                        )}
                       </VStack>
                     ))}
                 </Card>
               )}
-              {observation.advanced_fields && (observation.advanced_fields.weather || observation.advanced_fields.weather_summary) && (
-                <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather</Title3Black>}>
-                  <VStack space={8} width="100%">
-                    {observation.advanced_fields.weather_summary && <HTML source={{html: observation.advanced_fields.weather_summary}} />}
-                    {observation.advanced_fields.weather && (
-                      <VStack space={8} width="100%">
+              {observation.advanced_fields &&
+                // observation.advanced_fields.weather is an object that's filled with empty strings by default
+                (Object.entries(observation.advanced_fields.weather).some(([_k, v]) => Boolean(v)) || observation.advanced_fields.weather_summary) && (
+                  <Card borderRadius={0} borderColor="white" header={<BodyBlack>Weather</BodyBlack>}>
+                    <VStack space={8} width="100%">
+                      {/* Using Boolean() here so that we don't end up rendering empty strings inline */}
+                      {Boolean(observation.advanced_fields.weather_summary) && <HTML source={{html: observation.advanced_fields.weather_summary}} />}
+                      {Boolean(observation.advanced_fields.weather.cloud_cover) && (
                         <TableRow label={'Cloud Cover'} value={FormatCloudCover(observation.advanced_fields.weather.cloud_cover as CloudCover)} />
+                      )}
+                      {Boolean(observation.advanced_fields.weather.air_temp) && (
                         <TableRow label={'Temperature (F)'} value={observation.advanced_fields.weather.air_temp || 'Unknown'} />
+                      )}
+                      {Boolean(observation.advanced_fields.weather.recent_snowfall) && (
                         <TableRow label={'New or Recent Snowfall'} value={observation.advanced_fields.weather.recent_snowfall} />
+                      )}
+                      {Boolean(observation.advanced_fields.weather.rain_elevation) && (
                         <TableRow label={'Rain/Snow Line (ft)'} value={observation.advanced_fields.weather.rain_elevation || 'Unknown'} />
+                      )}
+                      {Boolean(observation.advanced_fields.weather.snow_avail_for_transport) && (
                         <TableRow
                           label={'Snow Available For Transport'}
                           value={FormatSnowAvailableForTransport(observation.advanced_fields.weather.snow_avail_for_transport as SnowAvailableForTransport)}
                         />
+                      )}
+                      {Boolean(observation.advanced_fields.weather.wind_loading) && (
                         <TableRow label={'Wind Loading'} value={FormatWindLoading(observation.advanced_fields.weather.wind_loading as WindLoading)} />
-                      </VStack>
-                    )}
-                  </VStack>
-                </Card>
-              )}
+                      )}
+                    </VStack>
+                  </Card>
+                )}
               {observation.advanced_fields &&
                 (observation.advanced_fields.snowpack ||
                   (observation.advanced_fields.snowpack_media && observation.advanced_fields.snowpack_media.length > 0) ||
                   observation.advanced_fields.snowpack_summary) && (
-                  <Card borderRadius={0} borderColor="white" header={<Title3Black>Snowpack</Title3Black>}>
+                  <Card borderRadius={0} borderColor="white" header={<BodyBlack>Snowpack</BodyBlack>}>
                     <VStack space={8} width="100%">
                       {observation.advanced_fields.snowpack_summary && <HTML source={{html: observation.advanced_fields.snowpack_summary}} />}
                       {observation.advanced_fields.snowpack_media && observation.advanced_fields.snowpack_media.length > 0 && (

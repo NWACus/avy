@@ -20,6 +20,7 @@ export const HStack: React.FC<HStackProps> = React.memo(({children: originalChil
   const children = (() => {
     if (typeof space === 'number') {
       return React.Children.toArray(originalChildren)
+        .filter(child => child != null) // we only render (and optionally add space between) non-null children
         .map((child, index) => (index > 0 ? [<View width={space} flex={0} key={`hstack-space-${index}`} />, child] : child))
         .flat();
     }
