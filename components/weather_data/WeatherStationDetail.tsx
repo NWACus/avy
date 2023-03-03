@@ -40,10 +40,10 @@ const preferredFieldOrder = {
   wind_direction: 7,
 
   precip_accum_one_hour: 10,
-  snow_depth_24h: 11,
-  snow_depth: 12,
+  precip_accum: 12,
+  snow_depth_24h: 15,
+  snow_depth: 16,
 
-  precip_accum: 99,
   snow_water_equiv: 99,
   pressure: 99,
   equip_temperature: 99,
@@ -60,14 +60,14 @@ const shortFieldMap = {
   wind_speed: 'Spd',
   wind_gust: 'Gust',
   wind_direction: 'Dir',
-  precip_accum: 'precip_accum',
+  precip_accum: 'PcpSum',
   snow_depth: 'SnoHt',
   snow_water_equiv: 'snow_water_equiv',
   pressure: 'Pres',
   precip_accum_one_hour: 'Pcp1',
   equip_temperature: 'EqTemp',
   snow_depth_24h: '24Sno',
-  intermittent_snow: 'intermittent_snow',
+  intermittent_snow: 'I/S_Sno',
   net_solar: 'SR',
   solar_radiation: 'SR',
 };
@@ -115,6 +115,19 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = React.memo(({timeSer
         tableRows[rowIndex] = row;
       });
     });
+  });
+
+  // If there's a precip_accum_one_hour column, synthesize an accumlulated precip column.
+  // Note that at this point, rows are sorted ascending by time
+  tableColumns.forEach(({field, elevation}, srcColumnIndex) => {
+    if (field === 'precip_accum_one_hour') {
+      const destColumnIndex = tableColumns.push({field: 'precip_accum', elevation}) - 1;
+      let accum = 0;
+      tableRows.forEach((row, idx) => {
+        accum += Number(row.cells[srcColumnIndex].value);
+        row.cells.push({colIdx: destColumnIndex, rowIdx: idx, value: Math.round(accum * 100.0) / 100.0});
+      });
+    }
   });
 
   // With the columns we have, what should the preferred ordering be?
