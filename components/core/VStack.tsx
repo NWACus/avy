@@ -21,6 +21,7 @@ export const VStack = React.memo(
     const children = (() => {
       if (typeof space === 'number') {
         return React.Children.toArray(originalChildren)
+          .filter(child => child != null) // we only render (and optionally add space between) non-null children
           .map((child, index) => (index > 0 ? [<View height={space} flex={0} key={`vstack-space-${index}`} />, child] : child))
           .flat();
       }
