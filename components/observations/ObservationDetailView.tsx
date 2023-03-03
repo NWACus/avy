@@ -125,6 +125,16 @@ export const WeatherCard = ({observation, ...props}: {observation: Observation} 
   );
 };
 
+export const withUnits = (value: string | number | null | undefined, units: string) => {
+  if (value == null) {
+    return 'Unknown';
+  } else if (Number.isNaN(Number(value))) {
+    return value;
+  } else {
+    return `${value}${units}`;
+  }
+};
+
 export const ObservationCard: React.FunctionComponent<{
   observation: Observation;
   mapLayer: MapLayer;
@@ -278,11 +288,11 @@ export const ObservationCard: React.FunctionComponent<{
                         )}
                         <TableRow
                           label={'Start Zone'}
-                          value={`${FormatAvalancheAspect(item.aspect as AvalancheAspect)}${item.slopeAngle ? `, ${item.slopeAngle}°` : ''} at ${item.elevation}ft`}
+                          value={`${FormatAvalancheAspect(item.aspect as AvalancheAspect)}${item.slopeAngle ? `, ${item.slopeAngle}°` : ''} at ${withUnits(item.elevation, 'ft')}`}
                         />
-                        {item.verticalFall && <TableRow label={'Vertical Fall'} value={`${item.verticalFall}ft`} />}
-                        {item.avgCrownDepth && <TableRow label={'Crown Thickness'} value={`${item.avgCrownDepth}cm`} />}
-                        {item.width && <TableRow label={'Width'} value={`${item.width}ft`} />}
+                        {item.verticalFall && <TableRow label={'Vertical Fall'} value={`${withUnits(item.verticalFall, 'ft')}`} />}
+                        {item.avgCrownDepth && <TableRow label={'Crown Thickness'} value={`${withUnits(item.avgCrownDepth, 'cm')}`} />}
+                        {item.width && <TableRow label={'Width'} value={`${withUnits(item.width, 'ft')}`} />}
                         {item.avalancheType && <TableRow label={'Type'} value={FormatAvalancheType(item.avalancheType as AvalancheType)} />}
                         {item.verticalFall && <TableRow label={'Bed Surface'} value={FormatAvalancheBedSurface(item.bedSfc as AvalancheBedSurface)} />}
                         {item.media && item.media.length > 0 && (

@@ -3,7 +3,7 @@ jest.mock('@sentry/react-native', () => ({init: () => jest.fn()}));
 
 import {render, screen} from '@testing-library/react-native';
 
-import {WeatherCard} from 'components/observations/ObservationDetailView';
+import {WeatherCard, withUnits} from 'components/observations/ObservationDetailView';
 import {RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
 import {CloudCover} from 'types/nationalAvalancheCenter';
 
@@ -68,6 +68,23 @@ describe('ObservationDetailView', () => {
         expect(screen.queryByTestId('card')).not.toBeNull();
         expect(screen.queryByText('Scattered')).not.toBeNull();
       });
+    });
+  });
+
+  describe('withUnits', () => {
+    it('appends units to numbers and strings that look like numbers', () => {
+      expect(withUnits(2, 'light-years')).toEqual('2light-years');
+      expect(withUnits('2', 'light-years')).toEqual('2light-years');
+    });
+
+    it('leaves strings alone, even partially numeric ones', () => {
+      expect(withUnits('some', 'light-years')).toEqual('some');
+      expect(withUnits("7800'", 'feet')).toEqual("7800'");
+    });
+
+    it('returns a default for missing/null values', () => {
+      expect(withUnits(null, 'light-years')).toEqual('Unknown');
+      expect(withUnits(undefined, 'light-years')).toEqual('Unknown');
     });
   });
 });
