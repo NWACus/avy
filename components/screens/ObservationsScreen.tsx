@@ -7,7 +7,6 @@ import {ObservationsListView} from 'components/observations/ObservationsListView
 import {ObservationsPortal} from 'components/observations/ObservationsPortal';
 import {SimpleForm} from 'components/observations/SimpleForm';
 import {Title3Black} from 'components/text';
-import log from 'logger';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -68,7 +67,6 @@ const ObservationsListScreen = ({route}: NativeStackScreenProps<ObservationsStac
 
 export const ObservationScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observation'>) => {
   const {id} = route.params;
-  log.info('navigating to NAC observation', id);
   return (
     <View style={styles.fullScreen}>
       <ObservationDetailView id={id} />
@@ -78,7 +76,6 @@ export const ObservationScreen = ({route}: NativeStackScreenProps<ObservationsSt
 
 export const NWACObservationScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'nwacObservation'>) => {
   const {id} = route.params;
-  log.info('navigating to NWAC observation', id);
   return (
     <View style={styles.fullScreen}>
       <NWACObservationDetailView id={id} />
