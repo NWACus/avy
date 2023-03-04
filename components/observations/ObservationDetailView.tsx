@@ -10,7 +10,7 @@ import {Card, CardProps} from 'components/content/Card';
 import {Carousel} from 'components/content/carousel';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {ZoneMap} from 'components/content/ZoneMap';
-import {Center, HStack, View, VStack} from 'components/core';
+import {HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {zone} from 'components/observations/ObservationsListView';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize, Title3Black} from 'components/text';
@@ -18,6 +18,7 @@ import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservation} from 'hooks/useNACObservation';
 import {useNWACObservation} from 'hooks/useNWACObservation';
+import {Marker} from 'react-native-maps';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
@@ -192,9 +193,9 @@ export const ObservationCard: React.FunctionComponent<{
                         latitudeDelta: 0.075,
                         longitudeDelta: 0.075,
                       }}>
-                      <Center width="100%" height="100%" position="absolute" backgroundColor={undefined} pointerEvents="none">
-                        <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40, transform: [{translateY: -20}]}} />
-                      </Center>
+                      <Marker coordinate={{latitude: observation.location_point.lat, longitude: observation.location_point.lng}} anchor={{x: 0.5, y: 1}}>
+                        <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40}} />
+                      </Marker>
                     </ZoneMap>
                   )}
                   <TableRow label="Location" value={observation.location_name} />
