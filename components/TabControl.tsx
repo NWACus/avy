@@ -19,7 +19,7 @@ export interface TabControlProps {
 
 export const TabControl: React.FunctionComponent<TabControlProps> = ({children, backgroundColor}) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const selectedTextColor = colorLookup('primary.600');
+  const selectedTextColor = colorLookup('primary');
   const tabCount = React.Children.count(children);
 
   const tabStyle = {
