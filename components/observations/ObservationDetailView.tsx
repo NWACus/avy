@@ -18,7 +18,7 @@ import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservation} from 'hooks/useNACObservation';
 import {useNWACObservation} from 'hooks/useNWACObservation';
-import {Marker} from 'react-native-maps';
+import {LatLng, Marker} from 'react-native-maps';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
@@ -124,6 +124,59 @@ export const WeatherCard = ({observation, ...props}: {observation: Observation} 
   );
 };
 
+// NWAC observations do not require that a user choose a specific point on the map; instead, they allow
+// simply choosing the forecast zone. NAC observations, on the other hand, expect the user to choose *only*
+// a point on the map and do not allow the zone to be chosen. In our adaptive layer that exposes NWAC observations
+// as if they were on the NAC system, a set of placeholder locations is used to add location points to those
+// observations that otherwise do not have them, to allow the code downstream to know that the point exists.
+// We can use that point to determine the zone that the observation was in, but do not want to show the point
+// to users, as it will not match where the observation was actually submitted.
+const placeholders: LatLng[] = [
+  {latitude: 47.4769558629764, longitude: -120.80902913139369},
+  {
+    latitude: 48.508873866573,
+    longitude: -120.6576884996371,
+  },
+  {
+    latitude: 46.20049381811555,
+    longitude: -121.4923824736508,
+  },
+  {
+    latitude: 45.36977193873633,
+    longitude: -121.69703035377452,
+  },
+  {
+    latitude: 47.8010450209029,
+    longitude: -123.70620207968125,
+  },
+  {
+    latitude: 47.6009139228834,
+    longitude: -122.33426358631552,
+  },
+  {
+    latitude: 47.43050191839139,
+    longitude: -121.398011481564,
+  },
+  {
+    latitude: 47.75708705098087,
+    longitude: -121.09839553823569,
+  },
+  {
+    latitude: 48.20857063251787,
+    longitude: -121.41689869612796,
+  },
+  {
+    latitude: 48.83086824211633,
+    longitude: -121.60378434771066,
+  },
+  {
+    latitude: 46.93280523754054,
+    longitude: -121.45393919813452,
+  },
+];
+const isPlaceholder = (latitude: number, longtiude: number): boolean => {
+  return placeholders.map(point => point.latitude === latitude && point.longitude === longtiude).reduce((current, accumulator) => current || accumulator, false);
+};
 export const withUnits = (value: string | number | null | undefined, units: string) => {
   if (value == null) {
     return 'Unknown';
@@ -177,7 +230,7 @@ export const ObservationCard: React.FunctionComponent<{
               </View>
               <Card borderRadius={0} borderColor="white" header={<BodyBlack>Summary</BodyBlack>}>
                 <VStack space={8} width="100%">
-                  {observation.location_point?.lat && observation.location_point?.lng && (
+                  {!isPlaceholder(observation.location_point?.lat, observation.location_point?.lng) && (
                     <ZoneMap
                       style={{width: '100%', height: 200}}
                       animated={false}
@@ -193,7 +246,12 @@ export const ObservationCard: React.FunctionComponent<{
                         latitudeDelta: 0.075,
                         longitudeDelta: 0.075,
                       }}>
-                      <Marker coordinate={{latitude: observation.location_point.lat, longitude: observation.location_point.lng}} anchor={{x: 0.5, y: 1}}>
+                      <Marker
+                        coordinate={{
+                          latitude: observation.location_point.lat,
+                          longitude: observation.location_point.lng,
+                        }}
+                        anchor={{x: 0.5, y: 1}}>
                         <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40}} />
                       </Marker>
                     </ZoneMap>
