@@ -1,42 +1,46 @@
 import React from 'react';
 
-import {Caption1, Caption1Semibold} from 'components/text';
+import {Caption1, Caption1Semibold, TextWrapperProps} from 'components/text';
 import {DangerLevel} from 'types/nationalAvalancheCenter';
 
-export const TravelAdvice: React.FunctionComponent<{dangerLevel: DangerLevel}> = ({dangerLevel}) => {
+export const TravelAdvice: React.FunctionComponent<{dangerLevel: DangerLevel; HeadingText?: React.FC<TextWrapperProps>; BodyText?: React.FC<TextWrapperProps>}> = ({
+  dangerLevel,
+  HeadingText = Caption1Semibold,
+  BodyText = Caption1,
+}) => {
   switch (dangerLevel) {
     case DangerLevel.GeneralInformation:
     case DangerLevel.None:
-      return <Caption1>Insufficient data for issuing of danger ratings, but a summary of avalanche conditions exists. Read the summary for more information.</Caption1>;
+      return <BodyText>Insufficient data for issuing of danger ratings, but a summary of avalanche conditions exists. Read the summary for more information.</BodyText>;
     case DangerLevel.Low:
       return (
-        <Caption1>
-          <Caption1Semibold>Generally safe avalanche conditions.</Caption1Semibold> Watch for unstable snow on isolated terrain features.
-        </Caption1>
+        <BodyText>
+          <HeadingText>Generally safe avalanche conditions.</HeadingText> Watch for unstable snow on isolated terrain features.
+        </BodyText>
       );
     case DangerLevel.Moderate:
       return (
-        <Caption1>
-          <Caption1Semibold>Heightened avalanche conditions on specific terrain features.</Caption1Semibold> Evaluate snow and terrain carefully; identify features of concern.
-        </Caption1>
+        <BodyText>
+          <HeadingText>Heightened avalanche conditions on specific terrain features.</HeadingText> Evaluate snow and terrain carefully; identify features of concern.
+        </BodyText>
       );
     case DangerLevel.Considerable:
       return (
-        <Caption1>
-          <Caption1Semibold>Dangerous avalanche conditions.</Caption1Semibold> Careful snowpack evaluation, cautious route-finding and conservative decision-making essential.
-        </Caption1>
+        <BodyText>
+          <HeadingText>Dangerous avalanche conditions.</HeadingText> Careful snowpack evaluation, cautious route-finding and conservative decision-making essential.
+        </BodyText>
       );
     case DangerLevel.High:
       return (
-        <Caption1>
-          <Caption1Semibold>Very dangerous avalanche conditions.</Caption1Semibold> Travel in avalanche terrain not recommended.
-        </Caption1>
+        <BodyText>
+          <HeadingText>Very dangerous avalanche conditions.</HeadingText> Travel in avalanche terrain not recommended.
+        </BodyText>
       );
     case DangerLevel.Extreme:
       return (
-        <Caption1>
-          <Caption1Semibold>Extraordinarily dangerous avalanche conditions.</Caption1Semibold> Avoid all avalanche terrain.
-        </Caption1>
+        <BodyText>
+          <HeadingText>Extraordinarily dangerous avalanche conditions.</HeadingText> Avoid all avalanche terrain.
+        </BodyText>
       );
   }
   const invalid: never = dangerLevel;

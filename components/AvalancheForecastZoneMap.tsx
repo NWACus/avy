@@ -24,7 +24,7 @@ import {defaultMapRegionForGeometries, MapViewZone, ZoneMap} from 'components/co
 import {HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {TravelAdvice} from 'components/helpers/travelAdvice';
-import {BodySmSemibold, Caption1, Caption1Black, Title3Black} from 'components/text';
+import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts';
@@ -189,8 +189,8 @@ enum AnimatedDrawerState {
 class AnimatedMapWithDrawerController {
   // These offsets are applied through translateY on the FlatList drawer
   static readonly OFFSETS = {
-    [AnimatedDrawerState.Hidden]: 220,
-    [AnimatedDrawerState.Docked]: 120,
+    [AnimatedDrawerState.Hidden]: 240,
+    [AnimatedDrawerState.Docked]: 155,
     [AnimatedDrawerState.Visible]: 0,
   };
 
@@ -516,7 +516,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           requestedTime: formatRequestedTime(date),
         });
       }}>
-      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={200}>
+      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={230}>
         <View height={8} width="100%" bg={dangerColor.string()} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
         <VStack px={24} pt={4} pb={12} space={8}>
           <HStack space={8} alignItems="center">
@@ -526,16 +526,16 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           <Title3Black>{zone.name}</Title3Black>
           <VStack py={8}>
             <Text>
-              <Caption1Black>Published: </Caption1Black>
-              <Caption1>{utcDateToLocalTimeString(zone.start_date)}</Caption1>
+              <BodySm>Published: </BodySm>
+              <BodySm>{utcDateToLocalTimeString(zone.start_date)}</BodySm>
               {'\n'}
-              <Caption1Black>Expires: </Caption1Black>
-              <Caption1>{utcDateToLocalTimeString(zone.end_date)}</Caption1>
+              <BodySm>Expires: </BodySm>
+              <BodySm>{utcDateToLocalTimeString(zone.end_date)}</BodySm>
             </Text>
           </VStack>
           <Text>
-            <Caption1Black>Travel advice: </Caption1Black>
-            <TravelAdvice dangerLevel={zone.danger_level} />
+            <BodySm>Travel advice: </BodySm>
+            <TravelAdvice dangerLevel={zone.danger_level} HeadingText={BodySm} BodyText={BodySm} />
           </Text>
         </VStack>
       </VStack>
