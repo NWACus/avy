@@ -19,7 +19,7 @@ export interface TabControlProps {
 
 export const TabControl: React.FunctionComponent<TabControlProps> = ({children, backgroundColor}) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const selectedTextColor = colorLookup('primary.600');
+  const selectedTextColor = colorLookup('primary');
   const tabCount = React.Children.count(children);
 
   const tabStyle = {
@@ -31,24 +31,25 @@ export const TabControl: React.FunctionComponent<TabControlProps> = ({children, 
   } as const;
 
   return (
-    <VStack style={{width: '100%', flex: 1, flexGrow: 1, justifyContent: 'space-between', backgroundColor}}>
+    // overflow: hidden prevents the drop shadow on the HStack from rendering at the top edge of that component
+    <VStack style={{width: '100%', flex: 1, flexGrow: 1, justifyContent: 'space-between', backgroundColor, overflow: 'hidden'}}>
       <HStack
         justifyContent="space-evenly"
         alignItems="center"
         width="100%"
         backgroundColor={backgroundColor}
-        paddingTop={8}
         style={{
           shadowColor: '#000',
           shadowOffset: {
             width: 0,
-            height: 2,
+            height: 1,
           },
-          shadowOpacity: 0.23,
-          shadowRadius: 2.62,
+          shadowOpacity: 0.22,
+          shadowRadius: 2.22,
 
-          elevation: 4,
-          marginBottom: 8,
+          elevation: 3,
+          // setting zIndex allows the shadow to render over the top of the component next to this one
+          zIndex: 1,
         }}>
         {React.Children.map(children, (child, index) => {
           const selected = selectedIndex === index;

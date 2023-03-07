@@ -1,4 +1,4 @@
-import {AntDesign} from '@expo/vector-icons';
+import {Entypo} from '@expo/vector-icons';
 import {HStack, View, ViewProps, VStack} from 'components/core';
 import {Body, bodySize} from 'components/text';
 import React, {useState} from 'react';
@@ -34,7 +34,7 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
           }}>
           <HStack justifyContent="space-between" alignItems="center">
             <Body>{selectedItem}</Body>
-            <AntDesign name={dropdownVisible ? 'up' : 'down'} size={bodySize} color={colorLookup('text')} />
+            <Entypo name={dropdownVisible ? 'chevron-small-up' : 'chevron-small-down'} size={bodySize} color={colorLookup('text')} />
           </HStack>
         </TouchableOpacity>
       </View>

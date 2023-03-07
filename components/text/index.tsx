@@ -5,7 +5,7 @@ import {Text, TextProps, TextStyle} from 'react-native';
 
 import {colorLookup} from 'theme';
 
-interface TextWrapperProps extends TextProps {
+export interface TextWrapperProps extends TextProps {
   color?: TextStyle['color'];
   fontFamily?: TextStyle['fontFamily'];
   fontSize?: TextStyle['fontSize'];

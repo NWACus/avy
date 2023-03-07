@@ -1,4 +1,4 @@
-import {AntDesign} from '@expo/vector-icons';
+import {Entypo} from '@expo/vector-icons';
 import {HStack, ViewProps, VStack} from 'components/core';
 import {Body} from 'components/text';
 import React from 'react';
@@ -24,7 +24,7 @@ export function ActionList<T>({actions, ...props}: ActionListProps<T>) {
         <TouchableOpacity onPress={() => action && action(label, data)} key={label}>
           <HStack borderBottomWidth={1} borderColor={colorLookup('light.300')} py={8} justifyContent="space-between">
             <Body style={{flex: 1, flexGrow: 1}}>{label}</Body>
-            <AntDesign name={'right'} color={colorLookup('light.300')} size={24} />
+            <Entypo name={'chevron-small-right'} color={colorLookup('light.300')} size={24} />
           </HStack>
         </TouchableOpacity>
       ))}
