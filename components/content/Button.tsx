@@ -2,21 +2,16 @@ import {Center, View, ViewProps} from 'components/core';
 import React, {useState} from 'react';
 import {ColorValue, GestureResponderEvent, Pressable, Text} from 'react-native';
 import {colorLookup} from 'theme';
+import tinycolor from 'tinycolor2';
 
 interface ButtonStyle {
   backgroundColor?: ColorValue;
   borderColor: ColorValue;
   textColor: ColorValue;
-  disabled: {
-    backgroundColor?: ColorValue;
-    borderColor: ColorValue;
-    textColor: ColorValue;
-  };
-  pressed: {
-    backgroundColor?: ColorValue;
-    borderColor: ColorValue;
-    textColor: ColorValue;
-  };
+  disabledBackgroundColor?: ColorValue;
+  disabledBorderColor: ColorValue;
+  disabledTextColor: ColorValue;
+  pressedBackgroundColor: ColorValue;
 }
 
 type PredefinedButtonStyle = 'normal' | 'primary' | 'destructive';
@@ -25,45 +20,28 @@ const styles = {
   normal: {
     borderColor: colorLookup('primary'),
     textColor: colorLookup('primary'),
-    disabled: {
-      backgroundColor: colorLookup('disabled'),
-      borderColor: colorLookup('disabled'),
-      textColor: colorLookup('text'),
-    },
-    pressed: {
-      borderColor: colorLookup('blue2'),
-      textColor: colorLookup('blue2'),
-    },
+    disabledBorderColor: tinycolor(colorLookup('primary')).desaturate(80).toRgbString(),
+    disabledTextColor: tinycolor(colorLookup('primary')).desaturate(80).toRgbString(),
+    disabledBackgroundColor: tinycolor(colorLookup('primary')).setAlpha(0.2).desaturate(80).toRgbString(),
+    pressedBackgroundColor: tinycolor(colorLookup('primary')).setAlpha(0.2).toRgbString(),
   },
   primary: {
     backgroundColor: colorLookup('primary'),
     borderColor: colorLookup('primary'),
     textColor: colorLookup('white'),
-    disabled: {
-      backgroundColor: colorLookup('disabled'),
-      borderColor: colorLookup('disabled'),
-      textColor: colorLookup('text'),
-    },
-    pressed: {
-      borderColor: colorLookup('blue2'),
-      backgroundColor: colorLookup('blue2'),
-      textColor: colorLookup('white'),
-    },
+    disabledBackgroundColor: tinycolor(colorLookup('primary')).desaturate(80).toRgbString(),
+    disabledBorderColor: tinycolor(colorLookup('primary')).desaturate(80).toRgbString(),
+    disabledTextColor: tinycolor(colorLookup('white')).desaturate(80).toRgbString(),
+    pressedBackgroundColor: tinycolor(colorLookup('primary')).setAlpha(0.6).toRgbString(),
   },
   destructive: {
-    backgroundColor: colorLookup('error.color'),
-    borderColor: colorLookup('error.color'),
+    backgroundColor: colorLookup('red.700'),
+    borderColor: colorLookup('red.700'),
     textColor: colorLookup('white'),
-    disabled: {
-      backgroundColor: colorLookup('disabled'),
-      borderColor: colorLookup('disabled'),
-      textColor: colorLookup('text'),
-    },
-    pressed: {
-      borderColor: colorLookup('error.color-primary'),
-      backgroundColor: colorLookup('error.color-primary'),
-      textColor: colorLookup('white'),
-    },
+    disabledBackgroundColor: tinycolor(colorLookup('red.700')).desaturate(80).toRgbString(),
+    disabledBorderColor: tinycolor(colorLookup('red.700')).desaturate(80).toRgbString(),
+    disabledTextColor: tinycolor(colorLookup('red.700')).desaturate(80).toRgbString(),
+    pressedBackgroundColor: tinycolor(colorLookup('red.700')).setAlpha(0.6).toRgbString(),
   },
 };
 
@@ -79,14 +57,19 @@ interface StyledButtonProps extends BaseButtonProps {
 
 const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, onPress, disabled = false, ...props}) => {
   const [pressed, setIsPressed] = useState<boolean>(false);
-  const colorStyleSource = disabled ? buttonStyle.disabled : pressed ? buttonStyle.pressed : buttonStyle;
-  const {backgroundColor, borderColor, textColor} = colorStyleSource;
+  const {borderColor, textColor, pressedBackgroundColor, backgroundColor, disabledBackgroundColor, disabledBorderColor, disabledTextColor} = buttonStyle;
 
   return (
-    <View borderColor={borderColor} borderWidth={2} borderRadius={8} py={12} px={16} {...props} backgroundColor={backgroundColor}>
+    <View
+      borderColor={disabled ? disabledBorderColor : borderColor}
+      borderWidth={2}
+      borderRadius={12}
+      p={8}
+      {...props}
+      backgroundColor={disabled ? disabledBackgroundColor : pressed ? pressedBackgroundColor : backgroundColor}>
       <Pressable disabled={disabled} onPressIn={() => setIsPressed(true)} onPressOut={() => setIsPressed(false)} onPress={event => onPress?.(event)}>
         <Center>
-          <Text style={{color: textColor}}>{children}</Text>
+          <Text style={{color: disabled ? disabledTextColor : textColor}}>{children}</Text>
         </Center>
       </Pressable>
     </View>

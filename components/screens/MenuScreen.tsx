@@ -75,7 +75,6 @@ export const MenuStackScreen = (
         component={AvalancheCenterSelectorScreen(avalancheCenterId, setAvalancheCenter)}
         options={{title: `Choose An Avalanche Center`}}
       />
-      <MenuStack.Screen name="buttonStylePreview" component={ButtonStylePreview} options={{title: `Button style preview`}} />
       <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text style preview`}} />
       <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
       <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
@@ -180,13 +179,6 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                     <Card borderRadius={0} borderColor="white" header={<Title3Black>Design Previews</Title3Black>}>
                       <ActionList
                         actions={[
-                          {
-                            label: 'Open button style preview',
-                            data: 'Button Style Preview',
-                            action: () => {
-                              navigation.navigate('buttonStylePreview');
-                            },
-                          },
                           {
                             label: 'Open text style preview',
                             data: 'Text Style Preview',
@@ -376,29 +368,6 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
     );
   };
 };
-
-const ButtonStylePreview = () => (
-  <VStack width="100%" height="100%" space={32} px={32} alignItems="stretch" justifyContent="center">
-    <Button buttonStyle="primary" onPress={() => undefined}>
-      <BodyBlack>Primary button</BodyBlack>
-    </Button>
-    <Button buttonStyle="primary" disabled onPress={() => undefined}>
-      <BodyBlack>Primary button (disabled)</BodyBlack>
-    </Button>
-    <Button buttonStyle="normal" onPress={() => undefined}>
-      <BodyBlack>Normal button</BodyBlack>
-    </Button>
-    <Button buttonStyle="normal" disabled onPress={() => undefined}>
-      <BodyBlack>Normal button (disabled)</BodyBlack>
-    </Button>
-    <Button buttonStyle="destructive" onPress={() => undefined}>
-      <BodyBlack>Destructive button</BodyBlack>
-    </Button>
-    <Button buttonStyle="destructive" disabled onPress={() => undefined}>
-      <BodyBlack>Destructive button (disabled)</BodyBlack>
-    </Button>
-  </VStack>
-);
 
 const TextStylePreview = () => {
   const data = [

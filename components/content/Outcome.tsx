@@ -1,6 +1,6 @@
 import {Button} from 'components/content/Button';
 import {View, VStack} from 'components/core';
-import {Body, BodyBlack, FeatureTitleBlack} from 'components/text';
+import {Body, BodySemibold, FeatureTitleBlack} from 'components/text';
 import React, {ReactNode} from 'react';
 import {GestureResponderEvent} from 'react-native';
 
@@ -25,11 +25,11 @@ export const Outcome: React.FunctionComponent<OutcomeOptions> = ({outcome, reaso
             </VStack>
             {onRetry && (
               <Button width={'100%'} buttonStyle="primary" onPress={onRetry}>
-                <BodyBlack>Retry</BodyBlack>
+                <BodySemibold>Retry</BodySemibold>
               </Button>
             )}
             <Button width={'100%'} buttonStyle={onRetry ? 'normal' : 'primary'} onPress={onClose}>
-              <BodyBlack>Close</BodyBlack>
+              <BodySemibold>Close</BodySemibold>
             </Button>
           </VStack>
         </View>
