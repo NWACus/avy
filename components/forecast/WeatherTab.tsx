@@ -5,7 +5,7 @@ import {Card, CollapsibleCard} from 'components/content/Card';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
-import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodyXSmBlack, bodyXSmSize, Title3Black} from 'components/text';
+import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, BodyXSmBlack, bodyXSmSize, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
 import {add} from 'date-fns';
@@ -30,7 +30,7 @@ interface WeatherTabProps {
 const SmallHeaderWithTooltip = ({title, content, dialogTitle}) => (
   // the icon style is designed to make the circle "i" look natural next to the
   // text - neither `center` nor `baseline` alignment look good on their own
-  <HStack space={6} alignItems="center">
+  <HStack space={6} alignItems="center" justifyContent="space-between" width="100%">
     <BodyXSmBlack style={{flex: 1}}>{title}</BodyXSmBlack>
     <InfoTooltip size={bodyXSmSize} title={dialogTitle || title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />
   </HStack>
@@ -125,21 +125,21 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
               <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index === 0 ? colorLookup('light.300') : 'white'}>
                 <BodyBlack>{f.title}</BodyBlack>
                 <Body>{f.description}</Body>
-                <View borderWidth={1} borderColor={colorLookup('light.300')} mt={12}>
+                <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} mt={12}>
                   <HStack justifyContent="space-between" alignItems="stretch" borderBottomWidth={1} borderColor={colorLookup('light.300')}>
                     <VStack flexBasis={0.5} flex={1} m={12}>
                       <SmallHeaderWithTooltip title="5K ft Temps (°F)" dialogTitle="Temperature" content={helpStrings.weather.temperature} />
-                      <Body>
+                      <BodySm color={colorLookup('text.secondary')}>
                         {f.five_thousand_foot_temperatures.max} (max) / {f.five_thousand_foot_temperatures.min} (min)
-                      </Body>
+                      </BodySm>
                     </VStack>
                     <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
                     <VStack flexBasis={0.5} flex={1} m={12}>
                       <SmallHeaderWithTooltip title="Snow Level (ft)" dialogTitle="Snow Level" content={helpStrings.weather.snowLevelNoAsterisk} />
                       {f.snow_levels.map(({level, period}, lindex) => (
-                        <Body key={`forecast-${index}-snow-level-${lindex}`}>
+                        <BodySm color={colorLookup('text.secondary')} key={`forecast-${index}-snow-level-${lindex}`}>
                           {Intl.NumberFormat().format(level)} {period}
-                        </Body>
+                        </BodySm>
                       ))}
                     </VStack>
                   </HStack>
@@ -149,10 +149,14 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
                       {f.precipitation.map(({name, value}) => (
                         <HStack key={name} justifyContent="space-between" alignItems="flex-start" alignSelf="stretch">
                           <View flex={1} flexGrow={2} pr={12}>
-                            <Body style={{flex: 1, flexBasis: 0.75}}>{name}</Body>
+                            <BodySm color={colorLookup('text.secondary')} style={{flex: 1, flexBasis: 0.75}}>
+                              {name}
+                            </BodySm>
                           </View>
                           <View flex={1} flexGrow={1}>
-                            <Body textAlign="right">{value}</Body>
+                            <BodySm color={colorLookup('text.secondary')} textAlign="right">
+                              {value}
+                            </BodySm>
                           </View>
                         </HStack>
                       ))}
@@ -161,9 +165,9 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
                     <VStack flexBasis={0.5} flex={1} m={12}>
                       <SmallHeaderWithTooltip title="Ridgeline Winds (mph)" dialogTitle="Ridgeline Winds" content={helpStrings.weather.wind} />
                       {f.ridgeline_winds.map(({direction, speed, period}, lindex) => (
-                        <Body key={`forecast-${index}-winds-${lindex}`}>
+                        <BodySm color={colorLookup('text.secondary')} key={`forecast-${index}-winds-${lindex}`}>
                           {direction} {speed} {period}
-                        </Body>
+                        </BodySm>
                       ))}
                     </VStack>
                   </HStack>
