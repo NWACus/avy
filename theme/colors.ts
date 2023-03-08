@@ -1,4 +1,21 @@
 import {ColorValue} from 'react-native';
+import tinycolor from 'tinycolor2';
+
+// A lot of colors from the designers are specified with alpha channels, but we want these colors to
+// be solid as opposed to letting the underlying colors through. Also, things with alpha channels are sometimes
+// treated differently - as an example, a color with alpha will render differently in a background vs a border.
+const rgbaToHexString = (rgba: string): string => {
+  const c = tinycolor(rgba).toRgb();
+  if (c.r === 0 && c.g === 0 && c.b === 0) {
+    // if the color is specified as black, then just multiplying black by the alpha channel will always give you black back
+    // instead, we use white and (1 - alpha)
+    c.r = 255.0;
+    c.g = 255.0;
+    c.b = 255.0;
+    c.a = 1.0 - c.a;
+  }
+  return tinycolor({r: Math.round(c.r * c.a), g: Math.round(c.g * c.a), b: Math.round(c.b * c.a)}).toHexString();
+};
 
 export const COLORS = {
   //
@@ -8,24 +25,27 @@ export const COLORS = {
   primary: '#096DD9',
   'primary.hover': '#40A9FF',
   'primary.active': '#096DD9',
-  'primary.outline': 'rgba(24, 144, 255, 0.2)',
+  'primary.outline': rgbaToHexString('rgba(24, 144, 255, 0.2)'),
   //
   // UI
-  blue1: 'rgba(24, 144, 255, 1)',
-  blue2: 'rgba(0, 80, 179, 1)',
-  blue3: 'rgba(0, 58, 140, 1)',
-  'NWAC-dark': 'rgba(20, 45, 86, 1)',
-  'NWAC-light': 'rgba(160, 204, 216, 1)',
+  blue1: rgbaToHexString('rgba(24, 144, 255, 1)'),
+  blue2: rgbaToHexString('rgba(0, 80, 179, 1)'),
+  blue3: rgbaToHexString('rgba(0, 58, 140, 1)'),
+  'NWAC-dark': rgbaToHexString('rgba(20, 45, 86, 1)'),
+  'NWAC-light': rgbaToHexString('rgba(160, 204, 216, 1)'),
   //
   // Neutral
-  text: 'rgba(0, 0, 0, 0.85)',
-  'text.secondary': 'rgba(0, 0, 0, 0.7)',
-  'text.tertiary': 'rgba(0, 0, 0, 0.45)',
-  disabled: 'rgba(0, 0, 0, 0.25)',
-  'border.base': 'rgba(0, 0, 0, 0.15)',
-  'border.split': 'rgba(0, 0, 0, 0.06)',
-  'background.base': 'rgba(0, 0, 0, 0.04)',
-  'background.light': 'rgba(0, 0, 0, 0.02)',
+  text: rgbaToHexString('rgba(0, 0, 0, 0.85)'),
+  'text.secondary': rgbaToHexString('rgba(0, 0, 0, 0.7)'),
+  'text.tertiary': rgbaToHexString('rgba(0, 0, 0, 0.45)'),
+  disabled: rgbaToHexString('rgba(0, 0, 0, 0.25)'),
+  'border.base': rgbaToHexString('rgba(0, 0, 0, 0.15)'),
+  'border.split': rgbaToHexString('rgba(0, 0, 0, 0.06)'),
+  'background.base': rgbaToHexString('rgba(0, 0, 0, 0.04)'),
+  'background.color-light': rgbaToHexString('rgba(0, 0, 0, 0.02)'),
+
+  'error.color': rgbaToHexString('rgba(222, 75, 70, 1)'),
+  'error.color-primary': rgbaToHexString('rgba(218, 55, 49, 1)'),
 
   // Color aliases from NativeBase
   'rose.50': '#fff1f2',
