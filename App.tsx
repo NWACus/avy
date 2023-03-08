@@ -48,6 +48,7 @@ import ImageCache from 'hooks/useCachedImageURI';
 import {useOnlineManager} from 'hooks/useOnlineManager';
 import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
 import {TabNavigatorParamList} from 'routes';
+import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 require('date-time-format-timezone');
 
@@ -249,6 +250,9 @@ const BaseApp: React.FunctionComponent<{
                         return <MaterialCommunityIcons name="dots-horizontal" size={size} color={color} />;
                       }
                     },
+                    // these two properties should really take ColorValue but oh well
+                    tabBarActiveTintColor: colorLookup('primary') as string,
+                    tabBarInactiveTintColor: colorLookup('text.secondary') as string,
                   })}>
                   <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
                     {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
