@@ -1,7 +1,7 @@
 import {AntDesign} from '@expo/vector-icons';
 import {Button} from 'components/content/Button';
 import {Center, View, VStack} from 'components/core';
-import {Body, Title3Semibold} from 'components/text';
+import {BodyBlack, Title3Semibold} from 'components/text';
 import {HTML, HTMLRendererConfig, HTMLRendererConfigProps} from 'components/text/HTML';
 import {merge} from 'lodash';
 import React, {useCallback, useState} from 'react';
@@ -64,7 +64,7 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
                     <HTML source={{html: content}} />
                   </HTMLRendererConfig>
                   <Button onPress={closeModal} alignSelf="stretch">
-                    <Body>Close</Body>
+                    <BodyBlack>Close</BodyBlack>
                   </Button>
                 </VStack>
               </Center>

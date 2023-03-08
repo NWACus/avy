@@ -25,7 +25,7 @@ import {SwitchField} from 'components/form/SwitchField';
 import {TextField} from 'components/form/TextField';
 import {defaultObservationFormData, ObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
 import {submitObservation} from 'components/observations/submitObservation';
-import {Body, BodySemibold, Title3Black, Title3Semibold} from 'components/text';
+import {Body, BodyBlack, BodySemibold, Title3Black, Title3Semibold} from 'components/text';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, InstabilityDistribution, MediaItem, MediaType, Observation} from 'types/nationalAvalancheCenter';
@@ -455,7 +455,7 @@ export const SimpleForm: React.FC<{
                         />
                       )}
                       <Button buttonStyle="normal" onPress={pickImage} disabled={images.length === maxImageCount}>
-                        <BodySemibold>Select an image</BodySemibold>
+                        <BodyBlack>Select an image</BodyBlack>
                       </Button>
                     </VStack>
                   </Card>
@@ -474,7 +474,7 @@ export const SimpleForm: React.FC<{
                     {mutation.isLoading && (
                       <HStack space={8} alignItems="center" pt={3}>
                         <ActivityIndicator size="small" />
-                        <BodySemibold color={colorLookup('white')}>Cancel submission</BodySemibold>
+                        <BodyBlack color={colorLookup('white')}>Cancel submission</BodyBlack>
                       </HStack>
                     )}
                     {!mutation.isLoading && <BodySemibold>Submit your observation</BodySemibold>}

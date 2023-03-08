@@ -2,7 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import Topo from 'assets/illustrations/topo.svg';
 import {Button} from 'components/content/Button';
 import {View, VStack} from 'components/core';
-import {Body, BodySemibold, Title3Black} from 'components/text';
+import {Body, BodyBlack, Title3Black} from 'components/text';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {ObservationsStackNavigationProps} from 'routes';
@@ -24,10 +24,10 @@ export const ObservationsPortal: React.FC<{
           <Title3Black textAlign="center">You haven't submitted any observations in the App yet</Title3Black>
           <Body textAlign="center">Help keep the {center_id} community informed by submitting your observation.</Body>
           <Button buttonStyle="primary" onPress={() => navigation.navigate('observationSubmit', {center_id})}>
-            <BodySemibold>Submit an observation</BodySemibold>
+            <BodyBlack>Submit an observation</BodyBlack>
           </Button>
           <Button onPress={() => navigation.navigate('observationsList', {center_id, requestedTime: formatRequestedTime(requestedTime)})}>
-            <BodySemibold>View all observations</BodySemibold>
+            <BodyBlack>View all observations</BodyBlack>
           </Button>
         </VStack>
       </SafeAreaView>
