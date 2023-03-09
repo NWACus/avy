@@ -6,15 +6,12 @@ import tinycolor from 'tinycolor2';
 // treated differently - as an example, a color with alpha will render differently in a background vs a border.
 const rgbaToHexString = (rgba: string): string => {
   const c = tinycolor(rgba).toRgb();
-  if (c.r === 0 && c.g === 0 && c.b === 0) {
-    // if the color is specified as black, then just multiplying black by the alpha channel will always give you black back
-    // instead, we use white and (1 - alpha)
-    c.r = 255.0;
-    c.g = 255.0;
-    c.b = 255.0;
-    c.a = 1.0 - c.a;
-  }
-  return tinycolor({r: Math.round(c.r * c.a), g: Math.round(c.g * c.a), b: Math.round(c.b * c.a)}).toHexString();
+  // We calculate the actual color by blending it with pure white at one minus alpha
+  return tinycolor({
+    r: Math.max(0, Math.min(255, Math.round(c.r * c.a + 255.0 * (1.0 - c.a)))),
+    g: Math.max(0, Math.min(255, Math.round(c.g * c.a + 255.0 * (1.0 - c.a)))),
+    b: Math.max(0, Math.min(255, Math.round(c.b * c.a + 255.0 * (1.0 - c.a)))),
+  }).toHexString();
 };
 
 export const COLORS = {

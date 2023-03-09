@@ -25,7 +25,7 @@ export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>>
   return (
     <View {...props}>
       <HTMLRendererConfig baseStyle={{fontSize: 12, fontFamily: 'Lato_400Regular_Italic', textAlign: 'center'}}>
-        <ImageList imageWidth={thumbnailWidth} imageHeight={thumbnailHeight} media={media} displayCaptions={displayCaptions} onPress={onPress} />
+        <ImageList imageWidth={thumbnailWidth} imageHeight={thumbnailHeight} media={media} displayCaptions={displayCaptions} onPress={onPress} imageStyle={{borderRadius: 4}} />
       </HTMLRendererConfig>
       <ImageViewerModal visible={modalIndex !== null} onClose={() => setModalIndex(null)} media={media} startIndex={modalIndex} />
     </View>
