@@ -49,7 +49,7 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
   return (
     <>
       {/* unfortunate ant misspelling: infocirlceo */}
-      <AntDesign.Button name={outlineIcon} color={colorLookup(color)} backgroundColor="rgba(1, 1, 1, 0)" onPress={openModal} size={size} iconStyle={{marginRight: 0}} {...props} />
+      <AntDesign.Button name={outlineIcon} color={colorLookup(color)} backgroundColor="white" onPress={openModal} size={size} iconStyle={{marginRight: 0}} {...props} />
       {/* Pressing the Android back button dismisses the modal */}
       <Modal visible={showModal} transparent animationType="fade" onRequestClose={closeModal}>
         {/* Pressing anywhere outside the modal dismisses the modal */}

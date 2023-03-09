@@ -114,20 +114,18 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = React.memo(({timeSer
         row.cells.push({colIdx: columnIndex, rowIdx: rowIndex, value: columnIndex === 0 ? times[rowIndex] : value});
         tableRows[rowIndex] = row;
       });
+      // If this is the precip_accum_one_hour column, synthesize an accumlulated precip column.
+      // Note that at this point, rows are sorted ascending by time
+      if (field === 'precip_accum_one_hour') {
+        const destColumnIndex = tableColumns.push({field: 'precip_accum', elevation}) - 1;
+        let accum = 0;
+        values.forEach((value, rowIndex) => {
+          const row = tableRows[rowIndex];
+          accum += Number(row.cells[columnIndex].value);
+          row.cells.push({colIdx: destColumnIndex, rowIdx: rowIndex, value: Math.round(accum * 100.0) / 100.0});
+        });
+      }
     });
-  });
-
-  // If there's a precip_accum_one_hour column, synthesize an accumlulated precip column.
-  // Note that at this point, rows are sorted ascending by time
-  tableColumns.forEach(({field, elevation}, srcColumnIndex) => {
-    if (field === 'precip_accum_one_hour') {
-      const destColumnIndex = tableColumns.push({field: 'precip_accum', elevation}) - 1;
-      let accum = 0;
-      tableRows.forEach((row, idx) => {
-        accum += Number(row.cells[srcColumnIndex].value);
-        row.cells.push({colIdx: destColumnIndex, rowIdx: idx, value: Math.round(accum * 100.0) / 100.0});
-      });
-    }
   });
 
   // With the columns we have, what should the preferred ordering be?
@@ -180,7 +178,8 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = React.memo(({timeSer
                       px={columnPadding}
                       borderRightWidth={columnIndex === 0 ? 1 : 0}
                       borderColor={colorLookup('text.tertiary')}>
-                      <BodyXSm>{row.cells[columnIndex].value}</BodyXSm>
+                      {/* Occasionally, data may be present for only some of the times */}
+                      <BodyXSm>{row.cells[columnIndex] ? row.cells[columnIndex].value : 'n/a'}</BodyXSm>
                     </Center>
                   ))}
               </VStack>
