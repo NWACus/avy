@@ -1,7 +1,4 @@
 import {QueryClient} from '@tanstack/react-query';
-
-import Log from 'network/log';
-
 import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {preloadAvalancheDangerIcons} from 'components/AvalancheDangerIcon';
 import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
@@ -44,6 +41,4 @@ export const prefetchAllActiveForecasts = async (queryClient: QueryClient, cente
         .flat()
         .forEach(async url => ImageCache.prefetch(queryClient, url));
     });
-
-  Log.prefetch('preload complete!');
 };

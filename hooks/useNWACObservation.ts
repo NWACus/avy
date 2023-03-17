@@ -6,9 +6,8 @@ import axios, {AxiosError} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
-import Log from 'network/log';
-
 import {ClientContext, ClientProps} from 'clientContext';
+import {formatDistanceToNowStrict} from 'date-fns';
 import {logQueryKey} from 'hooks/logger';
 import {Observation, observationSchema} from 'types/nationalAvalancheCenter';
 import {z, ZodError} from 'zod';
@@ -32,9 +31,10 @@ export const prefetchNWACObservation = async (queryClient: QueryClient, nwacHost
   await queryClient.prefetchQuery({
     queryKey: queryKey(nwacHost, id),
     queryFn: async () => {
-      Log.prefetch(`prefetching NWAC observation ${id}`);
+      const start = new Date();
+      log.debug(`prefetching NWAC observation`, {id: id});
       const result = fetchNWACObservation(nwacHost, id);
-      Log.prefetch(`finished prefetching NWAC observation ${id}`);
+      log.debug(`finished prefetching NWAC observation`, {id: id, duration: formatDistanceToNowStrict(start)});
       return result;
     },
   });
@@ -62,7 +62,7 @@ export const fetchNWACObservation = async (nwacHost: string, id: number): Promis
 
   const parseResult = nwacObservationSchema.safeParse(data);
   if (parseResult.success === false) {
-    log.warn(`unparsable observation`, url, parseResult.error, JSON.stringify(data));
+    log.warn('unparsable NWAC observation', {url: url, id: id, error: parseResult.error});
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

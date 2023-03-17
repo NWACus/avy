@@ -5,10 +5,9 @@ import axios, {AxiosError} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
-import Log from 'network/log';
-
 import {QueryClient, useQuery} from '@tanstack/react-query';
 import {ClientContext, ClientProps} from 'clientContext';
+import {formatDistanceToNowStrict} from 'date-fns';
 import {logQueryKey} from 'hooks/logger';
 import {AvalancheCenterID, AvalancheWarning, avalancheWarningSchema} from 'types/nationalAvalancheCenter';
 import {apiDateString, RequestedTime} from 'utils/date';
@@ -48,13 +47,13 @@ const prefetchAvalancheWarning = async (queryClient: QueryClient, nationalAvalan
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id, zone_id, requested_time),
     queryFn: async () => {
-      Log.prefetch('starting fragment prefetch');
+      const start = new Date();
+      log.debug(`prefetching avalanche warning`, {center: center_id, zone: zone_id, requestedTime: requested_time});
       const result = await fetchAvalancheWarning(nationalAvalancheCenterHost, center_id, zone_id, requested_time);
-      Log.prefetch('fragment request finished');
+      log.debug(`finished prefetching avalanche warning`, {center: center_id, zone: zone_id, requestedTime: requested_time, duration: formatDistanceToNowStrict(start)});
       return result;
     },
   });
-  Log.prefetch('warning data is cached with react-query');
 };
 
 const fetchAvalancheWarning = async (nationalAvalancheCenterHost: string, center_id: string, zone_id: number, requested_time: RequestedTime): Promise<AvalancheWarning> => {
@@ -73,7 +72,7 @@ const fetchAvalancheWarning = async (nationalAvalancheCenterHost: string, center
 
   const parseResult = avalancheWarningSchema.deepPartial().safeParse(data);
   if (parseResult.success === false) {
-    log.warn('unparsable warning', url, JSON.stringify(params), parseResult.error, JSON.stringify(data));
+    log.warn('unparsable avalanche warning', {center: center_id, zone: zone_id, requestedTime: requested_time, url: url, params: params, error: parseResult.error});
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

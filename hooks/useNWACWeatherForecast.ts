@@ -6,9 +6,8 @@ import axios, {AxiosError} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
-import Log from 'network/log';
-
 import {ClientContext, ClientProps} from 'clientContext';
+import {formatDistanceToNowStrict} from 'date-fns';
 import {logQueryKey} from 'hooks/logger';
 import {reverseLookup} from 'types/nationalAvalancheCenter';
 import {nominalNWACWeatherForecastDate, RequestedTime, requestedTimeToUTCDate, toDateTimeInterfaceATOM} from 'utils/date';
@@ -41,9 +40,10 @@ export const prefetchNWACWeatherForecast = async (queryClient: QueryClient, nwac
   await queryClient.prefetchQuery({
     queryKey: queryKey(nwacHost, zone_id, requestedTime),
     queryFn: async () => {
-      Log.prefetch(`prefetching NWAC weather forecast for zone ${zone_id} on ${requestedTime}`);
+      const start = new Date();
+      log.debug(`prefetching NWAC weather forecast`, {zone: zone_id, requestedTime: requestedTime});
       const result = fetchNWACWeatherForecast(nwacHost, zone_id, requestedTime);
-      Log.prefetch(`finished prefetching NWAC weather forecast for zone ${zone_id} on ${requestedTime}`);
+      log.debug(`finished prefetching NWAC weather forecast`, {zone: zone_id, requestedTime: requestedTime, duration: formatDistanceToNowStrict(start)});
       return result;
     },
   });
@@ -138,7 +138,7 @@ export const fetchNWACWeatherForecast = async (nwacHost: string, zone_id: number
 
   const parseResult = nwacWeatherForecastMetaSchema.safeParse(data);
   if (parseResult.success === false) {
-    log.warn(`unparsable weather forecast`, url, JSON.stringify(params), parseResult.error, JSON.stringify(data));
+    log.warn('unparsable NWAC observation', {url: url, params: params, zone: zone_id, requestedTime: requestedTime, error: parseResult.error});
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

@@ -6,9 +6,8 @@ import axios, {AxiosError} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
-import Log from 'network/log';
-
 import {ClientContext, ClientProps} from 'clientContext';
+import {formatDistanceToNowStrict} from 'date-fns';
 import {logQueryKey} from 'hooks/logger';
 import {Product, productSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
@@ -34,9 +33,10 @@ export const prefetchAvalancheForecast = async (queryClient: QueryClient, nation
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, forecastId),
     queryFn: async () => {
-      Log.prefetch(`prefetching avalanche forecast ${forecastId}`);
+      const start = new Date();
+      log.debug(`prefetching avalanche forecast`, {forecast: forecastId});
       const result = fetchProduct(nationalAvalancheCenterHost, forecastId);
-      Log.prefetch(`finished prefetching avalanche forecast ${forecastId}`);
+      log.debug(`finished prefetching avalanche forecast`, {forecast: forecastId, duration: formatDistanceToNowStrict(start)});
       return result;
     },
   });

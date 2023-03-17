@@ -3,11 +3,9 @@ import React from 'react';
 
 import {QueryClient, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
-import {add, sub} from 'date-fns';
+import {add, formatDistanceToNowStrict, sub} from 'date-fns';
 
 import * as Sentry from 'sentry-expo';
-
-import Log from 'network/log';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import {logQueryKey} from 'hooks/logger';
@@ -31,9 +29,10 @@ const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nati
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id, date),
     queryFn: async () => {
-      Log.prefetch(`prefetching forecast fragments for ${center_id} on ${date}`);
+      const start = new Date();
+      log.debug(`prefetching forecast fragments`, {center: center_id, date: date});
       const result = await fetchAvalancheForecastFragments(nationalAvalancheCenterHost, center_id, date);
-      Log.prefetch(`finished prefetching forecast fragments for ${center_id} on ${date}`);
+      log.debug(`finished prefetching forecast fragments`, {center: center_id, date: date, duration: formatDistanceToNowStrict(start)});
       return result;
     },
   });
@@ -61,7 +60,7 @@ const fetchAvalancheForecastFragments = async (nationalAvalancheCenterHost: stri
 
   const parseResult = productArraySchema.safeParse(data);
   if (parseResult.success === false) {
-    log.warn('unparsable forecast fragments', url, JSON.stringify(params), parseResult.error, JSON.stringify(data));
+    log.warn('unparsable forecast fragments', {url: url, params: params, center: center_id, date: date, error: parseResult.error});
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,
@@ -72,7 +71,6 @@ const fetchAvalancheForecastFragments = async (nationalAvalancheCenterHost: stri
     });
     throw parseResult.error;
   } else {
-    // TODO(brian): This is assuming that a forecast always exists for the given zone/date range. That's not a good assumption!
     return parseResult.data;
   }
 };
