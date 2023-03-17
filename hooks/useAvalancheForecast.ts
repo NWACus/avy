@@ -6,9 +6,8 @@ import axios, {AxiosError} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
-import Log from 'network/log';
-
 import {ClientContext, ClientProps} from 'clientContext';
+import {formatDistanceToNowStrict} from 'date-fns';
 import {logQueryKey} from 'hooks/logger';
 import AvalancheForecastByID from 'hooks/useAvalancheForecastById';
 import AvalancheForecastFragment from 'hooks/useAvalancheForecastFragment';
@@ -77,9 +76,10 @@ const prefetchAvalancheForecast = async (
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours),
     queryFn: async () => {
-      Log.prefetch(`prefetching avalanche forecast for ${center_id} zone ${zone_id} at ${requestedTime}`);
+      const start = new Date();
+      log.debug(`prefetching avalanche forecast`, {center: center_id, zone: zone_id, requestedTime: requestedTime});
       const result = fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours);
-      Log.prefetch(`finished prefetching avalanche for ${center_id} zone ${zone_id} at ${requestedTime}`);
+      log.debug(`finished prefetching avalanche forecast`, {center: center_id, zone: zone_id, requestedTime: requestedTime, duration: formatDistanceToNowStrict(start)});
       return result;
     },
   });
@@ -114,17 +114,18 @@ const fetchAvalancheForecast = async (
 
 const fetchLatestAvalancheForecast = async (nationalAvalancheCenterHost: string, center_id: string, zone_id: number) => {
   const url = `${nationalAvalancheCenterHost}/v2/public/product`;
+  const params = {
+    center_id: center_id,
+    type: 'forecast',
+    zone_id: zone_id,
+  };
   const {data} = await axios.get(url, {
-    params: {
-      center_id: center_id,
-      type: 'forecast',
-      zone_id: zone_id,
-    },
+    params: params,
   });
 
   const parseResult = productSchema.safeParse(data);
   if (parseResult.success === false) {
-    log.warn('unparsable forecast', url, parseResult.error, JSON.stringify(data));
+    log.warn('unparsable avalanche forecast', {url: url, params: params, center: center_id, zone: zone_id, requestedTime: 'latest', error: parseResult.error});
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

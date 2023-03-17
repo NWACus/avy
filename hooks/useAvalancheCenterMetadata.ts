@@ -6,9 +6,8 @@ import axios, {AxiosError} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
-import Log from 'network/log';
-
 import {ClientContext, ClientProps} from 'clientContext';
+import {formatDistanceToNowStrict} from 'date-fns';
 import {logQueryKey} from 'hooks/logger';
 import {AvalancheCenter, AvalancheCenterID, avalancheCenterSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
@@ -31,9 +30,10 @@ export const prefetchAvalancheCenterMetadata = async (queryClient: QueryClient, 
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id),
     queryFn: async () => {
-      Log.prefetch(`prefetching center metadata for ${center_id}`);
+      const start = new Date();
+      log.debug(`prefetching center metadata`, {center: center_id});
       const result = await fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id);
-      Log.prefetch(`finished prefetching center metadata for ${center_id}`);
+      log.debug(`finished prefetching center metadata`, {center: center_id, duration: formatDistanceToNowStrict(start)});
       return result;
     },
   });
@@ -54,7 +54,7 @@ const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string,
 
   const parseResult = avalancheCenterSchema.safeParse(data);
   if (parseResult.success === false) {
-    log.warn(`unparsable avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data));
+    log.warn('unparsable avalanche center metadata', {url: url, center: center_id, error: parseResult.error});
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

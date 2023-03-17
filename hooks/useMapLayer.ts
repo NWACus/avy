@@ -6,9 +6,8 @@ import axios, {AxiosError} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
-import Log from 'network/log';
-
 import {ClientContext, ClientProps} from 'clientContext';
+import {formatDistanceToNowStrict} from 'date-fns';
 import {logQueryKey} from 'hooks/logger';
 import {AvalancheCenterID, MapLayer, mapLayerSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
@@ -32,9 +31,10 @@ export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalanc
   await queryClient.prefetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id),
     queryFn: async () => {
-      Log.prefetch(`prefetching avalanche center map layer for ${center_id}`);
+      const start = new Date();
+      log.debug(`prefetching avalanche center map layer`, {center: center_id});
       const result = await fetchMapLayer(nationalAvalancheCenterHost, center_id);
-      Log.prefetch(`finished prefetching avalanche center map layer for ${center_id}`);
+      log.debug(`finished prefetching avalanche center map layer`, {center: center_id, duration: formatDistanceToNowStrict(start)});
       return result;
     },
   });
@@ -55,7 +55,7 @@ const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: Ava
 
   const parseResult = mapLayerSchema.safeParse(data);
   if (parseResult.success === false) {
-    log.warn(`unparsable map layer for avalanche center ${center_id}`, url, parseResult.error, JSON.stringify(data));
+    log.warn('unparsable avalanche avalanche center map layer', {url: url, center: center_id, error: parseResult.error});
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

@@ -6,9 +6,8 @@ import * as Sentry from 'sentry-expo';
 import {QueryClient, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
 
-import Log from 'network/log';
-
 import {ClientContext, ClientProps} from 'clientContext';
+import {formatDistanceToNowStrict} from 'date-fns';
 import {logQueryKey} from 'hooks/logger';
 import {Observation, observationSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
@@ -32,9 +31,10 @@ export const prefetchNACObservation = async (queryClient: QueryClient, host: str
   await queryClient.prefetchQuery({
     queryKey: queryKey(host, id),
     queryFn: async () => {
-      Log.prefetch(`prefetching NAC observation ${id}`);
+      const start = new Date();
+      log.debug(`prefetching NAC observation`, {id: id});
       const result = fetchNACObservation(host, id);
-      Log.prefetch(`finished prefetching NAC observation ${id}`);
+      log.debug(`finished prefetching NAC observation`, {id: id, duration: formatDistanceToNowStrict(start)});
       return result;
     },
   });
@@ -46,7 +46,7 @@ export const fetchNACObservation = async (host: string, id: string): Promise<Obs
 
   const parseResult = observationSchema.deepPartial().safeParse(data);
   if (parseResult.success === false) {
-    log.warn(`unparsable observation`, url, parseResult.error, JSON.stringify(data));
+    log.warn('unparsable NAC observation', {url: url, id: id, error: parseResult.error});
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,
