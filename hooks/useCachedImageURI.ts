@@ -73,7 +73,7 @@ const cleanupCachedImage = async event => {
     return;
   }
 
-  if (!('uri' in key[1]) || !key['uri'] || !key['uri'].startsWith('http')) {
+  if (!('uri' in key[1]) || !key[1]['uri'] || !key[1]['uri'].startsWith('http')) {
     return;
   }
 
