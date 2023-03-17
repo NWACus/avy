@@ -465,7 +465,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
   };
 
   if (selectedZoneId !== previousSelectedZoneId) {
-    if (selectedZoneId) {
+    if (selectedZoneId && flatListRef.current) {
       const index = zones.findIndex(z => z.zone_id === selectedZoneId);
       setProgramaticallyScrolling(true);
       flatListRef.current.scrollToIndex({index, animated: true, viewPosition: 0.5});
