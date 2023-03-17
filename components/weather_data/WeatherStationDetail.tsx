@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
 
-import {range} from 'lodash';
+import {uniq} from 'lodash';
 
 import {AntDesign} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
@@ -9,7 +9,7 @@ import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {Center, Divider, HStack, View, VStack} from 'components/core';
 import {AllCapsSm, Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
-import {format} from 'date-fns';
+import {compareDesc, format} from 'date-fns';
 import {TimeSeries, useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
@@ -86,18 +86,12 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = React.memo(({timeSer
     return <Body>No data found.</Body>;
   }
 
-  const times = timeSeries.STATION[0].observations.date_time.map(t => formatDateTime(t));
-
-  type Column = {elevation: number; field: string};
-  type Row = {date: string; cells: Cell[]};
-  type Cell = {colIdx: number; rowIdx: number; value: number | string};
-
+  type Column = {elevation: number; field: string; dataByTime: Record<string, number | string>};
   const tableColumns: Column[] = [];
-  const tableRows: Row[] = [];
-  timeSeries.STATION.forEach(({elevation, observations}, stationIndex) => {
+  timeSeries.STATION.forEach(({elevation, observations}) => {
     Object.entries(observations).forEach(([field, values]) => {
-      if (field === 'date_time' && stationIndex !== 0) {
-        // don't add multiple date time columns
+      if (field === 'date_time') {
+        // don't add station-specific date time columns
         return;
       }
       if (values.findIndex(v => v !== null) === -1) {
@@ -108,87 +102,96 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = React.memo(({timeSer
         // we don't display solar_radiation, only net_solar
         return;
       }
-      const columnIndex = tableColumns.push({field, elevation}) - 1;
+      const column: Column = {field: field, elevation: elevation, dataByTime: {}};
+      const times = observations.date_time;
       values.forEach((value, rowIndex) => {
-        const row = tableRows[rowIndex] || {date: times[rowIndex], cells: []};
-        row.cells.push({colIdx: columnIndex, rowIdx: rowIndex, value: columnIndex === 0 ? times[rowIndex] : value});
-        tableRows[rowIndex] = row;
+        column.dataByTime[times[rowIndex]] = value;
       });
+      tableColumns.push(column);
+
       // If this is the precip_accum_one_hour column, synthesize an accumlulated precip column.
       // Note that at this point, rows are sorted ascending by time
       if (field === 'precip_accum_one_hour') {
-        const destColumnIndex = tableColumns.push({field: 'precip_accum', elevation}) - 1;
+        const accumColumn: Column = {field: 'precip_accum', elevation: elevation, dataByTime: {}};
         let accum = 0;
         values.forEach((value, rowIndex) => {
-          const row = tableRows[rowIndex];
-          accum += Number(row.cells[columnIndex].value);
-          row.cells.push({colIdx: destColumnIndex, rowIdx: rowIndex, value: Math.round(accum * 100.0) / 100.0});
+          accum += Number(value);
+          accumColumn.dataByTime[times[rowIndex]] = Math.round(accum * 100.0) / 100.0;
         });
+        tableColumns.push(accumColumn);
       }
     });
   });
 
   // With the columns we have, what should the preferred ordering be?
-  const sortedColIndices = range(tableColumns.length);
-  sortedColIndices.sort((a, b) => {
+  tableColumns.sort((a, b) => {
     // Column sorting rules:
-    // 1. time first
-    // 2. preferred column sort after that
-    // 3. elevation descending within same column
-    const columnA = tableColumns[a];
-    const columnB = tableColumns[b];
-    if (columnA.field === 'date_time') {
-      return -1;
-    } else if (columnB.field === 'date_time') {
-      return 1;
-    } else {
-      // TODO: have to sort wind values together by name, *then* by elevation :eyeroll:
-      // or wait - do we onlt want wind values at the highest elevation
-      return preferredFieldOrder[columnA.field] - preferredFieldOrder[columnB.field] || columnB.elevation - columnA.elevation;
-    }
+    // 1. preferred column sort after that
+    // 2. elevation descending within same column
+    // TODO: have to sort wind values together by name, *then* by elevation :eyeroll:
+    // or wait - do we onlt want wind values at the highest elevation
+    return preferredFieldOrder[a.field] - preferredFieldOrder[b.field] || b.elevation - a.elevation;
   });
 
+  // Determine all of the times we need to display as rows
   // With the rows we have, what should the preferred ordering be?
-  const sortedRowIndices = range(tableRows.length - 1, -1, -1); // descending by time
-
-  const columnPadding = 3;
-  const rowPadding = 2;
+  const times = uniq(tableColumns.map(column => Object.keys(column.dataByTime)).flat()).sort((a, b) => {
+    return compareDesc(new Date(a), new Date(b));
+  }); // descending by time
 
   return (
     <ScrollView style={{width: '100%', height: '100%'}}>
       <ScrollView horizontal style={{width: '100%', height: '100%'}}>
         <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
-          {sortedColIndices
-            .map(i => ({...tableColumns[i], columnIndex: i}))
-            .map(({field, elevation, columnIndex}) => (
-              <VStack key={columnIndex} justifyContent="flex-start" alignItems="stretch">
-                <VStack alignItems="center" justifyContent="flex-start" flex={1} py={rowPadding} px={columnPadding} bg="blue2">
-                  <BodyXSmBlack color="white">{shortFieldMap[field]}</BodyXSmBlack>
-                  <BodyXSmBlack color="white">{field === 'date_time' ? 'PST' : shortUnits(timeSeries.UNITS[field])}</BodyXSmBlack>
-                  <BodyXSmBlack color="white">{field !== 'date_time' ? `${elevation}'` : ' '}</BodyXSmBlack>
-                </VStack>
-                {sortedRowIndices
-                  .map(i => tableRows[i])
-                  .map((row, index) => (
-                    <Center
-                      flex={1}
-                      key={index}
-                      bg={colorLookup(index % 2 ? 'light.100' : 'light.300')}
-                      py={rowPadding}
-                      px={columnPadding}
-                      borderRightWidth={columnIndex === 0 ? 1 : 0}
-                      borderColor={colorLookup('text.tertiary')}>
-                      {/* Occasionally, data may be present for only some of the times */}
-                      <BodyXSm>{row.cells[columnIndex] ? row.cells[columnIndex].value : 'n/a'}</BodyXSm>
-                    </Center>
-                  ))}
-              </VStack>
-            ))}
+          <Row borderRightWidth={1} name={shortFieldMap['date_time']} units={'PST'} elevation={' '} data={times.map(time => formatDateTime(time))} />
+          {tableColumns.map(({field, elevation, dataByTime}, columnIndex) => (
+            <Row
+              key={columnIndex}
+              borderRightWidth={0}
+              name={shortFieldMap[field]}
+              units={shortUnits(timeSeries.UNITS[field])}
+              elevation={elevation.toString()}
+              data={times.map(time => (time in dataByTime ? dataByTime[time] : '-'))}
+            />
+          ))}
         </HStack>
       </ScrollView>
     </ScrollView>
   );
 });
+
+const columnPadding = 3;
+const rowPadding = 2;
+
+export const Row: React.FunctionComponent<{borderRightWidth: number; name: string; units: string; elevation: string; data: string[]}> = ({
+  borderRightWidth,
+  name,
+  units,
+  elevation,
+  data,
+}) => {
+  return (
+    <VStack justifyContent="flex-start" alignItems="stretch">
+      <VStack alignItems="center" justifyContent="flex-start" flex={1} py={rowPadding} px={columnPadding} bg="blue2">
+        <BodyXSmBlack color="white">{name}</BodyXSmBlack>
+        <BodyXSmBlack color="white">{units}</BodyXSmBlack>
+        <BodyXSmBlack color="white">{elevation}</BodyXSmBlack>
+      </VStack>
+      {data.map((value, index) => (
+        <Center
+          flex={1}
+          key={index}
+          bg={colorLookup(index % 2 ? 'light.100' : 'light.300')}
+          py={rowPadding}
+          px={columnPadding}
+          borderRightWidth={borderRightWidth}
+          borderColor={colorLookup('text.tertiary')}>
+          <BodyXSm>{value}</BodyXSm>
+        </Center>
+      ))}
+    </VStack>
+  );
+};
 
 export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_stids, zoneName}) => {
   const [days, setDays] = useState(1);
