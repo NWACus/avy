@@ -25,15 +25,18 @@ import {HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {TravelAdvice} from 'components/helpers/travelAdvice';
 import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
+import {add, isAfter} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts';
 import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
+import log from 'logger';
+import md5 from 'md5';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps} from 'routes';
 import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
 import {isNotFound} from 'types/requests';
-import {formatRequestedTime, RequestedTime, utcDateToLocalTimeString} from 'utils/date';
+import {formatRequestedTime, RequestedTime, toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
 
 export interface MapProps {
   center: AvalancheCenterID;
@@ -211,6 +214,8 @@ class AnimatedMapWithDrawerController {
   cardDrawerMaximumHeight: number;
   tabBarHeight: number;
   mapView: MutableRefObject<AnimatedMapView>;
+  // We store the last time we logged a region calculation so as to continue logging but not spam
+  lastLogged: Record<string, string>; // mapping hash of parameters to the time we last logged it
 
   constructor(state = AnimatedDrawerState.Docked, region: Region, mapView: MutableRefObject<AnimatedMapView>) {
     this.state = state;
@@ -219,6 +224,7 @@ class AnimatedMapWithDrawerController {
     this.yOffset = new Animated.Value(this.baseOffset);
     this.baseAvalancheCenterMapRegion = region;
     this.mapView = mapView;
+    this.lastLogged = {};
   }
 
   setState(state: AnimatedDrawerState) {
@@ -381,11 +387,31 @@ class AnimatedMapWithDrawerController {
     // we will get asked to animate a couple of times before the layout settles, at which point we don't have all
     // the parameters we need to calculate the real region to animate to; for those passes through this function
     // we can't animate to this computed displayed region as we'll have NaNs inside, etc
+    let targetRegion: Region = null;
     if (degreesPerPixelVertically > 0 && degreesPerPixelHorizontally > 0) {
-      this.mapView?.current?.animateToRegion(displayedRegion);
+      targetRegion = displayedRegion;
     } else {
-      this.mapView?.current?.animateToRegion(this.baseAvalancheCenterMapRegion);
+      targetRegion = this.baseAvalancheCenterMapRegion;
     }
+    const parameters = {
+      inputs: {
+        baseAvalancheCenterMapRegion: this.baseAvalancheCenterMapRegion,
+        windowWidth: this.windowWidth,
+        windowHeight: this.windowHeight,
+        topElementsHeight: this.topElementsHeight,
+        cardDrawerMaximumHeight: this.cardDrawerMaximumHeight,
+        tabBarHeight: this.tabBarHeight,
+      },
+      output: targetRegion,
+    };
+    const parameterHash = md5(JSON.stringify(parameters));
+    const now = new Date();
+    if (!this.lastLogged[parameterHash] || isAfter(now, add(new Date(this.lastLogged[parameterHash]), {minutes: 1}))) {
+      // we have either not seen this input yet, or the last time we saw it was sufficiently long ago
+      log.info('animating map region', parameters);
+      this.lastLogged[parameterHash] = toISOStringUTC(now);
+    }
+    this.mapView?.current?.animateToRegion(targetRegion);
   }
 }
 
