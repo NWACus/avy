@@ -17,6 +17,7 @@ interface SelectFieldProps {
   items: string[] | Item[];
   prompt?: string;
   radio?: boolean; // If true, will default to selecting first item and always enforce selection
+  disabled?: boolean;
 }
 
 const borderColor = colorLookup('border.base');
@@ -67,7 +68,7 @@ const selectStyles: SelectStyles = {
   },
 };
 
-export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, label, items, prompt, radio}, ref) => {
+export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, label, items, prompt, radio, disabled}, ref) => {
   const {setValue} = useFormContext();
   const {
     field: {value},
@@ -82,6 +83,8 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
       : (items as Item[]);
   const multiple = Array.isArray(value);
 
+  const defaultOption = !multiple && Boolean(value) ? menuItems.find(item => item.value === value) : undefined;
+
   const selectRef = useRef<SelectRef>(null);
   useEffect(() => {
     // Make sure the internal state is cleared when the form is cleared
@@ -94,6 +97,8 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
     <VStack width="100%" space={4} ref={ref}>
       <BodyXSmBlack>{label}</BodyXSmBlack>
       <Select
+        key={JSON.stringify(defaultOption)} // force a re-render when the default changes
+        disabled={disabled}
         ref={selectRef}
         onSelect={({value: selectedValue}) => {
           const newValue = multiple ? value.concat([selectedValue]) : selectedValue;
@@ -115,7 +120,7 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
         options={menuItems}
         placeholderText={prompt}
         placeholderTextColor={colorLookup('text.secondary') as string}
-        defaultOption={radio && value === '' ? menuItems[0] : undefined}
+        defaultOption={defaultOption}
       />
       {/* TODO: animate the appearance/disappearance of the error string */}
       {fieldState.error && <BodyXSm color={colorLookup('error.900')}>{fieldState.error.message}</BodyXSm>}
