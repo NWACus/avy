@@ -8,7 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import log from 'logger';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormProvider, useForm, useWatch} from 'react-hook-form';
-import {ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View as RNView} from 'react-native';
+import {ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View as RNView} from 'react-native';
 import Toast from 'react-native-root-toast';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
@@ -25,7 +25,7 @@ import {SwitchField} from 'components/form/SwitchField';
 import {TextField} from 'components/form/TextField';
 import {defaultObservationFormData, ObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
 import {submitObservation} from 'components/observations/submitObservation';
-import {Body, BodyBlack, BodySemibold, Title3Black, Title3Semibold} from 'components/text';
+import {Body, BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, InstabilityDistribution, MediaItem, MediaType, Observation} from 'types/nationalAvalancheCenter';
@@ -167,24 +167,10 @@ export const SimpleForm: React.FC<{
   return (
     <FormProvider {...formContext}>
       <View width="100%" height="100%" bg="#F6F8FC">
-        {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
-        <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
+        {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there, or top edge since StackHeader is sitting there */}
+        <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}}>
             <VStack style={{height: '100%', width: '100%'}} alignItems="stretch" bg="#F6F8FC">
-              <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <HStack justifyContent="flex-start" pb={8}>
-                  <AntDesign.Button
-                    size={24}
-                    color={colorLookup('text')}
-                    name="arrowleft"
-                    backgroundColor="#F6F8FC"
-                    iconStyle={{marginLeft: 0, marginRight: 8}}
-                    style={{textAlign: 'center'}}
-                    onPress={onCloseHandler}
-                  />
-                  <Title3Black>Submit an observation</Title3Black>
-                </HStack>
-              </TouchableWithoutFeedback>
               <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}} ref={scrollViewRef}>
                 <VStack width="100%" justifyContent="flex-start" alignItems="stretch" pt={8} pb={8}>
                   <View px={16} pb={formFieldSpacing}>

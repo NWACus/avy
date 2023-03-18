@@ -3,12 +3,11 @@ import {ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
 
 import {uniq} from 'lodash';
 
-import {AntDesign} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {Center, Divider, HStack, View, VStack} from 'components/core';
-import {AllCapsSm, Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
+import {AllCapsSm, Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
 import {compareDesc, format} from 'date-fns';
 import {TimeSeries, useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -204,6 +203,10 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
     endDate: date,
   });
 
+  React.useEffect(() => {
+    navigation.setOptions({title: zoneName});
+  }, [navigation, zoneName]);
+
   if (incompleteQueryState(timeseries)) {
     return <QueryState results={[timeseries]} />;
   }
@@ -216,21 +219,9 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
 
   return (
     <View style={{...StyleSheet.absoluteFillObject}} bg="white">
-      {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
-      <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
+      {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there, or top edge since StackHeader is sitting there */}
+      <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
         <VStack width="100%" height="100%" alignItems="stretch">
-          <HStack justifyContent="flex-start">
-            <AntDesign.Button
-              size={24}
-              color={colorLookup('text')}
-              name="arrowleft"
-              backgroundColor="white"
-              iconStyle={{marginLeft: 0, marginRight: 8}}
-              style={{textAlign: 'center'}}
-              onPress={() => navigation.goBack()}
-            />
-            <Title3Black>{zoneName}</Title3Black>
-          </HStack>
           <VStack width="100%" height="100%" p={16} space={8}>
             <HStack space={8} alignItems="center">
               <BodyBlack>{name}</BodyBlack>
