@@ -64,7 +64,7 @@ export const SimpleForm: React.FC<{
 
   const mutation = useMutation<Observation, AxiosError, ObservationFormData>({
     mutationFn: async (observationFormData: ObservationFormData) => {
-      log.info('do the mutation', observationFormData);
+      log.info('submitting observation', {formValues: observationFormData});
       return submitObservation({center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
     },
     // TODO: make these toasts look nicer
@@ -98,7 +98,7 @@ export const SimpleForm: React.FC<{
         hideOnPress: true,
         delay: 0,
       });
-      log.info('mutation failed', error);
+      log.error('mutation failed', {error: error});
     },
     retry: true,
   });
@@ -114,7 +114,7 @@ export const SimpleForm: React.FC<{
   };
 
   const onSubmitErrorHandler = errors => {
-    log.info('submit error', JSON.stringify(errors, null, 2), '\nform values: ', JSON.stringify(formContext.getValues(), null, 2));
+    log.error('submit error', {errors: errors, formValues: formContext.getValues()});
     // scroll to the first field with an error
     fieldRefs.current.some(({ref, field}) => {
       if (errors[field]) {
@@ -223,16 +223,6 @@ export const SimpleForm: React.FC<{
                         }}
                       />
                       <DateField name="start_date" label="Observation date" />
-                      {/* TODO get zone automatically based on lat/lng */}
-                      {/* <SelectField
-                        name="zone"
-                        label="Zone/Region"
-                        prompt="Select a zone or region"
-                        items={zones}
-                        ref={element => {
-                          fieldRefs.current.push({field: 'zone', ref: element});
-                        }}
-                      /> */}
                       <SelectField
                         name="activity"
                         label="Activity"
