@@ -2,7 +2,6 @@ import {AntDesign} from '@expo/vector-icons';
 import DateTimePicker, {DateTimePickerAndroid, DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, bodySize, BodyXSmBlack} from 'components/text';
-import {add} from 'date-fns';
 import React, {useCallback, useState} from 'react';
 import {useController} from 'react-hook-form';
 import {Platform, TouchableOpacity} from 'react-native';
@@ -17,11 +16,8 @@ interface DateFieldProps {
 export const DateField: React.FC<DateFieldProps> = ({name, label}) => {
   const {
     field: {onChange, value},
-    formState: {defaultValues},
   } = useController({name});
   const [datePickerVisible, setDatePickerVisible] = useState(false);
-  const [minimumDate] = useState<Date>(add(defaultValues[name], {months: -1}));
-  const [maximumDate] = useState<Date>(defaultValues[name]);
 
   const onDateSelected = useCallback(
     (event: DateTimePickerEvent, date?: Date) => {
@@ -39,10 +35,10 @@ export const DateField: React.FC<DateFieldProps> = ({name, label}) => {
       if (datePickerVisible) {
         DateTimePickerAndroid.dismiss('date');
       } else {
-        DateTimePickerAndroid.open({mode: 'date', display: 'default', onChange: onDateSelected, minimumDate, maximumDate, value});
+        DateTimePickerAndroid.open({mode: 'date', display: 'default', onChange: onDateSelected, value});
       }
     }
-  }, [datePickerVisible, setDatePickerVisible, onDateSelected, minimumDate, maximumDate, value]);
+  }, [datePickerVisible, setDatePickerVisible, onDateSelected, value]);
 
   // TODO: maximum/minimum date
   return (
@@ -59,9 +55,7 @@ export const DateField: React.FC<DateFieldProps> = ({name, label}) => {
         </HStack>
       </TouchableOpacity>
 
-      {datePickerVisible && Platform.OS === 'ios' && (
-        <DateTimePicker value={value || new Date()} mode="date" display="inline" onChange={onDateSelected} minimumDate={minimumDate} maximumDate={maximumDate} />
-      )}
+      {datePickerVisible && Platform.OS === 'ios' && <DateTimePicker value={value || new Date()} mode="date" display="inline" onChange={onDateSelected} />}
     </VStack>
   );
 };

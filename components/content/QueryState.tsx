@@ -55,10 +55,14 @@ export const Loading: React.FunctionComponent = () => {
   );
 };
 
-export const NotFound: React.FunctionComponent<{what?: NotFoundType[]}> = ({what}) => {
-  const thing = what[0]?.notFound ? what[0].notFound : 'requested resource';
+export const NotFound: React.FunctionComponent<{what?: NotFoundType[]; terminal?: boolean}> = ({what, terminal}) => {
+  const thing = what[0]?.notFound ? what[0].notFound : 'the requested resource';
   const navigation = useNavigation<TabNavigationProps>();
-  return <Outcome outcome={'No results found'} reason={`We could not find the ${thing}.`} illustration={<NoSearchResult />} onClose={() => navigation.navigate('Home')} />;
+  let onClose = () => navigation.navigate('Home');
+  if (terminal) {
+    onClose = null;
+  }
+  return <Outcome outcome={'No results found'} reason={`We could not find ${thing}.`} illustration={<NoSearchResult />} onClose={onClose} />;
 };
 
 export const ConnectionLost: React.FunctionComponent = () => {

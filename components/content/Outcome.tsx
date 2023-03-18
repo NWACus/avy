@@ -9,7 +9,7 @@ export interface OutcomeOptions {
   reason: string; // some explanatory text
   illustration: ReactNode;
   onRetry?: (event: GestureResponderEvent) => void; // action to bind to the retry button
-  onClose: (event: GestureResponderEvent) => void; // action to bind to the close button
+  onClose?: (event: GestureResponderEvent) => void; // action to bind to the close button
 }
 
 export const Outcome: React.FunctionComponent<OutcomeOptions> = ({outcome, reason, illustration, onRetry, onClose}) => {
@@ -28,9 +28,11 @@ export const Outcome: React.FunctionComponent<OutcomeOptions> = ({outcome, reaso
                 <BodyBlack>Retry</BodyBlack>
               </Button>
             )}
-            <Button width={'100%'} buttonStyle={onRetry ? 'normal' : 'primary'} onPress={onClose}>
-              <BodyBlack>Close</BodyBlack>
-            </Button>
+            {onClose && (
+              <Button width={'100%'} buttonStyle={onRetry ? 'normal' : 'primary'} onPress={onClose}>
+                <BodyBlack>Close</BodyBlack>
+              </Button>
+            )}
           </VStack>
         </View>
       </VStack>

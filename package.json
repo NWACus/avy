@@ -67,6 +67,7 @@
     "global": "^4.4.0",
     "jest": "^26.6.3",
     "jest-expo": "^47.0.1",
+    "jest-transform-stub": "^2.0.0",
     "lodash": "^4.17.21",
     "polylabel": "^1.1.0",
     "react": "18.1.0",
@@ -130,7 +131,10 @@
     ],
     "setupFilesAfterEnv": [
       "@testing-library/jest-native/extend-expect"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^.+.(css|styl|less|sass|scss|png|jpg|ttf|woff|woff2)$": "jest-transform-stub"
+    }
   },
   "private": true
 }

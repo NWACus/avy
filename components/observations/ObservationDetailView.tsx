@@ -1,7 +1,7 @@
 import React from 'react';
 import {Image, ScrollView, StyleSheet} from 'react-native';
 
-import {AntDesign, MaterialCommunityIcons} from '@expo/vector-icons';
+import {MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
@@ -12,8 +12,8 @@ import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {ZoneMap} from 'components/content/ZoneMap';
 import {HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
-import {zone} from 'components/observations/ObservationsListView';
-import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize, Title3Black} from 'components/text';
+import {zone} from 'components/observations/ObservationsFilterForm';
+import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservation} from 'hooks/useNACObservation';
@@ -193,23 +193,15 @@ export const ObservationCard: React.FunctionComponent<{
 }> = ({observation, mapLayer}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const {avalanches_observed, avalanches_triggered, avalanches_caught} = observation.instability;
+  const zone_name = zone(mapLayer, observation.location_point?.lat, observation.location_point?.lng);
+  React.useEffect(() => {
+    navigation.setOptions({title: `${zone_name} Observation`});
+  }, [navigation, zone_name]);
 
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
-      <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
+      <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
         <VStack space={8} backgroundColor="white" style={{height: '100%', width: '100%'}}>
-          <HStack justifyContent="flex-start" pb={8}>
-            <AntDesign.Button
-              size={24}
-              color={colorLookup('text')}
-              name="arrowleft"
-              backgroundColor="white"
-              iconStyle={{marginLeft: 0, marginRight: 8}}
-              style={{textAlign: 'center'}}
-              onPress={() => navigation.goBack()}
-            />
-            <Title3Black>{`${zone(mapLayer, observation.location_point?.lat, observation.location_point?.lng)} Observation`}</Title3Black>
-          </HStack>
           <ScrollView style={{height: '100%', width: '100%'}}>
             <VStack space={8} backgroundColor={colorLookup('background.base')}>
               <View bg="white" py={8} px={16}>
