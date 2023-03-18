@@ -42,7 +42,7 @@ const fetchAvalancheForecastFragment = async (
     forecast => isBetween(forecast.published_time, forecast.expires_time, date) && forecast.forecast_zone.find(zone => zone.id === forecast_zone_id),
   );
   if (!fragments || !fragment) {
-    return notFound('avalanche forecast');
+    return notFound('the avalanche forecast');
   }
   return fragment;
 };

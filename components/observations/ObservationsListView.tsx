@@ -35,9 +35,6 @@ interface ObservationsListViewProps extends Omit<FlatListProps<ObservationsListV
   initialFilterConfig?: ObservationFilterConfig;
 }
 
-// TODO:
-// - fix the not-found behavior to allow clearing filters
-
 export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, initialFilterConfig, ...props}) => {
   const originalFilterConfig: ObservationFilterConfig = {
     dates: {
@@ -69,10 +66,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     return <QueryState results={[observationsResult, nwacObservationsResult, mapResult]} />;
   }
 
-  if (!observations || observations.length === 0) {
-    return <NotFound what={[notFound('observations')]} />;
-  }
-
   observations.sort((a, b) => compareDesc(parseISO(a.createdAt), parseISO(b.createdAt)));
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
@@ -81,10 +74,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const displayedObservations: OverviewFragment[] = observations.filter(observation =>
     resolvedFilters.map(filter => filter(observation)).reduce((currentValue, accumulator) => accumulator && currentValue, true),
   );
-
-  if (!displayedObservations || displayedObservations.length === 0) {
-    return <NotFound what={[notFound('observations')]} />;
-  }
 
   return (
     <>
@@ -110,13 +99,23 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         }
         style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}
-        data={displayedObservations.map(observation => ({
-          id: observation.id,
-          observation: observation,
-          source: nwacObservations?.getObservationList.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
-          zone: zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
-        }))}
-        renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}
+        data={
+          displayedObservations.length > 1
+            ? displayedObservations.map(observation => ({
+                id: observation.id,
+                observation: observation,
+                source: nwacObservations?.getObservationList.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
+                zone: zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
+              }))
+            : [{id: null, observation: null, source: null, zone: null}]
+        }
+        renderItem={({item}) =>
+          item.id ? (
+            <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />
+          ) : (
+            <NotFound terminal what={[notFound('any matching observations')]} />
+          )
+        }
         {...props}
       />
     </>

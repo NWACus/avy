@@ -64,7 +64,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
   const zone: AvalancheForecastZone | undefined = center.zones.find(item => item.id === forecast_zone_id);
   if (!zone) {
     Sentry.Native.captureException(new Error(`Avalanche center ${center_id} had no zone with id ${forecast_zone_id}: ${JSON.stringify(center)}`));
-    return <NotFound what={[notFound('avalanche forecast zone')]} />;
+    return <NotFound what={[notFound('the avalanche forecast zone')]} />;
   }
 
   const zones = uniq(center.zones.filter(z => z.status === 'active').map(z => z.name));
