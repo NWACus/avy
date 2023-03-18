@@ -1,7 +1,6 @@
-import log from 'logger';
 import React from 'react';
 
-import {Feather, MaterialCommunityIcons} from '@expo/vector-icons';
+import {Feather, FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {colorFor} from 'components/AvalancheDangerPyramid';
 import {Card} from 'components/content/Card';
@@ -9,21 +8,19 @@ import {Carousel} from 'components/content/carousel';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
-import {Body, BodyBlack, BodySmBlack, Caption1Black} from 'components/text';
-import {geoContains} from 'd3-geo';
-import {compareDesc, parseISO, sub} from 'date-fns';
+import {filtersForConfig, ObservationFilterConfig, ObservationsFilterForm, zone} from 'components/observations/ObservationsFilterForm';
+import {Body, BodyBlack, BodySemibold, BodySmBlack, Caption1Black} from 'components/text';
+import {compareDesc, parseISO, setDayOfYear, sub} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
 import {useRefresh} from 'hooks/useRefresh';
-import {FlatList, FlatListProps, RefreshControl} from 'react-native';
+import {FlatList, FlatListProps, Modal, RefreshControl, TouchableOpacity} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
-import {colorLookup} from 'theme';
-import {AvalancheCenterID, DangerLevel, MapLayer, PartnerType} from 'types/nationalAvalancheCenter';
+import theme, {colorLookup} from 'theme';
+import {AvalancheCenterID, DangerLevel, PartnerType} from 'types/nationalAvalancheCenter';
 import {notFound} from 'types/requests';
 import {apiDateString, RequestedTime, requestedTimeToUTCDate, utcDateToLocalDateString} from 'utils/date';
-
-// TODO: we could show the Avy center logo for obs that come from forecasters
 
 interface ObservationsListViewItem {
   id: OverviewFragment['id'];
@@ -35,10 +32,22 @@ interface ObservationsListViewItem {
 interface ObservationsListViewProps extends Omit<FlatListProps<ObservationsListViewItem>, 'data' | 'renderItem'> {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
-  zone_name?: string;
+  initialFilterConfig?: ObservationFilterConfig;
 }
 
-export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, zone_name, ...props}) => {
+// TODO:
+// - fix the not-found behavior to allow clearing filters
+
+export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, initialFilterConfig, ...props}) => {
+  const originalFilterConfig: ObservationFilterConfig = {
+    dates: {
+      from: setDayOfYear(new Date(), 1),
+      to: new Date(),
+    },
+    ...initialFilterConfig,
+  };
+  const [filterConfig, setFilterConfig] = React.useState<ObservationFilterConfig>(originalFilterConfig);
+  const [filterModalVisible, setFilterModalVisible] = React.useState<boolean>(false);
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
@@ -66,43 +75,52 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   observations.sort((a, b) => compareDesc(parseISO(a.createdAt), parseISO(b.createdAt)));
 
-  let displayedObservations: OverviewFragment[] = [];
-  if (zone_name) {
-    displayedObservations = observations.filter(observation => zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng) === zone_name);
-  } else {
-    displayedObservations = observations;
-  }
+  // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
+  // an observer type, we only show observations that match both of those at the same time
+  const resolvedFilters = filtersForConfig(mapLayer, filterConfig);
+  const displayedObservations: OverviewFragment[] = observations.filter(observation =>
+    resolvedFilters.map(filter => filter(observation)).reduce((currentValue, accumulator) => accumulator && currentValue, true),
+  );
 
   if (!displayedObservations || displayedObservations.length === 0) {
     return <NotFound what={[notFound('observations')]} />;
   }
 
   return (
-    <FlatList
-      style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
-      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}
-      data={displayedObservations.map(observation => ({
-        id: observation.id,
-        observation: observation,
-        source: nwacObservations?.getObservationList.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
-        zone: zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
-      }))}
-      renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}
-      {...props}
-    />
+    <>
+      <Modal animationType={'fade'} visible={filterModalVisible}>
+        <ObservationsFilterForm
+          mapLayer={mapLayer}
+          initialFilterConfig={originalFilterConfig}
+          currentFilterConfig={filterConfig}
+          setFilterConfig={setFilterConfig}
+          setVisible={setFilterModalVisible}
+        />
+      </Modal>
+      <FlatList
+        ListHeaderComponent={
+          <HStack px={16} pt={12} pb={12} space={24} backgroundColor={colorLookup('background.base')}>
+            <TouchableOpacity onPress={() => setFilterModalVisible(true)}>
+              <HStack bg={'white'} px={12} py={8} space={8} borderRadius={30} borderWidth={1} style={{...theme.shadows['5']}}>
+                <FontAwesome name="sliders" size={24} color="black" />
+                <BodySemibold>Filters{resolvedFilters.length > 0 && ` (${resolvedFilters.length})`}</BodySemibold>
+              </HStack>
+            </TouchableOpacity>
+          </HStack>
+        }
+        style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}
+        data={displayedObservations.map(observation => ({
+          id: observation.id,
+          observation: observation,
+          source: nwacObservations?.getObservationList.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
+          zone: zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
+        }))}
+        renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}
+        {...props}
+      />
+    </>
   );
-};
-
-export const zone = (mapLayer: MapLayer, lat: number, long: number): string => {
-  const matchingFeatures = mapLayer.features.filter(feature => geoContains(feature.geometry, [long, lat])).map(feature => feature.properties.name);
-  if (matchingFeatures.length === 0) {
-    return 'Unknown';
-  } else if (matchingFeatures.length > 1) {
-    // TODO: this happens almost 100% ... why?
-    // also, seems like the widget is naming things with more specificity than just the forecast zones? e.g. teton village
-    log.info(`(${long},${lat}) matched ${matchingFeatures.length} features: ${matchingFeatures}`);
-  }
-  return matchingFeatures[0];
 };
 
 const colorsFor = (partnerType: PartnerType) => {

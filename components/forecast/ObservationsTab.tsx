@@ -10,5 +10,5 @@ interface ObservationsTabProps {
 }
 
 export const ObservationsTab: React.FunctionComponent<ObservationsTabProps> = ({zone_name, center_id, requestedTime}) => {
-  return <ObservationsListView center_id={center_id} requestedTime={requestedTime} zone_name={zone_name} />;
+  return <ObservationsListView center_id={center_id} requestedTime={requestedTime} initialFilterConfig={{zone: zone_name}} />;
 };
