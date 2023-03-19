@@ -7,7 +7,7 @@ import axios, {AxiosError} from 'axios';
 import * as Sentry from 'sentry-expo';
 
 import {ClientContext, ClientProps} from 'clientContext';
-import {formatDistanceToNowStrict, roundToNearestMinutes} from 'date-fns';
+import {formatDistanceToNowStrict} from 'date-fns';
 import {logQueryKey} from 'hooks/logger';
 import {ObservationsQuery} from 'hooks/useObservations';
 import {AvalancheCenterID, observationSchema} from 'types/nationalAvalancheCenter';
@@ -18,33 +18,26 @@ export const useNWACObservations = (center_id: AvalancheCenterID, published_afte
   const {nwacHost} = React.useContext<ClientProps>(ClientContext);
 
   return useQuery<ObservationsQuery, AxiosError | ZodError>({
-    queryKey: queryKey(nwacHost, center_id, published_after, published_before),
+    queryKey: queryKey(nwacHost, center_id),
     queryFn: () => fetchNWACObservations(nwacHost, center_id, published_after, published_before),
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
 };
 
-function queryKey(nwacHost: string, center_id: AvalancheCenterID, published_after: Date, published_before: Date) {
+function queryKey(nwacHost: string, center_id: AvalancheCenterID) {
   return logQueryKey([
     'nwac-observations',
     {
       host: nwacHost,
       center_id: center_id,
-      published_after: roundDate(published_after),
-      published_before: roundDate(published_before),
     },
   ]);
 }
 
-// we want to cache our responses, so we need them to align with some less-volatile boundaries
-function roundDate(date: Date): Date {
-  return roundToNearestMinutes(date, {nearestTo: 15});
-}
-
 export const prefetchNWACObservations = async (queryClient: QueryClient, nwacHost: string, center_id: AvalancheCenterID, published_after: Date, published_before: Date) => {
   await queryClient.prefetchQuery({
-    queryKey: queryKey(nwacHost, center_id, published_after, published_before),
+    queryKey: queryKey(nwacHost, center_id),
     queryFn: async () => {
       const start = new Date();
       log.debug(`prefetching NWAC observations`, {center: center_id, after: published_after, before: published_before});
@@ -79,8 +72,8 @@ export const fetchNWACObservations = async (nwacHost: string, center_id: Avalanc
   }
   const url = `${nwacHost}/api/v2/observations`;
   const params = {
-    published_after: toDateTimeInterfaceATOM(roundDate(published_after)),
-    published_before: toDateTimeInterfaceATOM(roundDate(published_before)),
+    published_after: toDateTimeInterfaceATOM(published_after),
+    published_before: toDateTimeInterfaceATOM(published_before),
   };
   const {data} = await axios.get(url, {
     params: params,
