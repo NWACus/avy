@@ -100,8 +100,8 @@ const nwacWeatherForecastSchema = z.object({
   snow_levels: z.array(z.object({elevation: z.number()})),
   ridgeline_winds: z.array(
     z.object({
-      direction: z.string(),
-      speed: z.string(),
+      direction: z.string().nullable(),
+      speed: z.string().nullable(),
     }),
   ),
   weather_forecasts: z.array(

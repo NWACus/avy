@@ -315,8 +315,8 @@ export const observationSchema = z.object({
       observed_terrain: z.string().nullable(),
       time_in_field: z
         .object({
-          start: z.string().nullable(),
-          end: z.string().nullable(),
+          start: z.string().or(z.number()).nullable(),
+          end: z.string().or(z.number()).nullable(),
         })
 
         .nullable(),
