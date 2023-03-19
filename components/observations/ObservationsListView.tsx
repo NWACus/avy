@@ -49,7 +49,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const mapLayer = mapResult.data;
 
   const date = requestedTimeToUTCDate(requestedTime);
-  const startDate = sub(date, {weeks: 1});
+  const startDate = sub(date, {weeks: 2});
   const endDate = date;
   const observationsResult = useObservationsQuery({
     center: center_id,
