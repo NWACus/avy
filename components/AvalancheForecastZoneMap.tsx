@@ -401,6 +401,7 @@ class AnimatedMapWithDrawerController {
         topElementsHeight: this.topElementsHeight,
         cardDrawerMaximumHeight: this.cardDrawerMaximumHeight,
         tabBarHeight: this.tabBarHeight,
+        baseOffset: this.baseOffset,
       },
       output: targetRegion,
     };

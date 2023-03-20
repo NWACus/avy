@@ -4,7 +4,7 @@ import {Feather, FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {colorFor} from 'components/AvalancheDangerPyramid';
 import {Card} from 'components/content/Card';
-import {Carousel} from 'components/content/carousel';
+import {NetworkImage} from 'components/content/carousel/NetworkImage';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
@@ -126,11 +126,12 @@ const colorsFor = (partnerType: PartnerType) => {
   switch (partnerType) {
     case 'forecaster':
     case 'intern':
+      return {primary: '#0059C8', secondary: '#98CBFF'};
     case 'professional':
-      return {primary: '#EA983F', secondary: 'rgba(234, 152, 63, 0.2)'};
+      return {primary: '#006D23', secondary: '#9ED696'};
     case 'volunteer':
     case 'public':
-      return {primary: '#006FFD', secondary: '#EAF2FF'};
+      return {primary: '#EA983F', secondary: 'rgba(234, 152, 63, 0.2)'};
   }
   // const invalid: never = partnerType;
   // throw new Error(`Unknown partner type: ${invalid}`);
@@ -188,7 +189,9 @@ export const ObservationSummaryCard: React.FunctionComponent<{
           </VStack>
         </HStack>
         <View width={52} flex={0} mx={8}>
-          {observation.media && observation.media.length > 0 && <Carousel thumbnailHeight={52} thumbnailAspectRatio={1} media={[observation.media[0]]} displayCaptions={false} />}
+          {observation.media && observation.media.length > 0 && (
+            <NetworkImage width={52} height={52} uri={observation.media[0].url.thumbnail} imageStyle={{borderRadius: 4}} index={0} onPress={null} onStateChange={null} />
+          )}
         </View>
       </HStack>
     </Card>

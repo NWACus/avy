@@ -9,7 +9,6 @@ import log from 'logger';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormProvider, useForm, useWatch} from 'react-hook-form';
 import {ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View as RNView} from 'react-native';
-import Toast from 'react-native-root-toast';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {ClientContext, ClientProps} from 'clientContext';
@@ -26,6 +25,7 @@ import {TextField} from 'components/form/TextField';
 import {defaultObservationFormData, ObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
 import {submitObservation} from 'components/observations/submitObservation';
 import {Body, BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
+import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, InstabilityDistribution, MediaItem, MediaType, Observation} from 'types/nationalAvalancheCenter';
@@ -67,36 +67,25 @@ export const SimpleForm: React.FC<{
       log.info('submitting observation', {formValues: observationFormData});
       return submitObservation({center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
     },
-    // TODO: make these toasts look nicer
-    // TODO: toasts are sitting on top of the nav bar
     onMutate: () => {
-      Toast.show('Uploading your observation...', {
-        duration: Toast.durations.LONG,
-        position: Toast.positions.BOTTOM,
-        shadow: true,
-        animation: true,
-        hideOnPress: true,
-        delay: 0,
+      Toast.show({
+        type: 'info',
+        text1: 'Uploading your observation...',
+        position: 'bottom',
       });
     },
     onSuccess: () => {
-      Toast.show('Your observation was received!', {
-        duration: Toast.durations.LONG,
-        position: Toast.positions.BOTTOM,
-        shadow: true,
-        animation: true,
-        hideOnPress: true,
-        delay: 0,
+      Toast.show({
+        type: 'success',
+        text1: 'Your observation was received!',
+        position: 'bottom',
       });
     },
     onError: error => {
-      Toast.show('There was an error uploading your observation', {
-        duration: Toast.durations.LONG,
-        position: Toast.positions.BOTTOM,
-        shadow: true,
-        animation: true,
-        hideOnPress: true,
-        delay: 0,
+      Toast.show({
+        type: 'error',
+        text1: 'There was an error uploading your observation',
+        position: 'bottom',
       });
       log.error('mutation failed', {error: error});
     },

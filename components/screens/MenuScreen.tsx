@@ -1,8 +1,7 @@
 import log, {logFilePath} from 'logger';
 import React, {ReactNode} from 'react';
 
-import {ScrollView, SectionList, StyleSheet, Switch} from 'react-native';
-import Toast from 'react-native-root-toast';
+import {ScrollView, SectionList, StyleSheet, Switch, TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
@@ -25,6 +24,7 @@ import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
+import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
 import {TableRow} from 'components/observations/ObservationDetailView';
 import {clearUploadCache} from 'components/observations/submitObservation';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
@@ -53,6 +53,7 @@ import {
   Title3Black,
   Title3Semibold,
 } from 'components/text';
+import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {toISOStringUTC} from 'utils/date';
@@ -77,6 +78,7 @@ export const MenuStackScreen = (
       />
       <MenuStack.Screen name="buttonStylePreview" component={ButtonStylePreview} options={{title: `Button style preview`}} />
       <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text style preview`}} />
+      <MenuStack.Screen name="toastPreview" component={ToastPreview} options={{title: `Toast preview`}} />
       <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
       <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
       <MenuStack.Screen name="observation" component={ObservationScreen} />
@@ -132,13 +134,10 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                                 attachments: [logFilePath],
                               });
                             } else {
-                              Toast.show('Email is not configured!', {
-                                duration: Toast.durations.LONG,
-                                position: Toast.positions.BOTTOM,
-                                shadow: true,
-                                animation: true,
-                                hideOnPress: true,
-                                delay: 0,
+                              Toast.show({
+                                type: 'error',
+                                text1: 'Email is not configured!',
+                                position: 'bottom',
                               });
                             }
                           }}>
@@ -194,6 +193,13 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                               navigation.navigate('textStylePreview');
                             },
                           },
+                          {
+                            label: 'Open toast preview',
+                            data: 'Toast Preview',
+                            action: () => {
+                              navigation.navigate('toastPreview');
+                            },
+                          },
                         ]}
                       />
                     </Card>
@@ -206,7 +212,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                             action: () => {
                               navigation.navigate('avalancheCenter', {
                                 center_id: 'NWAC',
-                                requestedTime: toISOStringUTC(new Date('2023-02-20T12:21:00-0800')),
+                                requestedTime: toISOStringUTC(new Date('2023-02-20T5:21:00-0800')),
                               });
                             },
                           },
@@ -218,7 +224,19 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                                 zoneName: 'West Slopes Central',
                                 center_id: 'NWAC',
                                 forecast_zone_id: 1130,
-                                requestedTime: toISOStringUTC(new Date('2023-02-20T12:21:00-0800')),
+                                requestedTime: toISOStringUTC(new Date('2023-02-20T5:21:00-0800')),
+                              });
+                            },
+                          },
+                          {
+                            label: 'View expired forecast',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('forecast', {
+                                zoneName: 'West Slopes Central',
+                                center_id: 'NWAC',
+                                forecast_zone_id: 1130,
+                                requestedTime: toISOStringUTC(new Date('2023-02-01T5:21:00-0800')),
                               });
                             },
                           },
@@ -471,6 +489,87 @@ const TextStylePreview = () => {
         renderItem={({item}) => <item.Component>{item.content}</item.Component>}
         renderSectionHeader={() => <View height={4} />}
       />
+    </SafeAreaView>
+  );
+};
+
+const ToastPreview = () => {
+  return (
+    <SafeAreaView style={styles.fullscreen}>
+      <VStack space={12} my={20} py={16}>
+        <TouchableOpacity
+          onPress={() =>
+            Toast.show({
+              type: 'success',
+              text1: 'Thank you for your submission',
+              position: 'bottom',
+            })
+          }>
+          <SuccessToast content={'Thank you for your submission'} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            Toast.show({
+              type: 'info',
+              text1: 'Informational content here',
+              position: 'bottom',
+            })
+          }>
+          <InfoToast content={'Informational content here'} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            Toast.show({
+              type: 'action',
+              text1: 'You must complete...',
+              position: 'bottom',
+            })
+          }>
+          <ActionToast content={'You must complete...'} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            Toast.show({
+              type: 'error',
+              text1: 'This forecast has expired...',
+              position: 'bottom',
+            })
+          }>
+          <ErrorToast content={'This forecast has expired...'} />
+        </TouchableOpacity>
+        <ErrorToast
+          content={'Persistent toast'}
+          onPress={() =>
+            Toast.show({
+              type: 'error',
+              text1: 'Persistent toast',
+              position: 'bottom',
+              autoHide: false,
+              onPress: () => Toast.hide(),
+            })
+          }
+        />
+        <TouchableOpacity
+          onPress={() =>
+            Toast.show({
+              type: 'warning',
+              text1: 'Could not fetch...',
+              position: 'bottom',
+            })
+          }>
+          <WarningToast content={'Could not fetch...'} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            Toast.show({
+              type: 'error',
+              text1: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt...',
+              position: 'bottom',
+            })
+          }>
+          <ErrorToast content={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt...'} />
+        </TouchableOpacity>
+      </VStack>
     </SafeAreaView>
   );
 };

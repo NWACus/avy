@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {addDays} from 'date-fns';
+import {addDays, formatDistanceToNow, isAfter} from 'date-fns';
 
 import {Feather} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
@@ -21,6 +21,7 @@ import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {useAvalancheWarning} from 'hooks/useAvalancheWarning';
 import {useRefresh} from 'hooks/useRefresh';
 import {RefreshControl, ScrollView} from 'react-native';
+import Toast from 'react-native-toast-message';
 import {HomeStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
@@ -102,6 +103,16 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
     };
   }
 
+  const expires_time = new Date(forecast.expires_time);
+  if (isAfter(new Date(), expires_time)) {
+    Toast.show({
+      type: 'error',
+      text1: `This forecast expired ${formatDistanceToNow(expires_time)} ago.`,
+      autoHide: false,
+      position: 'bottom',
+      onPress: () => Toast.hide(),
+    });
+  }
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}>
       <VStack space={8} backgroundColor={colorLookup('background.base')}>

@@ -94,6 +94,7 @@ export type MenuStackParamList = {
   avalancheCenterSelector: undefined;
   buttonStylePreview: undefined;
   textStylePreview: undefined;
+  toastPreview: undefined;
   avalancheCenter: {
     center_id: AvalancheCenterID;
     requestedTime: RequestedTimeString;
