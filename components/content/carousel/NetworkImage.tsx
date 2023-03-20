@@ -19,7 +19,7 @@ export interface NetworkImageProps {
   height: number;
   index: number;
   onStateChange: (state: NetworkImageState) => void;
-  onPress: (index: number) => void;
+  onPress?: (index: number) => void;
   imageStyle?: StyleProp<ImageStyle>;
   resizeMode?: 'cover' | 'contain';
 }
@@ -30,7 +30,9 @@ export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, o
   const {status, data: cachedUri} = useCachedImageURI(uri);
 
   React.useEffect(() => {
-    onStateChange(status);
+    if (onStateChange) {
+      onStateChange(status);
+    }
   }, [onStateChange, status]);
 
   const imageStyle = {};
@@ -47,6 +49,15 @@ export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, o
     resizeMode,
   } as const;
 
+  let image = <Image source={{uri: cachedUri}} {...croppedThumbnailProps} />;
+  if (onPress) {
+    image = (
+      <TouchableOpacity activeOpacity={0.8} onPress={() => onPress(index)} disabled={status !== 'success'}>
+        {image}
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <Center width={width} height={height}>
       {status === 'loading' && <ActivityIndicator style={{height: Math.min(32, height / 2)}} />}
@@ -56,11 +67,7 @@ export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, o
           <Body>Media failed to load.</Body>
         </VStack>
       )}
-      {(status === 'success' || status === 'loading') && (
-        <TouchableOpacity activeOpacity={0.8} onPress={() => onPress(index)} disabled={status !== 'success'}>
-          <Image source={{uri: cachedUri}} {...croppedThumbnailProps} />
-        </TouchableOpacity>
-      )}
+      {(status === 'success' || status === 'loading') && image}
     </Center>
   );
 };
