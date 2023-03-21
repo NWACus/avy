@@ -19,10 +19,12 @@ export const COLORS = {
   // NWAC colors
   //
   // Primary
-  primary: '#096DD9',
-  'primary.hover': '#40A9FF',
-  'primary.active': '#096DD9',
+  primary: rgbaToHexString('rgba(9, 109, 217, 1)'),
+  'primary.hover': rgbaToHexString('rgba(64, 169, 255, 1)'),
+  'primary.active': rgbaToHexString('rgba(9, 109, 217, 1)'),
   'primary.outline': rgbaToHexString('rgba(24, 144, 255, 0.2)'),
+  'primary.background': rgbaToHexString('rgba(246, 248, 252, 1)'),
+  'primary.border': rgbaToHexString('rgba(24, 144, 255, 0.2)'), // TODO: need to get this from the designers
   //
   // UI
   blue1: rgbaToHexString('rgba(24, 144, 255, 1)'),
@@ -43,6 +45,38 @@ export const COLORS = {
 
   'error.color': rgbaToHexString('rgba(222, 75, 70, 1)'),
   'error.color-primary': rgbaToHexString('rgba(218, 55, 49, 1)'),
+
+  // Functional
+  success: rgbaToHexString('rgba(82, 196, 26, 1)'),
+  'success.hover': rgbaToHexString('rgba(115, 209, 61, 1)'),
+  'success.active': rgbaToHexString('rgba(56, 158, 13, 1)'),
+  'success.outline': rgbaToHexString('rgba(82, 196, 26, 0.2)'),
+  'success.background': rgbaToHexString('rgba(246, 255, 237, 1)'),
+  'success.border': rgbaToHexString('rgba(183, 235, 143, 1)'),
+
+  // TODO: add info variants that are shades of grey ?
+
+  warning: rgbaToHexString('rgba(250, 173, 20, 1)'),
+  'warning.hover': rgbaToHexString('rgba(255, 197, 61, 1)'),
+  'warning.active': rgbaToHexString('rgba(212, 136, 6, 1)'),
+  'warning.outline': rgbaToHexString('rgba(250, 173, 20, 0.2)'),
+  'warning.background': rgbaToHexString('rgba(255, 251, 230, 1)'),
+  'warning.border': rgbaToHexString('rgba(255, 229, 143, 1)'),
+
+  error: rgbaToHexString('rgba(222, 75, 70, 1)'),
+  'error.hover': rgbaToHexString('rgba(229, 115, 111, 1)'),
+  'error.active': rgbaToHexString('rgba(218, 55, 49, 1)'),
+  'error.outline': rgbaToHexString('rgba(255, 77, 79, 0.2)'),
+  'error.background': rgbaToHexString('rgba(255, 241, 240, 1)'),
+  'error.border': rgbaToHexString('rgba(255, 163, 158, 1)'),
+
+  // NAC Colors
+  general_information: '#909092',
+  low: '#6CB557',
+  moderate: '#FEF051',
+  considerable: '#EA983F',
+  high: '#DB3832',
+  extreme: '#221F20',
 
   // Color aliases from NativeBase
   'rose.50': '#fff1f2',
