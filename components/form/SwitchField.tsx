@@ -25,6 +25,8 @@ export function SwitchField<T>({name, label, items, ...props}: SwitchFieldProps<
     <VStack width="100%" space={4} {...props}>
       <BodyXSmBlack>{label}</BodyXSmBlack>
       <SegmentedControl
+        tintColor="white"
+        activeFontStyle={{color: colorLookup('text') as string, fontSize: 16, fontFamily: 'Lato_400Regular'}}
         fontStyle={{color: colorLookup('text') as string, fontSize: 16, fontFamily: 'Lato_400Regular'}}
         values={items.map(i => i.label)}
         selectedIndex={Math.max(
