@@ -165,7 +165,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
             onLayout={(event: LayoutChangeEvent) => {
               // onLayout returns position relative to parent - we need position relative to screen
               event.currentTarget.measureInWindow((x, y, width, height) => {
-                controller.animateUsingUpdatedTopElementsHeight(y + height);
+                controller.animateUsingUpdatedTopElementsHeight(y, height);
               });
             }}>
             <DangerScale width="100%" />
@@ -210,6 +210,7 @@ class AnimatedMapWithDrawerController {
   baseAvalancheCenterMapRegion: Region;
   windowWidth: number;
   windowHeight: number;
+  topElementsOffset: number;
   topElementsHeight: number;
   cardDrawerMaximumHeight: number;
   tabBarHeight: number;
@@ -303,7 +304,8 @@ class AnimatedMapWithDrawerController {
     this.animateMapRegion();
   }
 
-  animateUsingUpdatedTopElementsHeight(height: number) {
+  animateUsingUpdatedTopElementsHeight(offset, height: number) {
+    this.topElementsOffset = offset;
     this.topElementsHeight = height;
     this.animateMapRegion();
   }
@@ -329,7 +331,7 @@ class AnimatedMapWithDrawerController {
     // then, we need to look at the entire available screen real-estate for our app
     // to determine the unobstructed area for the polygons
     const unobstructedWidth = this.windowWidth;
-    const unobstructedHeight = this.windowHeight - this.topElementsHeight - cardDrawerHeight - this.tabBarHeight;
+    const unobstructedHeight = this.windowHeight - this.topElementsOffset - this.topElementsHeight - cardDrawerHeight - this.tabBarHeight;
 
     // nb. in spherical projections, the scale factor is proportional to the secant of the latitude
     const projectionConversionFactor = (latitudeDegrees: number): number => {
@@ -366,9 +368,10 @@ class AnimatedMapWithDrawerController {
       (this.windowWidth - regionWidthPixels) / 2; // half of the leftover space in the screen
     // the center in Y will be:
     const regionCenterYPixel =
+      this.topElementsOffset +
       this.topElementsHeight + // the top elements
       regionHeightPixels / 2 + // half the size of the region
-      (this.windowHeight - this.topElementsHeight - cardDrawerHeight - this.tabBarHeight - regionHeightPixels) / 2; // half the leftover space in the screen
+      (this.windowHeight - this.topElementsOffset - this.topElementsHeight - cardDrawerHeight - this.tabBarHeight - regionHeightPixels) / 2; // half the leftover space in the screen
     // finally, we calculate the offset, in pixels, from the center of the region to the center of the screen
     const regionCenterXOffsetPixels = regionCenterXPixel - this.windowWidth / 2;
     const regionCenterYOffsetPixels = regionCenterYPixel - this.windowHeight / 2;
@@ -399,6 +402,7 @@ class AnimatedMapWithDrawerController {
         windowWidth: this.windowWidth,
         windowHeight: this.windowHeight,
         topElementsHeight: this.topElementsHeight,
+        topElementsOffset: this.topElementsOffset,
         cardDrawerMaximumHeight: this.cardDrawerMaximumHeight,
         tabBarHeight: this.tabBarHeight,
         baseOffset: this.baseOffset,
