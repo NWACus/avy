@@ -399,3 +399,25 @@ const avalancheWarningResultSchema = avalancheWarningSchema.extend({
   zone_id: z.number(),
 });
 export type AvalancheWarning = z.infer<typeof avalancheWarningResultSchema>;
+
+export const synopsisSchema = z.object({
+  id: z.number().nullable(),
+  published_time: datePipeline.nullable(),
+  expires_time: datePipeline.nullable(),
+  updated_at: datePipeline.nullable(),
+  created_at: datePipeline.nullable(),
+  author: z.string().nullable(),
+
+  affected_area: z.string().nullable(),
+  bottom_line: z.string().nullable(),
+  hazard_discussion: z.string().nullable(),
+  weather_discussion: z.string().nullable(),
+  weather_data: z.string().nullable(),
+  announcement: z.string().nullable(),
+
+  media: z.array(mediaItemSchema).nullable(),
+});
+const synopsisResultSchema = synopsisSchema.extend({
+  zone_id: z.number(),
+});
+export type Synopsis = z.infer<typeof synopsisResultSchema>;
