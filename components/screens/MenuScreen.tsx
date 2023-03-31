@@ -229,6 +229,18 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                             },
                           },
                           {
+                            label: 'View forecast with synopsis',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('forecast', {
+                                zoneName: 'West Slopes Central',
+                                center_id: 'NWAC',
+                                forecast_zone_id: 1130,
+                                requestedTime: toISOStringUTC(new Date('2022-04-10T5:21:00-0800')),
+                              });
+                            },
+                          },
+                          {
                             label: 'View expired forecast',
                             data: null,
                             action: () => {

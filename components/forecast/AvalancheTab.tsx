@@ -1,8 +1,8 @@
-import React from 'react';
+import React, {useState} from 'react';
 
 import {addDays, formatDistanceToNow, isAfter} from 'date-fns';
 
-import {Feather} from '@expo/vector-icons';
+import {Feather, FontAwesome} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {colorFor} from 'components/AvalancheDangerPyramid';
@@ -13,14 +13,16 @@ import {Carousel} from 'components/content/carousel';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
-import {AllCapsSm, AllCapsSmBlack, BodyBlack, bodySize, BodySmSemibold, Title3, Title3Black} from 'components/text';
+import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize, BodySmSemibold, Title3, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
 import {toDate} from 'date-fns-tz';
 import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {useAvalancheWarning} from 'hooks/useAvalancheWarning';
 import {useRefresh} from 'hooks/useRefresh';
-import {RefreshControl, ScrollView} from 'react-native';
+import {useSynopsis} from 'hooks/useSynopsis';
+import {RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
+import Collapsible from 'react-native-collapsible';
 import Toast from 'react-native-toast-message';
 import {HomeStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
@@ -29,6 +31,7 @@ import {
   AvalancheCenterID,
   AvalancheDangerForecast,
   AvalancheForecastZoneSummary,
+  AvalancheWarning,
   DangerLevel,
   ElevationBandNames,
   ForecastPeriod,
@@ -58,7 +61,9 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
   const forecast = forecastResult.data;
   const warningResult = useAvalancheWarning(center_id, forecast_zone_id, requestedTime);
   const warning = warningResult.data;
-  const {isRefreshing, refresh} = useRefresh(forecastResult.refetch, warningResult.refetch);
+  const synopsisResult = useSynopsis(center_id, forecast_zone_id, requestedTime);
+  const synopsis = synopsisResult.data;
+  const {isRefreshing, refresh} = useRefresh(forecastResult.refetch, warningResult.refetch, synopsisResult.refetch);
 
   // When navigating from elsewhere in the app, the screen title should already
   // be set to the zone name. But if we warp directly to a forecast link, we
@@ -73,8 +78,8 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
     }
   }, [forecast, forecast_zone_id, navigation]);
 
-  if (incompleteQueryState(forecastResult, warningResult) || isNotFound(forecast)) {
-    return <QueryState results={[forecastResult, warningResult]} />;
+  if (incompleteQueryState(forecastResult, warningResult, synopsisResult) || isNotFound(forecast)) {
+    return <QueryState results={[forecastResult, warningResult, synopsisResult]} />;
   }
 
   // very much not clear why sometimes (perhaps after hydrating?) the time fields are strings, not dates
@@ -139,37 +144,12 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
             </VStack>
           </HStack>
         </Card>
-        {warning.expires_time && (
-          <View mx={16} py={16} borderRadius={10} borderColor={'#333333'} backgroundColor={'#333333'}>
-            <HStack ml={12} space={16}>
-              <View backgroundColor={colorFor(DangerLevel.High).string()} width={4} height={'100%'} borderRadius={12}></View>
-              <VStack space={16} pr={8}>
-                <VStack space={8}>
-                  <HStack space={8} alignItems={'flex-start'}>
-                    <Feather name="alert-triangle" size={24} color={colorFor(DangerLevel.High).string()} />
-                    <Title3Black color="white">AVALANCHE WARNING</Title3Black>
-                  </HStack>
-                  <VStack>
-                    <HStack px={4} space={2}>
-                      <BodySmSemibold color="white">Issued:</BodySmSemibold>
-                      <AllCapsSm style={{textTransform: 'none'}} color="white">
-                        {utcDateToLocalTimeString(warning.published_time)}
-                      </AllCapsSm>
-                    </HStack>
-                    <HStack px={4} space={2}>
-                      <BodySmSemibold color="white">Expires:</BodySmSemibold>
-                      <AllCapsSm style={{textTransform: 'none'}} color="white">
-                        {utcDateToLocalTimeString(warning.expires_time)}
-                      </AllCapsSm>
-                    </HStack>
-                  </VStack>
-                </VStack>
-                <View pr={8}>
-                  <Title3 color={'white'}>{warning.bottom_line}</Title3>
-                </View>
-              </VStack>
-            </HStack>
-          </View>
+        {warning.expires_time && <WarningCard warning={warning} />}
+        {synopsis.hazard_discussion && !synopsis.hazard_discussion.includes("There's no current product.") && (
+          <CollapsibleCard startsCollapsed={false} borderRadius={0} borderColor="white" header={<BodyBlack>{synopsis.bottom_line}</BodyBlack>}>
+            <HTML source={{html: synopsis.hazard_discussion}} />
+            <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={synopsis.media} displayCaptions={false} />
+          </CollapsibleCard>
         )}
         <Card
           borderRadius={0}
@@ -211,3 +191,69 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
     </ScrollView>
   );
 });
+
+const WarningCard: React.FunctionComponent<{warning: AvalancheWarning}> = ({warning}) => {
+  const [isCollapsed, setIsCollapsed] = useState(true);
+
+  return (
+    <View mx={16} py={16} borderRadius={10} borderColor={'#333333'} backgroundColor={'#333333'}>
+      <HStack mx={12} space={16} alignItems={'flex-start'}>
+        <View backgroundColor={colorFor(DangerLevel.High).string()} width={4} height={'100%'} borderRadius={12}></View>
+        <VStack space={16} flex={1}>
+          <VStack space={8}>
+            <HStack space={8} alignItems={'flex-start'}>
+              <Feather name="alert-triangle" size={24} color={colorFor(DangerLevel.High).string()} />
+              <Title3Black color="white">AVALANCHE WARNING</Title3Black>
+            </HStack>
+            <VStack>
+              <HStack px={4} space={2}>
+                <BodySmSemibold color="white">Issued:</BodySmSemibold>
+                <AllCapsSm style={{textTransform: 'none'}} color="white">
+                  {utcDateToLocalTimeString(warning.published_time)}
+                </AllCapsSm>
+              </HStack>
+              <HStack px={4} space={2}>
+                <BodySmSemibold color="white">Expires:</BodySmSemibold>
+                <AllCapsSm style={{textTransform: 'none'}} color="white">
+                  {utcDateToLocalTimeString(warning.expires_time)}
+                </AllCapsSm>
+              </HStack>
+            </VStack>
+          </VStack>
+          <View flex={1}>
+            <Title3 color={'white'}>{warning.bottom_line}</Title3>
+          </View>
+          <Collapsible collapsed={isCollapsed} renderChildrenCollapsed>
+            <VStack space={8} pt={8}>
+              <View mr={8} flex={1}>
+                <VStack px={4} space={2}>
+                  <BodySemibold color="white">What:</BodySemibold>
+                  <Body style={{textTransform: 'none'}} color="white">
+                    {warning.hazard_discussion}
+                  </Body>
+                </VStack>
+                <VStack px={4} space={2}>
+                  <BodySemibold color="white">Where:</BodySemibold>
+                  <Body style={{textTransform: 'none'}} color="white">
+                    {warning.affected_area}
+                  </Body>
+                </VStack>
+                <VStack px={4} space={2}>
+                  <BodySemibold color="white">Why:</BodySemibold>
+                  <Body style={{textTransform: 'none'}} color="white">
+                    {warning.reason}
+                  </Body>
+                </VStack>
+              </View>
+            </VStack>
+          </Collapsible>
+        </VStack>
+        <TouchableOpacity onPress={() => setIsCollapsed(!isCollapsed)}>
+          <HStack mr={12} justifyContent="space-between" alignItems="center">
+            <FontAwesome name={isCollapsed ? 'angle-down' : 'angle-up'} color={'white'} backgroundColor={'#333333'} size={24} />
+          </HStack>
+        </TouchableOpacity>
+      </HStack>
+    </View>
+  );
+};
