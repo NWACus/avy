@@ -117,7 +117,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
   if (isAfter(new Date(), expires_time)) {
     Toast.show({
       type: 'error',
-      text1: `This forecast expired ${formatDistanceToNow(expires_time)} ago.`,
+      text1: `This avalanche forecast expired ${formatDistanceToNow(expires_time)} ago.`,
       autoHide: false,
       position: 'bottom',
       onPress: () => Toast.hide(),

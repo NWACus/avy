@@ -8,7 +8,7 @@ import {HStack, View, VStack} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, BodyXSmBlack, bodyXSmSize, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
-import {add} from 'date-fns';
+import {add, formatDistanceToNow, isAfter} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {FormatTimeOfDay, useNWACWeatherForecast} from 'hooks/useNWACWeatherForecast';
@@ -16,6 +16,7 @@ import {useRefresh} from 'hooks/useRefresh';
 import {useWeatherStations} from 'hooks/useWeatherStations';
 import React from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
+import Toast from 'react-native-toast-message';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
@@ -54,6 +55,11 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   const {isRefreshing, refresh} = useRefresh(nwacForecastResult.refetch, stationsResult.refetch, avalancheCenterMetadataResult.refetch, mapLayerResult.refetch);
 
   const navigation = useNavigation<ForecastNavigationProp>();
+  React.useEffect(() => {
+    return navigation.addListener('beforeRemove', () => {
+      Toast.hide();
+    });
+  }, [navigation]);
 
   if (incompleteQueryState(nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, stationsResult)) {
     return <QueryState results={[nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, stationsResult]} />;
@@ -102,6 +108,15 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   const start = new Date(Date.UTC(published_time.getUTCFullYear(), published_time.getUTCMonth(), published_time.getUTCDate()));
   // 😵‍💫 😵‍💫 😵‍💫
   const expires_time = isPublishedMorning ? add(start, {hours: 14 - offsetHours}) : add(start, {hours: 7 - offsetHours, days: 1});
+  if (isAfter(new Date(), expires_time)) {
+    Toast.show({
+      type: 'error',
+      text1: `This weather forecast expired ${formatDistanceToNow(expires_time)} ago.`,
+      autoHide: false,
+      position: 'bottom',
+      onPress: () => Toast.hide(),
+    });
+  }
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}>
       <VStack space={8} backgroundColor={colorLookup('background.base')}>
