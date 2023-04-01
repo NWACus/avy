@@ -1,3 +1,4 @@
+import {Logger} from 'browser-bunyan';
 import React from 'react';
 import {ActivityIndicator, Image, ImageSourcePropType, ImageStyle} from 'react-native';
 
@@ -47,14 +48,14 @@ export const AvalancheDangerIcon: React.FunctionComponent<AvalancheDangerIconPro
   return <Image style={actualStyle} source={{uri: uri}} />;
 };
 
-export const preloadAvalancheDangerIcons = async (queryClient: QueryClient) => {
+export const preloadAvalancheDangerIcons = async (queryClient: QueryClient, logger: Logger) => {
   /* eslint-disable @typescript-eslint/no-var-requires */
   return Promise.all([
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/danger-icons/0.png')).uri),
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/danger-icons/1.png')).uri),
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/danger-icons/2.png')).uri),
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/danger-icons/3.png')).uri),
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/danger-icons/4.png')).uri),
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/danger-icons/5.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/danger-icons/0.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/danger-icons/1.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/danger-icons/2.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/danger-icons/3.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/danger-icons/4.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/danger-icons/5.png')).uri),
   ]);
 };

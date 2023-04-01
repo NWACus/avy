@@ -1,4 +1,4 @@
-import log, {logFilePath} from 'logger';
+import {logFilePath} from 'logger';
 import React, {ReactNode} from 'react';
 
 import {ScrollView, SectionList, StyleSheet, Switch, TouchableOpacity} from 'react-native';
@@ -53,6 +53,7 @@ import {
   Title3Black,
   Title3Semibold,
 } from 'components/text';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -91,11 +92,12 @@ export const MenuStackScreen = (
 };
 
 export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheCenterID, staging: boolean, setStaging: React.Dispatch<React.SetStateAction<boolean>>) => {
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const toggleStaging = React.useCallback(() => {
     setStaging(!staging);
 
-    log.info(`Switching to ${staging ? 'production' : 'staging'} environment`);
-  }, [staging, setStaging]);
+    logger.info({environment: staging ? 'production' : 'staging'}, 'switching environment');
+  }, [staging, setStaging, logger]);
   const navigation = useNavigation<MenuStackNavigationProps>();
   return function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
     return (

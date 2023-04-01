@@ -17,6 +17,7 @@ import {
 import AnimatedMapView, {Region} from 'react-native-maps';
 
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
+import {Logger} from 'browser-bunyan';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {colorFor} from 'components/AvalancheDangerPyramid';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
@@ -30,7 +31,7 @@ import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts';
 import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
-import log from 'logger';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import md5 from 'md5';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps} from 'routes';
@@ -44,6 +45,7 @@ export interface MapProps {
 }
 
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, requestedTime}: MapProps) => {
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const mapLayerResult = useMapLayer(center);
   const mapLayer = mapLayerResult.data;
   const metadataResult = useAvalancheCenterMetadata(center);
@@ -77,7 +79,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
   const mapView = useRef<AnimatedMapView>(null);
-  const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapView)).current;
+  const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapView, logger)).current;
   React.useEffect(() => {
     controller.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
   }, [avalancheCenterMapRegion, controller]);
@@ -200,6 +202,8 @@ class AnimatedMapWithDrawerController {
   // When a pan gesture goes beyond this distance, we animate the drawer to the final state
   static readonly SNAP_THRESHOLD = 16;
 
+  logger: Logger;
+
   // The following members manage the state of the drawer at the bottom of the map
   state: AnimatedDrawerState;
   baseOffset: number;
@@ -218,7 +222,8 @@ class AnimatedMapWithDrawerController {
   // We store the last time we logged a region calculation so as to continue logging but not spam
   lastLogged: Record<string, string>; // mapping hash of parameters to the time we last logged it
 
-  constructor(state = AnimatedDrawerState.Docked, region: Region, mapView: MutableRefObject<AnimatedMapView>) {
+  constructor(state = AnimatedDrawerState.Docked, region: Region, mapView: MutableRefObject<AnimatedMapView>, logger: Logger) {
+    this.logger = logger;
     this.state = state;
     this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[state];
     this.panning = false;
@@ -413,7 +418,7 @@ class AnimatedMapWithDrawerController {
     const now = new Date();
     if (!this.lastLogged[parameterHash] || isAfter(now, add(new Date(this.lastLogged[parameterHash]), {minutes: 1}))) {
       // we have either not seen this input yet, or the last time we saw it was sufficiently long ago
-      log.info('animating map region', parameters);
+      this.logger.info(parameters, 'animating map region');
       this.lastLogged[parameterHash] = toISOStringUTC(now);
     }
     this.mapView?.current?.animateToRegion(targetRegion);

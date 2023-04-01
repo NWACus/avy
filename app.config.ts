@@ -1,5 +1,4 @@
 import {ConfigContext, ExpoConfig} from '@expo/config';
-import md5 from 'md5';
 
 export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   // `config` is the object loaded from app.json. Here, we fill in secrets that
@@ -11,18 +10,9 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   /* eslint-disable @typescript-eslint/no-non-null-assertion */
   config.ios!.config!.googleMapsApiKey = process.env.IOS_GOOGLE_MAPS_API_KEY;
   config.android!.config!.googleMaps!.apiKey = process.env.ANDROID_GOOGLE_MAPS_API_KEY;
-  config.extra!.googleMapsApiKey!.ios = process.env.IOS_GOOGLE_MAPS_API_KEY;
-  config.extra!.googleMapsApiKey!.android = process.env.ANDROID_GOOGLE_MAPS_API_KEY;
-  config.extra!.googleMapsApiKey!.ios_md5 = md5(process.env.IOS_GOOGLE_MAPS_API_KEY || 'undefined');
-  config.extra!.googleMapsApiKey!.android_md5 = md5(process.env.ANDROID_GOOGLE_MAPS_API_KEY || 'undefined');
   config.hooks!.postPublish![0]!.config!.authToken = process.env.SENTRY_API_TOKEN;
   config.extra!.sentry_dsn = process.env.SENTRY_DSN;
-  if (process.env.LOG_NETWORK != null) {
-    config.extra!.log_network = process.env.LOG_NETWORK;
-  } else if (process.env.LOG_REQUESTS != null) {
-    config.extra!.log_network = 'requests';
-  }
-  config.extra!.log_network_matching = process.env.LOG_NETWORK_MATCHING != null ? process.env.LOG_NETWORK_MATCHING : 'https';
+  config.extra!.log_level = process.env.LOG_LEVEL != null ? process.env.LOG_LEVEL : 'info';
 
   return config;
 };

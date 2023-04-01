@@ -1,4 +1,3 @@
-import log from 'logger';
 import React from 'react';
 
 import {QueryClient, useQuery} from '@tanstack/react-query';
@@ -6,17 +5,23 @@ import axios, {AxiosError} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
+import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
-import {logQueryKey} from 'hooks/logger';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, MapLayer, mapLayerSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
 export const useMapLayer = (center_id: AvalancheCenterID) => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const key = queryKey(nationalAvalancheCenterHost, center_id);
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('initiating query');
+
   return useQuery<MapLayer, AxiosError | ZodError>({
-    queryKey: queryKey(nationalAvalancheCenterHost, center_id),
-    queryFn: async () => fetchMapLayer(nationalAvalancheCenterHost, center_id),
+    queryKey: key,
+    queryFn: async () => fetchMapLayer(nationalAvalancheCenterHost, center_id, thisLogger),
     enabled: !!center_id,
     staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
     cacheTime: Infinity, // hold on to this cached data forever
@@ -24,38 +29,33 @@ export const useMapLayer = (center_id: AvalancheCenterID) => {
 };
 
 function queryKey(nationalAvalancheCenterHost: string, center_id: string) {
-  return logQueryKey(['map-layer', {host: nationalAvalancheCenterHost, center: center_id}]);
+  return ['map-layer', {host: nationalAvalancheCenterHost, center: center_id}];
 }
 
-export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {
+export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger) => {
+  const key = queryKey(nationalAvalancheCenterHost, center_id);
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('initiating query');
+
   await queryClient.prefetchQuery({
-    queryKey: queryKey(nationalAvalancheCenterHost, center_id),
+    queryKey: key,
     queryFn: async () => {
       const start = new Date();
-      log.debug(`prefetching avalanche center map layer`, {center: center_id});
-      const result = await fetchMapLayer(nationalAvalancheCenterHost, center_id);
-      log.debug(`finished prefetching avalanche center map layer`, {center: center_id, duration: formatDistanceToNowStrict(start)});
+      thisLogger.trace(`prefetching`);
+      const result = await fetchMapLayer(nationalAvalancheCenterHost, center_id, thisLogger);
+      thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
   });
 };
 
-const fetchMapLayerQuery = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) =>
-  await queryClient.fetchQuery({
-    queryKey: queryKey(nationalAvalancheCenterHost, center_id),
-    queryFn: async () => {
-      const result = await fetchMapLayer(nationalAvalancheCenterHost, center_id);
-      return result;
-    },
-  });
-
-const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) => {
+const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger) => {
   const url = `${nationalAvalancheCenterHost}/v2/public/products/map-layer/${center_id}`;
   const {data} = await axios.get(url);
 
   const parseResult = mapLayerSchema.safeParse(data);
   if (parseResult.success === false) {
-    log.warn('unparsable avalanche avalanche center map layer', {url: url, center: center_id, error: parseResult.error});
+    logger.warn({url: url, error: parseResult.error}, 'unparsable avalanche avalanche center map layer');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,
@@ -71,6 +71,5 @@ const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: Ava
 
 export default {
   queryKey,
-  fetchQuery: fetchMapLayerQuery,
   prefetch: prefetchMapLayer,
 };

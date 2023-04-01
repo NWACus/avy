@@ -5,7 +5,6 @@ import {useNavigation} from '@react-navigation/native';
 import {useMutation} from '@tanstack/react-query';
 import {AxiosError} from 'axios';
 import * as ImagePicker from 'expo-image-picker';
-import log from 'logger';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormProvider, useForm, useWatch} from 'react-hook-form';
 import {ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View as RNView} from 'react-native';
@@ -25,6 +24,7 @@ import {TextField} from 'components/form/TextField';
 import {defaultObservationFormData, ObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
 import {submitObservation} from 'components/observations/submitObservation';
 import {Body, BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
@@ -35,6 +35,7 @@ export const SimpleForm: React.FC<{
   onClose?: () => void;
 }> = ({center_id, onClose}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const formContext = useForm({
     defaultValues: defaultObservationFormData(),
     resolver: zodResolver(simpleObservationFormSchema),
@@ -64,8 +65,8 @@ export const SimpleForm: React.FC<{
 
   const mutation = useMutation<Observation, AxiosError, ObservationFormData>({
     mutationFn: async (observationFormData: ObservationFormData) => {
-      log.info('submitting observation', {formValues: observationFormData});
-      return submitObservation({center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
+      logger.info({formValues: observationFormData}, 'submitting observation');
+      return submitObservation(logger, {center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
     },
     onMutate: () => {
       Toast.show({
@@ -87,7 +88,7 @@ export const SimpleForm: React.FC<{
         text1: 'There was an error uploading your observation',
         position: 'bottom',
       });
-      log.error('mutation failed', {error: error});
+      logger.error({error: error}, 'mutation failed');
     },
     retry: true,
   });
@@ -103,7 +104,7 @@ export const SimpleForm: React.FC<{
   };
 
   const onSubmitErrorHandler = errors => {
-    log.error('submit error', {errors: errors, formValues: formContext.getValues()});
+    logger.error({errors: errors, formValues: formContext.getValues()}, 'submit error');
     // scroll to the first field with an error
     fieldRefs.current.some(({ref, field}) => {
       if (errors[field]) {

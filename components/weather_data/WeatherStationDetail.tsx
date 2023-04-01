@@ -9,6 +9,7 @@ import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {Center, Divider, HStack, View, VStack} from 'components/core';
 import {AllCapsSm, Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
 import {compareDesc, format} from 'date-fns';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {TimeSeries, useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
@@ -195,8 +196,10 @@ export const Row: React.FunctionComponent<{borderRightWidth: number; name: strin
 export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_stids, zoneName}) => {
   const [days, setDays] = useState(1);
   const navigation = useNavigation();
+  const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
+  const metadata = avalancheCenterMetadataResult.data;
   const timeseries = useWeatherStationTimeseries({
-    center: center_id,
+    token: metadata?.widget_config.stations.token,
     sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
     stids: station_stids,
     startDate: new Date(date.getTime() - days * 24 * 60 * 60 * 1000),
@@ -207,8 +210,8 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
     navigation.setOptions({title: zoneName});
   }, [navigation, zoneName]);
 
-  if (incompleteQueryState(timeseries)) {
-    return <QueryState results={[timeseries]} />;
+  if (incompleteQueryState(avalancheCenterMetadataResult, timeseries)) {
+    return <QueryState results={[avalancheCenterMetadataResult, timeseries]} />;
   }
 
   const data = timeseries.data;

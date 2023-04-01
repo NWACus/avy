@@ -1,20 +1,18 @@
-import log from 'logger';
-import {useContext} from 'react';
+import React, {useContext} from 'react';
 
-import {useQuery, useQueryClient} from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import {boundsForRegions, featureBounds, pointInFeature} from 'components/helpers/geographicCoordinates';
-import {logQueryKey} from 'hooks/logger';
-import AvalancheCenterMetadata from 'hooks/useAvalancheCenterMetadata';
-import MapLayer from 'hooks/useMapLayer';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {ApiError, OpenAPI, StationMetadata, StationMetadataService} from 'types/generated/snowbound';
-import {AvalancheCenterID, Feature} from 'types/nationalAvalancheCenter';
+import {Feature, MapLayer} from 'types/nationalAvalancheCenter';
 
 type Source = 'nwac' | 'snotel' | 'mesowest';
 
 interface Props {
-  center: AvalancheCenterID;
+  mapLayer: MapLayer;
+  token: string;
   sources: Source[];
 }
 
@@ -69,20 +67,18 @@ const decommissionedStations = [
   '15', // Stevens Pass - Brooks Wind (Retired 2019)
 ];
 
-export const useWeatherStations = ({center, sources}: Props) => {
-  const queryClient = useQueryClient();
+export const useWeatherStations = ({mapLayer, token, sources}: Props) => {
   const clientProps = useContext<ClientProps>(ClientContext);
   const sourceString = sources.join(',');
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const key = ['stations', sourceString];
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('initiating query');
 
   return useQuery<ZoneResult[], ApiError | Error>(
-    logQueryKey(['stations', sourceString]),
+    key,
     async () => {
-      // Get the snowbound API token for the center
-      const metadata = await AvalancheCenterMetadata.fetchQuery(queryClient, clientProps.nationalAvalancheCenterHost, center);
-      const token = metadata.widget_config.stations.token;
-
       // get list of zones for the center
-      const mapLayer = await MapLayer.fetchQuery(queryClient, clientProps.nationalAvalancheCenterHost, center);
       const mapLayerZones: Feature[] = mapLayer.features;
       const dataByZone = mapLayerZones.map(f => ({feature: f, bounds: featureBounds(f), stationGroups: {}}));
 
@@ -104,10 +100,11 @@ export const useWeatherStations = ({center, sources}: Props) => {
         .forEach(s => {
           const {lat: latitude, lng: longitude} = s.coordinates;
           const matchingZones = dataByZone.filter(zoneData => pointInFeature({latitude, longitude}, zoneData.feature));
+          const stationLogger = thisLogger.child({station: {id: s.id, name: s.name, coordinates: s.coordinates}});
           if (matchingZones.length === 0) {
-            log.warn(`Unable to find matching zone for weather station ${s.id}, ${s.name}, ${s.coordinates}`);
+            stationLogger.warn(`unable to find matching zone for weather station`);
           } else if (matchingZones.length > 1) {
-            log.warn(`Found multiple matching zones for weather station ${s.id}, ${s.name}, ${s.coordinates}: ${matchingZones.map(z => z.feature.properties.name).join(',')}`);
+            stationLogger.warn({matchingZones: matchingZones.map(z => z.feature.properties.name)}, `found multiple matching zones for weather station}`);
           } else {
             // Mapped station to a single zone. Now, should it appear in the UI as part of a group?
             const groupMapping = Object.entries(stationGroupMapping).find(([_name, stids]) => stids.includes(s.stid));
@@ -122,6 +119,7 @@ export const useWeatherStations = ({center, sources}: Props) => {
     {
       staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
       cacheTime: Infinity, // hold on to this cached data forever
+      enabled: !!token && !!mapLayer,
     },
   );
 };

@@ -1,3 +1,4 @@
+import {Logger} from 'browser-bunyan';
 import React from 'react';
 import {ActivityIndicator, Image, ImageSourcePropType, ImageStyle} from 'react-native';
 
@@ -43,17 +44,17 @@ export const AvalancheProblemIcon: React.FunctionComponent<AvalancheProblemIconP
   return <Image style={style} source={{uri: uri}} />;
 };
 
-export const preloadAvalancheProblemIcons = async (queryClient: QueryClient) => {
+export const preloadAvalancheProblemIcons = async (queryClient: QueryClient, logger: Logger) => {
   /* eslint-disable @typescript-eslint/no-var-requires */
   return Promise.all([
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/problem-icons/DryLoose.png')).uri),
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/problem-icons/StormSlab.png')).uri),
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/problem-icons/WindSlab.png')).uri),
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/problem-icons/PersistentSlab.png')).uri),
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/problem-icons/DeepPersistentSlab.png')).uri),
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/problem-icons/WetLoose.png')).uri),
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/problem-icons/WetSlab.png')).uri),
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/problem-icons/CorniceFall.png')).uri),
-    ImageCache.prefetch(queryClient, Image.resolveAssetSource(require('../assets/problem-icons/Glide.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/DryLoose.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/StormSlab.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/WindSlab.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/PersistentSlab.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/DeepPersistentSlab.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/WetLoose.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/WetSlab.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/CorniceFall.png')).uri),
+    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/Glide.png')).uri),
   ]);
 };

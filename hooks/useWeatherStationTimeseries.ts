@@ -1,19 +1,17 @@
-import {useContext} from 'react';
+import React, {useContext} from 'react';
 
-import {useQuery, useQueryClient} from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 
 import {ClientContext, ClientProps} from 'clientContext';
-import {logQueryKey} from 'hooks/logger';
-import AvalancheCenterMetadata from 'hooks/useAvalancheCenterMetadata';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {ApiError, OpenAPI, StationMetadata, TimeseriesDataService} from 'types/generated/snowbound';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {EnglishUnit, MetricUnit, Unit, Variable} from 'types/snowbound';
 import {toSnowboundStringUTC} from 'utils/date';
 
 type Source = 'nwac' | 'snotel' | 'mesowest';
 
 interface Props {
-  center: AvalancheCenterID;
+  token: string;
   stids: string[];
   sources: Source[];
   startDate: Date;
@@ -48,21 +46,21 @@ function floorToHour(date: Date) {
   return new Date(Math.floor(date.getTime() / MILLISECONDS_PER_HOUR) * MILLISECONDS_PER_HOUR);
 }
 
-export const useWeatherStationTimeseries = ({center, sources, stids, startDate, endDate}: Props) => {
-  const queryClient = useQueryClient();
+export const useWeatherStationTimeseries = ({token, sources, stids, startDate, endDate}: Props) => {
   const clientProps = useContext<ClientProps>(ClientContext);
   const sourceString = sources.join(',');
   const stidString = stids.join(',');
+  // TODO(skuznets): make this distinguish latest from a real range, and on latest the cache key doesn't hold on to the date, but we send it
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const key = ['timeseries', {source: sourceString, station: stidString, start: toSnowboundStringUTC(floorToHour(startDate)), end: toSnowboundStringUTC(floorToHour(endDate))}];
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('initiating query');
 
   return useQuery<TimeSeries, ApiError | Error>(
-    logQueryKey(['timeseries', center, sourceString, stidString, startDate.toISOString(), endDate.toISOString()]),
+    key,
     async () => {
-      // Get the snowbound API token for the center
-      const metadata = await AvalancheCenterMetadata.fetchQuery(queryClient, clientProps.nationalAvalancheCenterHost, center);
-      const token = metadata.widget_config.stations.token;
-
       OpenAPI.BASE = clientProps.snowboundHost;
-      const timeseries = await TimeseriesDataService.getStationDataTimeseriesWxV1StationDataTimeseriesGet({
+      return TimeseriesDataService.getStationDataTimeseriesWxV1StationDataTimeseriesGet({
         source: sourceString,
         stid: stidString,
         startDate: toSnowboundStringUTC(floorToHour(startDate)),
@@ -70,13 +68,11 @@ export const useWeatherStationTimeseries = ({center, sources, stids, startDate, 
         output: 'mesowest',
         token,
       });
-
-      return timeseries;
     },
-    // {
-    //   // TODO: figure out sane cache policy here. Probably don't want to keep this in memory forever.
-    //   // staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
-    //   // cacheTime: 5 * 60 * 1000,
-    // },
+    {
+      staleTime: 60 * 60 * 1000, // don't bother re-fetching for one hour (in milliseconds)
+      cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
+      enabled: !!token,
+    },
   );
 };

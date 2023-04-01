@@ -4,13 +4,12 @@ import {useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
 
 import {ClientContext, ClientProps} from 'clientContext';
-import {logQueryKey} from 'hooks/logger';
 import {TimeSeriesResponse} from 'types/snowbound';
 
 export const useTimeSeries = (station_id: number, source: string, token: string) => {
   const clientProps = React.useContext<ClientProps>(ClientContext);
   return useQuery<TimeSeriesResponse, AxiosError | Error>(
-    logQueryKey(['time-series', station_id, source]),
+    ['time-series', station_id, source],
     async () => {
       const {data} = await axios.get<TimeSeriesResponse>(`${clientProps.snowboundHost}/v1/station/timeseries`, {
         params: {

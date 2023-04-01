@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import {Logger} from 'browser-bunyan';
 import * as FileSystem from 'expo-file-system';
 import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
 import {ImagePickerAsset} from 'expo-image-picker';
-import log from 'logger';
 import md5 from 'md5';
 
 import {ObservationFormData} from 'components/observations/ObservationFormData';
@@ -60,7 +60,7 @@ const getImageData = async (image: ImagePickerAsset): Promise<{imageDataBase64: 
   }
 };
 
-const uploadImage = async ({apiPrefix, image, name, center_id, photoUsage}: UploadImageOptions): Promise<MediaItem> => {
+const uploadImage = async (logger: Logger, {apiPrefix, image, name, center_id, photoUsage}: UploadImageOptions): Promise<MediaItem> => {
   const {imageDataBase64, filename, mimeType} = await getImageData(image);
 
   const payload = {
@@ -79,12 +79,13 @@ const uploadImage = async ({apiPrefix, image, name, center_id, photoUsage}: Uplo
   const payloadHash = md5(JSON.stringify(payload));
   const imageCacheKey = `${imageUploadCachePrefix}:${payloadHash}`;
   const cached = await AsyncStorage.getItem(imageCacheKey);
+  const thisLogger = logger.child({uri: image.uri});
   if (cached) {
-    log.info(`Image ${image.uri} has already been uploaded, using cached media item for ${payload}`);
+    thisLogger.debug({payload: payload}, `image has already been uploaded, using cached media item`);
     try {
       return Promise.resolve(mediaItemSchema.parse(JSON.parse(cached)));
     } catch (error) {
-      log.warn(`Unable to load cached image data for ${image.uri}, uploading it again`);
+      thisLogger.warn(`unable to load cached image data, uploading it again`);
       await AsyncStorage.removeItem(imageCacheKey);
       // fallthrough
     }
@@ -100,20 +101,23 @@ const uploadImage = async ({apiPrefix, image, name, center_id, photoUsage}: Uplo
   return response.data;
 };
 
-export const submitObservation = async ({
-  apiPrefix,
-  center_id,
-  observationFormData,
-}: {
-  apiPrefix: string;
-  center_id: AvalancheCenterID;
-  observationFormData: ObservationFormData;
-}): Promise<Partial<Observation>> => {
+export const submitObservation = async (
+  logger: Logger,
+  {
+    apiPrefix,
+    center_id,
+    observationFormData,
+  }: {
+    apiPrefix: string;
+    center_id: AvalancheCenterID;
+    observationFormData: ObservationFormData;
+  },
+): Promise<Partial<Observation>> => {
   const {photoUsage, name} = observationFormData;
   // TODO: probably should upload these sequentially instead of in parallel
   const media = await Promise.all(
     observationFormData.images.map(image =>
-      uploadImage({
+      uploadImage(logger, {
         apiPrefix,
         image,
         name,
@@ -122,7 +126,7 @@ export const submitObservation = async ({
       }),
     ),
   );
-  log.info('media', media);
+  logger.info({media: media}, 'submitted media');
 
   const url = `${apiPrefix}/obs/v1/public/observation/`;
   const payload = {

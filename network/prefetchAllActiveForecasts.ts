@@ -1,4 +1,5 @@
 import {QueryClient} from '@tanstack/react-query';
+import {Logger} from 'browser-bunyan';
 import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {preloadAvalancheDangerIcons} from 'components/AvalancheDangerIcon';
 import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
@@ -12,26 +13,23 @@ import SynopsisQuery from 'hooks/useSynopsis';
 import {AvalancheCenter, AvalancheCenterID, MediaType, Product} from 'types/nationalAvalancheCenter';
 import {requestedTimeToUTCDate} from 'utils/date';
 
-//
-// Note: you can enable preload logging by setting ENABLE_PREFETCH_LOGGING in network/log
-//
-export const prefetchAllActiveForecasts = async (queryClient: QueryClient, center_id: AvalancheCenterID, nationalAvalancheCenterHost: string, nwacHost: string) => {
+export const prefetchAllActiveForecasts = async (queryClient: QueryClient, center_id: AvalancheCenterID, nationalAvalancheCenterHost: string, nwacHost: string, logger: Logger) => {
   const requestedTime = 'latest';
   const currentDateTime = requestedTimeToUTCDate(requestedTime);
-  preloadAvalancheProblemIcons(queryClient);
-  preloadAvalancheDangerIcons(queryClient);
-  preloadAvalancheCenterLogo(queryClient, center_id);
-  AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
-  await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id);
+  void preloadAvalancheProblemIcons(queryClient, logger);
+  void preloadAvalancheDangerIcons(queryClient, logger);
+  void preloadAvalancheCenterLogo(queryClient, logger, center_id);
+  void AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, logger);
+  await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, logger);
 
   const metadata = queryClient.getQueryData<AvalancheCenter>(AvalancheCenterMetadataQuery.queryKey(nationalAvalancheCenterHost, center_id));
   metadata?.zones
     .filter(zone => zone.status === 'active')
     .forEach(async zone => {
-      NWACWeatherForecastQuery.prefetch(queryClient, nwacHost, zone.id, currentDateTime);
-      AvalancheWarningQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime);
-      SynopsisQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime);
-      await AvalancheForecastQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime, metadata?.timezone, metadata?.config.expires_time);
+      void NWACWeatherForecastQuery.prefetch(queryClient, nwacHost, zone.id, currentDateTime, logger);
+      void AvalancheWarningQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime, logger);
+      void SynopsisQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime, logger);
+      await AvalancheForecastQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime, metadata?.timezone, metadata?.config.expires_time, logger);
       const forecastData = queryClient.getQueryData<Product>(
         AvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, center_id, zone.id, requestedTime, metadata?.timezone, metadata?.config.expires_time),
       );
@@ -41,6 +39,6 @@ export const prefetchAllActiveForecasts = async (queryClient: QueryClient, cente
         .filter(item => item.type === MediaType.Image) // TODO: handle prefetching other types of media
         .map(item => [item.url.thumbnail, item.url.original])
         .flat()
-        .forEach(async url => ImageCache.prefetch(queryClient, url));
+        .forEach(async url => ImageCache.prefetch(queryClient, logger, url));
     });
 };

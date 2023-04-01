@@ -7,6 +7,8 @@ import {Card} from 'components/content/Card';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
 import {Title1Black, Title3Black} from 'components/text';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {useMapLayer} from 'hooks/useMapLayer';
 import {useWeatherStations, ZoneResult} from 'hooks/useWeatherStations';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {WeatherStackNavigationProps} from 'routes';
@@ -47,7 +49,15 @@ const StationList = (navigation: WeatherStackNavigationProps, center_id: Avalanc
 
 export const WeatherStationList: React.FC<Props> = ({center_id, requestedTime}) => {
   const navigation = useNavigation<WeatherStackNavigationProps>();
-  const stationsResult = useWeatherStations({center: center_id, sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel']});
+  const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
+  const metadata = avalancheCenterMetadataResult.data;
+  const mapLayerResult = useMapLayer(center_id);
+  const mapLayer = mapLayerResult.data;
+  const stationsResult = useWeatherStations({
+    token: metadata?.widget_config.stations.token,
+    mapLayer: mapLayer,
+    sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
+  });
   const zones = stationsResult.data;
 
   return (
@@ -58,7 +68,11 @@ export const WeatherStationList: React.FC<Props> = ({center_id, requestedTime}) 
           <HStack width="100%" py={8} px={16} bg="white">
             <Title1Black>Weather Stations</Title1Black>
           </HStack>
-          {incompleteQueryState(stationsResult) ? <QueryState results={[stationsResult]} /> : StationList(navigation, center_id, requestedTime, zones)}
+          {incompleteQueryState(avalancheCenterMetadataResult, mapLayerResult, stationsResult) ? (
+            <QueryState results={[avalancheCenterMetadataResult, mapLayerResult, stationsResult]} />
+          ) : (
+            StationList(navigation, center_id, requestedTime, zones)
+          )}
         </VStack>
       </SafeAreaView>
     </View>

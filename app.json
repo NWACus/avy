@@ -68,16 +68,9 @@
       "eas": {
         "projectId": "47e2fd36-5165-4eb4-9a2d-21beec393379"
       },
-      "googleMapsApiKey": {
-        "ios": "LOADED_FROM_ENVIRONMENT",
-        "ios_md5": "LOADED_FROM_ENVIRONMENT",
-        "android": "LOADED_FROM_ENVIRONMENT",
-        "android_md5": "LOADED_FROM_ENVIRONMENT"
-      },
       "sentry_dsn": "LOADED_FROM_ENVIRONMENT",
       "avalanche_center": "NWAC",
-      "log_network": "",
-      "log_network_matching": ""
+      "log_level": "info"
     },
     "web": {
       "favicon": "./assets/favicon.png"
