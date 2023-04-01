@@ -77,6 +77,11 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
       }
     }
   }, [forecast, forecast_zone_id, navigation]);
+  React.useEffect(() => {
+    return navigation.addListener('beforeRemove', () => {
+      Toast.hide();
+    });
+  }, [navigation]);
 
   if (incompleteQueryState(forecastResult, warningResult, synopsisResult) || isNotFound(forecast)) {
     return <QueryState results={[forecastResult, warningResult, synopsisResult]} />;
