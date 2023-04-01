@@ -4,6 +4,7 @@ import {TouchableOpacity} from 'react-native';
 
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, BodySemibold} from 'components/text';
+import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 
 export interface TabProps {
@@ -21,6 +22,10 @@ export const TabControl: React.FunctionComponent<TabControlProps> = ({children, 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const selectedTextColor = colorLookup('primary');
   const tabCount = React.Children.count(children);
+
+  React.useEffect(() => {
+    Toast.hide();
+  }, [selectedIndex]);
 
   const tabStyle = {
     width: `${Math.round(10000.0 / tabCount) / 100}%`,

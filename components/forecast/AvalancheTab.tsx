@@ -77,6 +77,11 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
       }
     }
   }, [forecast, forecast_zone_id, navigation]);
+  React.useEffect(() => {
+    return navigation.addListener('beforeRemove', () => {
+      Toast.hide();
+    });
+  }, [navigation]);
 
   if (incompleteQueryState(forecastResult, warningResult, synopsisResult) || isNotFound(forecast)) {
     return <QueryState results={[forecastResult, warningResult, synopsisResult]} />;
@@ -112,7 +117,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
   if (isAfter(new Date(), expires_time)) {
     Toast.show({
       type: 'error',
-      text1: `This forecast expired ${formatDistanceToNow(expires_time)} ago.`,
+      text1: `This avalanche forecast expired ${formatDistanceToNow(expires_time)} ago.`,
       autoHide: false,
       position: 'bottom',
       onPress: () => Toast.hide(),
