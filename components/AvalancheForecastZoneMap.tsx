@@ -436,6 +436,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
 
   const [previousSelectedZoneId, setPreviousSelectedZoneId] = useState<number | null>(null);
   const [programaticallyScrolling, setProgramaticallyScrolling] = useState<boolean>(false);
+  const [userScrolling, setUserScrolling] = useState<boolean>(false);
 
   const offsets = zones?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
   const flatListProps = {
@@ -494,7 +495,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
         // scroll event finished
         setProgramaticallyScrolling(false);
       }
-    } else {
+    } else if (userScrolling) {
       // if the *user* is scrolling this drawer, though, the true state of our selection is up to them
       setSelectedZoneId(zones[index].zone_id);
     }
@@ -524,6 +525,10 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
       ]}
       onScroll={handleScroll}
       scrollEventThrottle={200}
+      onMomentumScrollBegin={() => setUserScrolling(true)}
+      onMomentumScrollEnd={() => setUserScrolling(false)}
+      onScrollBeginDrag={() => setUserScrolling(true)}
+      onScrollEndDrag={() => setUserScrolling(false)}
       {...panResponder.panHandlers}
       {...flatListProps}
       data={zones}
