@@ -49,12 +49,12 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
   return (
     <>
       {/* unfortunate ant misspelling: infocirlceo */}
-      <AntDesign.Button name={outlineIcon} color={colorLookup(color)} backgroundColor="white" onPress={openModal} size={size} iconStyle={{marginRight: 0}} {...props} />
+      <AntDesign.Button name={outlineIcon} color={colorLookup(color)} backgroundColor="transparent" onPress={openModal} size={size} iconStyle={{marginRight: 0}} {...props} />
       {/* Pressing the Android back button dismisses the modal */}
       <Modal visible={showModal} transparent animationType="fade" onRequestClose={closeModal}>
         {/* Pressing anywhere outside the modal dismisses the modal */}
         <TouchableWithoutFeedback onPress={closeModal}>
-          <View position="absolute" top={0} bottom={0} left={0} right={0} bg="rgba(1, 0, 1, 0.2)">
+          <View position="absolute" top={0} bottom={0} left={0} right={0}>
             <SafeAreaView>
               <Center width="100%" height="100%">
                 <VStack alignItems="center" bg="white" borderRadius={16} px={12} py={24} m={12} space={8}>

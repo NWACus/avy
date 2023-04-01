@@ -436,6 +436,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
 
   const [previousSelectedZoneId, setPreviousSelectedZoneId] = useState<number | null>(null);
   const [programaticallyScrolling, setProgramaticallyScrolling] = useState<boolean>(false);
+  const [userScrolling, setUserScrolling] = useState<boolean>(false);
 
   const offsets = zones?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
   const flatListProps = {
@@ -494,7 +495,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
         // scroll event finished
         setProgramaticallyScrolling(false);
       }
-    } else {
+    } else if (userScrolling) {
       // if the *user* is scrolling this drawer, though, the true state of our selection is up to them
       setSelectedZoneId(zones[index].zone_id);
     }
@@ -524,6 +525,10 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
       ]}
       onScroll={handleScroll}
       scrollEventThrottle={200}
+      onMomentumScrollBegin={() => setUserScrolling(true)}
+      onMomentumScrollEnd={() => setUserScrolling(false)}
+      onScrollBeginDrag={() => setUserScrolling(true)}
+      onScrollEndDrag={() => setUserScrolling(false)}
       {...panResponder.panHandlers}
       {...flatListProps}
       data={zones}
@@ -552,7 +557,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           requestedTime: formatRequestedTime(date),
         });
       }}>
-      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={230}>
+      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={'100%'}>
         <View height={8} width="100%" bg={dangerColor.string()} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
         <VStack px={24} pt={4} pb={12} space={8}>
           <HStack space={8} alignItems="center">
@@ -584,10 +589,15 @@ const DangerLevelTitle: React.FunctionComponent<{
 }> = ({dangerLevel}) => {
   switch (dangerLevel) {
     case DangerLevel.GeneralInformation:
+      return (
+        <BodySmSemibold>
+          <Text style={{textTransform: 'capitalize'}}>General Information</Text>
+        </BodySmSemibold>
+      );
     case DangerLevel.None:
       return (
         <BodySmSemibold>
-          <Text style={{textTransform: 'capitalize'}}>{DangerLevel[dangerLevel]}</Text>
+          <Text style={{textTransform: 'capitalize'}}>None</Text>
         </BodySmSemibold>
       );
     case DangerLevel.Low:
