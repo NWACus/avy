@@ -1,4 +1,3 @@
-import log from 'logger';
 import React from 'react';
 
 import * as Sentry from 'sentry-expo';
@@ -6,47 +5,56 @@ import * as Sentry from 'sentry-expo';
 import {QueryClient, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
 
+import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
-import {logQueryKey} from 'hooks/logger';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {Observation, observationSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
 export const useNACObservation = (id: string) => {
   const {nationalAvalancheCenterHost: host} = React.useContext<ClientProps>(ClientContext);
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const key = queryKey(host, id);
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('initiating query');
 
   return useQuery<Observation, AxiosError | ZodError>({
-    queryKey: queryKey(host, id),
-    queryFn: () => fetchNACObservation(host, id),
+    queryKey: key,
+    queryFn: () => fetchNACObservation(host, id, thisLogger),
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
 };
 
 function queryKey(host: string, id: string) {
-  return logQueryKey(['nac-observation', {host, id}]);
+  return ['nac-observation', {host, id}];
 }
 
-export const prefetchNACObservation = async (queryClient: QueryClient, host: string, id: string) => {
+export const prefetchNACObservation = async (queryClient: QueryClient, host: string, id: string, logger: Logger) => {
+  const key = queryKey(host, id);
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('initiating query');
+
   await queryClient.prefetchQuery({
-    queryKey: queryKey(host, id),
+    queryKey: key,
     queryFn: async () => {
       const start = new Date();
-      log.debug(`prefetching NAC observation`, {id: id});
-      const result = fetchNACObservation(host, id);
-      log.debug(`finished prefetching NAC observation`, {id: id, duration: formatDistanceToNowStrict(start)});
+      logger.trace(`prefetching`);
+      const result = fetchNACObservation(host, id, thisLogger);
+      thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
   });
 };
 
-export const fetchNACObservation = async (host: string, id: string): Promise<Observation> => {
+export const fetchNACObservation = async (host: string, id: string, logger: Logger): Promise<Observation> => {
   const url = `${host}/obs/v1/public/observation/${id}`;
   const {data} = await axios.get(url);
 
   const parseResult = observationSchema.deepPartial().safeParse(data);
   if (parseResult.success === false) {
-    log.warn('unparsable NAC observation', {url: url, id: id, error: parseResult.error});
+    logger.warn({url: url, error: parseResult.error}, 'unparsable NAC observation');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

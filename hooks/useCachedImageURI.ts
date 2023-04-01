@@ -1,8 +1,10 @@
 import {QueryCache, QueryClient, useQuery} from '@tanstack/react-query';
+import {Logger} from 'browser-bunyan';
 import {formatDistanceToNowStrict} from 'date-fns';
 import * as FileSystem from 'expo-file-system';
-import log from 'logger';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import md5 from 'md5';
+import React from 'react';
 
 const rootDirectory = FileSystem.cacheDirectory + 'image-cache/';
 const queryKeyPrefix = 'image';
@@ -23,9 +25,14 @@ export const initialize = async () => {
 };
 
 export const useCachedImageURI = (uri: string) => {
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const key = queryKey(uri);
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('initiating query');
+
   return useQuery<string, Error>({
-    queryKey: queryKey(uri),
-    queryFn: async () => fetchCachedImageURI(uri),
+    queryKey: key,
+    queryFn: async () => fetchCachedImageURI(uri, thisLogger),
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
     staleTime: 24 * 60 * 60 * 1000, // do not refresh this data
   });
@@ -35,7 +42,7 @@ function queryKey(uri: string) {
   return [queryKeyPrefix, {uri: uri}];
 }
 
-const fetchCachedImageURI = async (uri: string) => {
+const fetchCachedImageURI = async (uri: string, logger: Logger): Promise<string> => {
   if (!uri || !uri.startsWith('http')) {
     // this is already a local file, no need to download. We hit this case in production
     // with locally-bundled assets, for which we must use this hook in developer mode, as
@@ -44,7 +51,7 @@ const fetchCachedImageURI = async (uri: string) => {
   }
   await initialize();
   const destination = rootDirectory + md5(uri);
-  log.debug('caching remote image', {source: uri, destination: destination});
+  logger.debug({source: uri, destination: destination}, 'caching remote image');
   const result = await FileSystem.downloadAsync(uri, destination);
   if (result.status !== 200) {
     throw new Error(`Failed to fetch remote image at ${uri}: ${result.status}`);
@@ -52,21 +59,25 @@ const fetchCachedImageURI = async (uri: string) => {
   return result.uri;
 };
 
-const prefetchCachedImageURI = async (queryClient: QueryClient, uri: string) => {
+const prefetchCachedImageURI = async (queryClient: QueryClient, logger: Logger, uri: string) => {
+  const key = queryKey(uri);
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('initiating query');
+
   await queryClient.prefetchQuery({
-    queryKey: queryKey(uri),
+    queryKey: key,
     queryFn: async () => {
       const start = new Date();
-      log.debug(`prefetching image`, {source: uri});
-      const result = await fetchCachedImageURI(uri);
-      log.debug(`finished prefetching image`, {source: uri, destination: result, duration: formatDistanceToNowStrict(start)});
+      thisLogger.trace(`prefetching`);
+      const result = await fetchCachedImageURI(uri, thisLogger);
+      thisLogger.trace({duration: formatDistanceToNowStrict(start), destination: result}, `finished prefetching`);
       return result;
     },
   });
 };
 
 // we clean up data in our filesystem cache when react-query removes our reference
-const cleanupCachedImage = async event => {
+const cleanupCachedImage = async (event, logger: Logger) => {
   if (event.type !== 'removed') {
     return;
   }
@@ -81,28 +92,28 @@ const cleanupCachedImage = async event => {
   }
 
   const data = event.query.state.data as string;
-  log.debug('cleaning up remote image', {source: key[1]['uri'], destination: data});
+  logger.debug({source: key[1]['uri'], destination: data}, 'cleaning up remote image');
   await FileSystem.deleteAsync(data, {idempotent: true});
   // TODO: handle errors?
 };
 
-const reconcileCachedImages = async (queryClient: QueryClient, queryCache: QueryCache) => {
+const reconcileCachedImages = async (queryClient: QueryClient, queryCache: QueryCache, logger: Logger): Promise<void> => {
   const start = new Date();
-  log.info('reconciling cached images');
+  logger.info('reconciling cached images');
   // first, figure out all the links we know about in react-query
   const queries = queryCache.findAll({queryKey: [queryKeyPrefix], fetchStatus: 'idle'}); // see comment below for why we only select idle queries
   const fileLinks = queries.map(query => query.state.data as string);
-  log.info('found file links in query cache', {fileLinks: fileLinks});
+  logger.info({fileLinks: fileLinks}, 'found file links in query cache');
   const fileLinksToQueryKeys = queries.reduce((accumulator, query) => (accumulator[query.state.data as string] = query.queryKey), {});
   // then, figure out all the files we have on disk
   const fileNames = await FileSystem.readDirectoryAsync(rootDirectory);
   const files = fileNames.map(fileName => rootDirectory + fileName);
-  log.info('found files in image cache', {files: files});
+  logger.info({files: files}, 'found files in image cache');
   // now, we can reconcile the two caches
 
   // first, remove links from react-query that do not have corresponding files on disk.
   const linksToRemove = fileLinks.filter(link => !files.includes(link));
-  log.info('removing dangling links from query cache', {linksToRemove: linksToRemove});
+  logger.info({linksToRemove: linksToRemove}, 'removing dangling links from query cache');
   linksToRemove.forEach(link => queryClient.invalidateQueries({queryKey: fileLinksToQueryKeys[link]}));
 
   // then, remove files from disk that do not have links in react-query
@@ -111,7 +122,7 @@ const reconcileCachedImages = async (queryClient: QueryClient, queryCache: Query
   // cache. We could also be removing files for queries that have finished but have not yet dehydrated,
   // but it's not clear that we can fix that race condition.
   const filesToRemove = files.filter(file => !fileLinks.includes(file));
-  log.info('removing orphaned files from image cache', {filesToRemove: filesToRemove});
+  logger.info({filesToRemove: filesToRemove}, 'removing orphaned files from image cache');
   await Promise.all(
     filesToRemove
       .map(async file => {
@@ -119,7 +130,7 @@ const reconcileCachedImages = async (queryClient: QueryClient, queryCache: Query
       })
       .flat(),
   );
-  log.info('finished reconciling cached images', {duration: formatDistanceToNowStrict(start)});
+  logger.info({duration: formatDistanceToNowStrict(start)}, 'finished reconciling cached images');
 };
 
 export default {

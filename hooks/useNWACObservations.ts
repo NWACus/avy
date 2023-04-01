@@ -1,4 +1,3 @@
-import log from 'logger';
 import React from 'react';
 
 import {QueryClient, useQuery} from '@tanstack/react-query';
@@ -6,43 +5,59 @@ import axios, {AxiosError} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
+import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
-import {logQueryKey} from 'hooks/logger';
 import {ObservationsQuery} from 'hooks/useObservations';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, observationSchema} from 'types/nationalAvalancheCenter';
 import {toDateTimeInterfaceATOM} from 'utils/date';
 import {z, ZodError} from 'zod';
 
 export const useNWACObservations = (center_id: AvalancheCenterID, published_after: Date, published_before: Date) => {
   const {nwacHost} = React.useContext<ClientProps>(ClientContext);
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const key = queryKey(nwacHost, center_id);
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('initiating query');
 
   return useQuery<ObservationsQuery, AxiosError | ZodError>({
-    queryKey: queryKey(nwacHost, center_id),
-    queryFn: () => fetchNWACObservations(nwacHost, center_id, published_after, published_before),
+    queryKey: key,
+    queryFn: () => fetchNWACObservations(nwacHost, center_id, published_after, published_before, thisLogger),
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
 };
 
 function queryKey(nwacHost: string, center_id: AvalancheCenterID) {
-  return logQueryKey([
+  return [
     'nwac-observations',
     {
       host: nwacHost,
       center_id: center_id,
     },
-  ]);
+  ];
 }
 
-export const prefetchNWACObservations = async (queryClient: QueryClient, nwacHost: string, center_id: AvalancheCenterID, published_after: Date, published_before: Date) => {
+export const prefetchNWACObservations = async (
+  queryClient: QueryClient,
+  nwacHost: string,
+  center_id: AvalancheCenterID,
+  published_after: Date,
+  published_before: Date,
+  logger: Logger,
+) => {
+  const key = queryKey(nwacHost, center_id);
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('initiating query');
+
   await queryClient.prefetchQuery({
-    queryKey: queryKey(nwacHost, center_id),
+    queryKey: key,
     queryFn: async () => {
       const start = new Date();
-      log.debug(`prefetching NWAC observations`, {center: center_id, after: published_after, before: published_before});
-      const result = fetchNWACObservations(nwacHost, center_id, published_after, published_before);
-      log.debug(`finished prefetching NWAC observations`, {center: center_id, after: published_after, before: published_before, duration: formatDistanceToNowStrict(start)});
+      logger.trace(`prefetching`);
+      const result = fetchNWACObservations(nwacHost, center_id, published_after, published_before, thisLogger);
+      thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
   });
@@ -66,7 +81,13 @@ const nwacObservationsSchema = z.object({
   ),
 });
 
-export const fetchNWACObservations = async (nwacHost: string, center_id: AvalancheCenterID, published_after: Date, published_before: Date): Promise<ObservationsQuery> => {
+export const fetchNWACObservations = async (
+  nwacHost: string,
+  center_id: AvalancheCenterID,
+  published_after: Date,
+  published_before: Date,
+  logger: Logger,
+): Promise<ObservationsQuery> => {
   if (center_id !== 'NWAC') {
     return {getObservationList: []};
   }
@@ -81,7 +102,7 @@ export const fetchNWACObservations = async (nwacHost: string, center_id: Avalanc
 
   const parseResult = nwacObservationsSchema.safeParse(data);
   if (parseResult.success === false) {
-    log.warn('unparsable NWAC observations', {url: url, params: params, after: published_after, before: published_before, error: parseResult.error});
+    logger.warn({url: url, params: params, error: parseResult.error}, 'unparsable NWAC observations');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

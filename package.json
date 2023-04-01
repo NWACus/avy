@@ -19,6 +19,10 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@browser-bunyan/console-formatted-stream": "^1.8.0",
+    "@browser-bunyan/console-raw-stream": "^1.8.0",
+    "@browser-bunyan/levels": "^1.8.0",
+    "@browser-bunyan/server-stream": "^1.8.0",
     "@expo-google-fonts/lato": "^0.2.2",
     "@expo/vector-icons": "^13.0.0",
     "@hookform/resolvers": "^2.9.11",
@@ -42,6 +46,7 @@
     "@tanstack/react-query-persist-client": "^4.24.9",
     "@xmldom/xmldom": "^0.8.6",
     "axios": "^0.27.2",
+    "browser-bunyan": "^1.8.0",
     "color": "^4.2.3",
     "d3": "^7.6.1",
     "d3-geo": "^3.1.0",

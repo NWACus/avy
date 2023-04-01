@@ -9,6 +9,8 @@ import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, BodyXSmBlack, bodyXS
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
 import {add} from 'date-fns';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {useMapLayer} from 'hooks/useMapLayer';
 import {FormatTimeOfDay, useNWACWeatherForecast} from 'hooks/useNWACWeatherForecast';
 import {useRefresh} from 'hooks/useRefresh';
 import {useWeatherStations} from 'hooks/useWeatherStations';
@@ -39,17 +41,22 @@ const SmallHeaderWithTooltip = ({title, content, dialogTitle}) => (
 export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requestedTime}) => {
   const nwacForecastResult = useNWACWeatherForecast(zone.id, requestedTime);
   const nwacForecast = nwacForecastResult.data;
+  const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
+  const metadata = avalancheCenterMetadataResult.data;
+  const mapLayerResult = useMapLayer(center_id);
+  const mapLayer = mapLayerResult.data;
   const stationsResult = useWeatherStations({
-    center: center_id,
+    token: metadata?.widget_config.stations.token,
+    mapLayer: mapLayer,
     sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
   });
   const weatherStationsByZone = stationsResult.data;
-  const {isRefreshing, refresh} = useRefresh(nwacForecastResult.refetch, stationsResult.refetch);
+  const {isRefreshing, refresh} = useRefresh(nwacForecastResult.refetch, stationsResult.refetch, avalancheCenterMetadataResult.refetch, mapLayerResult.refetch);
 
   const navigation = useNavigation<ForecastNavigationProp>();
 
-  if (incompleteQueryState(nwacForecastResult, stationsResult)) {
-    return <QueryState results={[nwacForecastResult, stationsResult]} />;
+  if (incompleteQueryState(nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, stationsResult)) {
+    return <QueryState results={[nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, stationsResult]} />;
   }
 
   // In the UI, we show weather station groups, which may contain 1 or more weather stations.

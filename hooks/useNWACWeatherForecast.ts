@@ -1,4 +1,3 @@
-import log from 'logger';
 import React from 'react';
 
 import {QueryClient, useQuery} from '@tanstack/react-query';
@@ -6,9 +5,10 @@ import axios, {AxiosError} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
+import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
-import {logQueryKey} from 'hooks/logger';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {reverseLookup} from 'types/nationalAvalancheCenter';
 import {nominalNWACWeatherForecastDate, RequestedTime, requestedTimeToUTCDate, toDateTimeInterfaceATOM} from 'utils/date';
 import {z, ZodError} from 'zod';
@@ -16,34 +16,42 @@ import {z, ZodError} from 'zod';
 export const useNWACWeatherForecast = (zone_id: number, requestedTime: RequestedTime) => {
   const {nwacHost} = React.useContext<ClientProps>(ClientContext);
   const date = requestedTimeToUTCDate(requestedTime);
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const key = queryKey(nwacHost, zone_id, date);
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('initiating query');
 
   return useQuery<NWACWeatherForecast, AxiosError | ZodError>({
-    queryKey: queryKey(nwacHost, zone_id, date),
-    queryFn: () => fetchNWACWeatherForecast(nwacHost, zone_id, date),
+    queryKey: key,
+    queryFn: () => fetchNWACWeatherForecast(nwacHost, zone_id, date, thisLogger),
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
 };
 
 function queryKey(nwacHost: string, zone_id: number, requestedTime: Date) {
-  return logQueryKey([
+  return [
     'nwac-weather',
     {
       host: nwacHost,
       zone_id: zone_id,
       requestedTime: nominalNWACWeatherForecastDate(requestedTime),
     },
-  ]);
+  ];
 }
 
-export const prefetchNWACWeatherForecast = async (queryClient: QueryClient, nwacHost: string, zone_id: number, requestedTime: Date) => {
+export const prefetchNWACWeatherForecast = async (queryClient: QueryClient, nwacHost: string, zone_id: number, requestedTime: Date, logger: Logger) => {
+  const key = queryKey(nwacHost, zone_id, requestedTime);
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('initiating query');
+
   await queryClient.prefetchQuery({
-    queryKey: queryKey(nwacHost, zone_id, requestedTime),
+    queryKey: key,
     queryFn: async () => {
       const start = new Date();
-      log.debug(`prefetching NWAC weather forecast`, {zone: zone_id, requestedTime: requestedTime});
-      const result = fetchNWACWeatherForecast(nwacHost, zone_id, requestedTime);
-      log.debug(`finished prefetching NWAC weather forecast`, {zone: zone_id, requestedTime: requestedTime, duration: formatDistanceToNowStrict(start)});
+      logger.trace(`prefetching`);
+      const result = fetchNWACWeatherForecast(nwacHost, zone_id, requestedTime, thisLogger);
+      thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
   });
@@ -126,7 +134,7 @@ const nwacWeatherForecastMetaSchema = z.object({
   objects: nwacWeatherForecastSchema,
 });
 
-export const fetchNWACWeatherForecast = async (nwacHost: string, zone_id: number, requestedTime: Date): Promise<NWACWeatherForecast> => {
+export const fetchNWACWeatherForecast = async (nwacHost: string, zone_id: number, requestedTime: Date, logger: Logger): Promise<NWACWeatherForecast> => {
   const url = `${nwacHost}/api/v1/mountain-weather-region-forecast`;
   const params = {
     zone_id: zone_id,
@@ -138,7 +146,7 @@ export const fetchNWACWeatherForecast = async (nwacHost: string, zone_id: number
 
   const parseResult = nwacWeatherForecastMetaSchema.safeParse(data);
   if (parseResult.success === false) {
-    log.warn('unparsable NWAC observation', {url: url, params: params, zone: zone_id, requestedTime: requestedTime, error: parseResult.error});
+    logger.warn({url: url, params: params, error: parseResult.error}, 'unparsable NWAC observation');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

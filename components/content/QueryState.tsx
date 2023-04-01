@@ -5,6 +5,7 @@ import NoGPS from 'assets/illustrations/NoGPS.svg';
 import NoSearchResult from 'assets/illustrations/NoSearchResult.svg';
 import {Outcome} from 'components/content/Outcome';
 import {HStack} from 'components/core';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import React from 'react';
 import {ActivityIndicator} from 'react-native';
 import {TabNavigationProps} from 'routes';
@@ -12,11 +13,14 @@ import * as Sentry from 'sentry-expo';
 import {isNotFound, NotFound as NotFoundType} from 'types/requests';
 
 export const QueryState: React.FunctionComponent<{results: UseQueryResult[]}> = ({results}) => {
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+
   const errors = results.filter(result => result.isError).map(result => result.error as Error);
   if (errors.length > 0) {
     errors.forEach(error => {
       Sentry.Native.captureException(error);
     });
+    logger.error({errors: errors}, 'queries errored');
     return <InternalError />;
   }
 
@@ -29,6 +33,7 @@ export const QueryState: React.FunctionComponent<{results: UseQueryResult[]}> = 
     return <NotFound what={what} />;
   }
 
+  logger.error({results: results}, 'QueryState called with a set of queries that were loaded and had no errors');
   Sentry.Native.captureException(new Error(`QueryState called with a set of queries that were loaded and had no errors: ${JSON.stringify(results)}`));
   return <InternalError />;
 };

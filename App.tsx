@@ -1,4 +1,3 @@
-import log from 'logger';
 import React, {useCallback, useEffect} from 'react';
 
 import {
@@ -34,7 +33,6 @@ import {createAsyncStoragePersister} from '@tanstack/query-async-storage-persist
 import {focusManager, QueryCache, QueryClient, useQueryClient} from '@tanstack/react-query';
 import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
 
-import axios, {AxiosRequestConfig} from 'axios';
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
 import {clearUploadCache} from 'components/observations/submitObservation';
@@ -46,6 +44,7 @@ import {HTMLRendererConfig} from 'components/text/HTML';
 import {useAppState} from 'hooks/useAppState';
 import ImageCache from 'hooks/useCachedImageURI';
 import {useOnlineManager} from 'hooks/useOnlineManager';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
 import Toast from 'react-native-toast-message';
 import {TabNavigatorParamList} from 'routes';
@@ -53,13 +52,23 @@ import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 require('date-time-format-timezone');
 
-log.info('App starting');
+import axios, {AxiosRequestConfig} from 'axios';
+import {createLogger, stdSerializers} from 'browser-bunyan';
+import {ConsoleFormattedStream} from 'logging/consoleFormattedStream';
 
 // we're reading a field that was previously defined in app.json, so we know it's non-null:
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const log_network = Constants.expoConfig.extra!.log_network;
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const log_matching = Constants.expoConfig.extra!.log_network_matching;
+const logLevel = Constants.expoConfig.extra!.log_level;
+
+const logger = createLogger({
+  name: 'avalanche-forecast',
+  level: logLevel,
+  serializers: stdSerializers,
+  stream: new ConsoleFormattedStream(),
+});
+
+logger.info('App starting.');
+
 const encodeParams = params => {
   return Object.entries(params)
     .map(kv => kv.map(encodeURIComponent).join('='))
@@ -75,30 +84,25 @@ const formatURI = (request: AxiosRequestConfig): string => {
   }
   return msg;
 };
+axios.interceptors.request.use(request => {
+  const msg = 'sending request';
+  const thisLogger = logger.child({uri: formatURI(request)});
+  thisLogger.debug(msg);
+  if (request.data) {
+    thisLogger.trace({data: request.data}, msg);
+  }
+  return request;
+});
 
-if (log_network === 'all' || log_network.includes('requests')) {
-  axios.interceptors.request.use(request => {
-    if (log_matching && !formatURI(request).includes(log_matching)) {
-      return request;
-    }
-    log.info(`=> ${formatURI(request)}`);
-    return request;
-  });
-}
-
-if (log_network === 'all' || log_network.includes('responses')) {
-  axios.interceptors.response.use(response => {
-    if (log_matching && !formatURI(response.config).includes(log_matching)) {
-      return response;
-    }
-    const msg = `${response.status} ${formatURI(response.config)}:`;
-    log.info(`<= ${msg}`);
-    if (log_network.includes('response-bodies')) {
-      log.info(`<= ${JSON.stringify(response.data)}`);
-    }
-    return response;
-  });
-}
+axios.interceptors.response.use(response => {
+  const msg = 'received request response';
+  const thisLogger = logger.child({uri: formatURI(response.config), status: response.status});
+  thisLogger.debug(msg);
+  if (response.data) {
+    thisLogger.trace({data: response.data}, msg);
+  }
+  return response;
+});
 
 // The SplashScreen stays up until we've loaded all of our fonts and other assets
 SplashScreen.preventAutoHideAsync();
@@ -109,7 +113,7 @@ if (Sentry?.init) {
   const dsn = Constants.expoConfig.extra!.sentry_dsn;
   // Only initialize Sentry if we can find the correct env setup
   if (dsn === 'LOADED_FROM_ENVIRONMENT') {
-    log.warn('Sentry integration not configured, check your environment');
+    logger.warn('Sentry integration not configured, check your environment');
   } else {
     Sentry.init({
       dsn,
@@ -122,7 +126,7 @@ if (Sentry?.init) {
 const queryCache: QueryCache = new QueryCache();
 // we need to subscribe to the react-query cache in order to remove
 // images from the local filesystem when their TTL expires
-queryCache.subscribe(event => ImageCache.cleanup(event));
+queryCache.subscribe(event => ImageCache.cleanup(event, logger));
 
 const queryClient: QueryClient = new QueryClient({
   queryCache: queryCache,
@@ -136,7 +140,7 @@ const queryClient: QueryClient = new QueryClient({
 // on startup and periodically, reconcile the react-query link cache with the filesystem
 const BACKGROUND_CACHE_RECONCILIATION_TASK = 'background-cache-reconciliation';
 TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, async () => {
-  await ImageCache.reconcile(queryClient, queryCache);
+  await ImageCache.reconcile(queryClient, queryCache, logger);
   return BackgroundFetch.BackgroundFetchResult.NewData;
 });
 BackgroundFetch.registerTaskAsync(BACKGROUND_CACHE_RECONCILIATION_TASK, {
@@ -173,12 +177,11 @@ const App = () => {
     useAppState(onAppStateChange);
 
     return (
-      <>
+      <LoggerContext.Provider value={{logger: logger}}>
         <PersistQueryClientProvider client={queryClient} persistOptions={{persister: asyncStoragePersister}}>
           <AppWithClientContext />
         </PersistQueryClientProvider>
-        <Toast config={toastConfig} bottomOffset={88} visibilityTime={2000} />
-      </>
+      </LoggerContext.Provider>
     );
   } catch (error) {
     Sentry.Native.captureException(error);
@@ -204,17 +207,22 @@ const BaseApp: React.FunctionComponent<{
   staging: boolean;
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({staging, setStaging}) => {
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const [avalancheCenterId, setAvalancheCenterId] = React.useState(Constants.expoConfig.extra.avalanche_center as AvalancheCenterID);
 
   const {nationalAvalancheCenterHost, nwacHost} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
   useEffect(() => {
     (async () => {
-      await prefetchAllActiveForecasts(queryClient, avalancheCenterId, nationalAvalancheCenterHost, nwacHost);
+      try {
+        await prefetchAllActiveForecasts(queryClient, avalancheCenterId, nationalAvalancheCenterHost, nwacHost, logger);
+      } catch (e) {
+        logger.error({error: e}, 'error prefetching data');
+      }
     })();
-  }, [queryClient, avalancheCenterId, nationalAvalancheCenterHost, nwacHost]);
+  }, [logger, queryClient, avalancheCenterId, nationalAvalancheCenterHost, nwacHost]);
 
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, error] = useFonts({
     Lato_100Thin,
     Lato_100Thin_Italic,
     Lato_300Light,
@@ -228,6 +236,10 @@ const BaseApp: React.FunctionComponent<{
     NAC_Icons: require('./assets/fonts/nac-icons.ttf'),
   });
 
+  if (error) {
+    logger.error({error: error}, 'error loading fonts');
+  }
+
   const onLayoutRootView = useCallback(async () => {
     // This callback won't execute until fontsLoaded is true, because
     // otherwise we won't render the view that triggers this callback
@@ -240,59 +252,62 @@ const BaseApp: React.FunctionComponent<{
   }
 
   return (
-    <HTMLRendererConfig>
-      <SafeAreaProvider>
-        <NavigationContainer>
-          <SelectProvider>
-            <StatusBar barStyle="dark-content" />
-            <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
-              <TabNavigator.Navigator
-                initialRouteName="Home"
-                screenOptions={({route}) => ({
-                  headerShown: false,
-                  tabBarIcon: ({color, size}) => {
-                    if (route.name === 'Home') {
-                      return <Image style={{tintColor: color, width: size, height: size}} resizeMode="contain" source={require('assets/icons/tab_bar/home.png')} />;
-                    } else if (route.name === 'Observations') {
-                      return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;
-                    } else if (route.name === 'Weather Data') {
-                      return <Ionicons name="stats-chart-outline" size={size} color={color} />;
-                    } else if (route.name === 'Menu') {
-                      return <MaterialCommunityIcons name="dots-horizontal" size={size} color={color} />;
-                    }
-                  },
-                  // these two properties should really take ColorValue but oh well
-                  tabBarActiveTintColor: colorLookup('primary') as string,
-                  tabBarInactiveTintColor: colorLookup('text.secondary') as string,
-                })}>
-                <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
-                  {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
-                </TabNavigator.Screen>
-                <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
-                  {state =>
-                    ObservationsTabScreen(
-                      merge(state, {
-                        route: {
-                          params: {
-                            center_id: avalancheCenterId,
+    <>
+      <HTMLRendererConfig>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            <SelectProvider>
+              <StatusBar barStyle="dark-content" />
+              <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
+                <TabNavigator.Navigator
+                  initialRouteName="Home"
+                  screenOptions={({route}) => ({
+                    headerShown: false,
+                    tabBarIcon: ({color, size}) => {
+                      if (route.name === 'Home') {
+                        return <Image style={{tintColor: color, width: size, height: size}} resizeMode="contain" source={require('assets/icons/tab_bar/home.png')} />;
+                      } else if (route.name === 'Observations') {
+                        return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;
+                      } else if (route.name === 'Weather Data') {
+                        return <Ionicons name="stats-chart-outline" size={size} color={color} />;
+                      } else if (route.name === 'Menu') {
+                        return <MaterialCommunityIcons name="dots-horizontal" size={size} color={color} />;
+                      }
+                    },
+                    // these two properties should really take ColorValue but oh well
+                    tabBarActiveTintColor: colorLookup('primary') as string,
+                    tabBarInactiveTintColor: colorLookup('text.secondary') as string,
+                  })}>
+                  <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                    {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
+                  </TabNavigator.Screen>
+                  <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                    {state =>
+                      ObservationsTabScreen(
+                        merge(state, {
+                          route: {
+                            params: {
+                              center_id: avalancheCenterId,
+                            },
                           },
-                        },
-                      }),
-                    )
-                  }
-                </TabNavigator.Screen>
-                <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
-                  {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
-                </TabNavigator.Screen>
-                <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
-                  {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-                </TabNavigator.Screen>
-              </TabNavigator.Navigator>
-            </View>
-          </SelectProvider>
-        </NavigationContainer>
-      </SafeAreaProvider>
-    </HTMLRendererConfig>
+                        }),
+                      )
+                    }
+                  </TabNavigator.Screen>
+                  <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                    {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
+                  </TabNavigator.Screen>
+                  <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                    {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                  </TabNavigator.Screen>
+                </TabNavigator.Navigator>
+              </View>
+            </SelectProvider>
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </HTMLRendererConfig>
+      <Toast config={toastConfig} bottomOffset={88} visibilityTime={2000} />
+    </>
   );
 };
 

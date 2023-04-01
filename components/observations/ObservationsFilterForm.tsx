@@ -1,4 +1,3 @@
-import log from 'logger';
 import React from 'react';
 
 import {AntDesign} from '@expo/vector-icons';
@@ -16,6 +15,7 @@ import {BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
 import {geoContains} from 'd3-geo';
 import {getMonth, getYear, isAfter, isBefore, parseISO, sub} from 'date-fns';
 import {OverviewFragment} from 'hooks/useObservations';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {FormProvider, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, TouchableOpacity, View as RNView} from 'react-native';
 import {colorLookup} from 'theme';
@@ -149,6 +149,7 @@ interface ObservationsFilterFormProps {
 const formFieldSpacing = 16;
 
 export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterFormProps> = ({mapLayer, initialFilterConfig, currentFilterConfig, setFilterConfig, setVisible}) => {
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const formContext = useForm({
     defaultValues: initialFilterConfig,
     resolver: zodResolver(observationFilterConfigSchema),
@@ -179,7 +180,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   const scrollViewRef = React.useRef(null);
 
   const onSubmitErrorHandler = errors => {
-    log.error('filters error', {errors: errors, formValues: formContext.getValues()});
+    logger.error({errors: errors, formValues: formContext.getValues()}, 'filters error');
     // scroll to the first field with an error
     fieldRefs.current.some(({ref, field}) => {
       if (errors[field]) {
@@ -296,7 +297,7 @@ export const zone = (mapLayer: MapLayer, lat: number, long: number): string => {
   } else if (matchingFeatures.length > 1) {
     // TODO: this happens almost 100% ... why?
     // also, seems like the widget is naming things with more specificity than just the forecast zones? e.g. teton village
-    log.info(`(${long},${lat}) matched ${matchingFeatures.length} features: ${matchingFeatures}`);
+    // log.info(`(${long},${lat}) matched ${matchingFeatures.length} features: ${matchingFeatures}`);
   }
   return matchingFeatures[0];
 };
