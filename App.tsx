@@ -78,7 +78,7 @@ if(ExpoMixpanelAnalytics != null)
   const mixpanel_token = Constants.expoConfig.extra!.mixpanel;
   logger.info('Mixpanel is initializing.');
   // Only initialize Mixpanel if we can find the correct env setup
-  if (mixpanel_token === 'LOADED_FROM_ENVIRONMENT') {
+  if (mixpanel_token === 'LOADED_FROM_ENVIRONMENT' || mixpanel_token == null) {
     logger.warn('Mixpanel integration not configured, check your environment');
   }
   else
