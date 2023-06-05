@@ -8,6 +8,7 @@ import * as Sentry from 'sentry-expo';
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
+import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenter, AvalancheCenterID, avalancheCenterSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
@@ -59,11 +60,12 @@ export const fetchAvalancheCenterMetadataQuery = async (queryClient: QueryClient
 
 const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger) => {
   const url = `${nationalAvalancheCenterHost}/v2/public/avalanche-center/${center_id}`;
-  const {data} = await axios.get(url);
+  const thisLogger = logger.child({url: url, what: 'avalanche center metadata'});
+  const data = await safeFetch(() => axios.get(url), thisLogger);
 
   const parseResult = avalancheCenterSchema.safeParse(data);
   if (parseResult.success === false) {
-    logger.warn({url: url, center: center_id, error: parseResult.error}, 'unparsable avalanche center metadata');
+    thisLogger.warn({url: url, center: center_id, error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

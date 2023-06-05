@@ -8,6 +8,7 @@ import * as Sentry from 'sentry-expo';
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
+import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {reverseLookup} from 'types/nationalAvalancheCenter';
 import {nominalNWACWeatherForecastDate, RequestedTime, requestedTimeToUTCDate, toDateTimeInterfaceATOM} from 'utils/date';
@@ -140,13 +141,18 @@ export const fetchNWACWeatherForecast = async (nwacHost: string, zone_id: number
     zone_id: zone_id,
     published_datetime: toDateTimeInterfaceATOM(requestedTime),
   };
-  const {data} = await axios.get(url, {
-    params: params,
-  });
+  const thisLogger = logger.child({url: url, params: params, what: 'NWAC weather forecast'});
+  const data = await safeFetch(
+    () =>
+      axios.get(url, {
+        params: params,
+      }),
+    thisLogger,
+  );
 
   const parseResult = nwacWeatherForecastMetaSchema.safeParse(data);
   if (parseResult.success === false) {
-    logger.warn({url: url, params: params, error: parseResult.error}, 'unparsable NWAC observation');
+    thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

@@ -8,6 +8,7 @@ import axios, {AxiosError} from 'axios';
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
+import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {Observation, observationSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
@@ -50,11 +51,12 @@ export const prefetchNACObservation = async (queryClient: QueryClient, host: str
 
 export const fetchNACObservation = async (host: string, id: string, logger: Logger): Promise<Observation> => {
   const url = `${host}/obs/v1/public/observation/${id}`;
-  const {data} = await axios.get(url);
+  const thisLogger = logger.child({url: url, what: 'NAC observation'});
+  const data = await safeFetch(() => axios.get(url), thisLogger);
 
   const parseResult = observationSchema.deepPartial().safeParse(data);
   if (parseResult.success === false) {
-    logger.warn({url: url, error: parseResult.error}, 'unparsable NAC observation');
+    thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,
