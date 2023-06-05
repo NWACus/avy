@@ -59,8 +59,11 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const nacObservations = observationsResult.data;
   const nwacObservationsResult = useNWACObservations(center_id, startDate, endDate);
   const nwacObservations = nwacObservationsResult.data;
-  const observations: OverviewFragment[] = [];
-  observations.concat(nacObservations?.getObservationList).concat(nwacObservations?.getObservationList);
+  const observations: OverviewFragment[] = []
+    .concat(nacObservations?.getObservationList)
+    .concat(nwacObservations?.getObservationList)
+    .filter(observation => observation) // when nothing is returned from the NAC, we get a null
+    .filter((v, i, a) => a.findIndex(v2 => v2.id === v.id) === i); // sometimes, the NWAC API gives us duplicates
   const {isRefreshing, refresh} = useRefresh(mapResult.refetch, observationsResult.refetch, nwacObservationsResult.refetch);
 
   if (incompleteQueryState(observationsResult, nwacObservationsResult, mapResult)) {

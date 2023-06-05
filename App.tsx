@@ -80,7 +80,7 @@ const formatURI = (request: AxiosRequestConfig): string => {
     msg += `?${encodeParams(request.params)}`;
   }
   if (request.data) {
-    msg += ` data: ${request.data}`;
+    msg += ` data: ${JSON.stringify(request.data)}`;
   }
   return msg;
 };
