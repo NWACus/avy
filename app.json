@@ -70,7 +70,8 @@
       },
       "sentry_dsn": "LOADED_FROM_ENVIRONMENT",
       "avalanche_center": "NWAC",
-      "log_level": "info"
+      "log_level": "info",
+      "mixpanel": "LOADED_FROM_ENVIRONMENT"
     },
     "web": {
       "favicon": "./assets/favicon.png"

@@ -12,6 +12,7 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   config.android!.config!.googleMaps!.apiKey = process.env.ANDROID_GOOGLE_MAPS_API_KEY;
   config.hooks!.postPublish![0]!.config!.authToken = process.env.SENTRY_API_TOKEN;
   config.extra!.sentry_dsn = process.env.SENTRY_DSN;
+  config.extra!.mixpanel = process.env.MIXPANEL_TOKEN;
   config.extra!.log_level = process.env.LOG_LEVEL != null ? process.env.LOG_LEVEL : 'info';
 
   return config;

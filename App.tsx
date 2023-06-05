@@ -56,6 +56,8 @@ import axios, {AxiosRequestConfig} from 'axios';
 import {createLogger, stdSerializers} from 'browser-bunyan';
 import {ConsoleFormattedStream} from 'logging/consoleFormattedStream';
 
+import ExpoMixpanelAnalytics from '@bothrs/expo-mixpanel-analytics';
+
 // we're reading a field that was previously defined in app.json, so we know it's non-null:
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const logLevel = Constants.expoConfig.extra!.log_level;
@@ -68,6 +70,24 @@ const logger = createLogger({
 });
 
 logger.info('App starting.');
+
+if(ExpoMixpanelAnalytics != null)
+{
+  // we're reading a field that was previously defined in app.json, so we know it's non-null:
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const mixpanel_token = Constants.expoConfig.extra!.mixpanel;
+  logger.info('MIXPANEL');
+  logger.info(mixpanel_token);
+  // Only initialize Mixpanel if we can find the correct env setup
+  if (mixpanel_token === 'LOADED_FROM_ENVIRONMENT') {
+    logger.warn('Mixpanel integration not configured, check your environment');
+  }
+  else
+  {
+    const analytics = new ExpoMixpanelAnalytics(mixpanel_token);
+    analytics.track("App starting.");
+  }
+}
 
 const encodeParams = params => {
   return Object.entries(params)
