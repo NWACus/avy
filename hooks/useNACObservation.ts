@@ -52,7 +52,16 @@ export const prefetchNACObservation = async (queryClient: QueryClient, host: str
 export const fetchNACObservation = async (host: string, id: string, logger: Logger): Promise<Observation> => {
   const url = `${host}/obs/v1/public/observation/${id}`;
   const thisLogger = logger.child({url: url, what: 'NAC observation'});
-  const data = await safeFetch(() => axios.get(url), thisLogger);
+  const data = await safeFetch(
+    () =>
+      axios.get(url, {
+        headers: {
+          // Public API uses the Origin header to determine who's authorized to call it
+          Origin: 'https://nwac.us',
+        },
+      }),
+    thisLogger,
+  );
 
   const parseResult = observationSchema.deepPartial().safeParse(data);
   if (parseResult.success === false) {
