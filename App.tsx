@@ -76,8 +76,7 @@ if(ExpoMixpanelAnalytics != null)
   // we're reading a field that was previously defined in app.json, so we know it's non-null:
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const mixpanel_token = Constants.expoConfig.extra!.mixpanel;
-  logger.info('MIXPANEL');
-  logger.info(mixpanel_token);
+  logger.info('Mixpanel is initializing.');
   // Only initialize Mixpanel if we can find the correct env setup
   if (mixpanel_token === 'LOADED_FROM_ENVIRONMENT') {
     logger.warn('Mixpanel integration not configured, check your environment');
