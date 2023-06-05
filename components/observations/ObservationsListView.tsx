@@ -59,7 +59,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const nacObservations = observationsResult.data;
   const nwacObservationsResult = useNWACObservations(center_id, startDate, endDate);
   const nwacObservations = nwacObservationsResult.data;
-  const observations = nacObservations?.getObservationList.concat(nwacObservations?.getObservationList);
+  const observations: OverviewFragment[] = [];
+  observations.concat(nacObservations?.getObservationList).concat(nwacObservations?.getObservationList);
   const {isRefreshing, refresh} = useRefresh(mapResult.refetch, observationsResult.refetch, nwacObservationsResult.refetch);
 
   if (incompleteQueryState(observationsResult, nwacObservationsResult, mapResult)) {

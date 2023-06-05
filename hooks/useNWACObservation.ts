@@ -8,6 +8,7 @@ import * as Sentry from 'sentry-expo';
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
+import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {Observation, observationSchema} from 'types/nationalAvalancheCenter';
 import {z, ZodError} from 'zod';
@@ -65,11 +66,12 @@ const nwacObservationSchema = z.object({
 
 export const fetchNWACObservation = async (nwacHost: string, id: number, logger: Logger): Promise<Observation> => {
   const url = `${nwacHost}/api/v2/observation/${id}`;
-  const {data} = await axios.get(url);
+  const thisLogger = logger.child({url: url, id: id, what: 'NWAC observation'});
+  const data = await safeFetch(() => axios.get(url), thisLogger);
 
   const parseResult = nwacObservationSchema.safeParse(data);
   if (parseResult.success === false) {
-    logger.warn({url: url, id: id, error: parseResult.error}, 'unparsable NWAC observation');
+    thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

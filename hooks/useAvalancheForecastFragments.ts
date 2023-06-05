@@ -8,6 +8,7 @@ import * as Sentry from 'sentry-expo';
 
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
+import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, Product, ProductArray, productArraySchema} from 'types/nationalAvalancheCenter';
 import {apiDateString} from 'utils/date';
@@ -74,13 +75,18 @@ const fetchAvalancheForecastFragments = async (nationalAvalancheCenterHost: stri
     date_start: apiDateString(sub(date, {days: 2})),
     date_end: apiDateString(add(date, {days: 1})),
   };
-  const {data} = await axios.get(url, {
-    params: params,
-  });
+  const thisLogger = logger.child({url: url, params: params, what: 'avalanche forecast fragments'});
+  const data = await safeFetch(
+    () =>
+      axios.get(url, {
+        params: params,
+      }),
+    thisLogger,
+  );
 
   const parseResult = productArraySchema.safeParse(data);
   if (parseResult.success === false) {
-    logger.warn({url: url, params: params, error: parseResult.error}, 'unparsable forecast fragments');
+    thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

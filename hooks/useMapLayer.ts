@@ -8,6 +8,7 @@ import * as Sentry from 'sentry-expo';
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
+import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, MapLayer, mapLayerSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
@@ -51,11 +52,12 @@ export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalanc
 
 const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger) => {
   const url = `${nationalAvalancheCenterHost}/v2/public/products/map-layer/${center_id}`;
-  const {data} = await axios.get(url);
+  const thisLogger = logger.child({url: url, what: 'avalanche avalanche center map layer'});
+  const data = await safeFetch(() => axios.get(url), thisLogger);
 
   const parseResult = mapLayerSchema.safeParse(data);
   if (parseResult.success === false) {
-    logger.warn({url: url, error: parseResult.error}, 'unparsable avalanche avalanche center map layer');
+    thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

@@ -8,6 +8,7 @@ import {QueryClient, useQuery} from '@tanstack/react-query';
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
+import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, Synopsis, synopsisSchema} from 'types/nationalAvalancheCenter';
 import {apiDateString, RequestedTime} from 'utils/date';
@@ -82,13 +83,18 @@ const fetchSynopsis = async (nationalAvalancheCenterHost: string, center_id: str
   if (requested_time !== 'latest') {
     params['published_time'] = apiDateString(requested_time); // the API accepts a _date_ and appends 19:00 to it for a time...
   }
-  const {data} = await axios.get(url, {
-    params: params,
-  });
+  const thisLogger = logger.child({url: url, params: params, what: 'synopsis'});
+  const data = await safeFetch(
+    () =>
+      axios.get(url, {
+        params: params,
+      }),
+    thisLogger,
+  );
 
   const parseResult = synopsisSchema.deepPartial().safeParse(data);
   if (parseResult.success === false) {
-    logger.warn({url: url, params: params, error: parseResult.error}, 'unparsable synopsis');
+    thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

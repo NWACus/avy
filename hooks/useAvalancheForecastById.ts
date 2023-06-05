@@ -8,6 +8,7 @@ import * as Sentry from 'sentry-expo';
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
+import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {Product, productSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
@@ -54,11 +55,12 @@ export const prefetchAvalancheForecast = async (queryClient: QueryClient, nation
 // TODO need to export?
 export const fetchProduct = async (nationalAvalancheCenterHost: string, forecastId: number, logger: Logger) => {
   const url = `${nationalAvalancheCenterHost}/v2/public/product/${forecastId}`;
-  const {data} = await axios.get(url);
+  const thisLogger = logger.child({url: url, what: 'avalanche forecast'});
+  const data = await safeFetch(() => axios.get(url), thisLogger);
 
   const parseResult = productSchema.safeParse(data);
   if (parseResult.success === false) {
-    logger.warn({url: url, error: parseResult.error}, 'unparsable avalanche forecast');
+    thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,
