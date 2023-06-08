@@ -3,6 +3,7 @@ import React from 'react';
 import {Feather, FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {colorFor} from 'components/AvalancheDangerPyramid';
+import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
@@ -10,17 +11,18 @@ import {HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {filtersForConfig, ObservationFilterConfig, ObservationsFilterForm, zone} from 'components/observations/ObservationsFilterForm';
 import {Body, BodyBlack, BodySemibold, BodySmBlack, Caption1Black} from 'components/text';
-import {compareDesc, parseISO, setDayOfYear, sub} from 'date-fns';
+import {compareDesc, parseISO, setDayOfYear} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
+import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
-import {OverviewFragment, useObservationsQuery} from 'hooks/useObservations';
+import {OverviewFragment} from 'hooks/useObservations';
 import {useRefresh} from 'hooks/useRefresh';
-import {FlatList, FlatListProps, Modal, RefreshControl, TouchableOpacity} from 'react-native';
+import {ActivityIndicator, FlatList, FlatListProps, Modal, RefreshControl, TouchableOpacity} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import theme, {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, PartnerType} from 'types/nationalAvalancheCenter';
 import {notFound} from 'types/requests';
-import {apiDateString, RequestedTime, requestedTimeToUTCDate, utcDateToLocalDateString} from 'utils/date';
+import {RequestedTime, requestedTimeToUTCDate, utcDateToLocalDateString} from 'utils/date';
 
 interface ObservationsListViewItem {
   id: OverviewFragment['id'];
@@ -48,26 +50,20 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
-  const date = requestedTimeToUTCDate(requestedTime);
-  const startDate = sub(date, {weeks: 2});
-  const endDate = date;
-  const observationsResult = useObservationsQuery({
-    center: center_id,
-    startDate: apiDateString(startDate),
-    endDate: apiDateString(endDate),
-  });
-  const nacObservations = observationsResult.data;
-  const nwacObservationsResult = useNWACObservations(center_id, startDate, endDate);
+  const endDate = requestedTimeToUTCDate(requestedTime);
+  const nacObservationsResult = useNACObservations(center_id, endDate);
+  const nacObservations = nacObservationsResult.data;
+  const nwacObservationsResult = useNWACObservations(center_id, endDate);
   const nwacObservations = nwacObservationsResult.data;
   const observations: OverviewFragment[] = []
-    .concat(nacObservations?.getObservationList)
-    .concat(nwacObservations?.getObservationList)
+    .concat(nacObservations?.pages?.flatMap(page => page.getObservationList))
+    .concat(nwacObservations?.pages?.flatMap(page => page.getObservationList))
     .filter(observation => observation) // when nothing is returned from the NAC, we get a null
     .filter((v, i, a) => a.findIndex(v2 => v2.id === v.id) === i); // sometimes, the NWAC API gives us duplicates
-  const {isRefreshing, refresh} = useRefresh(mapResult.refetch, observationsResult.refetch, nwacObservationsResult.refetch);
+  const {isRefreshing, refresh} = useRefresh(mapResult.refetch, nacObservationsResult.refetch, nwacObservationsResult.refetch);
 
-  if (incompleteQueryState(observationsResult, nwacObservationsResult, mapResult)) {
-    return <QueryState results={[observationsResult, nwacObservationsResult, mapResult]} />;
+  if (incompleteQueryState(nacObservationsResult, nwacObservationsResult, mapResult)) {
+    return <QueryState results={[nacObservationsResult, nwacObservationsResult, mapResult]} />;
   }
 
   observations.sort((a, b) => compareDesc(parseISO(a.createdAt), parseISO(b.createdAt)));
@@ -101,14 +97,45 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             </TouchableOpacity>
           </HStack>
         }
+        ListFooterComponent={
+          <>
+            {nacObservationsResult.isFetchingNextPage || nwacObservationsResult.isFetchingNextPage ? (
+              <View borderRadius={8} py={12} px={16}>
+                <HStack width={'100%'} space={8} justifyContent={'center'} alignItems={'center'}>
+                  <BodyBlack>Loading more...</BodyBlack>
+                  <ActivityIndicator />
+                </HStack>
+              </View>
+            ) : (
+              (nacObservationsResult.hasNextPage || nwacObservationsResult.hasNextPage) && (
+                <HStack justifyContent="center">
+                  <Button
+                    width={'50%'}
+                    buttonStyle={'primary'}
+                    onPress={() => {
+                      nwacObservationsResult.fetchNextPage();
+                      nacObservationsResult.fetchNextPage();
+                    }}>
+                    <BodyBlack>Load more...</BodyBlack>
+                  </Button>
+                </HStack>
+              )
+            )}
+          </>
+        }
         style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}
         data={
-          displayedObservations.length > 1
+          displayedObservations.length > 0
             ? displayedObservations.map(observation => ({
                 id: observation.id,
                 observation: observation,
-                source: nwacObservations?.getObservationList.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
+                source: nwacObservations?.pages
+                  ?.flatMap(page => page.getObservationList)
+                  .map(o => o.id)
+                  .includes(observation.id)
+                  ? 'nwac'
+                  : 'nac',
                 zone: zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
               }))
             : [{id: null, observation: null, source: null, zone: null}]
@@ -117,7 +144,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           item.id ? (
             <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />
           ) : (
-            <NotFound terminal what={[notFound('any matching observations')]} />
+            <NotFound inline terminal what={[notFound('any matching observations')]} />
           )
         }
         {...props}
@@ -193,7 +220,7 @@ export const ObservationSummaryCard: React.FunctionComponent<{
           </VStack>
         </HStack>
         <View width={52} flex={0} mx={8}>
-          {observation.media && observation.media.length > 0 && (
+          {observation.media && observation.media.length > 0 && observation.media[0].url.thumbnail && (
             <NetworkImage width={52} height={52} uri={observation.media[0].url.thumbnail} imageStyle={{borderRadius: 4}} index={0} onPress={null} onStateChange={null} />
           )}
         </View>

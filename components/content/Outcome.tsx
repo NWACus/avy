@@ -8,13 +8,14 @@ export interface OutcomeOptions {
   outcome: string; // the main outcome to show the user
   reason: string; // some explanatory text
   illustration: ReactNode;
+  inline?: boolean;
   onRetry?: (event: GestureResponderEvent) => void; // action to bind to the retry button
   onClose?: (event: GestureResponderEvent) => void; // action to bind to the close button
 }
 
-export const Outcome: React.FunctionComponent<OutcomeOptions> = ({outcome, reason, illustration, onRetry, onClose}) => {
+export const Outcome: React.FunctionComponent<OutcomeOptions> = ({outcome, reason, illustration, inline, onRetry, onClose}) => {
   return (
-    <View style={{height: '100%', width: '100%'}} bg="white">
+    <View style={inline ? {} : {height: '100%', width: '100%'}} bg="white">
       <VStack justifyContent={'center'} flex={1}>
         <View mx={16}>
           <VStack space={24} alignItems={'center'}>

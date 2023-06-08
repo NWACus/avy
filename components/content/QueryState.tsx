@@ -40,13 +40,14 @@ export const QueryState: React.FunctionComponent<{results: UseQueryResult[]}> = 
 
 const isResultNotFound = (result: UseQueryResult): boolean => result.isSuccess && isNotFound(result.data);
 
-export const InternalError: React.FunctionComponent = () => {
+export const InternalError: React.FunctionComponent = (inline?: boolean) => {
   const navigation = useNavigation<TabNavigationProps>();
   return (
     <Outcome
       outcome={'Oops, something went wrong!'}
       reason={"We're sorry, but we cannot complete your request at this time."}
       illustration={<ErrorIllustration />}
+      inline={inline}
       onClose={() => navigation.navigate('Home')}
     />
   );
@@ -60,14 +61,14 @@ export const Loading: React.FunctionComponent = () => {
   );
 };
 
-export const NotFound: React.FunctionComponent<{what?: NotFoundType[]; terminal?: boolean}> = ({what, terminal}) => {
+export const NotFound: React.FunctionComponent<{what?: NotFoundType[]; terminal?: boolean; inline?: boolean}> = ({what, terminal, inline}) => {
   const thing = what[0]?.notFound ? what[0].notFound : 'the requested resource';
   const navigation = useNavigation<TabNavigationProps>();
   let onClose = () => navigation.navigate('Home');
   if (terminal) {
     onClose = null;
   }
-  return <Outcome outcome={'No results found'} reason={`We could not find ${thing}.`} illustration={<NoSearchResult />} onClose={onClose} />;
+  return <Outcome outcome={'No results found'} reason={`We could not find ${thing}.`} inline={inline} illustration={<NoSearchResult />} onClose={onClose} />;
 };
 
 export const ConnectionLost: React.FunctionComponent = () => {
