@@ -1,30 +1,36 @@
 import React from 'react';
 
-import {QueryClient, useQuery} from '@tanstack/react-query';
+import {QueryClient, useInfiniteQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
-import {formatDistanceToNowStrict} from 'date-fns';
+import {formatDistanceToNowStrict, sub} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {ObservationsQuery} from 'hooks/useObservations';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, observationSchema} from 'types/nationalAvalancheCenter';
-import {toDateTimeInterfaceATOM} from 'utils/date';
+import {formatRequestedTime, parseRequestedTimeString, requestedTimeToUTCDate, toDateTimeInterfaceATOM} from 'utils/date';
 import {z, ZodError} from 'zod';
 
-export const useNWACObservations = (center_id: AvalancheCenterID, published_after: Date, published_before: Date) => {
+export const useNWACObservations = (center_id: AvalancheCenterID, endDate: Date) => {
   const {nwacHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(nwacHost, center_id);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
+  const fetchNWACObservationsPage = async ({pageParam = formatRequestedTime(endDate)}): Promise<ObservationsQueryWithMeta> => {
+    const endDate: Date = requestedTimeToUTCDate(parseRequestedTimeString(pageParam));
+    const startDate = sub(endDate, {weeks: 2});
+    return fetchNWACObservations(nwacHost, center_id, startDate, endDate, thisLogger);
+  };
 
-  return useQuery<ObservationsQuery, AxiosError | ZodError>({
+  return useInfiniteQuery<ObservationsQueryWithMeta, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: () => fetchNWACObservations(nwacHost, center_id, published_after, published_before, thisLogger),
+    queryFn: fetchNWACObservationsPage,
+    getNextPageParam: lastPage => lastPage.published_after,
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
@@ -52,7 +58,7 @@ export const prefetchNWACObservations = async (
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
-  await queryClient.prefetchQuery({
+  await queryClient.prefetchInfiniteQuery({
     queryKey: key,
     queryFn: async () => {
       const start = new Date();
@@ -82,15 +88,24 @@ const nwacObservationsSchema = z.object({
   ),
 });
 
+interface ObservationsQueryWithMeta extends ObservationsQuery {
+  published_before: string;
+  published_after: string;
+}
+
 export const fetchNWACObservations = async (
   nwacHost: string,
   center_id: AvalancheCenterID,
   published_after: Date,
   published_before: Date,
   logger: Logger,
-): Promise<ObservationsQuery> => {
+): Promise<ObservationsQueryWithMeta> => {
   if (center_id !== 'NWAC') {
-    return {getObservationList: []};
+    return {
+      published_after: formatRequestedTime(published_after),
+      published_before: formatRequestedTime(published_before),
+      getObservationList: [],
+    };
   }
   const url = `${nwacHost}/api/v2/observations`;
   const params = {
@@ -118,6 +133,8 @@ export const fetchNWACObservations = async (
     throw parseResult.error;
   } else {
     return {
+      published_after: formatRequestedTime(published_after),
+      published_before: formatRequestedTime(published_before),
       getObservationList: parseResult.data.objects.map(object => ({
         id: String(object.id),
         observerType: object.content.observer_type,
