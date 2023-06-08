@@ -1,5 +1,6 @@
 import {AxiosResponse} from 'axios';
 import {Logger} from 'browser-bunyan';
+import {NotFoundError} from 'types/requests';
 
 export const safeFetch = async <T>(request: () => Promise<AxiosResponse<T>>, logger: Logger) => {
   try {
@@ -8,7 +9,11 @@ export const safeFetch = async <T>(request: () => Promise<AxiosResponse<T>>, log
   } catch (error) {
     if (error.response) {
       logger.warn({status: error.response.status, error: error.response.data}, `error response on fetch`);
-      throw new Error(`error response ${error.response.status}: ${error.response.data.message}`);
+      if (error.response.status === 404) {
+        throw new NotFoundError(`error response ${error.response.status}: ${error.response.data.message}`);
+      } else {
+        throw new Error(`error response ${error.response.status}: ${error.response.data.message}`);
+      }
     } else if (error.request) {
       logger.warn({error: error.request}, `no response on fetch`);
       throw new Error(`no response: ${error.request}`);
