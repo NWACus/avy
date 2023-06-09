@@ -10,12 +10,12 @@ import React from 'react';
 import {ActivityIndicator} from 'react-native';
 import {TabNavigationProps} from 'routes';
 import * as Sentry from 'sentry-expo';
-import {isNotFound, NotFound as NotFoundType} from 'types/requests';
+import {isNotFound, NotFound as NotFoundType, NotFoundError} from 'types/requests';
 
 export const QueryState: React.FunctionComponent<{results: UseQueryResult[]}> = ({results}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
-  const errors = results.filter(result => result.isError).map(result => result.error as Error);
+  const errors = results.filter(result => result.isError && !(result.error instanceof NotFoundError)).map(result => result.error);
   if (errors.length > 0) {
     errors.forEach(error => {
       Sentry.Native.captureException(error);
@@ -38,7 +38,7 @@ export const QueryState: React.FunctionComponent<{results: UseQueryResult[]}> = 
   return <InternalError />;
 };
 
-const isResultNotFound = (result: UseQueryResult): boolean => result.isSuccess && isNotFound(result.data);
+const isResultNotFound = (result: UseQueryResult): boolean => (result.isError && result.error instanceof NotFoundError) || (result.isSuccess && isNotFound(result.data));
 
 export const InternalError: React.FunctionComponent = (inline?: boolean) => {
   const navigation = useNavigation<TabNavigationProps>();

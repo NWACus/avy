@@ -11,6 +11,7 @@ import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {reverseLookup} from 'types/nationalAvalancheCenter';
+import {NotFoundError} from 'types/requests';
 import {nominalNWACWeatherForecastDate, RequestedTime, requestedTimeToUTCDate, toDateTimeInterfaceATOM} from 'utils/date';
 import {z, ZodError} from 'zod';
 
@@ -22,9 +23,10 @@ export const useNWACWeatherForecast = (zone_id: number, requestedTime: Requested
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
-  return useQuery<NWACWeatherForecast, AxiosError | ZodError>({
+  return useQuery<NWACWeatherForecast, AxiosError | ZodError | NotFoundError>({
     queryKey: key,
     queryFn: () => fetchNWACWeatherForecast(nwacHost, zone_id, date, thisLogger),
+    retry: (failureCount, error): boolean => !(error instanceof NotFoundError), // 404s are terminal
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
