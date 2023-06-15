@@ -61,12 +61,12 @@ export const fetchAvalancheCenterMetadataQuery = async (queryClient: QueryClient
 const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger): Promise<AvalancheCenter> => {
   const url = `${nationalAvalancheCenterHost}/v2/public/avalanche-center/${center_id}`;
   const what = 'avalanche center metadata';
-  const thisLogger = logger.child({url: url, what: what});
+  const thisLogger = logger.child({url: url, center: center_id, what: what});
   const data = await safeFetch(() => axios.get(url), thisLogger, what);
 
   const parseResult = avalancheCenterSchema.safeParse(data);
   if (parseResult.success === false) {
-    thisLogger.warn({url: url, center: center_id, error: parseResult.error}, 'failed to parse');
+    thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,
