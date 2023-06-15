@@ -52,6 +52,8 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const forecastResults = useMapLayerAvalancheForecasts(center, requestedTime, mapLayer, metadata);
   const warningResults = useMapLayerAvalancheWarnings(center, requestedTime, mapLayer);
 
+  const topElements = React.useRef(null);
+
   const navigation = useNavigation<HomeStackNavigationProps>();
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
   const onPressMapView = useCallback(() => {
@@ -152,6 +154,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       <SafeAreaView>
         <View>
           <VStack
+            ref={topElements}
             width="100%"
             position="absolute"
             top={0}
@@ -165,6 +168,16 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
               event.currentTarget.measureInWindow((x, y, width, height) => {
                 controller.animateUsingUpdatedTopElementsHeight(y, height);
               });
+
+              // we seem to see races between onLayout firing and the measureInWindow picking up the correct
+              // SafeAreaView bounds, so let's queue up another render pass in the future to hopefully converge
+              setTimeout(() => {
+                if (topElements.current) {
+                  topElements.current.measureInWindow((x, y, width, height) => {
+                    controller.animateUsingUpdatedTopElementsHeight(y, height);
+                  });
+                }
+              }, 50);
             }}>
             <DangerScale width="100%" />
           </VStack>
