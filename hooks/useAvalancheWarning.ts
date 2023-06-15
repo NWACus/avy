@@ -23,7 +23,7 @@ export const useAvalancheWarning = (center_id: AvalancheCenterID, zone_id: numbe
 
   return useQuery<AvalancheWarning, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async () => fetchAvalancheWarning(nationalAvalancheCenterHost, center_id, zone_id, requested_time, thisLogger),
+    queryFn: async (): Promise<AvalancheWarning> => fetchAvalancheWarning(nationalAvalancheCenterHost, center_id, zone_id, requested_time, thisLogger),
     cacheTime: 12 * 60 * 60 * 1000, // hold on to this cached data for half a day (in milliseconds)
   });
 };

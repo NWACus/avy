@@ -3,7 +3,8 @@ import {ClientContext, ClientProps} from 'clientContext';
 import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import React from 'react';
-import {AvalancheCenter, AvalancheCenterID, MapLayer} from 'types/nationalAvalancheCenter';
+import {AvalancheCenter, AvalancheCenterID, MapLayer, Product} from 'types/nationalAvalancheCenter';
+import {NotFound} from 'types/requests';
 import {RequestedTime} from 'utils/date';
 
 export const useMapLayerAvalancheForecasts = (center_id: AvalancheCenterID, requestedTime: RequestedTime, mapLayer: MapLayer, metadata: AvalancheCenter) => {
@@ -18,7 +19,7 @@ export const useMapLayerAvalancheForecasts = (center_id: AvalancheCenterID, requ
       ? mapLayer.features.map(feature => {
           return {
             queryKey: AvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, center_id, feature.id, requestedTime, expiryTimeZone, expiryTimeHours),
-            queryFn: async () =>
+            queryFn: async (): Promise<Product | NotFound> =>
               AvalancheForecastQuery.fetch(queryClient, nationalAvalancheCenterHost, center_id, feature.id, requestedTime, expiryTimeZone, expiryTimeHours, logger),
             enabled: !!expiryTimeHours,
             cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)

@@ -24,7 +24,7 @@ export const useAvalancheForecastById = (fragment: Product) => {
 
   return useQuery<Product, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: () => fetchProduct(nationalAvalancheCenterHost, forecastId, thisLogger),
+    queryFn: (): Promise<Product> => fetchProduct(nationalAvalancheCenterHost, forecastId, thisLogger),
     enabled: !!forecastId,
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
@@ -42,7 +42,7 @@ export const prefetchAvalancheForecast = async (queryClient: QueryClient, nation
 
   await queryClient.prefetchQuery({
     queryKey: key,
-    queryFn: async () => {
+    queryFn: async (): Promise<Product> => {
       const start = new Date();
       logger.trace(`prefetching`);
       const result = fetchProduct(nationalAvalancheCenterHost, forecastId, thisLogger);
@@ -53,7 +53,7 @@ export const prefetchAvalancheForecast = async (queryClient: QueryClient, nation
 };
 
 // TODO need to export?
-export const fetchProduct = async (nationalAvalancheCenterHost: string, forecastId: number, logger: Logger) => {
+export const fetchProduct = async (nationalAvalancheCenterHost: string, forecastId: number, logger: Logger): Promise<Product> => {
   const url = `${nationalAvalancheCenterHost}/v2/public/product/${forecastId}`;
   const thisLogger = logger.child({url: url, what: 'avalanche forecast'});
   const data = await safeFetch(() => axios.get(url), thisLogger);

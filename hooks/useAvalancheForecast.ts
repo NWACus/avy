@@ -30,7 +30,8 @@ export const useAvalancheForecast = (center_id: AvalancheCenterID, center: Avala
 
   return useQuery<Product | NotFound, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async () => fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours, thisLogger),
+    queryFn: async (): Promise<Product | NotFound> =>
+      fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours, thisLogger),
     enabled: !!expiryTimeHours,
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
@@ -85,7 +86,7 @@ const prefetchAvalancheForecast = async (
 
   await queryClient.prefetchQuery({
     queryKey: key,
-    queryFn: async () => {
+    queryFn: async (): Promise<Product | NotFound> => {
       const start = new Date();
       logger.trace(`prefetching`);
       const result = fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours, thisLogger);
@@ -104,7 +105,7 @@ const fetchAvalancheForecast = async (
   expiryTimeZone: string,
   expiryTimeHours: number,
   logger: Logger,
-) => {
+): Promise<Product | NotFound> => {
   if (requested_time === 'latest') {
     return fetchLatestAvalancheForecast(nationalAvalancheCenterHost, center_id, zone_id, logger);
   } else {
@@ -124,7 +125,7 @@ const fetchAvalancheForecast = async (
   }
 };
 
-const fetchLatestAvalancheForecast = async (nationalAvalancheCenterHost: string, center_id: string, zone_id: number, logger: Logger) => {
+const fetchLatestAvalancheForecast = async (nationalAvalancheCenterHost: string, center_id: string, zone_id: number, logger: Logger): Promise<Product> => {
   const url = `${nationalAvalancheCenterHost}/v2/public/product`;
   const params = {
     center_id: center_id,

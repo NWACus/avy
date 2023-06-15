@@ -21,7 +21,7 @@ export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forec
 
   return useQuery<Product | NotFound, Error>({
     queryKey: key,
-    queryFn: async () => fetchAvalancheForecastFragment(queryClient, nationalAvalancheCenterHost, center_id, forecast_zone_id, date, thisLogger),
+    queryFn: async (): Promise<Product | NotFound> => fetchAvalancheForecastFragment(queryClient, nationalAvalancheCenterHost, center_id, forecast_zone_id, date, thisLogger),
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
