@@ -17,6 +17,7 @@ import {Dropdown} from 'components/content/Dropdown';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {AvalancheTab} from 'components/forecast/AvalancheTab';
 import {ObservationsTab} from 'components/forecast/ObservationsTab';
+import {SynopsisTab} from 'components/forecast/SynopsisTab';
 import {WeatherTab} from 'components/forecast/WeatherTab';
 import {HomeStackNavigationProps} from 'routes';
 import {notFound} from 'types/requests';
@@ -97,6 +98,11 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
         <Tab title="Observations">
           <ObservationsTab zone_name={zone.name} center_id={center_id} requestedTime={requestedTime} />
         </Tab>
+        {center.config?.blog && center.config?.blog_title && (
+          <Tab title={center.config?.blog_title ? center.config?.blog_title : 'Blog'}>
+            <SynopsisTab center={center} center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
+          </Tab>
+        )}
       </TabControl>
     </VStack>
   );

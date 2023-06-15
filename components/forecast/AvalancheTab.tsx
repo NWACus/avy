@@ -20,7 +20,6 @@ import {toDate} from 'date-fns-tz';
 import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {useAvalancheWarning} from 'hooks/useAvalancheWarning';
 import {useRefresh} from 'hooks/useRefresh';
-import {useSynopsis} from 'hooks/useSynopsis';
 import {RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
 import Collapsible from 'react-native-collapsible';
 import Toast from 'react-native-toast-message';
@@ -36,7 +35,6 @@ import {
   ElevationBandNames,
   ForecastPeriod,
 } from 'types/nationalAvalancheCenter';
-import {isNotFound} from 'types/requests';
 import {RequestedTime, utcDateToLocalTimeString} from 'utils/date';
 
 interface AvalancheTabProps {
@@ -61,16 +59,14 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
   const forecast = forecastResult.data;
   const warningResult = useAvalancheWarning(center_id, forecast_zone_id, requestedTime);
   const warning = warningResult.data;
-  const synopsisResult = useSynopsis(center_id, forecast_zone_id, requestedTime);
-  const synopsis = synopsisResult.data;
-  const {isRefreshing, refresh} = useRefresh(forecastResult.refetch, warningResult.refetch, synopsisResult.refetch);
+  const {isRefreshing, refresh} = useRefresh(forecastResult.refetch, warningResult.refetch);
 
   // When navigating from elsewhere in the app, the screen title should already
   // be set to the zone name. But if we warp directly to a forecast link, we
   // need to load the zone name dynamically.
   const navigation = useNavigation<HomeStackNavigationProps>();
   React.useEffect(() => {
-    if (forecast && !isNotFound(forecast)) {
+    if (forecast) {
       const thisZone: AvalancheForecastZoneSummary | undefined = forecast.forecast_zone.find(zone => zone.id === forecast_zone_id);
       if (thisZone) {
         navigation.setOptions({title: thisZone.name});
@@ -83,8 +79,8 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
     });
   }, [navigation]);
 
-  if (incompleteQueryState(forecastResult, warningResult, synopsisResult) || isNotFound(forecast)) {
-    return <QueryState results={[forecastResult, warningResult, synopsisResult]} />;
+  if (incompleteQueryState(forecastResult, warningResult)) {
+    return <QueryState results={[forecastResult, warningResult]} />;
   }
 
   // very much not clear why sometimes (perhaps after hydrating?) the time fields are strings, not dates
@@ -150,12 +146,6 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
           </HStack>
         </Card>
         {warning.expires_time && <WarningCard warning={warning} />}
-        {synopsis.hazard_discussion && !synopsis.hazard_discussion.includes("There's no current product.") && (
-          <CollapsibleCard startsCollapsed={false} borderRadius={0} borderColor="white" header={<BodyBlack>{synopsis.bottom_line}</BodyBlack>}>
-            <HTML source={{html: synopsis.hazard_discussion}} />
-            <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={synopsis.media} displayCaptions={false} />
-          </CollapsibleCard>
-        )}
         <Card
           borderRadius={0}
           borderColor="white"
