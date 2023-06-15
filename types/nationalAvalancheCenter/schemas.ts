@@ -258,6 +258,7 @@ export const avalancheCenterConfigurationSchema = z.object({
   expires_time: z.number().optional().nullable(),
   published_time: z.number().optional().nullable(),
   blog: z.boolean().optional(),
+  blog_title: z.string().optional(),
   weather_table: z.array(avalancheCenterWeatherConfigurationSchema).optional(),
   zone_order: z.array(z.number()).optional(),
 });

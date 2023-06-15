@@ -13,7 +13,6 @@ import AvalancheForecastByID from 'hooks/useAvalancheForecastById';
 import AvalancheForecastFragment from 'hooks/useAvalancheForecastFragment';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenter, AvalancheCenterID, Product, productSchema} from 'types/nationalAvalancheCenter';
-import {isNotFound, NotFound} from 'types/requests';
 import {nominalForecastDate, nominalForecastDateString, RequestedTime} from 'utils/date';
 import {ZodError} from 'zod';
 
@@ -28,9 +27,9 @@ export const useAvalancheForecast = (center_id: AvalancheCenterID, center: Avala
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
-  return useQuery<Product | NotFound, AxiosError | ZodError>({
+  return useQuery<Product, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async (): Promise<Product | NotFound> =>
+    queryFn: async (): Promise<Product> =>
       fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours, thisLogger),
     enabled: !!expiryTimeHours,
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
@@ -86,7 +85,7 @@ const prefetchAvalancheForecast = async (
 
   await queryClient.prefetchQuery({
     queryKey: key,
-    queryFn: async (): Promise<Product | NotFound> => {
+    queryFn: async (): Promise<Product> => {
       const start = new Date();
       logger.trace(`prefetching`);
       const result = fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours, thisLogger);
@@ -105,7 +104,7 @@ const fetchAvalancheForecast = async (
   expiryTimeZone: string,
   expiryTimeHours: number,
   logger: Logger,
-): Promise<Product | NotFound> => {
+): Promise<Product> => {
   if (requested_time === 'latest') {
     return fetchLatestAvalancheForecast(nationalAvalancheCenterHost, center_id, zone_id, logger);
   } else {
@@ -117,11 +116,7 @@ const fetchAvalancheForecast = async (
       nominalForecastDate(requested_time, expiryTimeZone, expiryTimeHours),
       logger,
     );
-    if (isNotFound(fragment)) {
-      return fragment;
-    } else {
-      return await AvalancheForecastByID.fetch(nationalAvalancheCenterHost, fragment.id, logger);
-    }
+    return await AvalancheForecastByID.fetch(nationalAvalancheCenterHost, fragment.id, logger);
   }
 };
 
@@ -132,13 +127,15 @@ const fetchLatestAvalancheForecast = async (nationalAvalancheCenterHost: string,
     type: 'forecast',
     zone_id: zone_id,
   };
-  const thisLogger = logger.child({url: url, params: params, what: 'avalanche forecast'});
+  const what = 'avalanche forecast';
+  const thisLogger = logger.child({url: url, params: params, what: what});
   const data = await safeFetch(
     () =>
       axios.get(url, {
         params: params,
       }),
     thisLogger,
+    what,
   );
 
   const parseResult = productSchema.safeParse(data);

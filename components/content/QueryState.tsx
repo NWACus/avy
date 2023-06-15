@@ -10,7 +10,7 @@ import React from 'react';
 import {ActivityIndicator} from 'react-native';
 import {TabNavigationProps} from 'routes';
 import * as Sentry from 'sentry-expo';
-import {isNotFound, NotFound as NotFoundType, NotFoundError} from 'types/requests';
+import {NotFoundError} from 'types/requests';
 
 export const QueryState: React.FunctionComponent<{results: UseQueryResult[]}> = ({results}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
@@ -29,7 +29,7 @@ export const QueryState: React.FunctionComponent<{results: UseQueryResult[]}> = 
   }
 
   if (results.map(isResultNotFound).reduce((accumulator, value) => accumulator || value)) {
-    const what = results.filter(isResultNotFound).map(result => result.data as NotFoundType);
+    const what = results.filter(isResultNotFound).map(result => result.error as NotFoundError);
     return <NotFound what={what} />;
   }
 
@@ -38,7 +38,7 @@ export const QueryState: React.FunctionComponent<{results: UseQueryResult[]}> = 
   return <InternalError />;
 };
 
-const isResultNotFound = (result: UseQueryResult): boolean => (result.isError && result.error instanceof NotFoundError) || (result.isSuccess && isNotFound(result.data));
+const isResultNotFound = (result: UseQueryResult): boolean => result.isError && result.error instanceof NotFoundError;
 
 export const InternalError: React.FunctionComponent = (inline?: boolean) => {
   const navigation = useNavigation<TabNavigationProps>();
@@ -61,14 +61,17 @@ export const Loading: React.FunctionComponent = () => {
   );
 };
 
-export const NotFound: React.FunctionComponent<{what?: NotFoundType[]; terminal?: boolean; inline?: boolean}> = ({what, terminal, inline}) => {
-  const thing = what[0]?.notFound ? what[0].notFound : 'the requested resource';
+export const NotFound: React.FunctionComponent<{what?: NotFoundError[]; terminal?: boolean; inline?: boolean}> = ({what, terminal, inline}) => {
+  let thing = 'requested resource';
+  if (what[0] && what[0] instanceof NotFoundError && what[0].pretty) {
+    thing = what[0].pretty;
+  }
   const navigation = useNavigation<TabNavigationProps>();
   let onClose = () => navigation.navigate('Home');
   if (terminal) {
     onClose = null;
   }
-  return <Outcome outcome={'No results found'} reason={`We could not find ${thing}.`} inline={inline} illustration={<NoSearchResult />} onClose={onClose} />;
+  return <Outcome outcome={'No results found'} reason={`We could not find the ${thing}.`} inline={inline} illustration={<NoSearchResult />} onClose={onClose} />;
 };
 
 export const ConnectionLost: React.FunctionComponent = () => {

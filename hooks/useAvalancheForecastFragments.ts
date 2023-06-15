@@ -75,13 +75,15 @@ const fetchAvalancheForecastFragments = async (nationalAvalancheCenterHost: stri
     date_start: apiDateString(sub(date, {days: 2})),
     date_end: apiDateString(add(date, {days: 1})),
   };
-  const thisLogger = logger.child({url: url, params: params, what: 'avalanche forecast fragments'});
+  const what = 'avalanche forecast fragments';
+  const thisLogger = logger.child({url: url, params: params, what: what});
   const data = await safeFetch(
     () =>
       axios.get(url, {
         params: params,
       }),
     thisLogger,
+    what,
   );
 
   const parseResult = productArraySchema.safeParse(data);

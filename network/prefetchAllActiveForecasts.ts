@@ -28,7 +28,9 @@ export const prefetchAllActiveForecasts = async (queryClient: QueryClient, cente
     .forEach(async zone => {
       void NWACWeatherForecastQuery.prefetch(queryClient, nwacHost, zone.id, currentDateTime, logger);
       void AvalancheWarningQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime, logger);
-      void SynopsisQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime, logger);
+      if (metadata.config?.blog) {
+        void SynopsisQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime, logger);
+      }
       await AvalancheForecastQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime, metadata?.timezone, metadata?.config.expires_time, logger);
       const forecastData = queryClient.getQueryData<Product>(
         AvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, center_id, zone.id, requestedTime, metadata?.timezone, metadata?.config.expires_time),
@@ -37,6 +39,7 @@ export const prefetchAllActiveForecasts = async (queryClient: QueryClient, cente
         .flat()
         .filter(item => item != null)
         .filter(item => item.type === MediaType.Image) // TODO: handle prefetching other types of media
+        .filter(item => item.url)
         .map(item => [item.url.thumbnail, item.url.original])
         .flat()
         .forEach(async url => ImageCache.prefetch(queryClient, logger, url));

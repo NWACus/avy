@@ -59,19 +59,21 @@ export const TabControl: React.FunctionComponent<TabControlProps> = ({children, 
         {React.Children.map(children, (child, index) => {
           const selected = selectedIndex === index;
           return (
-            <TouchableOpacity onPress={() => setSelectedIndex(index)} style={tabStyle} key={`tabcontrol-item-${index}`}>
-              <Center>
-                <View borderColor={selected ? selectedTextColor : backgroundColor} borderBottomWidth={4} borderRadius={0}>
-                  {selected ? (
-                    <BodySemibold color={selectedTextColor} style={textStyle}>
-                      {child.props.title}
-                    </BodySemibold>
-                  ) : (
-                    <Body style={textStyle}>{child.props.title}</Body>
-                  )}
-                </View>
-              </Center>
-            </TouchableOpacity>
+            child && (
+              <TouchableOpacity onPress={() => setSelectedIndex(index)} style={tabStyle} key={`tabcontrol-item-${index}`}>
+                <Center>
+                  <View borderColor={selected ? selectedTextColor : backgroundColor} borderBottomWidth={4} borderRadius={0}>
+                    {selected ? (
+                      <BodySemibold color={selectedTextColor} style={textStyle}>
+                        {child.props.title}
+                      </BodySemibold>
+                    ) : (
+                      <Body style={textStyle}>{child.props.title}</Body>
+                    )}
+                  </View>
+                </Center>
+              </TouchableOpacity>
+            )
           );
         })}
       </HStack>

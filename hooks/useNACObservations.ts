@@ -86,7 +86,8 @@ export const fetchNACObservations = async (
     startDate: apiDateString(startDate),
     endDate: apiDateString(endDate),
   };
-  const thisLogger = logger.child({url: url, variables: variables, what: 'NAC observations'});
+  const what = 'NAC observations';
+  const thisLogger = logger.child({url: url, variables: variables, what: what});
   const data = await safeFetch(
     () =>
       axios.post(
@@ -103,6 +104,7 @@ export const fetchNACObservations = async (
         },
       ),
     thisLogger,
+    what,
   );
 
   if (data.error) {
