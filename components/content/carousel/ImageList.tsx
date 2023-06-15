@@ -5,7 +5,7 @@ import {FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent, Scroll
 import {NetworkImage, NetworkImageProps, NetworkImageState} from 'components/content/carousel/NetworkImage';
 import {View, VStack} from 'components/core';
 import {HTML} from 'components/text/HTML';
-import {MediaItem} from 'types/nationalAvalancheCenter';
+import {MediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
 export interface ImageListProps extends Omit<FlatListProps<MediaItem>, 'data' | 'renderItem'> {
   imageHeight: number;
@@ -87,7 +87,7 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
   return (
     <FlatList
       horizontal
-      data={media}
+      data={media.filter(item => item.type === MediaType.Image).filter(item => item.url)}
       extraData={loadingState}
       renderItem={renderItem}
       ItemSeparatorComponent={() => <View width={space} />}
