@@ -22,7 +22,7 @@ export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID) => {
 
   return useQuery<AvalancheCenter, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async () => fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id, thisLogger),
+    queryFn: async (): Promise<AvalancheCenter> => fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id, thisLogger),
     staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
     cacheTime: Infinity, // hold on to this cached data forever
   });
@@ -39,7 +39,7 @@ export const prefetchAvalancheCenterMetadata = async (queryClient: QueryClient, 
 
   await queryClient.prefetchQuery({
     queryKey: key,
-    queryFn: async () => {
+    queryFn: async (): Promise<AvalancheCenter> => {
       const start = new Date();
       thisLogger.trace(`prefetching`);
       const result = await fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id, thisLogger);
@@ -52,16 +52,17 @@ export const prefetchAvalancheCenterMetadata = async (queryClient: QueryClient, 
 export const fetchAvalancheCenterMetadataQuery = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger) =>
   await queryClient.fetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id),
-    queryFn: async () => {
+    queryFn: async (): Promise<AvalancheCenter> => {
       const result = await fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id, logger);
       return result;
     },
   });
 
-const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger) => {
+const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger): Promise<AvalancheCenter> => {
   const url = `${nationalAvalancheCenterHost}/v2/public/avalanche-center/${center_id}`;
-  const thisLogger = logger.child({url: url, what: 'avalanche center metadata'});
-  const data = await safeFetch(() => axios.get(url), thisLogger);
+  const what = 'avalanche center metadata';
+  const thisLogger = logger.child({url: url, what: what});
+  const data = await safeFetch(() => axios.get(url), thisLogger, what);
 
   const parseResult = avalancheCenterSchema.safeParse(data);
   if (parseResult.success === false) {

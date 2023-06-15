@@ -55,8 +55,9 @@ export const prefetchAvalancheForecast = async (queryClient: QueryClient, nation
 // TODO need to export?
 export const fetchProduct = async (nationalAvalancheCenterHost: string, forecastId: number, logger: Logger): Promise<Product> => {
   const url = `${nationalAvalancheCenterHost}/v2/public/product/${forecastId}`;
-  const thisLogger = logger.child({url: url, what: 'avalanche forecast'});
-  const data = await safeFetch(() => axios.get(url), thisLogger);
+  const what = 'avalanche forecast';
+  const thisLogger = logger.child({url: url, what: what});
+  const data = await safeFetch(() => axios.get(url), thisLogger, what);
 
   const parseResult = productSchema.safeParse(data);
   if (parseResult.success === false) {

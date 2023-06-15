@@ -51,7 +51,8 @@ export const prefetchNACObservation = async (queryClient: QueryClient, host: str
 
 export const fetchNACObservation = async (host: string, id: string, logger: Logger): Promise<Observation> => {
   const url = `${host}/obs/v1/public/observation/${id}`;
-  const thisLogger = logger.child({url: url, what: 'NAC observation'});
+  const what = 'NAC observation';
+  const thisLogger = logger.child({url: url, what: what});
   const data = await safeFetch(
     () =>
       axios.get(url, {
@@ -61,6 +62,7 @@ export const fetchNACObservation = async (host: string, id: string, logger: Logg
         },
       }),
     thisLogger,
+    what,
   );
 
   const parseResult = observationSchema.deepPartial().safeParse(data);

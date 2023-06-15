@@ -11,6 +11,7 @@ import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, Synopsis, synopsisSchema} from 'types/nationalAvalancheCenter';
+import {NotFoundError} from 'types/requests';
 import {apiDateString, RequestedTime} from 'utils/date';
 import {ZodError} from 'zod';
 
@@ -23,7 +24,7 @@ export const useSynopsis = (center_id: AvalancheCenterID, zone_id: number, reque
 
   return useQuery<Synopsis, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async () => fetchSynopsis(nationalAvalancheCenterHost, center_id, zone_id, requested_time, thisLogger),
+    queryFn: async (): Promise<Synopsis> => fetchSynopsis(nationalAvalancheCenterHost, center_id, zone_id, requested_time, thisLogger),
     cacheTime: 12 * 60 * 60 * 1000, // hold on to this cached data for half a day (in milliseconds)
   });
 };
@@ -83,13 +84,15 @@ const fetchSynopsis = async (nationalAvalancheCenterHost: string, center_id: str
   if (requested_time !== 'latest') {
     params['published_time'] = apiDateString(requested_time); // the API accepts a _date_ and appends 19:00 to it for a time...
   }
-  const thisLogger = logger.child({url: url, params: params, what: 'synopsis'});
+  const what = 'conditions blog';
+  const thisLogger = logger.child({url: url, params: params, what: what});
   const data = await safeFetch(
     () =>
       axios.get(url, {
         params: params,
       }),
     thisLogger,
+    what,
   );
 
   const parseResult = synopsisSchema.deepPartial().safeParse(data);
@@ -105,6 +108,9 @@ const fetchSynopsis = async (nationalAvalancheCenterHost: string, center_id: str
     });
     throw parseResult.error;
   } else {
+    if (!parseResult.data.hazard_discussion || parseResult.data.hazard_discussion.includes("There's no current product.")) {
+      throw new NotFoundError(`no active conditions blog found for center ${center_id} and zone ${zone_id} at ${requested_time}`, 'conditions blog');
+    }
     return {
       ...parseResult.data,
       zone_id: zone_id,

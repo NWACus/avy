@@ -89,13 +89,15 @@ const fetchAvalancheWarning = async (
   if (requested_time !== 'latest') {
     params['published_time'] = apiDateString(requested_time); // the API accepts a _date_ and appends 19:00 to it for a time...
   }
-  const thisLogger = logger.child({url: url, params: params, what: 'avalanche warning'});
+  const what = 'avalanche warning';
+  const thisLogger = logger.child({url: url, params: params, what: what});
   const data = await safeFetch(
     () =>
       axios.get(url, {
         params: params,
       }),
     thisLogger,
+    what,
   );
 
   const parseResult = avalancheWarningSchema.deepPartial().safeParse(data);

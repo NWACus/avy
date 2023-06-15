@@ -52,8 +52,9 @@ export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalanc
 
 const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger): Promise<MapLayer> => {
   const url = `${nationalAvalancheCenterHost}/v2/public/products/map-layer/${center_id}`;
-  const thisLogger = logger.child({url: url, what: 'avalanche avalanche center map layer'});
-  const data = await safeFetch(() => axios.get(url), thisLogger);
+  const what = 'avalanche avalanche center map layer';
+  const thisLogger = logger.child({url: url, what: what});
+  const data = await safeFetch(() => axios.get(url), thisLogger, what);
 
   const parseResult = mapLayerSchema.safeParse(data);
   if (parseResult.success === false) {

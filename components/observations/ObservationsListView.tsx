@@ -21,7 +21,7 @@ import {ActivityIndicator, FlatList, FlatListProps, Modal, RefreshControl, Touch
 import {ObservationsStackNavigationProps} from 'routes';
 import theme, {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, PartnerType} from 'types/nationalAvalancheCenter';
-import {notFound} from 'types/requests';
+import {NotFoundError} from 'types/requests';
 import {RequestedTime, requestedTimeToUTCDate, utcDateToLocalDateString} from 'utils/date';
 
 interface ObservationsListViewItem {
@@ -144,7 +144,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           item.id ? (
             <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />
           ) : (
-            <NotFound inline terminal what={[notFound('any matching observations')]} />
+            <NotFound inline terminal what={[new NotFoundError('no observations found', 'any matching observations')]} />
           )
         }
         {...props}

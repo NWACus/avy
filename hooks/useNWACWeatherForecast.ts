@@ -26,7 +26,6 @@ export const useNWACWeatherForecast = (zone_id: number, requestedTime: Requested
   return useQuery<NWACWeatherForecast, AxiosError | ZodError | NotFoundError>({
     queryKey: key,
     queryFn: () => fetchNWACWeatherForecast(nwacHost, zone_id, date, thisLogger),
-    retry: (failureCount, error): boolean => !(error instanceof NotFoundError), // 404s are terminal
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
@@ -143,13 +142,15 @@ export const fetchNWACWeatherForecast = async (nwacHost: string, zone_id: number
     zone_id: zone_id,
     published_datetime: toDateTimeInterfaceATOM(requestedTime),
   };
-  const thisLogger = logger.child({url: url, params: params, what: 'NWAC weather forecast'});
+  const what = 'NWAC weather forecast';
+  const thisLogger = logger.child({url: url, params: params, what: what});
   const data = await safeFetch(
     () =>
       axios.get(url, {
         params: params,
       }),
     thisLogger,
+    what,
   );
 
   const parseResult = nwacWeatherForecastMetaSchema.safeParse(data);

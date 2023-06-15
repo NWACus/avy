@@ -112,13 +112,15 @@ export const fetchNWACObservations = async (
     published_after: toDateTimeInterfaceATOM(published_after),
     published_before: toDateTimeInterfaceATOM(published_before),
   };
-  const thisLogger = logger.child({url: url, params: params, what: 'NWAC observations'});
+  const what = 'NWAC observations';
+  const thisLogger = logger.child({url: url, params: params, what: what});
   const data = await safeFetch(
     () =>
       axios.get(url, {
         params: params,
       }),
     thisLogger,
+    what,
   );
 
   const parseResult = nwacObservationsSchema.safeParse(data);

@@ -66,8 +66,9 @@ const nwacObservationSchema = z.object({
 
 export const fetchNWACObservation = async (nwacHost: string, id: number, logger: Logger): Promise<Observation> => {
   const url = `${nwacHost}/api/v2/observation/${id}`;
-  const thisLogger = logger.child({url: url, id: id, what: 'NWAC observation'});
-  const data = await safeFetch(() => axios.get(url), thisLogger);
+  const what = 'NWAC observation';
+  const thisLogger = logger.child({url: url, id: id, what: what});
+  const data = await safeFetch(() => axios.get(url), thisLogger, what);
 
   const parseResult = nwacObservationSchema.safeParse(data);
   if (parseResult.success === false) {

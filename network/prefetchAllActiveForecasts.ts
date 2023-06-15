@@ -39,6 +39,7 @@ export const prefetchAllActiveForecasts = async (queryClient: QueryClient, cente
         .flat()
         .filter(item => item != null)
         .filter(item => item.type === MediaType.Image) // TODO: handle prefetching other types of media
+        .filter(item => item.url)
         .map(item => [item.url.thumbnail, item.url.original])
         .flat()
         .forEach(async url => ImageCache.prefetch(queryClient, logger, url));

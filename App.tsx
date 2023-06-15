@@ -55,6 +55,7 @@ require('date-time-format-timezone');
 import axios, {AxiosRequestConfig} from 'axios';
 import {createLogger, stdSerializers} from 'browser-bunyan';
 import {ConsoleFormattedStream} from 'logging/consoleFormattedStream';
+import {NotFoundError} from 'types/requests';
 
 // we're reading a field that was previously defined in app.json, so we know it's non-null:
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -133,6 +134,7 @@ const queryClient: QueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       cacheTime: 1000 * 60 * 60 * 24, // 24 hours
+      retry: (failureCount, error): boolean => !(error instanceof NotFoundError), // 404s are terminal
     },
   },
 });
