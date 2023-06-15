@@ -157,6 +157,15 @@ export const avalancheCenterDangerMapWidgetConfigurationSchema = z.object({
   zoom: z.number(),
 });
 
+export const avalancheCenterObservationViewerWidgetConfigurationSchema = z.object({
+  alternate_zones: z.string().nullable(),
+  color: z.string(),
+  obs_form_url: z.string().optional(),
+  obs_tab: z.boolean().optional(),
+  obs_view_url: z.string().optional(),
+  saturation: z.number(),
+});
+
 export const unitsSchema = z.nativeEnum(Units);
 
 export const externalModalLinkSchema = z.object({
@@ -263,11 +272,11 @@ export const avalancheCenterConfigurationSchema = z.object({
   zone_order: z.array(z.number()).optional(),
 });
 
+// the widget configurations are present if and when each forecast center opts into specific NAC functionality
 export const avalancheCenterWidgetConfigurationSchema = z.object({
-  // CNFAIC (and others?) isn't returning forecast or danger_map
   forecast: avalancheCenterForecastWidgetConfigurationSchema.optional(),
   danger_map: avalancheCenterDangerMapWidgetConfigurationSchema.optional(),
-  // GNFAC: missing stations
+  observation_viewer: avalancheCenterObservationViewerWidgetConfigurationSchema.optional(),
   stations: avalancheCenterStationsWidgetConfigurationSchema.optional(),
 });
 
