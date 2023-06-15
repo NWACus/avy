@@ -104,7 +104,7 @@ export const useWeatherStations = ({mapLayer, token, sources}: Props) => {
           if (matchingZones.length === 0) {
             stationLogger.warn(`unable to find matching zone for weather station`);
           } else if (matchingZones.length > 1) {
-            stationLogger.warn({matchingZones: matchingZones.map(z => z.feature.properties.name)}, `found multiple matching zones for weather station}`);
+            stationLogger.warn({matchingZones: matchingZones.map(z => z.feature.properties.name)}, `found multiple matching zones for weather station`);
           } else {
             // Mapped station to a single zone. Now, should it appear in the UI as part of a group?
             const groupMapping = Object.entries(stationGroupMapping).find(([_name, stids]) => stids.includes(s.stid));

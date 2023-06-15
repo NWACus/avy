@@ -97,7 +97,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     return <QueryState results={[mapLayerResult, metadataResult, ...forecastResults, ...warningResults]} />;
   }
 
-  // default to the values in the map layer, but update it with the forecasts and wranings we've fetched
+  // default to the values in the map layer, but update it with the forecasts and warnings we've fetched
   const zonesById: Record<number, MapViewZone> = mapLayer.features.reduce((accum, feature) => {
     accum[feature.id] = {
       zone_id: feature.id,
