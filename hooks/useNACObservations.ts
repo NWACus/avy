@@ -10,10 +10,10 @@ import {safeFetch} from 'hooks/fetch';
 import {ObservationsDocument, ObservationsQuery} from 'hooks/useObservations';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
-import {apiDateString, formatRequestedTime, parseRequestedTimeString, requestedTimeToUTCDate} from 'utils/date';
+import {apiDateString, formatRequestedTime, parseRequestedTimeString, RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 import {ZodError} from 'zod';
 
-export const useNACObservations = (center_id: AvalancheCenterID, endDate: Date) => {
+export const useNACObservations = (center_id: AvalancheCenterID, endDate: RequestedTime) => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(nationalAvalancheCenterHost, center_id);

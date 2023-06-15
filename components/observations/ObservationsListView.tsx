@@ -22,7 +22,7 @@ import {ObservationsStackNavigationProps} from 'routes';
 import theme, {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, PartnerType} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
-import {RequestedTime, requestedTimeToUTCDate, utcDateToLocalDateString} from 'utils/date';
+import {RequestedTime, utcDateToLocalDateString} from 'utils/date';
 
 interface ObservationsListViewItem {
   id: OverviewFragment['id'];
@@ -50,10 +50,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
-  const endDate = requestedTimeToUTCDate(requestedTime);
-  const nacObservationsResult = useNACObservations(center_id, endDate);
+  const nacObservationsResult = useNACObservations(center_id, requestedTime);
   const nacObservations = nacObservationsResult.data;
-  const nwacObservationsResult = useNWACObservations(center_id, endDate);
+  const nwacObservationsResult = useNWACObservations(center_id, requestedTime);
   const nwacObservations = nwacObservationsResult.data;
   const observations: OverviewFragment[] = []
     .concat(nacObservations?.pages?.flatMap(page => page.getObservationList))
