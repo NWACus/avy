@@ -23,7 +23,7 @@ export const useAvalancheForecastFragments = (center_id: AvalancheCenterID, date
 
   return useQuery<Product[] | undefined, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async () => fetchAvalancheForecastFragments(nationalAvalancheCenterHost, center_id, date, thisLogger),
+    queryFn: async (): Promise<ProductArray> => fetchAvalancheForecastFragments(nationalAvalancheCenterHost, center_id, date, thisLogger),
   });
 };
 
@@ -38,7 +38,7 @@ const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nati
 
   await queryClient.prefetchQuery({
     queryKey: key,
-    queryFn: async () => {
+    queryFn: async (): Promise<ProductArray> => {
       const start = new Date();
       thisLogger.trace(`prefetching`);
       const result = await fetchAvalancheForecastFragments(nationalAvalancheCenterHost, center_id, date, thisLogger);

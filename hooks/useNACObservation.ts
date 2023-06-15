@@ -22,7 +22,7 @@ export const useNACObservation = (id: string) => {
 
   return useQuery<Observation, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: () => fetchNACObservation(host, id, thisLogger),
+    queryFn: (): Promise<Observation> => fetchNACObservation(host, id, thisLogger),
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
@@ -39,7 +39,7 @@ export const prefetchNACObservation = async (queryClient: QueryClient, host: str
 
   await queryClient.prefetchQuery({
     queryKey: key,
-    queryFn: async () => {
+    queryFn: async (): Promise<Observation> => {
       const start = new Date();
       logger.trace(`prefetching`);
       const result = fetchNACObservation(host, id, thisLogger);

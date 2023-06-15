@@ -58,7 +58,7 @@ export const prefetchNACObservations = async (
 
   await queryClient.prefetchInfiniteQuery({
     queryKey: key,
-    queryFn: async () => {
+    queryFn: async (): Promise<ObservationsQueryWithMeta> => {
       const start = new Date();
       logger.trace(`prefetching`);
       const result = fetchNACObservations(nationalAvalancheCenterHost, center_id, startDate, endDate, thisLogger);

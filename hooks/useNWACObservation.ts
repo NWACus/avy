@@ -22,7 +22,7 @@ export const useNWACObservation = (id: number) => {
 
   return useQuery<Observation, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: () => fetchNWACObservation(nwacHost, id, thisLogger),
+    queryFn: (): Promise<Observation> => fetchNWACObservation(nwacHost, id, thisLogger),
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });

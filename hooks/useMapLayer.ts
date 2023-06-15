@@ -22,7 +22,7 @@ export const useMapLayer = (center_id: AvalancheCenterID) => {
 
   return useQuery<MapLayer, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async () => fetchMapLayer(nationalAvalancheCenterHost, center_id, thisLogger),
+    queryFn: async (): Promise<MapLayer> => fetchMapLayer(nationalAvalancheCenterHost, center_id, thisLogger),
     enabled: !!center_id,
     staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
     cacheTime: Infinity, // hold on to this cached data forever
@@ -40,7 +40,7 @@ export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalanc
 
   await queryClient.prefetchQuery({
     queryKey: key,
-    queryFn: async () => {
+    queryFn: async (): Promise<MapLayer> => {
       const start = new Date();
       thisLogger.trace(`prefetching`);
       const result = await fetchMapLayer(nationalAvalancheCenterHost, center_id, thisLogger);
@@ -50,7 +50,7 @@ export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalanc
   });
 };
 
-const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger) => {
+const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger): Promise<MapLayer> => {
   const url = `${nationalAvalancheCenterHost}/v2/public/products/map-layer/${center_id}`;
   const thisLogger = logger.child({url: url, what: 'avalanche avalanche center map layer'});
   const data = await safeFetch(() => axios.get(url), thisLogger);
