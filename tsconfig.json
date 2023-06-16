@@ -1,6 +1,15 @@
 {
   "compilerOptions": {
-    "baseUrl": "./"
+    "baseUrl": "./",
+		"declaration": true,
+		"declarationMap": true,
+		"forceConsistentCasingInFileNames": true,
+		"incremental": true,
+		"isolatedModules": true,
+		"module": "ESNext",
+		"outDir": "dist",
+		"sourceMap": true,
+		"strict": true,
   },
   "extends": "expo/tsconfig.base"
 }

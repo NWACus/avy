@@ -1,10 +1,33 @@
 {
-  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "plugin:react-hooks/recommended"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
+  ],
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "eslint-plugin-absolute-imports"],
+  "plugins": [
+    "@typescript-eslint",
+    "eslint-plugin-absolute-imports",
+    "react",
+    "react-hooks",
+    "eslint-plugin-typescript-sort-keys"
+  ],
   "root": true,
   "ignorePatterns": ["babel.config.js", "metro.config.js", "dist", ".expo", "types/generated"],
   "reportUnusedDisableDirectives": true,
+  "parserOptions": {
+    "project": true,
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
   "rules": {
     "absolute-imports/only-absolute-imports": "error",
     "no-console": "error",
