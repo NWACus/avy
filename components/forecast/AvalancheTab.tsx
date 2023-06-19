@@ -25,6 +25,7 @@ import Collapsible from 'react-native-collapsible';
 import Toast from 'react-native-toast-message';
 import {HomeStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
+import {COLORS} from 'theme/colors';
 import {
   AvalancheCenter,
   AvalancheCenterID,
@@ -143,7 +144,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
             </VStack>
           </HStack>
         </Card>
-        {warning.data.expires_time && <WarningCard warning={warning.data} />}
+        {warning.data && warning.data.expires_time && <WarningCard warning={warning.data} />}
         {forecast.bottom_line && (
           <Card
             borderRadius={0}
@@ -191,19 +192,19 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
   );
 };
 
-// TODO(skuznets): disambiguate between warnings, watches & specials here
 const WarningCard: React.FunctionComponent<{warning: Warning | Watch | Special}> = ({warning}) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const {accentColor, title} = assetsForType(warning.product_type);
 
   return (
     <View mx={16} py={16} borderRadius={10} borderColor={'#333333'} backgroundColor={'#333333'}>
       <HStack mx={12} space={16} alignItems={'flex-start'}>
-        <View backgroundColor={colorFor(DangerLevel.High).string()} width={4} height={'100%'} borderRadius={12}></View>
+        <View backgroundColor={accentColor} width={8} height={'100%'} borderRadius={12}></View>
         <VStack space={16} flex={1}>
           <VStack space={8}>
             <HStack space={8} alignItems={'flex-start'}>
-              <Feather name="alert-triangle" size={24} color={colorFor(DangerLevel.High).string()} />
-              <Title3Black color="white">AVALANCHE WARNING</Title3Black>
+              <Feather name="alert-triangle" size={24} color={accentColor} />
+              <Title3Black color="white">{title.toUpperCase()}</Title3Black>
             </HStack>
             <VStack>
               <HStack px={4} space={2}>
@@ -256,4 +257,26 @@ const WarningCard: React.FunctionComponent<{warning: Warning | Watch | Special}>
       </HStack>
     </View>
   );
+};
+
+const assetsForType = (productType: ProductType.Warning | ProductType.Watch | ProductType.Special): {title: string; accentColor: string} => {
+  switch (productType) {
+    case ProductType.Warning:
+      return {
+        title: `Avalanche Warning`,
+        accentColor: colorFor(DangerLevel.High).toString(),
+      };
+    case ProductType.Watch:
+      return {
+        title: `Avalanche Watch`,
+        accentColor: colorFor(DangerLevel.Considerable).toString(),
+      };
+    case ProductType.Special:
+      return {
+        title: `Special Bulletin`,
+        accentColor: COLORS['primary.hover'].toString(),
+      };
+  }
+  const invalid: never = productType;
+  throw new Error(`Unknown avalanche center: ${JSON.stringify(invalid)}`);
 };
