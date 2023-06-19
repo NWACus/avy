@@ -17,9 +17,7 @@ interface SwitchFieldProps<T> extends ViewProps {
 }
 
 export function SwitchField<T>({name, label, items, ...props}: SwitchFieldProps<T>) {
-  const {
-    field: {value, onChange},
-  } = useController({name});
+  const {field} = useController({name});
 
   return (
     <VStack width="100%" space={4} {...props}>
@@ -30,11 +28,11 @@ export function SwitchField<T>({name, label, items, ...props}: SwitchFieldProps<
         fontStyle={{color: colorLookup('text') as string, fontSize: 16, fontFamily: 'Lato_400Regular'}}
         values={items.map(i => i.label)}
         selectedIndex={Math.max(
-          items.findIndex(i => i.value === value),
+          items.findIndex(i => i.value === field.value),
           0,
         )}
         onChange={event => {
-          onChange(items[event.nativeEvent.selectedSegmentIndex].value);
+          field.onChange(items[event.nativeEvent.selectedSegmentIndex].value);
         }}
       />
     </VStack>

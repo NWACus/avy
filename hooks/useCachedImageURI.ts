@@ -1,4 +1,4 @@
-import {QueryCache, QueryClient, useQuery} from '@tanstack/react-query';
+import {QueryCache, QueryClient, QueryKey, useQuery} from '@tanstack/react-query';
 import {Logger} from 'browser-bunyan';
 import {formatDistanceToNowStrict} from 'date-fns';
 import * as FileSystem from 'expo-file-system';
@@ -6,13 +6,13 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import md5 from 'md5';
 import React from 'react';
 
-const rootDirectory = FileSystem.cacheDirectory + 'image-cache/';
-const queryKeyPrefix = 'image';
-let promise = null;
-export const initialize = async () => {
-  if (!promise) {
+const rootDirectory = `${FileSystem.cacheDirectory ?? '/'}image-cache/`;
+export const queryKeyPrefix = 'image';
+let promise: Promise<boolean> | null = null;
+export const initialize = (): Promise<boolean> => {
+  if (promise == null) {
     promise = new Promise(resolve => {
-      (async () => {
+      void (async () => {
         const info = await FileSystem.getInfoAsync(rootDirectory);
         if (!info.exists || !info.isDirectory) {
           await FileSystem.makeDirectoryAsync(rootDirectory);
@@ -76,27 +76,6 @@ const prefetchCachedImageURI = async (queryClient: QueryClient, logger: Logger, 
   });
 };
 
-// we clean up data in our filesystem cache when react-query removes our reference
-const cleanupCachedImage = async (event, logger: Logger) => {
-  if (event.type !== 'removed') {
-    return;
-  }
-
-  const key = event.query.queryKey;
-  if (!(key instanceof Array) || key.length < 2 || key[0] !== queryKeyPrefix) {
-    return;
-  }
-
-  if (!('uri' in key[1]) || !key[1]['uri'] || !key[1]['uri'].startsWith('http')) {
-    return;
-  }
-
-  const data = event.query.state.data as string;
-  logger.debug({source: key[1]['uri'], destination: data}, 'cleaning up remote image');
-  await FileSystem.deleteAsync(data, {idempotent: true});
-  // TODO: handle errors?
-};
-
 const reconcileCachedImages = async (queryClient: QueryClient, queryCache: QueryCache, logger: Logger): Promise<void> => {
   const start = new Date();
   logger.info('reconciling cached images');
@@ -104,7 +83,10 @@ const reconcileCachedImages = async (queryClient: QueryClient, queryCache: Query
   const queries = queryCache.findAll({queryKey: [queryKeyPrefix], fetchStatus: 'idle'}); // see comment below for why we only select idle queries
   const fileLinks = queries.map(query => query.state.data as string);
   logger.info({fileLinks: fileLinks}, 'found file links in query cache');
-  const fileLinksToQueryKeys = queries.reduce((accumulator, query) => (accumulator[query.state.data as string] = query.queryKey), {});
+  const fileLinksToQueryKeys = queries.reduce((accumulator, query) => {
+    accumulator[query.state.data as string] = query.queryKey;
+    return accumulator;
+  }, {} as Record<string, QueryKey>);
   // then, figure out all the files we have on disk
   const fileNames = await FileSystem.readDirectoryAsync(rootDirectory);
   const files = fileNames.map(fileName => rootDirectory + fileName);
@@ -114,7 +96,7 @@ const reconcileCachedImages = async (queryClient: QueryClient, queryCache: Query
   // first, remove links from react-query that do not have corresponding files on disk.
   const linksToRemove = fileLinks.filter(link => !files.includes(link));
   logger.info({linksToRemove: linksToRemove}, 'removing dangling links from query cache');
-  linksToRemove.forEach(link => queryClient.invalidateQueries({queryKey: fileLinksToQueryKeys[link]}));
+  linksToRemove.forEach(link => void queryClient.invalidateQueries({queryKey: fileLinksToQueryKeys[link]}));
 
   // then, remove files from disk that do not have links in react-query
   // We need to keep in mind that there is no lock here, so we should not invalidate in-flight queries
@@ -137,6 +119,5 @@ export default {
   queryKey,
   fetch: fetchCachedImageURI,
   prefetch: prefetchCachedImageURI,
-  cleanup: cleanupCachedImage,
   reconcile: reconcileCachedImages,
 };

@@ -1,3 +1,4 @@
+/* eslint-disable */
 /* eslint no-console: 0 */
 import axios from 'axios';
 
@@ -8,9 +9,11 @@ import axios from 'axios';
     Object.entries(data.paths).map(([k, v]) => {
       if (k.match(/^\/wx/)) {
         v = Object.fromEntries(
-          Object.entries(v).map(([k, v]) => {
+          Object.entries(v ?? {}).map(([k, v]) => {
             if (v && typeof v === 'object') {
+              // @ts-ignore
               v.parameters = Array.isArray(v.parameters) ? v.parameters : [];
+              // @ts-ignore
               v.parameters.push({
                 description: 'API key',
                 required: false,

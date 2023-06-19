@@ -2,8 +2,8 @@ import React from 'react';
 
 import * as Sentry from 'sentry-expo';
 
-import {QueryClient, useQuery} from '@tanstack/react-query';
-import axios, {AxiosError} from 'axios';
+import {QueryClient, useQuery, UseQueryResult} from '@tanstack/react-query';
+import axios, {AxiosError, AxiosResponse} from 'axios';
 
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
@@ -13,7 +13,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import {Observation, observationSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
-export const useNACObservation = (id: string) => {
+export const useNACObservation = (id: string): UseQueryResult<Observation, AxiosError | ZodError> => {
   const {nationalAvalancheCenterHost: host} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(host, id);
@@ -55,7 +55,7 @@ export const fetchNACObservation = async (host: string, id: string, logger: Logg
   const thisLogger = logger.child({url: url, what: what});
   const data = await safeFetch(
     () =>
-      axios.get(url, {
+      axios.get<AxiosResponse<unknown>>(url, {
         headers: {
           // Public API uses the Origin header to determine who's authorized to call it
           Origin: 'https://nwac.us',
@@ -65,8 +65,8 @@ export const fetchNACObservation = async (host: string, id: string, logger: Logg
     what,
   );
 
-  const parseResult = observationSchema.deepPartial().safeParse(data);
-  if (parseResult.success === false) {
+  const parseResult = observationSchema.safeParse(data);
+  if (!parseResult.success) {
     thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {

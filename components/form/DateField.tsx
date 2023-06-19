@@ -14,28 +14,28 @@ interface DateFieldProps {
 }
 
 export const DateField: React.FC<DateFieldProps> = ({name, label}) => {
-  const {
-    field: {onChange, value},
-  } = useController({name});
+  const {field} = useController({name: name});
   const [datePickerVisible, setDatePickerVisible] = useState(false);
 
   const onDateSelected = useCallback(
     (event: DateTimePickerEvent, date?: Date) => {
       if (event.type === 'set') {
-        onChange(date);
+        field.onChange(date);
       }
       setDatePickerVisible(false);
     },
-    [onChange, setDatePickerVisible],
+    [field, setDatePickerVisible],
   );
+
+  const value: Date | undefined = field.value as Date | undefined;
 
   const toggleDatePicker = useCallback(() => {
     setDatePickerVisible(!datePickerVisible);
     if (Platform.OS === 'android') {
       if (datePickerVisible) {
-        DateTimePickerAndroid.dismiss('date');
+        void DateTimePickerAndroid.dismiss('date');
       } else {
-        DateTimePickerAndroid.open({mode: 'date', display: 'default', onChange: onDateSelected, value});
+        void DateTimePickerAndroid.open({mode: 'date', display: 'default', onChange: onDateSelected, value: value ?? new Date()});
       }
     }
   }, [datePickerVisible, setDatePickerVisible, onDateSelected, value]);

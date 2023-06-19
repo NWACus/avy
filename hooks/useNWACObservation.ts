@@ -1,7 +1,7 @@
 import React from 'react';
 
-import {QueryClient, useQuery} from '@tanstack/react-query';
-import axios, {AxiosError} from 'axios';
+import {QueryClient, useQuery, UseQueryResult} from '@tanstack/react-query';
+import axios, {AxiosError, AxiosResponse} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
@@ -10,10 +10,10 @@ import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {Observation, observationSchema} from 'types/nationalAvalancheCenter';
-import {z, ZodError} from 'zod';
+import {nwacObservationSchema, Observation} from 'types/nationalAvalancheCenter';
+import {ZodError} from 'zod';
 
-export const useNWACObservation = (id: number) => {
+export const useNWACObservation = (id: number): UseQueryResult<Observation, AxiosError | ZodError> => {
   const {nwacHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(nwacHost, id);
@@ -48,30 +48,14 @@ export const prefetchNWACObservation = async (queryClient: QueryClient, nwacHost
   });
 };
 
-const nwacObservationSchema = z.object({
-  meta: z.object({
-    limit: z.number().optional().nullable(),
-    next: z.string().optional().nullable(),
-    offset: z.number().optional().nullable(),
-    previous: z.string().optional().nullable(),
-    total_count: z.number().optional().nullable(),
-  }),
-  objects: z.object({
-    id: z.number(),
-    post_type: z.string(),
-    post_date: z.string(),
-    content: observationSchema.deepPartial(),
-  }),
-});
-
 export const fetchNWACObservation = async (nwacHost: string, id: number, logger: Logger): Promise<Observation> => {
   const url = `${nwacHost}/api/v2/observation/${id}`;
   const what = 'NWAC observation';
   const thisLogger = logger.child({url: url, id: id, what: what});
-  const data = await safeFetch(() => axios.get(url), thisLogger, what);
+  const data = await safeFetch(() => axios.get<AxiosResponse<unknown>>(url), thisLogger, what);
 
   const parseResult = nwacObservationSchema.safeParse(data);
-  if (parseResult.success === false) {
+  if (!parseResult.success) {
     thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {

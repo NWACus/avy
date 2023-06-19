@@ -2,6 +2,8 @@ import {AntDesign, FontAwesome} from '@expo/vector-icons';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {defaultMapRegionForGeometries, defaultMapRegionForZones, MapViewZone, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
+import {KeysMatching} from 'components/form/TextField';
+import {LocationPoint, ObservationFormData} from 'components/observations/ObservationFormData';
 import {Body, bodySize, BodyXSm, BodyXSmBlack, Title3Black} from 'components/text';
 import {useMapLayer} from 'hooks/useMapLayer';
 import React, {useCallback, useEffect, useState} from 'react';
@@ -13,16 +15,16 @@ import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 interface LocationFieldProps {
-  name: string;
+  name: KeysMatching<ObservationFormData, LocationPoint>;
   label: string;
   center: AvalancheCenterID;
 }
 
 export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center}, ref) => {
   const {
-    field: {onChange, value},
+    field,
     fieldState: {error},
-  } = useController({name});
+  } = useController<ObservationFormData>({name: name});
   const [modalVisible, setModalVisible] = useState(false);
 
   const mapLayerResult = useMapLayer(center);
@@ -36,14 +38,16 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
 
   const onChangeRegion = useCallback(
     (region: Region) => {
-      onChange({lat: region.latitude, lng: region.longitude});
+      field.onChange({lat: region.latitude, lng: region.longitude});
     },
-    [onChange],
+    [field],
   );
+
+  const value: LocationPoint | undefined = field.value as LocationPoint | undefined;
 
   useEffect(() => {
     if (mapLayer && !mapReady) {
-      const location = value || {lat: 0, lng: 0};
+      const location: LocationPoint = value || {lat: 0, lng: 0};
       const initialRegion = defaultMapRegionForGeometries(mapLayer.features.map(feature => feature.geometry));
       if (location.lat !== 0 && location.lng !== 0) {
         initialRegion.latitude = location.lat;
@@ -54,15 +58,17 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
     }
   }, [mapLayer, setInitialRegion, onChangeRegion, value, mapReady, setMapReady]);
 
-  const zones: MapViewZone[] = mapLayer.features.map(feature => ({
-    zone_id: feature.id,
-    center_id: center,
-    geometry: feature.geometry,
-    hasWarning: feature.properties.warning?.product === 'warning',
-    start_date: feature.properties.start_date,
-    end_date: feature.properties.end_date,
-    fillOpacity: feature.properties.fillOpacity,
-  }));
+  const zones: MapViewZone[] =
+    mapLayer?.features.map(feature => ({
+      zone_id: feature.id,
+      name: feature.properties.name,
+      center_id: center,
+      geometry: feature.geometry,
+      hasWarning: feature.properties.warning?.product !== null,
+      start_date: feature.properties.start_date,
+      end_date: feature.properties.end_date,
+      fillOpacity: feature.properties.fillOpacity,
+    })) ?? [];
 
   return (
     <VStack width="100%" space={4} ref={ref}>
@@ -113,6 +119,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                         renderFillColor={false}
                       />
                       <Center width="100%" height="100%" position="absolute" backgroundColor={undefined} pointerEvents="none">
+                        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
                         <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40, transform: [{translateY: -20}]}} />
                       </Center>
                     </>
@@ -126,3 +133,4 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
     </VStack>
   );
 });
+LocationField.displayName = 'LocationField';

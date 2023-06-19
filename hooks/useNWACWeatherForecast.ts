@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {QueryClient, useQuery} from '@tanstack/react-query';
-import axios, {AxiosError} from 'axios';
+import axios, {AxiosError, AxiosResponse} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
@@ -146,7 +146,7 @@ export const fetchNWACWeatherForecast = async (nwacHost: string, zone_id: number
   const thisLogger = logger.child({url: url, params: params, what: what});
   const data = await safeFetch(
     () =>
-      axios.get(url, {
+      axios.get<AxiosResponse<unknown>>(url, {
         params: params,
       }),
     thisLogger,
@@ -154,7 +154,7 @@ export const fetchNWACWeatherForecast = async (nwacHost: string, zone_id: number
   );
 
   const parseResult = nwacWeatherForecastMetaSchema.safeParse(data);
-  if (parseResult.success === false) {
+  if (!parseResult.success) {
     thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {

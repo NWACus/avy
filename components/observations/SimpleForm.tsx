@@ -6,8 +6,8 @@ import {useMutation} from '@tanstack/react-query';
 import {AxiosError} from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FormProvider, useForm, useWatch} from 'react-hook-form';
-import {ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View as RNView} from 'react-native';
+import {FieldErrors, FormProvider, useForm, useWatch} from 'react-hook-form';
+import {ActivityIndicator, findNodeHandle, KeyboardAvoidingView, Platform, ScrollView, View as RNView} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {ClientContext, ClientProps} from 'clientContext';
@@ -28,7 +28,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, InstabilityDistribution, MediaItem, MediaType, Observation} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, ImageMediaItem, InstabilityDistribution, MediaType, Observation} from 'types/nationalAvalancheCenter';
 
 export const SimpleForm: React.FC<{
   center_id: AvalancheCenterID;
@@ -58,13 +58,13 @@ export const SimpleForm: React.FC<{
     }
   }, [cracking, formContext]);
 
-  const fieldRefs = useRef<{ref: RNView; field: string}[]>([]);
-  const scrollViewRef = useRef(null);
+  const fieldRefs = useRef<{ref: RNView; field: keyof ObservationFormData}[]>([]);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
 
-  const mutation = useMutation<Observation, AxiosError, ObservationFormData>({
-    mutationFn: async (observationFormData: ObservationFormData) => {
+  const mutation = useMutation<Observation, AxiosError, Partial<ObservationFormData>>({
+    mutationFn: async (observationFormData: Partial<ObservationFormData>) => {
       logger.info({formValues: observationFormData}, 'submitting observation');
       return submitObservation(logger, {center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
     },
@@ -93,7 +93,7 @@ export const SimpleForm: React.FC<{
     retry: true,
   });
 
-  const onSubmitHandler = async (data: ObservationFormData) => {
+  const onSubmitHandler = (data: Partial<ObservationFormData>) => {
     // Submit button turns into a cancel button
     if (mutation.isLoading) {
       mutation.reset();
@@ -103,19 +103,24 @@ export const SimpleForm: React.FC<{
     mutation.mutate(data);
   };
 
-  const onSubmitErrorHandler = errors => {
+  const onSubmitErrorHandler = (errors: FieldErrors<Partial<ObservationFormData>>) => {
     logger.error({errors: errors, formValues: formContext.getValues()}, 'submit error');
     // scroll to the first field with an error
     fieldRefs.current.some(({ref, field}) => {
-      if (errors[field]) {
-        ref.measureLayout(
-          scrollViewRef.current,
-          (_left, top) => {
-            scrollViewRef.current.scrollTo({y: top});
-          },
-          () => undefined,
-        );
-        return true;
+      if (errors[field] && scrollViewRef.current) {
+        const handle = findNodeHandle(scrollViewRef.current);
+        if (handle) {
+          ref.measureLayout(
+            handle,
+            (_left, top) => {
+              if (scrollViewRef.current) {
+                scrollViewRef.current.scrollTo({y: top});
+              }
+            },
+            () => undefined,
+          );
+          return true;
+        }
       }
       return false;
     });
@@ -195,14 +200,18 @@ export const SimpleForm: React.FC<{
                         label="Name"
                         textInputProps={{placeholder: 'Jane Doe', textContentType: 'name'}}
                         ref={element => {
-                          fieldRefs.current.push({field: 'name', ref: element});
+                          if (element) {
+                            fieldRefs.current.push({field: 'name', ref: element});
+                          }
                         }}
                       />
                       <TextField
                         name="email"
                         label="Email address"
                         ref={element => {
-                          fieldRefs.current.push({field: 'email', ref: element});
+                          if (element) {
+                            fieldRefs.current.push({field: 'email', ref: element});
+                          }
                         }}
                         textInputProps={{
                           placeholder: 'you@domain.com',
@@ -218,7 +227,9 @@ export const SimpleForm: React.FC<{
                         label="Activity"
                         prompt="What were you doing?"
                         ref={element => {
-                          fieldRefs.current.push({field: 'activity', ref: element});
+                          if (element) {
+                            fieldRefs.current.push({field: 'activity', ref: element});
+                          }
                         }}
                         items={[
                           {
@@ -255,7 +266,9 @@ export const SimpleForm: React.FC<{
                         name="location_name"
                         label="Location"
                         ref={element => {
-                          fieldRefs.current.push({field: 'location_name', ref: element});
+                          if (element) {
+                            fieldRefs.current.push({field: 'location_name', ref: element});
+                          }
                         }}
                         textInputProps={{
                           placeholder: 'Please describe your observation location using common geographical place names (drainages, peak names, etc).',
@@ -267,7 +280,9 @@ export const SimpleForm: React.FC<{
                         label="Latitude/Longitude"
                         center={center_id}
                         ref={element => {
-                          fieldRefs.current.push({field: 'location_point', ref: element});
+                          if (element) {
+                            fieldRefs.current.push({field: 'location_point', ref: element});
+                          }
                         }}
                       />
                     </VStack>
@@ -359,7 +374,9 @@ export const SimpleForm: React.FC<{
                           name="avalanches_summary"
                           label="Observed avalanches"
                           ref={element => {
-                            fieldRefs.current.push({field: 'avalanches_summary', ref: element});
+                            if (element) {
+                              fieldRefs.current.push({field: 'avalanches_summary', ref: element});
+                            }
                           }}
                           textInputProps={{
                             placeholder: `• Location, aspect, and elevation
@@ -380,7 +397,9 @@ export const SimpleForm: React.FC<{
                         name="observation_summary"
                         label="What did you observe?"
                         ref={element => {
-                          fieldRefs.current.push({field: 'observation_summary', ref: element});
+                          if (element) {
+                            fieldRefs.current.push({field: 'observation_summary', ref: element});
+                          }
                         }}
                         textInputProps={{
                           placeholder: `• Signs of instability
@@ -400,7 +419,7 @@ export const SimpleForm: React.FC<{
                         <ImageList
                           imageWidth={(4 * 140) / 3}
                           imageHeight={140}
-                          media={images.map((i): MediaItem => ({url: {original: i.uri}, type: MediaType.Image, caption: ''}))}
+                          media={images.map((i): ImageMediaItem => ({url: {original: i.uri, large: '', medium: '', thumbnail: ''}, type: MediaType.Image, caption: ''}))}
                           displayCaptions={false}
                           imageSize="original"
                           renderOverlay={index => (
@@ -420,7 +439,7 @@ export const SimpleForm: React.FC<{
                           )}
                         />
                       )}
-                      <Button buttonStyle="normal" onPress={pickImage} disabled={images.length === maxImageCount}>
+                      <Button buttonStyle="normal" onPress={void pickImage} disabled={images.length === maxImageCount}>
                         <BodyBlack>Select an image</BodyBlack>
                       </Button>
                     </VStack>
@@ -431,12 +450,14 @@ export const SimpleForm: React.FC<{
                     mt={16}
                     buttonStyle="primary"
                     disabled={mutation.isSuccess}
-                    onPress={async () => {
-                      // Force validation errors to show up on fields that haven't been visited yet
-                      await formContext.trigger();
-                      // Then try to submit the form
-                      formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
-                    }}>
+                    onPress={
+                      void (async () => {
+                        // Force validation errors to show up on fields that haven't been visited yet
+                        await formContext.trigger();
+                        // Then try to submit the form
+                        void formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
+                      })()
+                    }>
                     {mutation.isLoading && (
                       <HStack space={8} alignItems="center" pt={3}>
                         <ActivityIndicator size="small" />

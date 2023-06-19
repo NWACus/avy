@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react';
-import {Animated} from 'react-native';
-import {LatLng, Polygon} from 'react-native-maps';
+import {Animated, NativeSyntheticEvent} from 'react-native';
+import {LatLng, Point, Polygon} from 'react-native-maps';
 
 import {colorFor} from 'components/AvalancheDangerPyramid';
 import {MapViewZone} from 'components/content/ZoneMap';
@@ -21,7 +21,10 @@ const toLatLng = (item: number[]): LatLng => {
   return {longitude: item[0], latitude: item[1]};
 };
 
-export const toLatLngList = (geometry: FeatureComponent): LatLng[] => {
+export const toLatLngList = (geometry: FeatureComponent | undefined): LatLng[] => {
+  if (!geometry) {
+    return [];
+  }
   return coordinateList(geometry).map(toLatLng);
 };
 
@@ -62,7 +65,7 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
     strokeWidth: selected ? 4 : 2,
     tappable: true,
     zIndex: selected ? 1 : 0,
-    onPress: event => {
+    onPress: (event: PolygonPressEvent) => {
       onPress(zone);
       // By calling stopPropagation, we prevent this event from getting passed to the MapView's onPress handler,
       // which would then clear the selection
@@ -90,3 +93,24 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
     return <Polygon fillColor={fillColor} {...polygonProps} />;
   }
 };
+
+// need to update to react-native-maps 1.6 to get rid of this
+type PolygonPressEvent = NativeSyntheticEvent<{
+  action: 'polygon-press';
+
+  /**
+   * @platform iOS: Google Maps
+   */
+  id?: string;
+
+  /**
+   * @platform iOS: Apple Maps
+   * @platform Android
+   */
+  coordinate?: LatLng;
+
+  /**
+   * @platform Android
+   */
+  position?: Point;
+}>;

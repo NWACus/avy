@@ -30,7 +30,7 @@ const formatDateTime = (input: string) => format(new Date(input), 'MM/dd HH:mm')
 
 // TODO: synthesized column PcpSum (cumulative precip) which is a running total of Pcp1 (precip_accum_one_hour)
 
-const preferredFieldOrder = {
+const preferredFieldOrder: Record<string, number> = {
   date_time: 0,
   air_temp: 1,
   relative_humidity: 2,
@@ -52,7 +52,7 @@ const preferredFieldOrder = {
   solar_radiation: 99,
 };
 
-const shortFieldMap = {
+const shortFieldMap: Record<string, string> = {
   date_time: 'Time',
   air_temp: 'Temp',
   relative_humidity: 'RH',
@@ -72,21 +72,21 @@ const shortFieldMap = {
   solar_radiation: 'SR',
 };
 
-const shortUnitsMap = {
+const shortUnitsMap: Record<string, string> = {
   fahrenheit: '°F',
   inches: 'in',
   degrees: 'deg',
   millibar: 'mbar',
 };
 
-const shortUnits = (units: string) => shortUnitsMap[units] || units;
+const shortUnits = (units: string): string => shortUnitsMap[units] || units;
 
-const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = React.memo(({timeSeries}) => {
+const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = ({timeSeries}) => {
   if (timeSeries.STATION.length === 0) {
     return <Body>No data found.</Body>;
   }
 
-  type Column = {elevation: number; field: string; dataByTime: Record<string, number | string>};
+  type Column = {elevation: number | undefined | null; field: string; dataByTime: Record<string, number | string | null>};
   const tableColumns: Column[] = [];
   timeSeries.STATION.forEach(({elevation, observations}) => {
     Object.entries(observations).forEach(([field, values]) => {
@@ -130,7 +130,7 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = React.memo(({timeSer
     // 2. elevation descending within same column
     // TODO: have to sort wind values together by name, *then* by elevation :eyeroll:
     // or wait - do we onlt want wind values at the highest elevation
-    return preferredFieldOrder[a.field] - preferredFieldOrder[b.field] || b.elevation - a.elevation;
+    return preferredFieldOrder[a.field] - preferredFieldOrder[b.field] || (a.elevation && b.elevation ? b.elevation - a.elevation : -1);
   });
 
   // Determine all of the times we need to display as rows
@@ -150,15 +150,15 @@ const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = React.memo(({timeSer
               borderRightWidth={0}
               name={shortFieldMap[field]}
               units={shortUnits(timeSeries.UNITS[field])}
-              elevation={elevation.toString()}
-              data={times.map(time => (time in dataByTime ? dataByTime[time] : '-'))}
+              elevation={elevation ? elevation.toString() : ''}
+              data={times.map(time => (time in dataByTime ? (dataByTime[time] ? String(dataByTime[time]) : '-') : '-'))}
             />
           ))}
         </HStack>
       </ScrollView>
     </ScrollView>
   );
-});
+};
 
 const columnPadding = 3;
 const rowPadding = 2;
@@ -198,25 +198,25 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
   const navigation = useNavigation();
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = avalancheCenterMetadataResult.data;
-  const timeseries = useWeatherStationTimeseries({
-    token: metadata?.widget_config.stations.token,
+  const timeseriesResult = useWeatherStationTimeseries({
+    token: metadata?.widget_config.stations?.token,
     sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
     stids: station_stids,
     startDate: new Date(date.getTime() - days * 24 * 60 * 60 * 1000),
     endDate: date,
   });
+  const timeseries = timeseriesResult.data;
 
   React.useEffect(() => {
     navigation.setOptions({title: zoneName});
   }, [navigation, zoneName]);
 
-  if (incompleteQueryState(avalancheCenterMetadataResult, timeseries)) {
-    return <QueryState results={[avalancheCenterMetadataResult, timeseries]} />;
+  if (incompleteQueryState(avalancheCenterMetadataResult, timeseriesResult) || !metadata || !timeseries) {
+    return <QueryState results={[avalancheCenterMetadataResult, timeseriesResult]} />;
   }
 
-  const data = timeseries.data;
   const warnings =
-    data?.STATION?.map(({name, station_note: notes}) => notes.map(({start_date, status, note}) => ({name, start_date, status, note})))
+    timeseries?.STATION?.map(({name, station_note: notes}) => (notes ? notes.map(({start_date, status, note}) => ({name, start_date, status, note})) : []))
       .flat()
       .sort((a, b) => b.start_date.localeCompare(a.start_date)) || [];
 
@@ -253,7 +253,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
                 </View>
               </TouchableOpacity>
             </HStack>
-            <TimeSeriesTable timeSeries={data} />
+            <TimeSeriesTable timeSeries={timeseries} />
             {/* For some reason, the table is running off the bottom of the view, and I just don't have time to keep debugging this.
              Adding the placeholder here does the trick. :dizzy_face: */}
             <View height={16} />

@@ -1,7 +1,7 @@
 import {DangerLevel} from 'types/nationalAvalancheCenter';
 
-export const dangerText = (level: DangerLevel): string => {
-  let display: DangerLevel = level;
+export const dangerText = (level: DangerLevel | null): string => {
+  let display: DangerLevel = level ?? DangerLevel.None;
   let prefix: string;
   switch (level) {
     case DangerLevel.Extreme:

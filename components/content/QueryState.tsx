@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import {UseQueryResult} from '@tanstack/react-query';
 import ErrorIllustration from 'assets/illustrations/Error.svg';
 import NoGPS from 'assets/illustrations/NoGPS.svg';
@@ -8,7 +7,6 @@ import {HStack} from 'components/core';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import React from 'react';
 import {ActivityIndicator} from 'react-native';
-import {TabNavigationProps} from 'routes';
 import * as Sentry from 'sentry-expo';
 import {NotFoundError} from 'types/requests';
 
@@ -40,15 +38,15 @@ export const QueryState: React.FunctionComponent<{results: UseQueryResult[]}> = 
 
 const isResultNotFound = (result: UseQueryResult): boolean => result.isError && result.error instanceof NotFoundError;
 
-export const InternalError: React.FunctionComponent = (inline?: boolean) => {
-  const navigation = useNavigation<TabNavigationProps>();
+export const InternalError: React.FunctionComponent<{inline?: boolean}> = ({inline}) => {
+  // const navigation = useNavigation<TabNavigationProps>();
   return (
     <Outcome
       outcome={'Oops, something went wrong!'}
       reason={"We're sorry, but we cannot complete your request at this time."}
       illustration={<ErrorIllustration />}
       inline={inline}
-      onClose={() => navigation.navigate('Home')}
+      // onClose={() => navigation.navigate('Home')} // TODO(skuznets): figure out how to navigate home here, as we don't have the props needed to go home - can we go to defaults for tab navigator?
     />
   );
 };
@@ -63,23 +61,24 @@ export const Loading: React.FunctionComponent = () => {
 
 export const NotFound: React.FunctionComponent<{what?: NotFoundError[]; terminal?: boolean; inline?: boolean}> = ({what, terminal, inline}) => {
   let thing = 'requested resource';
-  if (what[0] && what[0] instanceof NotFoundError && what[0].pretty) {
+  if (what && what[0] && what[0] instanceof NotFoundError && what[0].pretty) {
     thing = what[0].pretty;
   }
-  const navigation = useNavigation<TabNavigationProps>();
-  let onClose = () => navigation.navigate('Home');
+  // const navigation = useNavigation<TabNavigationProps>();
+  // let onClose: (() => void) | undefined = () => navigation.navigate('Home');
+  let onClose: (() => void) | undefined = () => ({});
   if (terminal) {
-    onClose = null;
+    onClose = undefined;
   }
   return <Outcome outcome={'No results found'} reason={`We could not find the ${thing}.`} inline={inline} illustration={<NoSearchResult />} onClose={onClose} />;
 };
 
 export const ConnectionLost: React.FunctionComponent = () => {
-  const navigation = useNavigation<TabNavigationProps>();
+  // const navigation = useNavigation<TabNavigationProps>();
   const [loading, setLoading] = React.useState<boolean>(false);
   React.useEffect(() => {
     if (loading) {
-      setTimeout(() => setLoading(false), 750);
+      setTimeout(() => setLoading(false), 750); // TODO(skuznets): plumb through the refresh here
     }
   }, [loading]);
 
@@ -92,7 +91,12 @@ export const ConnectionLost: React.FunctionComponent = () => {
         reason={'Something went wrong, please try again.'}
         illustration={<NoGPS />}
         onRetry={() => setLoading(true)}
-        onClose={() => navigation.navigate('Home')}
+        // onClose={() =>
+        //   navigation.navigate('Home', {
+        //     screen: 'avalancheCenter',
+        //     params: {},
+        //   })
+        // }
       />
     );
   }

@@ -11,7 +11,7 @@ describe('AvalancheForecastZonePolygon', () => {
         topLeft: {latitude: 1, longitude: 1},
         bottomRight: {latitude: 2, longitude: 2},
       };
-      const coordinates: LatLng[] = null;
+      const coordinates: LatLng[] = [];
       expect(updateBoundsToContain(bounds, coordinates)).toStrictEqual({
         topLeft: {latitude: 1, longitude: 1},
         bottomRight: {latitude: 2, longitude: 2},

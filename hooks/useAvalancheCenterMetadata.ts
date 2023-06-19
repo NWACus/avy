@@ -1,7 +1,7 @@
 import React from 'react';
 
-import {QueryClient, useQuery} from '@tanstack/react-query';
-import axios, {AxiosError} from 'axios';
+import {QueryClient, useQuery, UseQueryResult} from '@tanstack/react-query';
+import axios, {AxiosError, AxiosResponse} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
@@ -13,7 +13,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenter, AvalancheCenterID, avalancheCenterSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
-export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID) => {
+export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID): UseQueryResult<AvalancheCenter, AxiosError | ZodError> => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(nationalAvalancheCenterHost, center_id);
@@ -62,11 +62,11 @@ const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string,
   const url = `${nationalAvalancheCenterHost}/v2/public/avalanche-center/${center_id}`;
   const what = 'avalanche center metadata';
   const thisLogger = logger.child({url: url, center: center_id, what: what});
-  const data = await safeFetch(() => axios.get(url), thisLogger, what);
+  const data = await safeFetch(() => axios.get<AxiosResponse<unknown>>(url), thisLogger, what);
 
   const parseResult = avalancheCenterSchema.safeParse(data);
-  if (parseResult.success === false) {
-    thisLogger.warn({error: parseResult.error}, 'failed to parse');
+  if (!parseResult.success) {
+    thisLogger.warn({url: url, error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
         zod_error: true,

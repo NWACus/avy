@@ -14,23 +14,22 @@ export interface VStackProps extends ViewProps {
   space?: number;
 }
 
-export const VStack = React.memo(
-  React.forwardRef<RNView, VStackProps>(({children: originalChildren, style: originalStyle = {}, space, ...props}, ref) => {
-    const style = {};
-    merge(style, baseStyle, originalStyle);
-    const children = (() => {
-      if (typeof space === 'number') {
-        return React.Children.toArray(originalChildren)
-          .filter(child => child != null) // we only render (and optionally add space between) non-null children
-          .map((child, index) => (index > 0 ? [<View height={space} flex={0} key={`vstack-space-${index}`} />, child] : child))
-          .flat();
-      }
-      return originalChildren;
-    })();
-    return (
-      <View style={style} {...props} ref={ref}>
-        {children}
-      </View>
-    );
-  }),
-);
+export const VStack = React.forwardRef<RNView, VStackProps>(({children: originalChildren, style: originalStyle = {}, space, ...props}, ref) => {
+  const style = {};
+  merge(style, baseStyle, originalStyle);
+  const children = (() => {
+    if (typeof space === 'number') {
+      return React.Children.toArray(originalChildren)
+        .filter(child => child != null) // we only render (and optionally add space between) non-null children
+        .map((child, index) => (index > 0 ? [<View height={space} flex={0} key={`vstack-space-${index}`} />, child] : child))
+        .flat();
+    }
+    return originalChildren;
+  })();
+  return (
+    <View style={style} {...props} ref={ref}>
+      {children}
+    </View>
+  );
+});
+VStack.displayName = 'VStack';

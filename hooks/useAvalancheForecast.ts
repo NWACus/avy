@@ -1,7 +1,7 @@
 import React from 'react';
 
-import {QueryClient, useQuery, useQueryClient} from '@tanstack/react-query';
-import axios, {AxiosError} from 'axios';
+import {QueryClient, useQuery, useQueryClient, UseQueryResult} from '@tanstack/react-query';
+import axios, {AxiosError, AxiosResponse} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
@@ -12,13 +12,18 @@ import {safeFetch} from 'hooks/fetch';
 import AvalancheForecastByID from 'hooks/useAvalancheForecastById';
 import AvalancheForecastFragment from 'hooks/useAvalancheForecastFragment';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {AvalancheCenter, AvalancheCenterID, Product, productSchema} from 'types/nationalAvalancheCenter';
+import {AvalancheCenter, AvalancheCenterID, ForecastResult, forecastResultSchema} from 'types/nationalAvalancheCenter';
 import {nominalForecastDate, nominalForecastDateString, RequestedTime} from 'utils/date';
 import {ZodError} from 'zod';
 
-export const useAvalancheForecast = (center_id: AvalancheCenterID, center: AvalancheCenter, zone_id: number, requestedTime: RequestedTime) => {
-  const expiryTimeHours = center?.config.expires_time;
-  const expiryTimeZone = center?.timezone;
+export const useAvalancheForecast = (
+  center_id: AvalancheCenterID,
+  center: AvalancheCenter,
+  zone_id: number,
+  requestedTime: RequestedTime,
+): UseQueryResult<ForecastResult, AxiosError | ZodError> => {
+  const expiryTimeHours = center.config.expires_time;
+  const expiryTimeZone = center.timezone;
 
   const queryClient = useQueryClient();
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
@@ -27,9 +32,9 @@ export const useAvalancheForecast = (center_id: AvalancheCenterID, center: Avala
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
-  return useQuery<Product, AxiosError | ZodError>({
+  return useQuery<ForecastResult, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async (): Promise<Product> =>
+    queryFn: async (): Promise<ForecastResult> =>
       fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours, thisLogger),
     enabled: !!expiryTimeHours,
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
@@ -49,8 +54,8 @@ function queryKey(
   expiryTimeZone: string,
   expiryTimeHours: number,
 ) {
-  let prefix = '';
-  let date: Date = null;
+  let prefix: string;
+  let date: Date;
   if (requestedTime === 'latest') {
     prefix = 'latest';
     date = new Date();
@@ -85,7 +90,7 @@ const prefetchAvalancheForecast = async (
 
   await queryClient.prefetchQuery({
     queryKey: key,
-    queryFn: async (): Promise<Product> => {
+    queryFn: async (): Promise<ForecastResult> => {
       const start = new Date();
       logger.trace(`prefetching`);
       const result = fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours, thisLogger);
@@ -104,7 +109,7 @@ const fetchAvalancheForecast = async (
   expiryTimeZone: string,
   expiryTimeHours: number,
   logger: Logger,
-): Promise<Product> => {
+): Promise<ForecastResult> => {
   if (requested_time === 'latest') {
     return fetchLatestAvalancheForecast(nationalAvalancheCenterHost, center_id, zone_id, logger);
   } else {
@@ -120,7 +125,7 @@ const fetchAvalancheForecast = async (
   }
 };
 
-const fetchLatestAvalancheForecast = async (nationalAvalancheCenterHost: string, center_id: string, zone_id: number, logger: Logger): Promise<Product> => {
+const fetchLatestAvalancheForecast = async (nationalAvalancheCenterHost: string, center_id: string, zone_id: number, logger: Logger): Promise<ForecastResult> => {
   const url = `${nationalAvalancheCenterHost}/v2/public/product`;
   const params = {
     center_id: center_id,
@@ -131,15 +136,15 @@ const fetchLatestAvalancheForecast = async (nationalAvalancheCenterHost: string,
   const thisLogger = logger.child({url: url, params: params, what: what});
   const data = await safeFetch(
     () =>
-      axios.get(url, {
+      axios.get<AxiosResponse<unknown>>(url, {
         params: params,
       }),
     thisLogger,
     what,
   );
 
-  const parseResult = productSchema.safeParse(data);
-  if (parseResult.success === false) {
+  const parseResult = forecastResultSchema.safeParse(data);
+  if (!parseResult.success) {
     thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {

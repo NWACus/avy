@@ -13,11 +13,11 @@ const defaultAvalancheCenterMapRegionBounds: RegionBounds = {
 
 export type MapViewZone = {
   center_id: AvalancheCenterID;
-  zone_id?: number;
-  name?: string;
+  zone_id: number;
+  name: string;
   danger_level?: DangerLevel;
-  start_date: Date | null;
-  end_date: Date | null;
+  start_date: string | null;
+  end_date: string | null;
   geometry?: FeatureComponent;
   fillOpacity: number;
   hasWarning: boolean;
@@ -26,7 +26,7 @@ export type MapViewZone = {
 interface ZoneMapProps extends MapViewProps {
   animated: boolean;
   zones: MapViewZone[];
-  selectedZoneId?: number;
+  selectedZoneId?: number | null;
   renderFillColor?: boolean;
   onPressPolygon: (zone: MapViewZone) => void;
 }
@@ -45,12 +45,13 @@ export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones
     </MapComponent>
   );
 });
+ZoneMap.displayName = 'ZoneMap';
 
 export function defaultMapRegionForZones(zones: MapViewZone[]) {
   return defaultMapRegionForGeometries(zones.map(zone => zone.geometry));
 }
 
-export function defaultMapRegionForGeometries(geometries: FeatureComponent[]) {
+export function defaultMapRegionForGeometries(geometries: (FeatureComponent | undefined)[] | undefined) {
   const avalancheCenterMapRegionBounds: RegionBounds = geometries
     ? geometries.reduce((accumulator, currentValue) => updateBoundsToContain(accumulator, toLatLngList(currentValue)), defaultAvalancheCenterMapRegionBounds)
     : defaultAvalancheCenterMapRegionBounds;

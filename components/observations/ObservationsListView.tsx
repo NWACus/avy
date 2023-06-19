@@ -15,20 +15,19 @@ import {compareDesc, parseISO, setDayOfYear} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
-import {OverviewFragment} from 'hooks/useObservations';
 import {useRefresh} from 'hooks/useRefresh';
 import {ActivityIndicator, FlatList, FlatListProps, Modal, RefreshControl, TouchableOpacity} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import theme, {colorLookup} from 'theme';
-import {AvalancheCenterID, DangerLevel, PartnerType} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {RequestedTime, utcDateToLocalDateString} from 'utils/date';
 
 interface ObservationsListViewItem {
-  id: OverviewFragment['id'];
-  observation: OverviewFragment;
-  source: 'nwac' | 'nac';
-  zone: string;
+  id?: ObservationFragment['id'];
+  observation?: ObservationFragment;
+  source?: string;
+  zone?: string;
 }
 
 interface ObservationsListViewProps extends Omit<FlatListProps<ObservationsListViewItem>, 'data' | 'renderItem'> {
@@ -51,17 +50,16 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const mapLayer = mapResult.data;
 
   const nacObservationsResult = useNACObservations(center_id, requestedTime);
-  const nacObservations = nacObservationsResult.data;
+  const nacObservations: ObservationFragment[] = nacObservationsResult.data?.pages?.flatMap(page => page.data) ?? [];
   const nwacObservationsResult = useNWACObservations(center_id, requestedTime);
-  const nwacObservations = nwacObservationsResult.data;
-  const observations: OverviewFragment[] = []
-    .concat(nacObservations?.pages?.flatMap(page => page.getObservationList))
-    .concat(nwacObservations?.pages?.flatMap(page => page.getObservationList))
+  const nwacObservations: ObservationFragment[] = nwacObservationsResult.data?.pages?.flatMap(page => page.data) ?? [];
+  const observations: ObservationFragment[] = nacObservations
+    .concat(nwacObservations)
     .filter(observation => observation) // when nothing is returned from the NAC, we get a null
     .filter((v, i, a) => a.findIndex(v2 => v2.id === v.id) === i); // sometimes, the NWAC API gives us duplicates
   const {isRefreshing, refresh} = useRefresh(mapResult.refetch, nacObservationsResult.refetch, nwacObservationsResult.refetch);
 
-  if (incompleteQueryState(nacObservationsResult, nwacObservationsResult, mapResult)) {
+  if (incompleteQueryState(nacObservationsResult, nwacObservationsResult, mapResult) || !observations || !mapLayer) {
     return <QueryState results={[nacObservationsResult, nwacObservationsResult, mapResult]} />;
   }
 
@@ -70,7 +68,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
   const resolvedFilters = filtersForConfig(mapLayer, filterConfig);
-  const displayedObservations: OverviewFragment[] = observations.filter(observation =>
+  const displayedObservations: ObservationFragment[] = observations.filter(observation =>
     resolvedFilters.map(filter => filter(observation)).reduce((currentValue, accumulator) => accumulator && currentValue, true),
   );
 
@@ -112,8 +110,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
                     width={'50%'}
                     buttonStyle={'primary'}
                     onPress={() => {
-                      nwacObservationsResult.fetchNextPage();
-                      nacObservationsResult.fetchNextPage();
+                      void nwacObservationsResult.fetchNextPage();
+                      void nacObservationsResult.fetchNextPage();
                     }}>
                     <BodyBlack>Load more...</BodyBlack>
                   </Button>
@@ -123,24 +121,19 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           </>
         }
         style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={void refresh} />}
         data={
           displayedObservations.length > 0
             ? displayedObservations.map(observation => ({
                 id: observation.id,
                 observation: observation,
-                source: nwacObservations?.pages
-                  ?.flatMap(page => page.getObservationList)
-                  .map(o => o.id)
-                  .includes(observation.id)
-                  ? 'nwac'
-                  : 'nac',
-                zone: zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
+                source: nwacObservations.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
+                zone: zone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng),
               }))
-            : [{id: null, observation: null, source: null, zone: null}]
+            : [{}]
         }
         renderItem={({item}) =>
-          item.id ? (
+          item.id && item.observation && item.source && item.zone ? (
             <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />
           ) : (
             <NotFound inline terminal what={[new NotFoundError('no observations found', 'any matching observations')]} />
@@ -161,15 +154,17 @@ const colorsFor = (partnerType: PartnerType) => {
       return {primary: '#006D23', secondary: '#9ED696'};
     case 'volunteer':
     case 'public':
+    case 'other':
       return {primary: '#EA983F', secondary: 'rgba(234, 152, 63, 0.2)'};
   }
-  // const invalid: never = partnerType;
-  // throw new Error(`Unknown partner type: ${invalid}`);
+  const invalid: never = partnerType;
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+  throw new Error(`Unknown partner type: ${invalid}`);
 };
 
 export const ObservationSummaryCard: React.FunctionComponent<{
   source: string;
-  observation: OverviewFragment;
+  observation: ObservationFragment;
   zone: string;
 }> = ({source, zone, observation}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
@@ -198,10 +193,10 @@ export const ObservationSummaryCard: React.FunctionComponent<{
       header={
         <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
           <BodySmBlack>{utcDateToLocalDateString(observation.createdAt)}</BodySmBlack>
-          <View px={8} py={6} borderRadius={12} backgroundColor={colorsFor(observation.observerType as PartnerType).secondary}>
+          <View px={8} py={6} borderRadius={12} backgroundColor={colorsFor(observation.observerType).secondary}>
             <HStack space={8}>
-              <View height={12} width={12} borderRadius={6} backgroundColor={colorsFor(observation.observerType as PartnerType).primary} />
-              <Caption1Black style={{textTransform: 'uppercase', color: colorsFor(observation.observerType as PartnerType).primary}}>{observation.observerType}</Caption1Black>
+              <View height={12} width={12} borderRadius={6} backgroundColor={colorsFor(observation.observerType).primary} />
+              <Caption1Black style={{textTransform: 'uppercase', color: colorsFor(observation.observerType).primary}}>{observation.observerType}</Caption1Black>
             </HStack>
           </View>
         </HStack>
@@ -219,8 +214,8 @@ export const ObservationSummaryCard: React.FunctionComponent<{
           </VStack>
         </HStack>
         <View width={52} flex={0} mx={8}>
-          {observation.media && observation.media.length > 0 && observation.media[0].url.thumbnail && (
-            <NetworkImage width={52} height={52} uri={observation.media[0].url.thumbnail} imageStyle={{borderRadius: 4}} index={0} onPress={null} onStateChange={null} />
+          {observation.media && observation.media.length > 0 && observation.media[0].type === MediaType.Image && observation.media[0].url?.thumbnail && (
+            <NetworkImage width={52} height={52} uri={observation.media[0].url.thumbnail} imageStyle={{borderRadius: 4}} index={0} onPress={undefined} onStateChange={undefined} />
           )}
         </View>
       </HStack>

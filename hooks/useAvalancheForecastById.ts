@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {QueryClient, useQuery} from '@tanstack/react-query';
-import axios, {AxiosError} from 'axios';
+import axios, {AxiosError, AxiosResponse} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
@@ -10,10 +10,10 @@ import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {Product, productSchema} from 'types/nationalAvalancheCenter';
+import {ForecastResult, forecastResultSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
-export const useAvalancheForecastById = (fragment: Product) => {
+export const useAvalancheForecastById = (fragment: ForecastResult) => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const forecastId = fragment?.id;
 
@@ -22,9 +22,9 @@ export const useAvalancheForecastById = (fragment: Product) => {
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
-  return useQuery<Product, AxiosError | ZodError>({
+  return useQuery<ForecastResult, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: (): Promise<Product> => fetchProduct(nationalAvalancheCenterHost, forecastId, thisLogger),
+    queryFn: (): Promise<ForecastResult> => fetchForecast(nationalAvalancheCenterHost, forecastId, thisLogger),
     enabled: !!forecastId,
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
@@ -42,10 +42,10 @@ export const prefetchAvalancheForecast = async (queryClient: QueryClient, nation
 
   await queryClient.prefetchQuery({
     queryKey: key,
-    queryFn: async (): Promise<Product> => {
+    queryFn: async (): Promise<ForecastResult> => {
       const start = new Date();
       logger.trace(`prefetching`);
-      const result = fetchProduct(nationalAvalancheCenterHost, forecastId, thisLogger);
+      const result = fetchForecast(nationalAvalancheCenterHost, forecastId, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
@@ -53,14 +53,14 @@ export const prefetchAvalancheForecast = async (queryClient: QueryClient, nation
 };
 
 // TODO need to export?
-export const fetchProduct = async (nationalAvalancheCenterHost: string, forecastId: number, logger: Logger): Promise<Product> => {
+export const fetchForecast = async (nationalAvalancheCenterHost: string, forecastId: number, logger: Logger): Promise<ForecastResult> => {
   const url = `${nationalAvalancheCenterHost}/v2/public/product/${forecastId}`;
   const what = 'avalanche forecast';
   const thisLogger = logger.child({url: url, what: what});
-  const data = await safeFetch(() => axios.get(url), thisLogger, what);
+  const data = await safeFetch(() => axios.get<AxiosResponse<unknown>>(url), thisLogger, what);
 
-  const parseResult = productSchema.safeParse(data);
-  if (parseResult.success === false) {
+  const parseResult = forecastResultSchema.safeParse(data);
+  if (!parseResult.success) {
     thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
@@ -77,6 +77,6 @@ export const fetchProduct = async (nationalAvalancheCenterHost: string, forecast
 
 export default {
   queryKey,
-  fetch: fetchProduct,
+  fetch: fetchForecast,
   prefetch: prefetchAvalancheForecast,
 };

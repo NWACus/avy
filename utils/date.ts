@@ -1,11 +1,6 @@
 import {add, isAfter} from 'date-fns';
 import {format, formatInTimeZone, toDate} from 'date-fns-tz';
 
-const MISSING_TIMEZONE = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?$/;
-
-// Some avalanche.org endpoints return dates without timezone information! This method is used to detect and fix them, by assuming they're UTC.
-export const fixMalformedISO8601DateString = (date: string) => (MISSING_TIMEZONE.test(date) ? `${date}Z` : date);
-
 export const toISOStringUTC = (date: Date) => formatInTimeZone(date, 'UTC', 'yyyy-MM-dd HH:mm:ssXXX');
 
 export const toDateTimeInterfaceATOM = (date: Date) => formatInTimeZone(date, 'UTC', "yyyy-MM-dd'T'HH:mm:ssXXX");
@@ -52,7 +47,7 @@ export const nominalNWACWeatherForecastDate = (requestedTime: Date): string => {
   }
 };
 
-export const utcDateToLocalTimeString = (date: Date | string | undefined): string => {
+export const utcDateToLocalTimeString = (date: Date | string | undefined | null): string => {
   if (date == null) {
     return 'Unknown';
   }
@@ -60,7 +55,7 @@ export const utcDateToLocalTimeString = (date: Date | string | undefined): strin
   return format(d, `EEE, MMM d, yyyy \nh:mm a`);
 };
 
-export const utcDateToLocalDateString = (date: Date | string | undefined): string => {
+export const utcDateToLocalDateString = (date: Date | string | undefined | null): string => {
   if (date == null) {
     return 'Unknown';
   }
@@ -68,7 +63,7 @@ export const utcDateToLocalDateString = (date: Date | string | undefined): strin
   return format(d, `EEEE, MMMM d, yyyy`);
 };
 
-export const pacificDateToDayOfWeekString = (date: Date | string | undefined): string => {
+export const pacificDateToDayOfWeekString = (date: Date | string | undefined | null): string => {
   if (date == null) {
     return 'Unknown';
   }

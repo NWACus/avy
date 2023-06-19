@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {QueryClient, useInfiniteQuery} from '@tanstack/react-query';
-import axios, {AxiosError} from 'axios';
+import axios, {AxiosError, AxiosResponse} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
@@ -9,11 +9,10 @@ import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict, sub} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
-import {ObservationsQuery} from 'hooks/useObservations';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {AvalancheCenterID, observationSchema} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, nwacObservationsListSchema, ObservationFragment} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, parseRequestedTimeString, RequestedTime, requestedTimeToUTCDate, toDateTimeInterfaceATOM} from 'utils/date';
-import {z, ZodError} from 'zod';
+import {ZodError} from 'zod';
 
 export const useNWACObservations = (center_id: AvalancheCenterID, endDate: RequestedTime) => {
   const {nwacHost} = React.useContext<ClientProps>(ClientContext);
@@ -70,25 +69,8 @@ export const prefetchNWACObservations = async (
   });
 };
 
-const nwacObservationsSchema = z.object({
-  meta: z.object({
-    limit: z.number().optional().nullable(),
-    next: z.string().optional().nullable(),
-    offset: z.number().optional().nullable(),
-    previous: z.string().optional().nullable(),
-    total_count: z.number().optional().nullable(),
-  }),
-  objects: z.array(
-    z.object({
-      id: z.number(),
-      post_type: z.string(),
-      post_date: z.string(),
-      content: observationSchema.deepPartial(),
-    }),
-  ),
-});
-
-interface ObservationsQueryWithMeta extends ObservationsQuery {
+interface ObservationsQueryWithMeta {
+  data: ObservationFragment[];
   published_before: string;
   published_after: string;
 }
@@ -104,7 +86,7 @@ export const fetchNWACObservations = async (
     return {
       published_after: formatRequestedTime(published_after),
       published_before: formatRequestedTime(published_before),
-      getObservationList: [],
+      data: [],
     };
   }
   const url = `${nwacHost}/api/v2/observations`;
@@ -116,15 +98,15 @@ export const fetchNWACObservations = async (
   const thisLogger = logger.child({url: url, params: params, what: what});
   const data = await safeFetch(
     () =>
-      axios.get(url, {
+      axios.get<AxiosResponse<unknown>>(url, {
         params: params,
       }),
     thisLogger,
     what,
   );
 
-  const parseResult = nwacObservationsSchema.safeParse(data);
-  if (parseResult.success === false) {
+  const parseResult = nwacObservationsListSchema.safeParse(data);
+  if (!parseResult.success) {
     thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
@@ -137,16 +119,16 @@ export const fetchNWACObservations = async (
     return {
       published_after: formatRequestedTime(published_after),
       published_before: formatRequestedTime(published_before),
-      getObservationList: parseResult.data.objects.map(object => ({
+      data: parseResult.data.objects.map(object => ({
         id: String(object.id),
         observerType: object.content.observer_type,
-        name: object.content.name,
-        createdAt: object.content.created_at,
-        locationName: object.content.location_name,
+        name: object.content.name ?? 'Unknown',
+        createdAt: object.post_date,
+        locationName: object.content.location_name ?? 'Unknown',
         instability: object.content.instability,
-        observationSummary: object.content.observation_summary,
+        observationSummary: object.content.observation_summary ?? 'None',
         locationPoint: object.content.location_point,
-        media: object.content.media,
+        media: object.content.media ?? [],
       })),
     };
   }

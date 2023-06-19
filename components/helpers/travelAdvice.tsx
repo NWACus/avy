@@ -44,5 +44,6 @@ export const TravelAdvice: React.FunctionComponent<{dangerLevel: DangerLevel; He
       );
   }
   const invalid: never = dangerLevel;
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   throw new Error(`Unknown danger level: ${invalid}`);
 };

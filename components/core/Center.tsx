@@ -10,7 +10,7 @@ const baseStyle: ViewStyle = {
   alignItems: 'center',
 };
 
-export const Center: React.FC<ViewProps> = React.memo(({children, style: originalStyle = {}, ...props}) => {
+export const Center: React.FC<ViewProps> = ({children, style: originalStyle = {}, ...props}) => {
   const style = {};
   merge(style, baseStyle, originalStyle);
   return (
@@ -18,4 +18,4 @@ export const Center: React.FC<ViewProps> = React.memo(({children, style: origina
       {children}
     </View>
   );
-});
+};

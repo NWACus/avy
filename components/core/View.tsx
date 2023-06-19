@@ -142,7 +142,7 @@ const dimensionalProps: ViewStyleProp[] = [
   'width',
 ];
 
-const validateProp = (prop: ViewStyleProp, value): void => {
+const validateProp = (prop: ViewStyleProp, value: unknown): void => {
   if (dimensionalProps.includes(prop) && typeof value === 'string') {
     // Dimensions as strings must either specify 'pt' or '%'
     if (value !== 'auto' && value.slice(-2) !== 'pt' && value.slice(-1) !== '%') {
@@ -153,25 +153,32 @@ const validateProp = (prop: ViewStyleProp, value): void => {
 };
 
 export interface ViewProps extends RNViewProps, ViewStyleProps, ViewAliasProps {}
-export const View = React.memo(
-  React.forwardRef<RNView, ViewProps>(({children, style = {}, ...props}, ref) => {
-    const resolvedProps: RNViewProps = {style};
-    Object.entries(props).forEach(([key, value]) => {
-      const prop = propAliasMapping[key] || key;
-      if (viewStylePropKeys.includes(prop)) {
-        if (['backgroundColor'].includes(prop) && typeof value === 'string') {
-          value = colorLookup(value);
-        }
-        validateProp(prop, value);
-        style[prop] = value;
-      } else {
-        resolvedProps[prop] = value;
+export const View = React.forwardRef<RNView, ViewProps>(({children, style = {}, ...props}, ref) => {
+  const resolvedProps: ViewProps = {style};
+  Object.entries(props).forEach(([key, value]) => {
+    const prop = propAliasMapping[key as keyof ViewAliasProps] || key;
+    if (viewStylePropKeys.includes(prop)) {
+      if (['backgroundColor'].includes(prop) && typeof value === 'string') {
+        value = colorLookup(value);
       }
-    });
-    return (
-      <RNView {...resolvedProps} ref={ref}>
-        {children}
-      </RNView>
-    );
-  }),
-);
+      validateProp(prop, value);
+      if (style) {
+        // TODO(bsharon): this needs to be cleaned up to be accordant with typescript ...
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        style[prop] = value;
+      }
+    } else {
+      // TODO(bsharon): this needs to be cleaned up to be accordant with typescript ...
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      resolvedProps[prop] = value;
+    }
+  });
+  return (
+    <RNView {...resolvedProps} ref={ref}>
+      {children}
+    </RNView>
+  );
+});
+View.displayName = 'View';

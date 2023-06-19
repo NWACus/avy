@@ -60,7 +60,7 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
                     setDropdownVisible(false);
                     onSelectionChange?.(item);
                   }}>
-                  <View px={8} key={item} bg={item === selectedItem ? tinycolor(colorLookup('primary')).setAlpha(0.1).toRgbString() : undefined}>
+                  <View px={8} key={item} bg={item === selectedItem ? tinycolor(colorLookup('primary').toString()).setAlpha(0.1).toRgbString() : undefined}>
                     <View py={8} borderTopWidth={index > 0 ? 2 : 0} borderColor={borderColor}>
                       <Body key={item}>{item}</Body>
                     </View>

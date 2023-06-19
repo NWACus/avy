@@ -1,36 +1,36 @@
 import React from 'react';
 
-import axios, {AxiosError} from 'axios';
+import axios, {AxiosError, AxiosResponse} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
-import {QueryClient, useQuery} from '@tanstack/react-query';
+import {QueryClient, useQuery, UseQueryResult} from '@tanstack/react-query';
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {AvalancheCenterID, AvalancheWarning, avalancheWarningSchema} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, warningResultSchema, WarningResultWithZone} from 'types/nationalAvalancheCenter';
 import {apiDateString, RequestedTime} from 'utils/date';
 import {ZodError} from 'zod';
 
-export const useAvalancheWarning = (center_id: AvalancheCenterID, zone_id: number, requested_time: RequestedTime) => {
+export const useAvalancheWarning = (center_id: AvalancheCenterID, zone_id: number, requested_time: RequestedTime): UseQueryResult<WarningResultWithZone, AxiosError | ZodError> => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(nationalAvalancheCenterHost, center_id, zone_id, requested_time);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
-  return useQuery<AvalancheWarning, AxiosError | ZodError>({
+  return useQuery<WarningResultWithZone, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async (): Promise<AvalancheWarning> => fetchAvalancheWarning(nationalAvalancheCenterHost, center_id, zone_id, requested_time, thisLogger),
+    queryFn: async (): Promise<WarningResultWithZone> => fetchAvalancheWarning(nationalAvalancheCenterHost, center_id, zone_id, requested_time, thisLogger),
     cacheTime: 12 * 60 * 60 * 1000, // hold on to this cached data for half a day (in milliseconds)
   });
 };
 
 function queryKey(nationalAvalancheCenterHost: string, center_id: string, zone_id: number, requestedTime: RequestedTime) {
-  let prefix = '';
-  let date: Date = null;
+  let prefix: string;
+  let date: Date;
   if (requestedTime === 'latest') {
     prefix = 'latest';
     date = new Date();
@@ -79,12 +79,12 @@ const fetchAvalancheWarning = async (
   zone_id: number,
   requested_time: RequestedTime,
   logger: Logger,
-): Promise<AvalancheWarning> => {
+): Promise<WarningResultWithZone> => {
   const url = `${nationalAvalancheCenterHost}/v2/public/product`;
-  const params = {
+  const params: Record<string, string> = {
     center_id: center_id,
     type: 'warning',
-    zone_id: zone_id,
+    zone_id: String(zone_id),
   };
   if (requested_time !== 'latest') {
     params['published_time'] = apiDateString(requested_time); // the API accepts a _date_ and appends 19:00 to it for a time...
@@ -93,15 +93,15 @@ const fetchAvalancheWarning = async (
   const thisLogger = logger.child({url: url, params: params, what: what});
   const data = await safeFetch(
     () =>
-      axios.get(url, {
+      axios.get<AxiosResponse<unknown>>(url, {
         params: params,
       }),
     thisLogger,
     what,
   );
 
-  const parseResult = avalancheWarningSchema.deepPartial().safeParse(data);
-  if (parseResult.success === false) {
+  const parseResult = warningResultSchema.safeParse(data);
+  if (!parseResult.success) {
     thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
@@ -114,7 +114,7 @@ const fetchAvalancheWarning = async (
     throw parseResult.error;
   } else {
     return {
-      ...parseResult.data,
+      data: parseResult.data,
       zone_id: zone_id,
     };
   }

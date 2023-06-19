@@ -7,7 +7,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {colorFor} from 'components/AvalancheDangerPyramid';
 import {Card, CardProps} from 'components/content/Card';
-import {Carousel} from 'components/content/carousel';
+import {Carousel, images} from 'components/content/carousel';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {ZoneMap} from 'components/content/ZoneMap';
 import {HStack, View, VStack} from 'components/core';
@@ -59,7 +59,7 @@ export const NWACObservationDetailView: React.FunctionComponent<{
   const mapResult = useMapLayer(observation?.center_id);
   const mapLayer = mapResult.data;
 
-  if (incompleteQueryState(observationResult, mapResult)) {
+  if (incompleteQueryState(observationResult, mapResult) || !observation || !mapLayer) {
     return <QueryState results={[observationResult, mapResult]} />;
   }
 
@@ -70,14 +70,15 @@ export const ObservationDetailView: React.FunctionComponent<{
   id: string;
 }> = ({id}) => {
   const observationResult = useNACObservation(id);
-  const mapResult = useMapLayer(observationResult.data?.center_id?.toUpperCase() as AvalancheCenterID);
+  const observation = observationResult.data;
+  const mapResult = useMapLayer(observation?.center_id?.toUpperCase() as AvalancheCenterID);
   const mapLayer = mapResult.data;
 
-  if (incompleteQueryState(observationResult, mapResult)) {
+  if (incompleteQueryState(observationResult, mapResult) || !observation || !mapLayer) {
     return <QueryState results={[observationResult, mapResult]} />;
   }
 
-  return <ObservationCard observation={observationResult.data} mapLayer={mapLayer} />;
+  return <ObservationCard observation={observation} mapLayer={mapLayer} />;
 };
 
 const dataTableFlex = [1, 1];
@@ -95,30 +96,34 @@ export const TableRow = ({label, value}: {label: string; value: string}) => (
 );
 
 export const WeatherCard = ({observation, ...props}: {observation: Observation} & CardProps) => {
-  const {weather = {}, weather_summary = ''} = observation.advanced_fields || {};
   // observation.advanced_fields.weather might be missing, or might be an object that's filled with empty strings -
   // in either of those cases, we don't have weather data to render.
-  const hasWeatherEntries = Object.entries(weather || {}).some(([_k, v]) => Boolean(v));
+  const hasWeatherEntries = Object.entries(observation.advanced_fields?.weather || {}).some(([_k, v]) => Boolean(v));
 
-  if (!hasWeatherEntries && !weather_summary) {
+  if (!hasWeatherEntries && !observation.advanced_fields?.weather_summary) {
     return null;
   }
-
-  const {cloud_cover, air_temp, recent_snowfall, rain_elevation, snow_avail_for_transport, wind_loading} = weather;
 
   return (
     <Card borderRadius={0} borderColor="white" header={<BodyBlack>Weather</BodyBlack>} {...props}>
       <VStack space={8} width="100%">
         {/* Using Boolean() here so that we don't end up rendering empty strings inline */}
-        {Boolean(weather_summary) && <HTML source={{html: weather_summary}} />}
-        {Boolean(cloud_cover) && <TableRow label={'Cloud Cover'} value={FormatCloudCover(cloud_cover as CloudCover)} />}
-        {Boolean(air_temp) && <TableRow label={'Temperature (F)'} value={air_temp} />}
-        {Boolean(recent_snowfall) && <TableRow label={'New or Recent Snowfall'} value={recent_snowfall} />}
-        {Boolean(rain_elevation) && <TableRow label={'Rain/Snow Line (ft)'} value={rain_elevation} />}
-        {Boolean(snow_avail_for_transport) && (
-          <TableRow label={'Snow Available For Transport'} value={FormatSnowAvailableForTransport(snow_avail_for_transport as SnowAvailableForTransport)} />
+        {observation.advanced_fields?.weather_summary && <HTML source={{html: observation.advanced_fields?.weather_summary}} />}
+        {observation.advanced_fields?.weather?.cloud_cover && (
+          <TableRow label={'Cloud Cover'} value={FormatCloudCover(observation.advanced_fields?.weather?.cloud_cover as CloudCover)} />
         )}
-        {Boolean(wind_loading) && <TableRow label={'Wind Loading'} value={FormatWindLoading(wind_loading as WindLoading)} />}
+        {observation.advanced_fields?.weather?.air_temp && <TableRow label={'Temperature (F)'} value={observation.advanced_fields?.weather?.air_temp} />}
+        {observation.advanced_fields?.weather?.recent_snowfall && <TableRow label={'New or Recent Snowfall'} value={observation.advanced_fields?.weather?.recent_snowfall} />}
+        {observation.advanced_fields?.weather?.rain_elevation && <TableRow label={'Rain/Snow Line (ft)'} value={observation.advanced_fields?.weather?.rain_elevation} />}
+        {observation.advanced_fields?.weather?.snow_avail_for_transport && (
+          <TableRow
+            label={'Snow Available For Transport'}
+            value={FormatSnowAvailableForTransport(observation.advanced_fields?.weather?.snow_avail_for_transport as SnowAvailableForTransport)}
+          />
+        )}
+        {observation.advanced_fields?.weather?.wind_loading && (
+          <TableRow label={'Wind Loading'} value={FormatWindLoading(observation.advanced_fields?.weather?.wind_loading as WindLoading)} />
+        )}
       </VStack>
     </Card>
   );
@@ -193,9 +198,11 @@ export const ObservationCard: React.FunctionComponent<{
 }> = ({observation, mapLayer}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const {avalanches_observed, avalanches_triggered, avalanches_caught} = observation.instability;
-  const zone_name = zone(mapLayer, observation.location_point?.lat, observation.location_point?.lng);
+  const zone_name = observation.location_point?.lat && observation.location_point?.lng && zone(mapLayer, observation.location_point?.lat, observation.location_point?.lng);
   React.useEffect(() => {
-    navigation.setOptions({title: `${zone_name} Observation`});
+    if (zone_name) {
+      navigation.setOptions({title: `${zone_name} Observation`});
+    }
   }, [navigation, zone_name]);
 
   return (
@@ -222,7 +229,7 @@ export const ObservationCard: React.FunctionComponent<{
               </View>
               <Card borderRadius={0} borderColor="white" header={<BodyBlack>Summary</BodyBlack>}>
                 <VStack space={8} width="100%">
-                  {!isPlaceholder(observation.location_point?.lat, observation.location_point?.lng) && (
+                  {observation.location_point.lat && observation.location_point.lng && !isPlaceholder(observation.location_point.lat, observation.location_point.lng) && (
                     <ZoneMap
                       style={{width: '100%', height: 200}}
                       animated={false}
@@ -244,11 +251,12 @@ export const ObservationCard: React.FunctionComponent<{
                           longitude: observation.location_point.lng,
                         }}
                         anchor={{x: 0.5, y: 1}}>
+                        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
                         <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40}} />
                       </Marker>
                     </ZoneMap>
                   )}
-                  <TableRow label="Location" value={observation.location_name} />
+                  {observation.location_name && <TableRow label="Location" value={observation.location_name} />}
                   <TableRow label="Route" value={observation.route || 'Not specified'} />
                   <TableRow label="Activity" value={activityDisplayName(observation.activity)} />
                   {observation.observation_summary && <HTML source={{html: observation.observation_summary}} />}
@@ -307,9 +315,9 @@ export const ObservationCard: React.FunctionComponent<{
                   )}
                 </VStack>
               </Card>
-              {observation.media && observation.media.length > 0 && (
+              {images(observation.media) && (
                 <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>}>
-                  <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.media} displayCaptions={false} />
+                  <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={images(observation.media)} displayCaptions={false} />
                 </Card>
               )}
               {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanches_summary) && (
@@ -343,10 +351,10 @@ export const ObservationCard: React.FunctionComponent<{
                         {item.width && <TableRow label={'Width'} value={`${withUnits(item.width, 'ft')}`} />}
                         {item.avalancheType && <TableRow label={'Type'} value={FormatAvalancheType(item.avalancheType as AvalancheType)} />}
                         {item.verticalFall && <TableRow label={'Bed Surface'} value={FormatAvalancheBedSurface(item.bedSfc as AvalancheBedSurface)} />}
-                        {item.media && item.media.length > 0 && (
+                        {images(item.media) && (
                           <VStack pt={8} space={8} width="100%">
                             <BodySemibold>Media</BodySemibold>
-                            <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={item.media} displayCaptions={false} />
+                            <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={images(item.media)} displayCaptions={false} />
                           </VStack>
                         )}
                       </VStack>
@@ -361,8 +369,8 @@ export const ObservationCard: React.FunctionComponent<{
                   <Card borderRadius={0} borderColor="white" header={<BodyBlack>Snowpack</BodyBlack>}>
                     <VStack space={8} width="100%">
                       {observation.advanced_fields.snowpack_summary && <HTML source={{html: observation.advanced_fields.snowpack_summary}} />}
-                      {observation.advanced_fields.snowpack_media && observation.advanced_fields.snowpack_media.length > 0 && (
-                        <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={observation.advanced_fields.snowpack_media} displayCaptions={false} />
+                      {images(observation.advanced_fields.snowpack_media) && (
+                        <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={images(observation.advanced_fields.snowpack_media)} displayCaptions={false} />
                       )}
                       {observation.advanced_fields.snowpack && <>{/* we don't know what fields could be in this thing ... */}</>}
                     </VStack>

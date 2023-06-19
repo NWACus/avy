@@ -1,6 +1,6 @@
 import React, {PropsWithChildren} from 'react';
 
-import {ScrollView, TouchableOpacity} from 'react-native';
+import {GestureResponderEvent, ScrollView, TouchableOpacity} from 'react-native';
 
 import ImageView from 'react-native-image-viewing';
 
@@ -9,18 +9,18 @@ import {Center, HStack, View, ViewProps} from 'components/core';
 import {BodySm} from 'components/text';
 import {HTML, HTMLRendererConfig} from 'components/text/HTML';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
-import {MediaItem} from 'types/nationalAvalancheCenter';
+import {ImageMediaItem} from 'types/nationalAvalancheCenter';
 
 export interface ImageViewerModalProps extends ViewProps {
   visible: boolean;
-  media: MediaItem[];
+  media: ImageMediaItem[];
   startIndex: number;
   onClose: () => void;
 }
 
 const htmlStyle = {fontSize: 12, textAlign: 'center', color: 'white'} as const;
 
-const RoundButton = ({onPress, ...props}) => (
+const RoundButton = ({onPress, ...props}: {onPress: ((event: GestureResponderEvent) => void) | undefined} & ViewProps) => (
   <TouchableOpacity onPress={onPress}>
     <Center height={32} width={32} backgroundColor="#333333" borderRadius={16} {...props}>
       <AntDesign size={24} color="white" name="close" />
@@ -29,7 +29,7 @@ const RoundButton = ({onPress, ...props}) => (
 );
 
 export const ImageViewerModal: React.FunctionComponent<PropsWithChildren<ImageViewerModalProps>> = ({visible, media, startIndex, onClose, ..._props}) => {
-  const HeaderComponent = ({imageIndex}) => (
+  const HeaderComponent = ({imageIndex}: {imageIndex: number}) => (
     <SafeAreaProvider>
       <SafeAreaView>
         <HStack width="100%" justifyContent="space-between" alignItems="center" height={64}>
@@ -44,11 +44,9 @@ export const ImageViewerModal: React.FunctionComponent<PropsWithChildren<ImageVi
       </SafeAreaView>
     </SafeAreaProvider>
   );
-  const FooterComponent = ({imageIndex}) => (
+  const FooterComponent = ({imageIndex}: {imageIndex: number}) => (
     <View flex={1} px={32} pb={16}>
-      <ScrollView bounces={false}>
-        <HTML source={{html: media[imageIndex].caption}} />
-      </ScrollView>
+      <ScrollView bounces={false}>{media[imageIndex].caption && <HTML source={{html: media[imageIndex].caption ?? ''}} />}</ScrollView>
     </View>
   );
 

@@ -14,12 +14,11 @@ import {SwitchField} from 'components/form/SwitchField';
 import {BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
 import {geoContains} from 'd3-geo';
 import {getMonth, getYear, isAfter, isBefore, parseISO, sub} from 'date-fns';
-import {OverviewFragment} from 'hooks/useObservations';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {FormProvider, useForm} from 'react-hook-form';
-import {KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, TouchableOpacity, View as RNView} from 'react-native';
+import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
+import {findNodeHandle, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, TouchableOpacity, View as RNView} from 'react-native';
 import {colorLookup} from 'theme';
-import {MapLayer, PartnerType} from 'types/nationalAvalancheCenter';
+import {MapLayer, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
 import {z} from 'zod';
 
 const avalancheInstabilitySchema = z.enum(['observed', 'triggered', 'caught']);
@@ -43,8 +42,11 @@ const observationFilterConfigSchema = z
   .deepPartial();
 export type ObservationFilterConfig = z.infer<typeof observationFilterConfigSchema>;
 
-const matchesDates = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>, observation: OverviewFragment): boolean => {
+const matchesDates = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>, observation: ObservationFragment): boolean => {
   let matches = true;
+  if (!dates) {
+    return matches;
+  }
   switch (dates.value) {
     case 'past_day':
       dates.to = new Date();
@@ -82,43 +84,47 @@ const matchesDates = (dates: z.infer<typeof observationFilterConfigSchema.shape.
   return matches;
 };
 
-const matchesInstability = (instability: z.infer<typeof observationFilterConfigSchema.shape.instability>, observation: OverviewFragment): boolean => {
+const matchesInstability = (instability: z.infer<typeof observationFilterConfigSchema.shape.instability>, observation: ObservationFragment): boolean => {
   let matches = false;
+  if (!instability) {
+    return matches;
+  }
   if (instability.avalanches) {
     matches = matches || matchesAvalancheInstability(instability.avalanches, observation);
   }
 
   if (instability.cracking) {
-    matches = matches || observation.instability.cracking;
+    matches = matches || (observation.instability.cracking ?? false);
   }
 
   if (instability.collapsing) {
-    matches = matches || observation.instability.collapsing;
+    matches = matches || (observation.instability.collapsing ?? false);
   }
 
   return matches;
 };
 
-const matchesAvalancheInstability = (instability: avalancheInstability, observation: OverviewFragment): boolean => {
+const matchesAvalancheInstability = (instability: avalancheInstability, observation: ObservationFragment): boolean => {
   switch (instability) {
     case 'observed':
-      return observation.instability?.avalanches_observed;
+      return observation.instability?.avalanches_observed ?? false;
     case 'triggered':
-      return observation.instability?.avalanches_triggered;
+      return observation.instability?.avalanches_triggered ?? false;
     case 'caught':
-      return observation.instability?.avalanches_caught;
+      return observation.instability?.avalanches_caught ?? false;
   }
 
   const invalid: never = instability;
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   throw new Error(`Unknown instability: ${invalid}`);
 };
 
-export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterConfig): ((OverviewFragment) => boolean)[] => {
+export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterConfig): ((fragment: ObservationFragment) => boolean)[] => {
   if (!config) {
     return [];
   }
 
-  const filterFuncs: ((OverviewFragment) => boolean)[] = [];
+  const filterFuncs: ((fragment: ObservationFragment) => boolean)[] = [];
   if (config.zone) {
     filterFuncs.push(observation => config.zone === zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng));
   }
@@ -172,26 +178,31 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
     return true;
   });
 
-  const onSubmitHandler = async (data: ObservationFilterConfig) => {
+  const onSubmitHandler = (data: ObservationFilterConfig) => {
     setFilterConfig(data);
   };
 
-  const fieldRefs = React.useRef<{ref: RNView; field: string}[]>([]);
-  const scrollViewRef = React.useRef(null);
+  const fieldRefs = React.useRef<{ref: RNView; field: keyof ObservationFilterConfig}[]>([]);
+  const scrollViewRef = React.useRef<ScrollView>(null);
 
-  const onSubmitErrorHandler = errors => {
+  const onSubmitErrorHandler = (errors: FieldErrors<ObservationFilterConfig>) => {
     logger.error({errors: errors, formValues: formContext.getValues()}, 'filters error');
     // scroll to the first field with an error
     fieldRefs.current.some(({ref, field}) => {
-      if (errors[field]) {
-        ref.measureLayout(
-          scrollViewRef.current,
-          (_left, top) => {
-            scrollViewRef.current.scrollTo({y: top});
-          },
-          () => undefined,
-        );
-        return true;
+      if (errors[field] && scrollViewRef.current) {
+        const handle = findNodeHandle(scrollViewRef.current);
+        if (handle) {
+          ref.measureLayout(
+            handle,
+            (_left, top) => {
+              if (scrollViewRef.current) {
+                scrollViewRef.current.scrollTo({y: top});
+              }
+            },
+            () => undefined,
+          );
+          return true;
+        }
       }
       return false;
     });
@@ -236,7 +247,19 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                       <DateField name="dates.from" label="Published After" />
                       <DateField name="dates.to" label="Published Before" />
                     </Conditional>
-                    <SelectField name="observerType" label="Observer Type" radio items={Object.keys(PartnerType).map(label => ({value: PartnerType[label], label: label}))} />
+                    <SelectField
+                      name="observerType"
+                      label="Observer Type"
+                      radio
+                      items={[
+                        {value: PartnerType.Forecaster, label: 'Forecaster'},
+                        {value: PartnerType.Intern, label: 'Intern'},
+                        {value: PartnerType.Professional, label: 'Professional'},
+                        {value: PartnerType.Volunteer, label: 'Volunteer'},
+                        {value: PartnerType.Public, label: 'Public'},
+                        {value: PartnerType.Other, label: 'Other'},
+                      ]}
+                    />
                     <SelectField
                       name="instability.avalanches"
                       label="Avalanches"
@@ -273,14 +296,16 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
               mx={16}
               mt={16}
               buttonStyle="primary"
-              onPress={async () => {
-                // Force validation errors to show up on fields that haven't been visited yet
-                await formContext.trigger();
-                // Then try to submit the form
-                await formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
-                // Finally, close the modal
-                setVisible(false);
-              }}>
+              onPress={
+                void (async () => {
+                  // Force validation errors to show up on fields that haven't been visited yet
+                  await formContext.trigger();
+                  // Then try to submit the form
+                  await formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
+                  // Finally, close the modal
+                  setVisible(false);
+                })()
+              }>
               <BodySemibold>Apply Filters</BodySemibold>
             </Button>
           </KeyboardAvoidingView>
@@ -290,7 +315,10 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   );
 };
 
-export const zone = (mapLayer: MapLayer, lat: number, long: number): string => {
+export const zone = (mapLayer: MapLayer, lat: number | null | undefined, long: number | null | undefined): string => {
+  if (!lat || !long) {
+    return 'Not in any Forecast Zone';
+  }
   const matchingFeatures = mapLayer.features.filter(feature => geoContains(feature.geometry, [long, lat])).map(feature => feature.properties.name);
   if (matchingFeatures.length === 0) {
     return 'Not in any Forecast Zone';

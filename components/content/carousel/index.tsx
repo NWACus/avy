@@ -4,12 +4,25 @@ import {ImageList} from 'components/content/carousel/ImageList';
 import {ImageViewerModal} from 'components/content/carousel/ImageViewerModal';
 import {View, ViewProps} from 'components/core';
 import {HTMLRendererConfig} from 'components/text/HTML';
-import {MediaItem} from 'types/nationalAvalancheCenter';
+import {ImageMediaItem, MediaItem, MediaType} from 'types/nationalAvalancheCenter';
+
+export const images = (media: MediaItem[] | null | undefined): ImageMediaItem[] => {
+  const filtered: ImageMediaItem[] = [];
+  if (!media) {
+    return filtered;
+  }
+  for (const item of media) {
+    if (item.type === MediaType.Image) {
+      filtered.push(item);
+    }
+  }
+  return filtered;
+};
 
 export interface CarouselProps extends ViewProps {
   thumbnailHeight: number;
   thumbnailAspectRatio?: number;
-  media: MediaItem[];
+  media: ImageMediaItem[];
   displayCaptions?: boolean;
 }
 
@@ -27,7 +40,7 @@ export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>>
       <HTMLRendererConfig baseStyle={{fontSize: 12, fontFamily: 'Lato_400Regular_Italic', textAlign: 'center'}}>
         <ImageList imageWidth={thumbnailWidth} imageHeight={thumbnailHeight} media={media} displayCaptions={displayCaptions} onPress={onPress} imageStyle={{borderRadius: 4}} />
       </HTMLRendererConfig>
-      <ImageViewerModal visible={modalIndex !== null} onClose={() => setModalIndex(null)} media={media} startIndex={modalIndex} />
+      <ImageViewerModal visible={modalIndex !== null} onClose={() => setModalIndex(null)} media={media} startIndex={modalIndex ?? 0} />
     </View>
   );
 };

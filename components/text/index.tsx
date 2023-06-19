@@ -1,4 +1,4 @@
-import {isUndefined, merge, omit} from 'lodash';
+import {isUndefined, merge, omitBy} from 'lodash';
 import * as React from 'react';
 
 import {Text, TextProps, TextStyle} from 'react-native';
@@ -17,9 +17,9 @@ export interface TextWrapperProps extends TextProps {
 }
 
 const TextWrapper: React.FC<TextWrapperProps> = ({color, fontFamily, fontSize, fontStyle, letterSpacing, lineHeight, textAlign, textTransform, children, ...props}) => {
-  const style = omit(
+  const style = omitBy(
     {
-      color: colorLookup(color),
+      color: colorLookup(color ?? ''),
       fontFamily,
       fontSize,
       letterSpacing,
@@ -30,7 +30,7 @@ const TextWrapper: React.FC<TextWrapperProps> = ({color, fontFamily, fontSize, f
     isUndefined,
   );
   if (style.fontFamily && fontStyle === 'italic') {
-    style.fontFamily = style.fontFamily + '_Italic';
+    style.fontFamily = String(style.fontFamily) + '_Italic';
   }
   return <Text {...merge({}, props, {style})}>{children}</Text>;
 };

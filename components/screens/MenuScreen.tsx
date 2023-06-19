@@ -99,7 +99,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
     logger.info({environment: staging ? 'production' : 'staging'}, 'switching environment');
   }, [staging, setStaging, logger]);
   const navigation = useNavigation<MenuStackNavigationProps>();
-  return function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
+  const MenuScreen = function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
     return (
       <View style={{...StyleSheet.absoluteFillObject}} bg="white">
         {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
@@ -128,29 +128,33 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                       <VStack space={12}>
                         <Button
                           buttonStyle="normal"
-                          onPress={async () => {
-                            if (await MailComposer.isAvailableAsync()) {
-                              MailComposer.composeAsync({
-                                recipients: ['developer@nwac.us'],
-                                subject: 'NWAC app log files',
-                                attachments: [logFilePath],
-                              });
-                            } else {
-                              Toast.show({
-                                type: 'error',
-                                text1: 'Email is not configured!',
-                                position: 'bottom',
-                              });
-                            }
+                          onPress={() => {
+                            void (async () => {
+                              if (await MailComposer.isAvailableAsync()) {
+                                void MailComposer.composeAsync({
+                                  recipients: ['developer@nwac.us'],
+                                  subject: 'NWAC app log files',
+                                  attachments: [logFilePath],
+                                });
+                              } else {
+                                Toast.show({
+                                  type: 'error',
+                                  text1: 'Email is not configured!',
+                                  position: 'bottom',
+                                });
+                              }
+                            })();
                           }}>
                           <Body>Email log file</Body>
                         </Button>
                         <Button
                           buttonStyle="normal"
                           onPress={() => {
-                            AsyncStorage.clear();
-                            queryCache.clear();
-                            clearUploadCache();
+                            void (async () => {
+                              await AsyncStorage.clear();
+                              queryCache.clear();
+                              await clearUploadCache();
+                            })();
                           }}>
                           <Body>Reset the query cache</Body>
                         </Button>
@@ -407,6 +411,8 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
       </View>
     );
   };
+  MenuScreen.displayName = 'MenuScreen';
+  return MenuScreen;
 };
 
 const ButtonStylePreview = () => (
@@ -589,9 +595,11 @@ const ToastPreview = () => {
 };
 
 export const AvalancheCenterSelectorScreen = (avalancheCenterId: AvalancheCenterID, setAvalancheCenter: React.Dispatch<React.SetStateAction<AvalancheCenterID>>) => {
-  return function (_: NativeStackScreenProps<MenuStackParamList, 'avalancheCenterSelector'>) {
+  const AvalancheCenterSelectorScreen = function (_: NativeStackScreenProps<MenuStackParamList, 'avalancheCenterSelector'>) {
     return <AvalancheCenterSelector currentCenterId={avalancheCenterId} setAvalancheCenter={setAvalancheCenter} />;
   };
+  AvalancheCenterSelectorScreen.displayName = 'AvalancheCenterSelectorScreen';
+  return AvalancheCenterSelectorScreen;
 };
 
 export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
@@ -606,7 +614,8 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
         <Card borderRadius={0} borderColor="white" header={<Title3Black>Updates</Title3Black>}>
           <TableRow label="Release Channel" value={Updates.releaseChannel || 'unknown'} />
           <TableRow label="Update Version" value={Updates.channel || 'unknown'} />
-          <TableRow label="Update Group ID" value={Constants.manifest2?.metadata?.['updateGroup'] || 'unknown'} />
+          {/*TODO: skuznets - we need to find a correct way to get the update group ID to find the running commit ...*/}
+          {/*<TableRow label="Update Group ID" value={Constants.manifest2?.metadata?.['updateGroup'] || 'unknown'} />*/}
           <TableRow label="Update ID" value={Updates.updateId || 'unknown'} />
         </Card>
       </VStack>
