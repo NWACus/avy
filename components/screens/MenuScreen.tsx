@@ -235,6 +235,30 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                             },
                           },
                           {
+                            label: 'View forecast with active watch',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('forecast', {
+                                zoneName: 'Northwest Mountains',
+                                center_id: 'CBAC',
+                                forecast_zone_id: 298,
+                                requestedTime: toISOStringUTC(new Date('2023-03-21T5:21:00-0800')),
+                              });
+                            },
+                          },
+                          {
+                            label: 'View forecast with active special bulletin',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('forecast', {
+                                zoneName: 'Northwest Mountains',
+                                center_id: 'CBAC',
+                                forecast_zone_id: 298,
+                                requestedTime: toISOStringUTC(new Date('2022-02-25T5:21:00-0800')),
+                              });
+                            },
+                          },
+                          {
                             label: 'View forecast with synopsis',
                             data: null,
                             action: () => {
