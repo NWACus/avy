@@ -70,10 +70,7 @@ const selectStyles: SelectStyles = {
 
 export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, label, items, prompt, radio, disabled}, ref) => {
   const {setValue} = useFormContext();
-  const {
-    field: {value},
-    fieldState,
-  } = useController({name});
+  const {field, fieldState} = useController({name});
   const menuItems =
     typeof items[0] === 'string'
       ? (items as string[]).map(item => ({
@@ -81,17 +78,17 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
           value: item,
         }))
       : (items as Item[]);
-  const multiple = Array.isArray(value);
+  const multiple = Array.isArray(field.value);
 
-  const defaultOption = !multiple && Boolean(value) ? menuItems.find(item => item.value === value) : undefined;
+  const defaultOption = !Array.isArray(field.value) && Boolean(field.value) ? menuItems.find(item => item.value === field.value) : undefined;
 
   const selectRef = useRef<SelectRef>(null);
   useEffect(() => {
     // Make sure the internal state is cleared when the form is cleared
-    if ((multiple && value.length === 0) || (!multiple && value === '')) {
-      selectRef.current.clear();
+    if ((Array.isArray(field.value) && field.value.length === 0) || (!Array.isArray(field.value) && field.value === '')) {
+      selectRef.current?.clear();
     }
-  }, [selectRef, value, multiple]);
+  }, [selectRef, field.value, multiple]);
 
   return (
     <VStack width="100%" space={4} ref={ref}>
@@ -101,13 +98,12 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
         disabled={disabled}
         ref={selectRef}
         onSelect={({value: selectedValue}) => {
-          const newValue = multiple ? value.concat([selectedValue]) : selectedValue;
+          const newValue = Array.isArray(field.value) ? field.value.concat([selectedValue]) : selectedValue;
           setValue(name, newValue, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
         }}
         onRemove={option => {
-          // This is bs, option is never an array, the type decl is wrong. https://github.com/MobileReality/react-native-select-pro/issues/187
-          const removedValue = Array.isArray(option) ? option[0].value : option.value;
-          const newValue = multiple ? value.filter(v => v !== removedValue) : null;
+          const removedValue = option.value;
+          const newValue = Array.isArray(field.value) ? field.value.filter(v => v !== removedValue) : '';
           setValue(name, newValue, {shouldValidate: false, shouldDirty: false, shouldTouch: false});
         }}
         styles={selectStyles}
@@ -115,7 +111,7 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
           // only works on Android, unfortunately
           persistentScrollbar: true,
         }}
-        multiple={multiple}
+        multiple={Array.isArray(field.value)}
         clearable={!radio}
         options={menuItems}
         placeholderText={prompt}
@@ -127,3 +123,4 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
     </VStack>
   );
 });
+SelectField.displayName = 'SelectField';

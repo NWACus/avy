@@ -1,15 +1,17 @@
 import React from 'react';
 
+import * as Sentry from 'sentry-expo';
+
 import {QueryClient, useInfiniteQuery} from '@tanstack/react-query';
-import axios, {AxiosError} from 'axios';
+import axios, {AxiosError, AxiosResponse} from 'axios';
 
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict, sub} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
-import {ObservationsDocument, ObservationsQuery} from 'hooks/useObservations';
+import {ObservationsDocument} from 'hooks/useObservations';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, ObservationFragment, observationListResultSchema} from 'types/nationalAvalancheCenter';
 import {apiDateString, formatRequestedTime, parseRequestedTimeString, RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 import {ZodError} from 'zod';
 
@@ -68,7 +70,8 @@ export const prefetchNACObservations = async (
   });
 };
 
-interface ObservationsQueryWithMeta extends ObservationsQuery {
+interface ObservationsQueryWithMeta {
+  data: ObservationFragment[];
   endDate: string;
   startDate: string;
 }
@@ -90,7 +93,7 @@ export const fetchNACObservations = async (
   const thisLogger = logger.child({url: url, variables: variables, what: what});
   const data = await safeFetch(
     () =>
-      axios.post(
+      axios.post<AxiosResponse<unknown>>(
         url,
         {
           query: ObservationsDocument,
@@ -107,18 +110,27 @@ export const fetchNACObservations = async (
     what,
   );
 
-  if (data.error) {
-    logger.warn({error: data.error}, `error response on fetch`);
-    throw new Error(`GraphQL error response: ${JSON.stringify(data.error)}`);
+  const parseResult = observationListResultSchema.safeParse(data);
+  if (!parseResult.success) {
+    thisLogger.warn({error: parseResult.error}, 'failed to parse');
+    Sentry.Native.captureException(parseResult.error, {
+      tags: {
+        zod_error: true,
+        url,
+      },
+    });
+    throw parseResult.error;
+  } else {
+    if (parseResult.data.errors) {
+      logger.warn({error: parseResult.data.errors}, `error response on fetch`);
+      throw new Error(`GraphQL error response: ${JSON.stringify(parseResult.data.errors)}`);
+    }
+    return {
+      data: parseResult.data.data?.getObservationList ?? [],
+      startDate: formatRequestedTime(startDate),
+      endDate: formatRequestedTime(endDate),
+    };
   }
-
-  // TODO(skuznets): we're not validating the response with Zod since we can trust the GraphQL layer, as long
-  // as our clients are up-to-date. Is this sufficient? Should we do more?
-  return {
-    startDate: formatRequestedTime(startDate),
-    endDate: formatRequestedTime(endDate),
-    ...(data.data as ObservationsQuery),
-  };
 };
 
 export default {

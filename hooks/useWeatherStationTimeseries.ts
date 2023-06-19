@@ -1,6 +1,6 @@
 import React, {useContext} from 'react';
 
-import {useQuery} from '@tanstack/react-query';
+import {useQuery, UseQueryResult} from '@tanstack/react-query';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -11,7 +11,7 @@ import {toSnowboundStringUTC} from 'utils/date';
 type Source = 'nwac' | 'snotel' | 'mesowest';
 
 interface Props {
-  token: string;
+  token?: string;
   stids: string[];
   sources: Source[];
   startDate: Date;
@@ -46,7 +46,7 @@ function floorToHour(date: Date) {
   return new Date(Math.floor(date.getTime() / MILLISECONDS_PER_HOUR) * MILLISECONDS_PER_HOUR);
 }
 
-export const useWeatherStationTimeseries = ({token, sources, stids, startDate, endDate}: Props) => {
+export const useWeatherStationTimeseries = ({token, sources, stids, startDate, endDate}: Props): UseQueryResult<TimeSeries, ApiError | Error> => {
   const clientProps = useContext<ClientProps>(ClientContext);
   const sourceString = sources.join(',');
   const stidString = stids.join(',');

@@ -10,7 +10,7 @@ interface ConditionalProps<T> {
 }
 
 export function Conditional<T>({name, value, space = 0, children}: PropsWithChildren<ConditionalProps<T>>) {
-  const formValue = useWatch({name});
+  const formValue = useWatch<Record<string, string>>({name});
   const collapsed = formValue !== value;
   return (
     <View pb={collapsed ? 0 : space}>

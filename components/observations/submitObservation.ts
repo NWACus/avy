@@ -45,7 +45,7 @@ const getImageData = async (image: ImagePickerAsset): Promise<{imageDataBase64: 
   const filename = uri.split('/').slice(-1)[0];
   const extension = filename.split('.').slice(-1)[0] || '';
 
-  const orientation = image.exif?.Orientation;
+  const orientation = image.exif?.Orientation as string | number;
   if (typeof orientation !== 'number' || orientation <= 1) {
     const imageDataBase64 = await FileSystem.readAsStringAsync(uri, {encoding: 'base64'});
     return {imageDataBase64, filename, mimeType: extensionToMimeType(extension)};
@@ -56,7 +56,7 @@ const getImageData = async (image: ImagePickerAsset): Promise<{imageDataBase64: 
     // The solution is pretty simple: allow the expo image manipulation library to save a copy, which
     // writes the image with a "normal" orientation and applies any necessary transforms to make it look correct.
     const result = await manipulateAsync(uri, [], {format: SaveFormat.JPEG, base64: true});
-    return {imageDataBase64: result.base64, filename, mimeType: 'image/jpeg'};
+    return {imageDataBase64: result.base64 ?? '', filename, mimeType: 'image/jpeg'};
   }
 };
 
@@ -110,21 +110,21 @@ export const submitObservation = async (
   }: {
     apiPrefix: string;
     center_id: AvalancheCenterID;
-    observationFormData: ObservationFormData;
+    observationFormData: Partial<ObservationFormData>;
   },
-): Promise<Partial<Observation>> => {
+): Promise<Observation> => {
   const {photoUsage, name} = observationFormData;
   // TODO: probably should upload these sequentially instead of in parallel
   const media = await Promise.all(
-    observationFormData.images.map(image =>
+    observationFormData.images?.map(image =>
       uploadImage(logger, {
-        apiPrefix,
-        image,
-        name,
-        center_id,
-        photoUsage,
+        apiPrefix: apiPrefix,
+        image: image,
+        name: name ?? '',
+        center_id: center_id,
+        photoUsage: photoUsage ?? MediaUsage.Credit,
       }),
-    ),
+    ) ?? [],
   );
   logger.info({media: media}, 'submitted media');
 
@@ -137,11 +137,12 @@ export const submitObservation = async (
     media: media,
     observer_type: 'public',
     // Date has to be a plain-old YYYY-MM-DD string
-    start_date: apiDateString(observationFormData.start_date),
+    start_date: apiDateString(observationFormData.start_date ?? new Date()),
   };
 
-  const {data} = await axios.post(url, payload);
+  const {data} = await axios.post<Observation>(url, payload);
   // You'd think we could feed data to Zod and get a strongly typed object back, but
   // the object that we get back from the post can't actually be parsed by our schema :(
-  return data as Partial<Observation>;
+  // TODO(skuznets): figure out what we get from POST and actually parse it ...
+  return data;
 };

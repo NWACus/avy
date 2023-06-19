@@ -1,10 +1,12 @@
-import React, {MutableRefObject, useCallback, useRef, useState} from 'react';
+import React, {RefObject, useCallback, useRef, useState} from 'react';
 
 import {useNavigation} from '@react-navigation/native';
 import {
   Animated,
+  FlatList,
   GestureResponderEvent,
   LayoutChangeEvent,
+  ListRenderItem,
   NativeScrollEvent,
   NativeSyntheticEvent,
   PanResponder,
@@ -13,6 +15,7 @@ import {
   Text,
   TouchableOpacity,
   useWindowDimensions,
+  View as RNView,
 } from 'react-native';
 import AnimatedMapView, {Region} from 'react-native-maps';
 
@@ -35,7 +38,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import md5 from 'md5';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps} from 'routes';
-import {AvalancheCenterID, DangerLevel} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, DangerLevel, Feature, ForecastPeriod, ProductType} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime, toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
 
 export interface MapProps {
@@ -52,7 +55,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const forecastResults = useMapLayerAvalancheForecasts(center, requestedTime, mapLayer, metadata);
   const warningResults = useMapLayerAvalancheWarnings(center, requestedTime, mapLayer);
 
-  const topElements = React.useRef(null);
+  const topElements = React.useRef<RNView>(null);
 
   const navigation = useNavigation<HomeStackNavigationProps>();
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
@@ -95,18 +98,22 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     controller.animateUsingUpdatedTabBarHeight(tabBarHeight);
   }, [tabBarHeight, controller]);
 
-  if (incompleteQueryState(mapLayerResult, metadataResult, ...forecastResults, ...warningResults)) {
+  if (incompleteQueryState(mapLayerResult, metadataResult, ...forecastResults, ...warningResults) || !mapLayer || !metadata) {
     return <QueryState results={[mapLayerResult, metadataResult, ...forecastResults, ...warningResults]} />;
   }
 
-  // default to the values in the map layer, but update it with the forecasts and warnings we've fetched
-  const zonesById: Record<number, MapViewZone> = mapLayer.features.reduce((accum, feature) => {
+  // default to the values in the map layer, but update it with the forecasts and wranings we've fetched
+  const zonesById: Record<string, MapViewZone> = mapLayer.features.reduce((accum: Record<string, MapViewZone>, feature: Feature) => {
     accum[feature.id] = {
       zone_id: feature.id,
-      center_id: center,
       geometry: feature.geometry,
-      hasWarning: feature.properties.warning?.product === 'warning',
-      ...feature.properties,
+      hasWarning: feature.properties.warning.product !== null,
+      center_id: center,
+      name: feature.properties.name,
+      danger_level: feature.properties.danger_level,
+      start_date: feature.properties.start_date,
+      end_date: feature.properties.end_date,
+      fillOpacity: feature.properties.fillOpacity,
     };
     return accum;
   }, {});
@@ -114,24 +121,29 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     .map(result => result.data) // get data from the results
     .filter(data => data) // only operate on results that have succeeded
     .forEach(forecast => {
-      forecast.forecast_zone?.forEach(({id}) => {
-        const mapViewZoneData = zonesById[id];
-        if (mapViewZoneData) {
-          const currentDanger = forecast.danger?.find(d => d.valid_day === 'current');
-          if (currentDanger) {
-            mapViewZoneData.danger_level = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
+      forecast &&
+        forecast.forecast_zone?.forEach(({id}) => {
+          const mapViewZoneData = zonesById[id];
+          if (mapViewZoneData) {
+            if (forecast.product_type === ProductType.Forecast) {
+              const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);
+              if (currentDanger) {
+                mapViewZoneData.danger_level = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
+              }
+            }
+            mapViewZoneData.start_date = forecast.published_time;
+            mapViewZoneData.end_date = forecast.expires_time;
           }
-          mapViewZoneData.start_date = forecast.published_time;
-          mapViewZoneData.end_date = forecast.expires_time;
-        }
-      });
+        });
     });
   warningResults
     .map(result => result.data) // get data from the results
-    .filter(data => data) // only operate on results that have succeeded
     .forEach(warning => {
+      if (!warning) {
+        return;
+      }
       const mapViewZoneData = zonesById[warning.zone_id];
-      if (mapViewZoneData && warning.expires_time) {
+      if (mapViewZoneData && warning.data.expires_time) {
         mapViewZoneData.hasWarning = true;
       }
     });
@@ -221,17 +233,17 @@ class AnimatedMapWithDrawerController {
 
   // The following members determine the map's region
   baseAvalancheCenterMapRegion: Region;
-  windowWidth: number;
-  windowHeight: number;
-  topElementsOffset: number;
-  topElementsHeight: number;
-  cardDrawerMaximumHeight: number;
-  tabBarHeight: number;
-  mapView: MutableRefObject<AnimatedMapView>;
+  windowWidth = 0;
+  windowHeight = 0;
+  topElementsOffset = 0;
+  topElementsHeight = 0;
+  cardDrawerMaximumHeight = 0;
+  tabBarHeight = 0;
+  mapView: RefObject<AnimatedMapView>;
   // We store the last time we logged a region calculation so as to continue logging but not spam
   lastLogged: Record<string, string>; // mapping hash of parameters to the time we last logged it
 
-  constructor(state = AnimatedDrawerState.Docked, region: Region, mapView: MutableRefObject<AnimatedMapView>, logger: Logger) {
+  constructor(state = AnimatedDrawerState.Docked, region: Region, mapView: RefObject<AnimatedMapView>, logger: Logger) {
     this.logger = logger;
     this.state = state;
     this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[state];
@@ -318,7 +330,7 @@ class AnimatedMapWithDrawerController {
     this.animateMapRegion();
   }
 
-  animateUsingUpdatedTopElementsHeight(offset, height: number) {
+  animateUsingUpdatedTopElementsHeight(offset: number, height: number) {
     this.topElementsOffset = offset;
     this.topElementsHeight = height;
     this.animateMapRegion();
@@ -404,11 +416,14 @@ class AnimatedMapWithDrawerController {
     // we will get asked to animate a couple of times before the layout settles, at which point we don't have all
     // the parameters we need to calculate the real region to animate to; for those passes through this function
     // we can't animate to this computed displayed region as we'll have NaNs inside, etc
-    let targetRegion: Region = null;
+    let targetRegion: Region;
     if (degreesPerPixelVertically > 0 && degreesPerPixelHorizontally > 0) {
       targetRegion = displayedRegion;
     } else {
       targetRegion = this.baseAvalancheCenterMapRegion;
+    }
+    if (isNaN(targetRegion.latitude) || isNaN(targetRegion.longitude) || isNaN(targetRegion.latitudeDelta) || isNaN(targetRegion.longitudeDelta)) {
+      return;
     }
     const parameters = {
       inputs: {
@@ -438,7 +453,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
   date: RequestedTime;
   zones: MapViewZone[];
   selectedZoneId: number | null;
-  setSelectedZoneId: React.Dispatch<React.SetStateAction<number>>;
+  setSelectedZoneId: React.Dispatch<React.SetStateAction<number | null>>;
   controller: AnimatedMapWithDrawerController;
 }> = ({date, zones, selectedZoneId, setSelectedZoneId, controller}) => {
   const {width} = useWindowDimensions();
@@ -476,7 +491,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
     }),
   ).current;
 
-  const flatListRef = useRef(null);
+  const flatListRef = useRef<FlatList>(null);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (!offsets || offsets.length === 0) {
@@ -519,6 +534,8 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
     setPreviousSelectedZoneId(selectedZoneId);
   }
 
+  const renderItem: ListRenderItem<MapViewZone> = ({item}) => <AvalancheForecastZoneCard key={item.zone_id} zone={item} date={date} />;
+
   return (
     <Animated.FlatList
       onLayout={(event: LayoutChangeEvent) => controller.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height)}
@@ -541,7 +558,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
       {...panResponder.panHandlers}
       {...flatListProps}
       data={zones}
-      renderItem={({item: zone}) => <AvalancheForecastZoneCard key={zone.zone_id} zone={zone} date={date} />}
+      renderItem={renderItem}
     />
   );
 };
@@ -553,7 +570,8 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
   const {width} = useWindowDimensions();
   const navigation = useNavigation<HomeStackNavigationProps>();
 
-  const dangerColor = colorFor(zone.danger_level);
+  const dangerLevel = zone.danger_level ?? DangerLevel.None;
+  const dangerColor = colorFor(dangerLevel);
 
   return (
     <TouchableOpacity
@@ -570,8 +588,8 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
         <View height={8} width="100%" bg={dangerColor.string()} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
         <VStack px={24} pt={4} pb={12} space={8}>
           <HStack space={8} alignItems="center">
-            <AvalancheDangerIcon style={{height: 32}} level={zone.danger_level} />
-            <DangerLevelTitle dangerLevel={zone.danger_level} />
+            <AvalancheDangerIcon style={{height: 32}} level={dangerLevel} />
+            <DangerLevelTitle dangerLevel={dangerLevel} />
           </HStack>
           <Title3Black>{zone.name}</Title3Black>
           <VStack py={8}>
@@ -585,7 +603,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
           </VStack>
           <Text>
             <BodySm>Travel advice: </BodySm>
-            <TravelAdvice dangerLevel={zone.danger_level} HeadingText={BodySm} BodyText={BodySm} />
+            <TravelAdvice dangerLevel={dangerLevel} HeadingText={BodySm} BodyText={BodySm} />
           </Text>
         </VStack>
       </VStack>
@@ -621,5 +639,6 @@ const DangerLevelTitle: React.FunctionComponent<{
       );
   }
   const invalid: never = dangerLevel;
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   throw new Error(`Unknown danger level: ${invalid}`);
 };

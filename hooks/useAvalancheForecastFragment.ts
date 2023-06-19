@@ -1,17 +1,17 @@
 import React, {useContext} from 'react';
 
-import {QueryClient, useQuery, useQueryClient} from '@tanstack/react-query';
+import {QueryClient, useQuery, useQueryClient, UseQueryResult} from '@tanstack/react-query';
 import {add, areIntervalsOverlapping} from 'date-fns';
 
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import AvalancheForecastFragments from 'hooks/useAvalancheForecastFragments';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {AvalancheCenterID, Product} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, ForecastFragment, ProductType} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {apiDateString} from 'utils/date';
 
-export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forecast_zone_id: number, date: Date) => {
+export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forecast_zone_id: number, date: Date): UseQueryResult<ForecastFragment, Error> => {
   const queryClient = useQueryClient();
   const {nationalAvalancheCenterHost} = useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
@@ -19,9 +19,9 @@ export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forec
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
-  return useQuery<Product, Error>({
+  return useQuery<ForecastFragment, Error>({
     queryKey: key,
-    queryFn: async (): Promise<Product> => fetchAvalancheForecastFragment(queryClient, nationalAvalancheCenterHost, center_id, forecast_zone_id, date, thisLogger),
+    queryFn: async (): Promise<ForecastFragment> => fetchAvalancheForecastFragment(queryClient, nationalAvalancheCenterHost, center_id, forecast_zone_id, date, thisLogger),
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
@@ -40,15 +40,21 @@ const fetchAvalancheForecastFragment = async (
   forecast_zone_id: number,
   date: Date,
   logger: Logger,
-): Promise<Product> => {
+): Promise<ForecastFragment> => {
   const fragments = await AvalancheForecastFragments.fetchQuery(queryClient, nationalAvalancheCenterHost, center_id, date, logger);
-  const fragment = fragments?.find(
-    forecast => isBetween(forecast.published_time, forecast.expires_time, date) && forecast.forecast_zone.find(zone => zone.id === forecast_zone_id),
-  );
-  if (!fragments || !fragment) {
-    throw new NotFoundError(`no avalanche forecast found for center ${center_id} and zone ${forecast_zone_id} active on ${date}`, 'avalanche forecast');
+  const forecasts: ForecastFragment[] = [];
+  for (const fragment of fragments) {
+    if (fragment.product_type === ProductType.Forecast) {
+      forecasts.push(fragment);
+    }
   }
-  return fragment;
+  const forecast = forecasts?.find(
+    forecast => isBetween(new Date(forecast.published_time), new Date(forecast.expires_time), date) && forecast.forecast_zone.find(zone => zone.id === forecast_zone_id),
+  );
+  if (!forecasts || !forecast) {
+    throw new NotFoundError(`no avalanche forecast found for center ${center_id} and zone ${forecast_zone_id} active on ${date.toISOString()}`, 'avalanche forecast');
+  }
+  return forecast;
 };
 
 export default {

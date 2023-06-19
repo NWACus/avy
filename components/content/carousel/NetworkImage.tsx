@@ -18,7 +18,7 @@ export interface NetworkImageProps {
   width: number;
   height: number;
   index: number;
-  onStateChange: (state: NetworkImageState) => void;
+  onStateChange?: (state: NetworkImageState) => void;
   onPress?: (index: number) => void;
   imageStyle?: StyleProp<ImageStyle>;
   resizeMode?: 'cover' | 'contain';

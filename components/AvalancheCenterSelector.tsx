@@ -15,24 +15,19 @@ const avalancheCenterIDsByType: SectionListData<AvalancheCenterID>[] = [
   {
     title: 'Forest Service',
     data: [
+      'BAC', // Bridgeport: CA
       'BTAC', // Bridger-Teton: ID, WY
-      'CNFAIC', // Chugach: AK
       'FAC', // Flathead: MT
-      'GNFAC', // Gallatin: MT, WY, ID
       'IPAC', // Idaho Panhandle: ID, MT
+      'KPAC', // Kachina: AZ
       'NWAC', // Northwest: WA, OR
       'MSAC', // Mount Shasta: CA
       'MWAC', // Mount Washington: NH
       'PAC', // Payette: ID
       'SNFAC', // Sawtooths: ID
       'SAC', // Sierra: CA
+      'TAC', // Taos: NM
       'WCMAC', // West Central Montana: MT
-    ],
-  },
-  {
-    title: 'State',
-    data: [
-      'CAIC', // Colorado: CO
     ],
   },
   {
@@ -55,10 +50,10 @@ interface AvalancheCenterCardProps {
 export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardProps> = ({avalancheCenterId, selected, onPress}: AvalancheCenterCardProps) => {
   const {width} = useWindowDimensions();
   const centerResult = useAvalancheCenterMetadata(avalancheCenterId);
-  if (incompleteQueryState(centerResult)) {
+  const avalancheCenter = centerResult.data;
+  if (incompleteQueryState(centerResult) || !avalancheCenter) {
     return <QueryState results={[centerResult]} />;
   }
-  const avalancheCenter = centerResult.data;
 
   return (
     <View>
@@ -82,7 +77,10 @@ export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardPro
   );
 };
 
-export const AvalancheCenterSelector = ({currentCenterId, setAvalancheCenter}) => {
+export const AvalancheCenterSelector: React.FunctionComponent<{
+  currentCenterId: AvalancheCenterID;
+  setAvalancheCenter: React.Dispatch<React.SetStateAction<AvalancheCenterID>>;
+}> = ({currentCenterId, setAvalancheCenter}) => {
   const navigation = useNavigation<TabNavigationProps>();
   return (
     <SectionList
@@ -104,7 +102,7 @@ export const AvalancheCenterSelector = ({currentCenterId, setAvalancheCenter}) =
           }}
         />
       )}
-      renderSectionHeader={({section: {title}}) => <Text style={styles.title}>{title + ' Centers'}</Text>}
+      renderSectionHeader={({section: {title}}) => <Text style={styles.title}>{String(title) + ' Centers'}</Text>}
     />
   );
 };

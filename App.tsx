@@ -42,11 +42,11 @@ import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
 import {WeatherScreen} from 'components/screens/WeatherScreen';
 import {HTMLRendererConfig} from 'components/text/HTML';
 import {useAppState} from 'hooks/useAppState';
-import ImageCache from 'hooks/useCachedImageURI';
+import ImageCache, {queryKeyPrefix} from 'hooks/useCachedImageURI';
 import {useOnlineManager} from 'hooks/useOnlineManager';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
-import Toast from 'react-native-toast-message';
+import Toast, {ToastConfigParams} from 'react-native-toast-message';
 import {TabNavigatorParamList} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -54,12 +54,11 @@ require('date-time-format-timezone');
 
 import axios, {AxiosRequestConfig} from 'axios';
 import {createLogger, stdSerializers} from 'browser-bunyan';
+import * as FileSystem from 'expo-file-system';
 import {ConsoleFormattedStream} from 'logging/consoleFormattedStream';
 import {NotFoundError} from 'types/requests';
 
-// we're reading a field that was previously defined in app.json, so we know it's non-null:
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const logLevel = Constants.expoConfig.extra!.log_level;
+const logLevel = (Constants.expoConfig?.extra?.log_level as string) ?? 'INFO';
 
 const logger = createLogger({
   name: 'avalanche-forecast',
@@ -70,15 +69,16 @@ const logger = createLogger({
 
 logger.info('App starting.');
 
-const encodeParams = params => {
+const encodeParams = (params: {[s: string]: string}) => {
   return Object.entries(params)
     .map(kv => kv.map(encodeURIComponent).join('='))
     .join('&');
 };
 const formatURI = (request: AxiosRequestConfig): string => {
-  let msg = `${request.method.toUpperCase()} ${request.url}`;
-  if (request.params && Object.keys(request.params).length !== 0) {
-    msg += `?${encodeParams(request.params)}`;
+  const method = request.method ?? 'GET';
+  let msg = `${method.toUpperCase()} ${request.url ?? 'url'}`;
+  if (request.params && Object.keys(request.params as {[s: string]: string}).length !== 0) {
+    msg += `?${encodeParams(request.params as {[s: string]: string})}`;
   }
   if (request.data) {
     msg += ` data: ${JSON.stringify(request.data)}`;
@@ -90,7 +90,7 @@ axios.interceptors.request.use(request => {
   const thisLogger = logger.child({uri: formatURI(request)});
   thisLogger.debug(msg);
   if (request.data) {
-    thisLogger.trace({data: request.data}, msg);
+    thisLogger.trace({data: JSON.stringify(request.data)}, msg);
   }
   return request;
 });
@@ -100,18 +100,16 @@ axios.interceptors.response.use(response => {
   const thisLogger = logger.child({uri: formatURI(response.config), status: response.status});
   thisLogger.debug(msg);
   if (response.data) {
-    thisLogger.trace({data: response.data}, msg);
+    thisLogger.trace({data: JSON.stringify(response.data)}, msg);
   }
   return response;
 });
 
 // The SplashScreen stays up until we've loaded all of our fonts and other assets
-SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync();
 
 if (Sentry?.init) {
-  // we're reading a field that was previously defined in app.json, so we know it's non-null:
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const dsn = Constants.expoConfig.extra!.sentry_dsn;
+  const dsn = (Constants.expoConfig?.extra?.sentry_dsn as string) ?? 'LOADED_FROM_ENVIRONMENT';
   // Only initialize Sentry if we can find the correct env setup
   if (dsn === 'LOADED_FROM_ENVIRONMENT') {
     logger.warn('Sentry integration not configured, check your environment');
@@ -119,7 +117,6 @@ if (Sentry?.init) {
     Sentry.init({
       dsn,
       enableInExpoDevelopment: false,
-      debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
     });
   }
 }
@@ -127,7 +124,26 @@ if (Sentry?.init) {
 const queryCache: QueryCache = new QueryCache();
 // we need to subscribe to the react-query cache in order to remove
 // images from the local filesystem when their TTL expires
-queryCache.subscribe(event => ImageCache.cleanup(event, logger));
+queryCache.subscribe(event => {
+  if (event.type !== 'removed') {
+    return;
+  }
+
+  const key: unknown = event.query.queryKey;
+  if (!(key instanceof Array) || key.length < 2 || key[0] !== queryKeyPrefix) {
+    return;
+  }
+
+  const values = key[1] as Record<string, string>;
+  if (!('uri' in values) || !values['uri'] || !values['uri'].startsWith('http')) {
+    return;
+  }
+
+  const data = event.query.state.data as string;
+  logger.debug({source: values['uri'], destination: data}, 'cleaning up remote image');
+  void FileSystem.deleteAsync(data, {idempotent: true});
+  // TODO: handle errors?
+});
 
 const queryClient: QueryClient = new QueryClient({
   queryCache: queryCache,
@@ -141,11 +157,17 @@ const queryClient: QueryClient = new QueryClient({
 
 // on startup and periodically, reconcile the react-query link cache with the filesystem
 const BACKGROUND_CACHE_RECONCILIATION_TASK = 'background-cache-reconciliation';
-TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, async () => {
-  await ImageCache.reconcile(queryClient, queryCache, logger);
+TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, () => {
+  void (async () => {
+    try {
+      await ImageCache.reconcile(queryClient, queryCache, logger);
+    } catch (e) {
+      logger.error({error: e}, 'error reconciling image cache');
+    }
+  })();
   return BackgroundFetch.BackgroundFetchResult.NewData;
 });
-BackgroundFetch.registerTaskAsync(BACKGROUND_CACHE_RECONCILIATION_TASK, {
+void BackgroundFetch.registerTaskAsync(BACKGROUND_CACHE_RECONCILIATION_TASK, {
   minimumInterval: 15 * 60, // fifteen minutes, in seconds
 });
 
@@ -153,7 +175,7 @@ const asyncStoragePersister = createAsyncStoragePersister({
   storage: AsyncStorage,
 });
 
-clearUploadCache();
+void clearUploadCache();
 
 const TabNavigator = createBottomTabNavigator<TabNavigatorParamList>();
 
@@ -165,11 +187,11 @@ const onAppStateChange = (status: AppStateStatus) => {
 };
 
 const toastConfig = {
-  success: props => <SuccessToast content={props.text1} {...props} />,
-  info: props => <InfoToast content={props.text1} {...props} />,
-  action: props => <ActionToast content={props.text1} {...props} />,
-  error: props => <ErrorToast content={props.text1} {...props} />,
-  warning: props => <WarningToast content={props.text1} {...props} />,
+  success: (props: ToastConfigParams<string>) => <SuccessToast content={props.text1 ?? 'Success'} {...props} />,
+  info: (props: ToastConfigParams<string>) => <InfoToast content={props.text1 ?? 'Info'} {...props} />,
+  action: (props: ToastConfigParams<string>) => <ActionToast content={props.text1 ?? 'Action'} {...props} />,
+  error: (props: ToastConfigParams<string>) => <ErrorToast content={props.text1 ?? 'Error'} {...props} />,
+  warning: (props: ToastConfigParams<string>) => <WarningToast content={props.text1 ?? 'Warning'} {...props} />,
 };
 
 const App = () => {
@@ -210,12 +232,12 @@ const BaseApp: React.FunctionComponent<{
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({staging, setStaging}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const [avalancheCenterId, setAvalancheCenterId] = React.useState(Constants.expoConfig.extra.avalanche_center as AvalancheCenterID);
+  const [avalancheCenterId, setAvalancheCenterId] = React.useState((Constants.expoConfig?.extra?.avalanche_center as AvalancheCenterID) ?? 'NWAC');
 
   const {nationalAvalancheCenterHost, nwacHost} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
   useEffect(() => {
-    (async () => {
+    void (async () => {
       try {
         await prefetchAllActiveForecasts(queryClient, avalancheCenterId, nationalAvalancheCenterHost, nwacHost, logger);
       } catch (e) {
@@ -235,6 +257,8 @@ const BaseApp: React.FunctionComponent<{
     Lato_700Bold_Italic,
     Lato_900Black,
     Lato_900Black_Italic,
+    // typing the return of `require()` here does nothing for us
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     NAC_Icons: require('./assets/fonts/nac-icons.ttf'),
   });
 
@@ -260,13 +284,19 @@ const BaseApp: React.FunctionComponent<{
           <NavigationContainer>
             <SelectProvider>
               <StatusBar barStyle="dark-content" />
-              <View onLayout={onLayoutRootView} style={StyleSheet.absoluteFill}>
+              <View
+                onLayout={() => {
+                  void onLayoutRootView();
+                }}
+                style={StyleSheet.absoluteFill}>
                 <TabNavigator.Navigator
                   initialRouteName="Home"
                   screenOptions={({route}) => ({
                     headerShown: false,
                     tabBarIcon: ({color, size}) => {
                       if (route.name === 'Home') {
+                        // typing the return of `require()` here does nothing for us
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                         return <Image style={{tintColor: color, width: size, height: size}} resizeMode="contain" source={require('assets/icons/tab_bar/home.png')} />;
                       } else if (route.name === 'Observations') {
                         return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;

@@ -10,7 +10,7 @@ import {HStack, View, VStack} from 'components/core';
 
 import {Tab, TabControl} from 'components/TabControl';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
-import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, AvalancheForecastZone, AvalancheForecastZoneStatus} from 'types/nationalAvalancheCenter';
 
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {Dropdown} from 'components/content/Dropdown';
@@ -19,6 +19,7 @@ import {AvalancheTab} from 'components/forecast/AvalancheTab';
 import {ObservationsTab} from 'components/forecast/ObservationsTab';
 import {SynopsisTab} from 'components/forecast/SynopsisTab';
 import {WeatherTab} from 'components/forecast/WeatherTab';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {HomeStackNavigationProps} from 'routes';
 import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
@@ -31,14 +32,19 @@ export interface AvalancheForecastProps {
 }
 
 export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> = ({center_id, requestedTime, forecast_zone_id}: AvalancheForecastProps) => {
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const centerResult = useAvalancheCenterMetadata(center_id);
   const center = centerResult.data;
 
   const navigation = useNavigation<HomeStackNavigationProps>();
   const onZoneChange = useCallback(
-    zoneName => {
+    (zoneName: string) => {
       if (center) {
         const zone = center?.zones.find(z => z.name === zoneName && z.status === 'active');
+        if (!zone) {
+          logger.warn({zone: zoneName}, 'zone change callback called with zone not belonging to the center');
+          return;
+        }
         // TODO: consider possible improvements here
         // 1) nice-to-have: make sure we land on the same sub-tab (Avalanche vs Forecast vs Obs)
         // 2) nice-to-have: navigation causes a full reload on this screen - can we just do the equivalent of setState in a browser?
@@ -51,19 +57,19 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
         });
       }
     },
-    [navigation, center, center_id, requestedTime],
+    [navigation, center, center_id, requestedTime, logger],
   );
 
   const onReturnToMapView = useCallback(() => {
     navigation.popToTop();
   }, [navigation]);
 
-  if (incompleteQueryState(centerResult)) {
+  if (incompleteQueryState(centerResult) || !center) {
     return <QueryState results={[centerResult]} />;
   }
 
   const zone: AvalancheForecastZone | undefined = center.zones.find(item => item.id === forecast_zone_id);
-  if (!zone) {
+  if (!zone || zone.status == AvalancheForecastZoneStatus.Disabled) {
     const message = `Avalanche center ${center_id} had no zone with id ${forecast_zone_id}`;
     Sentry.Native.captureException(new Error(message));
     return <NotFound what={[new NotFoundError(message, 'avalanche forecast zone')]} />;
@@ -86,7 +92,13 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
       <TabControl backgroundColor="white">
         <Tab title="Avalanche">
           <AvalancheTab
-            elevationBandNames={zone.config.elevation_band_names}
+            elevationBandNames={
+              zone.config.elevation_band_names ?? {
+                lower: 'Below Treeline',
+                middle: 'Near Treeline',
+                upper: 'Above Treeline',
+              }
+            }
             center={center}
             center_id={center_id}
             forecast_zone_id={forecast_zone_id}
@@ -96,13 +108,13 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
         <Tab title="Weather">
           <WeatherTab zone={zone} center_id={center_id} requestedTime={requestedTime} />
         </Tab>
-        {center.widget_config?.observation_viewer && (
+        {center.widget_config.observation_viewer && (
           <Tab title="Observations">
             <ObservationsTab zone_name={zone.name} center_id={center_id} requestedTime={requestedTime} />
           </Tab>
         )}
-        {center.config?.blog && center.config?.blog_title && (
-          <Tab title={center.config?.blog_title ? center.config?.blog_title : 'Blog'}>
+        {center.config.blog && center.config.blog_title && (
+          <Tab title={center.config.blog_title ? center.config.blog_title : 'Blog'}>
             <SynopsisTab center={center} center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
           </Tab>
         )}

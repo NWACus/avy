@@ -64,6 +64,7 @@ export const HTML: React.FunctionComponent<RenderHTMLSourceProps> = props => {
   if (__DEV__) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [showSource, setShowSource] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const html = _.get(props, ['source', 'html'], undefined);
     return (
       <TouchableOpacity activeOpacity={1} onLongPress={() => setShowSource(!showSource)}>

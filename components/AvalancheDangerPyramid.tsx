@@ -9,7 +9,7 @@ import Color from 'color';
 
 import {AvalancheDangerForecast, DangerLevel} from 'types/nationalAvalancheCenter';
 
-export const colorFor = (danger: DangerLevel): Color => {
+export const colorFor = (danger: DangerLevel | null | undefined): Color => {
   switch (danger) {
     case DangerLevel.Extreme:
       return Color('rgb(35, 31, 32)');

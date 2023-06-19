@@ -1,6 +1,6 @@
 import React from 'react';
 
-import axios from 'axios';
+import axios, {AxiosResponse} from 'axios';
 
 import {ClientContext, ClientProps} from 'clientContext';
 
@@ -10,7 +10,7 @@ export const useFetch = <TData, TVariables>(query: string, options?: RequestInit
   // TODO(skuznets): how to support options?
   return async (variables?: TVariables) => {
     const url = `${clientProps.nationalAvalancheCenterHost}/obs/v1/public/graphql`;
-    const {data} = await axios.post(url, {
+    const {data} = await axios.post<AxiosResponse<TData>>(url, {
       query: query,
       variables: variables,
     });

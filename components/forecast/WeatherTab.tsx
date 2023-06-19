@@ -30,7 +30,11 @@ interface WeatherTabProps {
   requestedTime: RequestedTime;
 }
 
-const SmallHeaderWithTooltip = ({title, content, dialogTitle}) => (
+const SmallHeaderWithTooltip: React.FunctionComponent<{
+  title: string;
+  content: string;
+  dialogTitle: string;
+}> = ({title, content, dialogTitle}) => (
   // the icon style is designed to make the circle "i" look natural next to the
   // text - neither `center` nor `baseline` alignment look good on their own
   <HStack space={6} alignItems="center" justifyContent="space-between" width="100%">
@@ -47,7 +51,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   const mapLayerResult = useMapLayer(center_id);
   const mapLayer = mapLayerResult.data;
   const stationsResult = useWeatherStations({
-    token: metadata?.widget_config.stations.token,
+    token: metadata?.widget_config.stations?.token,
     mapLayer: mapLayer,
     sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
   });
@@ -61,7 +65,13 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     });
   }, [navigation]);
 
-  if (incompleteQueryState(nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, stationsResult)) {
+  if (
+    incompleteQueryState(nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, stationsResult) ||
+    !nwacForecast ||
+    !metadata ||
+    !mapLayer ||
+    !weatherStationsByZone
+  ) {
     return <QueryState results={[nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, stationsResult]} />;
   }
 
@@ -118,7 +128,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     });
   }
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}>
+    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh} />}>
       <VStack space={8} backgroundColor={colorLookup('background.base')}>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
           <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>

@@ -9,7 +9,7 @@ import {colorFor} from 'components/AvalancheDangerPyramid';
 import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
 import {Card, CollapsibleCard} from 'components/content/Card';
-import {Carousel} from 'components/content/carousel';
+import {Carousel, images} from 'components/content/carousel';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
@@ -30,10 +30,13 @@ import {
   AvalancheCenterID,
   AvalancheDangerForecast,
   AvalancheForecastZoneSummary,
-  AvalancheWarning,
   DangerLevel,
   ElevationBandNames,
   ForecastPeriod,
+  ProductType,
+  Special,
+  Warning,
+  Watch,
 } from 'types/nationalAvalancheCenter';
 import {RequestedTime, utcDateToLocalTimeString} from 'utils/date';
 
@@ -45,7 +48,10 @@ interface AvalancheTabProps {
   forecast_zone_id: number;
 }
 
-const HeaderWithTooltip = ({title, content}) => (
+const HeaderWithTooltip: React.FunctionComponent<{
+  title: string;
+  content: string;
+}> = ({title, content}) => (
   // the icon style is designed to make the circle "i" look natural next to the
   // text - neither `center` nor `baseline` alignment look good on their own
   <HStack space={6} alignItems="center">
@@ -54,7 +60,7 @@ const HeaderWithTooltip = ({title, content}) => (
   </HStack>
 );
 
-export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.memo(({elevationBandNames, center_id, center, forecast_zone_id, requestedTime}) => {
+export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevationBandNames, center_id, center, forecast_zone_id, requestedTime}) => {
   const forecastResult = useAvalancheForecast(center_id, center, forecast_zone_id, requestedTime);
   const forecast = forecastResult.data;
   const warningResult = useAvalancheWarning(center_id, forecast_zone_id, requestedTime);
@@ -79,48 +85,40 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
     });
   }, [navigation]);
 
-  if (incompleteQueryState(forecastResult, warningResult)) {
+  if (incompleteQueryState(forecastResult, warningResult) || !forecast || !warning) {
     return <QueryState results={[forecastResult, warningResult]} />;
   }
 
-  // very much not clear why sometimes (perhaps after hydrating?) the time fields are strings, not dates
-  const publishedTime = typeof forecast.published_time === 'string' ? toDate(forecast.published_time) : forecast.published_time;
+  const publishedTime = forecast.published_time ? toDate(forecast.published_time) : new Date();
 
-  let currentDanger: AvalancheDangerForecast | undefined = forecast.danger.find(item => item.valid_day === ForecastPeriod.Current);
-  if (!currentDanger || !currentDanger.upper) {
-    // sometimes, we get an entry of nulls for today
-    currentDanger = {
-      lower: DangerLevel.None,
-      middle: DangerLevel.None,
-      upper: DangerLevel.None,
-      valid_day: ForecastPeriod.Tomorrow,
-    };
-  }
-  const highestDangerToday: DangerLevel = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper);
-
-  let outlookDanger: AvalancheDangerForecast | undefined = forecast.danger.find(item => item.valid_day === ForecastPeriod.Tomorrow);
-  if (!outlookDanger || !outlookDanger.upper) {
-    // sometimes, we get an entry of nulls for tomorrow
-    outlookDanger = {
-      lower: DangerLevel.None,
-      middle: DangerLevel.None,
-      upper: DangerLevel.None,
-      valid_day: ForecastPeriod.Tomorrow,
-    };
+  let currentDanger: AvalancheDangerForecast | undefined = undefined;
+  let outlookDanger: AvalancheDangerForecast | undefined = undefined;
+  let highestDangerToday: DangerLevel = DangerLevel.None;
+  if (forecast.product_type === ProductType.Forecast) {
+    currentDanger = forecast.danger?.find(item => item.valid_day === ForecastPeriod.Current);
+    if (currentDanger) {
+      highestDangerToday = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper);
+    }
+    outlookDanger = forecast.danger.find(item => item.valid_day === ForecastPeriod.Tomorrow);
   }
 
-  const expires_time = new Date(forecast.expires_time);
-  if (isAfter(new Date(), expires_time)) {
-    Toast.show({
-      type: 'error',
-      text1: `This avalanche forecast expired ${formatDistanceToNow(expires_time)} ago.`,
-      autoHide: false,
-      position: 'bottom',
-      onPress: () => Toast.hide(),
-    });
+  if (forecast.expires_time) {
+    const expires_time = new Date(forecast.expires_time);
+    if (isAfter(new Date(), expires_time)) {
+      Toast.show({
+        type: 'error',
+        text1: `This avalanche forecast expired ${formatDistanceToNow(expires_time)} ago.`,
+        autoHide: false,
+        position: 'bottom',
+        onPress: () => Toast.hide(),
+      });
+    }
   }
+
+  const imageItems = images(forecast.media);
+
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refresh} />}>
+    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh} />}>
       <VStack space={8} backgroundColor={colorLookup('background.base')}>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>Avalanche Forecast</Title3Black>}>
           <HStack justifyContent="space-evenly" space={8}>
@@ -145,49 +143,56 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = React.me
             </VStack>
           </HStack>
         </Card>
-        {warning.expires_time && <WarningCard warning={warning} />}
-        <Card
-          borderRadius={0}
-          borderColor="white"
-          header={
-            <HStack space={8} alignItems="center">
-              <AvalancheDangerIcon style={{height: 32}} level={highestDangerToday} />
-              <BodyBlack>The Bottom Line</BodyBlack>
-            </HStack>
-          }>
-          <HTML source={{html: forecast.bottom_line}} />
-        </Card>
+        {warning.data.expires_time && <WarningCard warning={warning.data} />}
+        {forecast.bottom_line && (
+          <Card
+            borderRadius={0}
+            borderColor="white"
+            header={
+              <HStack space={8} alignItems="center">
+                <AvalancheDangerIcon style={{height: 32}} level={highestDangerToday} />
+                <BodyBlack>The Bottom Line</BodyBlack>
+              </HStack>
+            }>
+            <HTML source={{html: forecast.bottom_line}} />
+          </Card>
+        )}
         <Card borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Avalanche Danger" content={helpStrings.avalancheDanger} />}>
           <AvalancheDangerTable date={addDays(publishedTime, 1)} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
         </Card>
         <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Outlook" content={helpStrings.avalancheDangerOutlook} />}>
           <AvalancheDangerTable date={addDays(publishedTime, 2)} forecast={outlookDanger} elevation_band_names={elevationBandNames} size={'outlook'} />
         </CollapsibleCard>
-        {forecast.forecast_avalanche_problems.map((problem, index) => (
-          <CollapsibleCard
-            key={`avalanche-problem-${index}-card`}
-            startsCollapsed
-            borderRadius={0}
-            borderColor="white"
-            header={<HeaderWithTooltip title={`Avalanche Problem #${index + 1}`} content={helpStrings.avalancheProblem} />}>
-            <AvalancheProblemCard key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
+        {forecast.product_type === ProductType.Forecast &&
+          forecast.forecast_avalanche_problems &&
+          forecast.forecast_avalanche_problems.map((problem, index) => (
+            <CollapsibleCard
+              key={`avalanche-problem-${index}-card`}
+              startsCollapsed
+              borderRadius={0}
+              borderColor="white"
+              header={<HeaderWithTooltip title={`Avalanche Problem #${index + 1}`} content={helpStrings.avalancheProblem} />}>
+              <AvalancheProblemCard key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
+            </CollapsibleCard>
+          ))}
+        {forecast.hazard_discussion && (
+          <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<BodyBlack>Forecast Discussion</BodyBlack>}>
+            <HTML source={{html: forecast.hazard_discussion}} />
           </CollapsibleCard>
-        ))}
-        <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<BodyBlack>Forecast Discussion</BodyBlack>}>
-          <HTML source={{html: forecast.hazard_discussion}} />
-        </CollapsibleCard>
-        {forecast.media && (
+        )}
+        {imageItems && (
           <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>}>
-            <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={forecast.media} displayCaptions={false} />
+            <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={imageItems} displayCaptions={false} />
           </Card>
         )}
         <View height={16} />
       </VStack>
     </ScrollView>
   );
-});
+};
 
-const WarningCard: React.FunctionComponent<{warning: AvalancheWarning}> = ({warning}) => {
+// TODO(skuznets): disambiguate between warnings, watches & specials here
+const WarningCard: React.FunctionComponent<{warning: Warning | Watch | Special}> = ({warning}) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
 
   return (

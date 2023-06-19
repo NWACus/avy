@@ -5,13 +5,13 @@ import {FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent, Scroll
 import {NetworkImage, NetworkImageProps, NetworkImageState} from 'components/content/carousel/NetworkImage';
 import {View, VStack} from 'components/core';
 import {HTML} from 'components/text/HTML';
-import {MediaItem, MediaType} from 'types/nationalAvalancheCenter';
+import {ImageMediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
-export interface ImageListProps extends Omit<FlatListProps<MediaItem>, 'data' | 'renderItem'> {
+export interface ImageListProps extends Omit<FlatListProps<ImageMediaItem>, 'data' | 'renderItem'> {
   imageHeight: number;
   imageWidth: number;
   space?: number;
-  media: MediaItem[];
+  media: ImageMediaItem[];
   imageSize?: 'large' | 'medium' | 'original' | 'thumbnail';
   displayCaptions?: boolean;
   imageStyle?: NetworkImageProps['imageStyle'];
@@ -44,7 +44,7 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
   const onPressCallback = useCallback((index: number) => onPress(index), [onPress]);
 
   const renderItem = useCallback(
-    ({item, index}) => (
+    ({item, index}: {item: ImageMediaItem; index: number}) => (
       <VStack space={8} width={imageWidth} alignItems="stretch" flex={1}>
         <NetworkImage
           width={imageWidth}

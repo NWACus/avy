@@ -1,28 +1,7 @@
 import * as TimezoneMock from 'timezone-mock';
-import {
-  apiDateString,
-  fixMalformedISO8601DateString,
-  nominalForecastDateString,
-  nominalNWACWeatherForecastDate,
-  utcDateToLocalDateString,
-  utcDateToLocalTimeString,
-} from 'utils/date';
+import {apiDateString, nominalForecastDateString, nominalNWACWeatherForecastDate, utcDateToLocalDateString, utcDateToLocalTimeString} from 'utils/date';
 
 describe('Dates', () => {
-  describe('fixMalformedISO8601DateString', () => {
-    it('adds a UTC signifier if no timezone information is present', () => {
-      expect(fixMalformedISO8601DateString('2023-01-19T02:00:00')).toEqual('2023-01-19T02:00:00Z');
-      expect(fixMalformedISO8601DateString('2023-01-19T02:00:00.123')).toEqual('2023-01-19T02:00:00.123Z');
-    });
-
-    it('does not modify the string if not needed', () => {
-      expect(fixMalformedISO8601DateString('2023-01-19')).toEqual('2023-01-19');
-      expect(fixMalformedISO8601DateString('2023-01-19T02:00:00Z')).toEqual('2023-01-19T02:00:00Z');
-      expect(fixMalformedISO8601DateString('2023-01-19T02:00:00+00')).toEqual('2023-01-19T02:00:00+00');
-      expect(fixMalformedISO8601DateString('2023-01-19T02:00:00+00:00')).toEqual('2023-01-19T02:00:00+00:00');
-      expect(fixMalformedISO8601DateString('2023-01-19T02:00:00.123+00:00')).toEqual('2023-01-19T02:00:00.123+00:00');
-    });
-  });
   describe('apiDateString', () => {
     it('renders into the expected format', () => {
       // This is 2AM UTC, which means it's 6PM the night before in PST

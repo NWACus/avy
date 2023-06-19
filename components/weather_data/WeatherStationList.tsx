@@ -12,6 +12,7 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {useWeatherStations, ZoneResult} from 'hooks/useWeatherStations';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {WeatherStackNavigationProps} from 'routes';
+import {StationMetadata} from 'types/generated/snowbound';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 interface Props {
@@ -27,7 +28,7 @@ const StationList = (navigation: WeatherStackNavigationProps, center_id: Avalanc
         .map(([k, v]) => ({
           label: k,
           data: v,
-          action: (name, data) => {
+          action: (name: string, data: StationMetadata[]) => {
             navigation.navigate('stationDetail', {center_id, station_stids: data.map(s => s.stid), name, requestedTime, zoneName: zone.name});
           },
         }))
@@ -54,7 +55,7 @@ export const WeatherStationList: React.FC<Props> = ({center_id, requestedTime}) 
   const mapLayerResult = useMapLayer(center_id);
   const mapLayer = mapLayerResult.data;
   const stationsResult = useWeatherStations({
-    token: metadata?.widget_config.stations.token,
+    token: metadata?.widget_config.stations?.token,
     mapLayer: mapLayer,
     sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
   });
@@ -68,7 +69,7 @@ export const WeatherStationList: React.FC<Props> = ({center_id, requestedTime}) 
           <HStack width="100%" py={8} px={16} bg="white">
             <Title1Black>Weather Stations</Title1Black>
           </HStack>
-          {incompleteQueryState(avalancheCenterMetadataResult, mapLayerResult, stationsResult) ? (
+          {incompleteQueryState(avalancheCenterMetadataResult, mapLayerResult, stationsResult) || !metadata || !mapLayer || !zones ? (
             <QueryState results={[avalancheCenterMetadataResult, mapLayerResult, stationsResult]} />
           ) : (
             StationList(navigation, center_id, requestedTime, zones)

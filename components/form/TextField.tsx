@@ -6,6 +6,8 @@ import {useController} from 'react-hook-form';
 import {TextInput, TextInputProps, View as RNView} from 'react-native';
 import {colorLookup} from 'theme';
 
+export type KeysMatching<T, V> = {[K in keyof T]-?: T[K] extends V ? K : never}[keyof T];
+
 interface TextFieldProps extends ViewProps {
   name: string;
   label: string;
@@ -27,7 +29,7 @@ export const TextField = React.forwardRef<RNView, TextFieldProps>(({name, label,
         <TextInput
           onBlur={field.onBlur}
           onChangeText={field.onChange}
-          value={field.value}
+          value={field.value as string} // TODO(skuznets): determine why the generics here don't collapse to string itself ...
           style={merge({}, textInputDefaultStyle, textInputStyle)}
           placeholderTextColor={colorLookup('text.secondary')}
           {...otherTextInputProps}
@@ -38,3 +40,4 @@ export const TextField = React.forwardRef<RNView, TextFieldProps>(({name, label,
     </VStack>
   );
 });
+TextField.displayName = 'TextField';

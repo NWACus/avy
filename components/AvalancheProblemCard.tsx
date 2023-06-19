@@ -31,7 +31,7 @@ const AspectCard: React.FC<AspectCardProps> = ({caption, ...props}) => (
 );
 
 export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardProps> = ({problem, names}: AvalancheProblemCardProps) => {
-  const [cardWidth, setCardWidth] = useState<number | null>(null);
+  const [cardWidth, setCardWidth] = useState<number>(0);
   return (
     <VStack space={8} onLayout={event => setCardWidth(event.nativeEvent.layout.width)}>
       <HStack flexWrap="wrap" justifyContent="space-evenly" alignItems="stretch">
@@ -73,8 +73,8 @@ export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardP
           caption="Size"
         />
       </HStack>
-      <HTML source={{html: problem.discussion}} />
-      {problem.media.type === MediaType.Image && problem.media.url !== null && cardWidth > 0 && (
+      {problem.discussion && <HTML source={{html: problem.discussion}} />}
+      {problem.media && problem.media.type === MediaType.Image && cardWidth > 0 && (
         <Carousel media={[problem.media]} thumbnailAspectRatio={1.3} thumbnailHeight={cardWidth / 1.3} />
       )}
     </VStack>

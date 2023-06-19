@@ -2,9 +2,9 @@ import {ImagePickerAsset} from 'expo-image-picker';
 import {merge} from 'lodash';
 import {z} from 'zod';
 
-import {Activity, InstabilityDistribution, MediaUsage, Observation, PartnerType} from 'types/nationalAvalancheCenter';
+import {Activity, InstabilityDistribution, MediaUsage, PartnerType} from 'types/nationalAvalancheCenter';
 
-export const defaultObservationFormData = (initialValues: Partial<Observation> | null = null): ObservationFormData =>
+export const defaultObservationFormData = (initialValues: Partial<ObservationFormData> | null = null): Partial<ObservationFormData> =>
   merge(
     {
       activity: [],
@@ -21,11 +21,21 @@ export const defaultObservationFormData = (initialValues: Partial<Observation> |
       private: false,
       start_date: new Date(),
       status: 'published',
+      images: [],
     },
     initialValues,
   );
 const required = 'This field is required.';
 const tooLong = 'This value is too long.';
+
+const locationPointSchema = z.object(
+  {
+    lat: z.number(),
+    lng: z.number(),
+  },
+  {required_error: required},
+);
+export type LocationPoint = z.infer<typeof locationPointSchema>;
 
 // For the form, we have specific rules that we require for any new observations
 // we create, thus we don't reuse the existing observationSchema
@@ -44,13 +54,7 @@ export const simpleObservationFormSchema = z
       collapsing_description: z.nativeEnum(InstabilityDistribution).optional(),
     }),
     location_name: z.string({required_error: required}).max(256, tooLong),
-    location_point: z.object(
-      {
-        lat: z.number(),
-        lng: z.number(),
-      },
-      {required_error: required},
-    ),
+    location_point: locationPointSchema,
     name: z.string({required_error: required}).max(50, tooLong),
     observation_summary: z.string({required_error: required}).max(1024, tooLong),
     photoUsage: z.nativeEnum(MediaUsage, {required_error: required}),

@@ -14,7 +14,7 @@ const rgbaToHexString = (rgba: string): string => {
   }).toHexString();
 };
 
-export const COLORS = {
+export const COLORS: Record<string, ColorValue> = {
   //
   // NWAC colors
   //

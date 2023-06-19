@@ -1,6 +1,6 @@
 import {Logger} from 'browser-bunyan';
 import React from 'react';
-import {ActivityIndicator, Image, ImageSourcePropType, ImageStyle} from 'react-native';
+import {ActivityIndicator, Image, ImageResolvedAssetSource, ImageSourcePropType, ImageStyle} from 'react-native';
 
 import {QueryClient} from '@tanstack/react-query';
 import ImageCache, {useCachedImageURI} from 'hooks/useCachedImageURI';
@@ -11,6 +11,7 @@ export interface AvalancheProblemIconProps {
 }
 
 const icons: Record<AvalancheProblemType, ImageSourcePropType> = {
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
   [AvalancheProblemType.DryLoose]: require('../assets/problem-icons/DryLoose.png'),
   [AvalancheProblemType.StormSlab]: require('../assets/problem-icons/StormSlab.png'),
   [AvalancheProblemType.WindSlab]: require('../assets/problem-icons/WindSlab.png'),
@@ -22,10 +23,19 @@ const icons: Record<AvalancheProblemType, ImageSourcePropType> = {
   [AvalancheProblemType.Glide]: require('../assets/problem-icons/Glide.png'),
 };
 
-const sizes = Object.keys(icons).reduce((accum, key) => {
-  accum[key] = Image.resolveAssetSource(icons[key]);
-  return accum;
-}, {});
+const sizes: Record<AvalancheProblemType, ImageResolvedAssetSource> = {
+  /* eslint-disable @typescript-eslint/no-unsafe-argument */
+  /* eslint-disable @typescript-eslint/no-var-requires */
+  [AvalancheProblemType.DryLoose]: Image.resolveAssetSource(require('../assets/problem-icons/DryLoose.png')),
+  [AvalancheProblemType.StormSlab]: Image.resolveAssetSource(require('../assets/problem-icons/StormSlab.png')),
+  [AvalancheProblemType.WindSlab]: Image.resolveAssetSource(require('../assets/problem-icons/WindSlab.png')),
+  [AvalancheProblemType.PersistentSlab]: Image.resolveAssetSource(require('../assets/problem-icons/PersistentSlab.png')),
+  [AvalancheProblemType.DeepPersistentSlab]: Image.resolveAssetSource(require('../assets/problem-icons/DeepPersistentSlab.png')),
+  [AvalancheProblemType.WetLoose]: Image.resolveAssetSource(require('../assets/problem-icons/WetLoose.png')),
+  [AvalancheProblemType.WetSlab]: Image.resolveAssetSource(require('../assets/problem-icons/WetSlab.png')),
+  [AvalancheProblemType.CorniceFall]: Image.resolveAssetSource(require('../assets/problem-icons/CorniceFall.png')),
+  [AvalancheProblemType.Glide]: Image.resolveAssetSource(require('../assets/problem-icons/Glide.png')),
+};
 
 export const AvalancheProblemIcon: React.FunctionComponent<AvalancheProblemIconProps> = ({problem}: AvalancheProblemIconProps) => {
   const {data: uri} = useCachedImageURI(Image.resolveAssetSource(icons[problem]).uri);

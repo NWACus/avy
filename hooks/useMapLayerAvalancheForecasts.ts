@@ -1,24 +1,31 @@
-import {useQueries, useQueryClient} from '@tanstack/react-query';
+import {useQueries, useQueryClient, UseQueryOptions} from '@tanstack/react-query';
+import {AxiosError} from 'axios';
 import {ClientContext, ClientProps} from 'clientContext';
 import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import React from 'react';
-import {AvalancheCenter, AvalancheCenterID, MapLayer, Product} from 'types/nationalAvalancheCenter';
+import {AvalancheCenter, AvalancheCenterID, ForecastResult, MapLayer} from 'types/nationalAvalancheCenter';
 import {RequestedTime} from 'utils/date';
+import {ZodError} from 'zod';
 
-export const useMapLayerAvalancheForecasts = (center_id: AvalancheCenterID, requestedTime: RequestedTime, mapLayer: MapLayer, metadata: AvalancheCenter) => {
+export const useMapLayerAvalancheForecasts = (
+  center_id: AvalancheCenterID,
+  requestedTime: RequestedTime,
+  mapLayer: MapLayer | undefined,
+  metadata: AvalancheCenter | undefined,
+) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const queryClient = useQueryClient();
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
-  const expiryTimeHours = metadata?.config?.expires_time;
-  const expiryTimeZone = metadata?.timezone;
+  const expiryTimeHours = metadata?.config.expires_time ?? 0;
+  const expiryTimeZone = metadata?.timezone ?? '';
 
-  return useQueries({
+  return useQueries<UseQueryOptions<ForecastResult, AxiosError | ZodError>[]>({
     queries: mapLayer
       ? mapLayer.features.map(feature => {
           return {
             queryKey: AvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, center_id, feature.id, requestedTime, expiryTimeZone, expiryTimeHours),
-            queryFn: async (): Promise<Product> =>
+            queryFn: async (): Promise<ForecastResult> =>
               AvalancheForecastQuery.fetch(queryClient, nationalAvalancheCenterHost, center_id, feature.id, requestedTime, expiryTimeZone, expiryTimeHours, logger),
             enabled: !!expiryTimeHours,
             cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)

@@ -1,4 +1,5 @@
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
+import React from 'react';
 
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';

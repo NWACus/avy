@@ -1,7 +1,7 @@
 import React from 'react';
 
-import {QueryClient, useQuery} from '@tanstack/react-query';
-import axios, {AxiosError} from 'axios';
+import {QueryClient, useQuery, UseQueryResult} from '@tanstack/react-query';
+import axios, {AxiosError, AxiosResponse} from 'axios';
 
 import * as Sentry from 'sentry-expo';
 
@@ -13,16 +13,16 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, MapLayer, mapLayerSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
-export const useMapLayer = (center_id: AvalancheCenterID) => {
+export const useMapLayer = (center_id: AvalancheCenterID | undefined): UseQueryResult<MapLayer, AxiosError | ZodError> => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = queryKey(nationalAvalancheCenterHost, center_id);
+  const key = center_id && queryKey(nationalAvalancheCenterHost, center_id);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
   return useQuery<MapLayer, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async (): Promise<MapLayer> => fetchMapLayer(nationalAvalancheCenterHost, center_id, thisLogger),
+    queryFn: async (): Promise<MapLayer> => (center_id ? fetchMapLayer(nationalAvalancheCenterHost, center_id, thisLogger) : new Promise(() => null)),
     enabled: !!center_id,
     staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
     cacheTime: Infinity, // hold on to this cached data forever
@@ -54,10 +54,10 @@ const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: Ava
   const url = `${nationalAvalancheCenterHost}/v2/public/products/map-layer/${center_id}`;
   const what = 'avalanche avalanche center map layer';
   const thisLogger = logger.child({url: url, what: what});
-  const data = await safeFetch(() => axios.get(url), thisLogger, what);
+  const data = await safeFetch(() => axios.get<AxiosResponse<unknown>>(url), thisLogger, what);
 
   const parseResult = mapLayerSchema.safeParse(data);
-  if (parseResult.success === false) {
+  if (!parseResult.success) {
     thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
       tags: {
