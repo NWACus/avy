@@ -274,7 +274,7 @@ const assetsForType = (productType: ProductType.Warning | ProductType.Watch | Pr
     case ProductType.Special:
       return {
         title: `Special Bulletin`,
-        accentColor: COLORS['primary.hover'].toString(),
+        accentColor: COLORS.primary.toString(),
       };
   }
   const invalid: never = productType;
