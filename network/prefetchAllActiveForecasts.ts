@@ -14,6 +14,7 @@ import NACObservationsQuery from 'hooks/useNACObservations';
 import NWACObservationsQuery from 'hooks/useNWACObservations';
 import NWACWeatherForecastQuery from 'hooks/useNWACWeatherForecast';
 import SynopsisQuery from 'hooks/useSynopsis';
+import WeatherForecastQuery from 'hooks/useWeatherForecast';
 import {AvalancheCenter, AvalancheCenterID, ForecastResult, ImageMediaItem, ProductType} from 'types/nationalAvalancheCenter';
 import {requestedTimeToUTCDate} from 'utils/date';
 
@@ -66,6 +67,10 @@ export const prefetchAllActiveForecasts = async (queryClient: QueryClient, cente
           if (forecastData) {
             const media: ImageMediaItem[] = images(forecastData.media);
             if (forecastData.product_type === ProductType.Forecast) {
+              if (forecastData.weather_data?.weather_product_id) {
+                void WeatherForecastQuery.prefetch(queryClient, nationalAvalancheCenterHost, forecastData.weather_data?.weather_product_id, logger);
+              }
+
               for (const problem of forecastData.forecast_avalanche_problems) {
                 media.concat(images([problem.media]));
               }

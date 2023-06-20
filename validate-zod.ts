@@ -111,6 +111,11 @@ async function main() {
         if (!parseResult.success) {
           console.error(`failed to parse product ${p} for ${center}: ${JSON.stringify(parseResult.error, null, 2)}`);
         } else {
+          if (parseResult.data.product_type === ProductType.Weather) {
+            if (parseResult.data.weather_data.map(item => 'periods' in item).reduce((current, previous) => current || previous, false)) {
+              console.log(p);
+            }
+          }
           products[parseResult.data.product_type]++;
         }
       });

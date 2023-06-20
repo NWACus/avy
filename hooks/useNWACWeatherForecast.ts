@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {QueryClient, useQuery} from '@tanstack/react-query';
+import {QueryClient, useQuery, UseQueryResult} from '@tanstack/react-query';
 import axios, {AxiosError, AxiosResponse} from 'axios';
 
 import * as Sentry from 'sentry-expo';
@@ -10,12 +10,16 @@ import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {reverseLookup} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, reverseLookup} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {nominalNWACWeatherForecastDate, RequestedTime, requestedTimeToUTCDate, toDateTimeInterfaceATOM} from 'utils/date';
 import {z, ZodError} from 'zod';
 
-export const useNWACWeatherForecast = (zone_id: number, requestedTime: RequestedTime) => {
+export const useNWACWeatherForecast = (
+  center_id: AvalancheCenterID,
+  zone_id: number,
+  requestedTime: RequestedTime,
+): UseQueryResult<NWACWeatherForecast | 'ignore', AxiosError | ZodError | NotFoundError> => {
   const {nwacHost} = React.useContext<ClientProps>(ClientContext);
   const date = requestedTimeToUTCDate(requestedTime);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
@@ -23,9 +27,15 @@ export const useNWACWeatherForecast = (zone_id: number, requestedTime: Requested
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
-  return useQuery<NWACWeatherForecast, AxiosError | ZodError | NotFoundError>({
+  return useQuery<NWACWeatherForecast | 'ignore', AxiosError | ZodError | NotFoundError>({
     queryKey: key,
-    queryFn: () => fetchNWACWeatherForecast(nwacHost, zone_id, date, thisLogger),
+    queryFn: () => {
+      if (center_id !== 'NWAC') {
+        return new Promise(resolve => resolve('ignore'));
+      } else {
+        return fetchNWACWeatherForecast(nwacHost, zone_id, date, thisLogger);
+      }
+    },
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });

@@ -62,7 +62,7 @@ const HeaderWithTooltip: React.FunctionComponent<{
 );
 
 export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevationBandNames, center_id, center, forecast_zone_id, requestedTime}) => {
-  const forecastResult = useAvalancheForecast(center_id, center, forecast_zone_id, requestedTime);
+  const forecastResult = useAvalancheForecast(center_id, forecast_zone_id, requestedTime, center);
   const forecast = forecastResult.data;
   const warningResult = useAvalancheWarning(center_id, forecast_zone_id, requestedTime);
   const warning = warningResult.data;

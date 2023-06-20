@@ -259,7 +259,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                             },
                           },
                           {
-                            label: 'View forecast with synopsis',
+                            label: 'View forecast with synopsis', // TODO(skuznets): move this to BTAC or something that uses blogs still
                             data: null,
                             action: () => {
                               navigation.navigate('forecast', {
@@ -267,6 +267,31 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                                 center_id: 'NWAC',
                                 forecast_zone_id: 1130,
                                 requestedTime: toISOStringUTC(new Date('2022-04-10T5:21:00-0800')),
+                              });
+                            },
+                          },
+                          // TODO(skuznets): choose a recent forecast that's a summary
+                          {
+                            label: 'View forecast with row/column weather forecast',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('forecast', {
+                                zoneName: 'Galena Summit & Eastern Mtns',
+                                center_id: 'SNFAC',
+                                forecast_zone_id: 714,
+                                requestedTime: toISOStringUTC(new Date('2023-04-13T5:21:00-0800')),
+                              });
+                            },
+                          },
+                          {
+                            label: 'View forecast with inline weather forecast',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('forecast', {
+                                zoneName: 'Galena Summit & Eastern Mtns',
+                                center_id: 'SNFAC',
+                                forecast_zone_id: 714,
+                                requestedTime: toISOStringUTC(new Date('2020-04-08T5:21:00-0800')),
                               });
                             },
                           },

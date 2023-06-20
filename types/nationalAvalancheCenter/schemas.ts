@@ -502,47 +502,41 @@ export const synopsisSchema = summarySchema.extend({
 });
 export type Synopsis = z.infer<typeof synopsisSchema>;
 
-// ex https://bridgeportavalanchecenter.org/avalanche-forecast/#/forecast/bwra/122474/weather
+export const weatherPeriodLabelSchema = z.object({
+  colspan: z.number().optional(),
+  heading: z.string(),
+  subheading: z.string().optional(),
+  width: z.number(),
+});
+export type WeatherPeriodLabel = z.infer<typeof weatherPeriodLabelSchema>;
+
+export const weatherDataLabelSchema = z.object({
+  field: z.string().nullable(),
+  heading: z.string(),
+  help: z.string().nullable().optional(), // inline HTML here
+  options: z.array(z.string()).nullable(),
+  unit: z.string().nullable(),
+});
+export type WeatherDataLabel = z.infer<typeof weatherDataLabelSchema>;
+
+export const weatherDatumSchema = z.object({
+  colspan: z.string().or(z.number()).optional(),
+  prefix: z.string().optional(),
+  value: z.string().nullable(),
+});
+export type WeatherDatum = z.infer<typeof weatherDatumSchema>;
+
+// ex https://www.sawtoothavalanche.com/forecasts/#/forecast/1/124130/weather
 export const rowColumnWeatherDataSchema = z.object({
   zone_id: z.string(),
   zone_name: z.string(),
-  columns: z
-    .array(
-      z.array(
-        z.object({
-          colspan: z.number().optional(),
-          heading: z.string(),
-          subheading: z.string().optional(),
-          width: z.number(),
-        }),
-      ),
-    )
-    .optional(),
-  rows: z
-    .array(
-      z.object({
-        field: z.string().nullable(),
-        heading: z.string(),
-        help: z.string().nullable().optional(), // inline HTML here
-        options: z.array(z.string()).nullable(),
-        unit: z.string().nullable(),
-      }),
-    )
-    .optional(),
-  data: z
-    .array(
-      z.array(
-        z.object({
-          colspan: z.string().or(z.number()).optional(),
-          prefix: z.string().optional(),
-          value: z.string().nullable(),
-        }),
-      ),
-    )
-    .optional(),
+  columns: z.array(z.array(weatherPeriodLabelSchema)).optional(),
+  rows: z.array(weatherDataLabelSchema).optional(),
+  data: z.array(z.array(weatherDatumSchema)).optional(),
 });
+export type RowColumnWeatherData = z.infer<typeof rowColumnWeatherDataSchema>;
 
-// ex https://www.sawtoothavalanche.com/forecasts/#/forecast/1/124130/weather
+// ex https://www.sawtoothavalanche.com/forecasts/#/forecast/2/89580
 export const inlineWeatherDataSchema = z.object({
   zone_id: z.string(),
   zone_name: z.string(),
@@ -564,6 +558,7 @@ export const inlineWeatherDataSchema = z.object({
     }),
   ),
 });
+export type InlineWeatherData = z.infer<typeof inlineWeatherDataSchema>;
 
 export const weatherSchema = forecastSchema
   .omit({
@@ -576,7 +571,7 @@ export const weatherSchema = forecastSchema
   })
   .extend({
     product_type: z.literal(ProductType.Weather),
-    weather_data: z.array(rowColumnWeatherDataSchema.or(inlineWeatherDataSchema)),
+    weather_data: z.array(rowColumnWeatherDataSchema).or(z.array(inlineWeatherDataSchema)),
     weather_discussion: z.string().optional().nullable(),
   });
 export type Weather = z.infer<typeof weatherSchema>;
