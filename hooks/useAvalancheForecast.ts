@@ -18,24 +18,24 @@ import {ZodError} from 'zod';
 
 export const useAvalancheForecast = (
   center_id: AvalancheCenterID,
-  center: AvalancheCenter,
   zone_id: number,
   requestedTime: RequestedTime,
+  center?: AvalancheCenter,
 ): UseQueryResult<ForecastResult, AxiosError | ZodError> => {
-  const expiryTimeHours = center.config.expires_time;
-  const expiryTimeZone = center.timezone;
+  const expiryTimeHours = center?.config.expires_time;
+  const expiryTimeZone = center?.timezone;
 
   const queryClient = useQueryClient();
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = queryKey(nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours);
+  const key = queryKey(nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone ?? '', expiryTimeHours ?? 0);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
   return useQuery<ForecastResult, AxiosError | ZodError>({
     queryKey: key,
     queryFn: async (): Promise<ForecastResult> =>
-      fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours, thisLogger),
+      fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone ?? '', expiryTimeHours ?? 0, thisLogger),
     enabled: !!expiryTimeHours,
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });

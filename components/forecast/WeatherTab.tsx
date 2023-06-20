@@ -3,23 +3,36 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {ActionList} from 'components/content/ActionList';
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {InfoTooltip} from 'components/content/InfoTooltip';
-import {incompleteQueryState, QueryState} from 'components/content/QueryState';
+import {incompleteQueryState, InternalError, NotFound, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, BodyXSmBlack, bodyXSmSize, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
 import {add, formatDistanceToNow, isAfter} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {FormatTimeOfDay, useNWACWeatherForecast} from 'hooks/useNWACWeatherForecast';
 import {useRefresh} from 'hooks/useRefresh';
+import {useWeatherForecast} from 'hooks/useWeatherForecast';
 import {useWeatherStations} from 'hooks/useWeatherStations';
+import {isArray} from 'lodash';
 import React from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
 import Toast from 'react-native-toast-message';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, AvalancheForecastZone} from 'types/nationalAvalancheCenter';
+import {
+  AvalancheCenterID,
+  AvalancheForecastZone,
+  InlineWeatherData,
+  ProductType,
+  RowColumnWeatherData,
+  WeatherDataLabel,
+  WeatherDatum,
+  WeatherPeriodLabel,
+} from 'types/nationalAvalancheCenter';
+import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, pacificDateToDayOfWeekString, RequestedTime, utcDateToLocalTimeString} from 'utils/date';
 
 type ForecastNavigationProp = CompositeNavigationProp<NativeStackNavigationProp<HomeStackParamList, 'forecast'>, TabNavigationProps>;
@@ -28,26 +41,36 @@ interface WeatherTabProps {
   zone: AvalancheForecastZone;
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
+  forecast_zone_id: number;
 }
 
 const SmallHeaderWithTooltip: React.FunctionComponent<{
   title: string;
-  content: string;
+  content?: string | null;
   dialogTitle: string;
 }> = ({title, content, dialogTitle}) => (
   // the icon style is designed to make the circle "i" look natural next to the
   // text - neither `center` nor `baseline` alignment look good on their own
   <HStack space={6} alignItems="center" justifyContent="space-between" width="100%">
     <BodyXSmBlack style={{flex: 1}}>{title}</BodyXSmBlack>
-    <InfoTooltip size={bodyXSmSize} title={dialogTitle || title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />
+    {content && <InfoTooltip size={bodyXSmSize} title={dialogTitle || title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />}
   </HStack>
 );
 
-export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requestedTime}) => {
-  const nwacForecastResult = useNWACWeatherForecast(zone.id, requestedTime);
-  const nwacForecast = nwacForecastResult.data;
+export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requestedTime, forecast_zone_id}) => {
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = avalancheCenterMetadataResult.data;
+  const nwacForecastResult = useNWACWeatherForecast(center_id, zone.id, requestedTime);
+  const nwacForecast = nwacForecastResult.data;
+  const avalancheForecastResult = useAvalancheForecast(center_id, forecast_zone_id, requestedTime, metadata);
+  const avalancheForecast = avalancheForecastResult.data;
+  const weatherForecastId = avalancheForecast
+    ? avalancheForecast.product_type === ProductType.Forecast
+      ? avalancheForecast.weather_data?.weather_product_id
+      : undefined
+    : undefined;
+  const weatherForecastResult = useWeatherForecast(weatherForecastId);
+  const weatherForecast = weatherForecastResult.data;
   const mapLayerResult = useMapLayer(center_id);
   const mapLayer = mapLayerResult.data;
   const stationsResult = useWeatherStations({
@@ -56,7 +79,14 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
   });
   const weatherStationsByZone = stationsResult.data;
-  const {isRefreshing, refresh} = useRefresh(nwacForecastResult.refetch, stationsResult.refetch, avalancheCenterMetadataResult.refetch, mapLayerResult.refetch);
+  const {isRefreshing, refresh} = useRefresh(
+    nwacForecastResult.refetch,
+    stationsResult.refetch,
+    avalancheCenterMetadataResult.refetch,
+    mapLayerResult.refetch,
+    avalancheForecastResult.refetch,
+    weatherForecastResult.refetch,
+  );
 
   const navigation = useNavigation<ForecastNavigationProp>();
   React.useEffect(() => {
@@ -66,13 +96,71 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   }, [navigation]);
 
   if (
-    incompleteQueryState(nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, stationsResult) ||
-    !nwacForecast ||
+    incompleteQueryState(avalancheCenterMetadataResult, mapLayerResult, stationsResult, avalancheForecastResult) ||
     !metadata ||
     !mapLayer ||
-    !weatherStationsByZone
+    !weatherStationsByZone ||
+    !avalancheForecast
   ) {
-    return <QueryState results={[nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, stationsResult]} />;
+    return <QueryState results={[nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, stationsResult, avalancheForecastResult]} />;
+  }
+
+  if (center_id !== 'NWAC') {
+    if (!weatherForecastId) {
+      return <NotFound terminal what={[new NotFoundError('no associated weather forecast', 'weather forecast')]} />;
+    }
+
+    if (incompleteQueryState(weatherForecastResult) || !weatherForecast) {
+      return <QueryState results={[weatherForecastResult]} />;
+    }
+
+    return (
+      <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh} />}>
+        <VStack space={8} backgroundColor={colorLookup('background.base')}>
+          <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
+            <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
+              <VStack space={8} style={{flex: 1}}>
+                <AllCapsSmBlack>Issued</AllCapsSmBlack>
+                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                  {utcDateToLocalTimeString(weatherForecast.published_time)}
+                </AllCapsSm>
+              </VStack>
+              <VStack space={8} style={{flex: 1}}>
+                <AllCapsSmBlack>Author</AllCapsSmBlack>
+                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                  {weatherForecast.author || 'Unknown'}
+                  {'\n'}
+                </AllCapsSm>
+              </VStack>
+            </HStack>
+            {weatherForecast.weather_data && (
+              <VStack alignItems="stretch" pt={4}>
+                {weatherForecast.weather_data.map(
+                  (item, i) =>
+                    zone.name === item.zone_name && ('periods' in item ? <InlineWeatherForecast key={i} forecast={item} /> : <RowColumnWeatherForecast key={i} forecast={item} />),
+                )}
+              </VStack>
+            )}
+            {weatherForecast.weather_discussion && (
+              <VStack space={2} py={12} borderBottomWidth={1} borderColor={colorLookup('light.300')}>
+                <BodyBlack>Weather Discussion</BodyBlack>
+                <HTML source={{html: weatherForecast.weather_discussion}} />
+              </VStack>
+            )}
+          </Card>
+          {weatherForecast.weather_discussion && (
+            <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Discussion</Title3Black>}>
+              <HTML source={{html: weatherForecast.weather_discussion}} />
+            </Card>
+          )}
+          {/*// TODO: weather stations*/}
+        </VStack>
+      </ScrollView>
+    );
+  }
+
+  if (incompleteQueryState(nwacForecastResult) || !nwacForecast || nwacForecast === 'ignore') {
+    return <QueryState results={[nwacForecastResult]} />;
   }
 
   // In the UI, we show weather station groups, which may contain 1 or more weather stations.
@@ -250,5 +338,150 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
         />
       </VStack>
     </ScrollView>
+  );
+};
+
+interface period {
+  meta: WeatherPeriodLabel;
+  data: datum[];
+}
+
+interface datum {
+  label: WeatherDataLabel;
+  items: WeatherDatum[];
+}
+
+const InlineWeatherForecast: React.FunctionComponent<{forecast: InlineWeatherData}> = ({forecast}) => {
+  for (const datum of forecast.data) {
+    if (datum.values.length != forecast.periods.length) {
+      return <InternalError inline />;
+    }
+  }
+
+  const periods: period[] = [];
+  for (let i = 0; i < forecast.periods.length; i++) {
+    const data: datum[] = [];
+    for (const field of forecast.data) {
+      const items: WeatherDatum[] = [];
+      const dataItem = field.values[i];
+      if (isArray(dataItem)) {
+        for (const subItem of dataItem) {
+          items.push({
+            prefix: subItem.label,
+            value: subItem.value,
+          });
+        }
+      } else {
+        items.push({
+          value: dataItem,
+        });
+      }
+      data.push({
+        label: {
+          heading: field.field,
+          unit: field.unit,
+          options: [],
+          field: '',
+        },
+        items: items,
+      });
+    }
+    periods.push({
+      meta: {
+        heading: forecast.periods[i],
+        width: 0,
+      },
+      data: data,
+    });
+  }
+  return <ForecastPeriod periods={periods} />;
+};
+
+const RowColumnWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeatherData}> = ({forecast}) => {
+  if (!forecast.columns || forecast.columns.length < 1 || forecast.columns[0].length < 1) {
+    return <InternalError inline />;
+  }
+  if (!forecast.data || !forecast.rows || forecast.data.length !== forecast.rows.length) {
+    return <InternalError inline />;
+  }
+  const span = forecast.columns[0].map(d => (d.colspan ? Number(d.colspan) : 1)).reduce((previous, current) => previous + current, 0);
+  for (const datum of forecast.data) {
+    if (datum.map(d => (d.colspan ? Number(d.colspan) : 1)).reduce((previous, current) => previous + current, 0) !== span) {
+      return <InternalError inline />;
+    }
+  }
+
+  const periods: period[] = [];
+  let currentSpan = 0;
+  for (const column of forecast.columns[0]) {
+    const colSpan = column.colspan ?? 1;
+    const data: datum[] = [];
+    for (let r = 0; r < forecast.rows.length; r++) {
+      const label = forecast.rows[r];
+      const row = forecast.data[r];
+      const items: WeatherDatum[] = [];
+      let thisSpan = 0;
+      for (let i = 0; i < row.length; i++) {
+        thisSpan += row[i].colspan ? Number(row[i].colspan) : 1;
+        if (currentSpan < thisSpan && thisSpan <= currentSpan + colSpan) {
+          items.push(row[i]);
+        }
+      }
+      data.push({
+        label: label,
+        items: items,
+      });
+    }
+    currentSpan += colSpan;
+    periods.push({
+      meta: column,
+      data: data,
+    });
+  }
+
+  return <ForecastPeriod periods={periods} />;
+};
+
+const ForecastPeriod: React.FunctionComponent<{periods: period[]}> = ({periods}) => {
+  return (
+    <VStack alignItems="stretch" pt={4}>
+      {periods.map((period, index) => (
+        <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index !== periods.length - 1 ? colorLookup('light.300') : 'white'}>
+          <HStack space={4}>
+            <BodyBlack>{period.meta.heading}</BodyBlack>
+            {period.meta.subheading && <Body>{period.meta.subheading}</Body>}
+          </HStack>
+          <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} mt={12}>
+            {period.data.map(
+              (item, periodIndex) =>
+                periodIndex % 2 === 0 && (
+                  <HStack key={`${index}-${periodIndex}`} justifyContent="space-between" alignItems="stretch" borderBottomWidth={1} borderColor={colorLookup('light.300')}>
+                    <VStack flexBasis={0.5} flex={1} m={12}>
+                      <ForecastValue forecastItem={item} />
+                    </VStack>
+                    <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
+                    <VStack flexBasis={0.5} flex={1} m={12}>
+                      {periodIndex + 1 <= period.data.length && <ForecastValue forecastItem={period.data[periodIndex + 1]} />}
+                    </VStack>
+                  </HStack>
+                ),
+            )}
+          </View>
+        </VStack>
+      ))}
+    </VStack>
+  );
+};
+
+const ForecastValue: React.FunctionComponent<{forecastItem: datum}> = ({forecastItem}) => {
+  return (
+    <>
+      <SmallHeaderWithTooltip title={forecastItem.label.heading} dialogTitle={forecastItem.label.heading} content={forecastItem.label.help} />
+      {forecastItem.items.map((item, key) => (
+        <BodySm key={key} color={colorLookup('text.secondary')}>
+          {item.value ? `${item.prefix ? item.prefix + ' ' : ''}${item.value}${forecastItem.label.unit ? ' ' + forecastItem.label.unit : ''}` : '-'}
+        </BodySm>
+      ))}
+    </>
   );
 };
