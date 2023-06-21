@@ -27,7 +27,7 @@ export const useMapLayerAvalancheForecasts = (
             queryKey: AvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, center_id, feature.id, requestedTime, expiryTimeZone, expiryTimeHours),
             queryFn: async (): Promise<ForecastResult> =>
               AvalancheForecastQuery.fetch(queryClient, nationalAvalancheCenterHost, center_id, feature.id, requestedTime, expiryTimeZone, expiryTimeHours, logger),
-            enabled: !!expiryTimeHours,
+            enabled: !!metadata,
             cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
           };
         })

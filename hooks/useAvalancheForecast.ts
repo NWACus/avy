@@ -36,7 +36,7 @@ export const useAvalancheForecast = (
     queryKey: key,
     queryFn: async (): Promise<ForecastResult> =>
       fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone ?? '', expiryTimeHours ?? 0, thisLogger),
-    enabled: !!expiryTimeHours,
+    enabled: !!center,
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
 };

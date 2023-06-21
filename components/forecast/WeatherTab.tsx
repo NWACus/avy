@@ -65,7 +65,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   const avalancheForecastResult = useAvalancheForecast(center_id, forecast_zone_id, requestedTime, metadata);
   const avalancheForecast = avalancheForecastResult.data;
   const weatherForecastId = avalancheForecast
-    ? avalancheForecast.product_type === ProductType.Forecast
+    ? avalancheForecast.product_type === ProductType.Forecast || avalancheForecast.product_type === ProductType.Summary
       ? avalancheForecast.weather_data?.weather_product_id
       : undefined
     : undefined;
@@ -404,12 +404,6 @@ const RowColumnWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeat
   if (!forecast.data || !forecast.rows || forecast.data.length !== forecast.rows.length) {
     return <InternalError inline />;
   }
-  const span = forecast.columns[0].map(d => (d.colspan ? Number(d.colspan) : 1)).reduce((previous, current) => previous + current, 0);
-  for (const datum of forecast.data) {
-    if (datum.map(d => (d.colspan ? Number(d.colspan) : 1)).reduce((previous, current) => previous + current, 0) !== span) {
-      return <InternalError inline />;
-    }
-  }
 
   const periods: period[] = [];
   let currentSpan = 0;
@@ -427,17 +421,23 @@ const RowColumnWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeat
           items.push(row[i]);
         }
       }
-      data.push({
-        label: label,
-        items: items,
-      });
+      if (items.length > 0) {
+        data.push({
+          label: label,
+          items: items,
+        });
+      }
     }
     currentSpan += colSpan;
-    periods.push({
-      meta: column,
-      data: data,
-    });
+    if (data.length > 0) {
+      periods.push({
+        meta: column,
+        data: data,
+      });
+    }
   }
+
+  console.log(JSON.stringify(periods));
 
   return <ForecastPeriod periods={periods} />;
 };
@@ -447,7 +447,7 @@ const ForecastPeriod: React.FunctionComponent<{periods: period[]}> = ({periods})
     <VStack alignItems="stretch" pt={4}>
       {periods.map((period, index) => (
         <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index !== periods.length - 1 ? colorLookup('light.300') : 'white'}>
-          <HStack space={4}>
+          <HStack flex={1} space={4} flexWrap={'wrap'}>
             <BodyBlack>{period.meta.heading}</BodyBlack>
             {period.meta.subheading && <Body>{period.meta.subheading}</Body>}
           </HStack>
@@ -461,7 +461,7 @@ const ForecastPeriod: React.FunctionComponent<{periods: period[]}> = ({periods})
                     </VStack>
                     <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
                     <VStack flexBasis={0.5} flex={1} m={12}>
-                      {periodIndex + 1 <= period.data.length && <ForecastValue forecastItem={period.data[periodIndex + 1]} />}
+                      {periodIndex + 1 < period.data.length && <ForecastValue forecastItem={period.data[periodIndex + 1]} />}
                     </VStack>
                   </HStack>
                 ),
