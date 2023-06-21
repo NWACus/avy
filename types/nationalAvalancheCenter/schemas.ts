@@ -159,32 +159,6 @@ export enum AvalancheForecastZoneStatus {
 
 export const dangerLevelSchema = z.nativeEnum(DangerLevel);
 
-// coordinates encodes a list of points, each as a two-member array [longitude,latitude]
-// for a type=Polygon, this a three-dimensional array number[][][]
-// for a type=MultiPolygon, this a four-dimensional array number[][][][]
-// See https://stevage.github.io/geojson-spec/#section-3.1.6 for the definition of Polygon/MultiPolygon
-const point = z.number().array().length(2);
-const lineString = point.array().min(4);
-const polygon = lineString.array().min(1);
-const multiPolygon = polygon.array().min(1);
-export type Point = z.infer<typeof point>;
-export type LineString = z.infer<typeof lineString>;
-export type Polygon = z.infer<typeof polygon>;
-export type MultiPolygon = z.infer<typeof multiPolygon>;
-
-export const polygonSchema = z.object({
-  type: z.literal('Polygon'),
-  coordinates: polygon,
-});
-
-export const multiPolygonSchema = z.object({
-  type: z.literal('MultiPolygon'),
-  coordinates: multiPolygon,
-});
-
-export const featureComponentSchema = z.union([polygonSchema, multiPolygonSchema]);
-export type FeatureComponent = z.infer<typeof featureComponentSchema>;
-
 export const avalancheProblemLocationSchema = z.nativeEnum(AvalancheProblemLocation);
 
 // Fix up data issues before parsing
@@ -714,7 +688,7 @@ export type AvalancheCenter = z.infer<typeof avalancheCenterSchema>;
 // - static information like the name of the zone and timezone
 // - dynamic information like the current forecast and travel advice
 // - consumer directions for how to render the feature, like fill color & stroke
-export const featurePropertiesSchema = z.object({
+export const mapLayerPropertiesSchema = z.object({
   name: z.string(),
   center_id: avalancheCenterIDSchema,
   center_link: z.string(),
@@ -736,22 +710,6 @@ export const featurePropertiesSchema = z.object({
   fillOpacity: z.number(),
   fillIncrement: z.number(),
 });
-
-// Feature is a representation of a forecast zone
-export const featureSchema = z.object({
-  type: z.string(),
-  id: z.number(),
-  properties: featurePropertiesSchema,
-  geometry: featureComponentSchema,
-});
-export type Feature = z.infer<typeof featureSchema>;
-
-// MapLayer describes forecast zones to be drawn for an avalanche center
-export const mapLayerSchema = z.object({
-  type: z.string(),
-  features: z.array(featureSchema),
-});
-export type MapLayer = z.infer<typeof mapLayerSchema>;
 
 const Unknown = 'Unknown';
 
@@ -1152,3 +1110,95 @@ export const nwacObservationSchema = z.object({
   }),
 });
 export type NWACObservationResult = z.infer<typeof nwacObservationSchema>;
+
+export const bBoxSchema = z.union([z.tuple([z.number(), z.number(), z.number(), z.number()]), z.tuple([z.number(), z.number(), z.number(), z.number(), z.number(), z.number()])]);
+export type BBox = z.infer<typeof bBoxSchema>;
+
+export const positionSchema = z.array(z.number());
+export type Position = z.infer<typeof positionSchema>;
+
+export const geoJsonPropertiesSchema = z.record(z.any()).nullable();
+export type GeoJsonProperties = z.infer<typeof geoJsonPropertiesSchema>;
+
+export const geoJsonGeometryTypesSchema = z.enum(['Point', 'MultiPoint', 'LineString', 'MultiLineString', 'Polygon', 'MultiPolygon', 'GeometryCollection']);
+export type GeoJsonGeometryTypes = z.infer<typeof geoJsonGeometryTypesSchema>;
+
+export const geoJsonTypesSchema = z.enum(['Point', 'MultiPoint', 'LineString', 'MultiLineString', 'Polygon', 'MultiPolygon', 'GeometryCollection', 'Feature', 'FeatureCollection']);
+export type GeoJsonTypes = z.infer<typeof geoJsonTypesSchema>;
+export const geoJsonObjectSchema = z.object({
+  type: geoJsonTypesSchema,
+  bbox: z.union([bBoxSchema, z.undefined()]).optional(),
+});
+export type GeoJsonObject = z.infer<typeof geoJsonObjectSchema>;
+
+export const pointSchema = geoJsonObjectSchema.extend({
+  type: z.literal('Point'),
+  coordinates: positionSchema,
+});
+export type Point = z.infer<typeof pointSchema>;
+
+export const multiPointSchema = geoJsonObjectSchema.extend({
+  type: z.literal('MultiPoint'),
+  coordinates: z.array(positionSchema),
+});
+export type MultiPoint = z.infer<typeof multiPointSchema>;
+
+export const lineStringSchema = geoJsonObjectSchema.extend({
+  type: z.literal('LineString'),
+  coordinates: z.array(positionSchema),
+});
+export type LineString = z.infer<typeof lineStringSchema>;
+
+export const multiLineStringSchema = geoJsonObjectSchema.extend({
+  type: z.literal('MultiLineString'),
+  coordinates: z.array(z.array(positionSchema)),
+});
+export type MultiLineString = z.infer<typeof multiLineStringSchema>;
+
+export const polygonSchema = geoJsonObjectSchema.extend({
+  type: z.literal('Polygon'),
+  coordinates: z.array(z.array(positionSchema)),
+});
+export type Polygon = z.infer<typeof polygonSchema>;
+
+export const multiPolygonSchema = geoJsonObjectSchema.extend({
+  type: z.literal('MultiPolygon'),
+  coordinates: z.array(z.array(z.array(positionSchema))),
+});
+export type MultiPolygon = z.infer<typeof multiPolygonSchema>;
+
+export const geometrySchema = z.discriminatedUnion('type', [
+  pointSchema,
+  multiPointSchema,
+  lineStringSchema,
+  multiLineStringSchema,
+  polygonSchema,
+  multiPolygonSchema,
+  // geometryCollectionSchema, // TODO(skuznets): likely does not matter for us but technically this can nest recursively forever, but we get weird block-scoped variable issues with trying to model that here
+]);
+export type Geometry = z.infer<typeof geometrySchema>;
+
+export const geometryCollectionSchema = geoJsonObjectSchema.extend({
+  type: z.literal('GeometryCollection'),
+  geometries: z.array(geometrySchema),
+});
+export type GeometryCollection = z.infer<typeof geometryCollectionSchema>;
+
+export const featureSchema = <T extends z.ZodTypeAny>(propertiesSchema: T) =>
+  geoJsonObjectSchema.extend({
+    type: z.literal('Feature'),
+    geometry: geometrySchema,
+    id: z.number(), // TODO(skuznets): technically GeoJSON allows this to be a string, or a number, and it's optional ...
+    properties: propertiesSchema,
+  });
+
+export const featureCollectionSchema = <T extends z.ZodTypeAny>(propertiesSchema: T) =>
+  geoJsonObjectSchema.extend({
+    type: z.literal('FeatureCollection'),
+    features: z.array(featureSchema(propertiesSchema)),
+  });
+
+export const mapLayerSchema = featureCollectionSchema(mapLayerPropertiesSchema);
+export type MapLayer = z.infer<typeof mapLayerSchema>;
+export const mapLayerFeatureSchema = featureSchema(mapLayerPropertiesSchema);
+export type MapLayerFeature = z.infer<typeof mapLayerFeatureSchema>;

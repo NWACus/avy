@@ -6,7 +6,7 @@ import {ClientContext, ClientProps} from 'clientContext';
 import {boundsForRegions, featureBounds, pointInFeature, RegionBounds} from 'components/helpers/geographicCoordinates';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {ApiError, OpenAPI, StationMetadata, StationMetadataService} from 'types/generated/snowbound';
-import {Feature, MapLayer} from 'types/nationalAvalancheCenter';
+import {MapLayer, MapLayerFeature} from 'types/nationalAvalancheCenter';
 
 type Source = 'nwac' | 'snotel' | 'mesowest';
 
@@ -68,7 +68,7 @@ const decommissionedStations = [
 ];
 
 interface zoneData {
-  feature: Feature;
+  feature: MapLayerFeature;
   bounds: RegionBounds;
   stationGroups: Record<string, StationMetadata[]>;
 }
@@ -88,7 +88,7 @@ export const useWeatherStations = ({mapLayer, token, sources}: Props): UseQueryR
         return [];
       }
       // get list of zones for the center
-      const mapLayerZones: Feature[] = mapLayer.features;
+      const mapLayerZones: MapLayerFeature[] = mapLayer.features;
       const dataByZone: zoneData[] = mapLayerZones.map(f => ({feature: f, bounds: featureBounds(f), stationGroups: {}}));
 
       // get the overall bounding box for the center

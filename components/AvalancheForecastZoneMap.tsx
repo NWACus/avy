@@ -38,7 +38,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import md5 from 'md5';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps} from 'routes';
-import {AvalancheCenterID, DangerLevel, Feature, ForecastPeriod, ProductType} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime, toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
 
 export interface MapProps {
@@ -103,7 +103,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   }
 
   // default to the values in the map layer, but update it with the forecasts and wranings we've fetched
-  const zonesById: Record<string, MapViewZone> = mapLayer.features.reduce((accum: Record<string, MapViewZone>, feature: Feature) => {
+  const zonesById: Record<string, MapViewZone> = mapLayer.features.reduce((accum: Record<string, MapViewZone>, feature: MapLayerFeature) => {
     accum[feature.id] = {
       zone_id: feature.id,
       geometry: feature.geometry,

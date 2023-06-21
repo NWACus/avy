@@ -5,9 +5,9 @@ import {LatLng, Point, Polygon} from 'react-native-maps';
 import {colorFor} from 'components/AvalancheDangerPyramid';
 import {MapViewZone} from 'components/content/ZoneMap';
 import {colorLookup} from 'theme';
-import {FeatureComponent} from 'types/nationalAvalancheCenter';
+import {Geometry} from 'types/nationalAvalancheCenter';
 
-const coordinateList = (geometry: FeatureComponent): number[][] => {
+const coordinateList = (geometry: Geometry): number[][] => {
   let items: number[][] = [];
   if (geometry.type === 'Polygon') {
     items = geometry.coordinates[0];
@@ -21,7 +21,7 @@ const toLatLng = (item: number[]): LatLng => {
   return {longitude: item[0], latitude: item[1]};
 };
 
-export const toLatLngList = (geometry: FeatureComponent | undefined): LatLng[] => {
+export const toLatLngList = (geometry: Geometry | undefined): LatLng[] => {
   if (!geometry) {
     return [];
   }

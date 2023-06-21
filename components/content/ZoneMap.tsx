@@ -4,7 +4,7 @@ import MapView, {MapViewProps, MAP_TYPES, Region} from 'react-native-maps';
 
 import {AvalancheForecastZonePolygon, toLatLngList} from 'components/AvalancheForecastZonePolygon';
 import {RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
-import {AvalancheCenterID, DangerLevel, FeatureComponent} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, DangerLevel, Geometry} from 'types/nationalAvalancheCenter';
 
 const defaultAvalancheCenterMapRegionBounds: RegionBounds = {
   topLeft: {latitude: 0, longitude: 0},
@@ -18,7 +18,7 @@ export type MapViewZone = {
   danger_level?: DangerLevel;
   start_date: string | null;
   end_date: string | null;
-  geometry?: FeatureComponent;
+  geometry?: Geometry;
   fillOpacity: number;
   hasWarning: boolean;
 };
@@ -51,7 +51,7 @@ export function defaultMapRegionForZones(zones: MapViewZone[]) {
   return defaultMapRegionForGeometries(zones.map(zone => zone.geometry));
 }
 
-export function defaultMapRegionForGeometries(geometries: (FeatureComponent | undefined)[] | undefined) {
+export function defaultMapRegionForGeometries(geometries: (Geometry | undefined)[] | undefined) {
   const avalancheCenterMapRegionBounds: RegionBounds = geometries
     ? geometries.reduce((accumulator, currentValue) => updateBoundsToContain(accumulator, toLatLngList(currentValue)), defaultAvalancheCenterMapRegionBounds)
     : defaultAvalancheCenterMapRegionBounds;
