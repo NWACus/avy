@@ -1,35 +1,166 @@
 import React from 'react';
-import {ScrollView, StyleSheet} from 'react-native';
+import {ScrollView} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
+import {Logger} from 'browser-bunyan';
 import {ActionList} from 'components/content/ActionList';
 import {Card} from 'components/content/Card';
-import {incompleteQueryState, QueryState} from 'components/content/QueryState';
-import {HStack, View, VStack} from 'components/core';
-import {Title1Black, Title3Black} from 'components/text';
+import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
+import {VStack} from 'components/core';
+import {featureBounds, pointInFeature, RegionBounds} from 'components/helpers/geographicCoordinates';
+import {Title3Black} from 'components/text';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
-import {useWeatherStations, ZoneResult} from 'hooks/useWeatherStations';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {WeatherStackNavigationProps} from 'routes';
-import {StationMetadata} from 'types/generated/snowbound';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MapLayer, MapLayerFeature, WeatherStationCollection, WeatherStationProperties, WeatherStationSource} from 'types/nationalAvalancheCenter';
+import {NotFoundError} from 'types/requests';
+import {RequestedTimeString} from 'utils/date';
 
 interface Props {
   center_id: AvalancheCenterID;
-  requestedTime: string;
+  requestedTime: RequestedTimeString;
 }
 
-const StationList = (navigation: WeatherStackNavigationProps, center_id: AvalancheCenterID, requestedTime: string, zones: ZoneResult[]) => {
-  const data = zones
+export const WeatherStationList: React.FC<Props> = ({center_id, requestedTime}) => {
+  const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
+  const metadata = avalancheCenterMetadataResult.data;
+  if (incompleteQueryState(avalancheCenterMetadataResult) || !metadata) {
+    return <QueryState results={[avalancheCenterMetadataResult]} />;
+  }
+
+  if (!metadata.widget_config.stations?.token) {
+    return <NotFound terminal what={[new NotFoundError('no token for stations', 'weather stations')]} />;
+  }
+
+  return <StationList center_id={center_id} token={metadata.widget_config.stations?.token} requestedTime={requestedTime} />;
+};
+
+const StationList: React.FunctionComponent<{
+  center_id: AvalancheCenterID;
+  token: string;
+  requestedTime: RequestedTimeString;
+}> = ({center_id, token, requestedTime}) => {
+  const mapLayerResult = useMapLayer(center_id);
+  const mapLayer = mapLayerResult.data;
+  const weatherStationsResult = useWeatherStationsMetadata(center_id, token);
+  const weatherStations = weatherStationsResult.data;
+
+  if (incompleteQueryState(mapLayerResult, weatherStationsResult) || !mapLayer || !weatherStations) {
+    return <QueryState results={[mapLayerResult, weatherStationsResult]} />;
+  }
+
+  if (center_id === 'NWAC') {
+    return <NWACStationList center={center_id} mapLayer={mapLayer} stations={weatherStations} requestedTime={requestedTime} />;
+  }
+  return <></>;
+};
+
+const stationGroupMapping = {
+  // Snoqualmie Pass
+  'Alpental Ski Area': ['1', '2', '3'],
+  'Snoqualmie Pass': ['21', '22', '23'],
+
+  // Stevens Pass
+  'Stevens Pass Ski Area - Tye Mill Chair, Skyline Chair': ['17', '18'],
+  'Stevens Pass - WSDOT Schmidt Haus': ['13'],
+  'Grace Lakes & Old Faithful': ['14', '51'],
+  'Stevens Pass Ski Area - Brooks Chair': ['50'],
+
+  // West South
+  'Crystal Mt Ski Area': ['28', '29'],
+  'Crystal Mt. - Green Valley & Campbell Basin': ['27', '54'],
+  'Mt Baker Ski Area': ['5', '6'],
+  'Mount Rainier - Sunrise': ['30', '31'],
+  'Mount Rainier - Paradise': ['35', '36'],
+  'Mount Rainier - Camp Muir': ['34'],
+  'Chinook Pass': ['32', '33'],
+  'White Pass': ['37', '39', '49'],
+  'Mt St Helens': ['40'],
+
+  // West Central
+  'White Chuck': ['57'],
+
+  // East Central
+  'Mission Ridge Ski Area': ['24', '25', '26'],
+  'Tumwater Mt. & Leavenworth': ['19', '53'],
+  'Dirtyface Mt': ['10'],
+
+  // East North
+  'Washington Pass': ['8', '9'],
+
+  // Mt Hood
+  'Skibowl Ski Area - Government Camp': ['46', '47'],
+  'Timberline Lodge': ['44', '56'],
+  'Timberline Ski Area - Magic Mile Chair': ['45'],
+  'Mt Hood Meadows Ski Area': ['42', '43'],
+  'Mt. Hood Meadows Cascade Express': ['41'],
+};
+
+const decommissionedStations = [
+  '15', // Stevens Pass - Brooks Wind (Retired 2019)
+];
+
+export interface ZoneWithWeatherStations {
+  feature: MapLayerFeature;
+  bounds: RegionBounds;
+  stationGroups: Record<string, WeatherStationProperties[]>;
+}
+
+export const NWACStationsByZone = (mapLayer: MapLayer, stations: WeatherStationCollection, logger: Logger): ZoneWithWeatherStations[] => {
+  const zones: ZoneWithWeatherStations[] = mapLayer.features.map(f => ({feature: f, bounds: featureBounds(f), stationGroups: {}}));
+  stations.features
+    .map(feature => feature.properties)
+    .filter(s => s.source === 'nwac')
+    .filter(s => !decommissionedStations.includes(s.stid))
+    .forEach(s => {
+      if (!s.latitude || !s.longitude) {
+        return;
+      }
+      const matchingZones = zones.filter(zoneData => pointInFeature({latitude: s.latitude, longitude: s.longitude}, zoneData.feature));
+      const stationLogger = logger.child({station: {id: s.id, name: s.name, coordinates: {lat: s.latitude, lng: s.longitude}}});
+      if (matchingZones.length === 0) {
+        stationLogger.warn(`unable to find matching zone for weather station`);
+      } else if (matchingZones.length > 1) {
+        stationLogger.warn({matchingZones: matchingZones.map(z => z.feature.properties.name)}, `found multiple matching zones for weather station`);
+      } else {
+        // Mapped station to a single zone. Now, should it appear in the UI as part of a group?
+        const groupMapping = Object.entries(stationGroupMapping).find(([_name, stids]) => stids.includes(s.stid));
+        const name = groupMapping ? groupMapping[0] : s.name;
+        matchingZones[0].stationGroups[name] = matchingZones[0].stationGroups[name] || [];
+        matchingZones[0].stationGroups[name].push(s);
+      }
+    });
+  return zones;
+};
+
+const NWACStationList: React.FunctionComponent<{center: AvalancheCenterID; mapLayer: MapLayer; stations: WeatherStationCollection; requestedTime: RequestedTimeString}> = ({
+  center,
+  mapLayer,
+  stations,
+  requestedTime,
+}) => {
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const navigation = useNavigation<WeatherStackNavigationProps>();
+  const stationsByZone = NWACStationsByZone(mapLayer, stations, logger);
+
+  const data = stationsByZone
     .map(zone => ({
-      zoneName: zone.name,
+      zoneName: zone.feature.properties.name,
       actions: Object.entries(zone.stationGroups)
         .map(([k, v]) => ({
           label: k,
           data: v,
-          action: (name: string, data: StationMetadata[]) => {
-            navigation.navigate('stationDetail', {center_id, station_stids: data.map(s => s.stid), name, requestedTime, zoneName: zone.name});
+          action: (name: string, data: WeatherStationProperties[]) => {
+            navigation.navigate('stationDetail', {
+              center_id: center,
+              station_stids: data.map(s => s.stid),
+              sources: data.map(s => s.source as WeatherStationSource),
+              name: name,
+              requestedTime: requestedTime,
+              zoneName: zone.feature.properties.name,
+            });
           },
         }))
         .sort((a, b) => a.label.localeCompare(b.label)),
@@ -45,37 +176,5 @@ const StationList = (navigation: WeatherStackNavigationProps, center_id: Avalanc
         ))}
       </VStack>
     </ScrollView>
-  );
-};
-
-export const WeatherStationList: React.FC<Props> = ({center_id, requestedTime}) => {
-  const navigation = useNavigation<WeatherStackNavigationProps>();
-  const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
-  const metadata = avalancheCenterMetadataResult.data;
-  const mapLayerResult = useMapLayer(center_id);
-  const mapLayer = mapLayerResult.data;
-  const stationsResult = useWeatherStations({
-    token: metadata?.widget_config.stations?.token,
-    mapLayer: mapLayer,
-    sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
-  });
-  const zones = stationsResult.data;
-
-  return (
-    <View style={{...StyleSheet.absoluteFillObject}} bg="white">
-      {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
-      <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
-        <VStack width="100%" height="100%" justifyContent="space-between" alignItems="stretch" bg="background.base">
-          <HStack width="100%" py={8} px={16} bg="white">
-            <Title1Black>Weather Stations</Title1Black>
-          </HStack>
-          {incompleteQueryState(avalancheCenterMetadataResult, mapLayerResult, stationsResult) || !metadata || !mapLayer || !zones ? (
-            <QueryState results={[avalancheCenterMetadataResult, mapLayerResult, stationsResult]} />
-          ) : (
-            StationList(navigation, center_id, requestedTime, zones)
-          )}
-        </VStack>
-      </SafeAreaView>
-    </View>
   );
 };

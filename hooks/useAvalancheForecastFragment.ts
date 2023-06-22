@@ -49,7 +49,9 @@ const fetchAvalancheForecastFragment = async (
     }
   }
   const forecast = forecasts?.find(
-    forecast => isBetween(new Date(forecast.published_time), new Date(forecast.expires_time), date) && forecast.forecast_zone.find(zone => zone.id === forecast_zone_id),
+    forecast =>
+      isBetween(new Date(forecast.published_time), forecast.expires_time ? new Date(forecast.expires_time) : new Date(), date) &&
+      forecast.forecast_zone.find(zone => zone.id === forecast_zone_id),
   );
   if (!forecasts || !forecast) {
     throw new NotFoundError(`no avalanche forecast found for center ${center_id} and zone ${forecast_zone_id} active on ${date.toISOString()}`, 'avalanche forecast');
