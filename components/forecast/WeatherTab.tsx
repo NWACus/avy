@@ -7,6 +7,7 @@ import {incompleteQueryState, InternalError, NotFound, QueryState} from 'compone
 import {HStack, View, VStack} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, BodyXSmBlack, bodyXSmSize, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
+import {NWACStationsByZone, ZoneWithWeatherStations} from 'components/weather_data/WeatherStationList';
 import helpStrings from 'content/helpStrings';
 import {add, formatDistanceToNow, isAfter} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
@@ -15,8 +16,9 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {FormatTimeOfDay, useNWACWeatherForecast} from 'hooks/useNWACWeatherForecast';
 import {useRefresh} from 'hooks/useRefresh';
 import {useWeatherForecast} from 'hooks/useWeatherForecast';
-import {useWeatherStations} from 'hooks/useWeatherStations';
+import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import {isArray} from 'lodash';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import React from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
 import Toast from 'react-native-toast-message';
@@ -31,6 +33,7 @@ import {
   WeatherDataLabel,
   WeatherDatum,
   WeatherPeriodLabel,
+  WeatherStationSource,
 } from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, pacificDateToDayOfWeekString, RequestedTime, utcDateToLocalTimeString} from 'utils/date';
@@ -65,7 +68,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   const avalancheForecastResult = useAvalancheForecast(center_id, forecast_zone_id, requestedTime, metadata);
   const avalancheForecast = avalancheForecastResult.data;
   const weatherForecastId = avalancheForecast
-    ? avalancheForecast.product_type === ProductType.Forecast
+    ? avalancheForecast.product_type === ProductType.Forecast || avalancheForecast.product_type === ProductType.Summary
       ? avalancheForecast.weather_data?.weather_product_id
       : undefined
     : undefined;
@@ -73,15 +76,12 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   const weatherForecast = weatherForecastResult.data;
   const mapLayerResult = useMapLayer(center_id);
   const mapLayer = mapLayerResult.data;
-  const stationsResult = useWeatherStations({
-    token: metadata?.widget_config.stations?.token,
-    mapLayer: mapLayer,
-    sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
-  });
-  const weatherStationsByZone = stationsResult.data;
+  const weatherStationsResult = useWeatherStationsMetadata(center_id, metadata?.widget_config.stations?.token);
+  const weatherStations = weatherStationsResult.data;
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const stationsByZone: ZoneWithWeatherStations[] = [];
   const {isRefreshing, refresh} = useRefresh(
     nwacForecastResult.refetch,
-    stationsResult.refetch,
     avalancheCenterMetadataResult.refetch,
     mapLayerResult.refetch,
     avalancheForecastResult.refetch,
@@ -95,14 +95,16 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     });
   }, [navigation]);
 
-  if (
-    incompleteQueryState(avalancheCenterMetadataResult, mapLayerResult, stationsResult, avalancheForecastResult) ||
-    !metadata ||
-    !mapLayer ||
-    !weatherStationsByZone ||
-    !avalancheForecast
-  ) {
-    return <QueryState results={[nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, stationsResult, avalancheForecastResult]} />;
+  if (incompleteQueryState(avalancheCenterMetadataResult, mapLayerResult, avalancheForecastResult) || !metadata || !mapLayer || !avalancheForecast) {
+    return <QueryState results={[nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, avalancheForecastResult]} />;
+  }
+
+  if (metadata?.widget_config.stations?.token) {
+    if (incompleteQueryState(weatherStationsResult) || !weatherStations) {
+      return <QueryState results={[weatherStationsResult]} />;
+    } else {
+      stationsByZone.push(...NWACStationsByZone(mapLayer, weatherStations, logger));
+    }
   }
 
   if (center_id !== 'NWAC') {
@@ -165,7 +167,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
 
   // In the UI, we show weather station groups, which may contain 1 or more weather stations.
   // Example: Alpental Ski Area shows 3 weather stations.
-  const groupedWeatherStations = Object.entries(weatherStationsByZone?.find(zoneData => zoneData.zoneId === zone.id)?.stationGroups || {}).sort((a, b) => a[0].localeCompare(b[0]));
+  const groupedWeatherStations = Object.entries(stationsByZone?.find(zoneData => zoneData.feature.id === zone.id)?.stationGroups || {}).sort((a, b) => a[0].localeCompare(b[0]));
 
   const author = `${nwacForecast.forecaster.first_name} ${nwacForecast.forecaster.last_name}`;
 
@@ -305,9 +307,10 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
                   data: stations,
                   action: () => {
                     navigation.navigate('stationDetail', {
-                      center_id,
+                      center_id: center_id,
                       station_stids: stations.map(s => s.stid),
-                      name,
+                      name: name,
+                      sources: stations.map(s => s.source as WeatherStationSource),
                       requestedTime: formatRequestedTime(requestedTime),
                       zoneName: zone.name,
                     });
@@ -404,12 +407,6 @@ const RowColumnWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeat
   if (!forecast.data || !forecast.rows || forecast.data.length !== forecast.rows.length) {
     return <InternalError inline />;
   }
-  const span = forecast.columns[0].map(d => (d.colspan ? Number(d.colspan) : 1)).reduce((previous, current) => previous + current, 0);
-  for (const datum of forecast.data) {
-    if (datum.map(d => (d.colspan ? Number(d.colspan) : 1)).reduce((previous, current) => previous + current, 0) !== span) {
-      return <InternalError inline />;
-    }
-  }
 
   const periods: period[] = [];
   let currentSpan = 0;
@@ -427,16 +424,20 @@ const RowColumnWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeat
           items.push(row[i]);
         }
       }
-      data.push({
-        label: label,
-        items: items,
-      });
+      if (items.length > 0) {
+        data.push({
+          label: label,
+          items: items,
+        });
+      }
     }
     currentSpan += colSpan;
-    periods.push({
-      meta: column,
-      data: data,
-    });
+    if (data.length > 0) {
+      periods.push({
+        meta: column,
+        data: data,
+      });
+    }
   }
 
   return <ForecastPeriod periods={periods} />;
@@ -447,7 +448,7 @@ const ForecastPeriod: React.FunctionComponent<{periods: period[]}> = ({periods})
     <VStack alignItems="stretch" pt={4}>
       {periods.map((period, index) => (
         <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index !== periods.length - 1 ? colorLookup('light.300') : 'white'}>
-          <HStack space={4}>
+          <HStack flex={1} space={4} flexWrap={'wrap'}>
             <BodyBlack>{period.meta.heading}</BodyBlack>
             {period.meta.subheading && <Body>{period.meta.subheading}</Body>}
           </HStack>
@@ -461,7 +462,7 @@ const ForecastPeriod: React.FunctionComponent<{periods: period[]}> = ({periods})
                     </VStack>
                     <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
                     <VStack flexBasis={0.5} flex={1} m={12}>
-                      {periodIndex + 1 <= period.data.length && <ForecastValue forecastItem={period.data[periodIndex + 1]} />}
+                      {periodIndex + 1 < period.data.length && <ForecastValue forecastItem={period.data[periodIndex + 1]} />}
                     </VStack>
                   </HStack>
                 ),

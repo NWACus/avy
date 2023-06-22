@@ -15,10 +15,18 @@ import NWACObservationsQuery from 'hooks/useNWACObservations';
 import NWACWeatherForecastQuery from 'hooks/useNWACWeatherForecast';
 import SynopsisQuery from 'hooks/useSynopsis';
 import WeatherForecastQuery from 'hooks/useWeatherForecast';
+import WeatherStationsQuery from 'hooks/useWeatherStationsMetadata';
 import {AvalancheCenter, AvalancheCenterID, ForecastResult, ImageMediaItem, ProductType} from 'types/nationalAvalancheCenter';
 import {requestedTimeToUTCDate} from 'utils/date';
 
-export const prefetchAllActiveForecasts = async (queryClient: QueryClient, center_id: AvalancheCenterID, nationalAvalancheCenterHost: string, nwacHost: string, logger: Logger) => {
+export const prefetchAllActiveForecasts = async (
+  queryClient: QueryClient,
+  center_id: AvalancheCenterID,
+  nationalAvalancheCenterHost: string,
+  nwacHost: string,
+  snowboundHost: string,
+  logger: Logger,
+) => {
   const requestedTime = 'latest';
   const currentDateTime = requestedTimeToUTCDate(requestedTime);
   void preloadAvalancheProblemIcons(queryClient, logger);
@@ -39,6 +47,10 @@ export const prefetchAllActiveForecasts = async (queryClient: QueryClient, cente
   }
   if (metadata?.widget_config?.danger_map) {
     void NACObservationsQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, startDate, endDate, logger);
+  }
+
+  if (metadata?.widget_config?.stations?.token) {
+    void WeatherStationsQuery.prefetch(queryClient, snowboundHost, center_id, metadata?.widget_config?.stations?.token, logger);
   }
 
   if (metadata?.widget_config?.forecast) {

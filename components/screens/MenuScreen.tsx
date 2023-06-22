@@ -272,7 +272,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                           },
                           // TODO(skuznets): choose a recent forecast that's a summary
                           {
-                            label: 'View forecast with row/column weather forecast',
+                            label: 'View forecast with standard row/column weather forecast',
                             data: null,
                             action: () => {
                               navigation.navigate('forecast', {
@@ -280,6 +280,30 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                                 center_id: 'SNFAC',
                                 forecast_zone_id: 714,
                                 requestedTime: toISOStringUTC(new Date('2023-04-13T5:21:00-0800')),
+                              });
+                            },
+                          },
+                          {
+                            label: 'View forecast with custom row/column weather forecast',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('forecast', {
+                                zoneName: 'Tetons',
+                                center_id: 'BTAC',
+                                forecast_zone_id: 1329,
+                                requestedTime: toISOStringUTC(new Date('2023-05-01T21:21:00-0000')),
+                              });
+                            },
+                          },
+                          {
+                            label: 'View forecast with another custom row/column weather forecast',
+                            data: null,
+                            action: () => {
+                              navigation.navigate('forecast', {
+                                zoneName: 'Central Sierra Nevada',
+                                center_id: 'SAC',
+                                forecast_zone_id: 77,
+                                requestedTime: toISOStringUTC(new Date('2023-04-08T14:21:00-0000')),
                               });
                             },
                           },

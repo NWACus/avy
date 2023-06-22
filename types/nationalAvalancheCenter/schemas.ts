@@ -629,6 +629,9 @@ export const summaryFragmentSchema = summarySchema
   });
 export type SummaryFragment = z.infer<typeof summaryFragmentSchema>;
 
+const forecastOrSummaryFragmentSchema = z.discriminatedUnion('product_type', [forecastFragmentSchema, summaryFragmentSchema]);
+export type ForecastSummaryFragment = z.infer<typeof forecastOrSummaryFragmentSchema>;
+
 export const synopsisFragmentSchema = synopsisSchema
   .omit({
     announcement: true,
@@ -1184,21 +1187,125 @@ export const geometryCollectionSchema = geoJsonObjectSchema.extend({
 });
 export type GeometryCollection = z.infer<typeof geometryCollectionSchema>;
 
-export const featureSchema = <T extends z.ZodTypeAny>(propertiesSchema: T) =>
+export const featureSchema = <T extends z.ZodTypeAny, U extends z.ZodTypeAny>(propertiesSchema: T, idSchema: U) =>
   geoJsonObjectSchema.extend({
     type: z.literal('Feature'),
     geometry: geometrySchema,
-    id: z.number(), // TODO(skuznets): technically GeoJSON allows this to be a string, or a number, and it's optional ...
+    id: idSchema,
     properties: propertiesSchema,
   });
 
-export const featureCollectionSchema = <T extends z.ZodTypeAny>(propertiesSchema: T) =>
+export const featureCollectionSchema = <T extends z.ZodTypeAny, U extends z.ZodTypeAny>(propertiesSchema: T, idSchema: U) =>
   geoJsonObjectSchema.extend({
     type: z.literal('FeatureCollection'),
-    features: z.array(featureSchema(propertiesSchema)),
+    features: z.array(featureSchema(propertiesSchema, idSchema)),
   });
 
-export const mapLayerSchema = featureCollectionSchema(mapLayerPropertiesSchema);
+export const mapLayerSchema = featureCollectionSchema(mapLayerPropertiesSchema, z.number());
 export type MapLayer = z.infer<typeof mapLayerSchema>;
-export const mapLayerFeatureSchema = featureSchema(mapLayerPropertiesSchema);
+export const mapLayerFeatureSchema = featureSchema(mapLayerPropertiesSchema, z.number());
 export type MapLayerFeature = z.infer<typeof mapLayerFeatureSchema>;
+
+export const WeatherStationSource = {
+  NWAC: 'nwac',
+  MESOWEST: 'mesowest',
+  SNOTEL: 'snotel',
+} as const;
+export type WeatherStationSource = (typeof WeatherStationSource)[keyof typeof WeatherStationSource];
+
+export const NWACWeatherStationStatus = {
+  Active: 'active',
+  Inactive: 'inactive',
+} as const;
+export type NWACWeatherStationStatus = (typeof NWACWeatherStationStatus)[keyof typeof NWACWeatherStationStatus];
+
+export const WeatherStationStatus = {
+  Active: 'ACTIVE',
+  Inactive: 'INACTIVE',
+} as const;
+export type WeatherStationStatus = (typeof WeatherStationStatus)[keyof typeof WeatherStationStatus];
+
+export const nwacWeatherStationPropertiesSchema = z.object({
+  source: z.literal(WeatherStationSource.NWAC),
+  id: z.string(),
+  stid: z.string(),
+  name: z.string(),
+  latitude: z.number(),
+  longitude: z.number(),
+  elevation: z.number(),
+  timezone: z.string(),
+  meta: z.object({
+    state: z.string().nullable(),
+    datalogger_num_id: z.number().or(z.string()),
+    datalogger_char_id: z.string(),
+    weather_station_partner: z.string(),
+  }),
+  station_note: z.array(
+    z.object({
+      stid: z.string(),
+      id: z.string(),
+      client_id: z.number(),
+      date_updated: z.string(),
+      start_date: z.string(),
+      status: z.nativeEnum(NWACWeatherStationStatus),
+      history: z.string().nullable(),
+      date_created: z.string(),
+      end_date: z.string().nullable(),
+      note: z.string(),
+    }),
+  ),
+  data: z.record(z.string(), z.string().or(z.number())),
+});
+
+export const mesowestWeatherStationPropertiesSchema = z.object({
+  source: z.literal(WeatherStationSource.MESOWEST),
+  id: z.string(),
+  stid: z.string(),
+  name: z.string(),
+  latitude: z.number(),
+  longitude: z.number(),
+  elevation: z.number(),
+  timezone: z.string(),
+  meta: z.object({
+    id: z.string(),
+    state: z.string().nullable(),
+    units: z.record(z.string(), z.string()),
+    status: z.nativeEnum(WeatherStationStatus),
+    mnet_id: z.string(),
+    elev_dem: z.string().nullable(),
+    restricted: z.boolean(),
+  }),
+});
+
+export const snotelWeatherStationPropertiesSchema = z.object({
+  source: z.literal(WeatherStationSource.SNOTEL),
+  id: z.string(),
+  stid: z.string(),
+  name: z.string(),
+  latitude: z.number(),
+  longitude: z.number(),
+  elevation: z.number(),
+  timezone: z.string(),
+  meta: z.object({
+    huc: z.string(),
+    state: z.string().nullable(),
+    shefid: z.string().nullable(),
+    actionid: z.string().nullable().optional(),
+    enddate: z.string(),
+    begindate: z.string(),
+    fipscountycd: z.string(),
+    fipscountrycd: z.string(),
+    fipsstatenumber: z.string(),
+  }),
+});
+
+export const weatherStationPropertiesSchema = z.discriminatedUnion('source', [
+  nwacWeatherStationPropertiesSchema,
+  mesowestWeatherStationPropertiesSchema,
+  snotelWeatherStationPropertiesSchema,
+]);
+export type WeatherStationProperties = z.infer<typeof weatherStationPropertiesSchema>;
+export const weatherStationCollectionSchema = featureCollectionSchema(weatherStationPropertiesSchema, z.number().or(z.string()).nullable().optional());
+export type WeatherStationCollection = z.infer<typeof weatherStationCollectionSchema>;
+export const weatherStationSchema = featureSchema(weatherStationPropertiesSchema, z.number().or(z.string()).nullable().optional());
+export type WeatherStation = z.infer<typeof weatherStationSchema>;

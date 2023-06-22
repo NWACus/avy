@@ -8,23 +8,21 @@ import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {Center, Divider, HStack, View, VStack} from 'components/core';
 import {AllCapsSm, Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
-import {compareDesc, format} from 'date-fns';
+import {compareDesc, format, sub} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {TimeSeries, useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
-import {utcDateToLocalDateString} from 'utils/date';
+import {AvalancheCenterID, WeatherStationSource} from 'types/nationalAvalancheCenter';
+import {parseRequestedTimeString, RequestedTimeString, requestedTimeToUTCDate, utcDateToLocalDateString} from 'utils/date';
 
 interface Props {
   center_id: AvalancheCenterID;
   name: string;
   station_stids: string[];
   zoneName: string;
+  sources: WeatherStationSource[];
+  requestedTime: RequestedTimeString;
 }
-
-// TODO: plumb through active date
-const date = new Date();
 
 const formatDateTime = (input: string) => format(new Date(input), 'MM/dd HH:mm');
 
@@ -193,16 +191,17 @@ export const Row: React.FunctionComponent<{borderRightWidth: number; name: strin
   );
 };
 
-export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_stids, zoneName}) => {
+export const WeatherStationDetail: React.FC<Props> = ({center_id, name, sources, station_stids, zoneName, requestedTime}) => {
   const [days, setDays] = useState(1);
   const navigation = useNavigation();
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = avalancheCenterMetadataResult.data;
+  const date = requestedTimeToUTCDate(parseRequestedTimeString(requestedTime));
   const timeseriesResult = useWeatherStationTimeseries({
     token: metadata?.widget_config.stations?.token,
-    sources: center_id === 'NWAC' ? ['nwac'] : ['mesowest', 'snotel'],
+    sources: sources,
     stids: station_stids,
-    startDate: new Date(date.getTime() - days * 24 * 60 * 60 * 1000),
+    startDate: sub(date, {days: days}),
     endDate: date,
   });
   const timeseries = timeseriesResult.data;
@@ -221,46 +220,41 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, station_
       .sort((a, b) => b.start_date.localeCompare(a.start_date)) || [];
 
   return (
-    <View style={{...StyleSheet.absoluteFillObject}} bg="white">
-      {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there, or top edge since StackHeader is sitting there */}
-      <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
-        <VStack width="100%" height="100%" alignItems="stretch">
-          <VStack width="100%" height="100%" p={16} space={8}>
-            <HStack space={8} alignItems="center">
-              <BodyBlack>{name}</BodyBlack>
-              {warnings.length > 0 && (
-                <InfoTooltip
-                  outlineIcon="bells"
-                  solidIcon="bells"
-                  title="Status Alerts"
-                  htmlStyle={{textAlign: 'left'}}
-                  content={warnings.map(w => `<h3>${w.name} (${utcDateToLocalDateString(w.start_date)})</h3><p>${w.note}</p>`).join('\n')}
-                  size={bodySize}
-                  style={{paddingBottom: 0, paddingTop: 1}}
-                />
-              )}
-            </HStack>
-            <Divider />
-            <HStack space={16} py={8}>
-              <TouchableOpacity onPress={() => setDays(1)} disabled={days === 1}>
-                <View style={days === 1 ? styles.buttonSelected : styles.button}>
-                  <AllCapsSm>24 hour</AllCapsSm>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setDays(7)} disabled={days === 7}>
-                <View style={days === 7 ? styles.buttonSelected : styles.button}>
-                  <AllCapsSm>7 day</AllCapsSm>
-                </View>
-              </TouchableOpacity>
-            </HStack>
-            <TimeSeriesTable timeSeries={timeseries} />
-            {/* For some reason, the table is running off the bottom of the view, and I just don't have time to keep debugging this.
+    <VStack width="100%" height="100%" alignItems="stretch">
+      <VStack width="100%" height="100%" p={16} space={8}>
+        <HStack space={8} alignItems="center">
+          <BodyBlack>{name}</BodyBlack>
+          {warnings.length > 0 && (
+            <InfoTooltip
+              outlineIcon="bells"
+              solidIcon="bells"
+              title="Status Alerts"
+              htmlStyle={{textAlign: 'left'}}
+              content={warnings.map(w => `<h3>${w.name} (${utcDateToLocalDateString(w.start_date)})</h3><p>${w.note}</p>`).join('\n')}
+              size={bodySize}
+              style={{paddingBottom: 0, paddingTop: 1}}
+            />
+          )}
+        </HStack>
+        <Divider />
+        <HStack space={16} py={8}>
+          <TouchableOpacity onPress={() => setDays(1)} disabled={days === 1}>
+            <View style={days === 1 ? styles.buttonSelected : styles.button}>
+              <AllCapsSm>24 hour</AllCapsSm>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setDays(7)} disabled={days === 7}>
+            <View style={days === 7 ? styles.buttonSelected : styles.button}>
+              <AllCapsSm>7 day</AllCapsSm>
+            </View>
+          </TouchableOpacity>
+        </HStack>
+        <TimeSeriesTable timeSeries={timeseries} />
+        {/* TODO(skuznets): For some reason, the table is running off the bottom of the view, and I just don't have time to keep debugging this.
              Adding the placeholder here does the trick. :dizzy_face: */}
-            <View height={16} />
-          </VStack>
-        </VStack>
-      </SafeAreaView>
-    </View>
+        <View height={16} />
+      </VStack>
+    </VStack>
   );
 };
 

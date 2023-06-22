@@ -13,6 +13,7 @@ import {
   productFragmentArraySchema,
   productSchema,
   ProductType,
+  weatherStationCollectionSchema,
 } from './types/nationalAvalancheCenter';
 
 async function* walk(dir: string): AsyncGenerator<string> {
@@ -44,6 +45,8 @@ async function main() {
   let nwacObsLists = 0;
   let nwacObsFragments = 0;
   let nwacObs = 0;
+  let weatherStationLists = 0;
+  let weatherStations = 0;
 
   const exitHandler = () => {
     console.log(`parsed ${String(metadata)} center metadata files`);
@@ -60,6 +63,9 @@ async function main() {
     console.log(`parsed ${String(nwacObsLists)} NWAC observation lists`);
     console.log(`parsed ${String(nwacObsFragments)} NWAC observation fragments`);
     console.log(`parsed ${String(nwacObs)} NWAC observations`);
+
+    console.log(`parsed ${String(weatherStationLists)} weather station lists`);
+    console.log(`parsed ${String(weatherStations)} weather stations`);
   };
 
   process.on('exit', exitHandler.bind(null));
@@ -162,7 +168,22 @@ async function main() {
   }
 
   // TODO: use Chris' new capabilities API when it's ready to find the centers which support the stations
-  // const centers = ['BTAC', 'CBAC', 'COAA', 'ESAC', 'FAC', 'IPAC', 'MSAC', 'MWAC', 'NWAC', 'PAC', 'SAC', 'SNFAC', 'WAC', 'WCMAC'];
+  const centersWithWeather = ['BTAC', 'CBAC', 'COAA', 'ESAC', 'FAC', 'NWAC', 'SAC', 'SNFAC', 'WAC', 'WCMAC'];
+  for (const center of centersWithWeather) {
+    fs.readFile(`${dir}/${center}/stations.json`, (err, data) => {
+      if (err) {
+        throw err;
+      }
+      const rawData: unknown = JSON.parse(data.toString());
+      const parseResult = weatherStationCollectionSchema.safeParse(rawData);
+      if (!parseResult.success) {
+        console.error(`failed to parse list of observations ${dir}/${center}/observations.json for ${center}: ${JSON.stringify(parseResult.error, null, 2)}`);
+      } else {
+        weatherStations += parseResult.data.features.length;
+      }
+      weatherStationLists++;
+    });
+  }
 
   fs.readFile(`${dir}/NWAC/nwac-observations.json`, (err, data) => {
     if (err) {

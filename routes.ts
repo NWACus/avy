@@ -1,7 +1,7 @@
 import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 import {NavigatorScreenParams} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, WeatherStationSource} from 'types/nationalAvalancheCenter';
 import {RequestedTimeString} from 'utils/date';
 
 export type TabNavigatorParamList = {
@@ -17,6 +17,7 @@ type WeatherStationDetailPageProps = {
   station_stids: string[];
   zoneName: string;
   name: string;
+  sources: WeatherStationSource[];
   requestedTime: RequestedTimeString;
 };
 
