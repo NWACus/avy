@@ -6,7 +6,7 @@ import * as path from 'path';
 import {
   avalancheCenterSchema,
   mapLayerSchema,
-  nwacObservationSchema,
+  nwacObservationResultSchema,
   nwacObservationsListSchema,
   observationListResultSchema,
   observationSchema,
@@ -78,7 +78,7 @@ async function main() {
         throw err;
       }
       const rawData: unknown = JSON.parse(data.toString());
-      const parseResult = avalancheCenterSchema.safeParse(rawData);
+      const parseResult = avalancheCenterSchema.strict().safeParse(rawData);
       if (!parseResult.success) {
         console.error(`failed to parse center metadata for ${center}: ${JSON.stringify(parseResult.error, null, 2)}`);
       }
@@ -89,7 +89,7 @@ async function main() {
         throw err;
       }
       const rawData: unknown = JSON.parse(data.toString());
-      const parseResult = mapLayerSchema.safeParse(rawData);
+      const parseResult = mapLayerSchema.strict().safeParse(rawData);
       if (!parseResult.success) {
         console.error(`failed to parse map layer for ${center}: ${JSON.stringify(parseResult.error, null, 2)}`);
       }
@@ -130,7 +130,7 @@ async function main() {
         throw err;
       }
       const rawData: unknown = JSON.parse(data.toString());
-      const parseResult = observationListResultSchema.safeParse(rawData);
+      const parseResult = observationListResultSchema.strict().safeParse(rawData);
       if (!parseResult.success) {
         console.error(`failed to parse list of observations ${dir}/${center}/observations.json for ${center}: ${JSON.stringify(parseResult.error, null, 2)}`);
       } else {
@@ -145,7 +145,7 @@ async function main() {
         throw err;
       }
       const rawData: unknown = JSON.parse(data.toString());
-      const parseResult = observationListResultSchema.safeParse(rawData);
+      const parseResult = observationListResultSchema.strict().safeParse(rawData);
       if (!parseResult.success) {
         console.error(`failed to parse list of observations with errors ${dir}/${center}/observations-error.json for ${center}: ${JSON.stringify(parseResult.error, null, 2)}`);
       }
@@ -157,7 +157,7 @@ async function main() {
           throw err;
         }
         const rawData: unknown = JSON.parse(data.toString());
-        const parseResult = observationSchema.safeParse(rawData);
+        const parseResult = observationSchema.strict().safeParse(rawData);
         if (!parseResult.success) {
           console.error(`failed to parse observation ${p} for ${center}: ${JSON.stringify(parseResult.error, null, 2)}`);
         } else {
@@ -175,9 +175,9 @@ async function main() {
         throw err;
       }
       const rawData: unknown = JSON.parse(data.toString());
-      const parseResult = weatherStationCollectionSchema.safeParse(rawData);
+      const parseResult = weatherStationCollectionSchema.strict().safeParse(rawData);
       if (!parseResult.success) {
-        console.error(`failed to parse list of observations ${dir}/${center}/observations.json for ${center}: ${JSON.stringify(parseResult.error, null, 2)}`);
+        console.error(`failed to parse list of weather stations ${dir}/${center}/stations.json for ${center}: ${JSON.stringify(parseResult.error, null, 2)}`);
       } else {
         weatherStations += parseResult.data.features.length;
       }
@@ -190,7 +190,7 @@ async function main() {
       throw err;
     }
     const rawData: unknown = JSON.parse(data.toString());
-    const parseResult = nwacObservationsListSchema.safeParse(rawData);
+    const parseResult = nwacObservationsListSchema.strict().safeParse(rawData);
     if (!parseResult.success) {
       console.error(`failed to parse list of observations ${dir}/NWAC/nwac-observations.json for NWAC: ${JSON.stringify(parseResult.error, null, 2)}`);
     } else {
@@ -205,7 +205,7 @@ async function main() {
         throw err;
       }
       const rawData: unknown = JSON.parse(data.toString());
-      const parseResult = nwacObservationSchema.safeParse(rawData);
+      const parseResult = nwacObservationResultSchema.strict().safeParse(rawData);
       if (!parseResult.success) {
         console.error(`failed to parse NWAC observation ${p} for NWAC: ${JSON.stringify(parseResult.error, null, 2)}`);
       } else {

@@ -677,6 +677,9 @@ export const avalancheCenterSchema = z.object({
   timezone: z.string(),
   email: z.string(),
   phone: z.string().nullable(),
+  center_point: z.null(),
+  created_at: z.string(),
+  wkb_geometry: z.null(),
   config: avalancheCenterConfigurationSchema,
   type: avalancheCenterTypeSchema,
   widget_config: avalancheCenterWidgetConfigurationSchema,
@@ -945,6 +948,7 @@ export const locationSchema = z.object({
 
 // from the client-side schema at https://github.com/NationalAvalancheCenter/nac-vue-component-library/blob/main/constants/observations.js
 export const observationSchema = z.object({
+  id: z.string().optional(/* only because of NWAC */),
   organization: z.string().nullable().optional(/* only because of NWAC */),
   center_id: z.preprocess(s => String(s).toUpperCase(), avalancheCenterIDSchema),
   observer_type: z.nativeEnum(PartnerType),
@@ -954,6 +958,7 @@ export const observationSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email().optional(),
   created_at: z.string().nullable(),
+  last_updated: z.string().nullable().optional(/* only because of NWAC */),
   start_date: z.string().nullable(),
   end_date: z.string().nullable().optional(/* only because of NWAC */),
   activity: z.array(z.nativeEnum(Activity)).optional(/* only because of NWAC */),
@@ -965,6 +970,7 @@ export const observationSchema = z.object({
   observation_summary: z.string().nullable().optional(/* only because of NWAC */),
   media: z.array(mediaItemSchema).nullable().optional(/* only because of NWAC */),
   avalanches_summary: z.string().nullable().optional(/* only because of NWAC */),
+  urls: z.array(z.string()).optional(/* only because of NWAC */),
   avalanches: z
     .array(
       z.object({
@@ -1078,6 +1084,13 @@ export const observationListResultSchema = z.object({
 });
 export type ObservationListResult = z.infer<typeof observationListResultSchema>;
 
+export const nwacObservationSchema = observationSchema.extend({
+  zone: z.string().optional(),
+  visible: z.boolean(),
+  id: z.number().transform(n => String(n)),
+});
+export type NWACObservation = z.infer<typeof nwacObservationSchema>;
+
 export const nwacObservationsListSchema = z.object({
   meta: z.object({
     limit: z.number().optional().nullable(),
@@ -1091,13 +1104,13 @@ export const nwacObservationsListSchema = z.object({
       id: z.number(),
       post_type: z.string(),
       post_date: z.string(),
-      content: observationSchema,
+      content: nwacObservationSchema,
     }),
   ),
 });
 export type NWACObservationListResult = z.infer<typeof nwacObservationsListSchema>;
 
-export const nwacObservationSchema = z.object({
+export const nwacObservationResultSchema = z.object({
   meta: z.object({
     limit: z.number().optional().nullable(),
     next: z.string().optional().nullable(),
@@ -1109,10 +1122,10 @@ export const nwacObservationSchema = z.object({
     id: z.number(),
     post_type: z.string(),
     post_date: z.string(),
-    content: observationSchema,
+    content: nwacObservationSchema,
   }),
 });
-export type NWACObservationResult = z.infer<typeof nwacObservationSchema>;
+export type NWACObservationResult = z.infer<typeof nwacObservationResultSchema>;
 
 export const bBoxSchema = z.union([z.tuple([z.number(), z.number(), z.number(), z.number()]), z.tuple([z.number(), z.number(), z.number(), z.number(), z.number(), z.number()])]);
 export type BBox = z.infer<typeof bBoxSchema>;
@@ -1195,16 +1208,19 @@ export const featureSchema = <T extends z.ZodTypeAny, U extends z.ZodTypeAny>(pr
     properties: propertiesSchema,
   });
 
-export const featureCollectionSchema = <T extends z.ZodTypeAny, U extends z.ZodTypeAny>(propertiesSchema: T, idSchema: U) =>
+export const featureCollectionSchema = <T extends z.ZodTypeAny>(featureSchema: T) =>
   geoJsonObjectSchema.extend({
     type: z.literal('FeatureCollection'),
-    features: z.array(featureSchema(propertiesSchema, idSchema)),
+    features: z.array(featureSchema),
   });
 
-export const mapLayerSchema = featureCollectionSchema(mapLayerPropertiesSchema, z.number());
-export type MapLayer = z.infer<typeof mapLayerSchema>;
 export const mapLayerFeatureSchema = featureSchema(mapLayerPropertiesSchema, z.number());
 export type MapLayerFeature = z.infer<typeof mapLayerFeatureSchema>;
+export const mapLayerSchema = featureCollectionSchema(mapLayerFeatureSchema).extend({
+  start_time: z.null(),
+  end_time: z.null(),
+});
+export type MapLayer = z.infer<typeof mapLayerSchema>;
 
 export const WeatherStationSource = {
   NWAC: 'nwac',
@@ -1305,7 +1321,24 @@ export const weatherStationPropertiesSchema = z.discriminatedUnion('source', [
   snotelWeatherStationPropertiesSchema,
 ]);
 export type WeatherStationProperties = z.infer<typeof weatherStationPropertiesSchema>;
-export const weatherStationCollectionSchema = featureCollectionSchema(weatherStationPropertiesSchema, z.number().or(z.string()).nullable().optional());
-export type WeatherStationCollection = z.infer<typeof weatherStationCollectionSchema>;
+
+export const weatherStationCollectionPropertiesSchema = z.object({
+  variables: z.array(
+    z.object({
+      variable: z.string(),
+      long_name: z.string(),
+      default_unit: z.string(),
+      english_unit: z.string(),
+      metric_unit: z.string(),
+      rounding: z.number(),
+    }),
+  ),
+  units: z.record(z.string(), z.string()),
+});
+
 export const weatherStationSchema = featureSchema(weatherStationPropertiesSchema, z.number().or(z.string()).nullable().optional());
 export type WeatherStation = z.infer<typeof weatherStationSchema>;
+export const weatherStationCollectionSchema = featureCollectionSchema(weatherStationSchema).extend({
+  properties: weatherStationCollectionPropertiesSchema,
+});
+export type WeatherStationCollection = z.infer<typeof weatherStationCollectionSchema>;
