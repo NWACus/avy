@@ -10,7 +10,7 @@ import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {nwacObservationSchema, Observation} from 'types/nationalAvalancheCenter';
+import {nwacObservationResultSchema, Observation} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
 export const useNWACObservation = (id: number): UseQueryResult<Observation, AxiosError | ZodError> => {
@@ -54,7 +54,7 @@ export const fetchNWACObservation = async (nwacHost: string, id: number, logger:
   const thisLogger = logger.child({url: url, id: id, what: what});
   const data = await safeFetch(() => axios.get<AxiosResponse<unknown>>(url), thisLogger, what);
 
-  const parseResult = nwacObservationSchema.safeParse(data);
+  const parseResult = nwacObservationResultSchema.safeParse(data);
   if (!parseResult.success) {
     thisLogger.warn({error: parseResult.error}, 'failed to parse');
     Sentry.Native.captureException(parseResult.error, {
