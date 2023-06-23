@@ -18,7 +18,7 @@ import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
-import {AppStateStatus, Image, Platform, StatusBar, StyleSheet, View} from 'react-native';
+import {AppStateStatus, Image, Platform, StatusBar, StyleSheet, useColorScheme, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import * as BackgroundFetch from 'expo-background-fetch';
@@ -56,6 +56,8 @@ import axios, {AxiosRequestConfig} from 'axios';
 import {createLogger, stdSerializers} from 'browser-bunyan';
 import * as FileSystem from 'expo-file-system';
 import {ConsoleFormattedStream} from 'logging/consoleFormattedStream';
+import {TamaguiProvider, Theme} from 'tamagui';
+import config from 'tamagui.config';
 import {NotFoundError} from 'types/requests';
 
 const logLevel = (Constants.expoConfig?.extra?.log_level as string) ?? 'INFO';
@@ -231,6 +233,7 @@ const BaseApp: React.FunctionComponent<{
   staging: boolean;
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({staging, setStaging}) => {
+  const colorScheme = useColorScheme();
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const [avalancheCenterId, setAvalancheCenterId] = React.useState((Constants.expoConfig?.extra?.avalanche_center as AvalancheCenterID) ?? 'NWAC');
 
@@ -279,65 +282,69 @@ const BaseApp: React.FunctionComponent<{
 
   return (
     <>
-      <HTMLRendererConfig>
-        <SafeAreaProvider>
-          <NavigationContainer>
-            <SelectProvider>
-              <StatusBar barStyle="dark-content" />
-              <View
-                onLayout={() => {
-                  void onLayoutRootView();
-                }}
-                style={StyleSheet.absoluteFill}>
-                <TabNavigator.Navigator
-                  initialRouteName="Home"
-                  screenOptions={({route}) => ({
-                    headerShown: false,
-                    tabBarIcon: ({color, size}) => {
-                      if (route.name === 'Home') {
-                        // typing the return of `require()` here does nothing for us
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                        return <Image style={{tintColor: color, width: size, height: size}} resizeMode="contain" source={require('assets/icons/tab_bar/home.png')} />;
-                      } else if (route.name === 'Observations') {
-                        return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;
-                      } else if (route.name === 'Weather Data') {
-                        return <Ionicons name="stats-chart-outline" size={size} color={color} />;
-                      } else if (route.name === 'Menu') {
-                        return <MaterialCommunityIcons name="dots-horizontal" size={size} color={color} />;
-                      }
-                    },
-                    // these two properties should really take ColorValue but oh well
-                    tabBarActiveTintColor: colorLookup('primary') as string,
-                    tabBarInactiveTintColor: colorLookup('text.secondary') as string,
-                  })}>
-                  <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
-                    {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
-                  </TabNavigator.Screen>
-                  <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
-                    {state =>
-                      ObservationsTabScreen(
-                        merge(state, {
-                          route: {
-                            params: {
-                              center_id: avalancheCenterId,
-                            },
-                          },
-                        }),
-                      )
-                    }
-                  </TabNavigator.Screen>
-                  <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
-                    {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
-                  </TabNavigator.Screen>
-                  <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
-                    {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-                  </TabNavigator.Screen>
-                </TabNavigator.Navigator>
-              </View>
-            </SelectProvider>
-          </NavigationContainer>
-        </SafeAreaProvider>
-      </HTMLRendererConfig>
+      <TamaguiProvider config={config}>
+        <Theme name={colorScheme === 'dark' ? 'dark' : 'light'}>
+          <HTMLRendererConfig>
+            <SafeAreaProvider>
+              <NavigationContainer>
+                <SelectProvider>
+                  <StatusBar barStyle="dark-content" />
+                  <View
+                    onLayout={() => {
+                      void onLayoutRootView();
+                    }}
+                    style={StyleSheet.absoluteFill}>
+                    <TabNavigator.Navigator
+                      initialRouteName="Home"
+                      screenOptions={({route}) => ({
+                        headerShown: false,
+                        tabBarIcon: ({color, size}) => {
+                          if (route.name === 'Home') {
+                            // typing the return of `require()` here does nothing for us
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                            return <Image style={{tintColor: color, width: size, height: size}} resizeMode="contain" source={require('assets/icons/tab_bar/home.png')} />;
+                          } else if (route.name === 'Observations') {
+                            return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;
+                          } else if (route.name === 'Weather Data') {
+                            return <Ionicons name="stats-chart-outline" size={size} color={color} />;
+                          } else if (route.name === 'Menu') {
+                            return <MaterialCommunityIcons name="dots-horizontal" size={size} color={color} />;
+                          }
+                        },
+                        // these two properties should really take ColorValue but oh well
+                        tabBarActiveTintColor: colorLookup('primary') as string,
+                        tabBarInactiveTintColor: colorLookup('text.secondary') as string,
+                      })}>
+                      <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                        {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
+                      </TabNavigator.Screen>
+                      <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                        {state =>
+                          ObservationsTabScreen(
+                            merge(state, {
+                              route: {
+                                params: {
+                                  center_id: avalancheCenterId,
+                                },
+                              },
+                            }),
+                          )
+                        }
+                      </TabNavigator.Screen>
+                      <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                        {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
+                      </TabNavigator.Screen>
+                      <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                        {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                      </TabNavigator.Screen>
+                    </TabNavigator.Navigator>
+                  </View>
+                </SelectProvider>
+              </NavigationContainer>
+            </SafeAreaProvider>
+          </HTMLRendererConfig>
+        </Theme>
+      </TamaguiProvider>
       <Toast config={toastConfig} bottomOffset={88} visibilityTime={2000} />
     </>
   );
