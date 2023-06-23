@@ -155,8 +155,12 @@ const NWACStationList: React.FunctionComponent<{center: AvalancheCenterID; mapLa
           action: (name: string, data: WeatherStationProperties[]) => {
             navigation.navigate('stationDetail', {
               center_id: center,
-              station_stids: data.map(s => s.stid),
-              sources: data.map(s => s.source as WeatherStationSource),
+              stations: data
+                .map(s => ({id: s.stid, source: s.source}))
+                .reduce((accum, value) => {
+                  accum[value.id] = value.source;
+                  return accum;
+                }, {} as Record<string, WeatherStationSource>),
               name: name,
               requestedTime: requestedTime,
               zoneName: zone.feature.properties.name,

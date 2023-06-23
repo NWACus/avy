@@ -14,10 +14,9 @@ export type TabNavigationProps = BottomTabNavigationProp<TabNavigatorParamList>;
 
 type WeatherStationDetailPageProps = {
   center_id: AvalancheCenterID;
-  station_stids: string[];
   zoneName: string;
   name: string;
-  sources: WeatherStationSource[];
+  stations: Record<string, WeatherStationSource>;
   requestedTime: RequestedTimeString;
 };
 

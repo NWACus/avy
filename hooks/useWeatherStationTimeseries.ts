@@ -1,78 +1,130 @@
-import React, {useContext} from 'react';
+import React from 'react';
 
-import {useQuery, UseQueryResult} from '@tanstack/react-query';
+import * as Sentry from 'sentry-expo';
 
+import {QueryClient, useQuery, UseQueryResult} from '@tanstack/react-query';
+import {AxiosError} from 'axios';
+
+import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
+import {formatDistanceToNowStrict, sub} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {ApiError, OpenAPI, StationMetadata, TimeseriesDataService} from 'types/generated/snowbound';
-import {EnglishUnit, MetricUnit, Unit, Variable} from 'types/snowbound';
-import {toSnowboundStringUTC} from 'utils/date';
+import {OpenAPI, TimeseriesDataService} from 'types/generated/snowbound';
+import {WeatherStationSource, WeatherStationTimeseries, weatherStationTimeseriesSchema} from 'types/nationalAvalancheCenter';
+import {RequestedTime, requestedTimeToUTCDate, toSnowboundStringUTC} from 'utils/date';
+import {ZodError} from 'zod';
 
-type Source = 'nwac' | 'snotel' | 'mesowest';
-
-interface Props {
-  token?: string;
-  stids: string[];
-  sources: Source[];
-  startDate: Date;
-  endDate: Date;
-}
-
-interface VariableDescriptor {
-  variable: Variable;
-  long_name: string;
-  default_unit: Unit;
-  english_unit: EnglishUnit;
-  metric_unit: MetricUnit;
-  rounding: number; // is this really a bool? looks like it's always 0 or 1 in limited testing. or is it a place signifier? no idea
-}
-
-type Observations = Record<Variable, number[] | null[]> & {
-  date_time: string[];
-};
-
-interface Station extends StationMetadata {
-  observations: Observations;
-}
-
-export interface TimeSeries {
-  UNITS: Record<string, string>;
-  VARIABLES: VariableDescriptor[];
-  STATION: Station[];
-}
-
-function floorToHour(date: Date) {
-  const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
-  return new Date(Math.floor(date.getTime() / MILLISECONDS_PER_HOUR) * MILLISECONDS_PER_HOUR);
-}
-
-export const useWeatherStationTimeseries = ({token, sources, stids, startDate, endDate}: Props): UseQueryResult<TimeSeries, ApiError | Error> => {
-  const clientProps = useContext<ClientProps>(ClientContext);
-  const sourceString = sources.join(',');
-  const stidString = stids.join(',');
-  // TODO(skuznets): make this distinguish latest from a real range, and on latest the cache key doesn't hold on to the date, but we send it
+export const useWeatherStationTimeseries = (
+  token: string | undefined,
+  stations: Record<string, WeatherStationSource>,
+  requestedTime: RequestedTime,
+  duration: Duration,
+): UseQueryResult<WeatherStationTimeseries, AxiosError | ZodError> => {
+  const {snowboundHost: host} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = ['timeseries', {source: sourceString, station: stidString, start: toSnowboundStringUTC(floorToHour(startDate)), end: toSnowboundStringUTC(floorToHour(endDate))}];
+  const key = queryKey(host, stations, requestedTime, duration);
+  const {startDate, endDate} = queryInterval(requestedTime, duration);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
-  return useQuery<TimeSeries, ApiError | Error>(
-    key,
-    async () => {
-      OpenAPI.BASE = clientProps.snowboundHost;
-      return TimeseriesDataService.getStationDataTimeseriesWxV1StationDataTimeseriesGet({
-        source: sourceString,
-        stid: stidString,
-        startDate: toSnowboundStringUTC(floorToHour(startDate)),
-        endDate: toSnowboundStringUTC(floorToHour(endDate)),
-        output: 'mesowest',
-        token,
-      });
-    },
+  return useQuery<WeatherStationTimeseries, AxiosError | ZodError>({
+    queryKey: key,
+    queryFn: (): Promise<WeatherStationTimeseries> => fetchWeatherStationTimeseries(host, token ?? '', thisLogger, stations, startDate, endDate),
+    enabled: !!token,
+    staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
+    cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
+  });
+};
+
+const queryInterval = (requestedTime: RequestedTime, duration: Duration): {startDate: Date; endDate: Date} => {
+  const endDate = requestedTimeToUTCDate(requestedTime);
+  endDate.setMinutes(0);
+  endDate.setSeconds(0);
+  const startDate = sub(endDate, duration);
+  startDate.setMinutes(0);
+  startDate.setSeconds(0);
+  return {
+    startDate: startDate,
+    endDate: endDate,
+  };
+};
+
+function queryKey(host: string, stations: Record<string, WeatherStationSource>, requestedTime: RequestedTime, duration: Duration) {
+  return [
+    `weather-station-timeseries`,
     {
-      staleTime: 60 * 60 * 1000, // don't bother re-fetching for one hour (in milliseconds)
-      cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
-      enabled: !!token,
+      host: host,
+      stations: stations,
+      requestedTime: requestedTime,
+      durationDays: duration,
     },
-  );
+  ];
+}
+
+export const prefetchWeatherStationTimeseries = async (
+  queryClient: QueryClient,
+  host: string,
+  token: string,
+  logger: Logger,
+  stations: Record<string, WeatherStationSource>,
+  requestedTime: RequestedTime,
+  duration: Duration,
+) => {
+  const key = queryKey(host, stations, requestedTime, duration);
+  const thisLogger = logger.child({query: key});
+  const {startDate, endDate} = queryInterval(requestedTime, duration);
+  thisLogger.debug('initiating query');
+
+  await queryClient.prefetchQuery({
+    queryKey: key,
+    queryFn: async (): Promise<WeatherStationTimeseries> => {
+      const start = new Date();
+      logger.trace(`prefetching`);
+      const result = fetchWeatherStationTimeseries(host, token, thisLogger, stations, startDate, endDate);
+      thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
+      return result;
+    },
+  });
+};
+
+export const fetchWeatherStationTimeseries = async (
+  host: string,
+  token: string,
+  logger: Logger,
+  stations: Record<string, WeatherStationSource>,
+  startDate: Date,
+  endDate: Date,
+): Promise<WeatherStationTimeseries> => {
+  const url = `${host}/wx/v1/station/data/timeseries/`;
+  const what = 'weather station timeseries';
+  const thisLogger = logger.child({url: url, what: what});
+  OpenAPI.BASE = host;
+  const data: unknown = await TimeseriesDataService.getStationDataTimeseriesWxV1StationDataTimeseriesGet({
+    stid: Object.keys(stations).join(','),
+    source: [...new Set(Object.values(stations))].join(','),
+    startDate: toSnowboundStringUTC(startDate),
+    endDate: toSnowboundStringUTC(endDate),
+    output: 'records',
+    token: token,
+  });
+
+  const parseResult = weatherStationTimeseriesSchema.safeParse(data);
+  if (!parseResult.success) {
+    thisLogger.warn({error: parseResult.error}, 'failed to parse');
+    Sentry.Native.captureException(parseResult.error, {
+      tags: {
+        zod_error: true,
+        url,
+      },
+    });
+    throw parseResult.error;
+  } else {
+    return parseResult.data;
+  }
+};
+
+export default {
+  queryKey,
+  fetch: fetchWeatherStationTimeseries,
+  prefetch: prefetchWeatherStationTimeseries,
 };
