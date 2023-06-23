@@ -14,6 +14,7 @@ import {
   productSchema,
   ProductType,
   weatherStationCollectionSchema,
+  weatherStationTimeseriesSchema,
 } from './types/nationalAvalancheCenter';
 
 async function* walk(dir: string): AsyncGenerator<string> {
@@ -25,8 +26,13 @@ async function* walk(dir: string): AsyncGenerator<string> {
 }
 
 async function main() {
-  // TODO: pass in data dir as an arg
-  const dir = '/tmp/nac-data';
+  if (process.argv.length !== 3) {
+    console.error(`Missing data directory argument!`);
+    console.error(`Usage: ${process.argv[0]} ${process.argv[1]} <data-dir>`);
+    process.exit(1);
+  }
+
+  const dir = process.argv[2];
   let metadata = 0;
   let mapLayer = 0;
   let fragments = 0;
@@ -47,6 +53,7 @@ async function main() {
   let nwacObs = 0;
   let weatherStationLists = 0;
   let weatherStations = 0;
+  let weatherStationTimeseries = 0;
 
   const exitHandler = () => {
     console.log(`parsed ${String(metadata)} center metadata files`);
@@ -66,6 +73,7 @@ async function main() {
 
     console.log(`parsed ${String(weatherStationLists)} weather station lists`);
     console.log(`parsed ${String(weatherStations)} weather stations`);
+    console.log(`parsed ${String(weatherStationTimeseries)} weather station timeseries`);
   };
 
   process.on('exit', exitHandler.bind(null));
@@ -183,6 +191,21 @@ async function main() {
       }
       weatherStationLists++;
     });
+
+    for await (const p of walk(`${dir}/${center}/stations`)) {
+      fs.readFile(p, (err, data) => {
+        if (err) {
+          throw err;
+        }
+        const rawData: unknown = JSON.parse(data.toString());
+        const parseResult = weatherStationTimeseriesSchema.strict().safeParse(rawData);
+        if (!parseResult.success) {
+          console.error(`failed to parse weather station timeseries ${p} for ${center}: ${JSON.stringify(parseResult.error, null, 2)}`);
+        } else {
+          weatherStationTimeseries++;
+        }
+      });
+    }
   }
 
   fs.readFile(`${dir}/NWAC/nwac-observations.json`, (err, data) => {

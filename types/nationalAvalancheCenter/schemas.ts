@@ -1241,6 +1241,20 @@ export const WeatherStationStatus = {
 } as const;
 export type WeatherStationStatus = (typeof WeatherStationStatus)[keyof typeof WeatherStationStatus];
 
+export const stationNoteSchema = z.object({
+  stid: z.string(),
+  id: z.string(),
+  client_id: z.number(),
+  date_updated: z.string(),
+  start_date: z.string(),
+  status: z.nativeEnum(NWACWeatherStationStatus),
+  history: z.string().nullable(),
+  date_created: z.string(),
+  end_date: z.string().nullable(),
+  note: z.string(),
+});
+export type StationNote = z.infer<typeof stationNoteSchema>;
+
 export const nwacWeatherStationPropertiesSchema = z.object({
   source: z.literal(WeatherStationSource.NWAC),
   id: z.string(),
@@ -1256,20 +1270,7 @@ export const nwacWeatherStationPropertiesSchema = z.object({
     datalogger_char_id: z.string(),
     weather_station_partner: z.string(),
   }),
-  station_note: z.array(
-    z.object({
-      stid: z.string(),
-      id: z.string(),
-      client_id: z.number(),
-      date_updated: z.string(),
-      start_date: z.string(),
-      status: z.nativeEnum(NWACWeatherStationStatus),
-      history: z.string().nullable(),
-      date_created: z.string(),
-      end_date: z.string().nullable(),
-      note: z.string(),
-    }),
-  ),
+  station_note: z.array(stationNoteSchema),
   data: z.record(z.string(), z.string().or(z.number())),
 });
 
@@ -1322,18 +1323,20 @@ export const weatherStationPropertiesSchema = z.discriminatedUnion('source', [
 ]);
 export type WeatherStationProperties = z.infer<typeof weatherStationPropertiesSchema>;
 
+export const variableSchema = z.array(
+  z.object({
+    variable: z.string(),
+    long_name: z.string(),
+    default_unit: z.string(),
+    english_unit: z.string(),
+    metric_unit: z.string(),
+    rounding: z.number(),
+  }),
+);
+export const unitSchema = z.record(z.string(), z.string());
 export const weatherStationCollectionPropertiesSchema = z.object({
-  variables: z.array(
-    z.object({
-      variable: z.string(),
-      long_name: z.string(),
-      default_unit: z.string(),
-      english_unit: z.string(),
-      metric_unit: z.string(),
-      rounding: z.number(),
-    }),
-  ),
-  units: z.record(z.string(), z.string()),
+  variables: variableSchema,
+  units: unitSchema,
 });
 
 export const weatherStationSchema = featureSchema(weatherStationPropertiesSchema, z.number().or(z.string()).nullable().optional());
@@ -1342,3 +1345,17 @@ export const weatherStationCollectionSchema = featureCollectionSchema(weatherSta
   properties: weatherStationCollectionPropertiesSchema,
 });
 export type WeatherStationCollection = z.infer<typeof weatherStationCollectionSchema>;
+
+export const weatherStationObservationSchema = z.array(z.record(z.string(), z.string().or(z.number()).nullable()));
+export const weatherStationTimeseriesEntrySchema = z.discriminatedUnion('source', [
+  nwacWeatherStationPropertiesSchema.omit({data: true}).extend({observations: weatherStationObservationSchema}),
+  mesowestWeatherStationPropertiesSchema.extend({observations: weatherStationObservationSchema}),
+  snotelWeatherStationPropertiesSchema.extend({observations: weatherStationObservationSchema}),
+]);
+export type WeatherStationTimeseriesEntry = z.infer<typeof weatherStationTimeseriesEntrySchema>;
+export const weatherStationTimeseriesSchema = z.object({
+  STATION: z.array(weatherStationTimeseriesEntrySchema),
+  UNITS: unitSchema,
+  VARIABLES: variableSchema,
+});
+export type WeatherStationTimeseries = z.infer<typeof weatherStationTimeseriesSchema>;

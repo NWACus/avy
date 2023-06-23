@@ -8,19 +8,18 @@ import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {Center, Divider, HStack, View, VStack} from 'components/core';
 import {AllCapsSm, Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
-import {compareDesc, format, sub} from 'date-fns';
+import {compareDesc, format} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
-import {TimeSeries, useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
+import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, WeatherStationSource} from 'types/nationalAvalancheCenter';
-import {parseRequestedTimeString, RequestedTimeString, requestedTimeToUTCDate, utcDateToLocalDateString} from 'utils/date';
+import {AvalancheCenterID, StationNote, WeatherStationSource, WeatherStationTimeseries} from 'types/nationalAvalancheCenter';
+import {parseRequestedTimeString, RequestedTimeString, utcDateToLocalDateString} from 'utils/date';
 
 interface Props {
   center_id: AvalancheCenterID;
   name: string;
-  station_stids: string[];
   zoneName: string;
-  sources: WeatherStationSource[];
+  stations: Record<string, WeatherStationSource>;
   requestedTime: RequestedTimeString;
 }
 
@@ -79,47 +78,44 @@ const shortUnitsMap: Record<string, string> = {
 
 const shortUnits = (units: string): string => shortUnitsMap[units] || units;
 
-const TimeSeriesTable: React.FC<{timeSeries: TimeSeries}> = ({timeSeries}) => {
+const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({timeSeries}) => {
   if (timeSeries.STATION.length === 0) {
     return <Body>No data found.</Body>;
   }
 
   type Column = {elevation: number | undefined | null; field: string; dataByTime: Record<string, number | string | null>};
   const tableColumns: Column[] = [];
-  timeSeries.STATION.forEach(({elevation, observations}) => {
-    Object.entries(observations).forEach(([field, values]) => {
-      if (field === 'date_time') {
-        // don't add station-specific date time columns
-        return;
+  for (const station of timeSeries.STATION) {
+    const dataByTimeByField: Record<string, Record<string, number | string | null>> = {};
+    for (const observation of station.observations) {
+      const date = observation['date_time'];
+      if (!date) {
+        continue; // can't record this time-less value
       }
+      for (const [field, value] of Object.entries(observation)) {
+        if (field === 'date_time') {
+          // don't add station-specific date time columns
+          continue;
+        }
+        if (field === 'solar_radiation') {
+          // we don't display solar_radiation, only net_solar
+          continue;
+        }
+        if (!dataByTimeByField[field]) {
+          dataByTimeByField[field] = {};
+        }
+        dataByTimeByField[field][date] = value;
+      }
+    }
+    for (const field of Object.keys(dataByTimeByField)) {
+      const values: (string | number | null)[] = Object.values(dataByTimeByField[field]);
       if (values.findIndex(v => v !== null) === -1) {
         // skip empty columns: when all values are null
-        return;
+        continue;
       }
-      if (field === 'solar_radiation') {
-        // we don't display solar_radiation, only net_solar
-        return;
-      }
-      const column: Column = {field: field, elevation: elevation, dataByTime: {}};
-      const times = observations.date_time;
-      values.forEach((value, rowIndex) => {
-        column.dataByTime[times[rowIndex]] = value;
-      });
-      tableColumns.push(column);
-
-      // If this is the precip_accum_one_hour column, synthesize an accumlulated precip column.
-      // Note that at this point, rows are sorted ascending by time
-      if (field === 'precip_accum_one_hour') {
-        const accumColumn: Column = {field: 'precip_accum', elevation: elevation, dataByTime: {}};
-        let accum = 0;
-        values.forEach((value, rowIndex) => {
-          accum += Number(value);
-          accumColumn.dataByTime[times[rowIndex]] = Math.round(accum * 100.0) / 100.0;
-        });
-        tableColumns.push(accumColumn);
-      }
-    });
-  });
+      tableColumns.push({field: field, elevation: station.elevation, dataByTime: dataByTimeByField[field]});
+    }
+  }
 
   // With the columns we have, what should the preferred ordering be?
   tableColumns.sort((a, b) => {
@@ -191,19 +187,13 @@ export const Row: React.FunctionComponent<{borderRightWidth: number; name: strin
   );
 };
 
-export const WeatherStationDetail: React.FC<Props> = ({center_id, name, sources, station_stids, zoneName, requestedTime}) => {
+export const WeatherStationDetail: React.FC<Props> = ({center_id, name, stations, zoneName, requestedTime}) => {
   const [days, setDays] = useState(1);
   const navigation = useNavigation();
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = avalancheCenterMetadataResult.data;
-  const date = requestedTimeToUTCDate(parseRequestedTimeString(requestedTime));
-  const timeseriesResult = useWeatherStationTimeseries({
-    token: metadata?.widget_config.stations?.token,
-    sources: sources,
-    stids: station_stids,
-    startDate: sub(date, {days: days}),
-    endDate: date,
-  });
+  const requestedTimeDate = parseRequestedTimeString(requestedTime);
+  const timeseriesResult = useWeatherStationTimeseries(metadata?.widget_config.stations?.token, stations, requestedTimeDate, {days: days});
   const timeseries = timeseriesResult.data;
 
   React.useEffect(() => {
@@ -214,10 +204,22 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, sources,
     return <QueryState results={[avalancheCenterMetadataResult, timeseriesResult]} />;
   }
 
-  const warnings =
-    timeseries?.STATION?.map(({name, station_note: notes}) => (notes ? notes.map(({start_date, status, note}) => ({name, start_date, status, note})) : []))
-      .flat()
-      .sort((a, b) => b.start_date.localeCompare(a.start_date)) || [];
+  interface noteWithName extends StationNote {
+    name: string;
+  }
+
+  const warnings: noteWithName[] = [];
+  for (const station of timeseries.STATION) {
+    if ('station_note' in station) {
+      for (const note of station.station_note) {
+        warnings.push({
+          name: station.name,
+          ...note,
+        });
+      }
+    }
+  }
+  warnings.sort((a, b) => b.start_date.localeCompare(a.start_date));
 
   return (
     <VStack width="100%" height="100%" alignItems="stretch">
