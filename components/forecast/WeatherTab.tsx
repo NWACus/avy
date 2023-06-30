@@ -99,14 +99,6 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     return <QueryState results={[nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, avalancheForecastResult]} />;
   }
 
-  if (metadata?.widget_config.stations?.token) {
-    if (incompleteQueryState(weatherStationsResult) || !weatherStations) {
-      return <QueryState results={[weatherStationsResult]} />;
-    } else {
-      stationsByZone.push(...NWACStationsByZone(mapLayer, weatherStations, logger));
-    }
-  }
-
   if (center_id !== 'NWAC') {
     if (!weatherForecastId) {
       return <NotFound terminal what={[new NotFoundError('no associated weather forecast', 'weather forecast')]} />;
@@ -159,6 +151,14 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
         </VStack>
       </ScrollView>
     );
+  }
+
+  if (metadata?.widget_config.stations?.token) {
+    if (incompleteQueryState(weatherStationsResult) || !weatherStations) {
+      return <QueryState results={[weatherStationsResult]} />;
+    } else {
+      stationsByZone.push(...NWACStationsByZone(mapLayer, weatherStations, logger));
+    }
   }
 
   if (incompleteQueryState(nwacForecastResult) || !nwacForecast || nwacForecast === 'ignore') {
@@ -460,7 +460,12 @@ const ForecastPeriod: React.FunctionComponent<{periods: period[]}> = ({periods})
             {period.data.map(
               (item, periodIndex) =>
                 periodIndex % 2 === 0 && (
-                  <HStack key={`${index}-${periodIndex}`} justifyContent="space-between" alignItems="stretch" borderBottomWidth={1} borderColor={colorLookup('light.300')}>
+                  <HStack
+                    key={`${index}-${periodIndex}`}
+                    justifyContent="space-between"
+                    alignItems="stretch"
+                    borderBottomWidth={periodIndex < period.data.length - 2 ? 1 : 0}
+                    borderColor={colorLookup('light.300')}>
                     <VStack flexBasis={0.5} flex={1} m={12}>
                       <ForecastValue forecastItem={item} />
                     </VStack>
