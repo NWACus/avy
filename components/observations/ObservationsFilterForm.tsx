@@ -296,7 +296,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
               mx={16}
               mt={16}
               buttonStyle="primary"
-              onPress={
+              onPress={() =>
                 void (async () => {
                   // Force validation errors to show up on fields that haven't been visited yet
                   await formContext.trigger();

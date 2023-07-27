@@ -450,7 +450,7 @@ export const SimpleForm: React.FC<{
                     mt={16}
                     buttonStyle="primary"
                     disabled={mutation.isSuccess}
-                    onPress={
+                    onPress={() =>
                       void (async () => {
                         // Force validation errors to show up on fields that haven't been visited yet
                         await formContext.trigger();
