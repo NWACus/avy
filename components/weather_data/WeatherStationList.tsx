@@ -5,7 +5,7 @@ import {useNavigation} from '@react-navigation/native';
 import {Logger} from 'browser-bunyan';
 import {ActionList} from 'components/content/ActionList';
 import {Card} from 'components/content/Card';
-import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
+import {incompleteQueryState, NotFound, QueryState, Unavailable} from 'components/content/QueryState';
 import {VStack} from 'components/core';
 import {featureBounds, pointInFeature, RegionBounds} from 'components/helpers/geographicCoordinates';
 import {Title3Black} from 'components/text';
@@ -54,7 +54,7 @@ const StationList: React.FunctionComponent<{
   if (center_id === 'NWAC') {
     return <NWACStationList center={center_id} mapLayer={mapLayer} stations={weatherStations} requestedTime={requestedTime} />;
   }
-  return <></>;
+  return <Unavailable />;
 };
 
 const stationGroupMapping = {
