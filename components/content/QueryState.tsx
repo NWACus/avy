@@ -2,6 +2,7 @@ import {UseQueryResult} from '@tanstack/react-query';
 import ErrorIllustration from 'assets/illustrations/Error.svg';
 import NoGPS from 'assets/illustrations/NoGPS.svg';
 import NoSearchResult from 'assets/illustrations/NoSearchResult.svg';
+import Stop from 'assets/illustrations/Stop.svg';
 import {Outcome} from 'components/content/Outcome';
 import {HStack} from 'components/core';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -100,6 +101,10 @@ export const ConnectionLost: React.FunctionComponent = () => {
       />
     );
   }
+};
+
+export const Unavailable: React.FunctionComponent = () => {
+  return <Outcome outcome={'Under construction!'} reason={"This functionality is still under construction, check back later once it's done."} illustration={<Stop />} />;
 };
 
 // incompleteQueryState checks to see if any of the queries are not yet complete - if so, render a <QueryState/>.
