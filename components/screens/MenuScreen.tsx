@@ -54,6 +54,7 @@ import {
   Title3Semibold,
 } from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
+import {clearPreferences} from 'Preferences';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -64,7 +65,7 @@ export const MenuStackScreen = (
   {route}: NativeStackScreenProps<TabNavigatorParamList, 'Menu'>,
   queryCache: QueryCache,
   avalancheCenterId: AvalancheCenterID,
-  setAvalancheCenter: React.Dispatch<React.SetStateAction<AvalancheCenterID>>,
+  setAvalancheCenter: (center: AvalancheCenterID) => void,
   staging: boolean,
   setStaging: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
@@ -145,7 +146,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                               }
                             })();
                           }}>
-                          <Body>Email log file</Body>
+                          Email log file
                         </Button>
                         <Button
                           buttonStyle="normal"
@@ -156,7 +157,10 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                               await clearUploadCache();
                             })();
                           }}>
-                          <Body>Reset the query cache</Body>
+                          Reset the query cache
+                        </Button>
+                        <Button buttonStyle="normal" onPress={clearPreferences}>
+                          Reset preferences
                         </Button>
                         <HStack justifyContent="space-between" alignItems="center" space={16}>
                           <Body>Use staging environment</Body>
@@ -667,7 +671,7 @@ const ToastPreview = () => {
   );
 };
 
-export const AvalancheCenterSelectorScreen = (avalancheCenterId: AvalancheCenterID, setAvalancheCenter: React.Dispatch<React.SetStateAction<AvalancheCenterID>>) => {
+export const AvalancheCenterSelectorScreen = (avalancheCenterId: AvalancheCenterID, setAvalancheCenter: (center: AvalancheCenterID) => void) => {
   const AvalancheCenterSelectorScreen = function (_: NativeStackScreenProps<MenuStackParamList, 'avalancheCenterSelector'>) {
     return <AvalancheCenterSelector currentCenterId={avalancheCenterId} setAvalancheCenter={setAvalancheCenter} />;
   };

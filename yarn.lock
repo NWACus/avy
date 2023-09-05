@@ -8127,6 +8127,11 @@ expo-background-fetch@~11.0.1:
   dependencies:
     expo-task-manager "~11.0.0"
 
+expo-checkbox@~2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/expo-checkbox/-/expo-checkbox-2.2.2.tgz#651c3fbf461e34137e9b49920a8041d9645d8dc8"
+  integrity sha512-0DXbeJdVAPfqiy+RBkGXHYU2dLxdpyaWAaV3+N+/xWEC2ilqrqCiSqsPcbFQer1f9qaqjNeDUi51qPuF5AgTIw==
+
 expo-constants@~14.0.0, expo-constants@~14.0.2:
   version "14.0.2"
   resolved "https://registry.yarnpkg.com/expo-constants/-/expo-constants-14.0.2.tgz#2cb1dec8f41a64c2fc5b4eecaf77d7661cad01cc"
@@ -15581,6 +15586,11 @@ urlpattern-polyfill@^6.0.2:
   integrity sha512-5vZjFlH9ofROmuWmXM9yj2wljYKgWstGwe8YTyiqM7hVum/g9LyCizPZtb3UqsuppVwety9QJmfc42VggLpTgg==
   dependencies:
     braces "^3.0.2"
+
+use-async-effect@^2.2.7:
+  version "2.2.7"
+  resolved "https://registry.yarnpkg.com/use-async-effect/-/use-async-effect-2.2.7.tgz#5812f875a8d7996c396fb49798d0377e90575989"
+  integrity sha512-Vq94tKPyo/9Nok4LOapV0GoGgZPhbeDW/bP6bulLPV4+lIoftaBRBBbGjTbM+j5W1Bm2EkUHJgapeu5YnQvKEA==
 
 use-callback-ref@^1.3.0:
   version "1.3.0"

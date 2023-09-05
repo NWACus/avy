@@ -79,7 +79,7 @@ export const AvalancheCenterCard: React.FunctionComponent<AvalancheCenterCardPro
 
 export const AvalancheCenterSelector: React.FunctionComponent<{
   currentCenterId: AvalancheCenterID;
-  setAvalancheCenter: React.Dispatch<React.SetStateAction<AvalancheCenterID>>;
+  setAvalancheCenter: (center: AvalancheCenterID) => void;
 }> = ({currentCenterId, setAvalancheCenter}) => {
   const navigation = useNavigation<TabNavigationProps>();
   return (
