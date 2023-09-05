@@ -43,7 +43,6 @@ interface AvalancheCenterListItemProps {
 const AvalancheCenterListItem: React.FC<AvalancheCenterListItemProps> = ({data, selected, setSelected}) => {
   return (
     <HStack justifyContent="space-between" alignItems="flex-start" space={4}>
-      {/* image */}
       <AvalancheCenterLogo style={{height: 24, width: 24, resizeMode: 'contain'}} avalancheCenterId={data.center} />
       <VStack space={2} flexShrink={1}>
         <BodyBlack>{data.name}</BodyBlack>
@@ -68,8 +67,7 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
   return (
     <Modal transparent visible={visible} animationType="slide" onRequestClose={closeHandler}>
       <SafeAreaProvider>
-        {/* <View position="absolute" top={0} bottom={0} left={0} right={0}> */}
-        <SafeAreaView>
+        <SafeAreaView style={{backgroundColor: 'rgba(0, 0, 0, 0.2)'}}>
           <Center width="100%" height="100%" px={48}>
             <VStack alignItems="stretch" bg="white" borderRadius={16} px={12} py={24} space={8} width="100%" position="relative" overflow="hidden">
               <Center mb={4}>
@@ -84,13 +82,13 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
               <Button onPress={closeHandler} alignSelf="stretch" buttonStyle="primary" mt={16}>
                 <BodyBlack>Continue</BodyBlack>
               </Button>
+              {/* placeholder view to create space for the topo illustration */}
               <View height={200} />
-              {/* these magic numbers are yanked out of Figma. They could probably be converted to percentages */}
+              {/* these magic numbers are yanked out of Figma */}
               <Topo width={887.0152587890625} height={456.3430480957031} style={{position: 'absolute', left: -364, top: 382}} />
             </VStack>
           </Center>
         </SafeAreaView>
-        {/* </View> */}
       </SafeAreaProvider>
     </Modal>
   );

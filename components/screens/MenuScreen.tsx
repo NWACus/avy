@@ -54,7 +54,7 @@ import {
   Title3Semibold,
 } from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {clearPreferences} from 'Preferences';
+import {clearPreferences, usePreferences} from 'Preferences';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -100,6 +100,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
     logger.info({environment: staging ? 'production' : 'staging'}, 'switching environment');
   }, [staging, setStaging, logger]);
   const navigation = useNavigation<MenuStackNavigationProps>();
+  const {setPreferences} = usePreferences();
   const MenuScreen = function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
     return (
       <View style={{...StyleSheet.absoluteFillObject}} bg="white">
@@ -110,6 +111,13 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
             <Card borderRadius={0} borderColor="white" header={<Title3Black>Settings</Title3Black>}>
               <ActionList
                 actions={[
+                  {
+                    label: 'Select avalanche center',
+                    data: 'Center',
+                    action: () => {
+                      setPreferences({hasSeenCenterPicker: false});
+                    },
+                  },
                   {
                     label: 'About this app',
                     data: 'About',
