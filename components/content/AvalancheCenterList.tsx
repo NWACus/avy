@@ -5,6 +5,7 @@ import {HStack, VStack, VStackProps} from 'components/core';
 import {BodyBlack, BodySm} from 'components/text';
 import Checkbox from 'expo-checkbox';
 import {AvalancheCenterListData} from 'hooks/useAvalancheCenters';
+import {TouchableOpacity} from 'react-native';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
@@ -15,21 +16,23 @@ interface AvalancheCenterListItemProps {
 }
 const AvalancheCenterListItem: React.FC<AvalancheCenterListItemProps> = ({data, selected, setSelected}) => {
   return (
-    <HStack justifyContent="space-between" alignItems="flex-start" space={4}>
-      <HStack space={8} flexShrink={1} alignItems="flex-start">
-        <AvalancheCenterLogo style={{height: 24, width: 24, resizeMode: 'contain', flex: 0, flexGrow: 0}} avalancheCenterId={data.center} />
-        <VStack space={2} flexShrink={1}>
-          <BodyBlack>{data.title}</BodyBlack>
-          {data.subtitle && <BodySm>{data.subtitle}</BodySm>}
-        </VStack>
+    <TouchableOpacity onPress={() => setSelected(data.center)} activeOpacity={0.8}>
+      <HStack justifyContent="space-between" alignItems="flex-start" space={4}>
+        <HStack space={8} flexShrink={1} alignItems="flex-start">
+          <AvalancheCenterLogo style={{height: 24, width: 24, resizeMode: 'contain', flex: 0, flexGrow: 0}} avalancheCenterId={data.center} />
+          <VStack space={2} flexShrink={1}>
+            <BodyBlack>{data.title}</BodyBlack>
+            {data.subtitle && <BodySm>{data.subtitle}</BodySm>}
+          </VStack>
+        </HStack>
+        <Checkbox
+          color={colorLookup('primary')}
+          value={selected}
+          onValueChange={() => setSelected(data.center)}
+          style={{margin: 8, borderRadius: 16, borderColor: colorLookup('primary')}}
+        />
       </HStack>
-      <Checkbox
-        color={colorLookup('primary')}
-        value={selected}
-        onValueChange={() => setSelected(data.center)}
-        style={{margin: 8, borderRadius: 16, borderColor: colorLookup('primary')}}
-      />
-    </HStack>
+    </TouchableOpacity>
   );
 };
 
