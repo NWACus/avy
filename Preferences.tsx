@@ -25,7 +25,7 @@ interface PreferencesContextType {
 
 const PreferencesContext = createContext<PreferencesContextType>({
   preferences: defaultPreferences,
-  setPreferences: () => {},
+  setPreferences: () => undefined,
 });
 
 interface PreferencesProviderProps {
@@ -38,12 +38,12 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
   useAsyncEffect(async () => {
     const storedPreferences = await AsyncStorage.getItem('preferences');
     if (storedPreferences) {
-      setPreferences(merge({}, defaultPreferences, JSON.parse(storedPreferences)));
+      setPreferences(merge({}, defaultPreferences, JSON.parse(storedPreferences) as Preferences));
     }
   }, []);
 
   useEffect(() => {
-    AsyncStorage.setItem('preferences', JSON.stringify(preferences));
+    void AsyncStorage.setItem('preferences', JSON.stringify(preferences));
   }, [preferences]);
 
   const setPreferences = (newPreferences: Partial<Preferences>) => {
