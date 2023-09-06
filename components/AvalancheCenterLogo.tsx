@@ -92,10 +92,12 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
     },
   };
   const actualStyle: ImageStyle = {...style};
-  if (actualStyle.height) {
-    actualStyle.width = undefined;
-  } else {
-    actualStyle.height = undefined;
+  if (actualStyle.resizeMode !== 'contain') {
+    if (actualStyle.height) {
+      actualStyle.width = undefined;
+    } else {
+      actualStyle.height = undefined;
+    }
   }
   actualStyle.aspectRatio = source[avalancheCenterId].width / source[avalancheCenterId].height;
   return images[avalancheCenterId](actualStyle);

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
 import {
   Lato_100Thin,
@@ -16,7 +16,7 @@ import {
 import {Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
 import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, useNavigationContainerRef} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
 import {AppStateStatus, Image, Platform, StatusBar, StyleSheet, useColorScheme, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -54,8 +54,10 @@ require('date-time-format-timezone');
 
 import axios, {AxiosRequestConfig} from 'axios';
 import {createLogger, stdSerializers} from 'browser-bunyan';
+import {AvalancheCenterSelectionModal} from 'components/modals/AvalancheCenterSelectionModal';
 import * as FileSystem from 'expo-file-system';
 import {ConsoleFormattedStream} from 'logging/consoleFormattedStream';
+import {PreferencesProvider, usePreferences} from 'Preferences';
 import {TamaguiProvider, Theme} from 'tamagui';
 import config from 'tamagui.config';
 import {NotFoundError} from 'types/requests';
@@ -224,7 +226,9 @@ const AppWithClientContext = () => {
 
   return (
     <ClientContext.Provider value={contextValue}>
-      <BaseApp staging={staging} setStaging={setStaging} />
+      <PreferencesProvider>
+        <BaseApp staging={staging} setStaging={setStaging} />
+      </PreferencesProvider>
     </ClientContext.Provider>
   );
 };
@@ -235,7 +239,14 @@ const BaseApp: React.FunctionComponent<{
 }> = ({staging, setStaging}) => {
   const colorScheme = useColorScheme();
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const [avalancheCenterId, setAvalancheCenterId] = React.useState((Constants.expoConfig?.extra?.avalanche_center as AvalancheCenterID) ?? 'NWAC');
+  const {preferences, setPreferences} = usePreferences();
+  const avalancheCenterId = preferences.center;
+  const setAvalancheCenterId = useCallback(
+    (avalancheCenterId: AvalancheCenterID) => {
+      setPreferences({center: avalancheCenterId});
+    },
+    [setPreferences],
+  );
 
   const {nationalAvalancheCenterHost, nwacHost, snowboundHost} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
@@ -269,11 +280,17 @@ const BaseApp: React.FunctionComponent<{
     logger.error({error: error}, 'error loading fonts');
   }
 
+  const [splashScreenVisible, setSplashScreenVisible] = useState(true);
+  const navigationRef = useNavigationContainerRef();
+
   const onLayoutRootView = useCallback(async () => {
     // This callback won't execute until fontsLoaded is true, because
     // otherwise we won't render the view that triggers this callback
     await SplashScreen.hideAsync();
-  }, []);
+    setSplashScreenVisible(false);
+  }, [setSplashScreenVisible]);
+
+  const showAvalancheCenterSelectionModal = !splashScreenVisible && !preferences.hasSeenCenterPicker;
 
   if (!fontsLoaded) {
     // The splash screen keeps rendering while fonts are loading
@@ -286,7 +303,7 @@ const BaseApp: React.FunctionComponent<{
         <Theme name={colorScheme === 'dark' ? 'dark' : 'light'}>
           <HTMLRendererConfig>
             <SafeAreaProvider>
-              <NavigationContainer>
+              <NavigationContainer ref={navigationRef}>
                 <SelectProvider>
                   <StatusBar barStyle="dark-content" />
                   <View
@@ -294,6 +311,19 @@ const BaseApp: React.FunctionComponent<{
                       void onLayoutRootView();
                     }}
                     style={StyleSheet.absoluteFill}>
+                    <AvalancheCenterSelectionModal
+                      visible={showAvalancheCenterSelectionModal}
+                      initialSelection={preferences.center}
+                      onClose={center => {
+                        setPreferences({center: center, hasSeenCenterPicker: true});
+                        // We need to clear navigation state to force all screens from the
+                        // previous avalanche center selection to unmount
+                        navigationRef.reset({
+                          index: 0,
+                          routes: [{name: 'Home'}],
+                        });
+                      }}
+                    />
                     <TabNavigator.Navigator
                       initialRouteName="Home"
                       screenOptions={({route}) => ({

@@ -53,7 +53,9 @@ import {
   Title3Black,
   Title3Semibold,
 } from 'components/text';
+import {AvalancheCenters} from 'hooks/useAvalancheCenters';
 import {LoggerContext, LoggerProps} from 'loggerContext';
+import {clearPreferences} from 'Preferences';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -64,18 +66,18 @@ export const MenuStackScreen = (
   {route}: NativeStackScreenProps<TabNavigatorParamList, 'Menu'>,
   queryCache: QueryCache,
   avalancheCenterId: AvalancheCenterID,
-  setAvalancheCenter: React.Dispatch<React.SetStateAction<AvalancheCenterID>>,
+  setAvalancheCenter: (center: AvalancheCenterID) => void,
   staging: boolean,
   setStaging: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
   const {center_id, requestedTime} = route.params;
   return (
-    <MenuStack.Navigator initialRouteName="menu" screenOptions={() => ({headerShown: false})}>
-      <MenuStack.Screen name="menu" component={MenuScreen(queryCache, avalancheCenterId, staging, setStaging)} options={{title: `Settings`}} />
+    <MenuStack.Navigator initialRouteName="menu" screenOptions={() => ({headerShown: true})}>
+      <MenuStack.Screen name="menu" component={MenuScreen(queryCache, avalancheCenterId, staging, setStaging)} options={{title: `Settings`, headerShown: false}} />
       <MenuStack.Screen
         name="avalancheCenterSelector"
-        component={AvalancheCenterSelectorScreen(avalancheCenterId, setAvalancheCenter)}
-        options={{title: `Choose An Avalanche Center`}}
+        component={AvalancheCenterSelectorScreen(AvalancheCenters.SupportedCenters, avalancheCenterId, setAvalancheCenter)}
+        options={({route}) => ({headerShown: true, title: `Select Avalanche Center${route.params.debugMode ? ' (debug)' : ''}`})}
       />
       <MenuStack.Screen name="buttonStylePreview" component={ButtonStylePreview} options={{title: `Button style preview`}} />
       <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text style preview`}} />
@@ -109,6 +111,13 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
             <Card borderRadius={0} borderColor="white" header={<Title3Black>Settings</Title3Black>}>
               <ActionList
                 actions={[
+                  {
+                    label: 'Select avalanche center',
+                    data: 'Center',
+                    action: () => {
+                      navigation.navigate('avalancheCenterSelector', {debugMode: false});
+                    },
+                  },
                   {
                     label: 'About this app',
                     data: 'About',
@@ -145,7 +154,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                               }
                             })();
                           }}>
-                          <Body>Email log file</Body>
+                          Email log file
                         </Button>
                         <Button
                           buttonStyle="normal"
@@ -156,7 +165,10 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                               await clearUploadCache();
                             })();
                           }}>
-                          <Body>Reset the query cache</Body>
+                          Reset the query cache
+                        </Button>
+                        <Button buttonStyle="normal" onPress={() => void clearPreferences()}>
+                          Reset preferences
                         </Button>
                         <HStack justifyContent="space-between" alignItems="center" space={16}>
                           <Body>Use staging environment</Body>
@@ -165,10 +177,10 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                         <ActionList
                           actions={[
                             {
-                              label: 'Choose avalanche center',
-                              data: 'Avalanche Center Selector',
+                              label: 'Select avalanche center (debug)',
+                              data: 'Center (debug)',
                               action: () => {
-                                navigation.navigate('avalancheCenterSelector');
+                                navigation.navigate('avalancheCenterSelector', {debugMode: true});
                               },
                             },
                             {
@@ -667,7 +679,7 @@ const ToastPreview = () => {
   );
 };
 
-export const AvalancheCenterSelectorScreen = (avalancheCenterId: AvalancheCenterID, setAvalancheCenter: React.Dispatch<React.SetStateAction<AvalancheCenterID>>) => {
+export const AvalancheCenterSelectorScreen = (centers: AvalancheCenters, avalancheCenterId: AvalancheCenterID, setAvalancheCenter: (center: AvalancheCenterID) => void) => {
   const AvalancheCenterSelectorScreen = function (_: NativeStackScreenProps<MenuStackParamList, 'avalancheCenterSelector'>) {
     return <AvalancheCenterSelector currentCenterId={avalancheCenterId} setAvalancheCenter={setAvalancheCenter} />;
   };

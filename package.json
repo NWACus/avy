@@ -67,6 +67,7 @@
     "expo": "^47.0.0",
     "expo-application": "~5.0.1",
     "expo-background-fetch": "~11.0.1",
+    "expo-checkbox": "~2.2.2",
     "expo-constants": "~14.0.2",
     "expo-dev-client": "~2.0.1",
     "expo-device": "~5.0.0",
@@ -106,6 +107,7 @@
     "sentry-expo": "~6.0.0",
     "tamagui": "^1.35.8",
     "tinycolor2": "^1.5.2",
+    "use-async-effect": "^2.2.7",
     "zod": "^3.20.0"
   },
   "devDependencies": {
