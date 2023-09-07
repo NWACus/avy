@@ -18,8 +18,8 @@ const AvalancheCenterListItem: React.FC<AvalancheCenterListItemProps> = ({data, 
   const center_id: AvalancheCenterID = data.center.id as AvalancheCenterID;
   return (
     <TouchableOpacity onPress={() => setSelected(center_id)} activeOpacity={0.8}>
-      <HStack justifyContent="space-between" alignItems="flex-start" space={4}>
-        <HStack space={8} flexShrink={1} alignItems="flex-start">
+      <HStack justifyContent="space-between" alignItems="center" space={4}>
+        <HStack space={8} flexShrink={1} alignItems="center">
           <AvalancheCenterLogo style={{height: 24, width: 24, resizeMode: 'contain', flex: 0, flexGrow: 0}} avalancheCenterId={center_id} />
           <VStack space={2} flexShrink={1}>
             <Body>
