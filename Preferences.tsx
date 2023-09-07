@@ -9,6 +9,8 @@ import {avalancheCenterIDSchema} from 'types/nationalAvalancheCenter';
 import {useAsyncEffect} from 'use-async-effect';
 import {z} from 'zod';
 
+export const PREFERENCES_KEY = 'PREFERENCES';
+
 const preferencesSchema = z.object({
   center: avalancheCenterIDSchema,
   hasSeenCenterPicker: z.boolean(),
@@ -41,9 +43,10 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
   useAsyncEffect(async () => {
     let storedPreferences = {};
     try {
-      storedPreferences = preferencesSchema.parse(JSON.parse((await AsyncStorage.getItem('preferences')) ?? '{}'));
+      storedPreferences = preferencesSchema.parse(JSON.parse((await AsyncStorage.getItem(PREFERENCES_KEY)) ?? '{}'));
     } catch (_e) {
-      // ignore
+      // Error parsing preferences, ignore as we'll fall back to defaults
+      await clearPreferences();
     }
     if (storedPreferences) {
       setPreferences(merge({}, defaultPreferences, storedPreferences));
@@ -51,7 +54,7 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
   }, []);
 
   useEffect(() => {
-    void AsyncStorage.setItem('preferences', JSON.stringify(preferences));
+    void AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
   }, [preferences]);
 
   const setPreferences = (newPreferences: Partial<Preferences>) => {
@@ -64,6 +67,6 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
 export const usePreferences = () => useContext(PreferencesContext);
 
 export const clearPreferences = async () => {
-  await AsyncStorage.removeItem('preferences');
-  await AsyncStorage.setItem('preferences', JSON.stringify(defaultPreferences));
+  await AsyncStorage.removeItem(PREFERENCES_KEY);
+  await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(defaultPreferences));
 };
