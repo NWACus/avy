@@ -37,11 +37,16 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({hea
 
 export interface CollapsibleCardProps extends CardProps {
   startsCollapsed: boolean;
+  collapsedStateChanged?: (collapsed: boolean) => void;
 }
 
-export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({startsCollapsed, header, children, ...props}) => {
+export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({startsCollapsed, collapsedStateChanged, header, children, ...props}) => {
   const [isCollapsed, setIsCollapsed] = useState(startsCollapsed);
   const textColor = colorLookup('text');
+  const pressHandler = useCallback(() => {
+    setIsCollapsed(!isCollapsed);
+    collapsedStateChanged?.(!isCollapsed);
+  }, [isCollapsed, collapsedStateChanged]);
 
   return (
     <Card
@@ -49,7 +54,7 @@ export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<Collapsi
       noDivider
       noInternalSpace
       header={
-        <TouchableOpacity onPress={() => setIsCollapsed(!isCollapsed)}>
+        <TouchableOpacity onPress={pressHandler}>
           <HStack justifyContent="space-between" alignItems="center">
             {header}
             <FontAwesome name={isCollapsed ? 'angle-down' : 'angle-up'} color={textColor} backgroundColor="white" size={24} />

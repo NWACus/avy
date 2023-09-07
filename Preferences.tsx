@@ -13,16 +13,14 @@ import {z} from 'zod';
 export const PREFERENCES_KEY = 'PREFERENCES';
 
 const preferencesSchema = z.object({
-  center: avalancheCenterIDSchema,
-  hasSeenCenterPicker: z.boolean(),
+  center: avalancheCenterIDSchema.default('NWAC'),
+  hasSeenCenterPicker: z.boolean().default(false),
+  secretMenuCollapsed: z.boolean().default(true),
 });
 
 export type Preferences = z.infer<typeof preferencesSchema>;
 
-const defaultPreferences: Preferences = {
-  center: 'NWAC',
-  hasSeenCenterPicker: false,
-};
+const defaultPreferences = preferencesSchema.parse({});
 
 interface PreferencesContextType {
   preferences: Preferences;
