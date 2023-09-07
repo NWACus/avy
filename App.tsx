@@ -18,7 +18,7 @@ import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer, useNavigationContainerRef} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
-import {AppStateStatus, Image, Platform, StatusBar, StyleSheet, useColorScheme, View} from 'react-native';
+import {AppStateStatus, Platform, StatusBar, StyleSheet, useColorScheme, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import * as BackgroundFetch from 'expo-background-fetch';
@@ -330,9 +330,7 @@ const BaseApp: React.FunctionComponent<{
                         headerShown: false,
                         tabBarIcon: ({color, size}) => {
                           if (route.name === 'Home') {
-                            // typing the return of `require()` here does nothing for us
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                            return <Image style={{tintColor: color, width: size, height: size}} resizeMode="contain" source={require('assets/icons/tab_bar/home.png')} />;
+                            return <MaterialCommunityIcons name="map-outline" size={size} color={color} />;
                           } else if (route.name === 'Observations') {
                             return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;
                           } else if (route.name === 'Weather Data') {
@@ -345,7 +343,7 @@ const BaseApp: React.FunctionComponent<{
                         tabBarActiveTintColor: colorLookup('primary') as string,
                         tabBarInactiveTintColor: colorLookup('text.secondary') as string,
                       })}>
-                      <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                      <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}} options={{title: 'Map'}}>
                         {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
                       </TabNavigator.Screen>
                       <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
