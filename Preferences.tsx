@@ -5,13 +5,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {merge} from 'lodash';
 import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
 
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {avalancheCenterIDSchema} from 'types/nationalAvalancheCenter';
 import {useAsyncEffect} from 'use-async-effect';
+import {z} from 'zod';
 
-export interface Preferences {
-  center: AvalancheCenterID;
-  hasSeenCenterPicker: boolean;
-}
+const preferencesSchema = z.object({
+  center: avalancheCenterIDSchema,
+  hasSeenCenterPicker: z.boolean(),
+});
+
+export type Preferences = z.infer<typeof preferencesSchema>;
 
 const defaultPreferences: Preferences = {
   center: 'NWAC',
@@ -36,9 +39,14 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
   const [preferences, setFullPreferences] = useState<Preferences>(defaultPreferences);
 
   useAsyncEffect(async () => {
-    const storedPreferences = await AsyncStorage.getItem('preferences');
+    let storedPreferences = {};
+    try {
+      storedPreferences = preferencesSchema.parse(JSON.parse((await AsyncStorage.getItem('preferences')) ?? '{}'));
+    } catch (_e) {
+      // ignore
+    }
     if (storedPreferences) {
-      setPreferences(merge({}, defaultPreferences, JSON.parse(storedPreferences) as Preferences));
+      setPreferences(merge({}, defaultPreferences, storedPreferences));
     }
   }, []);
 
