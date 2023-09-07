@@ -19,6 +19,7 @@ import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import * as MailComposer from 'expo-mail-composer';
 import * as Updates from 'expo-updates';
+import * as WebBrowser from 'expo-web-browser';
 
 import {QueryCache} from '@tanstack/react-query';
 import {AvalancheCenters} from 'components/avalancheCenterList';
@@ -152,8 +153,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                       label: item.title,
                       data: item.title,
                       action: () => {
-                        // TODO(brian): we may want an in-app browser here
-                        void Linking.openURL(item.url);
+                        void WebBrowser.openBrowserAsync(item.url);
                       },
                     }))}
                   />
