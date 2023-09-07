@@ -4,14 +4,20 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {merge} from 'lodash';
 import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
+import * as Sentry from 'sentry-expo';
 
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {avalancheCenterIDSchema} from 'types/nationalAvalancheCenter';
 import {useAsyncEffect} from 'use-async-effect';
+import {z} from 'zod';
 
-export interface Preferences {
-  center: AvalancheCenterID;
-  hasSeenCenterPicker: boolean;
-}
+export const PREFERENCES_KEY = 'PREFERENCES';
+
+const preferencesSchema = z.object({
+  center: avalancheCenterIDSchema,
+  hasSeenCenterPicker: z.boolean(),
+});
+
+export type Preferences = z.infer<typeof preferencesSchema>;
 
 const defaultPreferences: Preferences = {
   center: 'NWAC',
@@ -36,14 +42,22 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
   const [preferences, setFullPreferences] = useState<Preferences>(defaultPreferences);
 
   useAsyncEffect(async () => {
-    const storedPreferences = await AsyncStorage.getItem('preferences');
+    let storedPreferences = {};
+    try {
+      storedPreferences = preferencesSchema.parse(JSON.parse((await AsyncStorage.getItem(PREFERENCES_KEY)) ?? '{}'));
+    } catch (e) {
+      // Error parsing preferences, ignore as we'll fall back to defaults
+      await clearPreferences();
+      // But do log it to Sentry as it shouldn't happen
+      Sentry.Native.captureException(e);
+    }
     if (storedPreferences) {
-      setPreferences(merge({}, defaultPreferences, JSON.parse(storedPreferences) as Preferences));
+      setPreferences(merge({}, defaultPreferences, storedPreferences));
     }
   }, []);
 
   useEffect(() => {
-    void AsyncStorage.setItem('preferences', JSON.stringify(preferences));
+    void AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
   }, [preferences]);
 
   const setPreferences = (newPreferences: Partial<Preferences>) => {
@@ -56,6 +70,6 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
 export const usePreferences = () => useContext(PreferencesContext);
 
 export const clearPreferences = async () => {
-  await AsyncStorage.removeItem('preferences');
-  await AsyncStorage.setItem('preferences', JSON.stringify(defaultPreferences));
+  await AsyncStorage.removeItem(PREFERENCES_KEY);
+  await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(defaultPreferences));
 };
