@@ -55,6 +55,7 @@ import {
   Title3Black,
   Title3Semibold,
 } from 'components/text';
+import {getMenuItemsForCenter} from 'data/settingsMenuItems';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {clearPreferences, usePreferences} from 'Preferences';
@@ -105,6 +106,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
   const navigation = useNavigation<MenuStackNavigationProps>();
   const {data} = useAvalancheCenterMetadata(avalancheCenterId);
   const {preferences, setPreferences} = usePreferences();
+  const menuItems = getMenuItemsForCenter(avalancheCenterId);
 
   const MenuScreen = function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
     return (
@@ -143,66 +145,20 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                   ]}
                 />
               </Card>
-              <Card borderRadius={0} borderColor="white" header={<BodyBlack>General</BodyBlack>}>
-                <ActionList
-                  actions={[
-                    {
-                      label: `About ${avalancheCenterId}`,
-                      data: 'about',
+              {menuItems.length > 0 && (
+                <Card borderRadius={0} borderColor="white" header={<BodyBlack>General</BodyBlack>}>
+                  <ActionList
+                    actions={menuItems.map(item => ({
+                      label: item.title,
+                      data: item.title,
                       action: () => {
-                        if (data) {
-                          void Linking.openURL('http://textfiles.com/underconstruction/');
-                        }
+                        // TODO(brian): we may want an in-app browser here
+                        void Linking.openURL(item.url);
                       },
-                    },
-                    {
-                      label: `Avalanche Education (Learn)`,
-                      data: 'learn',
-                      action: () => {
-                        if (data) {
-                          void Linking.openURL('http://textfiles.com/underconstruction/');
-                        }
-                      },
-                    },
-                    {
-                      label: `Become a Member`,
-                      data: 'member',
-                      action: () => {
-                        if (data) {
-                          void Linking.openURL('http://textfiles.com/underconstruction/');
-                        }
-                      },
-                    },
-                    {
-                      label: `Volunteer with ${avalancheCenterId}`,
-                      data: 'volunteer',
-                      action: () => {
-                        if (data) {
-                          void Linking.openURL('http://textfiles.com/underconstruction/');
-                        }
-                      },
-                    },
-                    {
-                      label: `Support ${avalancheCenterId}`,
-                      data: 'support',
-                      action: () => {
-                        if (data) {
-                          void Linking.openURL('http://textfiles.com/underconstruction/');
-                        }
-                      },
-                    },
-                    {
-                      label: `Latest News`,
-                      data: 'news',
-                      action: () => {
-                        if (data) {
-                          void Linking.openURL('http://textfiles.com/underconstruction/');
-                        }
-                      },
-                    },
-                  ]}
-                />
-              </Card>
+                    }))}
+                  />
+                </Card>
+              )}
               {Updates.channel !== 'production' && (
                 <CollapsibleCard
                   startsCollapsed={preferences.secretMenuCollapsed}
