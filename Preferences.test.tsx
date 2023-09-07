@@ -7,6 +7,9 @@ import {clearPreferences, PreferencesProvider, PREFERENCES_KEY, usePreferences} 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('@react-native-async-storage/async-storage', () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 
+// usePreferences pulls in Sentry, which makes Jest blow up
+jest.mock('@sentry/react-native', () => ({init: () => jest.fn()}));
+
 describe('Preferences', () => {
   beforeEach(() => {
     // Suppress console.error while running the test - mocking out hooks produces noise around misuse of act()

@@ -4,6 +4,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {merge} from 'lodash';
 import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
+import * as Sentry from 'sentry-expo';
 
 import {avalancheCenterIDSchema} from 'types/nationalAvalancheCenter';
 import {useAsyncEffect} from 'use-async-effect';
@@ -44,9 +45,11 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
     let storedPreferences = {};
     try {
       storedPreferences = preferencesSchema.parse(JSON.parse((await AsyncStorage.getItem(PREFERENCES_KEY)) ?? '{}'));
-    } catch (_e) {
+    } catch (e) {
       // Error parsing preferences, ignore as we'll fall back to defaults
       await clearPreferences();
+      // But do log it to Sentry as it shouldn't happen
+      Sentry.Native.captureException(e);
     }
     if (storedPreferences) {
       setPreferences(merge({}, defaultPreferences, storedPreferences));
