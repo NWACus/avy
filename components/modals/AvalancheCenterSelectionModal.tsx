@@ -1,14 +1,17 @@
 import React, {useCallback, useState} from 'react';
 
 import Topo from 'assets/illustrations/topo.svg';
+import {avalancheCenterList, AvalancheCenters} from 'components/avalancheCenterList';
 import {AvalancheCenterList} from 'components/content/AvalancheCenterList';
 import {Button} from 'components/content/Button';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {Center, View, VStack} from 'components/core';
 import {Body, BodyBlack, Title3Semibold} from 'components/text';
-import {AvalancheCenters, useAvalancheCenters} from 'hooks/useAvalancheCenters';
+import {useAllAvalancheCenterMetadata} from 'hooks/useAllAvalancheCenterMetadata';
+import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {Modal} from 'react-native';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenter, AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheCenterSelectionModalProps {
   visible: boolean;
@@ -21,7 +24,19 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
   const closeHandler = useCallback(() => {
     onClose(selectedCenter);
   }, [onClose, selectedCenter]);
-  const avalancheCenters = useAvalancheCenters(AvalancheCenters.SupportedCenters);
+  const capabilitiesResult = useAvalancheCenterCapabilities();
+  const capabilities = capabilitiesResult.data;
+  const metadataResults = useAllAvalancheCenterMetadata(capabilities);
+  if (incompleteQueryState(capabilitiesResult, ...metadataResults) || !capabilities) {
+    return <QueryState results={[capabilitiesResult, ...metadataResults]} />;
+  }
+
+  const metadata: AvalancheCenter[] = [];
+  for (const result of metadataResults) {
+    if (result.data) {
+      metadata.push(result.data);
+    }
+  }
 
   return (
     <Modal transparent visible={visible} animationType="slide" onRequestClose={closeHandler}>
@@ -33,7 +48,7 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
                 <Title3Semibold>Welcome! Let’s Get Started</Title3Semibold>
               </Center>
               <Body>Select your local avalanche center to start using the app. You can change this anytime in settings.</Body>
-              <AvalancheCenterList selectedCenter={selectedCenter} setSelectedCenter={setSelectedCenter} data={avalancheCenters} />
+              <AvalancheCenterList selectedCenter={selectedCenter} setSelectedCenter={setSelectedCenter} data={avalancheCenterList(AvalancheCenters.SupportedCenters, metadata)} />
               <Button onPress={closeHandler} alignSelf="stretch" buttonStyle="primary" mt={16}>
                 <BodyBlack>Continue</BodyBlack>
               </Button>
