@@ -20,6 +20,7 @@ import * as MailComposer from 'expo-mail-composer';
 import * as Updates from 'expo-updates';
 
 import {QueryCache} from '@tanstack/react-query';
+import {AvalancheCenters} from 'components/avalancheCenterList';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
@@ -53,7 +54,6 @@ import {
   Title3Black,
   Title3Semibold,
 } from 'components/text';
-import {AvalancheCenters} from 'hooks/useAvalancheCenters';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {clearPreferences} from 'Preferences';
 import Toast from 'react-native-toast-message';

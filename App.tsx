@@ -248,17 +248,17 @@ const BaseApp: React.FunctionComponent<{
     [setPreferences],
   );
 
-  const {nationalAvalancheCenterHost, nwacHost, snowboundHost} = React.useContext<ClientProps>(ClientContext);
+  const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
   useEffect(() => {
     void (async () => {
       try {
-        await prefetchAllActiveForecasts(queryClient, avalancheCenterId, nationalAvalancheCenterHost, nwacHost, snowboundHost, logger);
+        await prefetchAllActiveForecasts(queryClient, avalancheCenterId, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, logger);
       } catch (e) {
         logger.error({error: e}, 'error prefetching data');
       }
     })();
-  }, [logger, queryClient, avalancheCenterId, nationalAvalancheCenterHost, nwacHost, snowboundHost]);
+  }, [logger, queryClient, avalancheCenterId, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost]);
 
   const [fontsLoaded, error] = useFonts({
     Lato_100Thin,

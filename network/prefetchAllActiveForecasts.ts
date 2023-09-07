@@ -1,10 +1,12 @@
 import {QueryClient} from '@tanstack/react-query';
 import {Logger} from 'browser-bunyan';
+import {filterToKnownCenters} from 'components/avalancheCenterList';
 import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {preloadAvalancheDangerIcons} from 'components/AvalancheDangerIcon';
 import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
 import {images} from 'components/content/carousel';
 import {sub} from 'date-fns';
+import AvalancheCenterCapabilitiesQuery from 'hooks/useAvalancheCenterCapabilities';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
 import AvalancheWarningQuery from 'hooks/useAvalancheWarning';
@@ -16,13 +18,14 @@ import NWACWeatherForecastQuery from 'hooks/useNWACWeatherForecast';
 import SynopsisQuery from 'hooks/useSynopsis';
 import WeatherForecastQuery from 'hooks/useWeatherForecast';
 import WeatherStationsQuery from 'hooks/useWeatherStationsMetadata';
-import {AvalancheCenter, AvalancheCenterID, ForecastResult, ImageMediaItem, ProductType} from 'types/nationalAvalancheCenter';
+import {AllAvalancheCenterCapabilities, AvalancheCenter, AvalancheCenterID, ForecastResult, ImageMediaItem, ProductType} from 'types/nationalAvalancheCenter';
 import {requestedTimeToUTCDate} from 'utils/date';
 
 export const prefetchAllActiveForecasts = async (
   queryClient: QueryClient,
   center_id: AvalancheCenterID,
   nationalAvalancheCenterHost: string,
+  nationalAvalancheCenterWordpressHost: string,
   nwacHost: string,
   snowboundHost: string,
   logger: Logger,
@@ -32,8 +35,20 @@ export const prefetchAllActiveForecasts = async (
   void preloadAvalancheProblemIcons(queryClient, logger);
   void preloadAvalancheDangerIcons(queryClient, logger);
   void preloadAvalancheCenterLogo(queryClient, logger, center_id);
-  await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, logger);
 
+  await AvalancheCenterCapabilitiesQuery.prefetch(queryClient, nationalAvalancheCenterWordpressHost, logger);
+  const capabilities = queryClient.getQueryData<AllAvalancheCenterCapabilities>(AvalancheCenterCapabilitiesQuery.queryKey(nationalAvalancheCenterWordpressHost));
+  const knownCenters: AvalancheCenterID[] = [];
+
+  if (capabilities) {
+    knownCenters.push(...filterToKnownCenters(capabilities.centers.map(center => center.id)));
+  }
+  knownCenters.forEach(id => {
+    void AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, id, logger);
+    void preloadAvalancheCenterLogo(queryClient, logger, id);
+  });
+
+  await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, logger);
   const metadata = queryClient.getQueryData<AvalancheCenter>(AvalancheCenterMetadataQuery.queryKey(nationalAvalancheCenterHost, center_id));
 
   if (metadata?.widget_config?.danger_map) {
