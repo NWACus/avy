@@ -16,6 +16,7 @@ import {HStack, View, VStack} from 'components/core';
 
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
+import * as Linking from 'expo-linking';
 import * as MailComposer from 'expo-mail-composer';
 import * as Updates from 'expo-updates';
 
@@ -23,7 +24,7 @@ import {QueryCache} from '@tanstack/react-query';
 import {AvalancheCenters} from 'components/avalancheCenterList';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
-import {Card} from 'components/content/Card';
+import {Card, CollapsibleCard} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
 import {TableRow} from 'components/observations/ObservationDetailView';
@@ -54,8 +55,10 @@ import {
   Title3Black,
   Title3Semibold,
 } from 'components/text';
+import {getMenuItemsForCenter} from 'data/settingsMenuItems';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {clearPreferences} from 'Preferences';
+import {clearPreferences, usePreferences} from 'Preferences';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -101,39 +104,69 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
     logger.info({environment: staging ? 'production' : 'staging'}, 'switching environment');
   }, [staging, setStaging, logger]);
   const navigation = useNavigation<MenuStackNavigationProps>();
+  const {data} = useAvalancheCenterMetadata(avalancheCenterId);
+  const {preferences, setPreferences} = usePreferences();
+  const menuItems = getMenuItemsForCenter(avalancheCenterId);
+
   const MenuScreen = function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
     return (
       <View style={{...StyleSheet.absoluteFillObject}} bg="white">
         {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
         <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
-          <VStack width="100%" height="100%" justifyContent="space-between" alignItems="stretch" bg="background.base" pt={4} px={4} space={4}>
-            <Card borderRadius={0} borderColor="white" header={<Title1Black>Menu</Title1Black>} noDivider noInternalSpace />
-            <Card borderRadius={0} borderColor="white" header={<Title3Black>Settings</Title3Black>}>
-              <ActionList
-                actions={[
-                  {
-                    label: 'Select avalanche center',
-                    data: 'Center',
-                    action: () => {
-                      navigation.navigate('avalancheCenterSelector', {debugMode: false});
+          <ScrollView style={{width: '100%', height: '100%'}}>
+            <VStack width="100%" height="100%" justifyContent="flex-start" alignItems="stretch" bg="background.base" pt={4} px={4} space={4}>
+              <Card borderRadius={0} borderColor="white" header={<Title3Black>More</Title3Black>} noDivider>
+                <Body>
+                  {data?.name && `${data.name} `}({avalancheCenterId})
+                </Body>
+              </Card>
+              <View py={16} px={32}>
+                <Button buttonStyle="primary" onPress={() => void Linking.openURL(`mailto:charlotte@nwac.us?subject=I%20have%20thoughts`)}>
+                  <BodyBlack>Submit App Feedback</BodyBlack>
+                </Button>
+              </View>
+              <Card borderRadius={0} borderColor="white" header={<BodyBlack>Settings</BodyBlack>}>
+                <ActionList
+                  actions={[
+                    {
+                      label: 'Select avalanche center',
+                      data: 'Center',
+                      action: () => {
+                        navigation.navigate('avalancheCenterSelector', {debugMode: false});
+                      },
                     },
-                  },
-                  {
-                    label: 'About this app',
-                    data: 'About',
-                    action: () => {
-                      navigation.navigate('about');
+                    {
+                      label: 'About this app',
+                      data: 'About',
+                      action: () => {
+                        navigation.navigate('about');
+                      },
                     },
-                  },
-                ]}
-              />
-            </Card>
-            {Updates.channel !== 'production' && (
-              <>
-                <Card mb={4} borderRadius={0} borderColor="white" header={<Title1Black>Testing</Title1Black>} noDivider noInternalSpace />
-                <ScrollView style={{width: '100%', height: '100%'}}>
+                  ]}
+                />
+              </Card>
+              {menuItems.length > 0 && (
+                <Card borderRadius={0} borderColor="white" header={<BodyBlack>General</BodyBlack>}>
+                  <ActionList
+                    actions={menuItems.map(item => ({
+                      label: item.title,
+                      data: item.title,
+                      action: () => {
+                        // TODO(brian): we may want an in-app browser here
+                        void Linking.openURL(item.url);
+                      },
+                    }))}
+                  />
+                </Card>
+              )}
+              {Updates.channel !== 'production' && (
+                <CollapsibleCard
+                  startsCollapsed={preferences.secretMenuCollapsed}
+                  collapsedStateChanged={collapsed => setPreferences({secretMenuCollapsed: collapsed})}
+                  borderColor="white"
+                  header={<BodyBlack>Secret Menu 🤫</BodyBlack>}>
                   <VStack space={4}>
-                    <Card borderRadius={0} borderColor="white" header={<Title3Black>Debug Settings</Title3Black>}>
+                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Debug Settings</BodyBlack>}>
                       <VStack space={12}>
                         <Button
                           buttonStyle="normal"
@@ -194,7 +227,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                         />
                       </VStack>
                     </Card>
-                    <Card borderRadius={0} borderColor="white" header={<Title3Black>Design Previews</Title3Black>}>
+                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Design Previews</BodyBlack>}>
                       <ActionList
                         actions={[
                           {
@@ -221,7 +254,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                         ]}
                       />
                     </Card>
-                    <Card borderRadius={0} borderColor="white" header={<Title3Black>Screens</Title3Black>}>
+                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Screens</BodyBlack>}>
                       <ActionList
                         actions={[
                           {
@@ -358,7 +391,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                         ]}
                       />
                     </Card>
-                    <Card borderRadius={0} borderColor="white" header={<Title3Black>Observations</Title3Black>}>
+                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Observations</BodyBlack>}>
                       <ActionList
                         actions={[
                           {
@@ -445,7 +478,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                         ]}
                       />
                     </Card>
-                    <Card borderRadius={0} borderColor="white" header={<Title3Black>Components</Title3Black>}>
+                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Components</BodyBlack>}>
                       <ActionList
                         actions={[
                           {
@@ -488,10 +521,10 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                       />
                     </Card>
                   </VStack>
-                </ScrollView>
-              </>
-            )}
-          </VStack>
+                </CollapsibleCard>
+              )}
+            </VStack>
+          </ScrollView>
         </SafeAreaView>
       </View>
     );
