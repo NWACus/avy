@@ -42,30 +42,30 @@ const observationFilterConfigSchema = z
   .deepPartial();
 export type ObservationFilterConfig = z.infer<typeof observationFilterConfigSchema>;
 
-const matchesDates = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>, observation: ObservationFragment): boolean => {
+const matchesDates = (currentDate: Date, dates: z.infer<typeof observationFilterConfigSchema.shape.dates>, observation: ObservationFragment): boolean => {
   let matches = true;
   if (!dates) {
     return matches;
   }
   switch (dates.value) {
     case 'past_day':
-      dates.to = new Date();
+      dates.to = currentDate;
       dates.from = sub(dates.to, {days: 1});
       break;
     case 'past_3_days':
-      dates.to = new Date();
+      dates.to = currentDate;
       dates.from = sub(dates.to, {days: 3});
       break;
     case 'past_week':
-      dates.to = new Date();
+      dates.to = currentDate;
       dates.from = sub(dates.to, {weeks: 1});
       break;
     case 'past_month':
-      dates.to = new Date();
+      dates.to = currentDate;
       dates.from = sub(dates.to, {months: 1});
       break;
     case 'past_season':
-      dates.to = new Date();
+      dates.to = currentDate;
       // the season starts Nov 1st, that's either this year or last year depending on when we are asking
       if (getMonth(dates.to) <= 11) {
         dates.from = new Date(`${getYear(sub(dates.to, {years: 1}))}-11-01`);
@@ -119,7 +119,7 @@ const matchesAvalancheInstability = (instability: avalancheInstability, observat
   throw new Error(`Unknown instability: ${invalid}`);
 };
 
-export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterConfig): ((fragment: ObservationFragment) => boolean)[] => {
+export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterConfig, currentDate: Date): ((fragment: ObservationFragment) => boolean)[] => {
   if (!config) {
     return [];
   }
@@ -130,7 +130,7 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
   }
 
   if (config.dates && config.dates.value) {
-    filterFuncs.push(observation => matchesDates(config.dates, observation));
+    filterFuncs.push(observation => matchesDates(currentDate, config.dates, observation));
   }
 
   if (config.observerType) {
