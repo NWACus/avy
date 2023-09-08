@@ -61,6 +61,7 @@ import {PreferencesProvider, usePreferences} from 'Preferences';
 import {TamaguiProvider, Theme} from 'tamagui';
 import config from 'tamagui.config';
 import {NotFoundError} from 'types/requests';
+import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 const logLevel = (Constants.expoConfig?.extra?.log_level as string) ?? 'INFO';
 
@@ -219,9 +220,12 @@ const App = () => {
 
 const AppWithClientContext = () => {
   const [staging, setStaging] = React.useState(false);
+  const [requestedTime, setRequestedTime] = React.useState<RequestedTime>('latest');
 
   const contextValue = {
     ...(staging ? stagingHosts : productionHosts),
+    requestedTime,
+    setRequestedTime,
   };
 
   return (
@@ -248,7 +252,7 @@ const BaseApp: React.FunctionComponent<{
     [setPreferences],
   );
 
-  const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost} = React.useContext<ClientProps>(ClientContext);
+  const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
   useEffect(() => {
     void (async () => {
@@ -343,26 +347,27 @@ const BaseApp: React.FunctionComponent<{
                         tabBarActiveTintColor: colorLookup('primary') as string,
                         tabBarInactiveTintColor: colorLookup('text.secondary') as string,
                       })}>
-                      <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}} options={{title: 'Map'}}>
-                        {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
+                      <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Map'}}>
+                        {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
                       </TabNavigator.Screen>
-                      <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                      <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
                         {state =>
                           ObservationsTabScreen(
                             merge(state, {
                               route: {
                                 params: {
                                   center_id: avalancheCenterId,
+                                  requestedTime: formatRequestedTime(requestedTime),
                                 },
                               },
                             }),
                           )
                         }
                       </TabNavigator.Screen>
-                      <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
-                        {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId}}}))}
+                      <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
+                        {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
                       </TabNavigator.Screen>
-                      <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId, requestedTime: 'latest'}}>
+                      <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
                         {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
                       </TabNavigator.Screen>
                     </TabNavigator.Navigator>

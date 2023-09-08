@@ -1,6 +1,7 @@
 import {logFilePath} from 'logger';
-import React, {ReactNode} from 'react';
+import React, {ReactNode, useCallback} from 'react';
 
+import DateTimePicker, {DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import {ScrollView, SectionList, StyleSheet, Switch, TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
@@ -10,9 +11,9 @@ import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigat
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
-import {MenuStackNavigationProps, MenuStackParamList, TabNavigatorParamList} from 'routes';
+import {MenuStackNavigationProps, MenuStackParamList, TabNavigationProps, TabNavigatorParamList} from 'routes';
 
-import {HStack, View, VStack} from 'components/core';
+import {Divider, HStack, View, VStack} from 'components/core';
 
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
@@ -22,6 +23,7 @@ import * as Updates from 'expo-updates';
 import * as WebBrowser from 'expo-web-browser';
 
 import {QueryCache} from '@tanstack/react-query';
+import {ClientContext} from 'clientContext';
 import {AvalancheCenters} from 'components/avalancheCenterList';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
@@ -63,7 +65,7 @@ import {clearPreferences, usePreferences} from 'Preferences';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
-import {toISOStringUTC} from 'utils/date';
+import {RequestedTime, requestedTimeToUTCDate, toISOStringUTC} from 'utils/date';
 
 const MenuStack = createNativeStackNavigator<MenuStackParamList>();
 export const MenuStackScreen = (
@@ -86,6 +88,7 @@ export const MenuStackScreen = (
       <MenuStack.Screen name="buttonStylePreview" component={ButtonStylePreview} options={{title: `Button style preview`}} />
       <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text style preview`}} />
       <MenuStack.Screen name="toastPreview" component={ToastPreview} options={{title: `Toast preview`}} />
+      <MenuStack.Screen name="timeMachine" component={TimeMachine} options={{title: `Time machine`}} />
       <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
       <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
       <MenuStack.Screen name="observation" component={ObservationScreen} />
@@ -168,6 +171,31 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                   <VStack space={4}>
                     <Card borderRadius={0} borderColor="white" header={<BodyBlack>Debug Settings</BodyBlack>}>
                       <VStack space={12}>
+                        <ActionList
+                          actions={[
+                            {
+                              label: 'Select avalanche center (debug)',
+                              data: 'Center (debug)',
+                              action: () => {
+                                navigation.navigate('avalancheCenterSelector', {debugMode: true});
+                              },
+                            },
+                            {
+                              label: 'Time machine',
+                              data: 'timeMachine',
+                              action: () => {
+                                navigation.navigate('timeMachine');
+                              },
+                            },
+                            {
+                              label: 'View Expo configuration',
+                              data: 'Expo Configuration',
+                              action: () => {
+                                navigation.navigate('expoConfig');
+                              },
+                            },
+                          ]}
+                        />
                         <Button
                           buttonStyle="normal"
                           onPress={() => {
@@ -207,24 +235,6 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                           <Body>Use staging environment</Body>
                           <Switch value={staging} onValueChange={toggleStaging} />
                         </HStack>
-                        <ActionList
-                          actions={[
-                            {
-                              label: 'Select avalanche center (debug)',
-                              data: 'Center (debug)',
-                              action: () => {
-                                navigation.navigate('avalancheCenterSelector', {debugMode: true});
-                              },
-                            },
-                            {
-                              label: 'View Expo configuration',
-                              data: 'Expo Configuration',
-                              action: () => {
-                                navigation.navigate('expoConfig');
-                              },
-                            },
-                          ]}
-                        />
                       </VStack>
                     </Card>
                     <Card borderRadius={0} borderColor="white" header={<BodyBlack>Design Previews</BodyBlack>}>
@@ -709,6 +719,44 @@ const ToastPreview = () => {
         </TouchableOpacity>
       </VStack>
     </SafeAreaView>
+  );
+};
+
+const TimeMachine = () => {
+  const navigation = useNavigation<TabNavigationProps>();
+  const {requestedTime, setRequestedTime} = React.useContext(ClientContext);
+  const changeTime = useCallback(
+    (time: RequestedTime) => {
+      setRequestedTime(time);
+      // We need to clear navigation state to force all screens from the
+      // previous time to unmount
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'Home'}],
+      });
+    },
+    [navigation, setRequestedTime],
+  );
+  const onDateSelected = useCallback(
+    (event: DateTimePickerEvent, date?: Date) => {
+      if (event.type === 'set') {
+        changeTime(date || 'latest');
+      }
+    },
+    [changeTime],
+  );
+  return (
+    <VStack space={16} px={16} py={16}>
+      <Button buttonStyle="primary" onPress={() => changeTime('latest')}>
+        Today
+      </Button>
+      <DateTimePicker value={requestedTimeToUTCDate(requestedTime)} mode="date" display="inline" onChange={onDateSelected} />
+      <Divider />
+      <BodyBlack>Other interesting days</BodyBlack>
+      <Button buttonStyle="normal" onPress={() => changeTime(new Date(2023, 2, 1))}>
+        3/1/2023 - random winter day
+      </Button>
+    </VStack>
   );
 };
 

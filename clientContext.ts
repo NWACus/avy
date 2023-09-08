@@ -1,10 +1,13 @@
 import React, {Context} from 'react';
+import {RequestedTime} from 'utils/date';
 
 export interface ClientProps {
   nationalAvalancheCenterHost: string;
   nationalAvalancheCenterWordpressHost: string;
   snowboundHost: string;
   nwacHost: string;
+  requestedTime: RequestedTime;
+  setRequestedTime: (requestedTime: RequestedTime) => void;
 }
 
 export const productionHosts = {
@@ -24,4 +27,8 @@ export const stagingHosts = {
 
 export const ClientContext: Context<ClientProps> = React.createContext<ClientProps>({
   ...productionHosts,
+  requestedTime: 'latest',
+  setRequestedTime: () => {
+    undefined;
+  },
 });
