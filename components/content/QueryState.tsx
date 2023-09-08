@@ -61,7 +61,7 @@ export const Loading: React.FunctionComponent = () => {
 };
 
 export const NotFound: React.FunctionComponent<{what?: NotFoundError[]; terminal?: boolean; inline?: boolean}> = ({what, terminal, inline}) => {
-  let thing = 'requested resource';
+  let thing = 'the requested resource';
   if (what && what[0] && what[0] instanceof NotFoundError && what[0].pretty) {
     thing = what[0].pretty;
   }
@@ -71,7 +71,7 @@ export const NotFound: React.FunctionComponent<{what?: NotFoundError[]; terminal
   if (terminal) {
     onClose = undefined;
   }
-  return <Outcome outcome={'No results found'} reason={`We could not find the ${thing}.`} inline={inline} illustration={<NoSearchResult />} onClose={onClose} />;
+  return <Outcome outcome={'No results found'} reason={`We could not find ${thing}.`} inline={inline} illustration={<NoSearchResult />} onClose={onClose} />;
 };
 
 export const ConnectionLost: React.FunctionComponent = () => {

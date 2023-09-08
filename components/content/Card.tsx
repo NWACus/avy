@@ -11,19 +11,30 @@ import {colorLookup} from 'theme';
 export interface CardProps extends ViewProps {
   header?: ReactNode;
   onPress?: () => void;
+  borderWidth?: number;
   borderRadius?: number;
   borderColor?: ColorValue;
   noDivider?: boolean;
   noInternalSpace?: boolean;
 }
 
-export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({header, onPress, borderColor, borderRadius, noDivider, noInternalSpace, children, ...boxProps}) => {
+export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({
+  header,
+  onPress,
+  borderColor,
+  borderRadius,
+  borderWidth,
+  noDivider,
+  noInternalSpace,
+  children,
+  ...boxProps
+}) => {
   const pressHandler = useCallback(() => onPress?.(), [onPress]);
 
   return (
     <View {...boxProps}>
       <TouchableOpacity onPress={pressHandler} disabled={!onPress}>
-        <View bg="white" borderWidth={2} borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.300'} p={16}>
+        <View bg="white" borderWidth={borderWidth ?? 2} borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.300'} p={16}>
           <VStack space={noInternalSpace ? 0 : 8}>
             <>{header}</>
             {noDivider || <Divider />}

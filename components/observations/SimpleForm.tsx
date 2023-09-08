@@ -7,14 +7,14 @@ import {AxiosError} from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FieldErrors, FormProvider, useForm, useWatch} from 'react-hook-form';
-import {ActivityIndicator, findNodeHandle, KeyboardAvoidingView, Platform, ScrollView, View as RNView} from 'react-native';
+import {findNodeHandle, KeyboardAvoidingView, Platform, ScrollView, View as RNView} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {ImageList} from 'components/content/carousel/ImageList';
-import {HStack, View, VStack} from 'components/core';
+import {View, VStack} from 'components/core';
 import {Conditional} from 'components/form/Conditional';
 import {DateField} from 'components/form/DateField';
 import {LocationField} from 'components/form/LocationField';
@@ -450,6 +450,7 @@ export const SimpleForm: React.FC<{
                     mt={16}
                     buttonStyle="primary"
                     disabled={mutation.isSuccess}
+                    busy={mutation.isLoading}
                     onPress={() =>
                       void (async () => {
                         // Force validation errors to show up on fields that haven't been visited yet
@@ -458,13 +459,7 @@ export const SimpleForm: React.FC<{
                         void formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
                       })()
                     }>
-                    {mutation.isLoading && (
-                      <HStack space={8} alignItems="center" pt={3}>
-                        <ActivityIndicator size="small" />
-                        <BodyBlack color={colorLookup('white')}>Cancel submission</BodyBlack>
-                      </HStack>
-                    )}
-                    {!mutation.isLoading && <BodySemibold>Submit your observation</BodySemibold>}
+                    <BodySemibold>{mutation.isLoading ? 'Cancel submission' : 'Submit your observation'}</BodySemibold>
                   </Button>
                   <VStack mx={16} mt={16} mb={32}>
                     {mutation.isSuccess && <Body>Thanks for your observation!</Body>}

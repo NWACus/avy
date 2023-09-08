@@ -15,7 +15,7 @@ export interface OutcomeOptions {
 
 export const Outcome: React.FunctionComponent<OutcomeOptions> = ({outcome, reason, illustration, inline, onRetry, onClose}) => {
   return (
-    <View style={inline ? {} : {height: '100%', width: '100%'}} bg="white">
+    <View style={inline ? {} : {height: '100%', width: '100%'}} bg="white" pb={32}>
       <VStack justifyContent={'center'} flex={1}>
         <View mx={16}>
           <VStack space={24} alignItems={'center'}>
