@@ -95,7 +95,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           </HStack>
         }
         ListFooterComponent={
-          displayedObservations.length > 0 && (nacObservationsResult.hasNextPage || nwacObservationsResult.hasNextPage) ? (
+          nacObservationsResult.hasNextPage || nwacObservationsResult.hasNextPage ? (
             <HStack justifyContent="center" mt={4}>
               <Button
                 width={'50%'}
