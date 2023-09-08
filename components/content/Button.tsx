@@ -1,6 +1,7 @@
 import {Center, View, ViewProps} from 'components/core';
+import {bodySize} from 'components/text';
 import React, {useState} from 'react';
-import {ColorValue, GestureResponderEvent, Pressable, Text} from 'react-native';
+import {ActivityIndicator, ColorValue, GestureResponderEvent, Pressable, Text} from 'react-native';
 import {colorLookup} from 'theme';
 
 interface ButtonStyle {
@@ -70,6 +71,7 @@ const styles = {
 interface BaseButtonProps extends ViewProps {
   onPress?: (event: GestureResponderEvent) => void;
   disabled?: boolean;
+  busy?: boolean;
 }
 
 interface StyledButtonProps extends BaseButtonProps {
@@ -77,7 +79,7 @@ interface StyledButtonProps extends BaseButtonProps {
   onPress?: (event: GestureResponderEvent) => void;
 }
 
-const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, onPress, disabled = false, ...props}) => {
+const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, onPress, disabled = false, busy = false, ...props}) => {
   const [pressed, setIsPressed] = useState<boolean>(false);
   const colorStyleSource = disabled ? buttonStyle.disabled : pressed ? buttonStyle.pressed : buttonStyle;
   const {backgroundColor, borderColor, textColor} = colorStyleSource;
@@ -86,7 +88,10 @@ const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, onPre
     <View borderColor={borderColor} borderWidth={2} borderRadius={8} py={12} px={16} {...props} backgroundColor={backgroundColor}>
       <Pressable disabled={disabled} onPressIn={() => setIsPressed(true)} onPressOut={() => setIsPressed(false)} onPress={event => onPress?.(event)}>
         <Center>
-          <Text style={{color: textColor}}>{children}</Text>
+          <View style={{position: 'relative'}}>
+            <Text style={{color: textColor}}>{children}</Text>
+            {busy && <ActivityIndicator size={bodySize} color={textColor} style={{position: 'absolute', right: -1.5 * bodySize, top: 0.25 * bodySize}} />}
+          </View>
         </Center>
       </Pressable>
     </View>
