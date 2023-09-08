@@ -24,10 +24,10 @@ import {NotFoundError} from 'types/requests';
 import {RequestedTime, utcDateToLocalDateString} from 'utils/date';
 
 interface ObservationsListViewItem {
-  id?: ObservationFragment['id'];
-  observation?: ObservationFragment;
-  source?: string;
-  zone?: string;
+  id: ObservationFragment['id'];
+  observation: ObservationFragment;
+  source: string;
+  zone: string;
 }
 
 interface ObservationsListViewProps extends Omit<FlatListProps<ObservationsListViewItem>, 'data' | 'renderItem'> {
@@ -88,14 +88,14 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           <HStack px={16} pt={12} pb={12} space={24} backgroundColor={colorLookup('background.base')}>
             <TouchableOpacity onPress={() => setFilterModalVisible(true)}>
               <HStack bg={'white'} px={12} py={8} space={8} borderRadius={30} borderWidth={1}>
-                <FontAwesome name="sliders" size={16} color="black" />
+                <FontAwesome name="sliders" size={16} color={colorLookup('text')} />
                 <BodySmBlack>Filters{resolvedFilters.length > 0 && ` (${resolvedFilters.length})`}</BodySmBlack>
               </HStack>
             </TouchableOpacity>
           </HStack>
         }
         ListFooterComponent={
-          nacObservationsResult.hasNextPage || nwacObservationsResult.hasNextPage ? (
+          displayedObservations.length > 0 && (nacObservationsResult.hasNextPage || nwacObservationsResult.hasNextPage) ? (
             <HStack justifyContent="center" mt={4}>
               <Button
                 width={'50%'}
@@ -111,25 +111,16 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             </HStack>
           ) : null
         }
+        ListEmptyComponent={<NotFound inline terminal what={[new NotFoundError('no observations found', 'any matching observations')]} />}
         style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={void refresh} />}
-        data={
-          displayedObservations.length > 0
-            ? displayedObservations.map(observation => ({
-                id: observation.id,
-                observation: observation,
-                source: nwacObservations.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
-                zone: zone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng),
-              }))
-            : [{}]
-        }
-        renderItem={({item}) =>
-          item.id && item.observation && item.source && item.zone ? (
-            <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />
-          ) : (
-            <NotFound inline terminal what={[new NotFoundError('no observations found', 'any matching observations')]} />
-          )
-        }
+        data={displayedObservations.map(observation => ({
+          id: observation.id,
+          observation: observation,
+          source: nwacObservations.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
+          zone: zone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng),
+        }))}
+        renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}
         {...props}
       />
     </>
