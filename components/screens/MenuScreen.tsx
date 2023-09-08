@@ -753,6 +753,9 @@ const TimeMachine = () => {
       <DateTimePicker value={requestedTimeToUTCDate(requestedTime)} mode="date" display="inline" onChange={onDateSelected} />
       <Divider />
       <BodyBlack>Other interesting days</BodyBlack>
+      <Button buttonStyle="normal" onPress={() => changeTime(new Date('2023-02-20T5:21:00-0800'))}>
+        2/20/2023 - Active warning day
+      </Button>
       <Button buttonStyle="normal" onPress={() => changeTime(new Date(2023, 2, 1))}>
         3/1/2023 - random winter day
       </Button>
