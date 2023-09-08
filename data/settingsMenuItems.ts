@@ -1,6 +1,4 @@
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
-
-const settingsMenuItems: Record<string, {title: string; url: string}[]> = {
+export const settingsMenuItems: Record<string, {title: string; url: string}[]> = {
   NWAC: [
     {
       title: 'About NWAC',
@@ -42,5 +40,3 @@ const settingsMenuItems: Record<string, {title: string; url: string}[]> = {
     },
   ],
 };
-
-export const getMenuItemsForCenter = (avalancheCenterId: AvalancheCenterID) => settingsMenuItems[avalancheCenterId] || ([] as {title: string; url: string}[]);

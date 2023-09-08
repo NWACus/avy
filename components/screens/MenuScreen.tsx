@@ -56,7 +56,7 @@ import {
   Title3Black,
   Title3Semibold,
 } from 'components/text';
-import {getMenuItemsForCenter} from 'data/settingsMenuItems';
+import {settingsMenuItems} from 'data/settingsMenuItems';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {clearPreferences, usePreferences} from 'Preferences';
@@ -107,7 +107,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
   const navigation = useNavigation<MenuStackNavigationProps>();
   const {data} = useAvalancheCenterMetadata(avalancheCenterId);
   const {preferences, setPreferences} = usePreferences();
-  const menuItems = getMenuItemsForCenter(avalancheCenterId);
+  const menuItems = settingsMenuItems[avalancheCenterId];
 
   const MenuScreen = function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
     return (
@@ -146,7 +146,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                   ]}
                 />
               </Card>
-              {menuItems.length > 0 && (
+              {menuItems && menuItems.length > 0 && (
                 <Card borderRadius={0} borderColor="white" header={<BodyBlack>General</BodyBlack>}>
                   <ActionList
                     actions={menuItems.map(item => ({
