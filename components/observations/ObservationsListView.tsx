@@ -10,7 +10,7 @@ import {incompleteQueryState, NotFound, QueryState} from 'components/content/Que
 import {HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {filtersForConfig, ObservationFilterConfig, ObservationsFilterForm, zone} from 'components/observations/ObservationsFilterForm';
-import {Body, BodyBlack, BodySmBlack, Caption1} from 'components/text';
+import {Body, BodyBlack, BodySmBlack, Caption1Semibold} from 'components/text';
 import {compareDesc, parseISO, setDayOfYear} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
@@ -175,12 +175,9 @@ export const ObservationSummaryCard: React.FunctionComponent<{
       header={
         <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
           <BodySmBlack>{utcDateToLocalDateString(observation.createdAt)}</BodySmBlack>
-          <View px={8} py={6} borderRadius={12} backgroundColor={colorsFor(observation.observerType).secondary}>
-            <HStack space={8}>
-              <View height={12} width={12} borderRadius={6} backgroundColor={colorsFor(observation.observerType).primary} />
-              <Caption1 style={{textTransform: 'uppercase', color: colorsFor(observation.observerType).primary}}>{observation.observerType}</Caption1>
-            </HStack>
-          </View>
+          <Caption1Semibold color={colorsFor(observation.observerType).primary} style={{textTransform: 'uppercase'}}>
+            {observation.observerType}
+          </Caption1Semibold>
         </HStack>
       }>
       <HStack space={48} justifyContent="space-between" alignItems={'flex-start'}>
