@@ -21,7 +21,7 @@ import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
-import {RequestedTime, utcDateToLocalDateString} from 'utils/date';
+import {RequestedTime, requestedTimeToUTCDate, utcDateToLocalDateString} from 'utils/date';
 
 interface ObservationsListViewItem {
   id: ObservationFragment['id'];
@@ -37,10 +37,11 @@ interface ObservationsListViewProps extends Omit<FlatListProps<ObservationsListV
 }
 
 export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, initialFilterConfig, ...props}) => {
+  const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = {
     dates: {
-      from: setDayOfYear(new Date(), 1),
-      to: new Date(),
+      from: setDayOfYear(endDate, 1),
+      to: endDate,
     },
     ...initialFilterConfig,
   };
@@ -67,7 +68,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
-  const resolvedFilters = filtersForConfig(mapLayer, filterConfig);
+  const resolvedFilters = filtersForConfig(mapLayer, filterConfig, endDate);
   const displayedObservations: ObservationFragment[] = observations.filter(observation =>
     resolvedFilters.map(filter => filter(observation)).reduce((currentValue, accumulator) => accumulator && currentValue, true),
   );
@@ -95,7 +96,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           </HStack>
         }
         ListFooterComponent={
-          displayedObservations.length > 0 && (nacObservationsResult.hasNextPage || nwacObservationsResult.hasNextPage) ? (
+          nacObservationsResult.hasNextPage || nwacObservationsResult.hasNextPage ? (
             <HStack justifyContent="center" mt={4}>
               <Button
                 width={'50%'}

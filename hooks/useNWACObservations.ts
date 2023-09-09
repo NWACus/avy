@@ -17,13 +17,16 @@ import {ZodError} from 'zod';
 export const useNWACObservations = (center_id: AvalancheCenterID, endDate: RequestedTime) => {
   const {nwacHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = queryKey(nwacHost, center_id);
+  const key = queryKey(nwacHost, center_id, endDate);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
-  const fetchNWACObservationsPage = async ({pageParam = formatRequestedTime(endDate)}): Promise<ObservationsQueryWithMeta> => {
-    const endDate: Date = requestedTimeToUTCDate(parseRequestedTimeString(pageParam));
-    const startDate = sub(endDate, {weeks: 2});
-    return fetchNWACObservations(nwacHost, center_id, startDate, endDate, thisLogger);
+  const fetchNWACObservationsPage = async (props: {pageParam?: unknown}): Promise<ObservationsQueryWithMeta> => {
+    // On the first page, pageParam comes in as null - *not* undefined
+    // Subsequent pages come in as strings that are set by us in getNextPageParam
+    const pageParam = typeof props.pageParam === 'string' ? props.pageParam : formatRequestedTime(endDate);
+    const pageEndDate: Date = requestedTimeToUTCDate(parseRequestedTimeString(pageParam));
+    const pageStartDate = sub(pageEndDate, {weeks: 2});
+    return fetchNWACObservations(nwacHost, center_id, pageStartDate, pageEndDate, thisLogger);
   };
 
   return useInfiniteQuery<ObservationsQueryWithMeta, AxiosError | ZodError>({
@@ -35,12 +38,13 @@ export const useNWACObservations = (center_id: AvalancheCenterID, endDate: Reque
   });
 };
 
-function queryKey(nwacHost: string, center_id: AvalancheCenterID) {
+function queryKey(nwacHost: string, center_id: AvalancheCenterID, end_time: RequestedTime) {
   return [
     'nwac-observations',
     {
       host: nwacHost,
       center_id: center_id,
+      end_time: formatRequestedTime(end_time),
     },
   ];
 }
@@ -53,7 +57,8 @@ export const prefetchNWACObservations = async (
   published_before: Date,
   logger: Logger,
 ) => {
-  const key = queryKey(nwacHost, center_id);
+  // when preloading, we're always trying fill the latest data
+  const key = queryKey(nwacHost, center_id, 'latest');
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
