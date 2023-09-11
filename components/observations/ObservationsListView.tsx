@@ -145,11 +145,13 @@ const colorsFor = (partnerType: PartnerType) => {
   throw new Error(`Unknown partner type: ${invalid}`);
 };
 
-export const ObservationSummaryCard: React.FunctionComponent<{
+export interface ObservationSummaryCardProps {
   source: string;
   observation: ObservationFragment;
   zone: string;
-}> = ({source, zone, observation}) => {
+}
+
+export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(({source, zone, observation}: ObservationSummaryCardProps) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
   const redFlags = observation.instability.collapsing || observation.instability.cracking;
@@ -197,4 +199,5 @@ export const ObservationSummaryCard: React.FunctionComponent<{
       </HStack>
     </Card>
   );
-};
+});
+ObservationSummaryCard.displayName = 'ObservationSummaryCard';
