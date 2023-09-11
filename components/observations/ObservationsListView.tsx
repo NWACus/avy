@@ -10,7 +10,7 @@ import {incompleteQueryState, NotFound, QueryState} from 'components/content/Que
 import {HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {filtersForConfig, ObservationFilterConfig, ObservationsFilterForm, zone} from 'components/observations/ObservationsFilterForm';
-import {Body, BodyBlack, BodySmBlack, Caption1Semibold} from 'components/text';
+import {Body, BodyBlack, bodySize, BodySmBlack, Caption1Semibold} from 'components/text';
 import {compareDesc, parseISO, setDayOfYear} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
@@ -121,6 +121,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           source: nwacObservations.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
           zone: zone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng),
         }))}
+        getItemLayout={(data, index) => ({length: OBSERVATION_SUMMARY_CARD_HEIGHT, offset: OBSERVATION_SUMMARY_CARD_HEIGHT * index, index})}
         renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}
         {...props}
       />
@@ -151,6 +152,8 @@ export interface ObservationSummaryCardProps {
   zone: string;
 }
 
+const OBSERVATION_SUMMARY_CARD_HEIGHT = 132;
+
 export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(({source, zone, observation}: ObservationSummaryCardProps) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
@@ -177,21 +180,23 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
       header={
         <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
           <BodySmBlack>{utcDateToLocalDateString(observation.createdAt)}</BodySmBlack>
-          <Caption1Semibold color={colorsFor(observation.observerType).primary} style={{textTransform: 'uppercase'}}>
-            {observation.observerType}
-          </Caption1Semibold>
+          <HStack space={8} alignItems="center">
+            {redFlags && <MaterialCommunityIcons name="flag" size={bodySize} color={colorFor(DangerLevel.Considerable).string()} />}
+            {avalanches && <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />}
+            <Caption1Semibold color={colorsFor(observation.observerType).primary} style={{textTransform: 'uppercase'}}>
+              {observation.observerType}
+            </Caption1Semibold>
+          </HStack>
         </HStack>
       }>
       <HStack space={48} justifyContent="space-between" alignItems={'flex-start'}>
         <VStack space={4} alignItems={'flex-start'} flex={1}>
           <BodyBlack>{zone}</BodyBlack>
-          <Body color="text.secondary">{observation.locationName}</Body>
-          <HStack space={8}>
-            {redFlags && <MaterialCommunityIcons name="flag" size={24} color={colorFor(DangerLevel.Considerable).string()} />}
-            {avalanches && <NACIcon name="avalanche" size={24} color={colorFor(DangerLevel.High).string()} />}
-          </HStack>
+          <Body color="text.secondary" numberOfLines={1}>
+            {observation.locationName}
+          </Body>
         </VStack>
-        <View width={52} flex={0} ml={8}>
+        <View width={52} height={52} flex={0} ml={8}>
           {observation.media && observation.media.length > 0 && observation.media[0].type === MediaType.Image && observation.media[0].url?.thumbnail && (
             <NetworkImage width={52} height={52} uri={observation.media[0].url.thumbnail} imageStyle={{borderRadius: 4}} index={0} onPress={undefined} onStateChange={undefined} />
           )}
