@@ -410,3 +410,5 @@ export const useObservationsQuery = <TData = ObservationsQuery, TError = unknown
     useFetch<ObservationsQuery, ObservationsQueryVariables>(ObservationsDocument).bind(null, variables),
     options,
   );
+
+export const DEFAULT_OBSERVATIONS_WINDOW: Duration = {weeks: -2};

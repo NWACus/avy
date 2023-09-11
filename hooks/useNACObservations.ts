@@ -7,33 +7,43 @@ import axios, {AxiosError, AxiosResponse} from 'axios';
 
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
-import {formatDistanceToNowStrict, sub} from 'date-fns';
+import {add, formatDistanceToNowStrict, sub} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
-import {ObservationsDocument} from 'hooks/useObservations';
+import {DEFAULT_OBSERVATIONS_WINDOW, ObservationsDocument} from 'hooks/useObservations';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, ObservationFragment, observationListResultSchema} from 'types/nationalAvalancheCenter';
 import {apiDateString, formatRequestedTime, parseRequestedTimeString, RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 import {ZodError} from 'zod';
 
-export const useNACObservations = (center_id: AvalancheCenterID, endDate: RequestedTime) => {
+export const useNACObservations = (center_id: AvalancheCenterID, endDate: RequestedTime, window: Duration = DEFAULT_OBSERVATIONS_WINDOW) => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(nationalAvalancheCenterHost, center_id, endDate);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
+  const windowStart: Date = add(requestedTimeToUTCDate(endDate), window);
   const fetchNACObservationsPage = async (props: {pageParam?: unknown}): Promise<ObservationsQueryWithMeta> => {
     // On the first page, pageParam comes in as null - *not* undefined
     // Subsequent pages come in as strings that are set by us in getNextPageParam
     const pageParam = typeof props.pageParam === 'string' ? props.pageParam : formatRequestedTime(endDate);
     const pageEndDate: Date = requestedTimeToUTCDate(parseRequestedTimeString(pageParam));
     const pageStartDate = sub(pageEndDate, {weeks: 2});
+    thisLogger.debug('fetching NAC page', pageStartDate, pageEndDate, windowStart, requestedTimeToUTCDate(endDate));
     return fetchNACObservations(nationalAvalancheCenterHost, center_id, pageStartDate, pageEndDate, thisLogger);
   };
 
   return useInfiniteQuery<ObservationsQueryWithMeta, AxiosError | ZodError>({
     queryKey: key,
     queryFn: fetchNACObservationsPage,
-    getNextPageParam: lastPage => lastPage.startDate,
+    getNextPageParam: (lastPage: ObservationsQueryWithMeta) => {
+      thisLogger.debug('nac getNextPageParam', lastPage.startDate);
+      if (new Date(lastPage.startDate) > windowStart) {
+        return lastPage.startDate;
+      } else {
+        thisLogger.debug('nac getNextPageParam', 'no more data available in window!', lastPage.startDate, windowStart, window);
+        return undefined;
+      }
+    },
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
@@ -94,6 +104,7 @@ export const fetchNACObservations = async (
     startDate: apiDateString(startDate),
     endDate: apiDateString(endDate),
   };
+  logger.debug('fetchNACObservations', JSON.stringify(variables, null, 2));
   const what = 'NAC observations';
   const thisLogger = logger.child({url: url, variables: variables, what: what});
   const data = await safeFetch(
