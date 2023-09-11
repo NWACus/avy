@@ -37,21 +37,23 @@ export const SynopsisTab: React.FunctionComponent<SynopsisTabProps> = ({center_i
     });
   }, [navigation]);
 
+  React.useEffect(() => {
+    if (synopsis?.expires_time) {
+      const expires_time = new Date(synopsis.expires_time);
+      if (isAfter(new Date(), expires_time)) {
+        Toast.show({
+          type: 'error',
+          text1: `This blog expired ${formatDistanceToNow(expires_time)} ago.`,
+          autoHide: false,
+          position: 'bottom',
+          onPress: () => Toast.hide(),
+        });
+      }
+    }
+  }, [synopsis]);
+
   if (incompleteQueryState(synopsisResult) || !synopsis) {
     return <QueryState results={[synopsisResult]} />;
-  }
-
-  if (synopsis.expires_time) {
-    const expires_time = new Date(synopsis.expires_time);
-    if (synopsis.expires_time && isAfter(new Date(), expires_time)) {
-      Toast.show({
-        type: 'error',
-        text1: `This blog expired ${formatDistanceToNow(expires_time)} ago.`,
-        autoHide: false,
-        position: 'bottom',
-        onPress: () => Toast.hide(),
-      });
-    }
   }
 
   const imageItems = images(synopsis.media);

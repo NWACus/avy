@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {addDays, formatDistanceToNow, isAfter} from 'date-fns';
 
@@ -86,6 +86,21 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
     });
   }, [navigation]);
 
+  useEffect(() => {
+    if (forecast?.expires_time) {
+      const expires_time = new Date(forecast.expires_time);
+      if (isAfter(new Date(), expires_time)) {
+        Toast.show({
+          type: 'error',
+          text1: `This avalanche forecast expired ${formatDistanceToNow(expires_time)} ago.`,
+          autoHide: false,
+          position: 'bottom',
+          onPress: () => Toast.hide(),
+        });
+      }
+    }
+  }, [forecast]);
+
   if (incompleteQueryState(forecastResult, warningResult) || !forecast || !warning) {
     return <QueryState results={[forecastResult, warningResult]} />;
   }
@@ -101,19 +116,6 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
       highestDangerToday = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper);
     }
     outlookDanger = forecast.danger.find(item => item.valid_day === ForecastPeriod.Tomorrow);
-  }
-
-  if (forecast.expires_time) {
-    const expires_time = new Date(forecast.expires_time);
-    if (isAfter(new Date(), expires_time)) {
-      Toast.show({
-        type: 'error',
-        text1: `This avalanche forecast expired ${formatDistanceToNow(expires_time)} ago.`,
-        autoHide: false,
-        position: 'bottom',
-        onPress: () => Toast.hide(),
-      });
-    }
   }
 
   const imageItems = images(forecast.media);
