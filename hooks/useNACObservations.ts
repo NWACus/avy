@@ -18,13 +18,16 @@ import {ZodError} from 'zod';
 export const useNACObservations = (center_id: AvalancheCenterID, endDate: RequestedTime) => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = queryKey(nationalAvalancheCenterHost, center_id);
+  const key = queryKey(nationalAvalancheCenterHost, center_id, endDate);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
-  const fetchNACObservationsPage = async ({pageParam = formatRequestedTime(endDate)}): Promise<ObservationsQueryWithMeta> => {
-    const endDate: Date = requestedTimeToUTCDate(parseRequestedTimeString(pageParam));
-    const startDate = sub(endDate, {weeks: 2});
-    return fetchNACObservations(nationalAvalancheCenterHost, center_id, startDate, endDate, thisLogger);
+  const fetchNACObservationsPage = async (props: {pageParam?: unknown}): Promise<ObservationsQueryWithMeta> => {
+    // On the first page, pageParam comes in as null - *not* undefined
+    // Subsequent pages come in as strings that are set by us in getNextPageParam
+    const pageParam = typeof props.pageParam === 'string' ? props.pageParam : formatRequestedTime(endDate);
+    const pageEndDate: Date = requestedTimeToUTCDate(parseRequestedTimeString(pageParam));
+    const pageStartDate = sub(pageEndDate, {weeks: 2});
+    return fetchNACObservations(nationalAvalancheCenterHost, center_id, pageStartDate, pageEndDate, thisLogger);
   };
 
   return useInfiniteQuery<ObservationsQueryWithMeta, AxiosError | ZodError>({
@@ -36,12 +39,13 @@ export const useNACObservations = (center_id: AvalancheCenterID, endDate: Reques
   });
 };
 
-function queryKey(nationalAvalancheCenterHost: string, center_id: AvalancheCenterID) {
+function queryKey(nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, end_time: RequestedTime) {
   return [
     'nac-observations',
     {
       host: nationalAvalancheCenterHost,
       center_id: center_id,
+      end_time: formatRequestedTime(end_time),
     },
   ];
 }
@@ -54,7 +58,8 @@ export const prefetchNACObservations = async (
   endDate: Date,
   logger: Logger,
 ) => {
-  const key = queryKey(nationalAvalancheCenterHost, center_id);
+  // when preloading, we're always trying fill the latest data
+  const key = queryKey(nationalAvalancheCenterHost, center_id, 'latest');
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 

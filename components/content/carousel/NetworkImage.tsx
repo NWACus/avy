@@ -67,7 +67,7 @@ export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, o
           <Body>Media failed to load.</Body>
         </VStack>
       )}
-      {(status === 'success' || status === 'loading') && image}
+      {status === 'success' && image}
     </Center>
   );
 };

@@ -19,7 +19,7 @@ import {useWeatherForecast} from 'hooks/useWeatherForecast';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import {isArray} from 'lodash';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
 import Toast from 'react-native-toast-message';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
@@ -94,6 +94,38 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
       Toast.hide();
     });
   }, [navigation]);
+
+  const [expiresTime, setExpiresTime] = React.useState<Date | null>(null);
+
+  useEffect(() => {
+    if (nwacForecast && nwacForecast !== 'ignore') {
+      // Infer an expiration date. Morning forecasts expire at 2 pm Pacific the same day, afternoon forecasts at 7 am PST the next day
+      // Let's say a morning forecast has to be published between midnight and noon Pacific, while an afternoon forecast can be published between noon and midnight Pacific.
+      const published_time = new Date(nwacForecast.mountain_weather_forecast.publish_date);
+      const publishHourUTC = published_time.getUTCHours();
+      // getTimezoneOffset('PST') = -28800000, but returns NaN on Android due to missing Intl data. I'm just hard-coding a workaround here
+      const offsetHours = -28800000 / 1000 / 60 / 60;
+      // Deal with underflow when publishHourUTC + offsetHours goes negative
+      const publishHourLocal = (publishHourUTC + offsetHours + 24) % 24;
+      const isPublishedMorning = publishHourLocal < 12;
+      const start = new Date(Date.UTC(published_time.getUTCFullYear(), published_time.getUTCMonth(), published_time.getUTCDate()));
+      // 😵‍💫 😵‍💫 😵‍💫
+      const expires_time = isPublishedMorning ? add(start, {hours: 14 - offsetHours}) : add(start, {hours: 7 - offsetHours, days: 1});
+      setExpiresTime(expires_time);
+    }
+  }, [nwacForecast]);
+
+  useEffect(() => {
+    if (expiresTime && isAfter(new Date(), expiresTime)) {
+      Toast.show({
+        type: 'error',
+        text1: `This weather forecast expired ${formatDistanceToNow(expiresTime)} ago.`,
+        autoHide: false,
+        position: 'bottom',
+        onPress: () => Toast.hide(),
+      });
+    }
+  }, [expiresTime]);
 
   if (incompleteQueryState(avalancheCenterMetadataResult, mapLayerResult, avalancheForecastResult) || !metadata || !mapLayer || !avalancheForecast) {
     return <QueryState results={[nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, avalancheForecastResult]} />;
@@ -196,27 +228,6 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     })),
   }));
 
-  // Infer an expiration date. Morning forecasts expire at 2 pm Pacific the same day, afternoon forecasts at 7 am PST the next day
-  // Let's say a morning forecast has to be published between midnight and noon Pacific, while an afternoon forecast can be published between noon and midnight Pacific.
-  const published_time = new Date(nwacForecast.mountain_weather_forecast.publish_date);
-  const publishHourUTC = published_time.getUTCHours();
-  // getTimezoneOffset('PST') = -28800000, but returns NaN on Android due to missing Intl data. I'm just hard-coding a workaround here
-  const offsetHours = -28800000 / 1000 / 60 / 60;
-  // Deal with underflow when publishHourUTC + offsetHours goes negative
-  const publishHourLocal = (publishHourUTC + offsetHours + 24) % 24;
-  const isPublishedMorning = publishHourLocal < 12;
-  const start = new Date(Date.UTC(published_time.getUTCFullYear(), published_time.getUTCMonth(), published_time.getUTCDate()));
-  // 😵‍💫 😵‍💫 😵‍💫
-  const expires_time = isPublishedMorning ? add(start, {hours: 14 - offsetHours}) : add(start, {hours: 7 - offsetHours, days: 1});
-  if (isAfter(new Date(), expires_time)) {
-    Toast.show({
-      type: 'error',
-      text1: `This weather forecast expired ${formatDistanceToNow(expires_time)} ago.`,
-      autoHide: false,
-      position: 'bottom',
-      onPress: () => Toast.hide(),
-    });
-  }
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh} />}>
       <VStack space={8} backgroundColor={colorLookup('background.base')}>
@@ -231,7 +242,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
             <VStack space={8} style={{flex: 1}}>
               <AllCapsSmBlack>Expires</AllCapsSmBlack>
               <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                {utcDateToLocalTimeString(expires_time)}
+                {utcDateToLocalTimeString(expiresTime)}
               </AllCapsSm>
             </VStack>
             <VStack space={8} style={{flex: 1}}>

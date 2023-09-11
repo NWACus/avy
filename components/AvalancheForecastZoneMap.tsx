@@ -6,7 +6,6 @@ import {
   FlatList,
   GestureResponderEvent,
   LayoutChangeEvent,
-  ListRenderItem,
   NativeScrollEvent,
   NativeSyntheticEvent,
   PanResponder,
@@ -534,8 +533,6 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
     setPreviousSelectedZoneId(selectedZoneId);
   }
 
-  const renderItem: ListRenderItem<MapViewZone> = ({item}) => <AvalancheForecastZoneCard key={item.zone_id} zone={item} date={date} />;
-
   return (
     <Animated.FlatList
       onLayout={(event: LayoutChangeEvent) => controller.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height)}
@@ -557,8 +554,8 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
       onScrollEndDrag={() => setUserScrolling(false)}
       {...panResponder.panHandlers}
       {...flatListProps}
-      data={zones}
-      renderItem={renderItem}
+      data={zones.map(zone => ({key: zone.zone_id, zone, date}))}
+      renderItem={({item}) => <AvalancheForecastZoneCard {...item} />}
     />
   );
 };
@@ -566,7 +563,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
 const AvalancheForecastZoneCard: React.FunctionComponent<{
   date: RequestedTime;
   zone: MapViewZone;
-}> = ({date, zone}) => {
+}> = React.memo(({date, zone}: {date: RequestedTime; zone: MapViewZone}) => {
   const {width} = useWindowDimensions();
   const navigation = useNavigation<HomeStackNavigationProps>();
 
@@ -609,7 +606,8 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
       </VStack>
     </TouchableOpacity>
   );
-};
+});
+AvalancheForecastZoneCard.displayName = 'AvalancheForecastZoneCard';
 
 const DangerLevelTitle: React.FunctionComponent<{
   dangerLevel: DangerLevel;
