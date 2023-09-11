@@ -32,6 +32,7 @@ const styles = {
       textColor: colorLookup('text'),
     },
     pressed: {
+      backgroundColor: colorLookup('blue2Background'),
       borderColor: colorLookup('blue2'),
       textColor: colorLookup('blue2'),
     },
