@@ -632,7 +632,7 @@ const DangerLevelTitle: React.FunctionComponent<{
     case DangerLevel.Extreme:
       return (
         <BodySmSemibold>
-          {dangerLevel} - <Text style={{textTransform: 'capitalize'}}>{DangerLevel[dangerLevel]}</Text> Avalanche Danger
+          {dangerLevel} - <Text style={{textTransform: 'capitalize'}}>{DangerLevel[dangerLevel]}</Text>
         </BodySmSemibold>
       );
   }
