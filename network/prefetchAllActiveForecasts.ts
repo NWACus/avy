@@ -5,7 +5,7 @@ import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {preloadAvalancheDangerIcons} from 'components/AvalancheDangerIcon';
 import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
 import {images} from 'components/content/carousel';
-import {sub} from 'date-fns';
+import {add} from 'date-fns';
 import AvalancheCenterCapabilitiesQuery from 'hooks/useAvalancheCenterCapabilities';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
@@ -15,6 +15,7 @@ import AvalancheCenterMapLayerQuery from 'hooks/useMapLayer';
 import NACObservationsQuery from 'hooks/useNACObservations';
 import NWACObservationsQuery from 'hooks/useNWACObservations';
 import NWACWeatherForecastQuery from 'hooks/useNWACWeatherForecast';
+import {DEFAULT_OBSERVATIONS_WINDOW} from 'hooks/useObservations';
 import SynopsisQuery from 'hooks/useSynopsis';
 import WeatherForecastQuery from 'hooks/useWeatherForecast';
 import WeatherStationsQuery from 'hooks/useWeatherStationsMetadata';
@@ -56,7 +57,7 @@ export const prefetchAllActiveForecasts = async (
   }
 
   const endDate: Date = currentDateTime;
-  const startDate = sub(endDate, {weeks: 2});
+  const startDate = add(endDate, DEFAULT_OBSERVATIONS_WINDOW);
   if (center_id === 'NWAC') {
     void NWACObservationsQuery.prefetch(queryClient, nwacHost, center_id, startDate, endDate, logger);
   }

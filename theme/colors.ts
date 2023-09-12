@@ -29,6 +29,7 @@ export const COLORS: Record<string, ColorValue> = {
   // UI
   blue1: rgbaToHexString('rgba(24, 144, 255, 1)'),
   blue2: rgbaToHexString('rgba(0, 80, 179, 1)'),
+  blue2Background: rgbaToHexString('rgba(0, 80, 179, 0.2)'),
   blue3: rgbaToHexString('rgba(0, 58, 140, 1)'),
   'NWAC-dark': rgbaToHexString('rgba(20, 45, 86, 1)'),
   'NWAC-light': rgbaToHexString('rgba(160, 204, 216, 1)'),

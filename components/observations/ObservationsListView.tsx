@@ -1,22 +1,22 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 
 import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {colorFor} from 'components/AvalancheDangerPyramid';
-import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
-import {HStack, View, VStack} from 'components/core';
+import {Center, HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {filtersForConfig, ObservationFilterConfig, ObservationsFilterForm, zone} from 'components/observations/ObservationsFilterForm';
 import {Body, BodyBlack, bodySize, BodySmBlack, Caption1Semibold} from 'components/text';
-import {compareDesc, parseISO, setDayOfYear} from 'date-fns';
+import {add, compareDesc, parseISO} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
+import {DEFAULT_OBSERVATIONS_WINDOW} from 'hooks/useObservations';
 import {useRefresh} from 'hooks/useRefresh';
-import {FlatList, FlatListProps, Modal, RefreshControl, TouchableOpacity} from 'react-native';
+import {ActivityIndicator, FlatList, FlatListProps, Modal, RefreshControl, TouchableOpacity} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
@@ -36,11 +36,15 @@ interface ObservationsListViewProps extends Omit<FlatListProps<ObservationsListV
   initialFilterConfig?: ObservationFilterConfig;
 }
 
+interface ObservationFragmentWithPageIndex extends ObservationFragment {
+  pageIndex: number;
+}
+
 export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, initialFilterConfig, ...props}) => {
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = {
     dates: {
-      from: setDayOfYear(endDate, 1),
+      from: add(endDate, DEFAULT_OBSERVATIONS_WINDOW),
       to: endDate,
     },
     ...initialFilterConfig,
@@ -50,21 +54,54 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
-  const nacObservationsResult = useNACObservations(center_id, requestedTime);
-  const nacObservations: ObservationFragment[] = nacObservationsResult.data?.pages?.flatMap(page => page.data) ?? [];
-  const nwacObservationsResult = useNWACObservations(center_id, requestedTime);
-  const nwacObservations: ObservationFragment[] = nwacObservationsResult.data?.pages?.flatMap(page => page.data) ?? [];
-  const observations: ObservationFragment[] = nacObservations
+  // TODO brian wire up duration correctly - there's an interaction between useInfiniteQuery (which has a cached
+  // notion of whether there's more data) and this duration, and I'm not sure of the best way to solve it.
+  // Right now, the queryKey in useNACObservations/useNWACObservations doesn't use the duration, so it's not invalidated when the duration changes.
+  // That has the nice property of not re-fetching data when the duration changes, but it also means that if you make the duration longer, you won't get new data.
+  const nacObservationsResult = useNACObservations(center_id, requestedTime, DEFAULT_OBSERVATIONS_WINDOW);
+  const nacObservations: ObservationFragmentWithPageIndex[] = nacObservationsResult.data?.pages?.flatMap((page, index) => page.data.map(o => ({...o, pageIndex: index}))) ?? [];
+  const nwacObservationsResult = useNWACObservations(center_id, requestedTime, DEFAULT_OBSERVATIONS_WINDOW);
+  const nwacObservations: ObservationFragmentWithPageIndex[] = nwacObservationsResult.data?.pages?.flatMap((page, index) => page.data.map(o => ({...o, pageIndex: index}))) ?? [];
+  const observations: ObservationFragmentWithPageIndex[] = nacObservations
     .concat(nwacObservations)
     .filter(observation => observation) // when nothing is returned from the NAC, we get a null
-    .filter((v, i, a) => a.findIndex(v2 => v2.id === v.id) === i); // sometimes, the NWAC API gives us duplicates
+    // Sort observations by page index, then by date. This keeps old entries from shifting around as new data is fetched
+    .sort((a, b) => {
+      const pageDelta = a.pageIndex - b.pageIndex;
+      if (pageDelta !== 0) {
+        return pageDelta;
+      }
+      return compareDesc(parseISO(a.createdAt), parseISO(b.createdAt));
+    })
+    // sometimes, the NWAC API gives us duplicates. If this happens, prefer to keep the version that was fetched earlier
+    .filter((v, i, a) => a.findIndex(v2 => v2.id === v.id) === i);
   const {isRefreshing, refresh} = useRefresh(mapResult.refetch, nacObservationsResult.refetch, nwacObservationsResult.refetch);
+
+  const fetchMoreData = useCallback(async (observationsResult: ReturnType<typeof useNACObservations> | ReturnType<typeof useNWACObservations>) => {
+    const {isFetchingNextPage} = observationsResult;
+    let {hasNextPage, fetchNextPage} = observationsResult;
+    if (isFetchingNextPage || !hasNextPage) {
+      return;
+    }
+
+    // Fetch until we get to the end of the data, or get at least one item
+    while (hasNextPage) {
+      const pageResult = await fetchNextPage();
+      if (!pageResult.hasNextPage) {
+        break;
+      }
+      const fetchCount = pageResult.data?.pages[pageResult.data?.pages.length - 1].data?.length ?? 0;
+      if (fetchCount > 0) {
+        break;
+      }
+      hasNextPage = pageResult.hasNextPage;
+      fetchNextPage = pageResult.fetchNextPage;
+    }
+  }, []);
 
   if (incompleteQueryState(nacObservationsResult, nwacObservationsResult, mapResult) || !observations || !mapLayer) {
     return <QueryState results={[nacObservationsResult, nwacObservationsResult, mapResult]} />;
   }
-
-  observations.sort((a, b) => compareDesc(parseISO(a.createdAt), parseISO(b.createdAt)));
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
@@ -85,6 +122,12 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         />
       </Modal>
       <FlatList
+        // when within 2 page lengths of the end, start fetching the next set of data
+        onEndReachedThreshold={2}
+        onEndReached={() => {
+          void fetchMoreData(nwacObservationsResult);
+          void fetchMoreData(nacObservationsResult);
+        }}
         ListHeaderComponent={
           <HStack px={16} pt={12} pb={12} space={24} backgroundColor={colorLookup('background.base')}>
             <TouchableOpacity onPress={() => setFilterModalVisible(true)}>
@@ -95,23 +138,27 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             </TouchableOpacity>
           </HStack>
         }
-        ListFooterComponent={
-          nacObservationsResult.hasNextPage || nwacObservationsResult.hasNextPage ? (
-            <HStack justifyContent="center" mt={4}>
-              <Button
-                width={'50%'}
-                buttonStyle={'primary'}
-                disabled={nacObservationsResult.isFetchingNextPage || nwacObservationsResult.isFetchingNextPage}
-                busy={nacObservationsResult.isFetchingNextPage || nwacObservationsResult.isFetchingNextPage}
-                onPress={() => {
-                  void nwacObservationsResult.fetchNextPage();
-                  void nacObservationsResult.fetchNextPage();
-                }}>
-                <BodyBlack>Load more...</BodyBlack>
-              </Button>
-            </HStack>
-          ) : null
-        }
+        ListFooterComponent={() => {
+          if (!nacObservationsResult.hasNextPage && !nwacObservationsResult.hasNextPage) {
+            return (
+              <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT}>
+                <Body>
+                  {/* this ad-hoc pluralization is sketchy, we should implement proper string localization / formatting with MessageFormat */}
+                  {/* Note: the case of no results is handled by ListEmptyComponent below */}
+                  {displayedObservations.length} observation{displayedObservations.length > 1 ? 's' : ''} in selected time period
+                </Body>
+              </Center>
+            );
+          } else if (nacObservationsResult.isFetchingNextPage || nwacObservationsResult.isFetchingNextPage) {
+            return (
+              <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT}>
+                <ActivityIndicator size={'large'} color={colorLookup('textColor')} />
+              </Center>
+            );
+          } else {
+            return <View height={OBSERVATION_SUMMARY_CARD_HEIGHT} />;
+          }
+        }}
         ListEmptyComponent={<NotFound inline terminal what={[new NotFoundError('no observations found', 'any matching observations')]} />}
         style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={void refresh} />}

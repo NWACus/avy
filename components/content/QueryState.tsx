@@ -55,7 +55,7 @@ export const InternalError: React.FunctionComponent<{inline?: boolean}> = ({inli
 export const Loading: React.FunctionComponent = () => {
   return (
     <HStack width={'100%'} space={8} style={{flex: 1}} justifyContent={'center'} alignItems={'center'}>
-      <ActivityIndicator />
+      <ActivityIndicator size="large" />
     </HStack>
   );
 };

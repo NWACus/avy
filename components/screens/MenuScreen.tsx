@@ -23,6 +23,7 @@ import * as Updates from 'expo-updates';
 import * as WebBrowser from 'expo-web-browser';
 
 import {QueryCache} from '@tanstack/react-query';
+import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'App';
 import {ClientContext} from 'clientContext';
 import {AvalancheCenters} from 'components/avalancheCenterList';
 import {ActionList} from 'components/content/ActionList';
@@ -221,7 +222,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                           buttonStyle="normal"
                           onPress={() => {
                             void (async () => {
-                              await AsyncStorage.clear();
+                              await AsyncStorage.removeItem(QUERY_CACHE_ASYNC_STORAGE_KEY);
                               queryCache.clear();
                               await clearUploadCache();
                             })();
