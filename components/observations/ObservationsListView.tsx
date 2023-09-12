@@ -36,6 +36,10 @@ interface ObservationsListViewProps extends Omit<FlatListProps<ObservationsListV
   initialFilterConfig?: ObservationFilterConfig;
 }
 
+interface ObservationFragmentWithPageIndex extends ObservationFragment {
+  pageIndex: number;
+}
+
 export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, initialFilterConfig, ...props}) => {
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = {
@@ -55,13 +59,22 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   // Right now, the queryKey in useNACObservations/useNWACObservations doesn't use the duration, so it's not invalidated when the duration changes.
   // That has the nice property of not re-fetching data when the duration changes, but it also means that if you make the duration longer, you won't get new data.
   const nacObservationsResult = useNACObservations(center_id, requestedTime, DEFAULT_OBSERVATIONS_WINDOW);
-  const nacObservations: ObservationFragment[] = nacObservationsResult.data?.pages?.flatMap(page => page.data) ?? [];
+  const nacObservations: ObservationFragmentWithPageIndex[] = nacObservationsResult.data?.pages?.flatMap((page, index) => page.data.map(o => ({...o, pageIndex: index}))) ?? [];
   const nwacObservationsResult = useNWACObservations(center_id, requestedTime, DEFAULT_OBSERVATIONS_WINDOW);
-  const nwacObservations: ObservationFragment[] = nwacObservationsResult.data?.pages?.flatMap(page => page.data) ?? [];
-  const observations: ObservationFragment[] = nacObservations
+  const nwacObservations: ObservationFragmentWithPageIndex[] = nwacObservationsResult.data?.pages?.flatMap((page, index) => page.data.map(o => ({...o, pageIndex: index}))) ?? [];
+  const observations: ObservationFragmentWithPageIndex[] = nacObservations
     .concat(nwacObservations)
     .filter(observation => observation) // when nothing is returned from the NAC, we get a null
-    .filter((v, i, a) => a.findIndex(v2 => v2.id === v.id) === i); // sometimes, the NWAC API gives us duplicates
+    // Sort observations by page index, then by date. This keeps old entries from shifting around as new data is fetched
+    .sort((a, b) => {
+      const pageDelta = a.pageIndex - b.pageIndex;
+      if (pageDelta !== 0) {
+        return pageDelta;
+      }
+      return compareDesc(parseISO(a.createdAt), parseISO(b.createdAt));
+    })
+    // sometimes, the NWAC API gives us duplicates. If this happens, prefer to keep the version that was fetched earlier
+    .filter((v, i, a) => a.findIndex(v2 => v2.id === v.id) === i);
   const {isRefreshing, refresh} = useRefresh(mapResult.refetch, nacObservationsResult.refetch, nwacObservationsResult.refetch);
 
   const fetchMoreData = useCallback(async (observationsResult: ReturnType<typeof useNACObservations> | ReturnType<typeof useNWACObservations>) => {
@@ -89,8 +102,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   if (incompleteQueryState(nacObservationsResult, nwacObservationsResult, mapResult) || !observations || !mapLayer) {
     return <QueryState results={[nacObservationsResult, nwacObservationsResult, mapResult]} />;
   }
-
-  observations.sort((a, b) => compareDesc(parseISO(a.createdAt), parseISO(b.createdAt)));
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
@@ -130,16 +141,17 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         ListFooterComponent={() => {
           if (!nacObservationsResult.hasNextPage && !nwacObservationsResult.hasNextPage) {
             return (
-              <Center height={80}>
+              <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT}>
                 <Body>
-                  {/* this is super-sketchy, need to implement proper string localization/formatting */}
+                  {/* this ad-hoc pluralization is sketchy, we should implement proper string localization / formatting with MessageFormat */}
+                  {/* Note: the case of no results is handled by ListEmptyComponent below */}
                   {displayedObservations.length} observation{displayedObservations.length > 1 ? 's' : ''} in selected time period
                 </Body>
               </Center>
             );
           } else if (nacObservationsResult.isFetchingNextPage || nwacObservationsResult.isFetchingNextPage) {
             return (
-              <Center height={80}>
+              <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT}>
                 <ActivityIndicator size={'large'} color={colorLookup('textColor')} />
               </Center>
             );
