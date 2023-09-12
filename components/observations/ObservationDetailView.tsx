@@ -12,7 +12,7 @@ import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {ZoneMap} from 'components/content/ZoneMap';
 import {HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
-import {zone} from 'components/observations/ObservationsFilterForm';
+import {matchesZone} from 'components/observations/ObservationsFilterForm';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
@@ -198,7 +198,7 @@ export const ObservationCard: React.FunctionComponent<{
 }> = ({observation, mapLayer}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const {avalanches_observed, avalanches_triggered, avalanches_caught} = observation.instability;
-  const zone_name = observation.location_point?.lat && observation.location_point?.lng && zone(mapLayer, observation.location_point?.lat, observation.location_point?.lng);
+  const zone_name = observation.location_point?.lat && observation.location_point?.lng && matchesZone(mapLayer, observation.location_point?.lat, observation.location_point?.lng);
   React.useEffect(() => {
     if (zone_name) {
       navigation.setOptions({title: `${zone_name} Observation`});

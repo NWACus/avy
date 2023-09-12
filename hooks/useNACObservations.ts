@@ -9,26 +9,30 @@ import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {add, formatDistanceToNowStrict, sub} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
-import {DEFAULT_OBSERVATIONS_WINDOW, ObservationsDocument} from 'hooks/useObservations';
+import {MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW, ObservationsDocument} from 'hooks/useObservations';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, ObservationFragment, observationListResultSchema} from 'types/nationalAvalancheCenter';
 import {apiDateString, formatRequestedTime, parseRequestedTimeString, RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 import {ZodError} from 'zod';
 
-export const useNACObservations = (center_id: AvalancheCenterID, endDate: RequestedTime, window: Duration = DEFAULT_OBSERVATIONS_WINDOW) => {
+const PAGE_SIZE: Duration = {weeks: 2};
+
+export const useNACObservations = (center_id: AvalancheCenterID, endDate: RequestedTime) => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(nationalAvalancheCenterHost, center_id, endDate);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
-  const windowStart: Date = add(requestedTimeToUTCDate(endDate), window);
+
+  // For NAC, we fetch in 2 week pages, until we get results that are older than the requested end date minus the lookback window
+  const lookbackWindowStart: Date = add(requestedTimeToUTCDate(endDate), MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW);
   const fetchNACObservationsPage = async (props: {pageParam?: unknown}): Promise<ObservationsQueryWithMeta> => {
     // On the first page, pageParam comes in as null - *not* undefined
     // Subsequent pages come in as strings that are set by us in getNextPageParam
     const pageParam = typeof props.pageParam === 'string' ? props.pageParam : formatRequestedTime(endDate);
     const pageEndDate: Date = requestedTimeToUTCDate(parseRequestedTimeString(pageParam));
-    const pageStartDate = sub(pageEndDate, {weeks: 2});
-    thisLogger.debug('fetching NAC page', pageStartDate, pageEndDate, windowStart, requestedTimeToUTCDate(endDate));
+    const pageStartDate = sub(pageEndDate, PAGE_SIZE);
+    thisLogger.debug('fetching NAC page', pageStartDate, pageEndDate, lookbackWindowStart, requestedTimeToUTCDate(endDate));
     return fetchNACObservations(nationalAvalancheCenterHost, center_id, pageStartDate, pageEndDate, thisLogger);
   };
 
@@ -37,10 +41,10 @@ export const useNACObservations = (center_id: AvalancheCenterID, endDate: Reques
     queryFn: fetchNACObservationsPage,
     getNextPageParam: (lastPage: ObservationsQueryWithMeta) => {
       thisLogger.debug('nac getNextPageParam', lastPage.startDate);
-      if (new Date(lastPage.startDate) > windowStart) {
+      if (new Date(lastPage.startDate) > lookbackWindowStart) {
         return lastPage.startDate;
       } else {
-        thisLogger.debug('nac getNextPageParam', 'no more data available in window!', lastPage.startDate, windowStart, window);
+        thisLogger.debug('nac getNextPageParam', 'no more data available in window!', lastPage.startDate, lookbackWindowStart, window);
         return undefined;
       }
     },
@@ -60,18 +64,14 @@ function queryKey(nationalAvalancheCenterHost: string, center_id: AvalancheCente
   ];
 }
 
-export const prefetchNACObservations = async (
-  queryClient: QueryClient,
-  nationalAvalancheCenterHost: string,
-  center_id: AvalancheCenterID,
-  startDate: Date,
-  endDate: Date,
-  logger: Logger,
-) => {
+export const prefetchNACObservations = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, endDate: Date, logger: Logger) => {
   // when preloading, we're always trying fill the latest data
   const key = queryKey(nationalAvalancheCenterHost, center_id, 'latest');
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
+
+  // we want to fetch a single page of data
+  const startDate = sub(endDate, PAGE_SIZE);
 
   await queryClient.prefetchInfiniteQuery({
     queryKey: key,

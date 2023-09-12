@@ -9,7 +9,7 @@ import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {add, formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
-import {DEFAULT_OBSERVATIONS_WINDOW} from 'hooks/useObservations';
+import {MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW} from 'hooks/useObservations';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, nwacObservationsListSchema, ObservationFragment} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime, requestedTimeToUTCDate, toDateTimeInterfaceATOM} from 'utils/date';
@@ -17,12 +17,12 @@ import {ZodError} from 'zod';
 
 const DEFAULT_PAGE_SIZE = 50;
 
-export const useNWACObservations = (center_id: AvalancheCenterID, endDate: RequestedTime, window: Duration = DEFAULT_OBSERVATIONS_WINDOW) => {
+export const useNWACObservations = (center_id: AvalancheCenterID, endDate: RequestedTime) => {
   const {nwacHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   // We key on end date, but not window - window merely controls how far we'll fetch backwards
   const key = queryKey(nwacHost, center_id, endDate);
-  const windowStart: Date = add(requestedTimeToUTCDate(endDate), window);
+  const lookbackWindowStart: Date = add(requestedTimeToUTCDate(endDate), MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
   const fetchNWACObservationsPage = async (props: {pageParam?: unknown}): Promise<ObservationsQueryWithMeta> => {
@@ -30,8 +30,8 @@ export const useNWACObservations = (center_id: AvalancheCenterID, endDate: Reque
     // Subsequent pages come in as numbers that are set by us in getNextPageParam
     const offset = typeof props.pageParam === 'number' ? props.pageParam : 0;
     const limit = DEFAULT_PAGE_SIZE;
-    thisLogger.debug('fetching NWAC page', offset, limit, windowStart, requestedTimeToUTCDate(endDate));
-    return fetchNWACObservations(nwacHost, center_id, windowStart, requestedTimeToUTCDate(endDate), offset, limit, thisLogger);
+    thisLogger.debug('fetching NWAC page', offset, limit, lookbackWindowStart, requestedTimeToUTCDate(endDate));
+    return fetchNWACObservations(nwacHost, center_id, lookbackWindowStart, requestedTimeToUTCDate(endDate), offset, limit, thisLogger);
   };
 
   return useInfiniteQuery<ObservationsQueryWithMeta, AxiosError | ZodError>({
@@ -42,7 +42,7 @@ export const useNWACObservations = (center_id: AvalancheCenterID, endDate: Reque
       if (lastPage.meta.next) {
         return lastPage.meta.offset + lastPage.meta.limit;
       } else {
-        thisLogger.debug('nwac getNextPageParam', 'no more data available in window!', key, lastPage.meta, windowStart, window);
+        thisLogger.debug('nwac getNextPageParam', 'no more data available in window!', key, lastPage.meta, lookbackWindowStart, window);
         return undefined;
       }
     },
@@ -62,25 +62,21 @@ function queryKey(nwacHost: string, center_id: AvalancheCenterID, end_time: Requ
   ];
 }
 
-export const prefetchNWACObservations = async (
-  queryClient: QueryClient,
-  nwacHost: string,
-  center_id: AvalancheCenterID,
-  published_after: Date,
-  published_before: Date,
-  logger: Logger,
-) => {
+export const prefetchNWACObservations = async (queryClient: QueryClient, nwacHost: string, center_id: AvalancheCenterID, endDate: Date, logger: Logger) => {
   // when preloading, we're always trying fill the latest data
   const key = queryKey(nwacHost, center_id, 'latest');
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
+  const startDate: Date = add(endDate, MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW);
+
+  // This will preload 1 page of data into the `latest` query key
   await queryClient.prefetchInfiniteQuery({
     queryKey: key,
     queryFn: async () => {
       const start = new Date();
       logger.trace(`prefetching`);
-      const result = fetchNWACObservations(nwacHost, center_id, published_after, published_before, 0, DEFAULT_PAGE_SIZE, thisLogger);
+      const result = fetchNWACObservations(nwacHost, center_id, startDate, endDate, 0, DEFAULT_PAGE_SIZE, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },

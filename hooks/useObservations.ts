@@ -411,4 +411,5 @@ export const useObservationsQuery = <TData = ObservationsQuery, TError = unknown
     options,
   );
 
-export const DEFAULT_OBSERVATIONS_WINDOW: Duration = {weeks: -2};
+// No matter what span of time we're looking at, we will never query over more than 3 months of observations
+export const MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW: Duration = {months: -3};
