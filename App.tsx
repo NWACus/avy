@@ -63,6 +63,8 @@ import config from 'tamagui.config';
 import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
+export const QUERY_CACHE_ASYNC_STORAGE_KEY = `QUERY_CACHE_ASYNC_STORAGE_KEY`;
+
 const logLevel = (Constants.expoConfig?.extra?.log_level as string) ?? 'INFO';
 
 const logger = createLogger({
@@ -178,6 +180,7 @@ void BackgroundFetch.registerTaskAsync(BACKGROUND_CACHE_RECONCILIATION_TASK, {
 
 const asyncStoragePersister = createAsyncStoragePersister({
   storage: AsyncStorage,
+  key: QUERY_CACHE_ASYNC_STORAGE_KEY,
 });
 
 void clearUploadCache();
