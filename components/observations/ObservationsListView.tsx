@@ -156,7 +156,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
               </Center>
             );
           } else {
-            return null;
+            return <View height={OBSERVATION_SUMMARY_CARD_HEIGHT} />;
           }
         }}
         ListEmptyComponent={<NotFound inline terminal what={[new NotFoundError('no observations found', 'any matching observations')]} />}
