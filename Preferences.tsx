@@ -5,12 +5,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {merge} from 'lodash';
 import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
 import * as Sentry from 'sentry-expo';
-
-import {avalancheCenterIDSchema} from 'types/nationalAvalancheCenter';
 import {useAsyncEffect} from 'use-async-effect';
 import {z} from 'zod';
 
-export const PREFERENCES_KEY = 'PREFERENCES';
+import {PREFERENCES_KEY} from 'data/asyncStorageKeys';
+import {avalancheCenterIDSchema} from 'types/nationalAvalancheCenter';
 
 const preferencesSchema = z.object({
   center: avalancheCenterIDSchema.default('NWAC'),

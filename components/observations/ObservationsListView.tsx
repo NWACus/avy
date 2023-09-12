@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 
 import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
@@ -8,13 +8,12 @@ import {NetworkImage} from 'components/content/carousel/NetworkImage';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {Center, HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
-import {filtersForConfig, ObservationFilterConfig, ObservationsFilterForm, zone} from 'components/observations/ObservationsFilterForm';
+import {datesForFilterConfig, filtersForConfig, matchesZone, ObservationFilterConfig, ObservationsFilterForm} from 'components/observations/ObservationsFilterForm';
 import {Body, BodyBlack, bodySize, BodySmBlack, Caption1Semibold} from 'components/text';
 import {add, compareDesc, parseISO} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
-import {DEFAULT_OBSERVATIONS_WINDOW} from 'hooks/useObservations';
 import {useRefresh} from 'hooks/useRefresh';
 import {ActivityIndicator, FlatList, FlatListProps, Modal, RefreshControl, TouchableOpacity} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
@@ -44,7 +43,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = {
     dates: {
-      from: add(endDate, DEFAULT_OBSERVATIONS_WINDOW),
+      value: 'custom',
+      from: add(endDate, {weeks: -2}),
       to: endDate,
     },
     ...initialFilterConfig,
@@ -54,14 +54,16 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
-  // TODO brian wire up duration correctly - there's an interaction between useInfiniteQuery (which has a cached
-  // notion of whether there's more data) and this duration, and I'm not sure of the best way to solve it.
-  // Right now, the queryKey in useNACObservations/useNWACObservations doesn't use the duration, so it's not invalidated when the duration changes.
-  // That has the nice property of not re-fetching data when the duration changes, but it also means that if you make the duration longer, you won't get new data.
-  const nacObservationsResult = useNACObservations(center_id, requestedTime, DEFAULT_OBSERVATIONS_WINDOW);
-  const nacObservations: ObservationFragmentWithPageIndex[] = nacObservationsResult.data?.pages?.flatMap((page, index) => page.data.map(o => ({...o, pageIndex: index}))) ?? [];
-  const nwacObservationsResult = useNWACObservations(center_id, requestedTime, DEFAULT_OBSERVATIONS_WINDOW);
-  const nwacObservations: ObservationFragmentWithPageIndex[] = nwacObservationsResult.data?.pages?.flatMap((page, index) => page.data.map(o => ({...o, pageIndex: index}))) ?? [];
+  const nacObservationsResult = useNACObservations(center_id, requestedTime);
+  const nacObservations: ObservationFragmentWithPageIndex[] = useMemo(
+    () => (nacObservationsResult.data?.pages ?? []).flatMap((page, index) => page.data.map(o => ({...o, pageIndex: index}))),
+    [nacObservationsResult],
+  );
+  const nwacObservationsResult = useNWACObservations(center_id, requestedTime);
+  const nwacObservations: ObservationFragmentWithPageIndex[] = useMemo(
+    () => (nwacObservationsResult.data?.pages ?? []).flatMap((page, index) => page.data.map(o => ({...o, pageIndex: index}))),
+    [nwacObservationsResult],
+  );
   const observations: ObservationFragmentWithPageIndex[] = nacObservations
     .concat(nwacObservations)
     .filter(observation => observation) // when nothing is returned from the NAC, we get a null
@@ -98,6 +100,16 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       fetchNextPage = pageResult.fetchNextPage;
     }
   }, []);
+
+  const moreDataAvailable = useCallback(() => {
+    const {startDate: filterStartDate} = datesForFilterConfig(filterConfig.dates, endDate);
+    return (
+      (nacObservationsResult.hasNextPage && (nacObservations.length === 0 || new Date(nacObservations[nacObservations.length - 1].createdAt) > filterStartDate)) ||
+      (nwacObservationsResult.hasNextPage && (nwacObservations.length === 0 || new Date(nwacObservations[nwacObservations.length - 1].createdAt) > filterStartDate))
+    );
+
+    return nacObservationsResult.hasNextPage || nwacObservationsResult.hasNextPage;
+  }, [nwacObservations, nwacObservationsResult, nacObservations, nacObservationsResult, filterConfig, endDate]);
 
   if (incompleteQueryState(nacObservationsResult, nwacObservationsResult, mapResult) || !observations || !mapLayer) {
     return <QueryState results={[nacObservationsResult, nwacObservationsResult, mapResult]} />;
@@ -139,7 +151,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           </HStack>
         }
         ListFooterComponent={() => {
-          if (!nacObservationsResult.hasNextPage && !nwacObservationsResult.hasNextPage) {
+          if (!moreDataAvailable()) {
             return (
               <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT}>
                 <Body>
@@ -166,7 +178,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           id: observation.id,
           observation: observation,
           source: nwacObservations.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
-          zone: zone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng),
+          zone: matchesZone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng),
         }))}
         getItemLayout={(data, index) => ({length: OBSERVATION_SUMMARY_CARD_HEIGHT, offset: OBSERVATION_SUMMARY_CARD_HEIGHT * index, index})}
         renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}

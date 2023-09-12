@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {renderHook} from '@testing-library/react-hooks';
 
-import {clearPreferences, PreferencesProvider, PREFERENCES_KEY, usePreferences} from 'Preferences';
+import {PREFERENCES_KEY} from 'data/asyncStorageKeys';
+import {clearPreferences, PreferencesProvider, usePreferences} from 'Preferences';
 
 // Mock out AsyncStorage for tests
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return

@@ -5,7 +5,6 @@ import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {preloadAvalancheDangerIcons} from 'components/AvalancheDangerIcon';
 import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
 import {images} from 'components/content/carousel';
-import {add} from 'date-fns';
 import AvalancheCenterCapabilitiesQuery from 'hooks/useAvalancheCenterCapabilities';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
@@ -15,7 +14,6 @@ import AvalancheCenterMapLayerQuery from 'hooks/useMapLayer';
 import NACObservationsQuery from 'hooks/useNACObservations';
 import NWACObservationsQuery from 'hooks/useNWACObservations';
 import NWACWeatherForecastQuery from 'hooks/useNWACWeatherForecast';
-import {DEFAULT_OBSERVATIONS_WINDOW} from 'hooks/useObservations';
 import SynopsisQuery from 'hooks/useSynopsis';
 import WeatherForecastQuery from 'hooks/useWeatherForecast';
 import WeatherStationsQuery from 'hooks/useWeatherStationsMetadata';
@@ -57,12 +55,14 @@ export const prefetchAllActiveForecasts = async (
   }
 
   const endDate: Date = currentDateTime;
-  const startDate = add(endDate, DEFAULT_OBSERVATIONS_WINDOW);
   if (center_id === 'NWAC') {
-    void NWACObservationsQuery.prefetch(queryClient, nwacHost, center_id, startDate, endDate, logger);
+    // NWAC fetches in pages of 50 working backwards from endDate
+    // This call will prefetch the 50 most recent
+    void NWACObservationsQuery.prefetch(queryClient, nwacHost, center_id, endDate, logger);
   }
   if (metadata?.widget_config?.danger_map) {
-    void NACObservationsQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, startDate, endDate, logger);
+    // NAC fetches in 2 week chunks working backwards from endDate
+    void NACObservationsQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, endDate, logger);
   }
 
   if (metadata?.widget_config?.stations?.token) {

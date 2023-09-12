@@ -40,48 +40,52 @@ const observationFilterConfigSchema = z
     }),
   })
   .deepPartial();
+
 export type ObservationFilterConfig = z.infer<typeof observationFilterConfigSchema>;
 
-const matchesDates = (currentDate: Date, dates: z.infer<typeof observationFilterConfigSchema.shape.dates>, observation: ObservationFragment): boolean => {
+type FilterFunction = (observation: ObservationFragment) => boolean;
+
+export const datesForFilterConfig = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>, currentDate: Date): {startDate: Date; endDate: Date} => {
+  const value = dates?.value || 'past_week';
+  switch (value) {
+    case 'past_day':
+      return {startDate: sub(currentDate, {days: 1}), endDate: currentDate};
+    case 'past_3_days':
+      return {startDate: sub(currentDate, {days: 3}), endDate: currentDate};
+    case 'past_week':
+      return {startDate: sub(currentDate, {weeks: 1}), endDate: currentDate};
+    case 'past_month':
+      return {startDate: sub(currentDate, {months: 1}), endDate: currentDate};
+    case 'past_season':
+      return {
+        endDate: currentDate,
+        // the season starts Nov 1st, that's either this year or last year depending on when we are asking
+        startDate: getMonth(currentDate) <= 11 ? new Date(`${getYear(sub(currentDate, {years: 1}))}-11-01`) : new Date(`${getYear(currentDate)}-11-01`),
+      };
+    case 'custom':
+      // TODO we should validate that these values don't span more than a month, for the same reason as above
+      if (!dates?.from || !dates?.to) {
+        throw new Error('custom date range requires from and to dates');
+      }
+      return {startDate: dates.from, endDate: dates.to};
+  }
+};
+
+const matchesDates = (currentDate: Date, dates: z.infer<typeof observationFilterConfigSchema.shape.dates>): FilterFunction => {
   let matches = true;
   if (!dates) {
+    return () => true;
+  }
+  const {startDate, endDate} = datesForFilterConfig(dates, currentDate);
+  return (observation: ObservationFragment) => {
+    if (dates.from) {
+      matches = matches && isAfter(parseISO(observation.createdAt), startDate);
+    }
+    if (dates.to) {
+      matches = matches && isBefore(parseISO(observation.createdAt), endDate);
+    }
     return matches;
-  }
-  switch (dates.value) {
-    case 'past_day':
-      dates.to = currentDate;
-      dates.from = sub(dates.to, {days: 1});
-      break;
-    case 'past_3_days':
-      dates.to = currentDate;
-      dates.from = sub(dates.to, {days: 3});
-      break;
-    case 'past_week':
-      dates.to = currentDate;
-      dates.from = sub(dates.to, {weeks: 1});
-      break;
-    case 'past_month':
-      dates.to = currentDate;
-      dates.from = sub(dates.to, {months: 1});
-      break;
-    case 'past_season':
-      dates.to = currentDate;
-      // the season starts Nov 1st, that's either this year or last year depending on when we are asking
-      if (getMonth(dates.to) <= 11) {
-        dates.from = new Date(`${getYear(sub(dates.to, {years: 1}))}-11-01`);
-      } else {
-        dates.from = new Date(`${getYear(dates.to)}-11-01`);
-      }
-      break;
-    case 'custom':
-  }
-  if (dates.from) {
-    matches = matches && isAfter(parseISO(observation.createdAt), dates.from);
-  }
-  if (dates.to) {
-    matches = matches && isBefore(parseISO(observation.createdAt), dates.to);
-  }
-  return matches;
+  };
 };
 
 const matchesInstability = (instability: z.infer<typeof observationFilterConfigSchema.shape.instability>, observation: ObservationFragment): boolean => {
@@ -119,18 +123,18 @@ const matchesAvalancheInstability = (instability: avalancheInstability, observat
   throw new Error(`Unknown instability: ${invalid}`);
 };
 
-export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterConfig, currentDate: Date): ((fragment: ObservationFragment) => boolean)[] => {
+export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterConfig, currentDate: Date): FilterFunction[] => {
   if (!config) {
     return [];
   }
 
-  const filterFuncs: ((fragment: ObservationFragment) => boolean)[] = [];
+  const filterFuncs: FilterFunction[] = [];
   if (config.zone) {
-    filterFuncs.push(observation => config.zone === zone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng));
+    filterFuncs.push(observation => config.zone === matchesZone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng));
   }
 
   if (config.dates && config.dates.value) {
-    filterFuncs.push(observation => matchesDates(currentDate, config.dates, observation));
+    filterFuncs.push(matchesDates(currentDate, config.dates));
   }
 
   if (config.observerType) {
@@ -315,7 +319,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   );
 };
 
-export const zone = (mapLayer: MapLayer, lat: number | null | undefined, long: number | null | undefined): string => {
+export const matchesZone = (mapLayer: MapLayer, lat: number | null | undefined, long: number | null | undefined): string => {
   if (!lat || !long) {
     return 'Not in any Forecast Zone';
   }

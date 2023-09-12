@@ -55,6 +55,7 @@ require('date-time-format-timezone');
 import axios, {AxiosRequestConfig} from 'axios';
 import {createLogger, stdSerializers} from 'browser-bunyan';
 import {AvalancheCenterSelectionModal} from 'components/modals/AvalancheCenterSelectionModal';
+import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
 import * as FileSystem from 'expo-file-system';
 import {ConsoleFormattedStream} from 'logging/consoleFormattedStream';
 import {PreferencesProvider, usePreferences} from 'Preferences';
@@ -62,8 +63,6 @@ import {TamaguiProvider, Theme} from 'tamagui';
 import config from 'tamagui.config';
 import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
-
-export const QUERY_CACHE_ASYNC_STORAGE_KEY = `QUERY_CACHE_ASYNC_STORAGE_KEY`;
 
 const logLevel = (Constants.expoConfig?.extra?.log_level as string) ?? 'INFO';
 
