@@ -1,5 +1,7 @@
 import React from 'react';
 
+import {startCase} from 'lodash';
+
 import {AntDesign} from '@expo/vector-icons';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
@@ -24,11 +26,14 @@ import {z} from 'zod';
 const avalancheInstabilitySchema = z.enum(['observed', 'triggered', 'caught']);
 type avalancheInstability = z.infer<typeof avalancheInstabilitySchema>;
 
+const dateValueSchema = z.enum(['past_day', 'past_3_days', 'past_week', 'past_month', 'past_season', 'custom']);
+type DateValue = z.infer<typeof dateValueSchema>;
+
 const observationFilterConfigSchema = z
   .object({
     zone: z.string(),
     dates: z.object({
-      value: z.enum(['past_day', 'past_3_days', 'past_week', 'past_month', 'past_season', 'custom']),
+      value: dateValueSchema,
       from: z.date(),
       to: z.date(),
     }),
@@ -44,6 +49,32 @@ const observationFilterConfigSchema = z
 export type ObservationFilterConfig = z.infer<typeof observationFilterConfigSchema>;
 
 type FilterFunction = (observation: ObservationFragment) => boolean;
+
+const DATE_LABELS: Record<DateValue, string> = {
+  past_day: 'Last 24 hours',
+  past_3_days: 'Last 72 hours',
+  past_week: 'Last 7 days',
+  past_month: 'Last month',
+  past_season: 'Last forecast season',
+  custom: 'Custom range',
+};
+
+export const dateLabelForFilterConfig = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>): string => {
+  const value = dates?.value || 'past_week';
+  switch (value) {
+    case 'past_day':
+    case 'past_3_days':
+    case 'past_week':
+    case 'past_month':
+    case 'past_season':
+      return DATE_LABELS[value];
+    case 'custom':
+      if (!dates?.from || !dates?.to) {
+        throw new Error('custom date range requires from and to dates');
+      }
+      return `${dates.from.toDateString()} - ${dates.to.toDateString()}`;
+  }
+};
 
 export const datesForFilterConfig = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>, currentDate: Date): {startDate: Date; endDate: Date} => {
   const value = dates?.value || 'past_week';
@@ -72,20 +103,11 @@ export const datesForFilterConfig = (dates: z.infer<typeof observationFilterConf
 };
 
 const matchesDates = (currentDate: Date, dates: z.infer<typeof observationFilterConfigSchema.shape.dates>): FilterFunction => {
-  let matches = true;
   if (!dates) {
     return () => true;
   }
   const {startDate, endDate} = datesForFilterConfig(dates, currentDate);
-  return (observation: ObservationFragment) => {
-    if (dates.from) {
-      matches = matches && isAfter(parseISO(observation.createdAt), startDate);
-    }
-    if (dates.to) {
-      matches = matches && isBefore(parseISO(observation.createdAt), endDate);
-    }
-    return matches;
-  };
+  return (observation: ObservationFragment) => isAfter(parseISO(observation.createdAt), startDate) && isBefore(parseISO(observation.createdAt), endDate);
 };
 
 const matchesInstability = (instability: z.infer<typeof observationFilterConfigSchema.shape.instability>, observation: ObservationFragment): boolean => {
@@ -123,26 +145,54 @@ const matchesAvalancheInstability = (instability: avalancheInstability, observat
   throw new Error(`Unknown instability: ${invalid}`);
 };
 
-export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterConfig, currentDate: Date): FilterFunction[] => {
+interface FilterListItem {
+  filter: FilterFunction;
+  label: string;
+  removeFilter?: (config: ObservationFilterConfig) => ObservationFilterConfig;
+}
+export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterConfig, currentDate: Date): FilterListItem[] => {
   if (!config) {
     return [];
   }
 
-  const filterFuncs: FilterFunction[] = [];
-  if (config.zone) {
-    filterFuncs.push(observation => config.zone === matchesZone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng));
+  const filterFuncs: FilterListItem[] = [];
+  if (config.dates && config.dates.value) {
+    filterFuncs.push({filter: matchesDates(currentDate, config.dates), label: dateLabelForFilterConfig(config.dates)});
   }
 
-  if (config.dates && config.dates.value) {
-    filterFuncs.push(matchesDates(currentDate, config.dates));
+  if (config.zone) {
+    filterFuncs.push({
+      filter: observation => config.zone === matchesZone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
+      label: config.zone,
+      removeFilter: config => ({...config, zone: undefined}),
+    });
   }
 
   if (config.observerType) {
-    filterFuncs.push(observation => config.observerType === observation.observerType);
+    filterFuncs.push({
+      filter: observation => config.observerType === observation.observerType,
+      label: startCase(config.observerType),
+      removeFilter: config => ({...config, observerType: undefined}),
+    });
   }
 
   if (config.instability && (config.instability.avalanches || config.instability.cracking || config.instability.collapsing)) {
-    filterFuncs.push(observation => matchesInstability(config.instability, observation));
+    const labelStrings: string[] = [];
+    if (config.instability.avalanches) {
+      labelStrings.push(`avalanches ${config.instability.avalanches}`);
+    }
+    if (config.instability.cracking) {
+      labelStrings.push('cracking');
+    }
+    if (config.instability.collapsing) {
+      labelStrings.push('collapsing');
+    }
+
+    filterFuncs.push({
+      filter: observation => matchesInstability(config.instability, observation),
+      label: labelStrings.map(startCase).join(', '),
+      removeFilter: config => ({...config, instability: undefined}),
+    });
   }
 
   return filterFuncs;
@@ -239,13 +289,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                       name="dates.value"
                       label="Dates"
                       radio
-                      items={[
-                        {value: 'past_day', label: 'Past Day'},
-                        {value: 'past_3_days', label: 'Past 3 Days'},
-                        {value: 'past_week', label: 'Past Week'},
-                        {value: 'past_month', label: 'Past Month'},
-                        {value: 'custom', label: 'Custom Range'},
-                      ]}
+                      items={(['past_day', 'past_3_days', 'past_week', 'past_month', 'custom'] as const).map(val => ({value: val, label: DATE_LABELS[val]}))}
                     />
                     <Conditional name="dates.value" value={'custom'}>
                       <DateField name="dates.from" label="Published After" />

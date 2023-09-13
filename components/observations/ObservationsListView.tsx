@@ -6,16 +6,16 @@ import {colorFor} from 'components/AvalancheDangerPyramid';
 import {Card} from 'components/content/Card';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
-import {Center, HStack, View, VStack} from 'components/core';
+import {Center, Divider, HStack, View, VStack} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {datesForFilterConfig, filtersForConfig, matchesZone, ObservationFilterConfig, ObservationsFilterForm} from 'components/observations/ObservationsFilterForm';
-import {Body, BodyBlack, bodySize, BodySmBlack, Caption1Semibold} from 'components/text';
-import {add, compareDesc, parseISO} from 'date-fns';
+import {Body, BodyBlack, bodySize, BodySm, BodySmBlack, Caption1Semibold} from 'components/text';
+import {compareDesc, parseISO} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
-import {ActivityIndicator, FlatList, FlatListProps, Modal, RefreshControl, TouchableOpacity} from 'react-native';
+import {ActivityIndicator, ColorValue, FlatList, FlatListProps, GestureResponderEvent, Modal, RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
@@ -43,9 +43,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = {
     dates: {
-      value: 'custom',
-      from: add(endDate, {weeks: -2}),
-      to: endDate,
+      value: 'past_week',
     },
     ...initialFilterConfig,
   };
@@ -119,11 +117,11 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   // an observer type, we only show observations that match both of those at the same time
   const resolvedFilters = filtersForConfig(mapLayer, filterConfig, endDate);
   const displayedObservations: ObservationFragment[] = observations.filter(observation =>
-    resolvedFilters.map(filter => filter(observation)).reduce((currentValue, accumulator) => accumulator && currentValue, true),
+    resolvedFilters.map(({filter}) => filter(observation)).reduce((currentValue, accumulator) => accumulator && currentValue, true),
   );
 
   return (
-    <>
+    <VStack width="100%" height="100%" space={0}>
       <Modal animationType={'fade'} visible={filterModalVisible}>
         <ObservationsFilterForm
           mapLayer={mapLayer}
@@ -133,6 +131,45 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           setVisible={setFilterModalVisible}
         />
       </Modal>
+      <HStack space={8} py={4} pl={16} justifyContent="space-between" width="100%">
+        <FilterPillButton
+          label="Filters"
+          textColor={colorLookup('text')}
+          backgroundColor={colorLookup('white')}
+          onPress={() => setFilterModalVisible(true)}
+          headIcon={<FontAwesome name="sliders" size={16} color={colorLookup('text')} style={{marginRight: 2}} />}
+        />
+        <Divider direction="vertical" />
+        <ScrollView horizontal style={{width: '100%'}}>
+          <HStack space={8} py={4} pr={16}>
+            {resolvedFilters.map(({label, removeFilter}) => {
+              const canBeDeleted = removeFilter !== undefined;
+              const textColor = canBeDeleted ? colorLookup('blue2') : colorLookup('text');
+              const backgroundColor = canBeDeleted ? colorLookup('color-tag') : colorLookup('white');
+              const tailIcon = canBeDeleted ? (
+                <MaterialCommunityIcons name="close" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('blue2')} />
+              ) : undefined;
+              return (
+                <FilterPillButton
+                  key={label}
+                  label={label}
+                  textColor={textColor}
+                  backgroundColor={backgroundColor}
+                  tailIcon={tailIcon}
+                  onPress={() => {
+                    if (removeFilter) {
+                      setFilterConfig(removeFilter(filterConfig));
+                    } else {
+                      setFilterModalVisible(true);
+                    }
+                  }}
+                />
+              );
+            })}
+          </HStack>
+        </ScrollView>
+      </HStack>
+      <Divider />
       <FlatList
         // when within 2 page lengths of the end, start fetching the next set of data
         onEndReachedThreshold={2}
@@ -140,16 +177,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           void fetchMoreData(nwacObservationsResult);
           void fetchMoreData(nacObservationsResult);
         }}
-        ListHeaderComponent={
-          <HStack px={16} pt={12} pb={12} space={24} backgroundColor={colorLookup('background.base')}>
-            <TouchableOpacity onPress={() => setFilterModalVisible(true)}>
-              <HStack bg={'white'} px={12} py={8} space={8} borderRadius={30} borderWidth={1}>
-                <FontAwesome name="sliders" size={16} color={colorLookup('text')} />
-                <BodySmBlack>Filters{resolvedFilters.length > 0 && ` (${resolvedFilters.length})`}</BodySmBlack>
-              </HStack>
-            </TouchableOpacity>
-          </HStack>
-        }
         ListFooterComponent={() => {
           if (!moreDataAvailable()) {
             return (
@@ -184,7 +211,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}
         {...props}
       />
-    </>
+    </VStack>
   );
 };
 
@@ -204,6 +231,24 @@ const colorsFor = (partnerType: PartnerType) => {
   // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   throw new Error(`Unknown partner type: ${invalid}`);
 };
+
+interface FilterPillButtonProps {
+  label: string;
+  headIcon?: React.ReactNode;
+  tailIcon?: React.ReactNode;
+  onPress?: (event: GestureResponderEvent) => void;
+  textColor: ColorValue;
+  backgroundColor: ColorValue;
+}
+const FilterPillButton: React.FC<FilterPillButtonProps> = ({label, headIcon, tailIcon, onPress, textColor, backgroundColor}) => (
+  <TouchableOpacity onPress={onPress}>
+    <HStack bg={backgroundColor} px={8} py={2} space={4} borderRadius={30} borderWidth={1} borderColor={textColor} alignItems="center">
+      {headIcon}
+      <BodySm color={textColor}>{label}</BodySm>
+      {tailIcon}
+    </HStack>
+  </TouchableOpacity>
+);
 
 export interface ObservationSummaryCardProps {
   source: string;
