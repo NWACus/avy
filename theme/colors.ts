@@ -33,6 +33,7 @@ export const COLORS: Record<string, ColorValue> = {
   blue3: rgbaToHexString('rgba(0, 58, 140, 1)'),
   'NWAC-dark': rgbaToHexString('rgba(20, 45, 86, 1)'),
   'NWAC-light': rgbaToHexString('rgba(160, 204, 216, 1)'),
+  'color-tag': '#ECF6FF',
   //
   // Neutral
   text: rgbaToHexString('rgba(0, 0, 0, 0.85)'),
