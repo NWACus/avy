@@ -159,7 +159,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           setVisible={setFilterModalVisible}
         />
       </Modal>
-      <HStack space={8} py={4} pl={16} justifyContent="space-between" width="100%">
+      <HStack space={8} pt={4} pb={16} pl={16} justifyContent="space-between" width="100%">
         <FilterPillButton
           label="Filters"
           textColor={colorLookup('text')}
