@@ -15,7 +15,7 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
-import {ActivityIndicator, ColorValue, FlatList, FlatListProps, GestureResponderEvent, Modal, RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
+import {ActivityIndicator, ColorValue, FlatList, FlatListProps, GestureResponderEvent, ListRenderItemInfo, Modal, RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
@@ -37,6 +37,12 @@ interface ObservationsListViewProps extends Omit<FlatListProps<ObservationsListV
 
 interface ObservationFragmentWithPageIndex extends ObservationFragment {
   pageIndex: number;
+}
+
+type SourceType = 'nac' | 'nwac';
+interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFragmentWithPageIndex {
+  zone: string;
+  source: SourceType;
 }
 
 export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, initialFilterConfig, ...props}) => {
@@ -62,19 +68,26 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     () => (nwacObservationsResult.data?.pages ?? []).flatMap((page, index) => page.data.map(o => ({...o, pageIndex: index}))),
     [nwacObservationsResult],
   );
-  const observations: ObservationFragmentWithPageIndex[] = nacObservations
-    .concat(nwacObservations)
-    .filter(observation => observation) // when nothing is returned from the NAC, we get a null
-    // Sort observations by page index, then by date. This keeps old entries from shifting around as new data is fetched
-    .sort((a, b) => {
-      const pageDelta = a.pageIndex - b.pageIndex;
-      if (pageDelta !== 0) {
-        return pageDelta;
-      }
-      return compareDesc(parseISO(a.createdAt), parseISO(b.createdAt));
-    })
-    // sometimes, the NWAC API gives us duplicates. If this happens, prefer to keep the version that was fetched earlier
-    .filter((v, i, a) => a.findIndex(v2 => v2.id === v.id) === i);
+  const observations: ObservationFragmentWithPageIndexAndZoneAndSource[] = useMemo(
+    () =>
+      nacObservations
+        .map(observation => ({...observation, source: 'nac' as SourceType}))
+        .concat(nwacObservations.map(observation => ({...observation, source: 'nwac' as SourceType})))
+        .filter(observation => observation) // when nothing is returned from the NAC, we get a null
+        // Sort observations by page index, then by date. This keeps old entries from shifting around as new data is fetched
+        .sort((a, b) => {
+          const pageDelta = a.pageIndex - b.pageIndex;
+          if (pageDelta !== 0) {
+            return pageDelta;
+          }
+          return compareDesc(parseISO(a.createdAt), parseISO(b.createdAt));
+        })
+        // sometimes, the NWAC API gives us duplicates. If this happens, prefer to keep the version that was fetched earlier
+        .filter((v, i, a) => a.findIndex(v2 => v2.id === v.id) === i)
+        // calculate the zone and cache it now
+        .map(observation => ({...observation, zone: mapLayer ? matchesZone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng) : ''})),
+    [nacObservations, nwacObservations, mapLayer],
+  );
   const {isRefreshing, refresh} = useRefresh(mapResult.refetch, nacObservationsResult.refetch, nwacObservationsResult.refetch);
 
   const fetchMoreData = useCallback(async (observationsResult: ReturnType<typeof useNACObservations> | ReturnType<typeof useNWACObservations>) => {
@@ -109,20 +122,35 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     return nacObservationsResult.hasNextPage || nwacObservationsResult.hasNextPage;
   }, [nwacObservations, nwacObservationsResult, nacObservations, nacObservationsResult, filterConfig, endDate]);
 
+  // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
+  // an observer type, we only show observations that match both of those at the same time
+  const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, endDate) : []), [mapLayer, filterConfig, endDate]);
+
+  const displayedObservations: ObservationsListViewItem[] = useMemo(
+    () =>
+      observations
+        .filter(observation => resolvedFilters.every(({filter}) => filter(observation)))
+        .map(observation => ({
+          id: observation.id,
+          observation: observation,
+          source: observation.source,
+          zone: observation.zone,
+        })),
+    [observations, resolvedFilters],
+  );
+
+  const renderItem = useCallback(
+    ({item}: ListRenderItemInfo<ObservationsListViewItem>) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />,
+    [],
+  );
+
   if (incompleteQueryState(nacObservationsResult, nwacObservationsResult, mapResult) || !observations || !mapLayer) {
     return <QueryState results={[nacObservationsResult, nwacObservationsResult, mapResult]} />;
   }
 
-  // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
-  // an observer type, we only show observations that match both of those at the same time
-  const resolvedFilters = filtersForConfig(mapLayer, filterConfig, endDate);
-  const displayedObservations: ObservationFragment[] = observations.filter(observation =>
-    resolvedFilters.map(({filter}) => filter(observation)).reduce((currentValue, accumulator) => accumulator && currentValue, true),
-  );
-
   return (
     <VStack width="100%" height="100%" space={0}>
-      <Modal animationType={'fade'} visible={filterModalVisible}>
+      <Modal visible={filterModalVisible}>
         <ObservationsFilterForm
           mapLayer={mapLayer}
           initialFilterConfig={originalFilterConfig}
@@ -171,6 +199,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       </HStack>
       <Divider />
       <FlatList
+        maxToRenderPerBatch={6}
+        windowSize={5}
         // when within 2 page lengths of the end, start fetching the next set of data
         onEndReachedThreshold={2}
         onEndReached={() => {
@@ -201,14 +231,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         ListEmptyComponent={<NotFound inline terminal what={[new NotFoundError('no observations found', 'any matching observations')]} />}
         style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={void refresh} />}
-        data={displayedObservations.map(observation => ({
-          id: observation.id,
-          observation: observation,
-          source: nwacObservations.map(o => o.id).includes(observation.id) ? 'nwac' : 'nac',
-          zone: matchesZone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng),
-        }))}
+        data={displayedObservations}
         getItemLayout={(data, index) => ({length: OBSERVATION_SUMMARY_CARD_HEIGHT, offset: OBSERVATION_SUMMARY_CARD_HEIGHT * index, index})}
-        renderItem={({item}) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />}
+        renderItem={renderItem}
         {...props}
       />
     </VStack>
@@ -262,6 +287,18 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
   const redFlags = observation.instability.collapsing || observation.instability.cracking;
+  const onPress = useCallback(() => {
+    if (source === 'nwac') {
+      navigation.navigate('nwacObservation', {
+        id: observation.id,
+      });
+    } else {
+      navigation.navigate('observation', {
+        id: observation.id,
+      });
+    }
+  }, [navigation, source, observation.id]);
+
   return (
     <Card
       mx={8}
@@ -270,17 +307,7 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
       borderRadius={10}
       borderColor={colorLookup('light.300')}
       borderWidth={1}
-      onPress={() => {
-        if (source === 'nwac') {
-          navigation.navigate('nwacObservation', {
-            id: observation.id,
-          });
-        } else {
-          navigation.navigate('observation', {
-            id: observation.id,
-          });
-        }
-      }}
+      onPress={onPress}
       header={
         <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
           <BodySmBlack>{utcDateToLocalDateString(observation.createdAt)}</BodySmBlack>
