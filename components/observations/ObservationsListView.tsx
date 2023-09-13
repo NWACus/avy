@@ -140,7 +140,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           headIcon={<FontAwesome name="sliders" size={16} color={colorLookup('text')} style={{marginRight: 2}} />}
         />
         <Divider direction="vertical" />
-        <ScrollView horizontal style={{width: '100%'}}>
+        <ScrollView horizontal style={{width: '100%'}} showsHorizontalScrollIndicator={false}>
           <HStack space={8} py={4} pr={16}>
             {resolvedFilters.map(({label, removeFilter}) => {
               const canBeDeleted = removeFilter !== undefined;
