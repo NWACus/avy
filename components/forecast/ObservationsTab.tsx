@@ -1,3 +1,4 @@
+import {View} from 'components/core';
 import {ObservationsListView} from 'components/observations/ObservationsListView';
 import React from 'react';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -10,5 +11,9 @@ interface ObservationsTabProps {
 }
 
 export const ObservationsTab: React.FunctionComponent<ObservationsTabProps> = ({zone_name, center_id, requestedTime}) => {
-  return <ObservationsListView center_id={center_id} requestedTime={requestedTime} initialFilterConfig={{zone: zone_name}} />;
+  return (
+    <View pt={16}>
+      <ObservationsListView center_id={center_id} requestedTime={requestedTime} initialFilterConfig={{zone: zone_name}} />
+    </View>
+  );
 };

@@ -150,7 +150,12 @@ interface FilterListItem {
   label: string;
   removeFilter?: (config: ObservationFilterConfig) => ObservationFilterConfig;
 }
-export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterConfig, currentDate: Date): FilterListItem[] => {
+export const filtersForConfig = (
+  mapLayer: MapLayer,
+  config: ObservationFilterConfig,
+  initialFilterConfig: ObservationFilterConfig | undefined,
+  currentDate: Date,
+): FilterListItem[] => {
   if (!config) {
     return [];
   }
@@ -164,7 +169,9 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
     filterFuncs.push({
       filter: observation => config.zone === matchesZone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
       label: config.zone,
-      removeFilter: config => ({...config, zone: undefined}),
+      // If the zone was specified as part of the initialFilterConfig (i.e. we're browsing the Obs tab of a particular zone),
+      // then removeFilter should be undefined
+      removeFilter: initialFilterConfig?.zone ? undefined : config => ({...config, zone: undefined}),
     });
   }
 

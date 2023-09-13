@@ -124,7 +124,10 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
-  const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, endDate) : []), [mapLayer, filterConfig, endDate]);
+  const resolvedFilters = useMemo(
+    () => (mapLayer ? filtersForConfig(mapLayer, filterConfig, initialFilterConfig, endDate) : []),
+    [mapLayer, filterConfig, initialFilterConfig, endDate],
+  );
 
   const displayedObservations: ObservationsListViewItem[] = useMemo(
     () =>
