@@ -95,7 +95,7 @@ export const MenuStackScreen = (
       <MenuStack.Screen name="observation" component={ObservationScreen} />
       <MenuStack.Screen name="nwacObservation" component={NWACObservationScreen} />
       <MenuStack.Screen name="about" component={AboutScreen} options={() => ({title: 'About This App'})} />
-      <MenuStack.Screen name="outcome" component={OutcomeScreen} options={() => ({headerShown: false})} />
+      <MenuStack.Screen name="outcome" component={OutcomeScreen} />
       <MenuStack.Screen name="expoConfig" component={ExpoConfigScreen} />
     </MenuStack.Navigator>
   );
@@ -838,9 +838,9 @@ export const OutcomeScreen = ({route}: NativeStackScreenProps<MenuStackParamList
       break;
   }
   return (
-    <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
+    <View width="100%" height="100%">
       {outcome}
-    </SafeAreaView>
+    </View>
   );
 };
 

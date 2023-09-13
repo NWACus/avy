@@ -8,22 +8,33 @@ export interface OutcomeOptions {
   outcome: string; // the main outcome to show the user
   reason: string; // some explanatory text
   illustration: ReactNode;
+  illustrationBottomMargin?: number;
+  illustrationLeftMargin?: number;
   inline?: boolean;
   onRetry?: (event: GestureResponderEvent) => void; // action to bind to the retry button
   onClose?: (event: GestureResponderEvent) => void; // action to bind to the close button
 }
 
-export const Outcome: React.FunctionComponent<OutcomeOptions> = ({outcome, reason, illustration, inline, onRetry, onClose}) => {
+export const Outcome: React.FunctionComponent<OutcomeOptions> = ({
+  outcome,
+  reason,
+  illustration,
+  illustrationBottomMargin = 0,
+  illustrationLeftMargin = 0,
+  inline,
+  onRetry,
+  onClose,
+}) => {
   return (
     <View style={inline ? {} : {height: '100%', width: '100%'}} bg="white" pb={32}>
       <VStack justifyContent={'center'} flex={1}>
         <View mx={16}>
           <VStack space={24} alignItems={'center'}>
-            {illustration}
-            <VStack space={12} alignItems={'center'}>
-              <FeatureTitleBlack>{outcome}</FeatureTitleBlack>
-              <Body>{reason}</Body>
-            </VStack>
+            <View mb={illustrationBottomMargin} ml={illustrationLeftMargin}>
+              {illustration}
+            </View>
+            <FeatureTitleBlack textAlign="center">{outcome}</FeatureTitleBlack>
+            <Body>{reason}</Body>
             {onRetry && (
               <Button width={'100%'} buttonStyle="primary" onPress={onRetry}>
                 <BodyBlack>Retry</BodyBlack>
