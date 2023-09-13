@@ -199,8 +199,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       </HStack>
       <Divider />
       <FlatList
-        maxToRenderPerBatch={6}
-        windowSize={5}
         // when within 2 page lengths of the end, start fetching the next set of data
         onEndReachedThreshold={2}
         onEndReached={() => {
