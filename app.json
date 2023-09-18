@@ -49,8 +49,7 @@
           "file": "sentry-expo/upload-sourcemaps",
           "config": {
             "organization": "nwac",
-            "project": "mobile-app",
-            "authToken": "LOADED_FROM_ENVIRONMENT"
+            "project": "mobile-app"
           }
         }
       ]
