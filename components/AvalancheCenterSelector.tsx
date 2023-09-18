@@ -1,6 +1,7 @@
 import React from 'react';
 
 import {useNavigation, useRoute} from '@react-navigation/native';
+import {ScrollView} from 'react-native';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {avalancheCenterList, AvalancheCenters} from 'components/avalancheCenterList';
@@ -8,7 +9,6 @@ import {AvalancheCenterList} from 'components/content/AvalancheCenterList';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {useAllAvalancheCenterMetadata} from 'hooks/useAllAvalancheCenterMetadata';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
-import {ScrollView} from 'react-native';
 import {MenuStackParamList, TabNavigationProps} from 'routes';
 import {AvalancheCenter, AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
