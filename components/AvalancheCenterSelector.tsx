@@ -1,6 +1,7 @@
 import React from 'react';
 
 import {useNavigation, useRoute} from '@react-navigation/native';
+import {ScrollView} from 'react-native';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {avalancheCenterList, AvalancheCenters} from 'components/avalancheCenterList';
@@ -9,7 +10,6 @@ import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {useAllAvalancheCenterMetadata} from 'hooks/useAllAvalancheCenterMetadata';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {MenuStackParamList, TabNavigationProps} from 'routes';
-import {ScrollView} from 'tamagui';
 import {AvalancheCenter, AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 export const AvalancheCenterSelector: React.FunctionComponent<{

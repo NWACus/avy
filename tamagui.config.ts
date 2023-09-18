@@ -4,7 +4,9 @@ import {createMedia} from '@tamagui/react-native-media-driver';
 import {shorthands} from '@tamagui/shorthands';
 import {themes, tokens} from '@tamagui/themes';
 
+// eslint-disable-next-line no-restricted-imports
 import {createTamagui} from 'tamagui';
+
 const animations = createAnimations({
   bouncy: {
     type: 'spring',

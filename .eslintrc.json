@@ -25,6 +25,15 @@
   "rules": {
     "absolute-imports/only-absolute-imports": "error",
     "no-console": "error",
+    // Preview random imports of components from tamagui that share names with
+    // React Native components (View, ScrollView, etc) until tamagui is fully baked
+    "no-restricted-imports": [
+      "error",
+      {
+        "name": "tamagui",
+        "message": "Tamagui support is incomplete. You probably want an import from 'components/core' or 'react-native'."
+      }
+    ],
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {

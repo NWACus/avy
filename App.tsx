@@ -59,6 +59,7 @@ import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
 import * as FileSystem from 'expo-file-system';
 import {ConsoleFormattedStream} from 'logging/consoleFormattedStream';
 import {PreferencesProvider, usePreferences} from 'Preferences';
+// eslint-disable-next-line no-restricted-imports
 import {TamaguiProvider, Theme} from 'tamagui';
 import config from 'tamagui.config';
 import {NotFoundError} from 'types/requests';
