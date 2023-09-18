@@ -64,7 +64,7 @@
     "date-time-format-timezone": "^1.0.22",
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-typescript-sort-keys": "^2.3.0",
-    "expo": "^47.0.0",
+    "expo": "^48.0.0",
     "expo-application": "~5.0.1",
     "expo-background-fetch": "~11.0.1",
     "expo-checkbox": "~2.2.2",
