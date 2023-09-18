@@ -8,8 +8,8 @@ import {AvalancheCenterList} from 'components/content/AvalancheCenterList';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {useAllAvalancheCenterMetadata} from 'hooks/useAllAvalancheCenterMetadata';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
+import {ScrollView} from 'react-native';
 import {MenuStackParamList, TabNavigationProps} from 'routes';
-import {ScrollView} from 'tamagui';
 import {AvalancheCenter, AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 export const AvalancheCenterSelector: React.FunctionComponent<{
