@@ -36,7 +36,7 @@
     "@react-native-community/segmented-control": "^2.2.2",
     "@react-native-community/slider": "4.4.2",
     "@react-native-picker/picker": "2.4.8",
-    "@react-native-segmented-control/segmented-control": "2.4.0",
+    "@react-native-segmented-control/segmented-control": "^2.4.2",
     "@react-native/normalize-color": "^2.0.0",
     "@react-navigation/bottom-tabs": "^6.4.0",
     "@react-navigation/native": "^6.0.11",

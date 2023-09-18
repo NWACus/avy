@@ -1,8 +1,10 @@
+import {TouchableOpacity, View as RNView} from 'react-native';
+
 import {Entypo} from '@expo/vector-icons';
 import {HStack, View, ViewProps, VStack} from 'components/core';
 import {Body, bodySize} from 'components/text';
-import React, {useState} from 'react';
-import {LayoutChangeEvent, LayoutRectangle, Modal, StyleSheet, TouchableOpacity, TouchableWithoutFeedback} from 'react-native';
+import React, {useRef, useState} from 'react';
+import {LayoutRectangle, Modal, StyleSheet, TouchableWithoutFeedback} from 'react-native';
 import {colorLookup} from 'theme';
 import tinycolor from 'tinycolor2';
 
@@ -15,19 +17,20 @@ export interface DropdownProps extends ViewProps {
 const borderColor = colorLookup('border.base');
 
 export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelectionChange, ...props}) => {
+  const ref = useRef<RNView>(null);
   const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
   const [layout, setLayout] = useState<LayoutRectangle>({x: 0, y: 0, width: 0, height: 0});
 
-  const onLayout = (event: LayoutChangeEvent) => {
+  const onLayout = () => {
     // onLayout returns position relative to parent - we need position relative to screen
-    event.currentTarget.measureInWindow((x, y, width, height) => {
+    ref.current?.measureInWindow((x, y, width, height) => {
       setLayout({x, y, width, height});
     });
   };
 
   return (
     <>
-      <View borderColor={borderColor} borderWidth={2} borderRadius={4} p={8} flexDirection="column" justifyContent="center" onLayout={onLayout} {...props}>
+      <View ref={ref} borderColor={borderColor} borderWidth={2} borderRadius={4} p={8} flexDirection="column" justifyContent="center" onLayout={onLayout} {...props}>
         <TouchableOpacity
           onPress={() => {
             setDropdownVisible(!dropdownVisible);

@@ -174,9 +174,9 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
             mt={8}
             px={4}
             flex={1}
-            onLayout={(event: LayoutChangeEvent) => {
+            onLayout={() => {
               // onLayout returns position relative to parent - we need position relative to screen
-              event.currentTarget.measureInWindow((x, y, width, height) => {
+              topElements.current?.measureInWindow((x, y, width, height) => {
                 controller.animateUsingUpdatedTopElementsHeight(y, height);
               });
 
