@@ -65,6 +65,7 @@ describe('View', () => {
     // Suppress console.error while running the test
     jest.spyOn(console, 'error').mockImplementation(() => jest.fn());
     // Silent coercion of string -> number is not allowed: the View will throw
+    // @ts-expect-error - this is intentionally incorrect code that demonstrates the error
     expect(() => render(<View padding="100" />)).toThrow('Invalid string value "100" for property padding: string dimensions must specify pt or %');
   });
 
