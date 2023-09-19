@@ -30,8 +30,9 @@ runs:
     - name: 🚀 Publish preview
       id: eas-update
       shell: bash
+      # Setting NODE_OPTIONS to increase the memory limit for the build command
       run: |
-        output="$(eas update --branch=${{ inputs.channel }} --message="${{ inputs.message }}" --non-interactive --json)"
+        output="$(NODE_OPTIONS=--max_old_space_size=4096 eas update --branch=${{ inputs.channel }} --message="${{ inputs.message }}" --non-interactive --json)"
         echo "ios_id=$( jq --raw-output '.[] | select(.platform == "ios" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
         echo "android_id=$( jq --raw-output '.[] | select(.platform == "android" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
 
