@@ -56,7 +56,7 @@ const HeaderWithTooltip: React.FunctionComponent<{
   // the icon style is designed to make the circle "i" look natural next to the
   // text - neither `center` nor `baseline` alignment look good on their own
   <HStack space={6} alignItems="center">
-    <BodyBlack>{title}</BodyBlack>
+    <BodyBlack numberOfLines={1}>{title}</BodyBlack>
     <InfoTooltip size={bodySize} title={title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />
   </HStack>
 );
@@ -174,7 +174,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
               startsCollapsed
               borderRadius={0}
               borderColor="white"
-              header={<HeaderWithTooltip title={`Avalanche Problem #${index + 1}`} content={helpStrings.avalancheProblem} />}>
+              header={<HeaderWithTooltip title={`Problem #${index + 1}: ${problem.name}`} content={helpStrings.avalancheProblem} />}>
               <AvalancheProblemCard key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
             </CollapsibleCard>
           ))}

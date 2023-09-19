@@ -43,9 +43,11 @@ export const InternalError: React.FunctionComponent<{inline?: boolean}> = ({inli
   // const navigation = useNavigation<TabNavigationProps>();
   return (
     <Outcome
-      outcome={'Oops, something went wrong!'}
+      outcome={'Oh no!'}
       reason={"We're sorry, but we cannot complete your request at this time."}
       illustration={<ErrorIllustration />}
+      illustrationBottomMargin={-64}
+      illustrationLeftMargin={-16}
       inline={inline}
       // onClose={() => navigation.navigate('Home')} // TODO(skuznets): figure out how to navigate home here, as we don't have the props needed to go home - can we go to defaults for tab navigator?
     />
@@ -71,7 +73,16 @@ export const NotFound: React.FunctionComponent<{what?: NotFoundError[]; terminal
   if (terminal) {
     onClose = undefined;
   }
-  return <Outcome outcome={'No results found'} reason={`We could not find ${thing}.`} inline={inline} illustration={<NoSearchResult />} onClose={onClose} />;
+  return (
+    <Outcome
+      outcome={'No results found'}
+      reason={`We could not find ${thing}.`}
+      inline={inline}
+      illustration={<NoSearchResult />}
+      illustrationBottomMargin={-48}
+      onClose={onClose}
+    />
+  );
 };
 
 export const ConnectionLost: React.FunctionComponent = () => {
@@ -88,9 +99,11 @@ export const ConnectionLost: React.FunctionComponent = () => {
   } else {
     return (
       <Outcome
-        outcome={'Connection lost!'}
+        outcome={'Oh no!'}
         reason={'Something went wrong, please try again.'}
         illustration={<NoGPS />}
+        illustrationBottomMargin={-32}
+        illustrationLeftMargin={-16}
         onRetry={() => setLoading(true)}
         // onClose={() =>
         //   navigation.navigate('Home', {
@@ -104,7 +117,14 @@ export const ConnectionLost: React.FunctionComponent = () => {
 };
 
 export const Unavailable: React.FunctionComponent = () => {
-  return <Outcome outcome={'Under construction!'} reason={"This functionality is still under construction, check back later once it's done."} illustration={<Stop />} />;
+  return (
+    <Outcome
+      outcome={'Under construction!'}
+      reason={"This functionality is still under construction, check back later once it's done."}
+      illustration={<Stop />}
+      illustrationBottomMargin={-48}
+    />
+  );
 };
 
 // incompleteQueryState checks to see if any of the queries are not yet complete - if so, render a <QueryState/>.
