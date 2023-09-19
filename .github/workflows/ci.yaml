@@ -53,8 +53,6 @@ jobs:
   expo-doctor:
     name: Expo Doctor
     runs-on: ubuntu-latest
-    env:
-      SENTRY_AUTH_TOKEN: $ {{ secrets.SENTRY_AUTH_TOKEN }}
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v2
