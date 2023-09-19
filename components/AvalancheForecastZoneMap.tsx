@@ -10,11 +10,11 @@ import {
   NativeSyntheticEvent,
   PanResponder,
   PanResponderGestureState,
+  View as RNView,
   StyleSheet,
   Text,
   TouchableOpacity,
   useWindowDimensions,
-  View as RNView,
 } from 'react-native';
 import AnimatedMapView, {Region} from 'react-native-maps';
 

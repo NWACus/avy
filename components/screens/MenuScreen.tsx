@@ -2,7 +2,7 @@ import {logFilePath} from 'logger';
 import React, {ReactNode, useCallback} from 'react';
 
 import DateTimePicker, {DateTimePickerEvent} from '@react-native-community/datetimepicker';
-import {ScrollView, SectionList, StyleSheet, Switch, TouchableOpacity} from 'react-native';
+import {Platform, ScrollView, SectionList, StyleSheet, Switch, TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
@@ -236,6 +236,33 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                           <Body>Use staging environment</Body>
                           <Switch value={staging} onValueChange={toggleStaging} />
                         </HStack>
+                      </VStack>
+                    </Card>
+                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Sentry</BodyBlack>}>
+                      <VStack space={4}>
+                        <Body>Config</Body>
+                        <BodySm fontFamily={Platform.select({ios: 'Courier New', android: 'monospace'})} color={colorLookup(process.env.SENTRY_AUTH_TOKEN ? 'text' : 'red')}>
+                          SENTRY_AUTH_TOKEN: {process.env.SENTRY_AUTH_TOKEN ? `${process.env.SENTRY_AUTH_TOKEN.slice(0, 15)}...` : 'missing'}
+                        </BodySm>
+                        {(() => {
+                          const dsn = Constants.expoConfig?.extra?.sentry_dsn as string | undefined;
+                          return (
+                            <BodySm fontFamily={Platform.select({ios: 'Courier New', android: 'monospace'})} color={colorLookup(dsn ? 'text' : 'red')}>
+                              SENTRY_DSN: {dsn ? `${dsn.slice(0, 15)}...` : 'not supplied'}
+                            </BodySm>
+                          );
+                        })()}
+                        <ActionList
+                          actions={[
+                            {
+                              label: 'Trigger exception',
+                              data: 'Button Style Preview',
+                              action: () => {
+                                throw new Error('Test error');
+                              },
+                            },
+                          ]}
+                        />
                       </VStack>
                     </Card>
                     <Card borderRadius={0} borderColor="white" header={<BodyBlack>Design Previews</BodyBlack>}>

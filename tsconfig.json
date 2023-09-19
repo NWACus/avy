@@ -7,15 +7,12 @@
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
     "isolatedModules": true,
-    "module": "ESNext",
     "outDir": "dist",
     "sourceMap": true,
     "strict": true
   },
   "ts-node": {
-    "compilerOptions": {
-      "module": "commonjs"
-    }
+    "compilerOptions": {}
   },
   "extends": "expo/tsconfig.base"
 }

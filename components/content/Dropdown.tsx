@@ -1,4 +1,4 @@
-import {TouchableOpacity, View as RNView} from 'react-native';
+import {View as RNView, TouchableOpacity} from 'react-native';
 
 import {Entypo} from '@expo/vector-icons';
 import {HStack, View, ViewProps, VStack} from 'components/core';

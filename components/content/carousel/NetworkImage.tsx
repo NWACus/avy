@@ -9,7 +9,7 @@ import {FontAwesome5} from '@expo/vector-icons';
 import {Center, VStack} from 'components/core';
 import {Body} from 'components/text';
 import {useCachedImageURI} from 'hooks/useCachedImageURI';
-import {colorLookup, COLORS} from 'theme/colors';
+import {COLORS, colorLookup} from 'theme/colors';
 
 export type NetworkImageState = 'loading' | 'success' | 'error';
 

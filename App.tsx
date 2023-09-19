@@ -120,10 +120,13 @@ if (Sentry?.init) {
   // Only initialize Sentry if we can find the correct env setup
   if (dsn === 'LOADED_FROM_ENVIRONMENT') {
     logger.warn('Sentry integration not configured, check your environment');
+  } else if (!process.env.SENTRY_AUTH_TOKEN) {
+    logger.warn('SENTRY_AUTH_TOKEN is not defined in the environment, Sentry not available');
   } else {
     Sentry.init({
       dsn,
       enableInExpoDevelopment: false,
+      enableWatchdogTerminationTracking: true,
     });
   }
 }

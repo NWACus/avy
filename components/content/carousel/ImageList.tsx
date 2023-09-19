@@ -3,7 +3,7 @@ import React, {PropsWithChildren, ReactElement, useCallback, useState} from 'rea
 import {FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent, ScrollView} from 'react-native';
 
 import {NetworkImage, NetworkImageProps, NetworkImageState} from 'components/content/carousel/NetworkImage';
-import {View, VStack} from 'components/core';
+import {VStack, View} from 'components/core';
 import {HTML} from 'components/text/HTML';
 import {ImageMediaItem, MediaType} from 'types/nationalAvalancheCenter';
 

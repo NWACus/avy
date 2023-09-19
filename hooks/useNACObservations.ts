@@ -12,7 +12,7 @@ import {safeFetch} from 'hooks/fetch';
 import {MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW, ObservationsDocument} from 'hooks/useObservations';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, ObservationFragment, observationListResultSchema} from 'types/nationalAvalancheCenter';
-import {apiDateString, formatRequestedTime, parseRequestedTimeString, RequestedTime, requestedTimeToUTCDate} from 'utils/date';
+import {RequestedTime, apiDateString, formatRequestedTime, parseRequestedTimeString, requestedTimeToUTCDate} from 'utils/date';
 import {ZodError} from 'zod';
 
 const PAGE_SIZE: Duration = {weeks: 2};
