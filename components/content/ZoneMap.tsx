@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 
-import MapView, {MapViewProps, MAP_TYPES, Region} from 'react-native-maps';
+import MapView, {MAP_TYPES, MapViewProps, Region} from 'react-native-maps';
 
 import {AvalancheForecastZonePolygon, toLatLngList} from 'components/AvalancheForecastZonePolygon';
 import {RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';

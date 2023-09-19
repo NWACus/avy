@@ -18,7 +18,7 @@ import {geoContains} from 'd3-geo';
 import {getMonth, getYear, isAfter, isBefore, parseISO, sub} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
-import {findNodeHandle, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, TouchableOpacity, View as RNView} from 'react-native';
+import {KeyboardAvoidingView, Platform, View as RNView, SafeAreaView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {colorLookup} from 'theme';
 import {MapLayer, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
 import {z} from 'zod';

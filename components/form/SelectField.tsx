@@ -1,6 +1,6 @@
 import {Select, SelectRef, SelectStyles} from '@mobile-reality/react-native-select-pro';
 import {VStack} from 'components/core';
-import {bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
+import {BodyXSm, BodyXSmBlack, bodySize} from 'components/text';
 import React, {useEffect, useRef} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
 import {View as RNView} from 'react-native';

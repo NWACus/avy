@@ -3,7 +3,7 @@ import {BodyXSm, BodyXSmBlack} from 'components/text';
 import {merge} from 'lodash';
 import React from 'react';
 import {useController} from 'react-hook-form';
-import {TextInput, TextInputProps, View as RNView} from 'react-native';
+import {View as RNView, TextInput, TextInputProps} from 'react-native';
 import {colorLookup} from 'theme';
 
 export type KeysMatching<T, V> = {[K in keyof T]-?: T[K] extends V ? K : never}[keyof T];
