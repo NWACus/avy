@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import React, {RefObject, useCallback, useRef, useState} from 'react';
 
 import {useNavigation} from '@react-navigation/native';
@@ -351,7 +352,11 @@ class AnimatedMapWithDrawerController {
     this.animateMapRegion();
   }
 
-  private animateMapRegion() {
+  // This function gets called many times in short succession when the layout changes. We debounce it so that
+  // we only try to animate after layout changes are complete.
+  ANIMATION_DEBOUNCE_MS = 250;
+
+  private animateMapRegion = _.debounce(() => {
     const cardDrawerHeight = Math.max(0, this.cardDrawerMaximumHeight - this.baseOffset); // negative when hidden
     // then, we need to look at the entire available screen real-estate for our app
     // to determine the unobstructed area for the polygons
@@ -445,7 +450,7 @@ class AnimatedMapWithDrawerController {
       this.lastLogged[parameterHash] = toISOStringUTC(now);
     }
     this.mapView?.current?.animateToRegion(targetRegion);
-  }
+  }, this.ANIMATION_DEBOUNCE_MS);
 }
 
 const AvalancheForecastZoneCards: React.FunctionComponent<{
