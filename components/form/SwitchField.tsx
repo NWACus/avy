@@ -31,8 +31,11 @@ export function SwitchField<T>({name, label, items, ...props}: SwitchFieldProps<
           items.findIndex(i => i.value === field.value),
           0,
         )}
-        onChange={event => {
-          field.onChange(items[event.nativeEvent.selectedSegmentIndex].value);
+        onValueChange={(label: string) => {
+          const value = items.find(i => i.label === label)?.value;
+          if (value !== undefined) {
+            field.onChange(value);
+          }
         }}
       />
     </VStack>

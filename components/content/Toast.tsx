@@ -3,6 +3,7 @@ import {HStack, View, VStack} from 'components/core';
 import {Body} from 'components/text';
 import React, {ReactNode} from 'react';
 import {TouchableWithoutFeedback} from 'react-native';
+import {colorLookup} from 'theme';
 
 export const BaseToast: React.FunctionComponent<{
   icon: ReactNode;
@@ -19,7 +20,7 @@ export const BaseToast: React.FunctionComponent<{
           <View flex={1}>
             <Body>{content}</Body>
           </View>
-          {onPress && onPress.name !== 'noop' && <AntDesign name="close" size={18} color="muted.700" />}
+          {onPress && onPress.name !== 'noop' && <AntDesign name="close" size={18} color={colorLookup('muted.700')} />}
         </HStack>
       </HStack>
     </VStack>

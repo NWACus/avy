@@ -10,7 +10,9 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   /* eslint-disable @typescript-eslint/no-non-null-assertion */
   config.ios!.config!.googleMapsApiKey = process.env.IOS_GOOGLE_MAPS_API_KEY;
   config.android!.config!.googleMaps!.apiKey = process.env.ANDROID_GOOGLE_MAPS_API_KEY;
-  config.hooks!.postPublish![0]!.config!.authToken = process.env.SENTRY_API_TOKEN;
+  if (!process.env.SENTRY_AUTH_TOKEN) {
+    throw new Error('SENTRY_AUTH_TOKEN is not defined in the environment, aborting');
+  }
   config.extra!.sentry_dsn = process.env.SENTRY_DSN;
   config.extra!.log_level = process.env.LOG_LEVEL != null ? process.env.LOG_LEVEL : 'info';
 

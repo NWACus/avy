@@ -30,4 +30,5 @@ jobs:
           IOS_APP_ID: ${{ secrets.IOS_APP_ID }}
           PROFILE: ${{ github.ref_name }}
           PLATFORM: 'all'
+          SENTRY_AUTH_TOKEN: $ {{ secrets.SENTRY_AUTH_TOKEN }}
         run: ./eas_build_and_submit.sh

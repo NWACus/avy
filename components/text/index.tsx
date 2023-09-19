@@ -19,7 +19,7 @@ export interface TextWrapperProps extends TextProps {
 const TextWrapper: React.FC<TextWrapperProps> = ({color, fontFamily, fontSize, fontStyle, letterSpacing, lineHeight, textAlign, textTransform, children, ...props}) => {
   const style = omitBy(
     {
-      color: colorLookup(color ?? ''),
+      color: colorLookup(color ?? 'text'),
       fontFamily,
       fontSize,
       letterSpacing,
