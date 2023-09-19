@@ -124,6 +124,7 @@ if (Sentry?.init) {
     Sentry.init({
       dsn,
       enableInExpoDevelopment: false,
+      enableWatchdogTerminationTracking: true,
     });
   }
 }
