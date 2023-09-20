@@ -20,11 +20,13 @@ const AvalancheCenterListItem: React.FC<AvalancheCenterListItemProps> = ({data, 
       <HStack
         justifyContent="space-between"
         alignItems="flex-start"
-        space={8}
-        borderWidth={1}
+        backgroundColor={'white'}
+        space={12}
+        margin={selected ? 0 : 1}
+        borderWidth={selected ? 2 : 1}
         borderColor={colorLookup(selected ? 'primary' : 'light.300')}
         borderRadius={8}
-        padding={8}
+        padding={12}
         minHeight={86}>
         <AvalancheCenterLogo style={{height: 32, width: 32, resizeMode: 'contain', flex: 0, flexGrow: 0, marginTop: 4}} avalancheCenterId={center_id} />
         <VStack space={2} flexShrink={1} flexGrow={1}>
@@ -39,7 +41,7 @@ const AvalancheCenterListItem: React.FC<AvalancheCenterListItemProps> = ({data, 
 };
 
 interface AvalancheCenterListProps extends VStackProps {
-  selectedCenter: AvalancheCenterID;
+  selectedCenter?: AvalancheCenterID;
   setSelectedCenter: (center: AvalancheCenterID) => void;
   data: AvalancheCenterListData[];
 }

@@ -293,13 +293,21 @@ const BaseApp: React.FunctionComponent<{
 
   const navigationRef = useNavigationContainerRef();
 
-  const onLayoutRootView = useCallback(async () => {
-    // This callback won't execute until fontsLoaded is true, because
-    // otherwise we won't render the view that triggers this callback
-    await SplashScreen.hideAsync();
-  }, []);
+  // Hide the splash screen after fonts load. We're careful not to call hideAsync more than once;
+  // this seems to be the cause of the "No native splash screen registered" errors.
+  // TODO: for maximum seamlessness, hide it after the map view is ready
+  const [splashScreenState, setSplashScreenState] = React.useState<'visible' | 'hiding' | 'hidden'>('visible');
+  useEffect(() => {
+    void (async () => {
+      if (fontsLoaded && splashScreenState === 'visible') {
+        setSplashScreenState('hiding');
+        await SplashScreen.hideAsync();
+        setSplashScreenState('hidden');
+      }
+    })();
+  }, [fontsLoaded, splashScreenState, setSplashScreenState]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || splashScreenState !== 'hidden') {
     // The splash screen keeps rendering while fonts are loading
     return null;
   }
@@ -313,11 +321,7 @@ const BaseApp: React.FunctionComponent<{
               <NavigationContainer ref={navigationRef}>
                 <SelectProvider>
                   <StatusBar barStyle="dark-content" />
-                  <View
-                    onLayout={() => {
-                      void onLayoutRootView();
-                    }}
-                    style={StyleSheet.absoluteFill}>
+                  <View style={StyleSheet.absoluteFill}>
                     <TabNavigator.Navigator
                       initialRouteName="Home"
                       screenOptions={({route}) => ({
