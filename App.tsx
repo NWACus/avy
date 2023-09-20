@@ -122,7 +122,7 @@ if (Sentry?.init) {
   } else {
     Sentry.init({
       dsn,
-      enableInExpoDevelopment: false,
+      enableInExpoDevelopment: Boolean(process.env.EXPO_PUBLIC_SENTRY_IN_DEV),
       enableWatchdogTerminationTracking: true,
     });
   }
@@ -223,7 +223,7 @@ const App = () => {
 
 const AppWithClientContext = () => {
   const [staging, setStaging] = React.useState(false);
-  const [requestedTime, setRequestedTime] = React.useState<RequestedTime>('latest');
+  const [requestedTime, setRequestedTime] = React.useState<RequestedTime>(process.env.EXPO_PUBLIC_DATE ? new Date(process.env.EXPO_PUBLIC_DATE) : 'latest');
 
   const contextValue = {
     ...(staging ? stagingHosts : productionHosts),
