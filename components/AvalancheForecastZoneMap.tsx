@@ -567,6 +567,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
       onLayout={(event: LayoutChangeEvent) => controller.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height)}
       ref={flatListRef}
       horizontal
+      showsHorizontalScrollIndicator={false}
       style={[
         {
           position: 'absolute',
