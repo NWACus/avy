@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 
 import {
   Lato_100Thin,
@@ -54,7 +54,6 @@ require('date-time-format-timezone');
 
 import axios, {AxiosRequestConfig} from 'axios';
 import {createLogger, stdSerializers} from 'browser-bunyan';
-import {AvalancheCenterSelectionModal} from 'components/modals/AvalancheCenterSelectionModal';
 import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
 import * as FileSystem from 'expo-file-system';
 import {ConsoleFormattedStream} from 'logging/consoleFormattedStream';
@@ -290,17 +289,13 @@ const BaseApp: React.FunctionComponent<{
     logger.error({error: error}, 'error loading fonts');
   }
 
-  const [splashScreenVisible, setSplashScreenVisible] = useState(true);
   const navigationRef = useNavigationContainerRef();
 
   const onLayoutRootView = useCallback(async () => {
     // This callback won't execute until fontsLoaded is true, because
     // otherwise we won't render the view that triggers this callback
     await SplashScreen.hideAsync();
-    setSplashScreenVisible(false);
-  }, [setSplashScreenVisible]);
-
-  const showAvalancheCenterSelectionModal = !splashScreenVisible && !preferences.hasSeenCenterPicker;
+  }, []);
 
   if (!fontsLoaded) {
     // The splash screen keeps rendering while fonts are loading
@@ -321,19 +316,6 @@ const BaseApp: React.FunctionComponent<{
                       void onLayoutRootView();
                     }}
                     style={StyleSheet.absoluteFill}>
-                    <AvalancheCenterSelectionModal
-                      visible={showAvalancheCenterSelectionModal}
-                      initialSelection={preferences.center}
-                      onClose={center => {
-                        setPreferences({center: center, hasSeenCenterPicker: true});
-                        // We need to clear navigation state to force all screens from the
-                        // previous avalanche center selection to unmount
-                        navigationRef.reset({
-                          index: 0,
-                          routes: [{name: 'Home'}],
-                        });
-                      }}
-                    />
                     <TabNavigator.Navigator
                       initialRouteName="Home"
                       screenOptions={({route}) => ({

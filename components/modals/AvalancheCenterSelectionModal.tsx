@@ -27,10 +27,7 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
   const metadataResults = useAllAvalancheCenterMetadata(capabilities);
-  if (incompleteQueryState(capabilitiesResult, ...metadataResults) || !capabilities) {
-    return <QueryState results={[capabilitiesResult, ...metadataResults]} />;
-  }
-
+  const loading = incompleteQueryState(capabilitiesResult, ...metadataResults) || !capabilities;
   const metadata: AvalancheCenter[] = [];
   for (const result of metadataResults) {
     if (result.data) {
@@ -41,22 +38,30 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
   return (
     <Modal transparent visible={visible} animationType="slide" onRequestClose={closeHandler}>
       <SafeAreaProvider>
-        <SafeAreaView style={{backgroundColor: 'rgba(0, 0, 0, 0.2)'}}>
+        <SafeAreaView style={{backgroundColor: loading ? undefined : 'rgba(0, 0, 0, 0.2)'}}>
           <Center width="100%" height="100%" px={48}>
-            <VStack alignItems="stretch" bg="white" borderRadius={16} px={12} py={24} space={8} width="100%" position="relative" overflow="hidden">
-              <Center mb={4}>
-                <Title3Semibold>Welcome! Let’s Get Started</Title3Semibold>
-              </Center>
-              <Body>Select your local avalanche center to start using the app. You can change this anytime in settings.</Body>
-              <AvalancheCenterList selectedCenter={selectedCenter} setSelectedCenter={setSelectedCenter} data={avalancheCenterList(AvalancheCenters.SupportedCenters, metadata)} />
-              <Button onPress={closeHandler} alignSelf="stretch" buttonStyle="primary" mt={16}>
-                <BodyBlack>Continue</BodyBlack>
-              </Button>
-              {/* placeholder view to create space for the topo illustration */}
-              <View height={200} />
-              {/* these magic numbers are yanked out of Figma */}
-              <Topo width={887.0152587890625} height={456.3430480957031} style={{position: 'absolute', left: -364, top: 382}} />
-            </VStack>
+            {loading ? (
+              <QueryState results={[capabilitiesResult, ...metadataResults]} />
+            ) : (
+              <VStack alignItems="stretch" bg="white" borderRadius={16} px={12} py={24} space={8} width="100%" position="relative" overflow="hidden">
+                <Center mb={4}>
+                  <Title3Semibold>Welcome! Let’s Get Started</Title3Semibold>
+                </Center>
+                <Body>Select your local avalanche center to start using the app. You can change this anytime in settings.</Body>
+                <AvalancheCenterList
+                  selectedCenter={selectedCenter}
+                  setSelectedCenter={setSelectedCenter}
+                  data={avalancheCenterList(AvalancheCenters.SupportedCenters, metadata)}
+                />
+                <Button onPress={closeHandler} alignSelf="stretch" buttonStyle="primary" mt={16}>
+                  <BodyBlack>Continue</BodyBlack>
+                </Button>
+                {/* placeholder view to create space for the topo illustration */}
+                <View height={200} />
+                {/* these magic numbers are yanked out of Figma */}
+                <Topo width={887.0152587890625} height={456.3430480957031} style={{position: 'absolute', left: -364, top: 382}} />
+              </VStack>
+            )}
           </Center>
         </SafeAreaView>
       </SafeAreaProvider>
