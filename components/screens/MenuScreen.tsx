@@ -163,7 +163,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                   />
                 </Card>
               )}
-              {Updates.channel !== 'production' && (
+              {Updates.channel !== 'release' && (
                 <CollapsibleCard
                   startsCollapsed={preferences.secretMenuCollapsed}
                   collapsedStateChanged={collapsed => setPreferences({secretMenuCollapsed: collapsed})}
@@ -801,16 +801,15 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
     <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
       <VStack space={8} backgroundColor={colorLookup('background.base')} width="100%" height="100%">
         <Card marginTop={8} borderRadius={0} borderColor="white" header={<Title3Black>Versions</Title3Black>}>
-          <TableRow label="Application Version" value={Application.nativeApplicationVersion || 'unknown'} />
-          <TableRow label="Build Version" value={Application.nativeBuildVersion || 'unknown'} />
-          <TableRow label="Runtime Version" value={Updates.runtimeVersion || 'unknown'} />
+          <TableRow label="Application Version" value={Application.nativeApplicationVersion || '<unknown>'} />
+          <TableRow label="Build Version" value={Application.nativeBuildVersion || '<unknown>'} />
+          <TableRow label="Runtime Version" value={Updates.runtimeVersion || '<unknown>'} />
         </Card>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>Updates</Title3Black>}>
-          <TableRow label="Release Channel" value={Updates.releaseChannel || 'unknown'} />
-          <TableRow label="Update Version" value={Updates.channel || 'unknown'} />
+          <TableRow label="Update channel" value={Updates.channel || '<unknown>'} />
           {/*TODO: skuznets - we need to find a correct way to get the update group ID to find the running commit ...*/}
           {/*<TableRow label="Update Group ID" value={Constants.manifest2?.metadata?.['updateGroup'] || 'unknown'} />*/}
-          <TableRow label="Update ID" value={Updates.updateId || 'unknown'} />
+          <TableRow label="Update ID" value={Updates.updateId || '<unknown>'} />
         </Card>
       </VStack>
     </SafeAreaView>
