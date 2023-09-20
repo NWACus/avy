@@ -25,9 +25,10 @@ import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {colorFor} from 'components/AvalancheDangerPyramid';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {defaultMapRegionForGeometries, MapViewZone, ZoneMap} from 'components/content/ZoneMap';
-import {HStack, View, VStack} from 'components/core';
+import {Center, HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {TravelAdvice} from 'components/helpers/travelAdvice';
+import {AvalancheCenterSelectionModal} from 'components/modals/AvalancheCenterSelectionModal';
 import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {add, isAfter} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
@@ -36,8 +37,9 @@ import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts
 import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import md5 from 'md5';
+import {usePreferences} from 'Preferences';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {HomeStackNavigationProps} from 'routes';
+import {HomeStackNavigationProps, TabNavigationProps} from 'routes';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime, toISOStringUTC, utcDateToLocalTimeString} from 'utils/date';
 
@@ -57,7 +59,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   const topElements = React.useRef<RNView>(null);
 
-  const navigation = useNavigation<HomeStackNavigationProps>();
+  const navigation = useNavigation<HomeStackNavigationProps & TabNavigationProps>();
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
   const onPressMapView = useCallback(() => {
     setSelectedZoneId(null);
@@ -98,8 +100,16 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     controller.animateUsingUpdatedTabBarHeight(tabBarHeight);
   }, [tabBarHeight, controller]);
 
+  const {preferences, setPreferences} = usePreferences();
+
   if (incompleteQueryState(mapLayerResult, metadataResult, ...forecastResults, ...warningResults) || !mapLayer || !metadata) {
-    return <QueryState results={[mapLayerResult, metadataResult, ...forecastResults, ...warningResults]} />;
+    return (
+      <SafeAreaView edges={['top', 'left', 'right']}>
+        <Center width="100%" height="100%">
+          <QueryState results={[mapLayerResult, metadataResult, ...forecastResults, ...warningResults]} />
+        </Center>
+      </SafeAreaView>
+    );
   }
 
   // default to the values in the map layer, but update it with the forecasts and wranings we've fetched
@@ -148,6 +158,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       }
     });
   const zones = Object.keys(zonesById).map(k => zonesById[k]);
+  const showAvalancheCenterSelectionModal = !preferences.hasSeenCenterPicker;
 
   return (
     <>
@@ -197,6 +208,19 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       </SafeAreaView>
 
       <AvalancheForecastZoneCards key={center} date={requestedTime} zones={zones} selectedZoneId={selectedZoneId} setSelectedZoneId={setSelectedZoneId} controller={controller} />
+      <AvalancheCenterSelectionModal
+        visible={showAvalancheCenterSelectionModal}
+        initialSelection={preferences.center}
+        onClose={center => {
+          setPreferences({center: center, hasSeenCenterPicker: true});
+          // We need to clear navigation state to force all screens from the
+          // previous avalanche center selection to unmount
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'Home'}],
+          });
+        }}
+      />
     </>
   );
 };
