@@ -119,12 +119,10 @@ if (Sentry?.init) {
   // Only initialize Sentry if we can find the correct env setup
   if (dsn === 'LOADED_FROM_ENVIRONMENT') {
     logger.warn('Sentry integration not configured, check your environment');
-  } else if (!process.env.SENTRY_AUTH_TOKEN) {
-    logger.warn('SENTRY_AUTH_TOKEN is not defined in the environment, Sentry not available');
   } else {
     Sentry.init({
       dsn,
-      enableInExpoDevelopment: false,
+      enableInExpoDevelopment: Boolean(process.env.EXPO_PUBLIC_SENTRY_IN_DEV),
       enableWatchdogTerminationTracking: true,
     });
   }
@@ -225,7 +223,7 @@ const App = () => {
 
 const AppWithClientContext = () => {
   const [staging, setStaging] = React.useState(false);
-  const [requestedTime, setRequestedTime] = React.useState<RequestedTime>('latest');
+  const [requestedTime, setRequestedTime] = React.useState<RequestedTime>(process.env.EXPO_PUBLIC_DATE ? new Date(process.env.EXPO_PUBLIC_DATE) : 'latest');
 
   const contextValue = {
     ...(staging ? stagingHosts : productionHosts),

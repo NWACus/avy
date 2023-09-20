@@ -241,9 +241,6 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                     <Card borderRadius={0} borderColor="white" header={<BodyBlack>Sentry</BodyBlack>}>
                       <VStack space={4}>
                         <Body>Config</Body>
-                        <BodySm fontFamily={Platform.select({ios: 'Courier New', android: 'monospace'})} color={colorLookup(process.env.SENTRY_AUTH_TOKEN ? 'text' : 'red')}>
-                          SENTRY_AUTH_TOKEN: {process.env.SENTRY_AUTH_TOKEN ? `${process.env.SENTRY_AUTH_TOKEN.slice(0, 15)}...` : 'missing'}
-                        </BodySm>
                         {(() => {
                           const dsn = Constants.expoConfig?.extra?.sentry_dsn as string | undefined;
                           return (
