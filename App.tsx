@@ -259,10 +259,14 @@ const BaseApp: React.FunctionComponent<{
   const queryClient = useQueryClient();
   useEffect(() => {
     void (async () => {
-      try {
-        await prefetchAllActiveForecasts(queryClient, avalancheCenterId, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, logger);
-      } catch (e) {
-        logger.error({error: e}, 'error prefetching data');
+      if (process.env.EXPO_PUBLIC_DISABLE_PREFETCHING) {
+        logger.info('skipping prefetch because EXPO_PUBLIC_DISABLE_PREFETCHING is set');
+      } else {
+        try {
+          await prefetchAllActiveForecasts(queryClient, avalancheCenterId, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, logger);
+        } catch (e) {
+          logger.error({error: e}, 'error prefetching data');
+        }
       }
     })();
   }, [logger, queryClient, avalancheCenterId, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost]);
