@@ -265,7 +265,7 @@ export const ObservationCard: React.FunctionComponent<{
                   </View>
                   {/* Avalanche section */}
                   <HStack space={8}>
-                    <NACIcon name="avalanche" size={bodySize} color={avalanches_observed ? colorFor(DangerLevel.High).string() : colorLookup('darkText')} />
+                    <NACIcon name="avalanche" size={bodySize} color={avalanches_observed ? colorFor(DangerLevel.High).string() : colorLookup('text')} />
                     <Body>{avalanches_observed ? 'Avalanche(s) Observed' : 'No Avalanche(s) Observed'}</Body>
                   </HStack>
                   {avalanches_triggered && (
@@ -285,7 +285,7 @@ export const ObservationCard: React.FunctionComponent<{
                     <MaterialCommunityIcons
                       name="flag"
                       size={bodySize}
-                      color={observation.instability.collapsing ? colorFor(DangerLevel.Considerable).string() : colorLookup('darkText')}
+                      color={observation.instability.collapsing ? colorFor(DangerLevel.Considerable).string() : colorLookup('text')}
                     />
                     <Body>
                       {observation.instability.collapsing
@@ -298,7 +298,7 @@ export const ObservationCard: React.FunctionComponent<{
                     <MaterialCommunityIcons
                       name="flag"
                       size={bodySize}
-                      color={observation.instability.cracking ? colorFor(DangerLevel.Considerable).string() : colorLookup('darkText')}
+                      color={observation.instability.cracking ? colorFor(DangerLevel.Considerable).string() : colorLookup('text')}
                     />
                     <Body>
                       {observation.instability.cracking
