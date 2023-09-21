@@ -1,6 +1,5 @@
-name: preview
+name: expo_preview
 on:
-  workflow_dispatch: {}
   issue_comment:
     types: [created]
 
