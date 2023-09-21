@@ -37,6 +37,7 @@ export function SwitchField<T>({name, label, items, ...props}: SwitchFieldProps<
             field.onChange(value);
           }
         }}
+        appearance="light"
       />
     </VStack>
   );
