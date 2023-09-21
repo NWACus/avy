@@ -8,11 +8,7 @@ defaults:
     shell: bash
 
 jobs:
-  ci:
-    uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
-
   publish_expo_update:
-    needs: [ci]
     runs-on: ubuntu-latest
     # Only run if it's a PR and the comment contains /preview
     # Heavily lifted from https://github.com/zirkelc/github-actions-workflows
@@ -39,8 +35,8 @@ jobs:
       - name: Publish EAS update
         uses: ./.github/actions/expo/update
         with:
-          pull_request: ${{ github.event.issue.pull_request.number }}
-          channel: 'xxx-pr-${{ github.event.issue.pull_request.number }}'
+          pull_request: ${{ github.event.issue.number }}
+          channel: 'xxx-pr-${{ github.event.issue.number }}'
           message: '${{ github.event.issue.pull_request.title }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
