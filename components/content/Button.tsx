@@ -86,16 +86,16 @@ const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, onPre
   const {backgroundColor, borderColor, textColor} = colorStyleSource;
 
   return (
-    <View borderColor={borderColor} borderWidth={2} borderRadius={8} py={12} px={16} {...props} backgroundColor={backgroundColor}>
-      <Pressable disabled={disabled} onPressIn={() => setIsPressed(true)} onPressOut={() => setIsPressed(false)} onPress={event => onPress?.(event)}>
+    <Pressable disabled={disabled} onPressIn={() => setIsPressed(true)} onPressOut={() => setIsPressed(false)} onPress={event => onPress?.(event)}>
+      <View borderColor={borderColor} borderWidth={2} borderRadius={8} py={12} px={16} {...props} backgroundColor={backgroundColor}>
         <Center>
           <View style={{position: 'relative'}}>
             <Text style={{color: textColor}}>{children}</Text>
             {busy && <ActivityIndicator size={bodySize} color={textColor} style={{position: 'absolute', right: -1.5 * bodySize, top: 0.25 * bodySize}} />}
           </View>
         </Center>
-      </Pressable>
-    </View>
+      </View>
+    </Pressable>
   );
 };
 
