@@ -37,7 +37,7 @@ jobs:
         with:
           pull_request: ${{ github.event.issue.number }}
           channel: 'xxx-pr-${{ github.event.issue.number }}'
-          message: '${{ github.event.issue.pull_request.title }}'
+          message: '${{ github.event.issue.title }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Add workflow result as comment on PR
