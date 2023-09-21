@@ -315,9 +315,9 @@ const BaseApp: React.FunctionComponent<{
 
   const onImageLoaded = useCallback(async () => {
     try {
-      console.log('hiding splash screen');
+      // console.log('hiding splash screen');
       await SplashScreen.hideAsync();
-      console.log('splash screen hidden');
+      // console.log('splash screen hidden');
     } catch (e) {
       // handle errors
     }
@@ -326,9 +326,9 @@ const BaseApp: React.FunctionComponent<{
   useEffect(() => {
     void (async () => {
       try {
-        console.log('hiding splash screen2');
+        // console.log('hiding splash screen2');
         await SplashScreen.hideAsync();
-        console.log('splash screen hidden2');
+        // console.log('splash screen hidden2');
       } catch (e) {
         // handle errors
       }
@@ -337,7 +337,7 @@ const BaseApp: React.FunctionComponent<{
 
   // We're ready to go either when all the fonts are loaded, or when there's an error
   const isAppReady = fontsLoaded || Boolean(error);
-  console.log(new Date(), 'rendering app', isAppReady, fontsLoaded, error);
+  // console.log(new Date(), 'rendering app', isAppReady, fontsLoaded, error);
 
   /* eslint-disable @typescript-eslint/no-var-requires */
   return (
