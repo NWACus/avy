@@ -1,0 +1,18 @@
+name: pull_request_opened
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/ISSUE_TEMPLATE/*'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks

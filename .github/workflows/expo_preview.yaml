@@ -1,0 +1,70 @@
+name: expo_preview
+on:
+  issue_comment:
+    types: [created]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yaml # use the callable ci job to run CI checks
+
+  publish_expo_update:
+    needs: [ci]
+    runs-on: ubuntu-latest
+    # Only run if it's a PR and the comment contains /preview
+    # Heavily lifted from https://github.com/zirkelc/github-actions-workflows
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/preview')
+    steps:
+      # Issue comment workflows run on main branch, so we need to manually
+      # switch to the PR branch
+      - name: Get branch of PR
+        uses: xt0rted/pull-request-comment-branch@v1
+        id: comment-branch
+
+      - name: Set latest commit status as pending
+        uses: myrotvorets/set-commit-status-action@master
+        with:
+          sha: ${{ steps.comment-branch.outputs.head_sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: pending
+
+      - name: 🏗 Setup repo on correct branch ${{ steps.comment-branch.outputs.head_ref }}
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+
+      - name: Publish EAS update
+        uses: ./.github/actions/expo/update
+        with:
+          pull_request: ${{ github.event.issue.pull_request.number }}
+          channel: 'xxx-pr-${{ github.event.issue.pull_request.number }}'
+          message: '${{ github.event.issue.pull_request.title }}'
+          expo_token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Add workflow result as comment on PR
+        uses: actions/github-script@v6
+        if: always()
+        with:
+          script: |
+            const name = '${{ github.workflow	}}';
+            const url = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+            const success = '${{ job.status }}' === 'success';
+            const body = `${name}: ${success ? 'succeeded ✅' : 'failed ❌'}\n${url}`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            })
+
+      - name: Set latest commit status as ${{ job.status }}
+        uses: myrotvorets/set-commit-status-action@master
+        if: always()
+        with:
+          sha: ${{ steps.comment-branch.outputs.head_sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
