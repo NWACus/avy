@@ -1,4 +1,6 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
+
+import {Animated, Image} from 'react-native';
 
 import {
   Lato_100Thin,
@@ -293,87 +295,144 @@ const BaseApp: React.FunctionComponent<{
 
   const navigationRef = useNavigationContainerRef();
 
-  // Hide the splash screen after fonts load. We're careful not to call hideAsync more than once;
-  // this seems to be the cause of the "No native splash screen registered" errors.
-  // TODO: for maximum seamlessness, hide it after the map view is ready
-  const [splashScreenState, setSplashScreenState] = React.useState<'visible' | 'hiding' | 'hidden'>('visible');
+  const animation = useMemo(() => new Animated.Value(1), []);
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(animation, {
+          toValue: 1.1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animation, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, [animation]);
+
+  const onImageLoaded = useCallback(async () => {
+    try {
+      console.log('hiding splash screen');
+      await SplashScreen.hideAsync();
+      console.log('splash screen hidden');
+    } catch (e) {
+      // handle errors
+    }
+  }, []);
+
   useEffect(() => {
     void (async () => {
-      if (fontsLoaded && splashScreenState === 'visible') {
-        setSplashScreenState('hiding');
+      try {
+        console.log('hiding splash screen2');
         await SplashScreen.hideAsync();
-        setSplashScreenState('hidden');
+        console.log('splash screen hidden2');
+      } catch (e) {
+        // handle errors
       }
     })();
-  }, [fontsLoaded, splashScreenState, setSplashScreenState]);
+  }, []);
 
-  if (!fontsLoaded || splashScreenState !== 'hidden') {
-    // The splash screen keeps rendering while fonts are loading
-    return null;
-  }
+  // We're ready to go either when all the fonts are loaded, or when there's an error
+  const isAppReady = fontsLoaded || Boolean(error);
+  console.log(new Date(), 'rendering app', isAppReady, fontsLoaded, error);
 
+  /* eslint-disable @typescript-eslint/no-var-requires */
   return (
-    <>
-      <TamaguiProvider config={config}>
-        <Theme name={colorScheme === 'dark' ? 'dark' : 'light'}>
-          <HTMLRendererConfig>
-            <SafeAreaProvider>
-              <NavigationContainer ref={navigationRef}>
-                <SelectProvider>
-                  <StatusBar barStyle="dark-content" />
-                  <View style={StyleSheet.absoluteFill}>
-                    <TabNavigator.Navigator
-                      initialRouteName="Home"
-                      screenOptions={({route}) => ({
-                        headerShown: false,
-                        tabBarIcon: ({color, size}) => {
-                          if (route.name === 'Home') {
-                            return <MaterialCommunityIcons name="map-outline" size={size} color={color} />;
-                          } else if (route.name === 'Observations') {
-                            return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;
-                          } else if (route.name === 'Weather Data') {
-                            return <Ionicons name="stats-chart-outline" size={size} color={color} />;
-                          } else if (route.name === 'Menu') {
-                            return <MaterialCommunityIcons name="dots-horizontal" size={size} color={color} />;
-                          }
-                        },
-                        // these two properties should really take ColorValue but oh well
-                        tabBarActiveTintColor: colorLookup('primary') as string,
-                        tabBarInactiveTintColor: colorLookup('text.secondary') as string,
-                      })}>
-                      <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Map'}}>
-                        {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
-                      </TabNavigator.Screen>
-                      <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
-                        {state =>
-                          ObservationsTabScreen(
-                            merge(state, {
-                              route: {
-                                params: {
-                                  center_id: avalancheCenterId,
-                                  requestedTime: formatRequestedTime(requestedTime),
-                                },
-                              },
-                            }),
-                          )
-                        }
-                      </TabNavigator.Screen>
-                      <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
-                        {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
-                      </TabNavigator.Screen>
-                      <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
-                        {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-                      </TabNavigator.Screen>
-                    </TabNavigator.Navigator>
-                  </View>
-                </SelectProvider>
-              </NavigationContainer>
-            </SafeAreaProvider>
-          </HTMLRendererConfig>
-        </Theme>
-      </TamaguiProvider>
-      <Toast config={toastConfig} bottomOffset={88} visibilityTime={2000} />
-    </>
+    <View style={{flex: 1}}>
+      {!isAppReady && (
+        <View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: 'magenta', // Constants.expoConfig?.splash?.backgroundColor,
+            },
+          ]}>
+          <Animated.Image
+            style={{
+              width: '100%',
+              height: '100%',
+              resizeMode: Constants.expoConfig?.splash?.resizeMode || 'contain',
+              transform: [
+                {
+                  scale: animation,
+                },
+              ],
+            }}
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            source={{uri: Image.resolveAssetSource(require('./assets/splash.png')).uri}}
+            onLoadEnd={() => void onImageLoaded()}
+            fadeDuration={0}
+          />
+        </View>
+      )}
+      {isAppReady && (
+        <>
+          <TamaguiProvider config={config}>
+            <Theme name={colorScheme === 'dark' ? 'dark' : 'light'}>
+              <HTMLRendererConfig>
+                <SafeAreaProvider>
+                  <NavigationContainer ref={navigationRef}>
+                    <SelectProvider>
+                      <StatusBar barStyle="dark-content" />
+                      <View style={StyleSheet.absoluteFill}>
+                        <TabNavigator.Navigator
+                          initialRouteName="Home"
+                          screenOptions={({route}) => ({
+                            headerShown: false,
+                            tabBarIcon: ({color, size}) => {
+                              if (route.name === 'Home') {
+                                return <MaterialCommunityIcons name="map-outline" size={size} color={color} />;
+                              } else if (route.name === 'Observations') {
+                                return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;
+                              } else if (route.name === 'Weather Data') {
+                                return <Ionicons name="stats-chart-outline" size={size} color={color} />;
+                              } else if (route.name === 'Menu') {
+                                return <MaterialCommunityIcons name="dots-horizontal" size={size} color={color} />;
+                              }
+                            },
+                            // these two properties should really take ColorValue but oh well
+                            tabBarActiveTintColor: colorLookup('primary') as string,
+                            tabBarInactiveTintColor: colorLookup('text.secondary') as string,
+                          })}>
+                          <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Map'}}>
+                            {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                          </TabNavigator.Screen>
+                          <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
+                            {state =>
+                              ObservationsTabScreen(
+                                merge(state, {
+                                  route: {
+                                    params: {
+                                      center_id: avalancheCenterId,
+                                      requestedTime: formatRequestedTime(requestedTime),
+                                    },
+                                  },
+                                }),
+                              )
+                            }
+                          </TabNavigator.Screen>
+                          <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
+                            {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                          </TabNavigator.Screen>
+                          <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
+                            {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                          </TabNavigator.Screen>
+                        </TabNavigator.Navigator>
+                      </View>
+                    </SelectProvider>
+                  </NavigationContainer>
+                </SafeAreaProvider>
+              </HTMLRendererConfig>
+            </Theme>
+          </TamaguiProvider>
+          <Toast config={toastConfig} bottomOffset={88} visibilityTime={2000} />
+        </>
+      )}
+    </View>
   );
 };
 
