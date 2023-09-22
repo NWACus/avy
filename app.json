@@ -34,10 +34,6 @@
     },
     "android": {
       "package": "us.nwac.forecast",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
-      },
       "config": {
         "googleMaps": {"apiKey": "LOADED_FROM_ENVIRONMENT"}
       },
