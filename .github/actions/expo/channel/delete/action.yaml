@@ -23,5 +23,8 @@ runs:
       id: eas-update
       shell: bash
       run: |
-        eas channel:delete --non-interactive ${{ inputs.channel }}
-        eas branch:delete --non-interactive ${{ inputs.channel }}
+        eas channel:view ${{ inputs.channel }}  --non-interactive --limit 1
+        if [ $? -eq 0 ]; then
+          eas channel:delete --non-interactive ${{ inputs.channel }}
+          eas branch:delete --non-interactive ${{ inputs.channel }}
+        fi
