@@ -1,5 +1,16 @@
 import React, {useCallback, useEffect} from 'react';
 
+import {IntlProvider} from 'react-intl';
+
+// These polyfills are in a specific order, don't change it
+import '@formatjs/intl-getcanonicallocales/polyfill';
+
+import '@formatjs/intl-locale/polyfill';
+
+import '@formatjs/intl-pluralrules/polyfill';
+
+import '@formatjs/intl-pluralrules/locale-data/en'; // locale-data for en
+
 import {
   Lato_100Thin,
   Lato_100Thin_Italic,
@@ -63,6 +74,8 @@ import {TamaguiProvider, Theme} from 'tamagui';
 import config from 'tamagui.config';
 import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
+
+import * as messages from 'compiled-lang/en.json';
 
 const logLevel = (Constants.expoConfig?.extra?.log_level as string) ?? 'INFO';
 
@@ -211,7 +224,9 @@ const App = () => {
     return (
       <LoggerContext.Provider value={{logger: logger}}>
         <PersistQueryClientProvider client={queryClient} persistOptions={{persister: asyncStoragePersister}}>
-          <AppWithClientContext />
+          <IntlProvider locale="en" defaultLocale="en" messages={messages}>
+            <AppWithClientContext />
+          </IntlProvider>
         </PersistQueryClientProvider>
       </LoggerContext.Provider>
     );

@@ -1,0 +1,6 @@
+{
+  "9QDQIt": {
+    "defaultMessage": "{count, plural, =0 {No matching observations in this time period} one {One matching observation in this time period} other {# matching observations in this time period}}",
+    "description": "How many observations were found"
+  }
+}

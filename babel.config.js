@@ -26,6 +26,13 @@ module.exports = function (api) {
           extensions: ['.tsx', '.ts', '.js', '.json'],
         },
       ],
+      [
+        'formatjs',
+        {
+          idInterpolationPattern: '[sha512:contenthash:base64:6]',
+          ast: true,
+        },
+      ],
       'react-native-reanimated/plugin',
     ],
   };
