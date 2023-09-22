@@ -96,6 +96,7 @@ export type MenuStackParamList = {
   };
   buttonStylePreview: undefined;
   textStylePreview: undefined;
+  avalancheComponentPreview: undefined;
   toastPreview: undefined;
   timeMachine: undefined;
   avalancheCenter: {

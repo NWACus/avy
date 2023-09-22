@@ -25,6 +25,7 @@ import * as WebBrowser from 'expo-web-browser';
 import {QueryCache} from '@tanstack/react-query';
 import {ClientContext} from 'clientContext';
 import {AvalancheCenters} from 'components/avalancheCenterList';
+import {AvalancheProblemSizeLine} from 'components/AvalancheProblemSizeLine';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
 import {Card, CollapsibleCard} from 'components/content/Card';
@@ -88,6 +89,7 @@ export const MenuStackScreen = (
       />
       <MenuStack.Screen name="buttonStylePreview" component={ButtonStylePreview} options={{title: `Button style preview`}} />
       <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text style preview`}} />
+      <MenuStack.Screen name="avalancheComponentPreview" component={AvalancheComponentPreview} options={{title: `Avalanche component preview`}} />
       <MenuStack.Screen name="toastPreview" component={ToastPreview} options={{title: `Toast preview`}} />
       <MenuStack.Screen name="timeMachine" component={TimeMachine} options={{title: `Time machine`}} />
       <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
@@ -285,6 +287,13 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                             action: () => {
                               navigation.navigate('toastPreview');
                             },
+                          },
+                          {
+                            label: 'Open avalanche component preview',
+                            action: () => {
+                              navigation.navigate('avalancheComponentPreview');
+                            },
+                            data: undefined,
                           },
                         ]}
                       />
@@ -743,6 +752,33 @@ const ToastPreview = () => {
           <ErrorToast content={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt...'} />
         </TouchableOpacity>
       </VStack>
+    </SafeAreaView>
+  );
+};
+
+const AvalancheComponentPreview = () => {
+  return (
+    <SafeAreaView style={styles.fullscreen}>
+      <ScrollView style={{width: '100%', height: '100%'}}>
+        <VStack space={4} p={8}>
+          {[
+            [1, 1],
+            [1, 1.5],
+            [1, 2],
+            [1.5, 2.5],
+            [2, 3],
+            [2, 4],
+            [2, 5],
+          ].map((size, index) => (
+            <HStack alignItems="center" justifyContent="space-around" px={16} key={index}>
+              <BodyBlack>
+                D{size[0]} - D{size[1]}
+              </BodyBlack>
+              <AvalancheProblemSizeLine size={size} />
+            </HStack>
+          ))}
+        </VStack>
+      </ScrollView>
     </SafeAreaView>
   );
 };

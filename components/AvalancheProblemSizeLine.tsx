@@ -24,7 +24,10 @@ export const AvalancheProblemSizeLine: React.FunctionComponent<AvalancheProblemS
   // There's a bit of subtlety here: SeverityNumberLine assumes that a value of 0 maps
   // to the first/top label in the component, so we have to map `size` to a value
   // where 0 represents Historic.
-  const range = {from: AvalancheProblemSize.Historic - size[0], to: AvalancheProblemSize.Historic - size[1]};
+  const range = {
+    from: Math.min(AvalancheProblemSize.Historic, AvalancheProblemSize.Historic - size[0]),
+    to: Math.max(0, AvalancheProblemSize.Historic - size[1]),
+  };
   return (
     <SeverityNumberLine
       labels={[sizeText(AvalancheProblemSize.Historic), sizeText(AvalancheProblemSize.VeryLarge), sizeText(AvalancheProblemSize.Large), sizeText(AvalancheProblemSize.Small)]}
