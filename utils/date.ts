@@ -1,5 +1,13 @@
 import {add, isAfter} from 'date-fns';
-import {format, formatInTimeZone, toDate} from 'date-fns-tz';
+import {format, formatInTimeZone as formatInTimeZoneDateFnsTz, toDate} from 'date-fns-tz';
+
+const formatInTimeZone = (date: string | number | Date, timeZone: string, formatString: string) => {
+  try {
+    return formatInTimeZoneDateFnsTz(date, timeZone, formatString);
+  } catch (e: unknown) {
+    throw new Error(`Failed to format date: ${(e as Error).message}, ${date.toString()}, ${formatString}, ${timeZone}`, {cause: e});
+  }
+};
 
 export const toISOStringUTC = (date: Date) => formatInTimeZone(date, 'UTC', 'yyyy-MM-dd HH:mm:ssXXX');
 

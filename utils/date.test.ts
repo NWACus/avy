@@ -9,6 +9,10 @@ describe('Dates', () => {
       const d = new Date('2023-01-19T02:00:00Z');
       expect(apiDateString(d)).toEqual('2023-01-19');
     });
+
+    it('throws a useful error when given an invalid date', () => {
+      expect(() => apiDateString(new Date('2023-01-32'))).toThrow('Failed to format date: Invalid time value, Invalid Date, yyyy-MM-dd, UTC');
+    });
   });
 
   describe('utcDateToLocalTimeString', () => {
