@@ -40,9 +40,6 @@ export const SeverityNumberLine: React.FunctionComponent<SeverityNumberLineProps
           strokeLinecap={'round'}
           strokeLinejoin={'round'}
           strokeMiterlimit={1.5}>
-          {labels.map((label, index) => {
-            return <Path key={`marker-${label}`} stroke={'rgb(81,85,88)'} strokeWidth={strokeWidth} d={`M0,${y(index)}l25,0Z`} />;
-          })}
           <Path stroke={'rgb(81,85,88)'} strokeWidth={strokeWidth} d={'M12.5,6l0,200Z'} />
           <Path stroke={'rgb(81,85,88)'} strokeWidth={strokeWidth} fill={'rgb(200, 202, 206)'} d={`M0,${y(range.from) - rangePadding}l25,0l0,${yBetween}l-25,0l0,${-yBetween}Z`} />
         </Svg>
