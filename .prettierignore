@@ -1,3 +1,5 @@
 dist
 .expo
 generated
+lang
+compiled-lang

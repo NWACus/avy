@@ -44,6 +44,7 @@ import {HTMLRendererConfig} from 'components/text/HTML';
 import {useAppState} from 'hooks/useAppState';
 import ImageCache, {queryKeyPrefix} from 'hooks/useCachedImageURI';
 import {useOnlineManager} from 'hooks/useOnlineManager';
+import {IntlProvider} from 'intl';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
 import Toast, {ToastConfigParams} from 'react-native-toast-message';
@@ -63,6 +64,8 @@ import {TamaguiProvider, Theme} from 'tamagui';
 import config from 'tamagui.config';
 import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
+
+import * as messages from 'compiled-lang/en.json';
 
 const logLevel = (Constants.expoConfig?.extra?.log_level as string) ?? 'INFO';
 
@@ -211,7 +214,9 @@ const App = () => {
     return (
       <LoggerContext.Provider value={{logger: logger}}>
         <PersistQueryClientProvider client={queryClient} persistOptions={{persister: asyncStoragePersister}}>
-          <AppWithClientContext />
+          <IntlProvider locale="en" defaultLocale="en" messages={messages}>
+            <AppWithClientContext />
+          </IntlProvider>
         </PersistQueryClientProvider>
       </LoggerContext.Provider>
     );

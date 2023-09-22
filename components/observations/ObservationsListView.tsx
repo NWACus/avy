@@ -1,5 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 
+import {FormattedMessage} from 'react-intl';
+
 import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {colorFor} from 'components/AvalancheDangerPyramid';
@@ -213,9 +215,16 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             return (
               <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT}>
                 <Body>
-                  {/* this ad-hoc pluralization is sketchy, we should implement proper string localization / formatting with MessageFormat */}
-                  {/* Note: the case of no results is handled by ListEmptyComponent below */}
-                  {displayedObservations.length} observation{displayedObservations.length > 1 ? 's' : ''} in selected time period
+                  <FormattedMessage
+                    description="How many observations were found"
+                    defaultMessage="{count, plural,
+    =0 {No matching observations in this time period}
+    one {One matching observation in this time period}
+    other {# matching observations in this time period}}"
+                    values={{
+                      count: displayedObservations.length,
+                    }}
+                  />
                 </Body>
               </Center>
             );
