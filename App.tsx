@@ -1,16 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
 
-import {IntlProvider} from 'react-intl';
-
-// These polyfills are in a specific order, don't change it
-import '@formatjs/intl-getcanonicallocales/polyfill';
-
-import '@formatjs/intl-locale/polyfill';
-
-import '@formatjs/intl-pluralrules/polyfill';
-
-import '@formatjs/intl-pluralrules/locale-data/en'; // locale-data for en
-
 import {
   Lato_100Thin,
   Lato_100Thin_Italic,
@@ -55,6 +44,7 @@ import {HTMLRendererConfig} from 'components/text/HTML';
 import {useAppState} from 'hooks/useAppState';
 import ImageCache, {queryKeyPrefix} from 'hooks/useCachedImageURI';
 import {useOnlineManager} from 'hooks/useOnlineManager';
+import {IntlProvider} from 'intl';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
 import Toast, {ToastConfigParams} from 'react-native-toast-message';
