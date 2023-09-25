@@ -29,9 +29,11 @@ export const sendMail = async ({to, subject, body, attachments, logger}: SendMai
         logger?.info('Sent mail to', to, 'with subject', subject, 'status', status);
       } else {
         logger?.error(`MailComposer.isAvailableAsync() returned false, unable to send mail to ${to} with subject ${subject}`);
+        return Promise.resolve(false);
       }
     } catch (e) {
       logger?.error('Unexpected error sending mail to', to, 'with subject', subject, 'error', e);
+      return Promise.resolve(false);
     }
   } else {
     try {
@@ -42,6 +44,7 @@ export const sendMail = async ({to, subject, body, attachments, logger}: SendMai
       logger?.info('Opened mailto url:', url);
     } catch (e) {
       logger?.error('Error opening mailto: link:', e);
+      return Promise.resolve(false);
     }
   }
   return Promise.resolve(true);
