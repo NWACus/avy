@@ -1,4 +1,3 @@
-import {logFilePath} from 'logger';
 import React, {ReactNode, useCallback} from 'react';
 
 import DateTimePicker, {DateTimePickerEvent} from '@react-native-community/datetimepicker';
@@ -17,12 +16,11 @@ import {Divider, HStack, View, VStack} from 'components/core';
 
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
-import * as Linking from 'expo-linking';
-import * as MailComposer from 'expo-mail-composer';
 import * as Updates from 'expo-updates';
 import * as WebBrowser from 'expo-web-browser';
 
 import {QueryCache} from '@tanstack/react-query';
+
 import {ClientContext} from 'clientContext';
 import {AvalancheCenters} from 'components/avalancheCenterList';
 import {AvalancheProblemSizeLine} from 'components/AvalancheProblemSizeLine';
@@ -62,7 +60,9 @@ import {
 import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
 import {settingsMenuItems} from 'data/settingsMenuItems';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {logFilePath} from 'logger';
 import {LoggerContext, LoggerProps} from 'loggerContext';
+import {sendMail} from 'network/sendMail';
 import {clearPreferences, usePreferences} from 'Preferences';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
@@ -128,7 +128,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                 </Body>
               </Card>
               <View py={16} px={32}>
-                <Button buttonStyle="primary" onPress={() => void Linking.openURL(`mailto:charlotte@nwac.us?subject=I%20have%20thoughts`)}>
+                <Button buttonStyle="primary" onPress={() => void sendMail({to: 'charlotte@nwac.us', subject: 'NWAC app feedback', logger})}>
                   <BodyBlack>Submit App Feedback</BodyBlack>
                 </Button>
               </View>
@@ -201,15 +201,12 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                         />
                         <Button
                           buttonStyle="normal"
+                          // log files aren't being written so let's disable this for now
+                          // https://github.com/NWACus/avy/issues/383 tracks fixing this
+                          disabled
                           onPress={() => {
                             void (async () => {
-                              if (await MailComposer.isAvailableAsync()) {
-                                void MailComposer.composeAsync({
-                                  recipients: ['developer@nwac.us'],
-                                  subject: 'NWAC app log files',
-                                  attachments: [logFilePath],
-                                });
-                              } else {
+                              if (!(await sendMail({to: 'developer@nwac.us', subject: 'NWAC app log files', attachments: [logFilePath], logger}))) {
                                 Toast.show({
                                   type: 'error',
                                   text1: 'Email is not configured!',
