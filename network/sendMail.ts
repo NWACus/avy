@@ -9,9 +9,9 @@ import * as MailComposer from 'expo-mail-composer';
 interface SendMailProps {
   to: string;
   subject: string;
+  logger: Logger;
   body?: string;
   attachments?: string[];
-  logger?: Logger;
 }
 
 export const sendMail = async ({to, subject, body, attachments, logger}: SendMailProps): Promise<boolean> => {
@@ -21,18 +21,18 @@ export const sendMail = async ({to, subject, body, attachments, logger}: SendMai
     try {
       if (await MailComposer.isAvailableAsync()) {
         const status = await MailComposer.composeAsync({
-          recipients: [to], // ['developer@nwac.us'],
+          recipients: [to],
           subject,
           body,
           attachments,
         });
-        logger?.info('Sent mail to', to, 'with subject', subject, 'status', status);
+        logger.info('Sent mail to', to, 'with subject', subject, 'status', status);
       } else {
-        logger?.error(`MailComposer.isAvailableAsync() returned false, unable to send mail to ${to} with subject ${subject}`);
+        logger.warn(`MailComposer.isAvailableAsync() returned false, unable to send mail to ${to} with subject ${subject}`);
         return Promise.resolve(false);
       }
     } catch (e) {
-      logger?.error('Unexpected error sending mail to', to, 'with subject', subject, 'error', (e as Error).message);
+      logger.error('Unexpected error sending mail to', to, 'with subject', subject, 'error', (e as Error).message);
       return Promise.resolve(false);
     }
   } else {
@@ -41,9 +41,9 @@ export const sendMail = async ({to, subject, body, attachments, logger}: SendMai
       const bodyWithAttachments = encodeURIComponent(`${body || ''}${attachmentContents.length > 0 ? '\n' : ''}${attachmentContents}`.slice(0, 1024));
       const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}${bodyWithAttachments.length > 0 ? `&body=${bodyWithAttachments}` : ''}`;
       await Linking.openURL(url);
-      logger?.info('Opened mailto url:', url);
+      logger.info('Opened mailto url:', url);
     } catch (e) {
-      logger?.error('Error opening mailto: link, error message:', (e as Error).message);
+      logger.error('Error opening mailto: link, error message:', (e as Error).message);
       return Promise.resolve(false);
     }
   }

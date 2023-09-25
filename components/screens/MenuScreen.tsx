@@ -128,7 +128,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                 </Body>
               </Card>
               <View py={16} px={32}>
-                <Button buttonStyle="primary" onPress={() => void sendMail({to: 'charlotte@nwac.us', subject: 'NWAC app feedback', logger})}>
+                <Button buttonStyle="primary" onPress={() => void sendMail({to: 'developer+app-feedback@nwac.us', subject: 'NWAC app feedback', logger})}>
                   <BodyBlack>Submit App Feedback</BodyBlack>
                 </Button>
               </View>
@@ -206,7 +206,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                           disabled
                           onPress={() => {
                             void (async () => {
-                              if (!(await sendMail({to: 'developer@nwac.us', subject: 'NWAC app log files', attachments: [logFilePath], logger}))) {
+                              if (!(await sendMail({to: 'developer+app-logs@nwac.us', subject: 'NWAC app log files', attachments: [logFilePath], logger}))) {
                                 Toast.show({
                                   type: 'error',
                                   text1: 'Email is not configured!',
