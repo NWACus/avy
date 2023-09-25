@@ -32,18 +32,18 @@ export const sendMail = async ({to, subject, body, attachments, logger}: SendMai
         return Promise.resolve(false);
       }
     } catch (e) {
-      logger?.error('Unexpected error sending mail to', to, 'with subject', subject, 'error', e);
+      logger?.error('Unexpected error sending mail to', to, 'with subject', subject, 'error', (e as Error).message);
       return Promise.resolve(false);
     }
   } else {
     try {
       const attachmentContents = (await Promise.all((attachments || []).map(a => FileSystem.readAsStringAsync(a)))).join('\n');
-      const bodyWithAttachments = encodeURIComponent(`${body || ''}\n${attachmentContents}`.slice(0, 1024));
+      const bodyWithAttachments = encodeURIComponent(`${body || ''}${attachmentContents.length > 0 ? '\n' : ''}${attachmentContents}`.slice(0, 1024));
       const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}${bodyWithAttachments.length > 0 ? `&body=${bodyWithAttachments}` : ''}`;
       await Linking.openURL(url);
       logger?.info('Opened mailto url:', url);
     } catch (e) {
-      logger?.error('Error opening mailto: link:', e);
+      logger?.error('Error opening mailto: link, error message:', (e as Error).message);
       return Promise.resolve(false);
     }
   }
