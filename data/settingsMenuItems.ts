@@ -5,7 +5,7 @@ export const settingsMenuItems: Record<string, {title: string; url: string}[]> =
       url: 'http://nwac.us/about/about-us',
     },
     {
-      title: 'Avalanche Education (Learn)',
+      title: 'Avalanche Education',
       url: 'https://nwac.us/avalanche-education/',
     },
     {
