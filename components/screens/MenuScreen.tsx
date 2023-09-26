@@ -840,7 +840,7 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
         </Card>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>Updates</Title3Black>}>
           <TableRow label="Update channel" value={Updates.channel || '<unknown>'} />
-          <TableRow label="Revision" value={process.env.EXPO_PUBLIC_GIT_REVISION} />
+          <TableRow label="Revision" value={process.env.EXPO_PUBLIC_GIT_REVISION || '<unknown>'} />
           <TableRow label="Update ID" value={Updates.updateId || '<unknown>'} />
         </Card>
       </VStack>
