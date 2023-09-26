@@ -207,7 +207,15 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                           disabled={Platform.OS === 'ios'}
                           onPress={() => {
                             void (async () => {
-                              if (!(await sendMail({to: 'developer+app-logs@nwac.us', subject: 'NWAC app log files', attachments: [logFilePath], logger}))) {
+                              if (
+                                !(await sendMail({
+                                  to: 'developer+app-logs@nwac.us',
+                                  subject: 'NWAC app log files',
+                                  body: `\n\n---\n\nRun \`yarn bunyan ${logFilePath.split('/').slice(-1)[0]}\` to view.\nRun \`yarn bunyan --help\` for additional options.`,
+                                  attachments: [logFilePath],
+                                  logger,
+                                }))
+                              ) {
                                 Toast.show({
                                   type: 'error',
                                   text1: 'Email is not configured!',
