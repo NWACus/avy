@@ -170,7 +170,7 @@ export const filtersForConfig = (
       filter: observation => config.zone === matchesZone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
       label: config.zone,
       // If the zone was specified as part of the initialFilterConfig (i.e. we're browsing the Obs tab of a particular zone),
-      // then removeFilter should be undefined
+      // then removeFilter should be undefined since re-setting the filters should keep that zone filter around
       removeFilter: initialFilterConfig?.zone ? undefined : config => ({...config, zone: undefined}),
     });
   }

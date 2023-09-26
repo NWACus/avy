@@ -6,12 +6,12 @@ import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {colorFor} from 'components/AvalancheDangerPyramid';
 import {Card} from 'components/content/Card';
+import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
-import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
-import {Center, Divider, HStack, View, VStack} from 'components/core';
+import {Center, Divider, HStack, VStack, View} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
-import {datesForFilterConfig, filtersForConfig, matchesZone, ObservationFilterConfig, ObservationsFilterForm} from 'components/observations/ObservationsFilterForm';
-import {Body, BodyBlack, bodySize, BodySm, BodySmBlack, Caption1Semibold} from 'components/text';
+import {ObservationFilterConfig, ObservationsFilterForm, datesForFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
+import {Body, BodyBlack, BodySm, BodySmBlack, Caption1Semibold, bodySize} from 'components/text';
 import {compareDesc, parseISO} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
@@ -49,16 +49,27 @@ interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFr
 
 export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, initialFilterConfig, ...props}) => {
   const endDate = requestedTimeToUTCDate(requestedTime);
-  const originalFilterConfig: ObservationFilterConfig = {
-    dates: {
-      value: 'past_week',
-    },
-    ...initialFilterConfig,
-  };
+  const originalFilterConfig: ObservationFilterConfig = useMemo(
+    () => ({
+      dates: {
+        value: 'past_week',
+      },
+      ...initialFilterConfig,
+    }),
+    [initialFilterConfig],
+  );
   const [filterConfig, setFilterConfig] = React.useState<ObservationFilterConfig>(originalFilterConfig);
   const [filterModalVisible, setFilterModalVisible] = React.useState<boolean>(false);
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
+
+  // when the initial filter inputs change, we should honor those
+  React.useEffect(() => {
+    setFilterConfig(current => ({
+      ...current,
+      ...originalFilterConfig,
+    }));
+  }, [originalFilterConfig]);
 
   const nacObservationsResult = useNACObservations(center_id, requestedTime);
   const nacObservations: ObservationFragmentWithPageIndex[] = useMemo(
