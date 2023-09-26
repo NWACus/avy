@@ -113,7 +113,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
             <ObservationsTab zone_name={zone.name} center_id={center_id} requestedTime={requestedTime} />
           </Tab>
         )}
-        {center.config.blog && center.config.blog_title && (
+        {process.env.EXPO_PUBLIC_ENABLE_CONDITIONS_BLOG && center.config.blog && center.config.blog_title && (
           <Tab title={center.config.blog_title ? center.config.blog_title : 'Blog'}>
             <SynopsisTab center={center} center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
           </Tab>
