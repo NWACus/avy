@@ -25,8 +25,6 @@ if [[ -z "${PLATFORM:-}" ]]; then
   exit 1
 fi
 
-EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD)
-
 function cleanup() {
   mv eas.json.tmpl eas.json
 }
@@ -37,9 +35,8 @@ jq  < eas.json.tmpl > eas.json \
   --arg IOS_USER_ID "${IOS_USER_ID}" \
   --arg IOS_TEAM_ID "${IOS_TEAM_ID}" \
   --arg IOS_APP_ID "${IOS_APP_ID}" \
-  --arg EXPO_PUBLIC_GIT_REVISION "${EXPO_PUBLIC_GIT_REVISION}" \
   '.submit.release.ios={appleId:$IOS_USER_ID,appleTeamId:$IOS_TEAM_ID,ascAppId:$IOS_APP_ID} | .submit.preview.ios=.submit.release.ios'
 
 set -o xtrace
-eas build --non-interactive --platform "${PLATFORM}" --profile "${PROFILE}" --auto-submit
+EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) eas build --non-interactive --platform "${PLATFORM}" --profile "${PROFILE}" --auto-submit
 set +o xtrace
