@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "android": "expo start --android",
+    "android": "EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) expo start --android",
     "ci": "yarn ci:prettier && yarn ci:eslint && yarn ci:tsc && yarn test",
     "ci:eslint": "scripts/eslint.sh",
     "ci:prettier": "scripts/ci-prettier.sh",
@@ -11,14 +11,14 @@
     "gen-openapi": "scripts/gen-openapi.sh",
     "graphql:codegen": "graphql codegen",
     "graphql:schema": "get-graphql-schema https://api.avalanche.org/obs/v1/public/graphql > types/observations-schema.graphql",
-    "ios": "expo start --ios",
+    "ios": "EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) expo start --ios",
     "intl:compile": "formatjs compile-folder --ast lang compiled-lang",
     "intl:extract": "formatjs extract '**/*.ts*' --ignore='**/*.d.ts' --ignore='node_modules/**' --ignore='dist/**' --out-file lang/en.json --id-interpolation-pattern '[sha512:contenthash:base64:6]'",
     "postinstall": "patch-package",
     "prettify": "eslint --fix . ; npx prettier --write .",
-    "start": "expo start",
+    "start": "EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) expo start --go",
     "test": "jest",
-    "web": "expo start --web"
+    "web": "EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) expo start --web"
   },
   "dependencies": {
     "@browser-bunyan/console-formatted-stream": "^1.8.0",
