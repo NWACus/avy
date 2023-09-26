@@ -65,7 +65,7 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
           {(['upper', 'middle', 'lower'] as const).map((layer, index) => (
             <HStack flex={1} justifyContent="space-between" key={index}>
               <View my={4} px={1} justifyContent="center">
-                <Caption1>{elevation_band_names[layer] ?? defaultElevationBands[layer]}</Caption1>
+                <Caption1>{(elevation_band_names[layer] ?? defaultElevationBands[layer]).replace('<br>', '\n')}</Caption1>
               </View>
               <HStack space={8} alignItems="center" px={1}>
                 <View my={4} px={1} justifyContent="center">
