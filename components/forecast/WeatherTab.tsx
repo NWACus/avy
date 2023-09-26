@@ -174,11 +174,6 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
               </VStack>
             )}
           </Card>
-          {weatherForecast.weather_discussion && (
-            <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Discussion</Title3Black>}>
-              <HTML source={{html: weatherForecast.weather_discussion}} />
-            </Card>
-          )}
           {/*// TODO: weather stations*/}
         </VStack>
       </ScrollView>
