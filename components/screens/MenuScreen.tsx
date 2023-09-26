@@ -840,8 +840,7 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
         </Card>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>Updates</Title3Black>}>
           <TableRow label="Update channel" value={Updates.channel || '<unknown>'} />
-          {/*TODO: skuznets - we need to find a correct way to get the update group ID to find the running commit ...*/}
-          {/*<TableRow label="Update Group ID" value={Constants.manifest2?.metadata?.['updateGroup'] || 'unknown'} />*/}
+          <TableRow label="Revision" value={process.env.EXPO_PUBLIC_GIT_REVISION} />
           <TableRow label="Update ID" value={Updates.updateId || '<unknown>'} />
         </Card>
       </VStack>

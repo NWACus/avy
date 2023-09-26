@@ -7,15 +7,24 @@
     "main": {
       "developmentClient": true,
       "distribution": "internal",
-      "channel": "main"
+      "channel": "main",
+      "env": {
+        "EXPO_PUBLIC_GIT_REVISION": "HEAD"
+      }
     },
     "preview": {
       "channel": "preview",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_GIT_REVISION": "HEAD"
+      }
     },
     "release": {
       "channel": "release",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_GIT_REVISION": "HEAD"
+      }
     }
   },
   "submit": {
