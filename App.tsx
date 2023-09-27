@@ -45,7 +45,7 @@ import {useAppState} from 'hooks/useAppState';
 import ImageCache, {queryKeyPrefix} from 'hooks/useCachedImageURI';
 import {useOnlineManager} from 'hooks/useOnlineManager';
 import {IntlProvider} from 'intl';
-import {logger} from 'logger';
+import {logFilePath, logger} from 'logger';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
 import Toast, {ToastConfigParams} from 'react-native-toast-message';
@@ -117,6 +117,14 @@ if (Sentry?.init) {
       dsn,
       enableInExpoDevelopment: Boolean(process.env.EXPO_PUBLIC_SENTRY_IN_DEV),
       enableWatchdogTerminationTracking: true,
+      beforeSend: async (event, hint) => {
+        const {exists} = await FileSystem.getInfoAsync(logFilePath);
+        if (exists) {
+          const data = await FileSystem.readAsStringAsync(logFilePath);
+          hint.attachments = [{filename: 'log.json', data, contentType: 'application/json'}];
+        }
+        return event;
+      },
     });
   }
 }
