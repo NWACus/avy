@@ -3,8 +3,7 @@ import React from 'react';
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 
 import {NavigationHeader} from 'components/content/NavigationHeader';
-import {HStack, View, VStack} from 'components/core';
-import {Title1Black} from 'components/text';
+import {View, VStack} from 'components/core';
 import {WeatherStationDetail} from 'components/weather_data/WeatherStationDetail';
 import {WeatherStationList} from 'components/weather_data/WeatherStationList';
 import {StyleSheet} from 'react-native';
@@ -18,9 +17,14 @@ export const WeatherScreen = ({route}: NativeStackScreenProps<TabNavigatorParamL
     <WeatherStack.Navigator
       initialRouteName="stationList"
       screenOptions={{
-        header: props => <NavigationHeader {...props} />,
+        header: props => <NavigationHeader center_id={center_id} {...props} />,
       }}>
-      <WeatherStack.Screen name="stationList" component={StationListScreen} initialParams={{center_id: center_id, requestedTime}} options={{headerShown: false}} />
+      <WeatherStack.Screen
+        name="stationList"
+        component={StationListScreen}
+        options={{title: 'Weather Stations', header: props => <NavigationHeader center_id={center_id} {...props} large />}}
+        initialParams={{center_id: center_id, requestedTime}}
+      />
       <WeatherStack.Screen name="stationDetail" component={StationDetailScreen} options={{title: 'Weather Station'}} />
     </WeatherStack.Navigator>
   );
@@ -30,11 +34,8 @@ const StationListScreen = ({route}: NativeStackScreenProps<WeatherStackParamList
   return (
     <View style={{...StyleSheet.absoluteFillObject}} bg="white">
       {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
-      <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
+      <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
         <VStack width="100%" height="100%" justifyContent="space-between" alignItems="stretch" bg="background.base">
-          <HStack width="100%" py={8} px={16} bg="white">
-            <Title1Black>Weather Stations</Title1Black>
-          </HStack>
           <WeatherStationList {...route.params} />
         </VStack>
       </SafeAreaView>
