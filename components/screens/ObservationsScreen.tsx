@@ -17,7 +17,7 @@ export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigat
     <ObservationsStack.Navigator
       initialRouteName="observationsPortal"
       screenOptions={{
-        header: props => <NavigationHeader {...props} />,
+        header: props => <NavigationHeader center_id={center_id} {...props} />,
       }}>
       <ObservationsStack.Screen
         name="observationsPortal"

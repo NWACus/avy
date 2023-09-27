@@ -44,7 +44,7 @@ export const useNACObservations = (center_id: AvalancheCenterID, endDate: Reques
       if (new Date(lastPage.startDate) > lookbackWindowStart) {
         return lastPage.startDate;
       } else {
-        thisLogger.debug('nac getNextPageParam', 'no more data available in window!', lastPage.startDate, lookbackWindowStart, window);
+        thisLogger.debug('nac getNextPageParam', 'no more data available in window!', lastPage.startDate, lookbackWindowStart, endDate);
         return undefined;
       }
     },
