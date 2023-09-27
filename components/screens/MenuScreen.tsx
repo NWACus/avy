@@ -201,12 +201,21 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                         />
                         <Button
                           buttonStyle="normal"
-                          // log files aren't being written so let's disable this for now
-                          // https://github.com/NWACus/avy/issues/383 tracks fixing this
-                          disabled
+                          // this is disabled on iOS and enabled on Android,
+                          // since we don't have proper attachment support on iOS
+                          // https://github.com/expo/expo/issues/24613
+                          disabled={Platform.OS === 'ios'}
                           onPress={() => {
                             void (async () => {
-                              if (!(await sendMail({to: 'developer+app-logs@nwac.us', subject: 'NWAC app log files', attachments: [logFilePath], logger}))) {
+                              if (
+                                !(await sendMail({
+                                  to: 'developer+app-logs@nwac.us',
+                                  subject: 'NWAC app log files',
+                                  body: `\n\n---\n\nRun \`yarn bunyan ${logFilePath.split('/').slice(-1)[0]}\` to view.\nRun \`yarn bunyan --help\` for additional options.`,
+                                  attachments: [logFilePath],
+                                  logger,
+                                }))
+                              ) {
                                 Toast.show({
                                   type: 'error',
                                   text1: 'Email is not configured!',

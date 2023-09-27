@@ -1,4 +1,5 @@
-import {createLogger, Logger, stdSerializers} from 'browser-bunyan';
+import {Logger} from 'browser-bunyan';
+import {logger} from 'logger';
 import React, {Context} from 'react';
 
 export interface LoggerProps {
@@ -6,8 +7,5 @@ export interface LoggerProps {
 }
 
 export const LoggerContext: Context<LoggerProps> = React.createContext<LoggerProps>({
-  logger: createLogger({
-    name: 'avalanche-forecast',
-    serializers: stdSerializers,
-  }),
+  logger,
 });

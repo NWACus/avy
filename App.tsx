@@ -45,6 +45,7 @@ import {useAppState} from 'hooks/useAppState';
 import ImageCache, {queryKeyPrefix} from 'hooks/useCachedImageURI';
 import {useOnlineManager} from 'hooks/useOnlineManager';
 import {IntlProvider} from 'intl';
+import {logFilePath, logger} from 'logger';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
 import Toast, {ToastConfigParams} from 'react-native-toast-message';
@@ -54,10 +55,8 @@ import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 require('date-time-format-timezone');
 
 import axios, {AxiosRequestConfig} from 'axios';
-import {createLogger, stdSerializers} from 'browser-bunyan';
 import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
 import * as FileSystem from 'expo-file-system';
-import {ConsoleFormattedStream} from 'logging/consoleFormattedStream';
 import {PreferencesProvider, usePreferences} from 'Preferences';
 // eslint-disable-next-line no-restricted-imports
 import {TamaguiProvider, Theme} from 'tamagui';
@@ -66,15 +65,6 @@ import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 import * as messages from 'compiled-lang/en.json';
-
-const logLevel = (Constants.expoConfig?.extra?.log_level as string) ?? 'INFO';
-
-const logger = createLogger({
-  name: 'avalanche-forecast',
-  level: logLevel,
-  serializers: stdSerializers,
-  stream: new ConsoleFormattedStream(),
-});
 
 logger.info('App starting.');
 
@@ -127,6 +117,14 @@ if (Sentry?.init) {
       dsn,
       enableInExpoDevelopment: Boolean(process.env.EXPO_PUBLIC_SENTRY_IN_DEV),
       enableWatchdogTerminationTracking: true,
+      beforeSend: async (event, hint) => {
+        const {exists} = await FileSystem.getInfoAsync(logFilePath);
+        if (exists) {
+          const data = await FileSystem.readAsStringAsync(logFilePath);
+          hint.attachments = [{filename: 'log.json', data, contentType: 'application/json'}];
+        }
+        return event;
+      },
     });
   }
 }
