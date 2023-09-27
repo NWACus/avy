@@ -8,6 +8,7 @@
     "ci:eslint": "scripts/eslint.sh",
     "ci:prettier": "scripts/ci-prettier.sh",
     "ci:tsc": "scripts/ci-tsc.sh",
+    "eas-build-pre-install": "set-env EXPO_PUBLIC_GIT_REVISION $EAS_BUILD_GIT_COMMIT_HASH",
     "gen-openapi": "scripts/gen-openapi.sh",
     "graphql:codegen": "graphql codegen",
     "graphql:schema": "get-graphql-schema https://api.avalanche.org/obs/v1/public/graphql > types/observations-schema.graphql",
