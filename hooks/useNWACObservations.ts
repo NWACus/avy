@@ -42,7 +42,7 @@ export const useNWACObservations = (center_id: AvalancheCenterID, endDate: Reque
       if (lastPage.meta.next) {
         return lastPage.meta.offset + lastPage.meta.limit;
       } else {
-        thisLogger.debug('nwac getNextPageParam', 'no more data available in window!', key, lastPage.meta, lookbackWindowStart, window);
+        thisLogger.debug('nwac getNextPageParam', 'no more data available in window!', key, lastPage.meta, lookbackWindowStart, endDate);
         return undefined;
       }
     },
