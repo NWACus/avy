@@ -9,6 +9,13 @@
       "distribution": "internal",
       "channel": "main"
     },
+    "simulator": {
+      "distribution": "internal",
+      "channel": "main",
+      "ios": {
+        "simulator": true
+      }
+    },
     "preview": {
       "channel": "preview",
       "autoIncrement": true
