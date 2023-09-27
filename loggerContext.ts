@@ -1,5 +1,5 @@
 import {Logger} from 'browser-bunyan';
-import {getLogger} from 'logger';
+import {logger} from 'logger';
 import React, {Context} from 'react';
 
 export interface LoggerProps {
@@ -7,5 +7,5 @@ export interface LoggerProps {
 }
 
 export const LoggerContext: Context<LoggerProps> = React.createContext<LoggerProps>({
-  logger: getLogger(),
+  logger,
 });
