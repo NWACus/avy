@@ -32,7 +32,7 @@ export interface AvalancheForecastZonePolygonProps {
   zone: MapViewZone;
   selected: boolean;
   renderFillColor: boolean;
-  onPress: (zone: MapViewZone) => void;
+  onPress?: (zone: MapViewZone) => void;
 }
 
 const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
@@ -63,14 +63,17 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
     coordinates: toLatLngList(zone.geometry),
     strokeColor: selected ? highlight.toString() : outline.toString(),
     strokeWidth: selected ? 4 : 2,
-    tappable: true,
+    tappable: onPress !== undefined,
     zIndex: selected ? 1 : 0,
     onPress: (event: PolygonPressEvent) => {
-      onPress(zone);
-      // By calling stopPropagation, we prevent this event from getting passed to the MapView's onPress handler,
-      // which would then clear the selection
-      // https://github.com/react-native-maps/react-native-maps/issues/1132
-      event.stopPropagation();
+      if (onPress) {
+        onPress(zone);
+
+        // By calling stopPropagation, we prevent this event from getting passed to the MapView's onPress handler,
+        // which would then clear the selection
+        // https://github.com/react-native-maps/react-native-maps/issues/1132
+        event.stopPropagation();
+      }
     },
   };
 

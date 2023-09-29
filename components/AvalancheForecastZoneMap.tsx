@@ -207,7 +207,15 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         </View>
       </SafeAreaView>
 
-      <AvalancheForecastZoneCards key={center} date={requestedTime} zones={zones} selectedZoneId={selectedZoneId} setSelectedZoneId={setSelectedZoneId} controller={controller} />
+      <AvalancheForecastZoneCards
+        key={center}
+        center_id={center}
+        date={requestedTime}
+        zones={zones}
+        selectedZoneId={selectedZoneId}
+        setSelectedZoneId={setSelectedZoneId}
+        controller={controller}
+      />
       <AvalancheCenterSelectionModal
         visible={showAvalancheCenterSelectionModal}
         initialSelection={preferences.center}
@@ -230,13 +238,13 @@ export const CARD_WHITESPACE = (1 - CARD_WIDTH) / 2; // proportion of overall wi
 export const CARD_SPACING = CARD_WHITESPACE / 2; // proportion of overall width that the spacing between two cards takes up
 export const CARD_MARGIN = CARD_SPACING / 2; // proportion of overall width that each card needs as a margin
 
-enum AnimatedDrawerState {
+export enum AnimatedDrawerState {
   Hidden = 'Hidden',
   Docked = 'Docked',
   Visible = 'Visible',
 }
 
-class AnimatedMapWithDrawerController {
+export class AnimatedMapWithDrawerController {
   // These offsets are applied through translateY on the FlatList drawer
   static readonly OFFSETS = {
     [AnimatedDrawerState.Hidden]: 240,
@@ -478,19 +486,50 @@ class AnimatedMapWithDrawerController {
 }
 
 const AvalancheForecastZoneCards: React.FunctionComponent<{
+  center_id: AvalancheCenterID;
   date: RequestedTime;
   zones: MapViewZone[];
   selectedZoneId: number | null;
   setSelectedZoneId: React.Dispatch<React.SetStateAction<number | null>>;
   controller: AnimatedMapWithDrawerController;
-}> = ({date, zones, selectedZoneId, setSelectedZoneId, controller}) => {
+}> = ({center_id, date, zones, selectedZoneId, setSelectedZoneId, controller}) => {
+  return AnimatedCards<MapViewZone, number>({
+    center_id: center_id,
+    date: date,
+    items: zones,
+    getItemId: zone => zone.zone_id,
+    selectedItemId: selectedZoneId,
+    setSelectedItemId: setSelectedZoneId,
+    controller: controller,
+    renderItem: ({date, item}) => <AvalancheForecastZoneCard date={date} zone={item} />,
+  });
+};
+
+interface ItemRenderData<T, U> {
+  key: U;
+  item: T;
+  date: RequestedTime;
+  center_id: AvalancheCenterID;
+}
+
+export const AnimatedCards = <T, U>(props: {
+  center_id: AvalancheCenterID;
+  date: RequestedTime;
+  items: T[];
+  getItemId: (item: T) => U;
+  selectedItemId: U | null;
+  setSelectedItemId: React.Dispatch<React.SetStateAction<U | null>>;
+  controller: AnimatedMapWithDrawerController;
+  renderItem: (item: ItemRenderData<T, U>) => React.ReactElement;
+}) => {
+  const {center_id, date, items, getItemId, selectedItemId, setSelectedItemId, controller, renderItem} = props;
   const {width} = useWindowDimensions();
 
-  const [previousSelectedZoneId, setPreviousSelectedZoneId] = useState<number | null>(null);
+  const [previouslySelectedItemId, setPreviouslySelectedItemId] = useState<U | null>(null);
   const [programaticallyScrolling, setProgramaticallyScrolling] = useState<boolean>(false);
   const [userScrolling, setUserScrolling] = useState<boolean>(false);
 
-  const offsets = zones?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
+  const offsets = items?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
   const flatListProps = {
     snapToAlignment: 'start',
     decelerationRate: 'fast',
@@ -504,9 +543,9 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
 
   // The list view has drawer-like behavior - it can be swiped into view, or swiped away.
   // These values control the state that's driven through gestures & animation.
-  if (selectedZoneId && controller.state !== AnimatedDrawerState.Visible) {
+  if (selectedItemId && controller.state !== AnimatedDrawerState.Visible) {
     controller.setState(AnimatedDrawerState.Visible);
-  } else if (!selectedZoneId && controller.state === AnimatedDrawerState.Visible) {
+  } else if (!selectedItemId && controller.state === AnimatedDrawerState.Visible) {
     controller.setState(AnimatedDrawerState.Docked);
   }
 
@@ -541,7 +580,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
     if (programaticallyScrolling) {
       // when we're scrolling through the list programatically, the true state of the selection is
       // the intended scroll target, not whichever card happens to be shown at the moment
-      const intendedIndex = zones.findIndex(z => z.zone_id === selectedZoneId);
+      const intendedIndex = items.findIndex(i => getItemId(i) === selectedItemId);
       if (intendedIndex === index) {
         // when the programmatic scroll reaches the intended index, we can call this programmatic
         // scroll event finished
@@ -549,21 +588,22 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
       }
     } else if (userScrolling) {
       // if the *user* is scrolling this drawer, though, the true state of our selection is up to them
-      setSelectedZoneId(zones[index].zone_id);
+      setSelectedItemId(getItemId(items[index]));
     }
   };
 
-  if (selectedZoneId !== previousSelectedZoneId) {
-    if (selectedZoneId && flatListRef.current) {
-      const index = zones.findIndex(z => z.zone_id === selectedZoneId);
+  if (selectedItemId !== previouslySelectedItemId) {
+    if (selectedItemId && flatListRef.current) {
+      const index = items.findIndex(i => getItemId(i) === selectedItemId);
       setProgramaticallyScrolling(true);
       flatListRef.current.scrollToIndex({index, animated: true, viewPosition: 0.5});
     }
-    setPreviousSelectedZoneId(selectedZoneId);
+    setPreviouslySelectedItemId(selectedItemId);
   }
 
   return (
     <Animated.FlatList
+      initialNumToRender={items.length}
       onLayout={(event: LayoutChangeEvent) => controller.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height)}
       ref={flatListRef}
       horizontal
@@ -584,8 +624,8 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
       onScrollEndDrag={() => setUserScrolling(false)}
       {...panResponder.panHandlers}
       {...flatListProps}
-      data={zones.map(zone => ({key: zone.zone_id, zone, date}))}
-      renderItem={({item}) => <AvalancheForecastZoneCard {...item} />}
+      data={items.map((i: T): ItemRenderData<T, U> => ({key: getItemId(i), item: i, date: date, center_id: center_id}))}
+      renderItem={({item}: {item: ItemRenderData<T, U>}) => renderItem(item)}
     />
   );
 };

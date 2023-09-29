@@ -242,7 +242,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, name, stations
     <VStack width="100%" height="100%" alignItems="stretch">
       <VStack width="100%" height="100%" p={16} space={8}>
         <HStack space={8} alignItems="center">
-          <BodyBlack>{name}</BodyBlack>
+          <BodyBlack style={{textTransform: 'capitalize'}}>{name.toLowerCase()}</BodyBlack>
           {warnings.length > 0 && (
             <InfoTooltip
               outlineIcon="bells"
