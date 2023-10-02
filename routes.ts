@@ -12,11 +12,18 @@ export type TabNavigatorParamList = {
 };
 export type TabNavigationProps = BottomTabNavigationProp<TabNavigatorParamList>;
 
-type WeatherStationDetailPageProps = {
+type WeatherStationsDetailPageProps = {
   center_id: AvalancheCenterID;
   zoneName: string;
   name: string;
   stations: Record<string, WeatherStationSource>;
+  requestedTime: RequestedTimeString;
+};
+
+type WeatherStationDetailPageProps = {
+  center_id: AvalancheCenterID;
+  stationId: string;
+  source: WeatherStationSource;
   requestedTime: RequestedTimeString;
 };
 
@@ -34,6 +41,7 @@ export type HomeStackParamList = {
   // While in the home stack, we can display these pages:
   // - weather station detail
   // - observation detail (nwac & nac)
+  stationsDetail: WeatherStationsDetailPageProps;
   stationDetail: WeatherStationDetailPageProps;
   observation: {
     id: string;
@@ -49,6 +57,7 @@ export type WeatherStackParamList = {
     center_id: AvalancheCenterID;
     requestedTime: RequestedTimeString;
   };
+  stationsDetail: WeatherStationsDetailPageProps;
   stationDetail: WeatherStationDetailPageProps;
 };
 export type WeatherStackNavigationProps = NativeStackNavigationProp<WeatherStackParamList>;

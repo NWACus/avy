@@ -64,14 +64,11 @@ export const WeatherStationMap: React.FunctionComponent<{
       // at this map zoom level - double the allowable radius to give a bigger touch target
       if (closestDistance <= circleRadius * 2 && closestStation) {
         if (selectedStationId === closestStation.properties.stid) {
-          const identifier: Record<string, WeatherStationSource> = {};
-          identifier[closestStation.properties.stid] = closestStation.properties.source;
           navigation.navigate('stationDetail', {
             center_id: center_id,
-            stations: identifier,
-            name: closestStation.properties.name,
+            stationId: closestStation.properties.stid,
+            source: closestStation.properties.source,
             requestedTime: requestedTime,
-            zoneName: 'Weather Data',
           });
         } else {
           setSelectedStationId(closestStation.properties.stid);
@@ -233,8 +230,6 @@ export const WeatherStationCard: React.FunctionComponent<{
   const navigation = useNavigation<WeatherStackNavigationProps>();
 
   const colors = colorsForSource(station.properties.source);
-  const identifier: Record<string, WeatherStationSource> = {};
-  identifier[station.properties.stid] = station.properties.source;
 
   return (
     <TouchableOpacity
@@ -242,10 +237,9 @@ export const WeatherStationCard: React.FunctionComponent<{
       onPress={() => {
         navigation.navigate('stationDetail', {
           center_id: center_id,
-          stations: identifier,
-          name: station.properties.name,
+          stationId: station.properties.stid,
+          source: station.properties.source,
           requestedTime: formatRequestedTime(date),
-          zoneName: 'Weather Data',
         });
       }}>
       <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={'100%'}>

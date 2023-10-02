@@ -1323,19 +1323,19 @@ export const weatherStationPropertiesSchema = z.discriminatedUnion('source', [
 ]);
 export type WeatherStationProperties = z.infer<typeof weatherStationPropertiesSchema>;
 
-export const variableSchema = z.array(
-  z.object({
-    variable: z.string(),
-    long_name: z.string(),
-    default_unit: z.string(),
-    english_unit: z.string(),
-    metric_unit: z.string(),
-    rounding: z.number(),
-  }),
-);
+export const variableSchema = z.object({
+  variable: z.string(),
+  long_name: z.string(),
+  default_unit: z.string(),
+  english_unit: z.string(),
+  metric_unit: z.string(),
+  rounding: z.number(),
+});
+export type Variable = z.infer<typeof variableSchema>;
+export const variablesSchema = z.array(variableSchema);
 export const unitSchema = z.record(z.string(), z.string());
 export const weatherStationCollectionPropertiesSchema = z.object({
-  variables: variableSchema,
+  variables: variablesSchema,
   units: unitSchema,
 });
 
@@ -1356,7 +1356,7 @@ export type WeatherStationTimeseriesEntry = z.infer<typeof weatherStationTimeser
 export const weatherStationTimeseriesSchema = z.object({
   STATION: z.array(weatherStationTimeseriesEntrySchema),
   UNITS: unitSchema,
-  VARIABLES: variableSchema,
+  VARIABLES: variablesSchema,
 });
 export type WeatherStationTimeseries = z.infer<typeof weatherStationTimeseriesSchema>;
 

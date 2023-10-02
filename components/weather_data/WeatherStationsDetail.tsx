@@ -23,9 +23,7 @@ interface Props {
   requestedTime: RequestedTimeString;
 }
 
-const formatDateTime = (input: string) => format(new Date(input), 'MM/dd HH:mm');
-
-// TODO: synthesized column PcpSum (cumulative precip) which is a running total of Pcp1 (precip_accum_one_hour)
+export const formatDateTime = (input: string) => format(new Date(input), 'MM/dd HH:mm');
 
 const preferredFieldOrder: Record<string, number> = {
   date_time: 0,
@@ -154,9 +152,9 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     <ScrollView style={{width: '100%', height: '100%'}}>
       <ScrollView horizontal style={{width: '100%', height: '100%'}}>
         <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
-          <Row borderRightWidth={1} name={shortFieldMap['date_time']} units={'PST'} elevation={' '} data={times.map(time => formatDateTime(time))} />
+          <Column borderRightWidth={1} name={shortFieldMap['date_time']} units={'PST'} elevation={' '} data={times.map(time => formatDateTime(time))} />
           {tableColumns.map(({field, elevation, dataByTime}, columnIndex) => (
-            <Row
+            <Column
               key={columnIndex}
               borderRightWidth={0}
               name={shortFieldMap[field]}
@@ -174,7 +172,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
 const columnPadding = 3;
 const rowPadding = 2;
 
-export const Row: React.FunctionComponent<{borderRightWidth: number; name: string; units: string; elevation: string; data: string[]}> = ({
+export const Column: React.FunctionComponent<{borderRightWidth: number; name: string; units: string; elevation?: string; data: string[]}> = ({
   borderRightWidth,
   name,
   units,
@@ -186,7 +184,7 @@ export const Row: React.FunctionComponent<{borderRightWidth: number; name: strin
       <VStack alignItems="center" justifyContent="flex-start" flex={1} py={rowPadding} px={columnPadding} bg="blue2">
         <BodyXSmBlack color="white">{name}</BodyXSmBlack>
         <BodyXSmBlack color="white">{units}</BodyXSmBlack>
-        <BodyXSmBlack color="white">{elevation}</BodyXSmBlack>
+        {elevation && <BodyXSmBlack color="white">{elevation}</BodyXSmBlack>}
       </VStack>
       {data.map((value, index) => (
         <Center
