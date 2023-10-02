@@ -13,7 +13,7 @@ import {Carousel, images} from 'components/content/carousel';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
-import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize, BodySmSemibold, Title3, Title3Black} from 'components/text';
+import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize, BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
 import {toDate} from 'date-fns-tz';
@@ -206,25 +206,21 @@ const WarningCard: React.FunctionComponent<{warning: Warning | Watch | Special}>
           <VStack space={8}>
             <HStack space={8} alignItems={'flex-start'}>
               <Feather name="alert-triangle" size={24} color={accentColor} />
-              <Title3Black color="white">{title.toUpperCase()}</Title3Black>
+              <Title3Black color="white">{title}</Title3Black>
             </HStack>
             <VStack>
-              <HStack px={4} space={2}>
+              <HStack pr={4} space={2}>
                 <BodySmSemibold color="white">Issued:</BodySmSemibold>
-                <AllCapsSm style={{textTransform: 'none'}} color="white">
-                  {utcDateToLocalTimeString(warning.published_time)}
-                </AllCapsSm>
+                <BodySm color="white">{utcDateToLocalTimeString(warning.published_time)}</BodySm>
               </HStack>
-              <HStack px={4} space={2}>
+              <HStack pr={4} space={2}>
                 <BodySmSemibold color="white">Expires:</BodySmSemibold>
-                <AllCapsSm style={{textTransform: 'none'}} color="white">
-                  {utcDateToLocalTimeString(warning.expires_time)}
-                </AllCapsSm>
+                <BodySm color="white">{utcDateToLocalTimeString(warning.expires_time)}</BodySm>
               </HStack>
             </VStack>
           </VStack>
           <View flex={1}>
-            <Title3 color={'white'}>{warning.bottom_line}</Title3>
+            <BodySemibold color={'white'}>{warning.bottom_line}</BodySemibold>
           </View>
           <Collapsible collapsed={isCollapsed} renderChildrenCollapsed>
             <VStack space={8} pt={8}>
