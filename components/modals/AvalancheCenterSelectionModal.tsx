@@ -6,7 +6,7 @@ import {avalancheCenterList, AvalancheCenters} from 'components/avalancheCenterL
 import {AvalancheCenterList} from 'components/content/AvalancheCenterList';
 import {Button} from 'components/content/Button';
 import {incompleteQueryState} from 'components/content/QueryState';
-import {Center, View, VStack} from 'components/core';
+import {Center, Divider, View, VStack} from 'components/core';
 import {Body, BodyBlack, Title3Black} from 'components/text';
 import {useAllAvalancheCenterMetadata} from 'hooks/useAllAvalancheCenterMetadata';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
@@ -50,8 +50,8 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
             {/* overflow hidden to keep the topo illustration from going beyond this view */}
             <VStack justifyContent="space-between" height="100%" overflow="hidden">
               {/* these magic numbers are yanked out of Figma */}
-              <Topo width={887.0152587890625} height={456.3430480957031} style={{position: 'absolute', left: -264, top: 402}} />
-              <VStack space={16} pt={96} px={16}>
+              <Topo width={887.0152587890625} height={456.3430480957031} style={{position: 'absolute', left: -264, top: 338}} />
+              <VStack space={16} pt={96} px={16} flex={1}>
                 <Center px={32}>
                   <Title3Black textAlign="center" color={colorLookup('NWAC-dark')}>
                     Welcome! Get started by selecting your local avalanche center.
@@ -66,8 +66,9 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
                   data={avalancheCenterList(AvalancheCenters.SupportedCenters, metadata)}
                 />
               </VStack>
-              <Center height={100} width="100%" px={16} backgroundColor={'white'}>
-                <Button disabled={!selectedCenter} onPress={closeHandler} alignSelf="stretch" buttonStyle="primary" mt={16}>
+              <Divider />
+              <Center height={100} width="100%" px={16} backgroundColor={'white'} alignItems="stretch">
+                <Button disabled={!selectedCenter} onPress={closeHandler} buttonStyle="primary" mt={16}>
                   <BodyBlack>Continue</BodyBlack>
                 </Button>
               </Center>
