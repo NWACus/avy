@@ -117,6 +117,29 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     }
   }
 
+  // Determine all the times we need to display as rows
+  const times = uniq(tableColumns.map(column => Object.keys(column.dataByTime)).flat()).sort((a, b) => {
+    return compareDesc(new Date(a), new Date(b));
+  }); // descending by time
+
+  // Compute an accumulated precipitation column if we have hourly precipitation data
+  const precip = tableColumns.find(column => column.field === 'precip_accum_one_hour');
+  if (precip) {
+    const precip_accum: Column = {
+      dataByTime: {},
+      field: 'precip_accum',
+      elevation: precip.elevation,
+    };
+    let accum = 0;
+    for (const time of [...times].reverse()) {
+      if (time in precip.dataByTime) {
+        accum += Number(precip.dataByTime[time]);
+        precip_accum.dataByTime[time] = accum.toFixed(2);
+      }
+    }
+    tableColumns.push(precip_accum);
+  }
+
   // With the columns we have, what should the preferred ordering be?
   tableColumns.sort((a, b) => {
     // Column sorting rules:
@@ -126,12 +149,6 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     // or wait - do we onlt want wind values at the highest elevation
     return preferredFieldOrder[a.field] - preferredFieldOrder[b.field] || (a.elevation && b.elevation ? b.elevation - a.elevation : -1);
   });
-
-  // Determine all of the times we need to display as rows
-  // With the rows we have, what should the preferred ordering be?
-  const times = uniq(tableColumns.map(column => Object.keys(column.dataByTime)).flat()).sort((a, b) => {
-    return compareDesc(new Date(a), new Date(b));
-  }); // descending by time
 
   return (
     <ScrollView style={{width: '100%', height: '100%'}}>
