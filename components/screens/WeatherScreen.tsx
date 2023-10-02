@@ -4,7 +4,7 @@ import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigat
 
 import {NavigationHeader} from 'components/content/NavigationHeader';
 import {View, VStack} from 'components/core';
-import {WeatherStationDetail} from 'components/weather_data/WeatherStationDetail';
+import {WeatherStationsDetail} from 'components/weather_data/WeatherStationsDetail';
 import {WeatherStationList} from 'components/weather_data/WeatherStationList';
 import {StyleSheet} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -48,7 +48,7 @@ export const StationDetailScreen = ({route}: NativeStackScreenProps<WeatherStack
     <View style={{...StyleSheet.absoluteFillObject}} bg="white">
       {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there, or top edge since StackHeader is sitting there */}
       <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
-        <WeatherStationDetail {...route.params} />
+        <WeatherStationsDetail {...route.params} />
       </SafeAreaView>
     </View>
   );
