@@ -439,7 +439,7 @@ export const SimpleForm: React.FC<{
                           )}
                         />
                       )}
-                      <Button buttonStyle="normal" onPress={void pickImage} disabled={images.length === maxImageCount}>
+                      <Button buttonStyle="normal" onPress={() => void pickImage()} disabled={images.length === maxImageCount}>
                         <BodyBlack>Select an image</BodyBlack>
                       </Button>
                     </VStack>

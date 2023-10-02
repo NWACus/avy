@@ -251,7 +251,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         }}
         ListEmptyComponent={<NotFound inline terminal what={[new NotFoundError('no observations found', 'any matching observations')]} />}
         style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={void refresh} />}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh()} />}
         data={displayedObservations}
         getItemLayout={(data, index) => ({length: OBSERVATION_SUMMARY_CARD_HEIGHT, offset: OBSERVATION_SUMMARY_CARD_HEIGHT * index, index})}
         renderItem={renderItem}
