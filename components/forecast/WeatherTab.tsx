@@ -312,7 +312,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
                   label: name,
                   data: stations,
                   action: () => {
-                    navigation.navigate('stationDetail', {
+                    navigation.navigate('stationsDetail', {
                       center_id: center_id,
                       stations: stations
                         .map(s => ({id: s.stid, source: s.source}))

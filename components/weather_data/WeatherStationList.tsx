@@ -142,7 +142,7 @@ const NWACStationList: React.FunctionComponent<{token: string; requestedTime: Re
           label: k,
           data: v,
           action: (name: string, data: WeatherStationProperties[]) => {
-            navigation.navigate('stationDetail', {
+            navigation.navigate('stationsDetail', {
               center_id: 'NWAC',
               stations: data
                 .map(s => ({id: s.stid, source: s.source}))
