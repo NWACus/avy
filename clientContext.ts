@@ -12,7 +12,7 @@ export interface ClientProps {
 
 export const productionHosts = {
   nationalAvalancheCenterHost: 'https://api.avalanche.org',
-  nationalAvalancheCenterWordpressHost: 'https://devavycenters.wpengine.com', // TODO(skuznets): what's the production version here?
+  nationalAvalancheCenterWordpressHost: 'https://forecasts.avalanche.org',
   snowboundHost: 'https://api.snowobs.com',
   nwacHost: 'https://nwac.us',
 };
