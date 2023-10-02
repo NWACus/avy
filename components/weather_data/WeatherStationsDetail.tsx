@@ -204,7 +204,7 @@ export const Row: React.FunctionComponent<{borderRightWidth: number; name: strin
   );
 };
 
-export const WeatherStationDetail: React.FC<Props> = ({center_id, name, stations, zoneName, requestedTime}) => {
+export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, stations, zoneName, requestedTime}) => {
   const [days, setDays] = useState(1);
   const navigation = useNavigation();
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
