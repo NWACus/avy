@@ -58,7 +58,7 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
             <SafeAreaView>
               <Center width="100%" height="100%">
                 <VStack
-                  alignItems="center"
+                  alignItems="stretch"
                   bg="white"
                   borderRadius={16}
                   px={12}
@@ -76,12 +76,12 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
 
                     elevation: 5,
                   }}>
-                  <AntDesign name={solidIcon} color={colorLookup('primary')} size={30} />
-                  <Title3Semibold>{title}</Title3Semibold>
+                  <AntDesign name={solidIcon} color={colorLookup('primary')} size={30} style={{alignSelf: 'center', marginBottom: 4}} />
+                  <Title3Semibold textAlign="center">{title}</Title3Semibold>
                   <HTMLRendererConfig baseStyle={finalHtmlStyle}>
                     <HTML source={{html: content}} />
                   </HTMLRendererConfig>
-                  <Button onPress={closeModal} alignSelf="stretch">
+                  <Button onPress={closeModal}>
                     <BodyBlack>Close</BodyBlack>
                   </Button>
                 </VStack>
