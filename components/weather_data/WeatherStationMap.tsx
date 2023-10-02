@@ -269,11 +269,11 @@ WeatherStationCard.displayName = 'WeatherStationCard';
 const colorsForSource = (source: WeatherStationSource) => {
   switch (source) {
     case WeatherStationSource.NWAC:
-      return {primary: '#0059C8', secondary: '#98CBFF'};
+      return {primary: colorLookup('weather.nwac.primary').toString(), secondary: colorLookup('weather.nwac.secondary').toString()};
     case WeatherStationSource.SNOTEL:
-      return {primary: '#006D23', secondary: '#9ED696'};
+      return {primary: colorLookup('weather.snotel.primary').toString(), secondary: colorLookup('weather.snotel.secondary').toString()};
     case WeatherStationSource.MESOWEST:
-      return {primary: '#EA983F', secondary: 'rgba(234, 152, 63, 0.2)'};
+      return {primary: colorLookup('weather.mesowest.primary').toString(), secondary: colorLookup('weather.mesowest.secondary').toString()};
   }
   const invalid: never = source;
   // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
