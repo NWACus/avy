@@ -1,7 +1,7 @@
 import {add, isAfter} from 'date-fns';
 import {format, formatInTimeZone as formatInTimeZoneDateFnsTz, toDate} from 'date-fns-tz';
 
-const formatInTimeZone = (date: string | number | Date, timeZone: string, formatString: string) => {
+export const formatInTimeZone = (date: string | number | Date, timeZone: string, formatString: string) => {
   try {
     return formatInTimeZoneDateFnsTz(date, timeZone, formatString);
   } catch (e: unknown) {

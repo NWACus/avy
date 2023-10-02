@@ -14,7 +14,7 @@ import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, StationNote, Variable, WeatherStationSource} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
-import {parseRequestedTimeString, RequestedTimeString, utcDateToLocalDateString} from 'utils/date';
+import {formatInTimeZone, parseRequestedTimeString, RequestedTimeString, utcDateToLocalDateString} from 'utils/date';
 
 interface Props {
   center_id: AvalancheCenterID;
@@ -69,7 +69,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
     return compareDesc(new Date(a['date_time'] || ''), new Date(b['date_time'] || ''));
   });
 
-  const variables = orderStationVariables(timeseries.VARIABLES);
+  const variables = orderStationVariables(timeseries.VARIABLES, timeseries.STATION[0].timezone);
   const columns: columnData[] = variables.map(v => ({variable: v, data: []}));
   for (const observation of observations) {
     for (const column of columns) {
@@ -255,7 +255,7 @@ const formatData = (variable: Variable, data: (number | string | null)[]): strin
 // orderStationVariables takes a list of variables exposed by a station and re-orders them, first listing
 // the known variables in the order we expect, then following with unknown variables in the oder provided
 // by the station API itself.
-const orderStationVariables = (stationVariables: Variable[]): Variable[] => {
+const orderStationVariables = (stationVariables: Variable[], timezone: string): Variable[] => {
   const out: Variable[] = [];
   for (const item of variableOrder) {
     const found = stationVariables.find(v => v.variable === item);
@@ -263,7 +263,7 @@ const orderStationVariables = (stationVariables: Variable[]): Variable[] => {
       out.push(found);
     } else if (item === 'date_time') {
       out.push({
-        default_unit: '',
+        default_unit: formatInTimeZone(new Date(), timezone, 'z'),
         english_unit: '',
         long_name: '',
         metric_unit: '',
