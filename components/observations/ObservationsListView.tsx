@@ -161,7 +161,11 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   );
 
   if (incompleteQueryState(nacObservationsResult, nwacObservationsResult, mapResult) || !observations || !mapLayer) {
-    return <QueryState results={[nacObservationsResult, nwacObservationsResult, mapResult]} />;
+    return (
+      <Center width="100%" height="100%">
+        <QueryState results={[nacObservationsResult, nwacObservationsResult, mapResult]} />
+      </Center>
+    );
   }
 
   return (
