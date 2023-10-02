@@ -80,6 +80,26 @@ export const COLORS: Record<string, ColorValue> = {
   high: '#DB3832',
   extreme: '#221F20',
 
+  'weather.nwac.primary': '#0059C8',
+  'weather.nwac.secondary': '#98CBFF',
+  'weather.snotel.primary': '#006D23',
+  'weather.snotel.secondary': '#9ED696',
+  'weather.mesowest.primary': '#EA983F',
+  'weather.mesowest.secondary': 'rgba(234, 152, 63, 0.2)',
+
+  'observer.forecaster.primary': '#0059C8',
+  'observer.forecaster.secondary': '#98CBFF',
+  'observer.intern.primary': '#0059C8',
+  'observer.intern.secondary': '#98CBFF',
+  'observer.professional.primary': '#006D23',
+  'observer.professional.secondary': '#9ED696',
+  'observer.volunteer.primary': '#EA983F',
+  'observer.volunteer.secondary': 'rgba(234, 152, 63, 0.2)',
+  'observer.public.primary': '#EA983F',
+  'observer.public.secondary': 'rgba(234, 152, 63, 0.2)',
+  'observer.other.primary': '#EA983F',
+  'observer.other.secondary': 'rgba(234, 152, 63, 0.2)',
+
   // Color aliases from NativeBase
   'rose.50': '#fff1f2',
   'rose.100': '#ffe4e6',
