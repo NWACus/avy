@@ -54,7 +54,7 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
       <Modal visible={showModal} transparent animationType="fade" onRequestClose={closeModal}>
         {/* Pressing anywhere outside the modal dismisses the modal */}
         <TouchableWithoutFeedback onPress={closeModal}>
-          <View position="absolute" top={0} bottom={0} left={0} right={0}>
+          <View position="absolute" top={0} bottom={0} left={0} right={0} backgroundColor={'rgba(0, 0, 0, 0.55)'}>
             <SafeAreaView>
               <Center width="100%" height="100%">
                 <VStack
