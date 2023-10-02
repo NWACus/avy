@@ -5,7 +5,7 @@ import {useNavigation} from '@react-navigation/native';
 import {Logger} from 'browser-bunyan';
 import {ActionList} from 'components/content/ActionList';
 import {Card} from 'components/content/Card';
-import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
+import {incompleteQueryState, NotFound, QueryState, Unavailable} from 'components/content/QueryState';
 import {VStack} from 'components/core';
 import {featureBounds, pointInFeature, RegionBounds} from 'components/helpers/geographicCoordinates';
 import {Title3Black} from 'components/text';
@@ -39,7 +39,11 @@ export const WeatherStationList: React.FC<Props> = ({center_id, requestedTime}) 
     return <NWACStationList token={metadata.widget_config.stations?.token} requestedTime={requestedTime} />;
   }
 
-  return <WeatherStationMap center_id={center_id} token={metadata.widget_config.stations?.token} requestedTime={requestedTime} />;
+  return process.env.EXPO_PUBLIC_ENABLE_WEATHER_MAP ? (
+    <WeatherStationMap center_id={center_id} token={metadata.widget_config.stations?.token} requestedTime={requestedTime} />
+  ) : (
+    <Unavailable />
+  );
 };
 
 const stationGroupMapping = {
