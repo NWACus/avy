@@ -2,8 +2,8 @@ import React, {useState} from 'react';
 
 import MapView, {MAP_TYPES, MapViewProps, Region} from 'react-native-maps';
 
-import {AvalancheForecastZonePolygon, toLatLngList} from 'components/AvalancheForecastZonePolygon';
 import {RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
+import {AvalancheForecastZonePolygon, toLatLngList} from 'components/map/AvalancheForecastZonePolygon';
 import {AvalancheCenterID, DangerLevel, Geometry} from 'types/nationalAvalancheCenter';
 
 const defaultAvalancheCenterMapRegionBounds: RegionBounds = {
