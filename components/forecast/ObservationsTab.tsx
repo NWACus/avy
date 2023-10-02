@@ -12,7 +12,8 @@ interface ObservationsTabProps {
 
 export const ObservationsTab: React.FunctionComponent<ObservationsTabProps> = ({zone_name, center_id, requestedTime}) => {
   return (
-    <View pt={16}>
+    // the top padding helps push the filter bar down in this view - a better solution may exist
+    <View flex={1} pt={16}>
       <ObservationsListView center_id={center_id} requestedTime={requestedTime} initialFilterConfig={{zone: zone_name}} />
     </View>
   );
