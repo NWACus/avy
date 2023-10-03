@@ -9,6 +9,7 @@ import {incompleteQueryState, NotFound, QueryState, Unavailable} from 'component
 import {VStack} from 'components/core';
 import {featureBounds, pointInFeature, RegionBounds} from 'components/helpers/geographicCoordinates';
 import {Title3Black} from 'components/text';
+import {WeatherStationMap} from 'components/weather_data/WeatherStationMap';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
@@ -34,27 +35,15 @@ export const WeatherStationList: React.FC<Props> = ({center_id, requestedTime}) 
     return <NotFound terminal what={[new NotFoundError('no token for stations', 'weather stations')]} />;
   }
 
-  return <StationList center_id={center_id} token={metadata.widget_config.stations?.token} requestedTime={requestedTime} />;
-};
-
-const StationList: React.FunctionComponent<{
-  center_id: AvalancheCenterID;
-  token: string;
-  requestedTime: RequestedTimeString;
-}> = ({center_id, token, requestedTime}) => {
-  const mapLayerResult = useMapLayer(center_id);
-  const mapLayer = mapLayerResult.data;
-  const weatherStationsResult = useWeatherStationsMetadata(center_id, token);
-  const weatherStations = weatherStationsResult.data;
-
-  if (incompleteQueryState(mapLayerResult, weatherStationsResult) || !mapLayer || !weatherStations) {
-    return <QueryState results={[mapLayerResult, weatherStationsResult]} />;
-  }
-
   if (center_id === 'NWAC') {
-    return <NWACStationList center={center_id} mapLayer={mapLayer} stations={weatherStations} requestedTime={requestedTime} />;
+    return <NWACStationList token={metadata.widget_config.stations?.token} requestedTime={requestedTime} />;
   }
-  return <Unavailable />;
+
+  return process.env.EXPO_PUBLIC_ENABLE_WEATHER_MAP ? (
+    <WeatherStationMap center_id={center_id} token={metadata.widget_config.stations?.token} requestedTime={requestedTime} />
+  ) : (
+    <Unavailable />
+  );
 };
 
 const stationGroupMapping = {
@@ -135,15 +124,19 @@ export const NWACStationsByZone = (mapLayer: MapLayer, stations: WeatherStationC
   return zones;
 };
 
-const NWACStationList: React.FunctionComponent<{center: AvalancheCenterID; mapLayer: MapLayer; stations: WeatherStationCollection; requestedTime: RequestedTimeString}> = ({
-  center,
-  mapLayer,
-  stations,
-  requestedTime,
-}) => {
+const NWACStationList: React.FunctionComponent<{token: string; requestedTime: RequestedTimeString}> = ({token, requestedTime}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const navigation = useNavigation<WeatherStackNavigationProps>();
-  const stationsByZone = NWACStationsByZone(mapLayer, stations, logger);
+  const mapLayerResult = useMapLayer('NWAC');
+  const mapLayer = mapLayerResult.data;
+  const weatherStationsResult = useWeatherStationsMetadata('NWAC', token);
+  const weatherStations = weatherStationsResult.data;
+
+  if (incompleteQueryState(mapLayerResult, weatherStationsResult) || !mapLayer || !weatherStations) {
+    return <QueryState results={[mapLayerResult, weatherStationsResult]} />;
+  }
+
+  const stationsByZone = NWACStationsByZone(mapLayer, weatherStations, logger);
 
   const data = stationsByZone
     .map(zone => ({
@@ -153,8 +146,8 @@ const NWACStationList: React.FunctionComponent<{center: AvalancheCenterID; mapLa
           label: k,
           data: v,
           action: (name: string, data: WeatherStationProperties[]) => {
-            navigation.navigate('stationDetail', {
-              center_id: center,
+            navigation.navigate('stationsDetail', {
+              center_id: 'NWAC',
               stations: data
                 .map(s => ({id: s.stid, source: s.source}))
                 .reduce((accum, value) => {

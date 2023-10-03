@@ -5,7 +5,7 @@ import {NavigationHeader} from 'components/content/NavigationHeader';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
 import {NWACObservationScreen, ObservationScreen} from 'components/screens/ObservationsScreen';
-import {StationDetailScreen} from 'components/screens/WeatherScreen';
+import {StationDetailScreen, StationsDetailScreen} from 'components/screens/WeatherScreen';
 import {HomeStackParamList, TabNavigatorParamList} from 'routes';
 
 const AvalancheCenterStack = createNativeStackNavigator<HomeStackParamList>();
@@ -20,6 +20,11 @@ export const HomeTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamL
         options={{headerShown: false}}
       />
       <AvalancheCenterStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={{headerShown: false}} />
+      <AvalancheCenterStack.Screen
+        name="stationsDetail"
+        component={StationsDetailScreen}
+        options={{title: 'Weather Station', header: props => <NavigationHeader center_id={center_id} {...props} />}}
+      />
       <AvalancheCenterStack.Screen
         name="stationDetail"
         component={StationDetailScreen}

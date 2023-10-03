@@ -266,20 +266,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 };
 
 const colorsFor = (partnerType: PartnerType) => {
-  switch (partnerType) {
-    case 'forecaster':
-    case 'intern':
-      return {primary: '#0059C8', secondary: '#98CBFF'};
-    case 'professional':
-      return {primary: '#006D23', secondary: '#9ED696'};
-    case 'volunteer':
-    case 'public':
-    case 'other':
-      return {primary: '#EA983F', secondary: 'rgba(234, 152, 63, 0.2)'};
-  }
-  const invalid: never = partnerType;
-  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-  throw new Error(`Unknown partner type: ${invalid}`);
+  return {primary: colorLookup(`observer.${partnerType}.primary`).toString(), secondary: colorLookup(`observer.${partnerType}.secondary`).toString()};
 };
 
 interface FilterPillButtonProps {
