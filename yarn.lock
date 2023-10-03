@@ -3665,10 +3665,10 @@
   resolved "https://registry.yarnpkg.com/@microsoft/fetch-event-source/-/fetch-event-source-2.0.1.tgz#9ceecc94b49fbaa15666e38ae8587f64acce007d"
   integrity sha512-W6CLUJ2eBMw3Rec70qrsEW0jOm/3twwJv21mrmj2yORiaVmVYGS4sSS5yUwvQc1ZlDLYGPnClVWmUUMagKNsfA==
 
-"@mobile-reality/react-native-select-pro@^2.1.0":
-  version "2.1.5"
-  resolved "https://registry.yarnpkg.com/@mobile-reality/react-native-select-pro/-/react-native-select-pro-2.1.5.tgz#f2ba5eec5758b9c858086c4031b6db25f44b0262"
-  integrity sha512-2TmXLy6Fom/egfIQdIxMRyJCGkk+9E8YLRazVIrer8UvX/g198LE/3zT0gUca9rn9LAY/uv69eLLb/s+ZFzVaw==
+"@mobile-reality/react-native-select-pro@^2.2.2":
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/@mobile-reality/react-native-select-pro/-/react-native-select-pro-2.2.2.tgz#96f5dd5746bff2a74eb665f35704709b4c601c3d"
+  integrity sha512-A7s+D2IqGnw1mN5VZUAvn5JAe2Em3TgJaq4PRUT4QmqG1BrtIeh5NXoOM93qtOJBwKbUNn6jAVLM4uiuQfdEMg==
   dependencies:
     "@gorhom/portal" "1.0.14"
     react-fast-compare "3.2.1"
