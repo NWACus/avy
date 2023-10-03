@@ -3,13 +3,14 @@ import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 import {View} from 'components/core/View';
+import {colorLookup} from 'theme';
 
 describe('View', () => {
   it("sets top-level properties on the wrapped View's style property", () => {
-    render(<View width={100} height={'100%'} backgroundColor="red" testID="foo" />);
+    render(<View width={100} height={'100%'} backgroundColor="red.100" testID="foo" />);
     const view = screen.getByTestId('foo');
     expect(view.props.style).toEqual({
-      backgroundColor: 'red',
+      backgroundColor: colorLookup('red.100').toString(),
       width: 100,
       height: '100%',
     });
@@ -25,39 +26,39 @@ describe('View', () => {
   });
 
   it('top-level properties overwrite the inner `style`, when specified after the `style` prop', () => {
-    render(<View style={{width: 50, backgroundColor: 'blue'}} backgroundColor="red" testID="foo" />);
+    render(<View style={{width: 50, backgroundColor: 'blue'}} backgroundColor="red.100" testID="foo" />);
     const view = screen.getByTestId('foo');
     expect(view.props.style).toEqual({
-      backgroundColor: 'red',
+      backgroundColor: colorLookup('red.100').toString(),
       width: 50,
     });
   });
 
   it('property shorthand can overwrite `style` props', () => {
-    render(<View style={{backgroundColor: 'blue'}} bg="red" testID="foo" />);
+    render(<View style={{backgroundColor: 'blue'}} bg="red.100" testID="foo" />);
     const view = screen.getByTestId('foo');
     expect(view.props.style).toEqual({
-      backgroundColor: 'red',
+      backgroundColor: colorLookup('red.100').toString(),
     });
   });
 
   it('when multiple property aliases target the same property, last one wins', () => {
-    render(<View style={{backgroundColor: 'blue'}} bg="red" backgroundColor="pink" bgColor="yellow" testID="foo" />);
+    render(<View style={{backgroundColor: 'blue'}} bg="red.100" backgroundColor="pink.200" bgColor="yellow.300" testID="foo" />);
     const view = screen.getByTestId('foo');
     expect(view.props.style).toEqual({
-      backgroundColor: 'yellow',
+      backgroundColor: colorLookup('yellow.300').toString(),
     });
 
-    render(<View style={{backgroundColor: 'blue'}} bgColor="yellow" backgroundColor="pink" bg="red" testID="foo" />);
+    render(<View style={{backgroundColor: 'blue'}} bgColor="yellow.300" backgroundColor="pink.200" bg="red.100" testID="foo" />);
     const view2 = screen.getByTestId('foo');
     expect(view2.props.style).toEqual({
-      backgroundColor: 'red',
+      backgroundColor: colorLookup('red.100').toString(),
     });
 
-    render(<View style={{backgroundColor: 'blue'}} bgColor="yellow" bg="red" backgroundColor="pink" testID="foo" />);
+    render(<View style={{backgroundColor: 'blue'}} bgColor="yellow.300" bg="red.100" backgroundColor="pink.200" testID="foo" />);
     const view3 = screen.getByTestId('foo');
     expect(view3.props.style).toEqual({
-      backgroundColor: 'pink',
+      backgroundColor: colorLookup('pink.200').toString(),
     });
   });
 
