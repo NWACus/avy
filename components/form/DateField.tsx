@@ -55,7 +55,7 @@ export const DateField: React.FC<DateFieldProps> = ({name, label}) => {
         </HStack>
       </TouchableOpacity>
 
-      {datePickerVisible && Platform.OS === 'ios' && <DateTimePicker value={value || new Date()} mode="date" display="inline" onChange={onDateSelected} />}
+      {datePickerVisible && Platform.OS === 'ios' && <DateTimePicker value={value || new Date()} mode="date" display="inline" themeVariant="light" onChange={onDateSelected} />}
     </VStack>
   );
 };
