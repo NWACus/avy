@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -10,7 +10,7 @@ import {NotFound, QueryState, incompleteQueryState} from 'components/content/Que
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
 import {Center, Divider, HStack, VStack, View} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
-import {ObservationFilterConfig, ObservationsFilterForm, datesForFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
+import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
 import {Body, BodyBlack, BodySm, BodySmBlack, Caption1Semibold, bodySize} from 'components/text';
 import {compareDesc, parseISO} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
@@ -34,7 +34,7 @@ interface ObservationsListViewItem {
 interface ObservationsListViewProps extends Omit<FlatListProps<ObservationsListViewItem>, 'data' | 'renderItem'> {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
-  initialFilterConfig?: ObservationFilterConfig;
+  additionalFilters?: Partial<ObservationFilterConfig>;
 }
 
 interface ObservationFragmentWithPageIndex extends ObservationFragment {
@@ -47,29 +47,21 @@ interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFr
   source: SourceType;
 }
 
-export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, initialFilterConfig, ...props}) => {
+export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, additionalFilters, ...props}) => {
   const endDate = requestedTimeToUTCDate(requestedTime);
-  const originalFilterConfig: ObservationFilterConfig = useMemo(
-    () => ({
-      dates: {
-        value: 'past_week',
-      },
-      ...initialFilterConfig,
-    }),
-    [initialFilterConfig],
-  );
-  const [filterConfig, setFilterConfig] = React.useState<ObservationFilterConfig>(originalFilterConfig);
-  const [filterModalVisible, setFilterModalVisible] = React.useState<boolean>(false);
+  const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(requestedTime, additionalFilters), [requestedTime, additionalFilters]);
+  const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
+  const [filterModalVisible, setFilterModalVisible] = useState<boolean>(false);
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
-  // when the initial filter inputs change, we should honor those
-  React.useEffect(() => {
+  // Filter inputs changed via render props should overwrite our current state
+  useEffect(() => {
     setFilterConfig(current => ({
       ...current,
-      ...originalFilterConfig,
+      ...additionalFilters,
     }));
-  }, [originalFilterConfig]);
+  }, [additionalFilters]);
 
   const nacObservationsResult = useNACObservations(center_id, requestedTime);
   const nacObservations: ObservationFragmentWithPageIndex[] = useMemo(
@@ -126,20 +118,20 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   }, []);
 
   const moreDataAvailable = useCallback(() => {
-    const {startDate: filterStartDate} = datesForFilterConfig(filterConfig.dates, endDate);
+    const {from: filterStartDate} = filterConfig.dates;
     return (
       (nacObservationsResult.hasNextPage && (nacObservations.length === 0 || new Date(nacObservations[nacObservations.length - 1].createdAt) > filterStartDate)) ||
       (nwacObservationsResult.hasNextPage && (nwacObservations.length === 0 || new Date(nwacObservations[nwacObservations.length - 1].createdAt) > filterStartDate))
     );
 
     return nacObservationsResult.hasNextPage || nwacObservationsResult.hasNextPage;
-  }, [nwacObservations, nwacObservationsResult, nacObservations, nacObservationsResult, filterConfig, endDate]);
+  }, [nwacObservations, nwacObservationsResult, nacObservations, nacObservationsResult, filterConfig]);
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
   const resolvedFilters = useMemo(
-    () => (mapLayer ? filtersForConfig(mapLayer, filterConfig, initialFilterConfig, endDate) : []),
-    [mapLayer, filterConfig, initialFilterConfig, endDate],
+    () => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters, endDate) : []),
+    [mapLayer, filterConfig, additionalFilters, endDate],
   );
 
   const displayedObservations: ObservationsListViewItem[] = useMemo(
