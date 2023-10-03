@@ -11,9 +11,11 @@ import {utcDateToLocalDateString} from 'utils/date';
 interface DateFieldProps {
   name: string;
   label: string;
+  minimumDate: Date;
+  maximumDate: Date;
 }
 
-export const DateField: React.FC<DateFieldProps> = ({name, label}) => {
+export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, maximumDate}) => {
   const {field} = useController({name: name});
   const [datePickerVisible, setDatePickerVisible] = useState(false);
 
@@ -35,10 +37,10 @@ export const DateField: React.FC<DateFieldProps> = ({name, label}) => {
       if (datePickerVisible) {
         void DateTimePickerAndroid.dismiss('date');
       } else {
-        void DateTimePickerAndroid.open({mode: 'date', display: 'default', onChange: onDateSelected, value: value ?? new Date()});
+        void DateTimePickerAndroid.open({mode: 'date', display: 'default', onChange: onDateSelected, value: value ?? new Date(), minimumDate, maximumDate});
       }
     }
-  }, [datePickerVisible, setDatePickerVisible, onDateSelected, value]);
+  }, [datePickerVisible, setDatePickerVisible, onDateSelected, value, minimumDate, maximumDate]);
 
   // TODO: maximum/minimum date
   return (
@@ -55,7 +57,17 @@ export const DateField: React.FC<DateFieldProps> = ({name, label}) => {
         </HStack>
       </TouchableOpacity>
 
-      {datePickerVisible && Platform.OS === 'ios' && <DateTimePicker value={value || new Date()} mode="date" display="inline" themeVariant="light" onChange={onDateSelected} />}
+      {datePickerVisible && Platform.OS === 'ios' && (
+        <DateTimePicker
+          value={value || new Date()}
+          mode="date"
+          display="inline"
+          themeVariant="light"
+          onChange={onDateSelected}
+          minimumDate={minimumDate}
+          maximumDate={maximumDate}
+        />
+      )}
     </VStack>
   );
 };

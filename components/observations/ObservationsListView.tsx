@@ -164,6 +164,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     <VStack width="100%" height="100%" space={0}>
       <Modal visible={filterModalVisible}>
         <ObservationsFilterForm
+          requestedTime={requestedTime}
           mapLayer={mapLayer}
           initialFilterConfig={originalFilterConfig}
           currentFilterConfig={filterConfig}

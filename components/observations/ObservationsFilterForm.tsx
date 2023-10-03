@@ -21,7 +21,7 @@ import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, SafeAreaView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {colorLookup} from 'theme';
 import {MapLayer, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
-import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
+import {RequestedTime, requestedTimeToUTCDate, startOfSeasonLocalDate} from 'utils/date';
 import {z} from 'zod';
 
 const avalancheInstabilitySchema = z.enum(['observed', 'triggered', 'caught']);
@@ -58,16 +58,8 @@ const DATE_LABELS: Record<DateValue, string> = {
 
 export const createDefaultFilterConfig = (requestedTime: RequestedTime, defaults: Partial<ObservationFilterConfig> | undefined): ObservationFilterConfig => {
   const endDate: Date = requestedTimeToUTCDate(requestedTime);
-  // Months are zero-base, so September is 8
+  // Months are zero-based, so September is 8
   const startDate = new Date(endDate.getUTCMonth() >= 8 ? endDate.getUTCFullYear() : endDate.getUTCFullYear() - 1, 8, 1);
-  console.log('createDefaultFilterConfig', {
-    dates: {
-      value: 'past_season',
-      from: startDate,
-      to: endDate,
-    },
-    ...defaults,
-  });
   return {
     dates: {
       value: 'past_season',
@@ -193,6 +185,7 @@ export const filtersForConfig = (
 };
 
 interface ObservationsFilterFormProps {
+  requestedTime: RequestedTime;
   mapLayer: MapLayer;
   initialFilterConfig: ObservationFilterConfig;
   currentFilterConfig: ObservationFilterConfig;
@@ -202,7 +195,14 @@ interface ObservationsFilterFormProps {
 
 const formFieldSpacing = 16;
 
-export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterFormProps> = ({mapLayer, initialFilterConfig, currentFilterConfig, setFilterConfig, setVisible}) => {
+export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterFormProps> = ({
+  requestedTime,
+  mapLayer,
+  initialFilterConfig,
+  currentFilterConfig,
+  setFilterConfig,
+  setVisible,
+}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const formContext = useForm({
     defaultValues: initialFilterConfig,
@@ -281,8 +281,13 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     <SelectField name="zone" label="Zone" radio items={mapLayer.features.map(feature => feature.properties.name)} disabled={Boolean(initialFilterConfig.zone)} />
                     <SelectField name="dates.value" label="Dates" radio items={(['past_season', 'custom'] as const).map(val => ({value: val, label: DATE_LABELS[val]}))} />
                     <Conditional name="dates.value" value={'custom'}>
-                      <DateField name="dates.from" label="Published After" />
-                      <DateField name="dates.to" label="Published Before" />
+                      <DateField
+                        name="dates.from"
+                        label="Published After"
+                        minimumDate={startOfSeasonLocalDate(requestedTime)}
+                        maximumDate={requestedTimeToUTCDate(requestedTime)}
+                      />
+                      <DateField name="dates.to" label="Published Before" minimumDate={startOfSeasonLocalDate(requestedTime)} maximumDate={requestedTimeToUTCDate(requestedTime)} />
                     </Conditional>
                     <SelectField
                       name="observerType"
