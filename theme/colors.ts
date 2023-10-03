@@ -453,4 +453,6 @@ export const COLORS: Record<string, ColorValue> = {
   'tertiary.900': '#064e3b',
 } as const;
 
-export const colorLookup = (color: ColorValue): ColorValue => (typeof color === 'string' && COLORS[color] ? COLORS[color] : color);
+export type ColorName = keyof typeof COLORS;
+
+export const colorLookup = (color: ColorName): ColorValue => COLORS[color];
