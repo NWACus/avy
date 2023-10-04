@@ -1271,7 +1271,7 @@ export const nwacWeatherStationPropertiesSchema = z.object({
     weather_station_partner: z.string(),
   }),
   station_note: z.array(stationNoteSchema),
-  data: z.record(z.string(), z.string().or(z.number())),
+  data: z.record(z.string(), z.string().or(z.number()).or(z.null())),
 });
 
 export const mesowestWeatherStationPropertiesSchema = z.object({
