@@ -47,11 +47,19 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({
 };
 
 export interface CollapsibleCardProps extends CardProps {
+  noDivider?: boolean;
   startsCollapsed: boolean;
   collapsedStateChanged?: (collapsed: boolean) => void;
 }
 
-export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({startsCollapsed, collapsedStateChanged, header, children, ...props}) => {
+export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({
+  startsCollapsed,
+  collapsedStateChanged,
+  header,
+  children,
+  noDivider,
+  ...props
+}) => {
   const [isCollapsed, setIsCollapsed] = useState(startsCollapsed);
   const textColor = colorLookup('text');
   const pressHandler = useCallback(() => {
@@ -74,7 +82,7 @@ export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<Collapsi
       }>
       <Collapsible collapsed={isCollapsed} renderChildrenCollapsed>
         <VStack space={8} pt={8}>
-          <Divider />
+          {!noDivider && <Divider />}
           <>{children}</>
         </VStack>
       </Collapsible>

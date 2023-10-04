@@ -5,7 +5,7 @@ import {MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-import {colorFor} from 'components/AvalancheDangerPyramid';
+import {colorFor} from 'components/AvalancheDangerTriangle';
 import {Card, CardProps} from 'components/content/Card';
 import {Carousel, images} from 'components/content/carousel';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';

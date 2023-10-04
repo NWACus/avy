@@ -4,7 +4,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
-import {colorFor} from 'components/AvalancheDangerPyramid';
+import {colorFor} from 'components/AvalancheDangerTriangle';
 import {Card} from 'components/content/Card';
 import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';

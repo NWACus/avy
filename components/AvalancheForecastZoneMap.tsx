@@ -6,7 +6,7 @@ import AnimatedMapView, {Region} from 'react-native-maps';
 
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
-import {colorFor} from 'components/AvalancheDangerPyramid';
+import {colorFor} from 'components/AvalancheDangerTriangle';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {defaultMapRegionForGeometries, MapViewZone, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';

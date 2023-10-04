@@ -5,15 +5,16 @@ import {addDays, formatDistanceToNow, isAfter} from 'date-fns';
 import {Feather, FontAwesome} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
-import {colorFor} from 'components/AvalancheDangerPyramid';
 import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
+import {colorFor} from 'components/AvalancheDangerTriangle';
 import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
+import {InlineDangerScale} from 'components/DangerScale';
 import {Card, CollapsibleCard} from 'components/content/Card';
-import {Carousel, images} from 'components/content/carousel';
 import {InfoTooltip} from 'components/content/InfoTooltip';
-import {incompleteQueryState, QueryState} from 'components/content/QueryState';
-import {HStack, View, VStack} from 'components/core';
-import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize, BodySm, BodySmSemibold, Title3Black} from 'components/text';
+import {QueryState, incompleteQueryState} from 'components/content/QueryState';
+import {Carousel, images} from 'components/content/carousel';
+import {HStack, VStack, View} from 'components/core';
+import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, BodySm, BodySmBlack, BodySmSemibold, Title3Black, bodySize} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
 import {toDate} from 'date-fns-tz';
@@ -39,7 +40,7 @@ import {
   Warning,
   Watch,
 } from 'types/nationalAvalancheCenter';
-import {RequestedTime, utcDateToLocalTimeString} from 'utils/date';
+import {RequestedTime, utcDateToLocalDateString, utcDateToLocalTimeString} from 'utils/date';
 
 interface AvalancheTabProps {
   elevationBandNames: ElevationBandNames;
@@ -163,9 +164,17 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
         <Card borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Avalanche Danger" content={helpStrings.avalancheDanger} />}>
           <AvalancheDangerTable date={addDays(publishedTime, 1)} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
         </Card>
-        <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Outlook" content={helpStrings.avalancheDangerOutlook} />}>
-          <AvalancheDangerTable date={addDays(publishedTime, 2)} forecast={outlookDanger} elevation_band_names={elevationBandNames} size={'outlook'} />
+        <CollapsibleCard
+          startsCollapsed
+          borderRadius={0}
+          borderColor="white"
+          header={<BodySmBlack>{utcDateToLocalDateString(addDays(publishedTime, 2))}</BodySmBlack>}
+          noDivider={true}>
+          <AvalancheDangerTable forecast={outlookDanger} size={'outlook'} />
         </CollapsibleCard>
+        <Card borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Danger Scale" content={helpStrings.dangerScale} />} noDivider={true}>
+          <InlineDangerScale />
+        </Card>
         {forecast.product_type === ProductType.Forecast &&
           forecast.forecast_avalanche_problems &&
           forecast.forecast_avalanche_problems.map((problem, index) => (
