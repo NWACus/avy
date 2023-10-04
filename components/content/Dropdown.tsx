@@ -30,19 +30,23 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
 
   return (
     <>
-      <View ref={ref} borderColor={borderColor} borderWidth={2} borderRadius={4} p={8} flexDirection="column" justifyContent="center" onLayout={onLayout} {...props}>
-        <TouchableOpacity
-          onPress={() => {
-            setDropdownVisible(!dropdownVisible);
-          }}>
+      <TouchableOpacity
+        onPress={() => {
+          setDropdownVisible(!dropdownVisible);
+        }}>
+        <View ref={ref} borderColor={borderColor} borderWidth={2} borderRadius={4} p={8} flexDirection="column" justifyContent="center" onLayout={onLayout} {...props}>
           <HStack justifyContent="space-between" alignItems="center">
             <Body>{selectedItem}</Body>
             <Entypo name={dropdownVisible ? 'chevron-small-up' : 'chevron-small-down'} size={bodySize} color={colorLookup('text')} />
           </HStack>
-        </TouchableOpacity>
-      </View>
-      <Modal visible={dropdownVisible} transparent animationType="fade">
-        <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
+        </View>
+      </TouchableOpacity>
+      <Modal visible={dropdownVisible} transparent animationType="none">
+        <TouchableWithoutFeedback
+          disabled={!dropdownVisible}
+          onPress={() => {
+            setDropdownVisible(false);
+          }}>
           <View style={{...StyleSheet.absoluteFillObject}}>
             <VStack
               bg="white"
@@ -59,6 +63,7 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
               {items.sort().map((item, index) => (
                 <TouchableOpacity
                   key={item}
+                  disabled={!dropdownVisible}
                   onPress={() => {
                     setDropdownVisible(false);
                     onSelectionChange?.(item);
