@@ -2,7 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import {Animated, NativeSyntheticEvent} from 'react-native';
 import {LatLng, Point, Polygon} from 'react-native-maps';
 
-import {colorFor} from 'components/AvalancheDangerPyramid';
+import {colorFor} from 'components/AvalancheDangerTriangle';
 import {MapViewZone} from 'components/content/ZoneMap';
 import {colorLookup} from 'theme';
 import {Geometry} from 'types/nationalAvalancheCenter';
