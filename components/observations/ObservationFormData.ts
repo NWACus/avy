@@ -4,6 +4,18 @@ import {z} from 'zod';
 
 import {Activity, InstabilityDistribution, MediaUsage, PartnerType} from 'types/nationalAvalancheCenter';
 
+const FAKE_OBSERVATION_DATA: Partial<ObservationFormData> = {
+  activity: ['skiing_snowboarding'],
+  location_point: {
+    lat: 47.6062,
+    lng: -122.3321,
+  },
+  email: 'brian@nwac.us',
+  name: 'Brian',
+  observation_summary: 'This is a test observation.',
+  location_name: 'at my kitchen table',
+};
+
 export const defaultObservationFormData = (initialValues: Partial<ObservationFormData> | null = null): Partial<ObservationFormData> =>
   merge(
     {
@@ -23,6 +35,7 @@ export const defaultObservationFormData = (initialValues: Partial<ObservationFor
       status: 'published',
       images: [],
     },
+    process.env.EXPO_PUBLIC_AUTOFILL_FAKE_OBSERVATION ? FAKE_OBSERVATION_DATA : {},
     initialValues,
   );
 const required = 'This field is required.';
