@@ -10,9 +10,6 @@ import {logger} from 'logger';
 import {AvalancheCenterID, avalancheCenterIDSchema, MediaItem, mediaItemSchema, MediaUsage, Observation} from 'types/nationalAvalancheCenter';
 import {apiDateString} from 'utils/date';
 
-const taskQueueEntryTypeSchema = z.enum(['image', 'observation']);
-type TaskQueueEntryType = z.infer<typeof taskQueueEntryTypeSchema>;
-
 const taskQueueEntrySchema = z.discriminatedUnion('type', [
   z.object({
     id: z.string().uuid(),
@@ -35,20 +32,19 @@ const taskQueueEntrySchema = z.discriminatedUnion('type', [
   z.object({
     id: z.string().uuid(),
     type: z.literal('observation'),
-    data: simpleObservationFormSchema.partial().extend({
-      url: z.string().url(),
-      imageTaskIds: z.array(z.string().uuid()),
-      center_id: avalancheCenterIDSchema,
-      organization: avalancheCenterIDSchema,
-      status: z.literal('published'),
-      observer_type: z.literal('public'),
-      // Date has to be a plain-old YYYY-MM-DD string
-      start_date: z.string(),
+    data: z.object({
+      formData: simpleObservationFormSchema,
+      extraData: z.object({
+        url: z.string().url(),
+        imageTaskIds: z.array(z.string().uuid()),
+        center_id: avalancheCenterIDSchema,
+        organization: avalancheCenterIDSchema,
+        observer_type: z.literal('public'),
+      }),
     }),
   }),
 ]);
 type TaskQueueEntry = z.infer<typeof taskQueueEntrySchema>;
-type ImageTaskData = Extract<TaskQueueEntry, {type: 'image'}>['data'];
 type ObservationTaskData = Extract<TaskQueueEntry, {type: 'observation'}>['data'];
 
 const taskQueueSchema = z.array(taskQueueEntrySchema);
@@ -94,7 +90,7 @@ const enqueueTasks = async (entries: TaskQueueEntry[]) => {
   }
 };
 
-const resetTaskQueue = async () => {
+export const resetTaskQueue = async () => {
   logger.debug('resetTaskQueue');
   await AsyncStorage.setItem(TASK_QUEUE_KEY, JSON.stringify([]));
 };
@@ -220,13 +216,17 @@ const uploadImage = async (taskId: string, {apiPrefix, image, name, center_id, p
 };
 
 async function uploadObservation(id: string, data: ObservationTaskData): Promise<Observation> {
-  const {url, imageTaskIds, ...params} = data;
+  const {formData, extraData} = data;
+  const {url, imageTaskIds, ...params} = extraData;
   const media = (await Promise.all(imageTaskIds.map(getUploadedImageByTaskId))).filter((image): image is MediaItem => image != null);
   const payload: Partial<Observation> = {
+    ...formData,
     ...params,
     media,
     obs_source: 'public',
-    body: params.observation_summary,
+    // Date has to be a plain-old YYYY-MM-DD string
+    start_date: apiDateString(formData.start_date),
+    status: 'published',
   };
   try {
     const {data: responseData} = await axios.post<Observation>(url, payload, {
@@ -259,7 +259,7 @@ export const submitObservation = async ({
 }: {
   apiPrefix: string;
   center_id: AvalancheCenterID;
-  observationFormData: Partial<ObservationFormData>;
+  observationFormData: ObservationFormData;
 }): Promise<void> => {
   try {
     const {photoUsage, name} = observationFormData;
@@ -298,15 +298,18 @@ export const submitObservation = async ({
       id: uploadTaskId,
       type: 'observation',
       data: {
-        ...observationFormData,
-        imageTaskIds,
-        url,
-        center_id,
-        organization: center_id,
-        status: 'published',
-        observer_type: 'public',
-        // Date has to be a plain-old YYYY-MM-DD string
-        start_date: apiDateString(observationFormData.start_date ?? new Date()),
+        formData: {
+          ...observationFormData,
+        },
+        extraData: {
+          imageTaskIds,
+          url,
+          center_id,
+          organization: center_id,
+          observer_type: 'public',
+          // Date has to be a plain-old YYYY-MM-DD string
+          // start_date: apiDateString(observationFormData.start_date ?? new Date()),
+        },
       },
     });
 

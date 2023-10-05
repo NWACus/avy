@@ -372,11 +372,11 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
 
 export const matchesZone = (mapLayer: MapLayer, lat: number | null | undefined, long: number | null | undefined): string => {
   if (!lat || !long) {
-    return 'Not in any Forecast Zone';
+    return 'Unknown Zone';
   }
   const matchingFeatures = mapLayer.features.filter(feature => geoContains(feature.geometry, [long, lat])).map(feature => feature.properties.name);
   if (matchingFeatures.length === 0) {
-    return 'Not in any Forecast Zone';
+    return 'Unknown Zone';
   } else if (matchingFeatures.length > 1) {
     // TODO: this happens almost 100% ... why?
     // also, seems like the widget is naming things with more specificity than just the forecast zones? e.g. teton village
