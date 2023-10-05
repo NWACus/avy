@@ -113,6 +113,7 @@
     "react-native-screens": "~3.22.0",
     "react-native-svg": "13.9.0",
     "react-native-toast-message": "^2.1.6",
+    "react-native-uuid": "^2.0.1",
     "react-native-web": "~0.19.6",
     "sentry-expo": "~7.0.0",
     "tamagui": "^1.35.8",

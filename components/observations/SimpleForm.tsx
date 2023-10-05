@@ -21,14 +21,14 @@ import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField} from 'components/form/TextField';
-import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
+import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchemaWithValidations} from 'components/observations/ObservationFormData';
 import {submitObservation} from 'components/observations/submitObservation';
 import {Body, BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, ImageMediaItem, InstabilityDistribution, MediaType, Observation} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, ImageMediaItem, InstabilityDistribution, MediaType} from 'types/nationalAvalancheCenter';
 
 export const SimpleForm: React.FC<{
   center_id: AvalancheCenterID;
@@ -38,7 +38,7 @@ export const SimpleForm: React.FC<{
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const formContext = useForm({
     defaultValues: defaultObservationFormData(),
-    resolver: zodResolver(simpleObservationFormSchema),
+    resolver: zodResolver(simpleObservationFormSchemaWithValidations),
     mode: 'onBlur',
     shouldFocusError: false,
     shouldUnregister: true,
@@ -63,10 +63,10 @@ export const SimpleForm: React.FC<{
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
 
-  const mutation = useMutation<Observation, AxiosError, Partial<ObservationFormData>>({
+  const mutation = useMutation<void, AxiosError, Partial<ObservationFormData>>({
     mutationFn: async (observationFormData: Partial<ObservationFormData>) => {
       logger.info({formValues: observationFormData}, 'submitting observation');
-      return submitObservation(logger, {center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
+      return submitObservation({center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
     },
     onMutate: () => {
       Toast.show({
