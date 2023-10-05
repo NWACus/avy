@@ -74,6 +74,8 @@ const encodeParams = (params: {[s: string]: string}) => {
     .join('&');
 };
 
+// Sometimes we're sending very large data params like base64-encoded images.
+// Let's not log those, eh?
 const filterBigStrings = (params: unknown): unknown => {
   if (!params || (typeof params !== 'object' && typeof params !== 'string')) {
     return params;
@@ -81,6 +83,10 @@ const filterBigStrings = (params: unknown): unknown => {
 
   if (typeof params === 'string') {
     return params.length > 100 ? params.substring(0, 100) + '...' : params;
+  }
+
+  if (Array.isArray(params)) {
+    return params.map(filterBigStrings);
   }
 
   return Object.fromEntries(

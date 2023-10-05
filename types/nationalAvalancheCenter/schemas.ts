@@ -973,7 +973,6 @@ export const observationSchema = z.object({
   instability: instabilitySchema,
   instability_summary: z.string().nullable().optional(/* only because of NWAC */),
   observation_summary: z.string().nullable().optional(/* only because of NWAC */),
-  body: z.string().nullable().optional(/* this is a new field required on submission but never returned...? */),
   obs_source: z.nativeEnum(ObsSourceType).optional(),
   media: z.array(mediaItemSchema).nullable().optional(/* only because of NWAC */),
   avalanches_summary: z.string().nullable().optional(/* only because of NWAC */),

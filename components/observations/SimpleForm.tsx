@@ -21,7 +21,7 @@ import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField} from 'components/form/TextField';
-import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchemaWithValidations} from 'components/observations/ObservationFormData';
+import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
 import {submitObservation} from 'components/observations/submitObservation';
 import {Body, BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -36,9 +36,9 @@ export const SimpleForm: React.FC<{
 }> = ({center_id, onClose}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const formContext = useForm({
+  const formContext = useForm<ObservationFormData>({
     defaultValues: defaultObservationFormData(),
-    resolver: zodResolver(simpleObservationFormSchemaWithValidations),
+    resolver: zodResolver(simpleObservationFormSchema),
     mode: 'onBlur',
     shouldFocusError: false,
     shouldUnregister: true,
@@ -63,8 +63,8 @@ export const SimpleForm: React.FC<{
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
 
-  const mutation = useMutation<void, AxiosError, Partial<ObservationFormData>>({
-    mutationFn: async (observationFormData: Partial<ObservationFormData>) => {
+  const mutation = useMutation<void, AxiosError, ObservationFormData>({
+    mutationFn: async (observationFormData: ObservationFormData) => {
       logger.info({formValues: observationFormData}, 'submitting observation');
       return submitObservation({center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
     },
@@ -93,7 +93,7 @@ export const SimpleForm: React.FC<{
     retry: true,
   });
 
-  const onSubmitHandler = (data: Partial<ObservationFormData>) => {
+  const onSubmitHandler = (data: ObservationFormData) => {
     // Submit button turns into a cancel button
     if (mutation.isLoading) {
       mutation.reset();
