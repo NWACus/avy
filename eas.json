@@ -9,6 +9,10 @@
       "distribution": "internal",
       "channel": "main"
     },
+    "adhoc": {
+      "distribution": "internal",
+      "channel": "main"
+    },
     "simulator": {
       "distribution": "internal",
       "channel": "main",
