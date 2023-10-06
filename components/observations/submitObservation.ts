@@ -38,6 +38,8 @@ export const submitObservation = async ({
           apiPrefix: apiPrefix,
           image: {
             uri: image.uri,
+            width: image.width,
+            height: image.height,
             exif: image.exif
               ? {
                   // The type of ImagePickerAsset.exif is (unfortunately) Record<string, any>
