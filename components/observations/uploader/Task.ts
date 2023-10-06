@@ -13,6 +13,8 @@ const taskQueueEntrySchema = z.discriminatedUnion('type', [
       apiPrefix: z.string(),
       image: z.object({
         uri: z.string(),
+        width: z.number(),
+        height: z.number(),
         exif: z
           .object({
             Orientation: z.number().or(z.string()).optional(),

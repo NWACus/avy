@@ -265,6 +265,8 @@ const imageUploadTask = (): TaskQueueEntry => ({
     apiPrefix: 'https://localhost:3000',
     image: {
       uri: 'file:///test.jpg',
+      width: 640,
+      height: 480,
       exif: {Orientation: 1},
     },
     name: `created ${new Date().toLocaleTimeString()}`,
