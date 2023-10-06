@@ -113,6 +113,7 @@
     "react-native-screens": "~3.22.0",
     "react-native-svg": "13.9.0",
     "react-native-toast-message": "^2.1.6",
+    "react-native-uuid": "^2.0.1",
     "react-native-web": "~0.19.6",
     "sentry-expo": "~7.0.0",
     "tamagui": "^1.35.8",
@@ -162,6 +163,9 @@
     "preset": "jest-expo",
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|d3(-?[a-z]+)?|internmap)"
+    ],
+    "setupFiles": [
+      "./tests/setupAsyncStorage.ts"
     ],
     "setupFilesAfterEnv": [
       "@testing-library/jest-native/extend-expect"

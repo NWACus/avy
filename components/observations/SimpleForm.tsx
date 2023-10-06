@@ -28,7 +28,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, ImageMediaItem, InstabilityDistribution, MediaType, Observation} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, ImageMediaItem, InstabilityDistribution, MediaType} from 'types/nationalAvalancheCenter';
 
 export const SimpleForm: React.FC<{
   center_id: AvalancheCenterID;
@@ -36,7 +36,7 @@ export const SimpleForm: React.FC<{
 }> = ({center_id, onClose}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const formContext = useForm({
+  const formContext = useForm<ObservationFormData>({
     defaultValues: defaultObservationFormData(),
     resolver: zodResolver(simpleObservationFormSchema),
     mode: 'onBlur',
@@ -63,10 +63,10 @@ export const SimpleForm: React.FC<{
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
 
-  const mutation = useMutation<Observation, AxiosError, Partial<ObservationFormData>>({
-    mutationFn: async (observationFormData: Partial<ObservationFormData>) => {
+  const mutation = useMutation<void, AxiosError, ObservationFormData>({
+    mutationFn: async (observationFormData: ObservationFormData) => {
       logger.info({formValues: observationFormData}, 'submitting observation');
-      return submitObservation(logger, {center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
+      return submitObservation({center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
     },
     onMutate: () => {
       Toast.show({
@@ -93,7 +93,7 @@ export const SimpleForm: React.FC<{
     retry: true,
   });
 
-  const onSubmitHandler = (data: Partial<ObservationFormData>) => {
+  const onSubmitHandler = (data: ObservationFormData) => {
     // Submit button turns into a cancel button
     if (mutation.isLoading) {
       mutation.reset();

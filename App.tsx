@@ -35,7 +35,6 @@ import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
 
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
-import {clearUploadCache} from 'components/observations/submitObservation';
 import {HomeTabScreen} from 'components/screens/HomeScreen';
 import {MenuStackScreen} from 'components/screens/MenuScreen';
 import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
@@ -73,14 +72,43 @@ const encodeParams = (params: {[s: string]: string}) => {
     .map(kv => kv.map(encodeURIComponent).join('='))
     .join('&');
 };
+
+// Sometimes we're sending very large data params like base64-encoded images.
+// Let's not log those, eh?
+const filterBigStrings = (params: unknown): unknown => {
+  if (!params || (typeof params !== 'object' && typeof params !== 'string')) {
+    return params;
+  }
+
+  if (typeof params === 'string') {
+    return params.length > 100 ? params.substring(0, 100) + '...' : params;
+  }
+
+  if (Array.isArray(params)) {
+    return params.map(filterBigStrings);
+  }
+
+  return Object.fromEntries(
+    Object.entries(params).map(([k, v]) => {
+      if (typeof v === 'string' && v.length > 100) {
+        return [k, v.substring(0, 100) + '...'];
+      } else if (typeof v === 'object') {
+        return [k, filterBigStrings(v)];
+      } else {
+        return [k, v];
+      }
+    }),
+  );
+};
+
 const formatURI = (request: AxiosRequestConfig): string => {
   const method = request.method ?? 'GET';
   let msg = `${method.toUpperCase()} ${request.url ?? 'url'}`;
   if (request.params && Object.keys(request.params as {[s: string]: string}).length !== 0) {
-    msg += `?${encodeParams(request.params as {[s: string]: string})}`;
+    msg += `?${encodeParams(filterBigStrings(request.params) as {[s: string]: string})}`;
   }
   if (request.data) {
-    msg += ` data: ${JSON.stringify(request.data)}`;
+    msg += ` data: ${JSON.stringify(filterBigStrings(request.data))}`;
   }
   return msg;
 };
@@ -89,7 +117,12 @@ axios.interceptors.request.use(request => {
   const thisLogger = logger.child({uri: formatURI(request)});
   thisLogger.debug(msg);
   if (request.data) {
-    thisLogger.trace({data: JSON.stringify(request.data)}, msg);
+    thisLogger.trace(
+      {
+        data: JSON.stringify(filterBigStrings(request.data)),
+      },
+      msg,
+    );
   }
   return request;
 });
@@ -99,7 +132,7 @@ axios.interceptors.response.use(response => {
   const thisLogger = logger.child({uri: formatURI(response.config), status: response.status});
   thisLogger.debug(msg);
   if (response.data) {
-    thisLogger.trace({data: JSON.stringify(response.data)}, msg);
+    thisLogger.trace({data: JSON.stringify(filterBigStrings(response.data))}, msg);
   }
   return response;
 });
@@ -183,8 +216,6 @@ const asyncStoragePersister = createAsyncStoragePersister({
   storage: AsyncStorage,
   key: QUERY_CACHE_ASYNC_STORAGE_KEY,
 });
-
-void clearUploadCache();
 
 const TabNavigator = createBottomTabNavigator<TabNavigatorParamList>();
 
