@@ -15,7 +15,9 @@ import {MenuStackNavigationProps, MenuStackParamList, TabNavigationProps, TabNav
 import {Divider, HStack, View, VStack} from 'components/core';
 
 import * as Application from 'expo-application';
+import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
+import * as FileSystem from 'expo-file-system';
 import * as Updates from 'expo-updates';
 import * as WebBrowser from 'expo-web-browser';
 
@@ -198,33 +200,45 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                             },
                           ]}
                         />
-                        <Button
-                          buttonStyle="normal"
-                          // this is disabled on iOS and enabled on Android,
-                          // since we don't have proper attachment support on iOS
-                          // https://github.com/expo/expo/issues/24613
-                          disabled={Platform.OS === 'ios'}
-                          onPress={() => {
-                            void (async () => {
-                              if (
-                                !(await sendMail({
-                                  to: 'developer+app-logs@nwac.us',
-                                  subject: 'NWAC app log files',
-                                  body: `\n\n---\n\nRun \`yarn bunyan ${logFilePath.split('/').slice(-1)[0]}\` to view.\nRun \`yarn bunyan --help\` for additional options.`,
-                                  attachments: [logFilePath],
-                                  logger,
-                                }))
-                              ) {
-                                Toast.show({
-                                  type: 'error',
-                                  text1: 'Email is not configured!',
-                                  position: 'bottom',
-                                });
-                              }
-                            })();
-                          }}>
-                          Email log file
-                        </Button>
+                        <HStack alignItems="center" justifyContent={'space-between'} space={16}>
+                          <Button
+                            buttonStyle="normal"
+                            // this is disabled on iOS and enabled on Android,
+                            // since we don't have proper attachment support on iOS
+                            // https://github.com/expo/expo/issues/24613
+                            disabled={Platform.OS === 'ios'}
+                            onPress={() => {
+                              void (async () => {
+                                if (
+                                  !(await sendMail({
+                                    to: 'developer+app-logs@nwac.us',
+                                    subject: 'NWAC app log files',
+                                    body: `\n\n---\n\nRun \`yarn bunyan ${logFilePath.split('/').slice(-1)[0]}\` to view.\nRun \`yarn bunyan --help\` for additional options.`,
+                                    attachments: [logFilePath],
+                                    logger,
+                                  }))
+                                ) {
+                                  Toast.show({
+                                    type: 'error',
+                                    text1: 'Email is not configured!',
+                                    position: 'bottom',
+                                  });
+                                }
+                              })();
+                            }}>
+                            Email log file
+                          </Button>
+                          <Button
+                            buttonStyle="normal"
+                            onPress={() => {
+                              void (async () => {
+                                const log = await FileSystem.readAsStringAsync(logFilePath);
+                                await Clipboard.setStringAsync(log);
+                              })();
+                            }}>
+                            Copy log to clipboard
+                          </Button>
+                        </HStack>
                         <Button
                           buttonStyle="normal"
                           onPress={() => {
