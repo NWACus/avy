@@ -64,6 +64,7 @@ import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 import * as messages from 'compiled-lang/en.json';
+import {filterLoggedData} from 'logging/filterLoggedData';
 
 logger.info('App starting.');
 
@@ -73,42 +74,14 @@ const encodeParams = (params: {[s: string]: string}) => {
     .join('&');
 };
 
-// Sometimes we're sending very large data params like base64-encoded images.
-// Let's not log those, eh?
-const filterBigStrings = (params: unknown): unknown => {
-  if (!params || (typeof params !== 'object' && typeof params !== 'string')) {
-    return params;
-  }
-
-  if (typeof params === 'string') {
-    return params.length > 100 ? params.substring(0, 100) + '...' : params;
-  }
-
-  if (Array.isArray(params)) {
-    return params.map(filterBigStrings);
-  }
-
-  return Object.fromEntries(
-    Object.entries(params).map(([k, v]) => {
-      if (typeof v === 'string' && v.length > 100) {
-        return [k, v.substring(0, 100) + '...'];
-      } else if (typeof v === 'object') {
-        return [k, filterBigStrings(v)];
-      } else {
-        return [k, v];
-      }
-    }),
-  );
-};
-
 const formatURI = (request: AxiosRequestConfig): string => {
   const method = request.method ?? 'GET';
   let msg = `${method.toUpperCase()} ${request.url ?? 'url'}`;
   if (request.params && Object.keys(request.params as {[s: string]: string}).length !== 0) {
-    msg += `?${encodeParams(filterBigStrings(request.params) as {[s: string]: string})}`;
+    msg += `?${encodeParams(filterLoggedData(request.params) as {[s: string]: string})}`;
   }
   if (request.data) {
-    msg += ` data: ${JSON.stringify(filterBigStrings(request.data))}`;
+    msg += ` data: ${JSON.stringify(filterLoggedData(request.data))}`;
   }
   return msg;
 };
@@ -119,7 +92,7 @@ axios.interceptors.request.use(request => {
   if (request.data) {
     thisLogger.trace(
       {
-        data: JSON.stringify(filterBigStrings(request.data)),
+        data: JSON.stringify(filterLoggedData(request.data)),
       },
       msg,
     );
@@ -132,7 +105,7 @@ axios.interceptors.response.use(response => {
   const thisLogger = logger.child({uri: formatURI(response.config), status: response.status});
   thisLogger.debug(msg);
   if (response.data) {
-    thisLogger.trace({data: JSON.stringify(filterBigStrings(response.data))}, msg);
+    thisLogger.trace({data: JSON.stringify(filterLoggedData(response.data))}, msg);
   }
   return response;
 });
