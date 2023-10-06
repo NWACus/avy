@@ -1,5 +1,6 @@
 jest.mock('components/observations/uploader/uploadImage');
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AxiosError} from 'axios';
 import {ObservationUploader, backoffTimeMs, isRetryableError} from 'components/observations/uploader/ObservationsUploader';
 import {TaskQueueEntry} from 'components/observations/uploader/Task';
@@ -10,6 +11,10 @@ import {MediaItem, MediaType, MediaUsage} from 'types/nationalAvalancheCenter';
 
 const uploadImage = uploadImageOriginal as jest.MockedFunction<typeof uploadImageOriginal>;
 
+// Deferred wraps up a Promise and allows the promise to be resolved or rejected externally.
+// This is different from a vanilla Promise, which only allows accessing its resolve/reject
+// methods in the Promise constructor. We use this in tests to allow us to resolve/reject
+// mocks and test various scenarios.
 class Deferred<T> {
   public promise: Promise<T>;
   public resolve!: (value: T | PromiseLike<T>) => void;
@@ -137,9 +142,26 @@ describe('ObservationUploader', () => {
     return {uploader, processTaskQueueSpy, processTaskQueueInvocations};
   };
 
+  it('expects to be initialized before performing other operations', async () => {
+    const uploader = new ObservationUploader();
+
+    await expect(async () => await uploader.enqueueTasks([])).rejects.toThrow(/ObservationUploader not initialized/);
+    await expect(async () => await uploader.resetTaskQueue()).rejects.toThrow(/ObservationUploader not initialized/);
+    expect(() => uploader.subscribeToTaskInvocations(() => undefined)).toThrow(/ObservationUploader not initialized/);
+    expect(() => uploader.unsubscribeFromTaskInvocations(() => undefined)).toThrow(/ObservationUploader not initialized/);
+  });
+
   it('should start in an idle state', async () => {
     const {processTaskQueueSpy} = await createUploader();
     expect(processTaskQueueSpy).not.toHaveBeenCalled();
+  });
+
+  it('should clear the task queue on startup if the contents are invalid', async () => {
+    await AsyncStorage.setItem(ObservationUploader['TASK_QUEUE_KEY'], '[{"foo": "bar"}]');
+    const {uploader} = await createUploader();
+    await uploader.initialize();
+    expect(uploader['ready']).toBeTruthy();
+    expect(uploader['taskQueue']).toHaveLength(0);
   });
 
   it('should try to call uploadImage with a timeout of 0 when enqueueing a task', async () => {
@@ -171,6 +193,7 @@ describe('ObservationUploader', () => {
     expect(processTaskQueueInvocations).toHaveLength(0);
 
     jest.advanceTimersByTime(1);
+    expect(processTaskQueueInvocations).toHaveLength(1);
     await processTaskQueueInvocations[0].promise;
     expect(uploadImage).toHaveBeenCalledTimes(1);
   });
@@ -198,6 +221,25 @@ describe('ObservationUploader', () => {
     // Since the second call succeeded, it won't retry again
     expect(processTaskQueueSpy).toHaveBeenCalledTimes(2);
     expect(uploadImage).toHaveBeenCalledTimes(2);
+  });
+
+  it('should give up on fatal errors', async () => {
+    const {uploader, processTaskQueueSpy, processTaskQueueInvocations} = await createUploader();
+    uploadImage.mockRejectedValueOnce(new Error('oops')).mockResolvedValueOnce(successfulUploadImageResponse);
+
+    await uploader.enqueueTasks([imageUploadTask()]);
+
+    // Advance the timer to run the first invocation of processTaskQueue
+    jest.advanceTimersByTime(0);
+    jest.runAllTicks();
+    expect(processTaskQueueInvocations).toHaveLength(1);
+    await processTaskQueueInvocations[0].promise;
+
+    expect(processTaskQueueSpy).toHaveBeenCalledTimes(1);
+    expect(uploadImage).toHaveBeenCalledTimes(1);
+
+    // Since this is a fatal error, it won't retry
+    expect(uploader['taskQueue']).toHaveLength(0);
   });
 });
 

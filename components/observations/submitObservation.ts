@@ -60,9 +60,9 @@ export const submitObservation = async ({
       parentId: undefined,
       attemptCount: 0,
       data: {
-        // We don't need to persist images with the observation task, since they're already
+        // We don't persist images with the observation task, since they're already
         // encoded in individual image upload tasks
-        formData: _.omit(observationFormData, 'images') as ObservationFormData,
+        formData: _.omit(observationFormData, 'images'),
         extraData: {
           url,
           center_id,
@@ -77,7 +77,7 @@ export const submitObservation = async ({
       const listener = (entry: TaskQueueEntry, success: boolean) => {
         if (entry.type === 'observation' && entry.id === observationTaskId) {
           if (success) {
-            resolve(/*entry.data as Observation*/);
+            resolve();
             uploader.unsubscribeFromTaskInvocations(listener);
           }
         }

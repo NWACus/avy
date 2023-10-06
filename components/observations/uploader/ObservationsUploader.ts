@@ -6,16 +6,11 @@ import {uploadImage} from 'components/observations/uploader/uploadImage';
 import {uploadObservation} from 'components/observations/uploader/uploadObservation';
 import {logger} from 'logger';
 
-//
-// ObservationsUploader maintains a persistent queue in AsyncStorage of upload tasks to be performed.
-//
-// TODO
-// - exponential backoff
-// - detect online/offline errors and respond appropriately
-
 type Subscriber = (entry: TaskQueueEntry, success: boolean, attempts: number) => void;
 
 export const isRetryableError = (error: unknown): boolean => {
+  // This may evolve over time as we learn more about what errors the NAC API can
+  // return and what errors are transient vs permanent, but it's a reasonable starting point.
   if (error instanceof AxiosError) {
     if (error.response) {
       const status = error.response.status;
@@ -26,7 +21,7 @@ export const isRetryableError = (error: unknown): boolean => {
         status === 429 // too many requests - rate limited
       );
     } else {
-      // Network error, the server never responded
+      // Network error or timeout. Implies that the server never responded
       return true;
     }
   }
@@ -37,9 +32,20 @@ export const backoffTimeMs = (attemptCount: number): number => {
   return attemptCount === 0 ? 0 : Math.min(1000 * 2 ** attemptCount, 30000);
 };
 
+// The ObservationUploader manages a persistent queue of upload tasks (images and observations) to be performed.
+// It is responsible for:
+// - persisting the queue to disk
+// - running the queue
+// - retrying failed tasks
+// - notifying subscribers of task completion
+//
+// It delegates out to the uploadImage and uploadObservation functions to actually perform the uploads.
+//
+// TODO
+// - build out a status API
+// - detect online/offline errors and respond appropriately
 export class ObservationUploader {
   private static TASK_QUEUE_KEY = 'OBSERVATION_UPLOAD_TASK_QUEUE';
-  private static PROCESS_INTERVAL_MS = 1000;
 
   private pendingTaskQueueUpdate: null | NodeJS.Timeout = null;
   private taskQueue: TaskQueueEntry[] = [];
@@ -48,7 +54,12 @@ export class ObservationUploader {
   private subscribers: Subscriber[] = [];
 
   async initialize() {
-    this.taskQueue = taskQueueSchema.parse(JSON.parse((await AsyncStorage.getItem(ObservationUploader.TASK_QUEUE_KEY)) || '[]'));
+    try {
+      this.taskQueue = taskQueueSchema.parse(JSON.parse((await AsyncStorage.getItem(ObservationUploader.TASK_QUEUE_KEY)) || '[]'));
+    } catch (error) {
+      this.logger.warn({error}, `failed to parse task queue from disk, resetting to empty`);
+      this.taskQueue = [];
+    }
     this.ready = true;
     this.tryRunTaskQueue();
   }
@@ -67,6 +78,7 @@ export class ObservationUploader {
   }
 
   private tryRunTaskQueue() {
+    this.checkInitialized();
     this.logger.debug({queueLength: this.taskQueue.length, pendingTaskQueueUpdate: this.pendingTaskQueueUpdate != null}, 'tryRunTaskQueue');
     if (this.taskQueue.length === 0 || this.pendingTaskQueueUpdate) {
       return;
@@ -77,6 +89,7 @@ export class ObservationUploader {
   }
 
   async enqueueTasks(entries: TaskQueueEntry[]) {
+    this.checkInitialized();
     this.logger.debug({entries}, 'enqueueTasks');
     this.taskQueue.push(...entries);
     await this.flush();
@@ -95,7 +108,7 @@ export class ObservationUploader {
       switch (entry.type) {
         case 'image':
           {
-            // We upload the image, and if successful we upload the parent observation task to include it
+            // We upload the image, and if successful we update the parent observation task to include it
             const mediaItem = await uploadImage(entry.id, entry.data);
             const parentTask = this.taskQueue.find(task => task.id === entry.parentId);
             if (!parentTask || parentTask.type !== 'observation') {
@@ -114,8 +127,10 @@ export class ObservationUploader {
       this.subscribers.forEach(subscriber => subscriber(entry, true, entry.attemptCount));
       this.taskQueue.shift(); // we're done with this task, so remove it from the queue
     } catch (error) {
-      this.logger.error({error, entry, retryable: isRetryableError(error)}, `error processing task queue entry`);
-      if (!isRetryableError(error)) {
+      if (isRetryableError(error)) {
+        this.logger.warn({error, entry, retryable: isRetryableError(error)}, `transient error processing task queue entry. it will be retried.`);
+      } else {
+        this.logger.error({error, entry, retryable: isRetryableError(error)}, `fatal error processing task queue entry. it will not be retried.`);
         // Since this can't be retried, remove it from the queue
         this.taskQueue.shift();
       }
@@ -135,10 +150,12 @@ export class ObservationUploader {
   }
 
   subscribeToTaskInvocations(callback: Subscriber) {
+    this.checkInitialized();
     this.subscribers.push(callback);
   }
 
   unsubscribeFromTaskInvocations(callback: Subscriber) {
+    this.checkInitialized();
     this.subscribers = this.subscribers.filter(subscriber => subscriber !== callback);
   }
 }
