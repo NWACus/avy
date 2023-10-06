@@ -1,6 +1,7 @@
 import {LogStream} from 'browser-bunyan';
 import * as FileSystem from 'expo-file-system';
 import {debounce} from 'lodash';
+import {filterLoggedData} from 'logging/filterLoggedData';
 
 export class FileStream implements LogStream {
   private readonly filePath: string;
@@ -28,7 +29,8 @@ export class FileStream implements LogStream {
       // the bunyan command line tool can't format these records correctly without a pid and hostname field
       pid: 0,
       hostname: 'localhost',
-      ...record,
+      // filterLoggedData will take anything and return the same type
+      ...(filterLoggedData(record) as object),
     });
     this.buffer.push(recordString);
     void this.flush();

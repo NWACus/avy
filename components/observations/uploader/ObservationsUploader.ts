@@ -5,6 +5,7 @@ import {TaskQueueEntry, taskQueueSchema} from 'components/observations/uploader/
 import {uploadImage} from 'components/observations/uploader/uploadImage';
 import {uploadObservation} from 'components/observations/uploader/uploadObservation';
 import {logger} from 'logger';
+import {filterLoggedData} from 'logging/filterLoggedData';
 
 type Subscriber = (entry: TaskQueueEntry, success: boolean, attempts: number) => void;
 
@@ -128,9 +129,9 @@ export class ObservationUploader {
       this.taskQueue.shift(); // we're done with this task, so remove it from the queue
     } catch (error) {
       if (isRetryableError(error)) {
-        this.logger.warn({error, entry, retryable: isRetryableError(error)}, `transient error processing task queue entry. it will be retried.`);
+        this.logger.warn({error: filterLoggedData(error), entry, retryable: isRetryableError(error)}, `transient error processing task queue entry. it will be retried.`);
       } else {
-        this.logger.error({error, entry, retryable: isRetryableError(error)}, `fatal error processing task queue entry. it will not be retried.`);
+        this.logger.error({error: filterLoggedData(error), entry, retryable: isRetryableError(error)}, `fatal error processing task queue entry. it will not be retried.`);
         // Since this can't be retried, remove it from the queue
         this.taskQueue.shift();
       }
