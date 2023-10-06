@@ -35,7 +35,6 @@ import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
 
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
-import {clearUploadCache} from 'components/observations/submitObservation';
 import {HomeTabScreen} from 'components/screens/HomeScreen';
 import {MenuStackScreen} from 'components/screens/MenuScreen';
 import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
@@ -217,8 +216,6 @@ const asyncStoragePersister = createAsyncStoragePersister({
   storage: AsyncStorage,
   key: QUERY_CACHE_ASYNC_STORAGE_KEY,
 });
-
-void clearUploadCache();
 
 const TabNavigator = createBottomTabNavigator<TabNavigatorParamList>();
 

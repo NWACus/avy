@@ -30,7 +30,6 @@ import {Card, CollapsibleCard} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
 import {TableRow} from 'components/observations/ObservationDetailView';
-import {clearUploadCache} from 'components/observations/submitObservation';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
 import {NWACObservationScreen, ObservationScreen} from 'components/screens/ObservationsScreen';
@@ -232,7 +231,6 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                             void (async () => {
                               await AsyncStorage.removeItem(QUERY_CACHE_ASYNC_STORAGE_KEY);
                               queryCache.clear();
-                              await clearUploadCache();
                             })();
                           }}>
                           Reset the query cache
