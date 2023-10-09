@@ -13,7 +13,9 @@ export const isRetryableError = (error: unknown): boolean => {
   // This may evolve over time as we learn more about what errors the NAC API can
   // return and what errors are transient vs permanent, but it's a reasonable starting point.
   if (error instanceof AxiosError) {
-    if (error.response) {
+    if (error.code === 'ERR_NETWORK') {
+      return true;
+    } else if (error.response) {
       const status = error.response.status;
       return (
         status >= 500 || // server error
