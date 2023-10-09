@@ -1,10 +1,10 @@
 import React from 'react';
 
-import {colorFor} from 'components/AvalancheDangerPyramid';
+import {colorFor} from 'components/AvalancheDangerTriangle';
 import {InfoTooltip} from 'components/content/InfoTooltip';
-import {Center, HStack, View} from 'components/core';
-import {dangerShortText} from 'components/helpers/dangerText';
-import {BodyXSmBlack} from 'components/text';
+import {Center, HStack, View, VStack} from 'components/core';
+import {dangerShortName, dangerShortText, dangerValue} from 'components/helpers/dangerText';
+import {BodyXSm, BodyXSmBlack} from 'components/text';
 import helpStrings from 'content/helpStrings';
 import {DangerLevel} from 'types/nationalAvalancheCenter';
 
@@ -36,6 +36,33 @@ export const DangerScale: React.FunctionComponent<DangerScaleProps> = props => {
         <View>
           <InfoTooltip color="white" size={16} title="Danger Scale" style={{padding: 0}} hitSlop={{top: 8, left: 8, bottom: 8, right: 8}} content={helpStrings.dangerScaleDetail} />
         </View>
+      </HStack>
+    </View>
+  );
+};
+
+export const InlineDangerScale: React.FunctionComponent<DangerScaleProps> = props => {
+  return (
+    <View {...props}>
+      <HStack justifyContent="space-between" alignItems="center">
+        <HStack pr={8} flex={1} flexGrow={1}>
+          {[DangerLevel.Low, DangerLevel.Moderate, DangerLevel.Considerable, DangerLevel.High, DangerLevel.Extreme].map(level => (
+            <VStack key={level} flex={1} flexGrow={1} space={4}>
+              <Center
+                style={{
+                  height: 12,
+                  backgroundColor: colorFor(level).string(),
+                  borderWidth: 0.19,
+                }}></Center>
+              <Center>
+                <HStack style={{paddingHorizontal: 4}} space={2}>
+                  <BodyXSmBlack>{dangerValue(level)}</BodyXSmBlack>
+                  <BodyXSm>- {dangerShortName(level)}</BodyXSm>
+                </HStack>
+              </Center>
+            </VStack>
+          ))}
+        </HStack>
       </HStack>
     </View>
   );

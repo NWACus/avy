@@ -1,20 +1,20 @@
 import React from 'react';
 
 import {HStack, View, VStack} from 'components/core';
-import {dangerText} from 'components/helpers/dangerText';
-import {Body, Caption1, Caption1Semibold} from 'components/text';
+import {dangerName, dangerValue} from 'components/helpers/dangerText';
+import {BodySmBlack, Caption1, Caption1Semibold} from 'components/text';
 import {AvalancheDangerForecast, DangerLevel, ElevationBandNames, ForecastPeriod} from 'types/nationalAvalancheCenter';
 import {utcDateToLocalDateString} from 'utils/date';
 
 import {AvalancheDangerIcon, iconSize} from 'components/AvalancheDangerIcon';
-import {AvalancheDangerPyramid} from 'components/AvalancheDangerPyramid';
+import {AvalancheDangerTriangle} from 'components/AvalancheDangerTriangle';
 
 export type DangerTableSize = 'main' | 'outlook';
 
 export interface AvalancheDangerTableProps {
-  date: Date;
+  date?: Date;
   forecast?: AvalancheDangerForecast;
-  elevation_band_names: ElevationBandNames;
+  elevation_band_names?: ElevationBandNames;
   size: DangerTableSize;
 }
 
@@ -32,16 +32,14 @@ const defaultElevationBands: ElevationBandNames = {
 };
 
 export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableProps> = ({date, forecast, elevation_band_names, size}: AvalancheDangerTableProps) => {
-  const {height, marginLeft, paddingTop} = {
+  const {height, marginLeft} = {
     main: {
       height: 200,
-      paddingTop: 13,
-      marginLeft: -6,
+      marginLeft: 24,
     },
     outlook: {
       height: 150,
-      paddingTop: 10,
-      marginLeft: 16,
+      marginLeft: 48,
     },
   }[size];
 
@@ -50,26 +48,31 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
 
   return (
     <VStack space={12} alignItems="stretch">
-      <Body>{utcDateToLocalDateString(date)}</Body>
+      {date && <BodySmBlack>{utcDateToLocalDateString(date)}</BodySmBlack>}
       <View height={height} width="100%">
         {/* This view contains 3 layers stacked over each other: the background bars in gray, the avalanche pyramid, and the text labels and icons */}
-        <VStack width="100%" height="100%" position="absolute" justifyContent="space-evenly" alignItems="stretch" space={3} paddingTop={paddingTop} zIndex={10}>
+        <VStack width="100%" height="100%" position="absolute" justifyContent="space-evenly" alignItems="stretch" space={4} zIndex={10}>
           <View bg="gray.100" flex={1} />
           <View bg="gray.100" flex={1} />
           <View bg="gray.100" flex={1} />
         </VStack>
         <View width="100%" height="100%" position="absolute" zIndex={20}>
-          <AvalancheDangerPyramid forecast={danger} height="100%" style={{marginLeft: marginLeft}} />
+          <AvalancheDangerTriangle forecast={danger} height="100%" style={{marginLeft: marginLeft}} />
         </View>
-        <VStack width="100%" height="100%" position="absolute" justifyContent="space-evenly" alignItems="stretch" space={3} paddingTop={paddingTop} zIndex={30}>
+        <VStack width="100%" height="100%" position="absolute" justifyContent="space-evenly" alignItems="stretch" space={4} zIndex={30}>
           {(['upper', 'middle', 'lower'] as const).map((layer, index) => (
-            <HStack flex={1} justifyContent="space-between" key={index}>
-              <View my={4} px={1} justifyContent="center">
-                <Caption1>{(elevation_band_names[layer] ?? defaultElevationBands[layer]).replace('<br>', '\n')}</Caption1>
-              </View>
+            <HStack flex={1} justifyContent="space-between" flexDirection={elevation_band_names ? 'row' : 'row-reverse'} key={index} paddingHorizontal={4}>
+              {elevation_band_names && (
+                <View my={4} px={1} justifyContent="center">
+                  <Caption1>{(elevation_band_names[layer] ?? defaultElevationBands[layer]).replace('<br>', '\n')}</Caption1>
+                </View>
+              )}
               <HStack space={8} alignItems="center" px={1}>
                 <View my={4} px={1} justifyContent="center">
-                  <Caption1Semibold style={{textTransform: 'uppercase'}}>{dangerText(danger[layer])}</Caption1Semibold>
+                  <HStack style={{paddingHorizontal: 4}} space={2}>
+                    <Caption1Semibold>{dangerValue(danger[layer])}</Caption1Semibold>
+                    <Caption1>- {dangerName(danger[layer])}</Caption1>
+                  </HStack>
                 </View>
                 {(() => {
                   const size = iconSize(danger[layer]);
