@@ -91,6 +91,8 @@ export const SimpleForm: React.FC<{
       logger.error({error: error}, 'mutation failed');
     },
     retry: true,
+    // This mutation is always allowed to run! The uploader manages retries and persistence of this task
+    networkMode: 'always',
   });
 
   const onSubmitHandler = (data: ObservationFormData) => {
