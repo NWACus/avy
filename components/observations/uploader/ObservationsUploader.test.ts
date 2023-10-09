@@ -51,6 +51,29 @@ const createAxiosError = (status: number): AxiosError =>
   );
 
 describe('isRetryableError', () => {
+  it('should return true for network offline errors', () => {
+    const error = new AxiosError(
+      'Boom!',
+      'ERR_NETWORK',
+      {
+        url: 'http://localhost:3000',
+      },
+      {
+        path: '/foo',
+      },
+      {
+        status: 400,
+        config: {
+          url: 'http://localhost:3000',
+        },
+        headers: {},
+        data: {},
+        statusText: 'Boom!',
+      },
+    );
+    expect(isRetryableError(error)).toBe(true);
+  });
+
   it('should return true for server errors', () => {
     const error = createAxiosError(500);
     expect(isRetryableError(error)).toBe(true);

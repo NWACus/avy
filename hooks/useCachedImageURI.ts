@@ -30,11 +30,16 @@ export const useCachedImageURI = (uri: string) => {
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
+  // NetworkImage (which uses this hook) is also used to display file:// URIs, for
+  // images to upload for example. In that case, we should still run the query even when offline.
+  const requiresNetwork = uri.startsWith('http');
+
   return useQuery<string, Error>({
     queryKey: key,
     queryFn: async () => fetchCachedImageURI(uri, thisLogger),
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
     staleTime: 24 * 60 * 60 * 1000, // do not refresh this data
+    networkMode: requiresNetwork ? 'online' : 'always',
   });
 };
 
@@ -43,10 +48,11 @@ function queryKey(uri: string) {
 }
 
 const fetchCachedImageURI = async (uri: string, logger: Logger): Promise<string> => {
-  if (!uri || !uri.startsWith('http')) {
+  if (!uri.startsWith('http')) {
     // this is already a local file, no need to download. We hit this case in production
     // with locally-bundled assets, for which we must use this hook in developer mode, as
     // they are served over the local network in Expo Go, not bundled into the app.
+    logger.debug({source: uri}, 'skipping download for local image');
     return uri;
   }
   await initialize();
