@@ -32,6 +32,7 @@ import {Card, CollapsibleCard} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
 import {TableRow} from 'components/observations/ObservationDetailView';
+import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
 import {NWACObservationScreen, ObservationScreen} from 'components/screens/ObservationsScreen';
@@ -251,6 +252,9 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                         </Button>
                         <Button buttonStyle="normal" onPress={() => void clearPreferences()}>
                           Reset preferences
+                        </Button>
+                        <Button buttonStyle="normal" onPress={() => void getUploader().resetTaskQueue()}>
+                          Reset the observation uploader
                         </Button>
                         <HStack justifyContent="space-between" alignItems="center" space={16}>
                           <Body>Use staging environment</Body>

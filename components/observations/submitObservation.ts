@@ -2,13 +2,10 @@ import _ from 'lodash';
 import uuid from 'react-native-uuid';
 
 import {ObservationFormData} from 'components/observations/ObservationFormData';
-import {ObservationUploader} from 'components/observations/uploader/ObservationsUploader';
+import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskQueueEntry} from 'components/observations/uploader/Task';
 import {logger} from 'logger';
 import {AvalancheCenterID, MediaUsage} from 'types/nationalAvalancheCenter';
-
-const uploader = new ObservationUploader();
-void uploader.initialize();
 
 export const submitObservation = async ({
   apiPrefix,
@@ -75,6 +72,7 @@ export const submitObservation = async ({
       },
     });
 
+    const uploader = getUploader();
     const promise: Promise<void> = new Promise((resolve, _reject) => {
       const listener = (entry: TaskQueueEntry, success: boolean) => {
         if (entry.type === 'observation' && entry.id === observationTaskId) {
