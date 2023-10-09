@@ -162,3 +162,9 @@ export class ObservationUploader {
     this.subscribers = this.subscribers.filter(subscriber => subscriber !== callback);
   }
 }
+
+const uploader: ObservationUploader = new ObservationUploader();
+void uploader.initialize();
+export const getUploader = () => {
+  return uploader;
+};
