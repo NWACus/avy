@@ -5,16 +5,15 @@ import {BodyBlack, Title3Semibold} from 'components/text';
 import {HTML, HTMLRendererConfig, HTMLRendererConfigProps} from 'components/text/HTML';
 import {merge} from 'lodash';
 import React, {useCallback, useState} from 'react';
-import {Insets, Modal, TextStyle, TouchableWithoutFeedback, ViewStyle} from 'react-native';
+import {ColorValue, Insets, Modal, TextStyle, TouchableWithoutFeedback, ViewStyle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
-import {ColorName} from 'theme/colors';
 
 export interface InfoTooltipProps {
   title: string;
   content: string;
   size: number;
-  color?: ColorName;
+  color?: ColorValue;
   solidIcon?: keyof typeof AntDesign.glyphMap;
   outlineIcon?: keyof typeof AntDesign.glyphMap;
 
