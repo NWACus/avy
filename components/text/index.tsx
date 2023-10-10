@@ -4,7 +4,6 @@ import * as React from 'react';
 import {Text, TextProps, TextStyle} from 'react-native';
 
 import {colorLookup} from 'theme';
-import {ColorName, COLORS} from 'theme/colors';
 
 export interface TextWrapperProps extends TextProps {
   color?: TextStyle['color'];
@@ -20,7 +19,7 @@ export interface TextWrapperProps extends TextProps {
 const TextWrapper: React.FC<TextWrapperProps> = ({color, fontFamily, fontSize, fontStyle, letterSpacing, lineHeight, textAlign, textTransform, children, ...props}) => {
   const style = omitBy(
     {
-      color: color ? (color in COLORS ? colorLookup(color as ColorName).toString() : color) : color,
+      color: color ? colorLookup(color) : color,
       fontFamily,
       fontSize,
       letterSpacing,
