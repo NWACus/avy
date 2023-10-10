@@ -5,7 +5,6 @@ import {AxiosError} from 'axios';
 import {ObservationUploader, backoffTimeMs, isRetryableError} from 'components/observations/uploader/ObservationsUploader';
 import {TaskQueueEntry} from 'components/observations/uploader/Task';
 import {uploadImage as uploadImageOriginal} from 'components/observations/uploader/uploadImage';
-// import Deferred from 'tests/helpers/Deferred';
 import {logger} from 'logger';
 import {MediaItem, MediaType, MediaUsage} from 'types/nationalAvalancheCenter';
 

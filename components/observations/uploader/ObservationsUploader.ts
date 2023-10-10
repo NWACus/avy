@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo, {NetInfoState} from '@react-native-community/netinfo';
 import {AxiosError} from 'axios';
 
 import {TaskQueueEntry, taskQueueSchema} from 'components/observations/uploader/Task';
@@ -46,13 +47,13 @@ export const backoffTimeMs = (attemptCount: number): number => {
 //
 // TODO
 // - build out a status API
-// - detect online/offline errors and respond appropriately
 export class ObservationUploader {
   private static TASK_QUEUE_KEY = 'OBSERVATION_UPLOAD_TASK_QUEUE';
 
   private pendingTaskQueueUpdate: null | NodeJS.Timeout = null;
   private taskQueue: TaskQueueEntry[] = [];
   private ready = false;
+  private offline = true;
   private logger = logger.child({component: 'ObservationUploader'});
   private subscribers: Subscriber[] = [];
 
@@ -64,6 +65,8 @@ export class ObservationUploader {
       this.taskQueue = [];
     }
     this.ready = true;
+    this.handleNetInfoStateChange(await NetInfo.fetch());
+    NetInfo.addEventListener((state: NetInfoState) => this.handleNetInfoStateChange(state));
     this.tryRunTaskQueue();
   }
 
@@ -71,6 +74,14 @@ export class ObservationUploader {
     if (!this.ready) {
       this.logger.error('ObservationUploader not initialized');
       throw new Error('ObservationUploader not initialized');
+    }
+  }
+
+  private handleNetInfoStateChange(state: NetInfoState) {
+    this.offline = !(state.isConnected && !!state.isInternetReachable);
+    this.logger.info({state}, 'NetInfo state updated', this.offline ? 'offline' : 'online');
+    if (!this.offline) {
+      this.tryRunTaskQueue();
     }
   }
 
@@ -82,8 +93,8 @@ export class ObservationUploader {
 
   private tryRunTaskQueue() {
     this.checkInitialized();
-    this.logger.debug({queueLength: this.taskQueue.length, pendingTaskQueueUpdate: this.pendingTaskQueueUpdate != null}, 'tryRunTaskQueue');
-    if (this.taskQueue.length === 0 || this.pendingTaskQueueUpdate) {
+    this.logger.debug({offline: this.offline, queueLength: this.taskQueue.length, pendingTaskQueueUpdate: this.pendingTaskQueueUpdate != null}, 'tryRunTaskQueue');
+    if (this.offline || this.taskQueue.length === 0 || this.pendingTaskQueueUpdate) {
       return;
     }
     const headEntry = this.taskQueue[0];
