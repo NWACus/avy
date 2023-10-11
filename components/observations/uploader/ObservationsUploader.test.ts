@@ -1,15 +1,17 @@
 jest.mock('components/observations/uploader/uploadImage');
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
+
 import {AxiosError} from 'axios';
 import {ObservationUploader, backoffTimeMs, isRetryableError} from 'components/observations/uploader/ObservationsUploader';
 import {TaskQueueEntry} from 'components/observations/uploader/Task';
 import {uploadImage as uploadImageOriginal} from 'components/observations/uploader/uploadImage';
-// import Deferred from 'tests/helpers/Deferred';
 import {logger} from 'logger';
 import {MediaItem, MediaType, MediaUsage} from 'types/nationalAvalancheCenter';
 
 const uploadImage = uploadImageOriginal as jest.MockedFunction<typeof uploadImageOriginal>;
+const MockNetInfo = NetInfo as typeof NetInfo & {mockGoOffline: () => undefined; mockGoOnline: () => undefined};
 
 // Deferred wraps up a Promise and allows the promise to be resolved or rejected externally.
 // This is different from a vanilla Promise, which only allows accessing its resolve/reject
@@ -139,7 +141,7 @@ describe('ObservationUploader', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    uploadImage.mockReset();
     jest.useRealTimers();
   });
 
@@ -263,6 +265,45 @@ describe('ObservationUploader', () => {
 
     // Since this is a fatal error, it won't retry
     expect(uploader['taskQueue']).toHaveLength(0);
+  });
+
+  describe('online/offline', () => {
+    it('should be paused when offline', async () => {
+      MockNetInfo.mockGoOffline();
+
+      const {uploader, processTaskQueueInvocations} = await createUploader();
+      uploadImage.mockResolvedValueOnce(successfulUploadImageResponse);
+
+      await uploader.enqueueTasks([imageUploadTask()]);
+
+      // Advance the timer to run the first invocation of processTaskQueue
+      jest.advanceTimersByTime(0);
+      jest.runAllTicks();
+      // But it won't actually run because we're offline
+      expect(processTaskQueueInvocations).toHaveLength(0);
+
+      // Clear the queue before wrapping up this test
+      await uploader.resetTaskQueue();
+    });
+
+    it('should resume when back online', async () => {
+      MockNetInfo.mockGoOffline();
+
+      const {uploader, processTaskQueueInvocations} = await createUploader();
+      uploadImage.mockResolvedValueOnce(successfulUploadImageResponse);
+
+      await uploader.enqueueTasks([imageUploadTask()]);
+
+      MockNetInfo.mockGoOnline();
+
+      // Advance the timer to run the first invocation of processTaskQueue
+      jest.advanceTimersByTime(0);
+      jest.runAllTicks();
+      // Now it will run because we're back online
+      expect(processTaskQueueInvocations).toHaveLength(1);
+      await processTaskQueueInvocations[0].promise;
+      expect(uploadImage).toHaveBeenCalledTimes(1);
+    });
   });
 });
 

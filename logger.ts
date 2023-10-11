@@ -21,15 +21,17 @@ if (process.env.EXPO_PUBLIC_DISABLE_LOGBOX) {
   LogBox.ignoreAllLogs(true);
 }
 
+const defaultLogLevel = process.env.NODE_ENV === 'test' ? 'WARN' : 'INFO';
+
 const streams: StreamOptions[] = [
   {
-    level: (Constants.expoConfig?.extra?.log_level as string) ?? 'INFO',
+    level: (Constants.expoConfig?.extra?.log_level as string) ?? defaultLogLevel,
     stream: new ConsoleFormattedStream(),
   },
 ];
 
-// Log to file in preview and development channels
-if (Updates.channel !== 'release') {
+// Log to file in preview and development channels, but not in tests
+if (Updates.channel !== 'release' && process.env.NODE_ENV === 'test') {
   streams.push({
     level: 'DEBUG',
     stream: new FileStream(logFilePath),
