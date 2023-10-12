@@ -129,8 +129,5 @@ export const Unavailable: React.FunctionComponent = () => {
 
 // incompleteQueryState checks to see if any of the queries are not yet complete - if so, render a <QueryState/>.
 export const incompleteQueryState = (...results: UseQueryResult[]): boolean => {
-  return results
-    .map(result => [result.isError, result.isLoading, isResultNotFound(result)])
-    .flat()
-    .reduce((accumulator, value) => accumulator || value);
+  return results.some(result => result.isError || result.isLoading);
 };

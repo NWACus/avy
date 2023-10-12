@@ -29,6 +29,7 @@ import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, ImageMediaItem, InstabilityDistribution, MediaType} from 'types/nationalAvalancheCenter';
+import {startOfSeasonLocalDate} from 'utils/date';
 
 export const SimpleForm: React.FC<{
   center_id: AvalancheCenterID;
@@ -62,6 +63,7 @@ export const SimpleForm: React.FC<{
   const scrollViewRef = useRef<ScrollView>(null);
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
+  const today = new Date();
 
   const mutation = useMutation<void, AxiosError, ObservationFormData>({
     mutationFn: async (observationFormData: ObservationFormData) => {
@@ -223,7 +225,7 @@ export const SimpleForm: React.FC<{
                           autoCorrect: false,
                         }}
                       />
-                      <DateField name="start_date" label="Observation date" />
+                      <DateField name="start_date" label="Observation date" minimumDate={startOfSeasonLocalDate(today)} maximumDate={today} />
                       <SelectField
                         name="activity"
                         label="Activity"

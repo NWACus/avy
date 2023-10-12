@@ -15,58 +15,67 @@ import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
 import {geoContains} from 'd3-geo';
-import {getMonth, getYear, isAfter, isBefore, parseISO, sub} from 'date-fns';
+import {isAfter, isBefore, parseISO} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, SafeAreaView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {colorLookup} from 'theme';
 import {MapLayer, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
+import {RequestedTime, requestedTimeToUTCDate, startOfSeasonLocalDate} from 'utils/date';
 import {z} from 'zod';
 
 const avalancheInstabilitySchema = z.enum(['observed', 'triggered', 'caught']);
 type avalancheInstability = z.infer<typeof avalancheInstabilitySchema>;
 
-const dateValueSchema = z.enum(['past_day', 'past_3_days', 'past_week', 'past_month', 'past_season', 'custom']);
+const dateValueSchema = z.enum(['current_season', 'custom']);
 type DateValue = z.infer<typeof dateValueSchema>;
 
-const observationFilterConfigSchema = z
-  .object({
-    zone: z.string(),
-    dates: z.object({
-      value: dateValueSchema,
-      from: z.date(),
-      to: z.date(),
-    }),
-    observerType: z.nativeEnum(PartnerType),
-    instability: z.object({
-      avalanches: avalancheInstabilitySchema,
-      cracking: z.boolean(),
-      collapsing: z.boolean(),
-    }),
-  })
-  .deepPartial();
+const observationFilterConfigSchema = z.object({
+  zone: z.string().optional(),
+  dates: z.object({
+    value: dateValueSchema,
+    from: z.date(),
+    to: z.date(),
+  }),
+  observerType: z.nativeEnum(PartnerType).optional(),
+  instability: z
+    .object({
+      avalanches: avalancheInstabilitySchema.optional(),
+      cracking: z.boolean().optional(),
+      collapsing: z.boolean().optional(),
+    })
+    .optional(),
+});
 
 export type ObservationFilterConfig = z.infer<typeof observationFilterConfigSchema>;
 
 type FilterFunction = (observation: ObservationFragment) => boolean;
 
 const DATE_LABELS: Record<DateValue, string> = {
-  past_day: 'Last 24 hours',
-  past_3_days: 'Last 72 hours',
-  past_week: 'Last 7 days',
-  past_month: 'Last month',
-  past_season: 'Last forecast season',
+  current_season: 'Current season',
   custom: 'Custom range',
 };
 
+const currentSeasonDates = (requestedTime: RequestedTime): {from: Date; to: Date} => {
+  const endDate = requestedTimeToUTCDate(requestedTime);
+  const startDate = startOfSeasonLocalDate(requestedTime);
+  return {from: startDate, to: endDate};
+};
+
+export const createDefaultFilterConfig = (requestedTime: RequestedTime, defaults: Partial<ObservationFilterConfig> | undefined): ObservationFilterConfig => {
+  return {
+    dates: {
+      value: 'current_season',
+      ...currentSeasonDates(requestedTime),
+    },
+    ...defaults,
+  };
+};
+
 export const dateLabelForFilterConfig = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>): string => {
-  const value = dates?.value || 'past_week';
+  const value = dates?.value || 'current_season';
   switch (value) {
-    case 'past_day':
-    case 'past_3_days':
-    case 'past_week':
-    case 'past_month':
-    case 'past_season':
+    case 'current_season':
       return DATE_LABELS[value];
     case 'custom':
       if (!dates?.from || !dates?.to) {
@@ -76,37 +85,11 @@ export const dateLabelForFilterConfig = (dates: z.infer<typeof observationFilter
   }
 };
 
-export const datesForFilterConfig = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>, currentDate: Date): {startDate: Date; endDate: Date} => {
-  const value = dates?.value || 'past_week';
-  switch (value) {
-    case 'past_day':
-      return {startDate: sub(currentDate, {days: 1}), endDate: currentDate};
-    case 'past_3_days':
-      return {startDate: sub(currentDate, {days: 3}), endDate: currentDate};
-    case 'past_week':
-      return {startDate: sub(currentDate, {weeks: 1}), endDate: currentDate};
-    case 'past_month':
-      return {startDate: sub(currentDate, {months: 1}), endDate: currentDate};
-    case 'past_season':
-      return {
-        endDate: currentDate,
-        // the season starts Nov 1st, that's either this year or last year depending on when we are asking
-        startDate: getMonth(currentDate) <= 11 ? new Date(`${getYear(sub(currentDate, {years: 1}))}-11-01`) : new Date(`${getYear(currentDate)}-11-01`),
-      };
-    case 'custom':
-      // TODO we should validate that these values don't span more than a month, for the same reason as above
-      if (!dates?.from || !dates?.to) {
-        throw new Error('custom date range requires from and to dates');
-      }
-      return {startDate: dates.from, endDate: dates.to};
-  }
-};
-
-const matchesDates = (currentDate: Date, dates: z.infer<typeof observationFilterConfigSchema.shape.dates>): FilterFunction => {
+const matchesDates = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>): FilterFunction => {
   if (!dates) {
     return () => true;
   }
-  const {startDate, endDate} = datesForFilterConfig(dates, currentDate);
+  const {from: startDate, to: endDate} = dates;
   return (observation: ObservationFragment) => isAfter(parseISO(observation.createdAt), startDate) && isBefore(parseISO(observation.createdAt), endDate);
 };
 
@@ -150,20 +133,16 @@ interface FilterListItem {
   label: string;
   removeFilter?: (config: ObservationFilterConfig) => ObservationFilterConfig;
 }
-export const filtersForConfig = (
-  mapLayer: MapLayer,
-  config: ObservationFilterConfig,
-  initialFilterConfig: ObservationFilterConfig | undefined,
-  currentDate: Date,
-): FilterListItem[] => {
+export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterConfig, additionalFilters: Partial<ObservationFilterConfig> | undefined): FilterListItem[] => {
   if (!config) {
     return [];
   }
 
   const filterFuncs: FilterListItem[] = [];
-  if (config.dates && config.dates.value) {
-    filterFuncs.push({filter: matchesDates(currentDate, config.dates), label: dateLabelForFilterConfig(config.dates)});
-  }
+  filterFuncs.push({
+    filter: matchesDates(config.dates),
+    label: dateLabelForFilterConfig(config.dates),
+  });
 
   if (config.zone) {
     filterFuncs.push({
@@ -171,7 +150,7 @@ export const filtersForConfig = (
       label: config.zone,
       // If the zone was specified as part of the initialFilterConfig (i.e. we're browsing the Obs tab of a particular zone),
       // then removeFilter should be undefined since re-setting the filters should keep that zone filter around
-      removeFilter: initialFilterConfig?.zone ? undefined : config => ({...config, zone: undefined}),
+      removeFilter: additionalFilters?.zone ? undefined : config => ({...config, zone: undefined}),
     });
   }
 
@@ -206,6 +185,7 @@ export const filtersForConfig = (
 };
 
 interface ObservationsFilterFormProps {
+  requestedTime: RequestedTime;
   mapLayer: MapLayer;
   initialFilterConfig: ObservationFilterConfig;
   currentFilterConfig: ObservationFilterConfig;
@@ -215,7 +195,14 @@ interface ObservationsFilterFormProps {
 
 const formFieldSpacing = 16;
 
-export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterFormProps> = ({mapLayer, initialFilterConfig, currentFilterConfig, setFilterConfig, setVisible}) => {
+export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterFormProps> = ({
+  requestedTime,
+  mapLayer,
+  initialFilterConfig,
+  currentFilterConfig,
+  setFilterConfig,
+  setVisible,
+}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const formContext = useForm({
     defaultValues: initialFilterConfig,
@@ -240,6 +227,14 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   });
 
   const onSubmitHandler = (data: ObservationFilterConfig) => {
+    // When the user selects `current_season`, the date fields might be set to a previous custom range.
+    // Make sure they're overridden with the season dates.
+    if (data.dates.value === 'current_season') {
+      data.dates = {
+        value: 'current_season',
+        ...currentSeasonDates(requestedTime),
+      };
+    }
     setFilterConfig(data);
   };
 
@@ -291,16 +286,26 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     </HStack>
                   }>
                   <VStack space={formFieldSpacing} mt={8}>
-                    <SelectField name="zone" label="Zone" radio items={mapLayer.features.map(feature => feature.properties.name)} disabled={Boolean(initialFilterConfig.zone)} />
+                    {mapLayer && (
+                      <SelectField name="zone" label="Zone" radio items={mapLayer.features.map(feature => feature.properties.name)} disabled={Boolean(initialFilterConfig.zone)} />
+                    )}
                     <SelectField
                       name="dates.value"
                       label="Dates"
                       radio
-                      items={(['past_day', 'past_3_days', 'past_week', 'past_month', 'custom'] as const).map(val => ({value: val, label: DATE_LABELS[val]}))}
+                      items={(['current_season', 'custom'] as const).map(val => ({
+                        value: val,
+                        label: DATE_LABELS[val],
+                      }))}
                     />
                     <Conditional name="dates.value" value={'custom'}>
-                      <DateField name="dates.from" label="Published After" />
-                      <DateField name="dates.to" label="Published Before" />
+                      <DateField
+                        name="dates.from"
+                        label="Published After"
+                        minimumDate={startOfSeasonLocalDate(requestedTime)}
+                        maximumDate={requestedTimeToUTCDate(requestedTime)}
+                      />
+                      <DateField name="dates.to" label="Published Before" minimumDate={startOfSeasonLocalDate(requestedTime)} maximumDate={requestedTimeToUTCDate(requestedTime)} />
                     </Conditional>
                     <SelectField
                       name="observerType"

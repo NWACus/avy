@@ -107,6 +107,10 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
           setValue(name, newValue, {shouldValidate: false, shouldDirty: false, shouldTouch: false});
         }}
         styles={selectStyles}
+        // Setting `scrollToSelectedOption` based on https://github.com/MobileReality/react-native-select-pro/issues/230
+        // Seems to fix problem with items not showing up in list
+        scrollToSelectedOption={false}
+        theme="none"
         flatListProps={{
           // only works on Android, unfortunately
           persistentScrollbar: true,
