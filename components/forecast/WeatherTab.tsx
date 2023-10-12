@@ -7,7 +7,7 @@ import {InternalError, NotFound, QueryState, incompleteQueryState} from 'compone
 import {HStack, VStack, View} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, BodyXSmBlack, Title3Black, bodyXSmSize} from 'components/text';
 import {HTML} from 'components/text/HTML';
-import {NWACStationsByZone, ZoneWithWeatherStations} from 'components/weather_data/WeatherStationList';
+import {NWACStationsByZone, ZoneWithWeatherStations} from 'components/weather_data/NWACWeatherStationList';
 import helpStrings from 'content/helpStrings';
 import {add, formatDistanceToNow, isAfter} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';

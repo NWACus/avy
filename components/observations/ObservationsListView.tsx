@@ -29,7 +29,6 @@ import {
   NativeSyntheticEvent,
   ScrollView,
   SectionList,
-  SectionListProps,
   SectionListRenderItemInfo,
   TouchableOpacity,
 } from 'react-native';
@@ -46,7 +45,7 @@ interface ObservationsListViewItem {
   pending?: boolean;
 }
 
-interface ObservationsListViewProps extends Omit<SectionListProps<ObservationsListViewItem>, 'sections' | 'renderItem' | 'renderSectionHeader'> {
+interface ObservationsListViewProps {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
   additionalFilters?: Partial<ObservationFilterConfig>;
@@ -62,7 +61,7 @@ interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFr
   source: SourceType;
 }
 
-export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, additionalFilters, ...props}) => {
+export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, additionalFilters}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(requestedTime, additionalFilters), [requestedTime, additionalFilters]);
@@ -348,7 +347,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           index,
         })}
         renderItem={renderItem}
-        {...props}
       />
       <HStack position="absolute" bottom={16} right={16} justifyContent="flex-end">
         {/* Padding numbers are carefully chosen to center things, and to make the button perfectly round
@@ -369,7 +367,7 @@ const colorsFor = (partnerType: PartnerType) => {
   return {primary: colorLookup(`observer.${partnerType}.primary`).toString(), secondary: colorLookup(`observer.${partnerType}.secondary`).toString()};
 };
 
-interface FilterPillButtonProps {
+export interface FilterPillButtonProps {
   label: string;
   headIcon?: React.ReactNode;
   tailIcon?: React.ReactNode;
@@ -377,7 +375,7 @@ interface FilterPillButtonProps {
   textColor: ColorValue;
   backgroundColor: ColorValue;
 }
-const FilterPillButton: React.FC<FilterPillButtonProps> = ({label, headIcon, tailIcon, onPress, textColor, backgroundColor}) => (
+export const FilterPillButton: React.FC<FilterPillButtonProps> = ({label, headIcon, tailIcon, onPress, textColor, backgroundColor}) => (
   <TouchableOpacity onPress={onPress}>
     <HStack bg={backgroundColor} px={8} py={2} space={4} borderRadius={30} borderWidth={1} borderColor={textColor} alignItems="center">
       {headIcon}

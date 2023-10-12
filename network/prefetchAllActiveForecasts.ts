@@ -17,7 +17,17 @@ import NWACWeatherForecastQuery from 'hooks/useNWACWeatherForecast';
 import SynopsisQuery from 'hooks/useSynopsis';
 import WeatherForecastQuery from 'hooks/useWeatherForecast';
 import WeatherStationsQuery from 'hooks/useWeatherStationsMetadata';
-import {AllAvalancheCenterCapabilities, AvalancheCenter, AvalancheCenterID, ForecastResult, ImageMediaItem, ProductType} from 'types/nationalAvalancheCenter';
+import TimeseriesQuery from 'hooks/useWeatherStationTimeseries';
+import {
+  AllAvalancheCenterCapabilities,
+  AvalancheCenter,
+  AvalancheCenterID,
+  ForecastResult,
+  ImageMediaItem,
+  ProductType,
+  WeatherStationCollection,
+  WeatherStationSource,
+} from 'types/nationalAvalancheCenter';
 import {requestedTimeToUTCDate} from 'utils/date';
 
 export const prefetchAllActiveForecasts = async (
@@ -66,7 +76,12 @@ export const prefetchAllActiveForecasts = async (
   }
 
   if (metadata?.widget_config?.stations?.token) {
-    void WeatherStationsQuery.prefetch(queryClient, snowboundHost, center_id, metadata?.widget_config?.stations?.token, logger);
+    await WeatherStationsQuery.prefetch(queryClient, snowboundHost, center_id, metadata?.widget_config?.stations?.token, logger);
+    const weatherStations = queryClient.getQueryData<WeatherStationCollection>(WeatherStationsQuery.queryKey(snowboundHost, center_id));
+    const stationIds: Record<string, WeatherStationSource> = weatherStations
+      ? Object.fromEntries(new Map(weatherStations?.features.map(s => [s.properties.stid, s.properties.source])))
+      : {};
+    void TimeseriesQuery.prefetch(queryClient, snowboundHost, metadata?.widget_config?.stations?.token, logger, stationIds, requestedTime, {days: 1});
   }
 
   if (metadata?.widget_config?.forecast) {
