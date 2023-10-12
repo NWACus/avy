@@ -59,7 +59,7 @@ import {
   Title3Black,
   Title3Semibold,
 } from 'components/text';
-import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
+import {QUERY_CACHE_APP_VERSION, QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
 import {settingsMenuItems} from 'data/settingsMenuItems';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {logFilePath} from 'logger';
@@ -245,6 +245,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                           onPress={() => {
                             void (async () => {
                               await AsyncStorage.removeItem(QUERY_CACHE_ASYNC_STORAGE_KEY);
+                              await AsyncStorage.removeItem(QUERY_CACHE_APP_VERSION);
                               queryCache.clear();
                             })();
                           }}>

@@ -21,9 +21,11 @@ import * as SplashScreen from 'expo-splash-screen';
 import {AppStateStatus, Platform, StatusBar, StyleSheet, useColorScheme, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
+import * as Application from 'expo-application';
 import * as BackgroundFetch from 'expo-background-fetch';
 import Constants from 'expo-constants';
 import * as TaskManager from 'expo-task-manager';
+import * as Updates from 'expo-updates';
 import * as Sentry from 'sentry-expo';
 
 import {merge} from 'lodash';
@@ -54,7 +56,7 @@ import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 require('date-time-format-timezone');
 
 import axios, {AxiosRequestConfig} from 'axios';
-import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
+import {QUERY_CACHE_APP_VERSION, QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
 import * as FileSystem from 'expo-file-system';
 import {PreferencesProvider, usePreferences} from 'Preferences';
 // eslint-disable-next-line no-restricted-imports
@@ -159,6 +161,32 @@ queryCache.subscribe(event => {
   // TODO: handle errors?
 });
 
+// If we're in a preview or release build, and the version has changed, then
+// reset the query cache.
+const channel = Updates.channel || 'main';
+if (['release', 'preview'].includes(channel) || (channel === 'main' && process.env.EXPO_PUBLIC_CLEAR_STALE_QUERY_CACHE_IN_DEV)) {
+  void (async () => {
+    try {
+      const version = Application.nativeBuildVersion;
+      const lastVersion = await AsyncStorage.getItem(QUERY_CACHE_APP_VERSION);
+      logger.debug({version, lastVersion}, 'checking query cache version');
+      if (!version || !lastVersion || version !== lastVersion) {
+        logger.info({version, lastVersion}, 'clearing query cache');
+        await AsyncStorage.removeItem(QUERY_CACHE_ASYNC_STORAGE_KEY);
+        queryCache.clear();
+        if (version) {
+          await AsyncStorage.setItem(QUERY_CACHE_APP_VERSION, version);
+        }
+      }
+    } catch (error) {
+      Sentry.Native.captureException(error);
+      logger.error({error}, 'Unexpected error checking query cache...resetting it to be safe');
+      // Not sure other recovery steps to take here. If async storage is throwing errors then we're probably going
+      // to die spectacularly in short order.
+    }
+  })();
+}
+
 const queryClient: QueryClient = new QueryClient({
   queryCache: queryCache,
   defaultOptions: {
@@ -174,7 +202,7 @@ const BACKGROUND_CACHE_RECONCILIATION_TASK = 'background-cache-reconciliation';
 TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, () => {
   void (async () => {
     try {
-      await ImageCache.reconcile(queryClient, queryCache, logger);
+      await ImageCache.reconcile(queryClient, queryClient.getQueryCache(), logger);
     } catch (e) {
       logger.error({error: e}, 'error reconciling image cache');
     }
