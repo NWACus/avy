@@ -1,177 +1,139 @@
-import React from 'react';
-import {ScrollView} from 'react-native';
-
-import {useNavigation} from '@react-navigation/native';
-import {Logger} from 'browser-bunyan';
-import {ActionList} from 'components/content/ActionList';
-import {Card} from 'components/content/Card';
-import {incompleteQueryState, NotFound, QueryState, Unavailable} from 'components/content/QueryState';
-import {VStack} from 'components/core';
-import {featureBounds, pointInFeature, RegionBounds} from 'components/helpers/geographicCoordinates';
-import {Title3Black} from 'components/text';
-import {WeatherStationMap} from 'components/weather_data/WeatherStationMap';
-import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
-import {useMapLayer} from 'hooks/useMapLayer';
-import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
-import {LoggerContext, LoggerProps} from 'loggerContext';
-import {WeatherStackNavigationProps} from 'routes';
-import {AvalancheCenterID, MapLayer, MapLayerFeature, WeatherStationCollection, WeatherStationProperties, WeatherStationSource} from 'types/nationalAvalancheCenter';
+import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
+import {NotFound} from 'components/content/QueryState';
+import {Divider, HStack, VStack, View} from 'components/core';
+import {FilterPillButton} from 'components/observations/ObservationsListView';
+import {WeatherStationFilterConfig, WeatherStationFilterForm, filtersForConfig} from 'components/weather_data/WeatherStationFilterForm';
+import {WeatherStationCard} from 'components/weather_data/WeatherStationMap';
+import React, {useCallback, useMemo} from 'react';
+import {FlatList, ListRenderItemInfo, Modal, ScrollView, TouchableOpacity} from 'react-native';
+import {colorLookup} from 'theme';
+import {AvalancheCenterID, MapLayer, WeatherStation, WeatherStationCollection, WeatherStationTimeseries, WeatherStationTimeseriesEntry} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
-import {RequestedTimeString} from 'utils/date';
+import {RequestedTimeString, parseRequestedTimeString, requestedTimeToUTCDate} from 'utils/date';
 
-interface Props {
+interface WeatherStationListItem {
+  station: WeatherStation;
+  timeseries?: WeatherStationTimeseriesEntry;
+}
+
+export const WeatherStationList: React.FunctionComponent<{
+  mapLayer: MapLayer;
+  weatherStations: WeatherStationCollection;
+  timeseries: WeatherStationTimeseries;
   center_id: AvalancheCenterID;
   requestedTime: RequestedTimeString;
-}
+  toggleMap: () => void;
+  initialFilterConfig?: WeatherStationFilterConfig;
+}> = ({mapLayer, weatherStations, timeseries, center_id, requestedTime, toggleMap, initialFilterConfig}) => {
+  const parsedTime = parseRequestedTimeString(requestedTime);
+  const currentTime = requestedTimeToUTCDate(parsedTime);
+  const [filterConfig, setFilterConfig] = React.useState<WeatherStationFilterConfig>({...initialFilterConfig});
+  const [filterModalVisible, setFilterModalVisible] = React.useState<boolean>(false);
 
-export const WeatherStationList: React.FC<Props> = ({center_id, requestedTime}) => {
-  const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
-  const metadata = avalancheCenterMetadataResult.data;
-  if (incompleteQueryState(avalancheCenterMetadataResult) || !metadata) {
-    return <QueryState results={[avalancheCenterMetadataResult]} />;
-  }
+  // when the initial filter inputs change, we should honor those
+  React.useEffect(() => {
+    setFilterConfig(current => ({
+      ...current,
+      ...initialFilterConfig,
+    }));
+  }, [initialFilterConfig]);
 
-  if (!metadata.widget_config.stations?.token) {
-    return <NotFound terminal what={[new NotFoundError('no token for stations', 'weather stations')]} />;
-  }
-
-  if (center_id === 'NWAC') {
-    return <NWACStationList token={metadata.widget_config.stations?.token} requestedTime={requestedTime} />;
-  }
-
-  return process.env.EXPO_PUBLIC_ENABLE_WEATHER_MAP ? (
-    <WeatherStationMap center_id={center_id} token={metadata.widget_config.stations?.token} requestedTime={requestedTime} />
-  ) : (
-    <Unavailable />
+  // the displayed stations need to match all filters - for instance, if a user chooses a zone *and*
+  // a source type, we only show stations that match both of those at the same time
+  const resolvedFilters = useMemo(
+    () => (mapLayer ? filtersForConfig(mapLayer, filterConfig, initialFilterConfig, currentTime) : []),
+    [mapLayer, filterConfig, initialFilterConfig, currentTime],
   );
-};
 
-const stationGroupMapping = {
-  // Snoqualmie Pass
-  'Alpental Ski Area': ['1', '2', '3'],
-  'Snoqualmie Pass': ['21', '22', '23'],
+  const displayedStations: WeatherStationListItem[] = useMemo(
+    () =>
+      weatherStations.features
+        .map(s => ({station: s, timeseries: timeseries.STATION.find(t => t.stid === s.properties.stid)}))
+        .filter(item => resolvedFilters.every(({filter}) => filter(item.station, item.timeseries))),
+    [weatherStations, timeseries, resolvedFilters],
+  );
 
-  // Stevens Pass
-  'Stevens Pass Ski Area - Tye Mill Chair, Skyline Chair': ['17', '18'],
-  'Stevens Pass - WSDOT Schmidt Haus': ['13'],
-  'Grace Lakes & Old Faithful': ['14', '51'],
-  'Stevens Pass Ski Area - Brooks Chair': ['50'],
+  const renderItem = useCallback(
+    ({item}: ListRenderItemInfo<WeatherStationListItem>) => (
+      <WeatherStationCard
+        center_id={center_id}
+        date={currentTime}
+        station={item.station}
+        timeseries={item.timeseries}
+        units={timeseries.UNITS}
+        variables={timeseries.VARIABLES}
+        mode={'list'}
+      />
+    ),
+    [center_id, currentTime, timeseries],
+  );
 
-  // West South
-  'Crystal Mt Ski Area': ['28', '29'],
-  'Crystal Mt. - Green Valley & Campbell Basin': ['27', '54'],
-  'Mt Baker Ski Area': ['5', '6'],
-  'Mount Rainier - Sunrise': ['30', '31'],
-  'Mount Rainier - Paradise': ['35', '36'],
-  'Mount Rainier - Camp Muir': ['34'],
-  'Chinook Pass': ['32', '33'],
-  'White Pass': ['37', '39', '49'],
-  'Mt St Helens': ['40'],
-
-  // West Central
-  'White Chuck': ['57'],
-
-  // East Central
-  'Mission Ridge Ski Area': ['24', '25', '26'],
-  'Tumwater Mt. & Leavenworth': ['19', '53'],
-  'Dirtyface Mt': ['10'],
-
-  // East North
-  'Washington Pass': ['8', '9'],
-
-  // Mt Hood
-  'Skibowl Ski Area - Government Camp': ['46', '47'],
-  'Timberline Lodge': ['44', '56'],
-  'Timberline Ski Area - Magic Mile Chair': ['45'],
-  'Mt Hood Meadows Ski Area': ['42', '43'],
-  'Mt. Hood Meadows Cascade Express': ['41'],
-};
-
-const decommissionedStations = [
-  '15', // Stevens Pass - Brooks Wind (Retired 2019)
-];
-
-export interface ZoneWithWeatherStations {
-  feature: MapLayerFeature;
-  bounds: RegionBounds;
-  stationGroups: Record<string, WeatherStationProperties[]>;
-}
-
-export const NWACStationsByZone = (mapLayer: MapLayer, stations: WeatherStationCollection, logger: Logger): ZoneWithWeatherStations[] => {
-  const zones: ZoneWithWeatherStations[] = mapLayer.features.map(f => ({feature: f, bounds: featureBounds(f), stationGroups: {}}));
-  stations.features
-    .map(feature => feature.properties)
-    .filter(s => s.source === 'nwac')
-    .filter(s => !decommissionedStations.includes(s.stid))
-    .forEach(s => {
-      if (!s.latitude || !s.longitude) {
-        return;
-      }
-      const matchingZones = zones.filter(zoneData => pointInFeature({latitude: s.latitude, longitude: s.longitude}, zoneData.feature));
-      const stationLogger = logger.child({station: {id: s.id, name: s.name, coordinates: {lat: s.latitude, lng: s.longitude}}});
-      if (matchingZones.length === 0) {
-        stationLogger.warn(`unable to find matching zone for weather station`);
-      } else if (matchingZones.length > 1) {
-        stationLogger.warn({matchingZones: matchingZones.map(z => z.feature.properties.name)}, `found multiple matching zones for weather station`);
-      } else {
-        // Mapped station to a single zone. Now, should it appear in the UI as part of a group?
-        const groupMapping = Object.entries(stationGroupMapping).find(([_name, stids]) => stids.includes(s.stid));
-        const name = groupMapping ? groupMapping[0] : s.name;
-        matchingZones[0].stationGroups[name] = matchingZones[0].stationGroups[name] || [];
-        matchingZones[0].stationGroups[name].push(s);
-      }
-    });
-  return zones;
-};
-
-const NWACStationList: React.FunctionComponent<{token: string; requestedTime: RequestedTimeString}> = ({token, requestedTime}) => {
-  const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const navigation = useNavigation<WeatherStackNavigationProps>();
-  const mapLayerResult = useMapLayer('NWAC');
-  const mapLayer = mapLayerResult.data;
-  const weatherStationsResult = useWeatherStationsMetadata('NWAC', token);
-  const weatherStations = weatherStationsResult.data;
-
-  if (incompleteQueryState(mapLayerResult, weatherStationsResult) || !mapLayer || !weatherStations) {
-    return <QueryState results={[mapLayerResult, weatherStationsResult]} />;
-  }
-
-  const stationsByZone = NWACStationsByZone(mapLayer, weatherStations, logger);
-
-  const data = stationsByZone
-    .map(zone => ({
-      zoneName: zone.feature.properties.name,
-      actions: Object.entries(zone.stationGroups)
-        .map(([k, v]) => ({
-          label: k,
-          data: v,
-          action: (name: string, data: WeatherStationProperties[]) => {
-            navigation.navigate('stationsDetail', {
-              center_id: 'NWAC',
-              stations: data
-                .map(s => ({id: s.stid, source: s.source}))
-                .reduce((accum, value) => {
-                  accum[value.id] = value.source;
-                  return accum;
-                }, {} as Record<string, WeatherStationSource>),
-              name: name,
-              requestedTime: requestedTime,
-              zoneName: zone.feature.properties.name,
-            });
-          },
-        }))
-        .sort((a, b) => a.label.localeCompare(b.label)),
-    }))
-    .filter(d => d.actions.length > 0);
   return (
-    <ScrollView style={{width: '100%', height: '100%'}}>
-      <VStack space={8}>
-        {data.map((d, i) => (
-          <Card borderRadius={0} borderColor="white" header={<Title3Black>{d.zoneName}</Title3Black>} key={i}>
-            <ActionList actions={d.actions} />
-          </Card>
-        ))}
+    <>
+      <VStack width="100%" height="100%" space={0}>
+        <Modal visible={filterModalVisible}>
+          <WeatherStationFilterForm
+            mapLayer={mapLayer}
+            initialFilterConfig={{...initialFilterConfig}}
+            currentFilterConfig={filterConfig}
+            setFilterConfig={setFilterConfig}
+            setVisible={setFilterModalVisible}
+          />
+        </Modal>
+        <HStack space={8} pt={4} pb={16} pl={16} justifyContent="space-between" width="100%">
+          <FilterPillButton
+            label="Filters"
+            textColor={colorLookup('text')}
+            backgroundColor={colorLookup('white')}
+            onPress={() => setFilterModalVisible(true)}
+            headIcon={<FontAwesome name="sliders" size={16} color={colorLookup('text')} style={{marginRight: 2}} />}
+          />
+          <Divider direction="vertical" />
+          <ScrollView horizontal style={{width: '100%'}} showsHorizontalScrollIndicator={false}>
+            <HStack space={8} py={4} pr={16}>
+              {resolvedFilters.map(({label, removeFilter}) => {
+                const canBeDeleted = removeFilter !== undefined;
+                const textColor = canBeDeleted ? colorLookup('blue2') : colorLookup('text');
+                const backgroundColor = canBeDeleted ? colorLookup('color-tag') : colorLookup('white');
+                const tailIcon = canBeDeleted ? (
+                  <MaterialCommunityIcons name="close" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('blue2')} />
+                ) : undefined;
+                return (
+                  <FilterPillButton
+                    key={label}
+                    label={label}
+                    textColor={textColor}
+                    backgroundColor={backgroundColor}
+                    tailIcon={tailIcon}
+                    onPress={() => {
+                      if (removeFilter) {
+                        setFilterConfig(removeFilter(filterConfig));
+                      } else {
+                        setFilterModalVisible(true);
+                      }
+                    }}
+                  />
+                );
+              })}
+            </HStack>
+          </ScrollView>
+        </HStack>
+        <Divider />
+        <FlatList
+          ListEmptyComponent={<NotFound inline terminal what={[new NotFoundError('no weather stations found', 'any matching weather stations')]} />}
+          style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
+          data={displayedStations}
+          renderItem={renderItem}
+        />
       </VStack>
-    </ScrollView>
+      <TouchableOpacity onPress={() => toggleMap()}>
+        <HStack style={{position: 'absolute', width: '100%', bottom: 24}} px={8}>
+          <View flex={1} />
+          <View px={8} py={4} bg={'primary'} borderRadius={30}>
+            <MaterialCommunityIcons name="map-outline" size={24} color={colorLookup('primary.background').toString()} />
+          </View>
+        </HStack>
+      </TouchableOpacity>
+    </>
   );
 };

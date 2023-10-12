@@ -212,7 +212,7 @@ const unitShortNames: Record<string, string> = {
   millimeters: 'mm',
 } as const;
 
-const formatVariable = (variable: Variable): string => {
+export const formatVariable = (variable: Variable): string => {
   if (variable.variable in variableShortNames) {
     return variableShortNames[variable.variable as variableName];
   } else {
@@ -224,7 +224,7 @@ const formatVariable = (variable: Variable): string => {
     }
   }
 };
-const formatUnits = (variable: Variable, units: Record<string, string>): string => {
+export const formatUnits = (variable: Variable, units: Record<string, string>): string => {
   const unit: string = variable.default_unit;
   if (unit in unitShortNames) {
     return unitShortNames[unit];
@@ -235,7 +235,7 @@ const formatUnits = (variable: Variable, units: Record<string, string>): string 
   return unit || '';
 };
 
-const formatData = (variable: Variable, data: (number | string | null)[]): string[] => {
+export const formatData = (variable: Variable, data: (number | string | null)[]): string[] => {
   let formatter: (i: string | number | null) => string | null;
   switch (variable.variable) {
     case 'date_time':
@@ -255,7 +255,7 @@ const formatData = (variable: Variable, data: (number | string | null)[]): strin
 // orderStationVariables takes a list of variables exposed by a station and re-orders them, first listing
 // the known variables in the order we expect, then following with unknown variables in the oder provided
 // by the station API itself.
-const orderStationVariables = (stationVariables: Variable[], timezone: string): Variable[] => {
+export const orderStationVariables = (stationVariables: Variable[], timezone: string): Variable[] => {
   const out: Variable[] = [];
   for (const item of variableOrder) {
     const found = stationVariables.find(v => v.variable === item);

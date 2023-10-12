@@ -1,4 +1,6 @@
+import {AntDesign} from '@expo/vector-icons';
 import {Logger} from 'browser-bunyan';
+import {HStack, View} from 'components/core';
 import {add, isAfter} from 'date-fns';
 import _ from 'lodash';
 import md5 from 'md5';
@@ -12,9 +14,11 @@ import {
   NativeSyntheticEvent,
   PanResponder,
   PanResponderGestureState,
+  TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
 import AnimatedMapView, {Region} from 'react-native-maps';
+import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {RequestedTime, toISOStringUTC} from 'utils/date';
 
@@ -31,13 +35,16 @@ export enum AnimatedDrawerState {
 export class AnimatedMapWithDrawerController {
   // These offsets are applied through translateY on the FlatList drawer
   static readonly OFFSETS = {
-    [AnimatedDrawerState.Hidden]: 240,
+    [AnimatedDrawerState.Hidden]: 300,
     [AnimatedDrawerState.Docked]: 155,
     [AnimatedDrawerState.Visible]: 0,
   };
 
   // When a pan gesture goes beyond this distance, we animate the drawer to the final state
   static readonly SNAP_THRESHOLD = 16;
+
+  static readonly BUTTON_PADDING = 8;
+  static readonly BUTTON_HEIGHT = 8;
 
   logger: Logger;
 
@@ -46,6 +53,9 @@ export class AnimatedMapWithDrawerController {
   baseOffset: number;
   panning: boolean;
   yOffset: Animated.Value;
+
+  // The following members manage the optional button above the cards
+  buttonYOffset: Animated.Value;
 
   // The following members determine the map's region
   baseAvalancheCenterMapRegion: Region;
@@ -65,6 +75,7 @@ export class AnimatedMapWithDrawerController {
     this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[state];
     this.panning = false;
     this.yOffset = new Animated.Value(this.baseOffset);
+    this.buttonYOffset = new Animated.Value(this.baseOffset);
     this.baseAvalancheCenterMapRegion = region;
     this.mapView = mapView;
     this.lastLogged = {};
@@ -75,14 +86,20 @@ export class AnimatedMapWithDrawerController {
     this.panning = false;
     this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[state];
     this.yOffset.flattenOffset();
+    this.buttonYOffset.flattenOffset();
     this.animateMapRegion();
-    Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}).start();
+    Animated.parallel([
+      Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}),
+      Animated.spring(this.buttonYOffset, {toValue: this.buttonOffset(), useNativeDriver: true}),
+    ]).start();
   }
 
   onPanResponderGrant() {
     this.panning = true;
     this.yOffset.setOffset(this.baseOffset);
     this.yOffset.setValue(0);
+    this.buttonYOffset.setOffset(this.baseOffset);
+    this.buttonYOffset.setValue(0);
   }
 
   onPanResponderMove(event: GestureResponderEvent, gestureState: PanResponderGestureState) {
@@ -110,8 +127,12 @@ export class AnimatedMapWithDrawerController {
       this.state = this.state === AnimatedDrawerState.Docked ? AnimatedDrawerState.Visible : AnimatedDrawerState.Docked;
       this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[this.state];
       this.yOffset.flattenOffset();
+      this.buttonYOffset.flattenOffset();
       this.animateMapRegion();
-      Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}).start();
+      Animated.parallel([
+        Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}),
+        Animated.spring(this.buttonYOffset, {toValue: this.buttonOffset(), useNativeDriver: true}),
+      ]).start();
     } else {
       Animated.event([null, {dy: this.yOffset}], {useNativeDriver: false})(event, gestureState);
     }
@@ -122,9 +143,20 @@ export class AnimatedMapWithDrawerController {
       // user panned, but not far enough to change state - we should spring back to our previous position
       this.panning = false;
       this.yOffset.flattenOffset();
-      Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}).start();
+      this.buttonYOffset.flattenOffset();
+      Animated.parallel([
+        Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}),
+        Animated.spring(this.buttonYOffset, {toValue: this.buttonOffset(), useNativeDriver: true}),
+      ]).start();
     }
     this.panning = false;
+  }
+
+  buttonOffset(): number {
+    if (this.baseOffset === AnimatedMapWithDrawerController.OFFSETS[AnimatedDrawerState.Hidden]) {
+      return AnimatedMapWithDrawerController.BUTTON_HEIGHT - AnimatedMapWithDrawerController.BUTTON_PADDING;
+    }
+    return this.baseOffset - this.cardDrawerMaximumHeight - AnimatedMapWithDrawerController.BUTTON_HEIGHT - AnimatedMapWithDrawerController.BUTTON_PADDING;
   }
 
   getTransform() {
@@ -134,6 +166,26 @@ export class AnimatedMapWithDrawerController {
     ];
     return {
       translateY: this.yOffset.interpolate({
+        inputRange: allowedRange,
+        outputRange: allowedRange,
+        extrapolate: 'clamp',
+      }),
+    };
+  }
+
+  getButtonTransform() {
+    const allowedRange = [
+      AnimatedMapWithDrawerController.OFFSETS[AnimatedDrawerState.Visible] -
+        AnimatedMapWithDrawerController.SNAP_THRESHOLD -
+        AnimatedMapWithDrawerController.BUTTON_PADDING -
+        this.cardDrawerMaximumHeight,
+      AnimatedMapWithDrawerController.OFFSETS[AnimatedDrawerState.Hidden] +
+        AnimatedMapWithDrawerController.SNAP_THRESHOLD -
+        AnimatedMapWithDrawerController.BUTTON_PADDING -
+        this.cardDrawerMaximumHeight,
+    ];
+    return {
+      translateY: this.buttonYOffset.interpolate({
         inputRange: allowedRange,
         outputRange: allowedRange,
         extrapolate: 'clamp',
@@ -285,10 +337,11 @@ export interface AnimatedCardsProps<T, U> {
   setSelectedItemId: React.Dispatch<React.SetStateAction<U | null>>;
   controller: AnimatedMapWithDrawerController;
   renderItem: (item: ItemRenderData<T, U>) => React.ReactElement;
+  buttonOnPress?: () => void;
 }
 
 export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
-  const {center_id, date, items, getItemId, selectedItemId, setSelectedItemId, controller, renderItem} = props;
+  const {center_id, date, items, getItemId, selectedItemId, setSelectedItemId, controller, renderItem, buttonOnPress} = props;
   const {width} = useWindowDimensions();
 
   const [previouslySelectedItemId, setPreviouslySelectedItemId] = useState<U | null>(null);
@@ -368,37 +421,59 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
   }
 
   return (
-    <Animated.FlatList
-      initialNumToRender={items.length}
-      onLayout={(event: LayoutChangeEvent) => controller.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height)}
-      ref={flatListRef}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={[
-        {
-          position: 'absolute',
-          width: '100%',
-          bottom: 6,
-          transform: [controller.getTransform()],
-        },
-      ]}
-      onScroll={handleScroll}
-      scrollEventThrottle={200}
-      onMomentumScrollBegin={() => setUserScrolling(true)}
-      onMomentumScrollEnd={() => setUserScrolling(false)}
-      onScrollBeginDrag={() => setUserScrolling(true)}
-      onScrollEndDrag={() => setUserScrolling(false)}
-      {...panResponder.panHandlers}
-      {...flatListProps}
-      data={items.map(
-        (i: T): ItemRenderData<T, U> => ({
-          key: getItemId(i),
-          item: i,
-          date: date,
-          center_id: center_id,
-        }),
+    <>
+      {buttonOnPress && (
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              width: '100%',
+              bottom: 6,
+              transform: [controller.getButtonTransform()],
+            },
+          ]}>
+          <TouchableOpacity onPress={() => buttonOnPress()}>
+            <HStack px={8}>
+              <View flex={1} />
+              <View px={8} py={4} bg={'primary'} borderRadius={30}>
+                <AntDesign name={'bars'} size={24} color={colorLookup('primary.background').toString()} />
+              </View>
+            </HStack>
+          </TouchableOpacity>
+        </Animated.View>
       )}
-      renderItem={({item}: {item: ItemRenderData<T, U>}) => renderItem(item)}
-    />
+      <Animated.FlatList
+        initialNumToRender={items.length}
+        onLayout={(event: LayoutChangeEvent) => controller.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height)}
+        ref={flatListRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={[
+          {
+            position: 'absolute',
+            width: '100%',
+            bottom: 6,
+            transform: [controller.getTransform()],
+          },
+        ]}
+        onScroll={handleScroll}
+        scrollEventThrottle={200}
+        onMomentumScrollBegin={() => setUserScrolling(true)}
+        onMomentumScrollEnd={() => setUserScrolling(false)}
+        onScrollBeginDrag={() => setUserScrolling(true)}
+        onScrollEndDrag={() => setUserScrolling(false)}
+        {...panResponder.panHandlers}
+        {...flatListProps}
+        data={items.map(
+          (i: T): ItemRenderData<T, U> => ({
+            key: getItemId(i),
+            item: i,
+            date: date,
+            center_id: center_id,
+          }),
+        )}
+        renderItem={({item}: {item: ItemRenderData<T, U>}) => renderItem(item)}
+      />
+    </>
   );
 };

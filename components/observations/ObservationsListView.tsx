@@ -17,7 +17,7 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
-import {ActivityIndicator, ColorValue, FlatList, FlatListProps, GestureResponderEvent, ListRenderItemInfo, Modal, RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
+import {ActivityIndicator, ColorValue, FlatList, GestureResponderEvent, ListRenderItemInfo, Modal, RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
@@ -31,7 +31,7 @@ interface ObservationsListViewItem {
   zone: string;
 }
 
-interface ObservationsListViewProps extends Omit<FlatListProps<ObservationsListViewItem>, 'data' | 'renderItem'> {
+interface ObservationsListViewProps {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
   additionalFilters?: Partial<ObservationFilterConfig>;
@@ -47,7 +47,7 @@ interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFr
   source: SourceType;
 }
 
-export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, additionalFilters, ...props}) => {
+export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, additionalFilters}) => {
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(requestedTime, additionalFilters), [requestedTime, additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
@@ -263,7 +263,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           index,
         })}
         renderItem={renderItem}
-        {...props}
       />
     </VStack>
   );
@@ -273,7 +272,7 @@ const colorsFor = (partnerType: PartnerType) => {
   return {primary: colorLookup(`observer.${partnerType}.primary`).toString(), secondary: colorLookup(`observer.${partnerType}.secondary`).toString()};
 };
 
-interface FilterPillButtonProps {
+export interface FilterPillButtonProps {
   label: string;
   headIcon?: React.ReactNode;
   tailIcon?: React.ReactNode;
@@ -281,7 +280,7 @@ interface FilterPillButtonProps {
   textColor: ColorValue;
   backgroundColor: ColorValue;
 }
-const FilterPillButton: React.FC<FilterPillButtonProps> = ({label, headIcon, tailIcon, onPress, textColor, backgroundColor}) => (
+export const FilterPillButton: React.FC<FilterPillButtonProps> = ({label, headIcon, tailIcon, onPress, textColor, backgroundColor}) => (
   <TouchableOpacity onPress={onPress}>
     <HStack bg={backgroundColor} px={8} py={2} space={4} borderRadius={30} borderWidth={1} borderColor={textColor} alignItems="center">
       {headIcon}
