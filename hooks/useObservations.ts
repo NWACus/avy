@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {useQuery, UseQueryOptions} from '@tanstack/react-query';
-import {useFetch} from 'hooks/observations-fetcher';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends {[key: string]: unknown}> = {[K in keyof T]: T[K]};
@@ -392,8 +390,7 @@ export const ObservationDocument = `
   }
 }
     ${EverythingFragmentDoc}`;
-export const useObservationQuery = <TData = ObservationQuery, TError = unknown>(variables: ObservationQueryVariables, options?: UseQueryOptions<ObservationQuery, TError, TData>) =>
-  useQuery<ObservationQuery, TError, TData>(['observation', variables], useFetch<ObservationQuery, ObservationQueryVariables>(ObservationDocument).bind(null, variables), options);
+
 export const ObservationsDocument = `
     query observations($center: String!, $startDate: String!, $endDate: String!) {
   getObservationList(centerId: $center, startDate: $startDate, endDate: $endDate) {
@@ -401,15 +398,20 @@ export const ObservationsDocument = `
   }
 }
     ${OverviewFragmentDoc}`;
-export const useObservationsQuery = <TData = ObservationsQuery, TError = unknown>(
-  variables: ObservationsQueryVariables,
-  options?: UseQueryOptions<ObservationsQuery, TError, TData>,
-) =>
-  useQuery<ObservationsQuery, TError, TData>(
-    ['observations', variables],
-    useFetch<ObservationsQuery, ObservationsQueryVariables>(ObservationsDocument).bind(null, variables),
-    options,
-  );
 
-// No matter what span of time we're looking at, we will never query over more than 3 months of observations
-export const MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW: Duration = {months: -3};
+// These are unused - can they be deleted?
+// export const useObservationQuery = <TData = ObservationQuery, TError = unknown>(variables: ObservationQueryVariables, options?: UseQueryOptions<ObservationQuery, TError, TData>) =>
+//   useQuery<ObservationQuery, TError, TData>(['observation', variables], useFetch<ObservationQuery, ObservationQueryVariables>(ObservationDocument).bind(null, variables), options);
+//
+// export const useObservationsQuery = <TData = ObservationsQuery, TError = unknown>(
+//   variables: ObservationsQueryVariables,
+//   options?: UseQueryOptions<ObservationsQuery, TError, TData>,
+// ) =>
+//   useQuery<ObservationsQuery, TError, TData>(
+//     ['observations', variables],
+//     useFetch<ObservationsQuery, ObservationsQueryVariables>(ObservationsDocument).bind(null, variables),
+//     options,
+//   );
+
+// No matter what span of time we're looking at, we will never query over more than 12 months of observations
+export const MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW: Duration = {months: -12};

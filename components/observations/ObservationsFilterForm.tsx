@@ -27,7 +27,7 @@ import {z} from 'zod';
 const avalancheInstabilitySchema = z.enum(['observed', 'triggered', 'caught']);
 type avalancheInstability = z.infer<typeof avalancheInstabilitySchema>;
 
-const dateValueSchema = z.enum(['past_season', 'custom']);
+const dateValueSchema = z.enum(['current_season', 'custom']);
 type DateValue = z.infer<typeof dateValueSchema>;
 
 const observationFilterConfigSchema = z.object({
@@ -52,28 +52,31 @@ export type ObservationFilterConfig = z.infer<typeof observationFilterConfigSche
 type FilterFunction = (observation: ObservationFragment) => boolean;
 
 const DATE_LABELS: Record<DateValue, string> = {
-  past_season: 'Last season',
+  current_season: 'Current season',
   custom: 'Custom range',
 };
 
-export const createDefaultFilterConfig = (requestedTime: RequestedTime, defaults: Partial<ObservationFilterConfig> | undefined): ObservationFilterConfig => {
-  const endDate: Date = requestedTimeToUTCDate(requestedTime);
+const currentSeasonDates = (requestedTime: RequestedTime): {from: Date; to: Date} => {
+  const endDate = requestedTimeToUTCDate(requestedTime);
   // Months are zero-based, so September is 8
   const startDate = new Date(endDate.getUTCMonth() >= 8 ? endDate.getUTCFullYear() : endDate.getUTCFullYear() - 1, 8, 1);
+  return {from: startDate, to: endDate};
+};
+
+export const createDefaultFilterConfig = (requestedTime: RequestedTime, defaults: Partial<ObservationFilterConfig> | undefined): ObservationFilterConfig => {
   return {
     dates: {
-      value: 'past_season',
-      from: startDate,
-      to: endDate,
+      value: 'current_season',
+      ...currentSeasonDates(requestedTime),
     },
     ...defaults,
   };
 };
 
 export const dateLabelForFilterConfig = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>): string => {
-  const value = dates?.value || 'past_season';
+  const value = dates?.value || 'current_season';
   switch (value) {
-    case 'past_season':
+    case 'current_season':
       return DATE_LABELS[value];
     case 'custom':
       if (!dates?.from || !dates?.to) {
@@ -83,7 +86,7 @@ export const dateLabelForFilterConfig = (dates: z.infer<typeof observationFilter
   }
 };
 
-const matchesDates = (currentDate: Date, dates: z.infer<typeof observationFilterConfigSchema.shape.dates>): FilterFunction => {
+const matchesDates = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>): FilterFunction => {
   if (!dates) {
     return () => true;
   }
@@ -131,18 +134,16 @@ interface FilterListItem {
   label: string;
   removeFilter?: (config: ObservationFilterConfig) => ObservationFilterConfig;
 }
-export const filtersForConfig = (
-  mapLayer: MapLayer,
-  config: ObservationFilterConfig,
-  additionalFilters: Partial<ObservationFilterConfig> | undefined,
-  currentDate: Date,
-): FilterListItem[] => {
+export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterConfig, additionalFilters: Partial<ObservationFilterConfig> | undefined): FilterListItem[] => {
   if (!config) {
     return [];
   }
 
   const filterFuncs: FilterListItem[] = [];
-  filterFuncs.push({filter: matchesDates(currentDate, config.dates), label: dateLabelForFilterConfig(config.dates)});
+  filterFuncs.push({
+    filter: matchesDates(config.dates),
+    label: dateLabelForFilterConfig(config.dates),
+  });
 
   if (config.zone) {
     filterFuncs.push({
@@ -186,7 +187,7 @@ export const filtersForConfig = (
 
 interface ObservationsFilterFormProps {
   requestedTime: RequestedTime;
-  mapLayer: MapLayer;
+  mapLayer?: MapLayer;
   initialFilterConfig: ObservationFilterConfig;
   currentFilterConfig: ObservationFilterConfig;
   setFilterConfig: React.Dispatch<React.SetStateAction<ObservationFilterConfig>>;
@@ -227,6 +228,14 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   });
 
   const onSubmitHandler = (data: ObservationFilterConfig) => {
+    // When the user selects `current_season`, the date fields might be set to a previous custom range.
+    // Make sure they're overridden with the season dates.
+    if (data.dates.value === 'current_season') {
+      data.dates = {
+        value: 'current_season',
+        ...currentSeasonDates(requestedTime),
+      };
+    }
     setFilterConfig(data);
   };
 
@@ -278,8 +287,18 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     </HStack>
                   }>
                   <VStack space={formFieldSpacing} mt={8}>
-                    <SelectField name="zone" label="Zone" radio items={mapLayer.features.map(feature => feature.properties.name)} disabled={Boolean(initialFilterConfig.zone)} />
-                    <SelectField name="dates.value" label="Dates" radio items={(['past_season', 'custom'] as const).map(val => ({value: val, label: DATE_LABELS[val]}))} />
+                    {mapLayer && (
+                      <SelectField name="zone" label="Zone" radio items={mapLayer.features.map(feature => feature.properties.name)} disabled={Boolean(initialFilterConfig.zone)} />
+                    )}
+                    <SelectField
+                      name="dates.value"
+                      label="Dates"
+                      radio
+                      items={(['current_season', 'custom'] as const).map(val => ({
+                        value: val,
+                        label: DATE_LABELS[val],
+                      }))}
+                    />
                     <Conditional name="dates.value" value={'custom'}>
                       <DateField
                         name="dates.from"

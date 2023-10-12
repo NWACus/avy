@@ -17,12 +17,12 @@ import {ZodError} from 'zod';
 
 const PAGE_SIZE: Duration = {weeks: 2};
 
-export const useNACObservations = (center_id: AvalancheCenterID, endDate: RequestedTime) => {
+export const useNACObservations = (center_id: AvalancheCenterID, endDate: RequestedTime, options: {enabled: boolean}) => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(nationalAvalancheCenterHost, center_id, endDate);
   const thisLogger = logger.child({query: key});
-  thisLogger.debug('initiating query');
+  thisLogger.debug({endDate, enabled: options.enabled}, 'initiating query');
 
   // For NAC, we fetch in 2 week pages, until we get results that are older than the requested end date minus the lookback window
   const lookbackWindowStart: Date = add(requestedTimeToUTCDate(endDate), MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW);
@@ -50,6 +50,7 @@ export const useNACObservations = (center_id: AvalancheCenterID, endDate: Reques
     },
     staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
+    enabled: options.enabled,
   });
 };
 

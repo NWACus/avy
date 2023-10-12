@@ -63,21 +63,28 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     }));
   }, [additionalFilters]);
 
-  const nacObservationsResult = useNACObservations(center_id, requestedTime);
-  const nacObservations: ObservationFragmentWithPageIndex[] = useMemo(
-    () => (nacObservationsResult.data?.pages ?? []).flatMap((page, index) => page.data.map(o => ({...o, pageIndex: index}))),
-    [nacObservationsResult],
-  );
-  const nwacObservationsResult = useNWACObservations(center_id, requestedTime);
-  const nwacObservations: ObservationFragmentWithPageIndex[] = useMemo(
-    () => (nwacObservationsResult.data?.pages ?? []).flatMap((page, index) => page.data.map(o => ({...o, pageIndex: index}))),
-    [nwacObservationsResult],
+  // From the 2023-24 season onward, we will only have NAC observations
+  const displayNWACObservations = center_id === 'NWAC' && endDate < new Date('2023-09-01');
+  const nacObservationsResult = useNACObservations(center_id, requestedTime, {
+    enabled: !displayNWACObservations,
+  });
+  const nwacObservationsResult = useNWACObservations(center_id, requestedTime, {
+    enabled: displayNWACObservations,
+  });
+
+  const observationsResult = displayNWACObservations ? nwacObservationsResult : nacObservationsResult;
+
+  const flatObservationList: ObservationFragmentWithPageIndex[] = useMemo(
+    () => (observationsResult.data?.pages ?? []).flatMap((page, index) => page.data.map(o => ({...o, pageIndex: index}))),
+    [observationsResult],
   );
   const observations: ObservationFragmentWithPageIndexAndZoneAndSource[] = useMemo(
     () =>
-      nacObservations
-        .map(observation => ({...observation, source: 'nac' as SourceType}))
-        .concat(nwacObservations.map(observation => ({...observation, source: 'nwac' as SourceType})))
+      flatObservationList
+        .map(observation => ({
+          ...observation,
+          source: displayNWACObservations ? 'nwac' : ('nac' as SourceType),
+        }))
         .filter(observation => observation) // when nothing is returned from the NAC, we get a null
         // Sort observations by page index, then by date. This keeps old entries from shifting around as new data is fetched
         .sort((a, b) => {
@@ -90,10 +97,13 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         // sometimes, the NWAC API gives us duplicates. If this happens, prefer to keep the version that was fetched earlier
         .filter((v, i, a) => a.findIndex(v2 => v2.id === v.id) === i)
         // calculate the zone and cache it now
-        .map(observation => ({...observation, zone: mapLayer ? matchesZone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng) : ''})),
-    [nacObservations, nwacObservations, mapLayer],
+        .map(observation => ({
+          ...observation,
+          zone: mapLayer ? matchesZone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng) : '',
+        })),
+    [flatObservationList, mapLayer, displayNWACObservations],
   );
-  const {isRefreshing, refresh} = useRefresh(mapResult.refetch, nacObservationsResult.refetch, nwacObservationsResult.refetch);
+  const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
 
   const fetchMoreData = useCallback(async (observationsResult: ReturnType<typeof useNACObservations> | ReturnType<typeof useNWACObservations>) => {
     const {isFetchingNextPage} = observationsResult;
@@ -117,22 +127,12 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     }
   }, []);
 
-  const moreDataAvailable = useCallback(() => {
-    const {from: filterStartDate} = filterConfig.dates;
-    return (
-      (nacObservationsResult.hasNextPage && (nacObservations.length === 0 || new Date(nacObservations[nacObservations.length - 1].createdAt) > filterStartDate)) ||
-      (nwacObservationsResult.hasNextPage && (nwacObservations.length === 0 || new Date(nwacObservations[nwacObservations.length - 1].createdAt) > filterStartDate))
-    );
-
-    return nacObservationsResult.hasNextPage || nwacObservationsResult.hasNextPage;
-  }, [nwacObservations, nwacObservationsResult, nacObservations, nacObservationsResult, filterConfig]);
+  const {from: filterStartDate} = filterConfig.dates;
+  const moreDataAvailable = observationsResult.hasNextPage && (observations.length === 0 || new Date(observations[observations.length - 1].createdAt) > filterStartDate);
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
-  const resolvedFilters = useMemo(
-    () => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters, endDate) : []),
-    [mapLayer, filterConfig, additionalFilters, endDate],
-  );
+  const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters) : []), [mapLayer, filterConfig, additionalFilters]);
 
   const displayedObservations: ObservationsListViewItem[] = useMemo(
     () =>
@@ -152,10 +152,10 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [],
   );
 
-  if (incompleteQueryState(nacObservationsResult, nwacObservationsResult, mapResult) || !observations || !mapLayer) {
+  if (incompleteQueryState(observationsResult)) {
     return (
       <Center width="100%" height="100%">
-        <QueryState results={[nacObservationsResult, nwacObservationsResult, mapResult]} />
+        <QueryState results={[observationsResult]} />
       </Center>
     );
   }
@@ -212,14 +212,13 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       </HStack>
       <Divider />
       <FlatList
-        // when within 2 page lengths of the end, start fetching the next set of data
-        onEndReachedThreshold={2}
+        // when within 5 page lengths of the end, start fetching the next set of data
+        onEndReachedThreshold={5}
         onEndReached={() => {
-          void fetchMoreData(nwacObservationsResult);
-          void fetchMoreData(nacObservationsResult);
+          void fetchMoreData(observationsResult);
         }}
         ListFooterComponent={() => {
-          if (!moreDataAvailable()) {
+          if (!moreDataAvailable && displayedObservations.length > 0) {
             return (
               <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT}>
                 <Body>
@@ -236,7 +235,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
                 </Body>
               </Center>
             );
-          } else if (nacObservationsResult.isFetchingNextPage || nwacObservationsResult.isFetchingNextPage) {
+          } else if (observations.length > 0 && observationsResult.isFetchingNextPage) {
             return (
               <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT}>
                 <ActivityIndicator size={'large'} color={colorLookup('textColor')} />
@@ -246,11 +245,23 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             return <View height={OBSERVATION_SUMMARY_CARD_HEIGHT} />;
           }
         }}
-        ListEmptyComponent={<NotFound inline terminal what={[new NotFoundError('no observations found', 'any matching observations')]} />}
+        ListEmptyComponent={
+          moreDataAvailable ? (
+            <Center height={'100%'}>
+              <ActivityIndicator size={'large'} color={colorLookup('textColor')} />
+            </Center>
+          ) : (
+            <NotFound inline terminal what={[new NotFoundError('no observations found', 'any matching observations')]} />
+          )
+        }
         style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh()} />}
         data={displayedObservations}
-        getItemLayout={(data, index) => ({length: OBSERVATION_SUMMARY_CARD_HEIGHT, offset: OBSERVATION_SUMMARY_CARD_HEIGHT * index, index})}
+        getItemLayout={(data, index) => ({
+          length: OBSERVATION_SUMMARY_CARD_HEIGHT,
+          offset: OBSERVATION_SUMMARY_CARD_HEIGHT * index,
+          index,
+        })}
         renderItem={renderItem}
         {...props}
       />
