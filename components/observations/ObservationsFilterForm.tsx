@@ -58,8 +58,7 @@ const DATE_LABELS: Record<DateValue, string> = {
 
 const currentSeasonDates = (requestedTime: RequestedTime): {from: Date; to: Date} => {
   const endDate = requestedTimeToUTCDate(requestedTime);
-  // Months are zero-based, so September is 8
-  const startDate = new Date(endDate.getUTCMonth() >= 8 ? endDate.getUTCFullYear() : endDate.getUTCFullYear() - 1, 8, 1);
+  const startDate = startOfSeasonLocalDate(requestedTime);
   return {from: startDate, to: endDate};
 };
 
