@@ -152,7 +152,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [],
   );
 
-  if (incompleteQueryState(observationsResult)) {
+  if (incompleteQueryState(observationsResult, mapResult) || !mapLayer) {
     return (
       <Center width="100%" height="100%">
         <QueryState results={[observationsResult]} />

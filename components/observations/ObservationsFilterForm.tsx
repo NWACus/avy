@@ -186,7 +186,7 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
 
 interface ObservationsFilterFormProps {
   requestedTime: RequestedTime;
-  mapLayer?: MapLayer;
+  mapLayer: MapLayer;
   initialFilterConfig: ObservationFilterConfig;
   currentFilterConfig: ObservationFilterConfig;
   setFilterConfig: React.Dispatch<React.SetStateAction<ObservationFilterConfig>>;
