@@ -3,6 +3,8 @@ import * as React from 'react';
 
 import {Text, TextProps, TextStyle} from 'react-native';
 
+import {decode} from 'html-entities';
+
 import {colorLookup} from 'theme';
 
 export interface TextWrapperProps extends TextProps {
@@ -14,9 +16,22 @@ export interface TextWrapperProps extends TextProps {
   lineHeight?: TextStyle['lineHeight'];
   textAlign?: TextStyle['textAlign'];
   textTransform?: TextStyle['textTransform'];
+  unescapeHTMLEntities?: boolean;
 }
 
-const TextWrapper: React.FC<TextWrapperProps> = ({color, fontFamily, fontSize, fontStyle, letterSpacing, lineHeight, textAlign, textTransform, children, ...props}) => {
+const TextWrapper: React.FC<TextWrapperProps> = ({
+  color,
+  fontFamily,
+  fontSize,
+  fontStyle,
+  letterSpacing,
+  lineHeight,
+  textAlign,
+  textTransform,
+  children,
+  unescapeHTMLEntities = false,
+  ...props
+}) => {
   const style = omitBy(
     {
       color: color ? colorLookup(color) : color,
@@ -32,7 +47,17 @@ const TextWrapper: React.FC<TextWrapperProps> = ({color, fontFamily, fontSize, f
   if (style.fontFamily && fontStyle === 'italic') {
     style.fontFamily = String(style.fontFamily) + '_Italic';
   }
-  return <Text {...merge({}, props, {style})}>{children}</Text>;
+  return (
+    <Text {...merge({}, props, {style})}>
+      {React.Children.map(children, child => {
+        if (unescapeHTMLEntities && typeof child === 'string') {
+          return decode(child);
+        } else {
+          return child;
+        }
+      })}
+    </Text>
+  );
 };
 
 // TODO figure out letter spacing values - what *are* the react native units?
