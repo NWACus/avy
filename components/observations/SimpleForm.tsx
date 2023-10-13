@@ -162,6 +162,7 @@ export const SimpleForm: React.FC<{
   };
 
   const formFieldSpacing = 16;
+  const disableFormControls = mutation.isLoading || mutation.isSuccess;
 
   return (
     <FormProvider {...formContext}>
@@ -184,6 +185,7 @@ export const SimpleForm: React.FC<{
                           {label: 'Public', value: false},
                           {label: 'Private', value: true},
                         ]}
+                        disabled={disableFormControls}
                       />
                       <SelectField
                         name="photoUsage"
@@ -194,6 +196,7 @@ export const SimpleForm: React.FC<{
                           {value: 'credit', label: 'Use with photo credit'},
                           {value: 'private', label: "Don't use"},
                         ]}
+                        disabled={disableFormControls}
                       />
                     </VStack>
                   </Card>
@@ -208,6 +211,7 @@ export const SimpleForm: React.FC<{
                             fieldRefs.current.push({field: 'name', ref: element});
                           }
                         }}
+                        disabled={disableFormControls}
                       />
                       <TextField
                         name="email"
@@ -224,8 +228,9 @@ export const SimpleForm: React.FC<{
                           autoCapitalize: 'none',
                           autoCorrect: false,
                         }}
+                        disabled={disableFormControls}
                       />
-                      <DateField name="start_date" label="Observation date" minimumDate={startOfSeasonLocalDate(today)} maximumDate={today} />
+                      <DateField name="start_date" label="Observation date" minimumDate={startOfSeasonLocalDate(today)} maximumDate={today} disabled={disableFormControls} />
                       <SelectField
                         name="activity"
                         label="Activity"
@@ -265,6 +270,7 @@ export const SimpleForm: React.FC<{
                             value: 'other',
                           },
                         ]}
+                        disabled={disableFormControls}
                       />
                       <TextField
                         name="location_name"
@@ -278,6 +284,7 @@ export const SimpleForm: React.FC<{
                           placeholder: 'Please describe your observation location using common geographical place names (drainages, peak names, etc).',
                           multiline: true,
                         }}
+                        disabled={disableFormControls}
                       />
                       <LocationField
                         name="location_point"
@@ -288,6 +295,7 @@ export const SimpleForm: React.FC<{
                             fieldRefs.current.push({field: 'location_point', ref: element});
                           }
                         }}
+                        disabled={disableFormControls}
                       />
                     </VStack>
                   </Card>
@@ -301,6 +309,7 @@ export const SimpleForm: React.FC<{
                           {label: 'Yes', value: true},
                         ]}
                         pb={formFieldSpacing}
+                        disabled={disableFormControls}
                       />
                       <Conditional name="instability.avalanches_observed" value={true}>
                         <VStack>
@@ -315,6 +324,7 @@ export const SimpleForm: React.FC<{
                               {label: 'Yes', value: true},
                             ]}
                             pb={formFieldSpacing}
+                            disabled={disableFormControls}
                           />
                           <Conditional name="instability.avalanches_triggered" value={true}>
                             <SwitchField
@@ -325,6 +335,7 @@ export const SimpleForm: React.FC<{
                                 {label: 'Yes', value: true},
                               ]}
                               pb={formFieldSpacing}
+                              disabled={disableFormControls}
                             />
                           </Conditional>
                         </VStack>
@@ -337,6 +348,7 @@ export const SimpleForm: React.FC<{
                           {label: 'Yes', value: true},
                         ]}
                         pb={formFieldSpacing}
+                        disabled={disableFormControls}
                       />
                       <Conditional name="instability.cracking" value={true} space={formFieldSpacing}>
                         <SelectField
@@ -347,6 +359,7 @@ export const SimpleForm: React.FC<{
                             {value: InstabilityDistribution.Widespread, label: 'Widespread'},
                           ]}
                           prompt=" "
+                          disabled={disableFormControls}
                         />
                       </Conditional>
                       <SwitchField
@@ -357,6 +370,7 @@ export const SimpleForm: React.FC<{
                           {label: 'Yes', value: true},
                         ]}
                         pb={formFieldSpacing}
+                        disabled={disableFormControls}
                       />
                       <Conditional name="instability.collapsing" value={true} space={formFieldSpacing}>
                         <SelectField
@@ -367,6 +381,7 @@ export const SimpleForm: React.FC<{
                             {value: InstabilityDistribution.Widespread, label: 'Widespread'},
                           ]}
                           prompt=" "
+                          disabled={disableFormControls}
                         />
                       </Conditional>
                     </VStack>
@@ -391,6 +406,7 @@ export const SimpleForm: React.FC<{
                             multiline: true,
                           }}
                           pb={formFieldSpacing}
+                          disabled={disableFormControls}
                         />
                       </VStack>
                     </Card>
@@ -413,6 +429,7 @@ export const SimpleForm: React.FC<{
 • Overall impression of stability`,
                           multiline: true,
                         }}
+                        disabled={disableFormControls}
                       />
                     </VStack>
                   </Card>
@@ -443,7 +460,7 @@ export const SimpleForm: React.FC<{
                           )}
                         />
                       )}
-                      <Button buttonStyle="normal" onPress={() => void pickImage()} disabled={images.length === maxImageCount}>
+                      <Button buttonStyle="normal" onPress={() => void pickImage()} disabled={images.length === maxImageCount || disableFormControls}>
                         <BodyBlack>Select an image</BodyBlack>
                       </Button>
                     </VStack>

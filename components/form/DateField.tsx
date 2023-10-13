@@ -13,9 +13,10 @@ interface DateFieldProps {
   label: string;
   minimumDate: Date;
   maximumDate: Date;
+  disabled?: boolean;
 }
 
-export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, maximumDate}) => {
+export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, maximumDate, disabled}) => {
   const {field} = useController({name: name});
   const [datePickerVisible, setDatePickerVisible] = useState(false);
 
@@ -46,7 +47,7 @@ export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, m
   return (
     <VStack width="100%" space={4}>
       <BodyXSmBlack>{label}</BodyXSmBlack>
-      <TouchableOpacity onPress={toggleDatePicker}>
+      <TouchableOpacity onPress={toggleDatePicker} disabled={disabled}>
         <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
           <View p={8}>
             <Body>{utcDateToLocalDateString(value)}</Body>
@@ -66,6 +67,7 @@ export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, m
           onChange={onDateSelected}
           minimumDate={minimumDate}
           maximumDate={maximumDate}
+          disabled={disabled}
         />
       )}
     </VStack>
