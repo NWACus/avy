@@ -376,7 +376,7 @@ const BaseApp: React.FunctionComponent<{
                         tabBarActiveTintColor: colorLookup('primary') as string,
                         tabBarInactiveTintColor: colorLookup('text.secondary') as string,
                       })}>
-                      <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Map'}}>
+                      <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
                         {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
                       </TabNavigator.Screen>
                       <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
