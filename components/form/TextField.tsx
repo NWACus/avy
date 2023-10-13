@@ -12,6 +12,7 @@ interface TextFieldProps extends ViewProps {
   name: string;
   label: string;
   textInputProps?: TextInputProps;
+  disabled?: boolean;
 }
 
 const textInputDefaultStyle = {
@@ -20,24 +21,27 @@ const textInputDefaultStyle = {
   fontFamily: 'Lato_400Regular',
 };
 
-export const TextField = React.forwardRef<RNView, TextFieldProps>(({name, label, textInputProps: {style: textInputStyle, ...otherTextInputProps} = {}, ...props}, ref) => {
-  const {field, fieldState} = useController({name});
-  return (
-    <VStack width="100%" space={4} {...props} ref={ref}>
-      <BodyXSmBlack>{label}</BodyXSmBlack>
-      <View p={8} borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4}>
-        <TextInput
-          onBlur={field.onBlur}
-          onChangeText={field.onChange}
-          value={field.value as string} // TODO(skuznets): determine why the generics here don't collapse to string itself ...
-          style={merge({}, textInputDefaultStyle, textInputStyle)}
-          placeholderTextColor={colorLookup('text.secondary')}
-          {...otherTextInputProps}
-        />
-      </View>
-      {/* TODO: animate the appearance/disappearance of the error string */}
-      {fieldState.error && <BodyXSm color={colorLookup('error.900')}>{fieldState.error.message}</BodyXSm>}
-    </VStack>
-  );
-});
+export const TextField = React.forwardRef<RNView, TextFieldProps>(
+  ({name, label, textInputProps: {style: textInputStyle, ...otherTextInputProps} = {}, disabled, ...props}, ref) => {
+    const {field, fieldState} = useController({name});
+    return (
+      <VStack width="100%" space={4} {...props} ref={ref}>
+        <BodyXSmBlack>{label}</BodyXSmBlack>
+        <View p={8} borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4}>
+          <TextInput
+            onBlur={field.onBlur}
+            onChangeText={field.onChange}
+            value={field.value as string} // TODO(skuznets): determine why the generics here don't collapse to string itself ...
+            style={merge({}, textInputDefaultStyle, textInputStyle)}
+            placeholderTextColor={colorLookup('text.secondary')}
+            editable={!disabled}
+            {...otherTextInputProps}
+          />
+        </View>
+        {/* TODO: animate the appearance/disappearance of the error string */}
+        {fieldState.error && <BodyXSm color={colorLookup('error.900')}>{fieldState.error.message}</BodyXSm>}
+      </VStack>
+    );
+  },
+);
 TextField.displayName = 'TextField';

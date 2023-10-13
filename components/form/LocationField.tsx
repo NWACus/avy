@@ -18,9 +18,10 @@ interface LocationFieldProps {
   name: KeysMatching<ObservationFormData, LocationPoint>;
   label: string;
   center: AvalancheCenterID;
+  disabled?: boolean;
 }
 
-export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center}, ref) => {
+export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center, disabled}, ref) => {
   const {
     field,
     fieldState: {error},
@@ -73,7 +74,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   return (
     <VStack width="100%" space={4} ref={ref}>
       <BodyXSmBlack>{label}</BodyXSmBlack>
-      <TouchableOpacity onPress={toggleModal}>
+      <TouchableOpacity onPress={toggleModal} disabled={disabled}>
         <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
           <View p={8}>
             <Body>{value ? `${value.lat}, ${value.lng}` : 'Select a location'}</Body>

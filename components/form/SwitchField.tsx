@@ -14,9 +14,10 @@ interface SwitchFieldProps<T> extends ViewProps {
   name: string;
   label: string;
   items: Item<T>[];
+  disabled?: boolean;
 }
 
-export function SwitchField<T>({name, label, items, ...props}: SwitchFieldProps<T>) {
+export function SwitchField<T>({name, label, items, disabled, ...props}: SwitchFieldProps<T>) {
   const {field} = useController({name});
 
   return (
@@ -38,6 +39,7 @@ export function SwitchField<T>({name, label, items, ...props}: SwitchFieldProps<
           }
         }}
         appearance="light"
+        enabled={!disabled}
       />
     </VStack>
   );
