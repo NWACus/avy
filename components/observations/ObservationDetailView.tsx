@@ -221,7 +221,7 @@ export const ObservationCard: React.FunctionComponent<{
                   </VStack>
                   <VStack space={8} style={{flex: 1}}>
                     <AllCapsSmBlack>Author</AllCapsSmBlack>
-                    <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                    <AllCapsSm style={{textTransform: 'none'}} color="text.secondary" unescapeHTMLEntities>
                       {observation.name || 'Unknown'}
                     </AllCapsSm>
                   </VStack>
