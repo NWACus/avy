@@ -5,7 +5,7 @@ import _ from 'lodash';
 import uuid from 'react-native-uuid';
 
 import {ObservationFormData} from 'components/observations/ObservationFormData';
-import {ImageTaskData, ObservationTaskData, TaskQueueEntry, TaskStatus, taskQueueSchema} from 'components/observations/uploader/Task';
+import {ImageTaskData, ObservationTaskData, TaskQueueEntry, TaskStatus, isImageTask, isObservationTask, taskQueueSchema} from 'components/observations/uploader/Task';
 import {uploadImage} from 'components/observations/uploader/uploadImage';
 import {uploadObservation} from 'components/observations/uploader/uploadObservation';
 import {logger} from 'logger';
@@ -343,8 +343,8 @@ export class ObservationUploader {
 
   getState(): UploaderState {
     // The `map` call is because tsc needs a little help to grok the type of the filter expression
-    const observationTasks = this.taskQueue.filter(t => t.type === 'observation').map(t => t as Extract<TaskQueueEntry, {type: 'observation'}>);
-    const imageTasks = this.taskQueue.filter(t => t.type === 'image').map(t => t as Extract<TaskQueueEntry, {type: 'image'}>);
+    const observationTasks = this.taskQueue.filter(isObservationTask);
+    const imageTasks = this.taskQueue.filter(isImageTask);
 
     const observations: UploaderState['observations'] = observationTasks.map(obsTask => ({
       ...obsTask,

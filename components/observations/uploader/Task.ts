@@ -49,7 +49,13 @@ const taskQueueEntrySchema = z.discriminatedUnion('type', [
   }),
 ]);
 export type TaskQueueEntry = z.infer<typeof taskQueueEntrySchema>;
-export type ObservationTaskData = Extract<TaskQueueEntry, {type: 'observation'}>['data'];
-export type ImageTaskData = Extract<TaskQueueEntry, {type: 'image'}>['data'];
+
+export type ObservationTask = Extract<TaskQueueEntry, {type: 'observation'}>;
+export type ObservationTaskData = ObservationTask['data'];
+export const isObservationTask = (entry: TaskQueueEntry): entry is ObservationTask => entry.type === 'observation';
+
+export type ImageTask = Extract<TaskQueueEntry, {type: 'image'}>;
+export type ImageTaskData = ImageTask['data'];
+export const isImageTask = (entry: TaskQueueEntry): entry is ImageTask => entry.type === 'image';
 
 export const taskQueueSchema = z.array(taskQueueEntrySchema);
