@@ -254,13 +254,20 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                         <Button buttonStyle="normal" onPress={() => void clearPreferences()}>
                           Reset preferences
                         </Button>
-                        <Button buttonStyle="normal" onPress={() => void getUploader().resetTaskQueue()}>
-                          Reset the observation uploader
-                        </Button>
                         <HStack justifyContent="space-between" alignItems="center" space={16}>
                           <Body>Use staging environment</Body>
                           <Switch value={staging} onValueChange={toggleStaging} />
                         </HStack>
+                      </VStack>
+                    </Card>
+                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Debug Settings</BodyBlack>}>
+                      <VStack space={12}>
+                        <Button buttonStyle="normal" onPress={() => logger.info({stats: getUploader().getState()}, 'ObservationUploader state')}>
+                          Dump state to log
+                        </Button>
+                        <Button buttonStyle="normal" onPress={() => void getUploader().resetTaskQueue()}>
+                          Reset the observation uploader
+                        </Button>
                       </VStack>
                     </Card>
                     <Card borderRadius={0} borderColor="white" header={<BodyBlack>Sentry</BodyBlack>}>
