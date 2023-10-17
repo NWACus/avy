@@ -6,7 +6,6 @@ on:
       - preview
       - release
       - main
-      - fix-updates
 
 defaults:
   run:
