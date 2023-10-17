@@ -335,9 +335,9 @@ describe('ObservationUploader', () => {
   });
 
   describe('upload status', () => {
-    it('throws for unknown task IDs', async () => {
+    it('returns null for unknown task IDs', async () => {
       const {uploader} = await createUploader();
-      expect(() => uploader.getUploadStatus('foo')).toThrow(/No task found with id foo/);
+      expect(uploader.getUploadStatus('foo')).toBe(null);
     });
 
     it('reports status for tasks in progress', async () => {

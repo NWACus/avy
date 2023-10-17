@@ -306,10 +306,11 @@ export class ObservationUploader {
     this.tryRunTaskQueue();
   }
 
-  getUploadStatus(observationId: string): UploadStatus {
+  getUploadStatus(observationId: string): UploadStatus | null {
     const task = this.findTaskById(observationId);
     if (!task) {
-      throw new Error(`No task found with id ${observationId}`);
+      this.logger.warn(`getUploadStatus: No task found with id ${observationId}`);
+      return null;
     }
     return {
       networkStatus: this.offline ? 'offline' : 'online',
