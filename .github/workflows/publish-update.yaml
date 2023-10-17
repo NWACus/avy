@@ -6,6 +6,7 @@ on:
       - preview
       - release
       - main
+      - fix-updates
 
 defaults:
   run:
@@ -28,5 +29,5 @@ jobs:
         uses: ./.github/actions/expo/update
         with:
           channel: ${{ github.ref_name }}
-          message: '${{ github.event.head_commit.sha }}'
+          message: '${{ github.sha || github.ref_name }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
