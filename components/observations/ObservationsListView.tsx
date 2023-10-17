@@ -2,9 +2,10 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {FormattedMessage} from 'react-intl';
 
-import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
+import {FontAwesome, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {colorFor} from 'components/AvalancheDangerTriangle';
+import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
@@ -17,7 +18,21 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
-import {ActivityIndicator, ColorValue, FlatList, FlatListProps, GestureResponderEvent, ListRenderItemInfo, Modal, RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
+import {
+  ActivityIndicator,
+  ColorValue,
+  FlatList,
+  FlatListProps,
+  GestureResponderEvent,
+  LayoutAnimation,
+  ListRenderItemInfo,
+  Modal,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
@@ -48,6 +63,7 @@ interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFr
 }
 
 export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, additionalFilters, ...props}) => {
+  const navigation = useNavigation<ObservationsStackNavigationProps>();
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(requestedTime, additionalFilters), [requestedTime, additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
@@ -152,6 +168,22 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [],
   );
 
+  const submit = useCallback(() => {
+    navigation.navigate('observationSubmit', {center_id});
+  }, [navigation, center_id]);
+
+  const [showSubmitButtonText, setShowSubmitButtonText] = useState(true);
+  const onScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const nextShowSubmitButtonText = event.nativeEvent.contentOffset.y < 100;
+      setShowSubmitButtonText(nextShowSubmitButtonText);
+    },
+    [setShowSubmitButtonText],
+  );
+  useEffect(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  }, [showSubmitButtonText]);
+
   if (incompleteQueryState(observationsResult, mapResult) || !mapLayer) {
     return (
       <Center width="100%" height="100%">
@@ -212,6 +244,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       </HStack>
       <Divider />
       <FlatList
+        onScroll={onScroll}
+        onScrollEndDrag={onScroll}
+        scrollEventThrottle={160}
         // when within 5 page lengths of the end, start fetching the next set of data
         onEndReachedThreshold={5}
         onEndReached={() => {
@@ -265,6 +300,15 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         renderItem={renderItem}
         {...props}
       />
+      <Center position="absolute" bottom={16} left={0} right={0}>
+        <Button buttonStyle="primary" onPress={submit}>
+          {/* setting the key property to force re-render of the HStack when showSubmitButtonText changes */}
+          <HStack alignItems="center" space={8} key={showSubmitButtonText ? 'show' : 'hide'} pt={2}>
+            <MaterialIcons name="add" size={24} color="white" />
+            {showSubmitButtonText && <Body color="white">Submit</Body>}
+          </HStack>
+        </Button>
+      </Center>
     </VStack>
   );
 };

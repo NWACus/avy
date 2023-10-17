@@ -15,18 +15,13 @@ export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigat
   const {center_id, requestedTime} = route.params;
   return (
     <ObservationsStack.Navigator
-      initialRouteName="observationsPortal"
+      initialRouteName="observationsList"
       screenOptions={{
         header: props => <NavigationHeader center_id={center_id} {...props} />,
       }}>
-      <ObservationsStack.Screen
-        name="observationsPortal"
-        component={ObservationsPortalScreen}
-        initialParams={{center_id: center_id, requestedTime}}
-        options={{headerShown: false}}
-      />
+      <ObservationsStack.Screen name="observationsPortal" component={ObservationsPortalScreen} initialParams={{center_id, requestedTime}} options={{headerShown: false}} />
       <ObservationsStack.Screen name="observationSubmit" component={ObservationSubmitScreen} options={{title: 'Submit an Observation'}} />
-      <ObservationsStack.Screen name="observationsList" component={ObservationsListScreen} options={{title: 'Observations'}} />
+      <ObservationsStack.Screen name="observationsList" component={ObservationsListScreen} options={{title: 'Observations'}} initialParams={{center_id, requestedTime}} />
       <ObservationsStack.Screen name="observation" component={ObservationScreen} options={{title: 'Observation'}} />
       <ObservationsStack.Screen name="nwacObservation" component={NWACObservationScreen} options={{title: 'Observation'}} />
     </ObservationsStack.Navigator>
