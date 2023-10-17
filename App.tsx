@@ -18,7 +18,7 @@ import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer, useNavigationContainerRef} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
-import {AppStateStatus, Platform, StatusBar, StyleSheet, useColorScheme, View} from 'react-native';
+import {AppStateStatus, Platform, StatusBar, StyleSheet, UIManager, useColorScheme, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import * as Application from 'expo-application';
@@ -69,6 +69,10 @@ import * as messages from 'compiled-lang/en.json';
 import {filterLoggedData} from 'logging/filterLoggedData';
 
 logger.info('App starting.');
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const encodeParams = (params: {[s: string]: string}) => {
   return Object.entries(params)
