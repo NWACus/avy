@@ -12,6 +12,7 @@ import {NetworkImage} from 'components/content/carousel/NetworkImage';
 import {Center, Divider, HStack, VStack, View} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
+import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
 import {Body, BodyBlack, BodySm, BodySmBlack, Caption1Semibold, bodySize} from 'components/text';
 import {compareDesc, parseISO} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
@@ -43,6 +44,7 @@ interface ObservationsListViewItem {
   observation: ObservationFragment;
   source: string;
   zone: string;
+  pending?: boolean;
 }
 
 interface ObservationsListViewProps extends Omit<FlatListProps<ObservationsListViewItem>, 'data' | 'renderItem'> {
@@ -149,9 +151,18 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   // an observer type, we only show observations that match both of those at the same time
   const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters) : []), [mapLayer, filterConfig, additionalFilters]);
 
+  const pendingObservations = usePendingObservations();
+
   const displayedObservations: ObservationsListViewItem[] = useMemo(
-    () =>
-      observations
+    () => [
+      ...pendingObservations.map(({observation}) => ({
+        id: observation.id,
+        observation: observation,
+        source: 'nac',
+        zone: observation.locationName,
+        pending: true,
+      })),
+      ...observations
         .filter(observation => resolvedFilters.every(({filter}) => filter(observation)))
         .map(observation => ({
           id: observation.id,
@@ -159,11 +170,14 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           source: observation.source,
           zone: observation.zone,
         })),
-    [observations, resolvedFilters],
+    ],
+    [observations, resolvedFilters, pendingObservations],
   );
 
   const renderItem = useCallback(
-    ({item}: ListRenderItemInfo<ObservationsListViewItem>) => <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} />,
+    ({item}: ListRenderItemInfo<ObservationsListViewItem>) => (
+      <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} pending={item.pending} />
+    ),
     [],
   );
 
@@ -346,16 +360,20 @@ export interface ObservationSummaryCardProps {
   source: string;
   observation: ObservationFragment;
   zone: string;
+  pending?: boolean;
 }
 
 const OBSERVATION_SUMMARY_CARD_HEIGHT = 132;
 
-export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(({source, zone, observation}: ObservationSummaryCardProps) => {
+export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(({source, zone, observation, pending}: ObservationSummaryCardProps) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
   const redFlags = observation.instability.collapsing || observation.instability.cracking;
   const onPress = useCallback(() => {
-    if (source === 'nwac') {
+    if (pending) {
+      // we aren't prepared to render the full screen view for a pending ob
+      return;
+    } else if (source === 'nwac') {
       navigation.navigate('nwacObservation', {
         id: observation.id,
       });
@@ -364,7 +382,7 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
         id: observation.id,
       });
     }
-  }, [navigation, source, observation.id]);
+  }, [navigation, source, observation.id, pending]);
 
   return (
     <Card
@@ -377,12 +395,12 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
       onPress={onPress}
       header={
         <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
-          <BodySmBlack>{utcDateToLocalDateString(observation.createdAt)}</BodySmBlack>
+          <BodySmBlack fontStyle={pending ? 'italic' : undefined}>{utcDateToLocalDateString(observation.createdAt)}</BodySmBlack>
           <HStack space={8} alignItems="center">
             {redFlags && <MaterialCommunityIcons name="flag" size={bodySize} color={colorFor(DangerLevel.Considerable).string()} />}
             {avalanches && <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />}
             <Caption1Semibold color={colorsFor(observation.observerType).primary} style={{textTransform: 'uppercase'}}>
-              {observation.observerType}
+              {pending ? 'Uploading' : observation.observerType}
             </Caption1Semibold>
           </HStack>
         </HStack>

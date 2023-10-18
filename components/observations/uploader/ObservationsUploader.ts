@@ -5,14 +5,27 @@ import _ from 'lodash';
 import uuid from 'react-native-uuid';
 
 import {ObservationFormData} from 'components/observations/ObservationFormData';
-import {ImageTaskData, ObservationTaskData, TaskQueueEntry, TaskStatus, isImageTask, isObservationTask, taskQueueSchema} from 'components/observations/uploader/Task';
+import {
+  ImageTaskData,
+  ObservationTask,
+  ObservationTaskData,
+  TaskQueueEntry,
+  TaskStatus,
+  isImageTask,
+  isObservationTask,
+  taskQueueSchema,
+} from 'components/observations/uploader/Task';
 import {uploadImage} from 'components/observations/uploader/uploadImage';
 import {uploadObservation} from 'components/observations/uploader/uploadObservation';
 import {logger} from 'logger';
 import {filterLoggedData} from 'logging/filterLoggedData';
-import {AvalancheCenterID, MediaUsage} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MediaUsage, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
 
 type Subscriber = (entry: TaskQueueEntry, success: boolean, attempts: number) => void;
+export interface ObservationFragmentWithStatus {
+  status: UploadStatus;
+  observation: ObservationFragment;
+}
 
 export const isRetryableError = (error: unknown): boolean => {
   // This may evolve over time as we learn more about what errors the NAC API can
@@ -306,6 +319,21 @@ export class ObservationUploader {
     this.tryRunTaskQueue();
   }
 
+  private getObservationFragment(observationTask: ObservationTask): ObservationFragment {
+    const observation = observationTask.data.formData;
+    return {
+      id: observationTask.id,
+      observerType: PartnerType.Public,
+      name: observation.name,
+      createdAt: observation.start_date.toISOString(),
+      locationPoint: observation.location_point,
+      locationName: observation.location_name,
+      instability: observation.instability,
+      observationSummary: observation.observation_summary,
+      media: [], // coming soon
+    };
+  }
+
   getUploadStatus(observationId: string): UploadStatus | null {
     const task = this.findTaskById(observationId);
     if (!task) {
@@ -323,6 +351,16 @@ export class ObservationUploader {
         attemptCount: t.attemptCount,
       })),
     };
+  }
+
+  getPendingObservations(): ObservationFragmentWithStatus[] {
+    return this.taskQueue
+      .filter(isObservationTask)
+      .map(observationTask => ({
+        status: this.getUploadStatus(observationTask.id),
+        observation: this.getObservationFragment(observationTask),
+      }))
+      .filter((result): result is ObservationFragmentWithStatus => result.status != null);
   }
 
   async resetTaskQueue() {

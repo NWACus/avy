@@ -12,8 +12,8 @@ const FAKE_OBSERVATION_DATA: Partial<ObservationFormData> = {
   },
   email: 'brian@nwac.us',
   name: 'Brian',
-  observation_summary: 'This is a test observation.',
-  location_name: 'at my kitchen table',
+  observation_summary: '[TEST] This is a test observation.',
+  location_name: '[TEST] Snoqualmie Pass',
 };
 
 export const defaultObservationFormData = (initialValues: Partial<ObservationFormData> | null = null): Partial<ObservationFormData> =>
