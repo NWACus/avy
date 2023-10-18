@@ -66,7 +66,7 @@ const prefetchSynopsis = async (
     queryKey: key,
     queryFn: async () => {
       const start = new Date();
-      logger.trace(`prefetching`);
+      thisLogger.trace(`prefetching`);
       const result = await fetchSynopsis(nationalAvalancheCenterHost, center_id, zone_id, requested_time, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;

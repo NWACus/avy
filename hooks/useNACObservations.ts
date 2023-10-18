@@ -78,7 +78,7 @@ export const prefetchNACObservations = async (queryClient: QueryClient, national
     queryKey: key,
     queryFn: async (): Promise<ObservationsQueryWithMeta> => {
       const start = new Date();
-      logger.trace(`prefetching`);
+      thisLogger.trace(`prefetching`);
       const result = fetchNACObservations(nationalAvalancheCenterHost, center_id, startDate, endDate, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
@@ -105,7 +105,6 @@ export const fetchNACObservations = async (
     startDate: apiDateString(startDate),
     endDate: apiDateString(endDate),
   };
-  logger.debug('fetchNACObservations', JSON.stringify(variables, null, 2));
   const what = 'NAC observations';
   const thisLogger = logger.child({url: url, variables: variables, what: what});
   const data = await safeFetch(

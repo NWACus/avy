@@ -43,7 +43,7 @@ export const prefetchWeatherForecast = async (queryClient: QueryClient, national
     queryKey: key,
     queryFn: async (): Promise<Weather> => {
       const start = new Date();
-      logger.trace(`prefetching`);
+      thisLogger.trace(`prefetching`);
       const result = fetchWeatherForecast(nationalAvalancheCenterHost, forecastId, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
