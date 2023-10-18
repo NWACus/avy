@@ -89,7 +89,16 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     return (
       <SafeAreaView edges={['top', 'left', 'right']}>
         <Center width="100%" height="100%">
-          <QueryState results={[mapLayerResult, metadataResult, ...forecastResults, ...warningResults]} />
+          <QueryState
+            results={[mapLayerResult, metadataResult, ...forecastResults, ...warningResults]}
+            terminal
+            customMessage={{
+              notFound: () => ({
+                headline: 'Missing forecast',
+                body: 'There may not be a forecast available for today.',
+              }),
+            }}
+          />
         </Center>
       </SafeAreaView>
     );

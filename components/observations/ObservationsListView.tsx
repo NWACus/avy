@@ -36,7 +36,6 @@ import {
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
-import {NotFoundError} from 'types/requests';
 import {RequestedTime, requestedTimeToUTCDate, utcDateToLocalDateString} from 'utils/date';
 
 interface ObservationsListViewItem {
@@ -253,9 +252,12 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           void fetchMoreData(observationsResult);
         }}
         ListFooterComponent={() => {
-          if (!moreDataAvailable && displayedObservations.length > 0) {
+          if (!moreDataAvailable) {
+            if (displayedObservations.length === 0) {
+              return null;
+            }
             return (
-              <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT}>
+              <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
                 <Body>
                   <FormattedMessage
                     description="How many observations were found"
@@ -272,7 +274,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             );
           } else if (observations.length > 0 && observationsResult.isFetchingNextPage) {
             return (
-              <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT}>
+              <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
                 <ActivityIndicator size={'large'} color={colorLookup('textColor')} />
               </Center>
             );
@@ -286,9 +288,12 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
               <ActivityIndicator size={'large'} color={colorLookup('textColor')} />
             </Center>
           ) : (
-            <NotFound inline terminal what={[new NotFoundError('no observations found', 'any matching observations')]} />
+            <Center height={'100%'} bg="white">
+              <NotFound inline terminal body="Try adjusting your filters." />
+            </Center>
           )
         }
+        contentContainerStyle={{flexGrow: 1}}
         style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh()} />}
         data={displayedObservations}

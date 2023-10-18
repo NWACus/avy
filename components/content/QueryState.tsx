@@ -11,7 +11,15 @@ import {ActivityIndicator} from 'react-native';
 import * as Sentry from 'sentry-expo';
 import {NotFoundError} from 'types/requests';
 
-export const QueryState: React.FunctionComponent<{results: UseQueryResult[]}> = ({results}) => {
+interface QueryStateProps {
+  results: UseQueryResult[];
+  terminal?: boolean;
+  customMessage?: {
+    notFound?: (what?: NotFoundError[]) => {headline: string; body: string};
+  };
+}
+
+export const QueryState: React.FunctionComponent<QueryStateProps> = ({results, terminal, customMessage}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
   const errors = results.filter(result => result.isError && !(result.error instanceof NotFoundError)).map(result => result.error);
@@ -29,7 +37,8 @@ export const QueryState: React.FunctionComponent<{results: UseQueryResult[]}> = 
 
   if (results.map(isResultNotFound).reduce((accumulator, value) => accumulator || value)) {
     const what = results.filter(isResultNotFound).map(result => result.error as NotFoundError);
-    return <NotFound what={what} />;
+    const {headline, body} = customMessage?.notFound?.(what) || {headline: undefined, body: undefined};
+    return <NotFound what={what} body={body} headline={headline} terminal={terminal} />;
   }
 
   logger.error({results: results}, 'QueryState called with a set of queries that were loaded and had no errors');
@@ -43,8 +52,8 @@ export const InternalError: React.FunctionComponent<{inline?: boolean}> = ({inli
   // const navigation = useNavigation<TabNavigationProps>();
   return (
     <Outcome
-      outcome={'Oh no!'}
-      reason={"We're sorry, but we cannot complete your request at this time."}
+      headline={'Oh no!'}
+      body={"We're sorry, but we cannot complete your request at this time."}
       illustration={<ErrorIllustration />}
       illustrationBottomMargin={-64}
       illustrationLeftMargin={-16}
@@ -62,7 +71,14 @@ export const Loading: React.FunctionComponent = () => {
   );
 };
 
-export const NotFound: React.FunctionComponent<{what?: NotFoundError[]; terminal?: boolean; inline?: boolean}> = ({what, terminal, inline}) => {
+interface NotFoundProps {
+  what?: NotFoundError[];
+  terminal?: boolean;
+  inline?: boolean;
+  body?: string;
+  headline?: string;
+}
+export const NotFound: React.FunctionComponent<NotFoundProps> = ({what, terminal, inline, body, headline}) => {
   let thing = 'the requested resource';
   if (what && what[0] && what[0] instanceof NotFoundError && what[0].pretty) {
     thing = what[0].pretty;
@@ -75,8 +91,8 @@ export const NotFound: React.FunctionComponent<{what?: NotFoundError[]; terminal
   }
   return (
     <Outcome
-      outcome={'No results found'}
-      reason={`We could not find ${thing}.`}
+      headline={headline || 'No results found'}
+      body={body || `We could not find ${thing}.`}
       inline={inline}
       illustration={<NoSearchResult />}
       illustrationBottomMargin={-48}
@@ -99,8 +115,8 @@ export const ConnectionLost: React.FunctionComponent = () => {
   } else {
     return (
       <Outcome
-        outcome={'Oh no!'}
-        reason={'Something went wrong, please try again.'}
+        headline={'Oh no!'}
+        body={'Something went wrong, please try again.'}
         illustration={<NoGPS />}
         illustrationBottomMargin={-32}
         illustrationLeftMargin={-16}
@@ -119,8 +135,8 @@ export const ConnectionLost: React.FunctionComponent = () => {
 export const Unavailable: React.FunctionComponent = () => {
   return (
     <Outcome
-      outcome={'Under construction!'}
-      reason={"This functionality is still under construction, check back later once it's done."}
+      headline={'Under construction!'}
+      body={"This functionality is still under construction, check back later once it's done."}
       illustration={<Stop />}
       illustrationBottomMargin={-48}
     />
