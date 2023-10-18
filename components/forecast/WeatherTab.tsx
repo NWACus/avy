@@ -182,14 +182,36 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
 
   if (metadata?.widget_config.stations?.token) {
     if (incompleteQueryState(weatherStationsResult) || !weatherStations) {
-      return <QueryState results={[weatherStationsResult]} />;
+      return (
+        <QueryState
+          results={[weatherStationsResult]}
+          terminal
+          customMessage={{
+            notFound: () => ({
+              headline: 'Missing forecast',
+              body: 'There may not be a forecast available for today.',
+            }),
+          }}
+        />
+      );
     } else {
       stationsByZone.push(...NWACStationsByZone(mapLayer, weatherStations, logger));
     }
   }
 
   if (incompleteQueryState(nwacForecastResult) || !nwacForecast || nwacForecast === 'ignore') {
-    return <QueryState results={[nwacForecastResult]} />;
+    return (
+      <QueryState
+        results={[nwacForecastResult]}
+        terminal
+        customMessage={{
+          notFound: () => ({
+            headline: 'Missing forecast',
+            body: 'There may not be a forecast available for today.',
+          }),
+        }}
+      />
+    );
   }
 
   // In the UI, we show weather station groups, which may contain 1 or more weather stations.
