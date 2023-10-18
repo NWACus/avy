@@ -175,7 +175,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const [showSubmitButtonText, setShowSubmitButtonText] = useState(true);
   const onScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const nextShowSubmitButtonText = event.nativeEvent.contentOffset.y < 100;
+      const nextShowSubmitButtonText = event.nativeEvent.contentOffset.y < 160;
       setShowSubmitButtonText(nextShowSubmitButtonText);
     },
     [setShowSubmitButtonText],
@@ -301,11 +301,13 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         {...props}
       />
       <Center position="absolute" bottom={16} left={0} right={0}>
-        <Button buttonStyle="primary" onPress={submit}>
+        {/* Padding numbers are carefully chosen to center things, and to make the button perfectly round
+        when the text is hidden. Expo icons are never vertically centered correctly by default for some reason. */}
+        <Button buttonStyle="primary" onPress={submit} borderRadius={32} paddingHorizontal={13}>
           {/* setting the key property to force re-render of the HStack when showSubmitButtonText changes */}
-          <HStack alignItems="center" space={8} key={showSubmitButtonText ? 'show' : 'hide'} pt={2}>
+          <HStack alignItems="center" space={8} key={showSubmitButtonText ? 'show' : 'hide'} pt={4} pl={1} pr={1}>
             <MaterialIcons name="add" size={24} color="white" />
-            {showSubmitButtonText && <Body color="white">Submit</Body>}
+            {showSubmitButtonText && <BodySmBlack color="white">Submit</BodySmBlack>}
           </HStack>
         </Button>
       </Center>
