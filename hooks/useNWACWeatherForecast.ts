@@ -61,7 +61,7 @@ export const prefetchNWACWeatherForecast = async (queryClient: QueryClient, nwac
     queryKey: key,
     queryFn: async () => {
       const start = new Date();
-      logger.trace(`prefetching`);
+      thisLogger.trace(`prefetching`);
       const result = fetchNWACWeatherForecast(nwacHost, zone_id, requestedTime, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;

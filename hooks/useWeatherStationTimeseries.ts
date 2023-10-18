@@ -79,7 +79,7 @@ export const prefetchWeatherStationTimeseries = async (
     queryKey: key,
     queryFn: async (): Promise<WeatherStationTimeseries> => {
       const start = new Date();
-      logger.trace(`prefetching`);
+      thisLogger.trace(`prefetching`);
       const result = fetchWeatherStationTimeseries(host, token, thisLogger, stations, startDate, endDate);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;

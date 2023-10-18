@@ -44,7 +44,7 @@ export const prefetchAvalancheForecast = async (queryClient: QueryClient, nation
     queryKey: key,
     queryFn: async (): Promise<ForecastResult> => {
       const start = new Date();
-      logger.trace(`prefetching`);
+      thisLogger.trace(`prefetching`);
       const result = fetchForecast(nationalAvalancheCenterHost, forecastId, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;

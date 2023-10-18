@@ -80,7 +80,7 @@ export const prefetchNWACObservations = async (queryClient: QueryClient, nwacHos
     queryKey: key,
     queryFn: async () => {
       const start = new Date();
-      logger.trace(`prefetching`);
+      thisLogger.trace(`prefetching`);
       const result = fetchNWACObservations(nwacHost, center_id, startDate, endDate, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;

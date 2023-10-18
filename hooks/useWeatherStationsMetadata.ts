@@ -42,7 +42,7 @@ export const prefetchWeatherStationsMetadata = async (queryClient: QueryClient, 
     queryKey: key,
     queryFn: async (): Promise<WeatherStationCollection> => {
       const start = new Date();
-      logger.trace(`prefetching`);
+      thisLogger.trace(`prefetching`);
       const result = fetchWeatherStationsMetadata(host, token, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;

@@ -4,6 +4,7 @@ import {NotFoundError} from 'types/requests';
 
 export const safeFetch = async <T>(request: () => Promise<AxiosResponse<T>>, logger: Logger, pretty: string) => {
   try {
+    logger.trace('sending request');
     const {data} = await request();
     return data;
   } catch (error) {

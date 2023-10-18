@@ -41,7 +41,7 @@ export const prefetchNACObservation = async (queryClient: QueryClient, host: str
     queryKey: key,
     queryFn: async (): Promise<Observation> => {
       const start = new Date();
-      logger.trace(`prefetching`);
+      thisLogger.trace(`prefetching`);
       const result = fetchNACObservation(host, id, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
