@@ -43,8 +43,8 @@ export const InternalError: React.FunctionComponent<{inline?: boolean}> = ({inli
   // const navigation = useNavigation<TabNavigationProps>();
   return (
     <Outcome
-      outcome={'Oh no!'}
-      reason={"We're sorry, but we cannot complete your request at this time."}
+      headline={'Oh no!'}
+      body={"We're sorry, but we cannot complete your request at this time."}
       illustration={<ErrorIllustration />}
       illustrationBottomMargin={-64}
       illustrationLeftMargin={-16}
@@ -62,7 +62,7 @@ export const Loading: React.FunctionComponent = () => {
   );
 };
 
-export const NotFound: React.FunctionComponent<{what?: NotFoundError[]; terminal?: boolean; inline?: boolean}> = ({what, terminal, inline}) => {
+export const NotFound: React.FunctionComponent<{what?: NotFoundError[]; terminal?: boolean; inline?: boolean; body?: string}> = ({what, terminal, inline, body}) => {
   let thing = 'the requested resource';
   if (what && what[0] && what[0] instanceof NotFoundError && what[0].pretty) {
     thing = what[0].pretty;
@@ -75,8 +75,8 @@ export const NotFound: React.FunctionComponent<{what?: NotFoundError[]; terminal
   }
   return (
     <Outcome
-      outcome={'No results found'}
-      reason={`We could not find ${thing}.`}
+      headline={'No results found'}
+      body={body || `We could not find ${thing}.`}
       inline={inline}
       illustration={<NoSearchResult />}
       illustrationBottomMargin={-48}
@@ -99,8 +99,8 @@ export const ConnectionLost: React.FunctionComponent = () => {
   } else {
     return (
       <Outcome
-        outcome={'Oh no!'}
-        reason={'Something went wrong, please try again.'}
+        headline={'Oh no!'}
+        body={'Something went wrong, please try again.'}
         illustration={<NoGPS />}
         illustrationBottomMargin={-32}
         illustrationLeftMargin={-16}
@@ -119,8 +119,8 @@ export const ConnectionLost: React.FunctionComponent = () => {
 export const Unavailable: React.FunctionComponent = () => {
   return (
     <Outcome
-      outcome={'Under construction!'}
-      reason={"This functionality is still under construction, check back later once it's done."}
+      headline={'Under construction!'}
+      body={"This functionality is still under construction, check back later once it's done."}
       illustration={<Stop />}
       illustrationBottomMargin={-48}
     />

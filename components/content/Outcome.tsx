@@ -5,8 +5,8 @@ import React, {ReactNode} from 'react';
 import {GestureResponderEvent} from 'react-native';
 
 export interface OutcomeOptions {
-  outcome: string; // the main outcome to show the user
-  reason: string; // some explanatory text
+  headline: string; // the main outcome to show the user
+  body: string; // some explanatory text
   illustration: ReactNode;
   illustrationBottomMargin?: number;
   illustrationLeftMargin?: number;
@@ -16,8 +16,8 @@ export interface OutcomeOptions {
 }
 
 export const Outcome: React.FunctionComponent<OutcomeOptions> = ({
-  outcome,
-  reason,
+  headline,
+  body,
   illustration,
   illustrationBottomMargin = 0,
   illustrationLeftMargin = 0,
@@ -33,8 +33,8 @@ export const Outcome: React.FunctionComponent<OutcomeOptions> = ({
             <View mb={illustrationBottomMargin} ml={illustrationLeftMargin}>
               {illustration}
             </View>
-            <FeatureTitleBlack textAlign="center">{outcome}</FeatureTitleBlack>
-            <Body>{reason}</Body>
+            <FeatureTitleBlack textAlign="center">{headline}</FeatureTitleBlack>
+            <Body>{body}</Body>
             {onRetry && (
               <Button width={'100%'} buttonStyle="primary" onPress={onRetry}>
                 <BodyBlack>Retry</BodyBlack>
