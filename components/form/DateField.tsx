@@ -1,6 +1,6 @@
 import {AntDesign} from '@expo/vector-icons';
 import DateTimePicker, {DateTimePickerAndroid, DateTimePickerEvent} from '@react-native-community/datetimepicker';
-import {Center, HStack, VStack, View} from 'components/core';
+import {Center, HStack, VStack, View, ViewProps} from 'components/core';
 import {Body, BodyXSmBlack, bodySize} from 'components/text';
 import React, {useCallback, useState} from 'react';
 import {useController} from 'react-hook-form';
@@ -8,15 +8,15 @@ import {Platform, TouchableOpacity} from 'react-native';
 import {colorLookup} from 'theme';
 import {utcDateToLocalDateString} from 'utils/date';
 
-interface DateFieldProps {
+interface DateFieldProps extends ViewProps {
   name: string;
-  label: string;
+  label?: string;
   minimumDate: Date;
   maximumDate: Date;
   disabled?: boolean;
 }
 
-export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, maximumDate, disabled}) => {
+export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, maximumDate, disabled, ...props}) => {
   const {field} = useController({name: name});
   const [datePickerVisible, setDatePickerVisible] = useState(false);
 
@@ -45,8 +45,8 @@ export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, m
 
   // TODO: maximum/minimum date
   return (
-    <VStack width="100%" space={4}>
-      <BodyXSmBlack>{label}</BodyXSmBlack>
+    <VStack width="100%" space={4} {...props}>
+      {label && <BodyXSmBlack>{label}</BodyXSmBlack>}
       <TouchableOpacity onPress={toggleDatePicker} disabled={disabled}>
         <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
           <View p={8}>

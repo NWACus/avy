@@ -13,7 +13,7 @@ export function Conditional<T>({name, value, space = 0, children}: PropsWithChil
   const formValue = useWatch<Record<string, string>>({name});
   const collapsed = formValue !== value;
   return (
-    <View pb={collapsed ? 0 : space}>
+    <View pb={collapsed ? 0 : space} display={collapsed ? 'none' : 'flex'}>
       <Collapsible collapsed={collapsed}>{children}</Collapsible>
     </View>
   );

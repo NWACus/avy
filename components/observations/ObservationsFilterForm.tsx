@@ -7,13 +7,12 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {useBackHandler} from '@react-native-community/hooks';
 import {Button} from 'components/content/Button';
-import {Card} from 'components/content/Card';
-import {HStack, VStack} from 'components/core';
+import {HStack, VStack, View} from 'components/core';
+import {CheckboxSelectField} from 'components/form/CheckboxSelectField';
 import {Conditional} from 'components/form/Conditional';
 import {DateField} from 'components/form/DateField';
-import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
-import {BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
+import {BodyBlack, BodySemibold, BodySmBlack, Title3Semibold} from 'components/text';
 import {geoContains} from 'd3-geo';
 import {isAfter, isBefore, parseISO} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -270,86 +269,115 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
         <SafeAreaView style={{flex: 1, height: '100%'}}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}}>
             <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}} ref={scrollViewRef}>
-              <VStack space={12} backgroundColor={colorLookup('background.base')} pt={4}>
-                <Card
-                  borderRadius={0}
-                  borderColor="white"
-                  header={
-                    <HStack justifyContent={'space-between'} alignItems={'center'}>
-                      <TouchableOpacity onPress={() => setVisible(false)}>
-                        <AntDesign name="close" size={24} color="black" />
-                      </TouchableOpacity>
-                      <Title3Semibold>Filters</Title3Semibold>
-                      <TouchableOpacity onPress={() => formContext.reset(initialFilterConfig)}>
-                        <BodyBlack color={colorLookup('blue2')}>Reset</BodyBlack>
-                      </TouchableOpacity>
-                    </HStack>
-                  }>
-                  <VStack space={formFieldSpacing} mt={8}>
-                    {mapLayer && (
-                      <SelectField name="zone" label="Zone" radio items={mapLayer.features.map(feature => feature.properties.name)} disabled={Boolean(initialFilterConfig.zone)} />
-                    )}
-                    <SelectField
+              <VStack space={12} pt={4}>
+                <HStack justifyContent={'space-between'} alignItems={'center'} px={16}>
+                  <TouchableOpacity onPress={() => setVisible(false)}>
+                    <AntDesign name="close" size={24} color="black" />
+                  </TouchableOpacity>
+                  <Title3Semibold>Filters</Title3Semibold>
+                  <TouchableOpacity onPress={() => formContext.reset(initialFilterConfig)}>
+                    <BodyBlack color={colorLookup('blue2')}>Reset</BodyBlack>
+                  </TouchableOpacity>
+                </HStack>
+                <VStack space={formFieldSpacing} pt={formFieldSpacing} backgroundColor={colorLookup('primary.background')}>
+                  <View px={16} pt={16}>
+                    <BodyBlack>Date</BodyBlack>
+                  </View>
+                  <VStack space={8} px={16} bg="white">
+                    <CheckboxSelectField
                       name="dates.value"
-                      label="Dates"
-                      radio
                       items={(['current_season', 'custom'] as const).map(val => ({
                         value: val,
                         label: DATE_LABELS[val],
                       }))}
+                      radio
                     />
                     <Conditional name="dates.value" value={'custom'}>
-                      <DateField
-                        name="dates.from"
-                        label="Published After"
-                        minimumDate={startOfSeasonLocalDate(requestedTime)}
-                        maximumDate={requestedTimeToUTCDate(requestedTime)}
-                      />
-                      <DateField name="dates.to" label="Published Before" minimumDate={startOfSeasonLocalDate(requestedTime)} maximumDate={requestedTimeToUTCDate(requestedTime)} />
+                      <View bg="white">
+                        <BodySmBlack>From</BodySmBlack>
+                      </View>
                     </Conditional>
-                    <SelectField
-                      name="observerType"
-                      label="Observer Type"
-                      radio
-                      items={[
-                        {value: PartnerType.Forecaster, label: 'Forecaster'},
-                        {value: PartnerType.Intern, label: 'Intern'},
-                        {value: PartnerType.Professional, label: 'Professional'},
-                        {value: PartnerType.Volunteer, label: 'Volunteer'},
-                        {value: PartnerType.Public, label: 'Public'},
-                        {value: PartnerType.Other, label: 'Other'},
-                      ]}
-                    />
-                    <SelectField
-                      name="instability.avalanches"
-                      label="Avalanches"
-                      radio
-                      items={[
-                        {value: 'observed', label: 'Observed'},
-                        {value: 'triggered', label: 'Triggered'},
-                        {value: 'caught', label: 'Caught'},
-                      ]}
-                    />
-                    <SwitchField
-                      name="instability.cracking"
-                      label="Snowpack Cracking"
-                      items={[
-                        {label: 'No', value: false},
-                        {label: 'Yes', value: true},
-                      ]}
-                      pb={formFieldSpacing}
-                    />
-                    <SwitchField
-                      name="instability.collapsing"
-                      label="Snowpack Collapsing"
-                      items={[
-                        {label: 'No', value: false},
-                        {label: 'Yes', value: true},
-                      ]}
-                      pb={formFieldSpacing}
-                    />
+                    <Conditional name="dates.value" value={'custom'}>
+                      <View bg="white">
+                        <DateField name="dates.from" minimumDate={startOfSeasonLocalDate(requestedTime)} maximumDate={requestedTimeToUTCDate(requestedTime)} />
+                      </View>
+                    </Conditional>
+                    <Conditional name="dates.value" value={'custom'}>
+                      <View bg="white">
+                        <BodySmBlack>To</BodySmBlack>
+                      </View>
+                    </Conditional>
+                    <Conditional name="dates.value" value={'custom'}>
+                      <View bg="white" pb={formFieldSpacing}>
+                        <DateField name="dates.to" minimumDate={startOfSeasonLocalDate(requestedTime)} maximumDate={requestedTimeToUTCDate(requestedTime)} />
+                      </View>
+                    </Conditional>
                   </VStack>
-                </Card>
+                  {mapLayer && (
+                    <View px={16} pt={16}>
+                      <BodyBlack>Zone</BodyBlack>
+                    </View>
+                  )}
+                  {mapLayer && (
+                    <CheckboxSelectField
+                      name="zone"
+                      items={mapLayer.features.map(feature => ({label: feature.properties.name, value: feature.properties.name}))}
+                      disabled={Boolean(initialFilterConfig.zone)}
+                      px={16}
+                    />
+                  )}
+                  <View px={16} pt={16}>
+                    <BodyBlack>Observer Type</BodyBlack>
+                  </View>
+                  <CheckboxSelectField
+                    name="observerType"
+                    items={[
+                      {value: PartnerType.Forecaster, label: 'Forecaster'},
+                      {value: PartnerType.Intern, label: 'Intern'},
+                      {value: PartnerType.Professional, label: 'Professional'},
+                      {value: PartnerType.Volunteer, label: 'Volunteer'},
+                      {value: PartnerType.Public, label: 'Public'},
+                      {value: PartnerType.Other, label: 'Other'},
+                    ]}
+                    px={16}
+                  />
+                  <View px={16} pt={16}>
+                    <BodyBlack>Avalanches</BodyBlack>
+                  </View>
+                  <CheckboxSelectField
+                    name="instability.avalanches"
+                    items={[
+                      {value: 'observed', label: 'Observed'},
+                      {value: 'triggered', label: 'Triggered'},
+                      {value: 'caught', label: 'Caught'},
+                    ]}
+                    px={16}
+                  />
+                  <View px={16} pt={16}>
+                    <BodyBlack>Snowpack Cracking</BodyBlack>
+                  </View>
+                  <SwitchField
+                    name="instability.cracking"
+                    items={[
+                      {label: 'No', value: false},
+                      {label: 'Yes', value: true},
+                    ]}
+                    pb={formFieldSpacing}
+                    px={16}
+                  />
+                  <View px={16}>
+                    <BodyBlack>Snowpack Collapsing</BodyBlack>
+                  </View>
+                  <SwitchField
+                    name="instability.collapsing"
+                    items={[
+                      {label: 'No', value: false},
+                      {label: 'Yes', value: true},
+                    ]}
+                    pb={formFieldSpacing}
+                    px={16}
+                  />
+                </VStack>
               </VStack>
             </ScrollView>
             <Button

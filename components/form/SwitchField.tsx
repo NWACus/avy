@@ -12,7 +12,7 @@ interface Item<T> {
 
 interface SwitchFieldProps<T> extends ViewProps {
   name: string;
-  label: string;
+  label?: string;
   items: Item<T>[];
   disabled?: boolean;
 }
@@ -22,7 +22,7 @@ export function SwitchField<T>({name, label, items, disabled, ...props}: SwitchF
 
   return (
     <VStack width="100%" space={4} {...props}>
-      <BodyXSmBlack>{label}</BodyXSmBlack>
+      {label && <BodyXSmBlack>{label}</BodyXSmBlack>}
       <SegmentedControl
         tintColor="white"
         activeFontStyle={{color: colorLookup('text') as string, fontSize: 16, fontFamily: 'Lato_400Regular'}}
