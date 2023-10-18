@@ -30,13 +30,13 @@ const dateValueSchema = z.enum(['current_season', 'custom']);
 type DateValue = z.infer<typeof dateValueSchema>;
 
 const observationFilterConfigSchema = z.object({
-  zone: z.string().optional(),
+  zones: z.array(z.string()),
   dates: z.object({
     value: dateValueSchema,
     from: z.date(),
     to: z.date(),
   }),
-  observerType: z.nativeEnum(PartnerType).optional(),
+  observerTypes: z.array(z.nativeEnum(PartnerType)),
   instability: z
     .object({
       avalanches: avalancheInstabilitySchema.optional(),
@@ -63,6 +63,8 @@ const currentSeasonDates = (requestedTime: RequestedTime): {from: Date; to: Date
 
 export const createDefaultFilterConfig = (requestedTime: RequestedTime, defaults: Partial<ObservationFilterConfig> | undefined): ObservationFilterConfig => {
   return {
+    zones: [],
+    observerTypes: [],
     dates: {
       value: 'current_season',
       ...currentSeasonDates(requestedTime),
@@ -143,23 +145,23 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
     label: dateLabelForFilterConfig(config.dates),
   });
 
-  if (config.zone) {
-    filterFuncs.push({
-      filter: observation => config.zone === matchesZone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
-      label: config.zone,
+  filterFuncs.push(
+    ...config.zones.map(zone => ({
+      filter: (observation: ObservationFragment) => zone === matchesZone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
+      label: zone,
       // If the zone was specified as part of the initialFilterConfig (i.e. we're browsing the Obs tab of a particular zone),
       // then removeFilter should be undefined since re-setting the filters should keep that zone filter around
-      removeFilter: additionalFilters?.zone ? undefined : config => ({...config, zone: undefined}),
-    });
-  }
+      removeFilter: additionalFilters?.zones ? undefined : (config: ObservationFilterConfig) => ({...config, zone: config.zones.filter(z => z !== zone)}),
+    })),
+  );
 
-  if (config.observerType) {
-    filterFuncs.push({
-      filter: observation => config.observerType === observation.observerType,
-      label: startCase(config.observerType),
-      removeFilter: config => ({...config, observerType: undefined}),
-    });
-  }
+  filterFuncs.push(
+    ...config.observerTypes.map(observerType => ({
+      filter: (observation: ObservationFragment) => observerType === observation.observerType,
+      label: startCase(observerType),
+      removeFilter: (config: ObservationFilterConfig) => ({...config, observerTypes: config.observerTypes.filter(ot => ot !== observerType)}),
+    })),
+  );
 
   if (config.instability && (config.instability.avalanches || config.instability.cracking || config.instability.collapsing)) {
     const labelStrings: string[] = [];
@@ -320,9 +322,9 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                   )}
                   {mapLayer && (
                     <CheckboxSelectField
-                      name="zone"
+                      name="zones"
                       items={mapLayer.features.map(feature => ({label: feature.properties.name, value: feature.properties.name}))}
-                      disabled={Boolean(initialFilterConfig.zone)}
+                      disabled={initialFilterConfig.zones.length > 0}
                       px={16}
                     />
                   )}
@@ -330,7 +332,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     <BodyBlack>Observer Type</BodyBlack>
                   </View>
                   <CheckboxSelectField
-                    name="observerType"
+                    name="observerTypes"
                     items={[
                       {value: PartnerType.Forecaster, label: 'Forecaster'},
                       {value: PartnerType.Intern, label: 'Intern'},
