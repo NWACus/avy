@@ -3,12 +3,16 @@ import {z} from 'zod';
 import {simpleObservationFormSchema} from 'components/observations/ObservationFormData';
 import {avalancheCenterIDSchema, mediaItemSchema, MediaUsage} from 'types/nationalAvalancheCenter';
 
+const taskStatus = z.enum(['pending', 'paused', 'working', 'success', 'error']);
+export type TaskStatus = z.infer<typeof taskStatus>;
+
 const taskQueueEntrySchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('image'),
     id: z.string().uuid(),
     parentId: z.string().uuid(),
     attemptCount: z.number(),
+    status: taskStatus.default('pending'),
     data: z.object({
       apiPrefix: z.string(),
       image: z.object({
@@ -31,6 +35,7 @@ const taskQueueEntrySchema = z.discriminatedUnion('type', [
     id: z.string().uuid(),
     parentId: z.string().uuid().optional(),
     attemptCount: z.number(),
+    status: taskStatus.default('pending'),
     data: z.object({
       formData: simpleObservationFormSchema,
       extraData: z.object({
@@ -44,6 +49,13 @@ const taskQueueEntrySchema = z.discriminatedUnion('type', [
   }),
 ]);
 export type TaskQueueEntry = z.infer<typeof taskQueueEntrySchema>;
-export type ObservationTaskData = Extract<TaskQueueEntry, {type: 'observation'}>['data'];
+
+export type ObservationTask = Extract<TaskQueueEntry, {type: 'observation'}>;
+export type ObservationTaskData = ObservationTask['data'];
+export const isObservationTask = (entry: TaskQueueEntry): entry is ObservationTask => entry.type === 'observation';
+
+export type ImageTask = Extract<TaskQueueEntry, {type: 'image'}>;
+export type ImageTaskData = ImageTask['data'];
+export const isImageTask = (entry: TaskQueueEntry): entry is ImageTask => entry.type === 'image';
 
 export const taskQueueSchema = z.array(taskQueueEntrySchema);

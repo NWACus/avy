@@ -22,7 +22,8 @@ import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField} from 'components/form/TextField';
 import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
-import {submitObservation} from 'components/observations/submitObservation';
+import {getUploader} from 'components/observations/uploader/ObservationsUploader';
+import {TaskQueueEntry} from 'components/observations/uploader/Task';
 import {Body, BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
@@ -68,7 +69,19 @@ export const SimpleForm: React.FC<{
   const mutation = useMutation<void, AxiosError, ObservationFormData>({
     mutationFn: async (observationFormData: ObservationFormData) => {
       logger.info({formValues: observationFormData}, 'submitting observation');
-      return submitObservation({center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
+      const observationId = await getUploader().submitObservation({center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
+      const promise: Promise<void> = new Promise((resolve, _reject) => {
+        const listener = (entry: TaskQueueEntry, success: boolean) => {
+          if (entry.type === 'observation' && entry.id === observationId) {
+            if (success) {
+              resolve();
+              getUploader().unsubscribeFromTaskInvocations(listener);
+            }
+          }
+        };
+        getUploader().subscribeToTaskInvocations(listener);
+      });
+      return promise;
     },
     onMutate: () => {
       Toast.show({
