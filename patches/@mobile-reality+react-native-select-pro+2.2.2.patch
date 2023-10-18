@@ -1,0 +1,13 @@
+diff --git a/node_modules/@mobile-reality/react-native-select-pro/src/components/options-list/options-list.tsx b/node_modules/@mobile-reality/react-native-select-pro/src/components/options-list/options-list.tsx
+index b58d6ad..83fb6d7 100644
+--- a/node_modules/@mobile-reality/react-native-select-pro/src/components/options-list/options-list.tsx
++++ b/node_modules/@mobile-reality/react-native-select-pro/src/components/options-list/options-list.tsx
+@@ -128,7 +128,7 @@ export const OptionsList = forwardRef<View>((_, optionsListRef) => {
+                 />
+             ) : (
+                 <FlatOptionsList
+-                    initialScrollIndex={initialScrollIndex}
++                    initialScrollIndex={initialScrollIndex === -1 ? undefined : initialScrollIndex}
+                     getItemLayout={getItemLayout}
+                     renderItem={renderFlatItem}
+                     accessibilityState={accessibilityState}
