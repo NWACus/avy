@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import * as Sentry from 'sentry-expo';
 
@@ -21,8 +21,10 @@ export const useNACObservations = (center_id: AvalancheCenterID, endDate: Reques
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(nationalAvalancheCenterHost, center_id, endDate);
-  const thisLogger = logger.child({query: key});
-  thisLogger.debug({endDate, enabled: options.enabled}, 'initiating query');
+  const [thisLogger] = useState(logger.child({query: key}));
+  useEffect(() => {
+    thisLogger.debug({endDate, enabled}, 'initiating query');
+  }, [thisLogger, endDate, enabled]);
 
   // For NAC, we fetch in 2 week pages, until we get results that are older than the requested end date minus the lookback window
   const lookbackWindowStart: Date = add(requestedTimeToUTCDate(endDate), MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW);

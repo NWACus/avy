@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {QueryClient, useInfiniteQuery} from '@tanstack/react-query';
 import axios, {AxiosError, AxiosResponse} from 'axios';
@@ -22,8 +22,10 @@ export const useNWACObservations = (center_id: AvalancheCenterID, endDate: Reque
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   // We key on end date, but not window - window merely controls how far we'll fetch backwards
   const key = queryKey(nwacHost, center_id, endDate);
-  const thisLogger = logger.child({query: key});
-  thisLogger.debug({endDate, enabled: options.enabled}, 'initiating query');
+  const [thisLogger] = useState(logger.child({query: key}));
+  useEffect(() => {
+    thisLogger.debug({endDate, enabled}, 'initiating query');
+  }, [thisLogger, endDate, enabled]);
 
   // For NWAC, we fetch in 2 week pages, until we get results that are older than the requested end date minus the lookback window
   const lookbackWindowStart: Date = add(requestedTimeToUTCDate(endDate), MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW);
