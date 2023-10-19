@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {QueryClient, useQuery, UseQueryResult} from '@tanstack/react-query';
 import axios, {AxiosError, AxiosResponse} from 'axios';
@@ -17,8 +17,10 @@ export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID): UseQue
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(nationalAvalancheCenterHost, center_id);
-  const thisLogger = logger.child({query: key});
-  thisLogger.debug('initiating query');
+  const [thisLogger] = useState(logger.child({query: key}));
+  useEffect(() => {
+    thisLogger.debug('initiating query');
+  }, [thisLogger]);
 
   return useQuery<AvalancheCenter, AxiosError | ZodError>({
     queryKey: key,

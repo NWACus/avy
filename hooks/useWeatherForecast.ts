@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {QueryClient, useQuery, UseQueryResult} from '@tanstack/react-query';
 import axios, {AxiosError, AxiosResponse} from 'axios';
@@ -18,8 +18,10 @@ export const useWeatherForecast = (forecastId?: number): UseQueryResult<Weather,
 
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(nationalAvalancheCenterHost, forecastId ?? 0);
-  const thisLogger = logger.child({query: key});
-  thisLogger.debug('initiating query');
+  const [thisLogger] = useState(logger.child({query: key}));
+  useEffect(() => {
+    thisLogger.debug('initiating query');
+  }, [thisLogger]);
 
   return useQuery<Weather, AxiosError | ZodError>({
     queryKey: key,

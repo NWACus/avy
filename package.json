@@ -102,7 +102,7 @@
     "react-dom": "18.2.0",
     "react-hook-form": "^7.43.1",
     "react-intl": "^6.4.7",
-    "react-native": "0.72.5",
+    "react-native": "0.72.6",
     "react-native-collapsible": "^1.6.0",
     "react-native-gesture-handler": "~2.12.0",
     "react-native-image-viewing": "^0.2.2",

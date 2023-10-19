@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import * as Sentry from 'sentry-expo';
 
@@ -17,8 +17,10 @@ export const useNACObservation = (id: string): UseQueryResult<Observation, Axios
   const {nationalAvalancheCenterHost: host} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(host, id);
-  const thisLogger = logger.child({query: key});
-  thisLogger.debug('initiating query');
+  const [thisLogger] = useState(logger.child({query: key}));
+  useEffect(() => {
+    thisLogger.debug('initiating query');
+  }, [thisLogger]);
 
   return useQuery<Observation, AxiosError | ZodError>({
     queryKey: key,
