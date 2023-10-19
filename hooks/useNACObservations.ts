@@ -7,12 +7,12 @@ import axios, {AxiosError, AxiosResponse} from 'axios';
 
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
-import {add, formatDistanceToNowStrict, sub} from 'date-fns';
+import {formatDistanceToNowStrict, sub} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
-import {MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW, ObservationsDocument} from 'hooks/useObservations';
+import {ObservationsDocument} from 'hooks/useObservations';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, ObservationFragment, observationListResultSchema} from 'types/nationalAvalancheCenter';
-import {RequestedTime, apiDateString, formatRequestedTime, parseRequestedTimeString, requestedTimeToUTCDate} from 'utils/date';
+import {RequestedTime, apiDateString, formatRequestedTime, parseRequestedTimeString, requestedTimeToUTCDate, startOfSeasonLocalDate} from 'utils/date';
 import {ZodError} from 'zod';
 
 const PAGE_SIZE: Duration = {weeks: 2};
@@ -27,7 +27,7 @@ export const useNACObservations = (center_id: AvalancheCenterID, endDate: Reques
   }, [thisLogger, endDate, options.enabled]);
 
   // For NAC, we fetch in 2 week pages, until we get results that are older than the requested end date minus the lookback window
-  const lookbackWindowStart: Date = add(requestedTimeToUTCDate(endDate), MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW);
+  const lookbackWindowStart: Date = startOfSeasonLocalDate(endDate);
   const fetchNACObservationsPage = async (props: {pageParam?: unknown}): Promise<ObservationsQueryWithMeta> => {
     // On the first page, pageParam comes in as null - *not* undefined
     // Subsequent pages come in as strings that are set by us in getNextPageParam
@@ -42,11 +42,11 @@ export const useNACObservations = (center_id: AvalancheCenterID, endDate: Reques
     queryKey: key,
     queryFn: fetchNACObservationsPage,
     getNextPageParam: (lastPage: ObservationsQueryWithMeta) => {
-      thisLogger.debug('nac getNextPageParam', lastPage.startDate);
+      thisLogger.trace('nac getNextPageParam', lastPage.startDate);
       if (new Date(lastPage.startDate) > lookbackWindowStart) {
         return lastPage.startDate;
       } else {
-        thisLogger.debug('nac getNextPageParam', 'no more data available in window!', lastPage.startDate, lookbackWindowStart, endDate);
+        thisLogger.trace('nac getNextPageParam', 'no more pages!', lastPage.startDate, lookbackWindowStart, endDate);
         return undefined;
       }
     },

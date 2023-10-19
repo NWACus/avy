@@ -7,12 +7,11 @@ import * as Sentry from 'sentry-expo';
 
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
-import {add, formatDistanceToNowStrict, sub} from 'date-fns';
+import {formatDistanceToNowStrict, sub} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
-import {MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW} from 'hooks/useObservations';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, ObservationFragment, nwacObservationsListSchema} from 'types/nationalAvalancheCenter';
-import {RequestedTime, formatRequestedTime, parseRequestedTimeString, requestedTimeToUTCDate, toDateTimeInterfaceATOM} from 'utils/date';
+import {RequestedTime, formatRequestedTime, parseRequestedTimeString, requestedTimeToUTCDate, startOfSeasonLocalDate, toDateTimeInterfaceATOM} from 'utils/date';
 import {ZodError} from 'zod';
 
 const PAGE_SIZE: Duration = {weeks: 2};
@@ -28,7 +27,7 @@ export const useNWACObservations = (center_id: AvalancheCenterID, endDate: Reque
   }, [thisLogger, endDate, options.enabled]);
 
   // For NWAC, we fetch in 2 week pages, until we get results that are older than the requested end date minus the lookback window
-  const lookbackWindowStart: Date = add(requestedTimeToUTCDate(endDate), MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW);
+  const lookbackWindowStart: Date = startOfSeasonLocalDate(endDate);
   const fetchNWACObservationsPage = async (props: {pageParam?: unknown}): Promise<ObservationsQueryWithMeta> => {
     // On the first page, pageParam comes in as null - *not* undefined
     // Subsequent pages come in as strings that are set by us in getNextPageParam
@@ -43,11 +42,11 @@ export const useNWACObservations = (center_id: AvalancheCenterID, endDate: Reque
     queryKey: key,
     queryFn: fetchNWACObservationsPage,
     getNextPageParam: (lastPage: ObservationsQueryWithMeta) => {
-      thisLogger.debug('nwac getNextPageParam', lastPage.startDate);
+      thisLogger.trace('nwac getNextPageParam', lastPage.startDate);
       if (new Date(lastPage.startDate) > lookbackWindowStart) {
         return lastPage.startDate;
       } else {
-        thisLogger.debug('nwac getNextPageParam', 'no more data available in window!', lastPage.startDate, lookbackWindowStart, endDate);
+        thisLogger.trace('nwac getNextPageParam', 'no more data available in window!', lastPage.startDate, lookbackWindowStart, endDate);
         return undefined;
       }
     },
