@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 
 import {QueryClient, useQuery, useQueryClient, UseQueryResult} from '@tanstack/react-query';
 import {add, areIntervalsOverlapping} from 'date-fns';
@@ -16,8 +16,10 @@ export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forec
   const {nationalAvalancheCenterHost} = useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = ['products', center_id, forecast_zone_id, apiDateString(date)];
-  const thisLogger = logger.child({query: key});
-  thisLogger.debug('initiating query');
+  const [thisLogger] = useState(logger.child({query: key}));
+  useEffect(() => {
+    thisLogger.debug('initiating query');
+  }, [thisLogger]);
 
   return useQuery<ForecastSummaryFragment, Error>({
     queryKey: key,

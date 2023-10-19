@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {QueryClient, useQuery, UseQueryResult} from '@tanstack/react-query';
 import axios, {AxiosError, AxiosResponse} from 'axios';
@@ -24,8 +24,10 @@ export const useNWACWeatherForecast = (
   const date = requestedTimeToUTCDate(requestedTime);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(nwacHost, zone_id, date);
-  const thisLogger = logger.child({query: key});
-  thisLogger.debug('initiating query');
+  const [thisLogger] = useState(logger.child({query: key}));
+  useEffect(() => {
+    thisLogger.debug('initiating query');
+  }, [thisLogger]);
 
   return useQuery<NWACWeatherForecast | 'ignore', AxiosError | ZodError | NotFoundError>({
     queryKey: key,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import * as Sentry from 'sentry-expo';
 
@@ -24,8 +24,10 @@ export const useWeatherStationTimeseries = (
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(host, stations, requestedTime, duration);
   const {startDate, endDate} = queryInterval(requestedTime, duration);
-  const thisLogger = logger.child({query: key});
-  thisLogger.debug('initiating query');
+  const [thisLogger] = useState(logger.child({query: key}));
+  useEffect(() => {
+    thisLogger.debug('initiating query');
+  }, [thisLogger]);
 
   return useQuery<WeatherStationTimeseries, AxiosError | ZodError>({
     queryKey: key,

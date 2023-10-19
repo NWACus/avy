@@ -4,7 +4,7 @@ import {formatDistanceToNowStrict} from 'date-fns';
 import * as FileSystem from 'expo-file-system';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import md5 from 'md5';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 const rootDirectory = `${FileSystem.cacheDirectory ?? '/'}image-cache/`;
 export const queryKeyPrefix = 'image';
@@ -27,8 +27,10 @@ export const initialize = (): Promise<boolean> => {
 export const useCachedImageURI = (uri: string) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(uri);
-  const thisLogger = logger.child({query: key});
-  thisLogger.debug('initiating query');
+  const [thisLogger] = useState(logger.child({query: key}));
+  useEffect(() => {
+    thisLogger.debug('initiating query');
+  }, [thisLogger]);
 
   // NetworkImage (which uses this hook) is also used to display file:// URIs, for
   // images to upload for example. In that case, we should still run the query even when offline.

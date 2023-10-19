@@ -23,8 +23,8 @@ export const useNACObservations = (center_id: AvalancheCenterID, endDate: Reques
   const key = queryKey(nationalAvalancheCenterHost, center_id, endDate);
   const [thisLogger] = useState(logger.child({query: key}));
   useEffect(() => {
-    thisLogger.debug({endDate, enabled}, 'initiating query');
-  }, [thisLogger, endDate, enabled]);
+    thisLogger.debug({endDate, enabled: options.enabled}, 'initiating query');
+  }, [thisLogger, endDate, options.enabled]);
 
   // For NAC, we fetch in 2 week pages, until we get results that are older than the requested end date minus the lookback window
   const lookbackWindowStart: Date = add(requestedTimeToUTCDate(endDate), MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW);

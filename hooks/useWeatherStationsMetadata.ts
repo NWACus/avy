@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import * as Sentry from 'sentry-expo';
 
@@ -17,8 +17,10 @@ export const useWeatherStationsMetadata = (center: AvalancheCenterID, token: str
   const {snowboundHost: host} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(host, center);
-  const thisLogger = logger.child({query: key});
-  thisLogger.debug('initiating query');
+  const [thisLogger] = useState(logger.child({query: key}));
+  useEffect(() => {
+    thisLogger.debug('initiating query');
+  }, [thisLogger]);
 
   return useQuery<WeatherStationCollection, AxiosError | ZodError>({
     queryKey: key,
