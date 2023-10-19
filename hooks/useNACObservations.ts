@@ -147,6 +147,10 @@ export const fetchNACObservations = async (
       logger.warn({error: parseResult.data.errors}, `error response on fetch`);
       throw new Error(`GraphQL error response: ${JSON.stringify(parseResult.data.errors)}`);
     }
+    logger.debug(
+      {observationCount: (parseResult.data.data?.getObservationList ?? []).length, startDate: formatRequestedTime(startDate), endDate: formatRequestedTime(endDate)},
+      `observation page fetch complete`,
+    );
     return {
       data: parseResult.data.data?.getObservationList ?? [],
       startDate: formatRequestedTime(startDate),

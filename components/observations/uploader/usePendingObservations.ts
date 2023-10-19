@@ -9,18 +9,15 @@ export function usePendingObservations(): ObservationFragmentWithStatus[] {
     (_state: UploaderState) => {
       const nextPendingObservations = getUploader().getPendingObservations();
       if (nextPendingObservations.length < pendingObservations.length) {
-        // Invalidate the query cache for the obs list query. It's a blunt instrument,
-        // but it will force useNACObservations to return the newly uploaded data.
-        void queryClient.refetchQueries({
-          type: 'all',
+        // Invalidate the query cache for the obs list query - if the list view is open,
+        // it will fetch the observation into the list and enable the user to click into it.
+        void queryClient.invalidateQueries({
           exact: false,
           queryKey: ['nac-observations'],
-          refetchPage: (_page, index, _allPages) => {
+          refetchPage: (_page, index) => {
+            // We only need to refetch page 0, that's where the newest data is
             return index === 0;
           },
-          // refetchPage: (_page, index, _allPages) => {
-          //   return index === 0;
-          // },
         });
       }
       setPendingObservations(nextPendingObservations);
