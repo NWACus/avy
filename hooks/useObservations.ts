@@ -398,20 +398,3 @@ export const ObservationsDocument = `
   }
 }
     ${OverviewFragmentDoc}`;
-
-// These are unused - can they be deleted?
-// export const useObservationQuery = <TData = ObservationQuery, TError = unknown>(variables: ObservationQueryVariables, options?: UseQueryOptions<ObservationQuery, TError, TData>) =>
-//   useQuery<ObservationQuery, TError, TData>(['observation', variables], useFetch<ObservationQuery, ObservationQueryVariables>(ObservationDocument).bind(null, variables), options);
-//
-// export const useObservationsQuery = <TData = ObservationsQuery, TError = unknown>(
-//   variables: ObservationsQueryVariables,
-//   options?: UseQueryOptions<ObservationsQuery, TError, TData>,
-// ) =>
-//   useQuery<ObservationsQuery, TError, TData>(
-//     ['observations', variables],
-//     useFetch<ObservationsQuery, ObservationsQueryVariables>(ObservationsDocument).bind(null, variables),
-//     options,
-//   );
-
-// No matter what span of time we're looking at, we will never query over more than 12 months of observations
-export const MAXIMUM_OBSERVATIONS_LOOKBACK_WINDOW: Duration = {months: -12};

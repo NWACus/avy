@@ -5,14 +5,27 @@ import _ from 'lodash';
 import uuid from 'react-native-uuid';
 
 import {ObservationFormData} from 'components/observations/ObservationFormData';
-import {ImageTaskData, ObservationTaskData, TaskQueueEntry, TaskStatus, isImageTask, isObservationTask, taskQueueSchema} from 'components/observations/uploader/Task';
+import {
+  ImageTaskData,
+  ObservationTask,
+  ObservationTaskData,
+  TaskQueueEntry,
+  TaskStatus,
+  isImageTask,
+  isObservationTask,
+  taskQueueSchema,
+} from 'components/observations/uploader/Task';
 import {uploadImage} from 'components/observations/uploader/uploadImage';
 import {uploadObservation} from 'components/observations/uploader/uploadObservation';
 import {logger} from 'logger';
 import {filterLoggedData} from 'logging/filterLoggedData';
-import {AvalancheCenterID, MediaUsage} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MediaType, MediaUsage, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
 
-type Subscriber = (entry: TaskQueueEntry, success: boolean, attempts: number) => void;
+type StateSubscriber = (state: UploaderState) => void;
+export interface ObservationFragmentWithStatus {
+  status: UploadStatus;
+  observation: ObservationFragment;
+}
 
 export const isRetryableError = (error: unknown): boolean => {
   // This may evolve over time as we learn more about what errors the NAC API can
@@ -40,7 +53,7 @@ export const backoffTimeMs = (attemptCount: number): number => {
   return attemptCount === 0 ? 0 : Math.min(1000 * 2 ** attemptCount, 30000);
 };
 
-interface UploaderState {
+export interface UploaderState {
   networkStatus: 'online' | 'offline';
   observations: {
     id: string;
@@ -88,7 +101,7 @@ export class ObservationUploader {
   private ready = false;
   private offline = true;
   private logger = logger.child({component: 'ObservationUploader'});
-  private subscribers: Subscriber[] = [];
+  private stateSubscribers: StateSubscriber[] = [];
 
   async initialize() {
     try {
@@ -121,6 +134,8 @@ export class ObservationUploader {
   private async flush() {
     this.checkInitialized();
     this.logger.debug({queue: this.taskQueue}, 'flushing new task queue to disk');
+    const state = this.getState();
+    this.stateSubscribers.forEach(subscriber => subscriber(state));
     await AsyncStorage.setItem(ObservationUploader.TASK_QUEUE_KEY, JSON.stringify(this.taskQueue));
   }
 
@@ -242,7 +257,6 @@ export class ObservationUploader {
           break;
       }
       this.logger.debug({entry}, `processed task queue entry successfully`);
-      this.subscribers.forEach(subscriber => subscriber(entry, true, entry.attemptCount));
       this.taskQueue.shift(); // we're done with this task, so remove it from the queue
       entry.status = 'success';
       this.completedTasks.push(entry);
@@ -257,7 +271,6 @@ export class ObservationUploader {
         entry.status = 'error';
         this.completedTasks.push(entry);
       }
-      this.subscribers.forEach(subscriber => subscriber(entry, false, entry.attemptCount));
     }
 
     this.logger.debug({taskCount: this.taskQueue.length}, 'processTaskQueue end');
@@ -306,6 +319,33 @@ export class ObservationUploader {
     this.tryRunTaskQueue();
   }
 
+  private getObservationFragment(observationTask: ObservationTask): ObservationFragment {
+    const observation = observationTask.data.formData;
+    return {
+      id: observationTask.id,
+      observerType: PartnerType.Public,
+      name: observation.name,
+      createdAt: observation.start_date.toISOString(),
+      locationPoint: observation.location_point,
+      locationName: observation.location_name,
+      instability: observation.instability,
+      observationSummary: observation.observation_summary,
+      media: this.taskQueue
+        .filter(t => t.parentId === observationTask.id)
+        .filter(isImageTask)
+        .map(t => ({
+          type: MediaType.Image,
+          caption: null,
+          url: {
+            original: t.data.image.uri,
+            large: t.data.image.uri,
+            medium: t.data.image.uri,
+            thumbnail: t.data.image.uri,
+          },
+        })),
+    };
+  }
+
   getUploadStatus(observationId: string): UploadStatus | null {
     const task = this.findTaskById(observationId);
     if (!task) {
@@ -325,6 +365,16 @@ export class ObservationUploader {
     };
   }
 
+  getPendingObservations(): ObservationFragmentWithStatus[] {
+    return this.taskQueue
+      .filter(isObservationTask)
+      .map(observationTask => ({
+        status: this.getUploadStatus(observationTask.id),
+        observation: this.getObservationFragment(observationTask),
+      }))
+      .filter((result): result is ObservationFragmentWithStatus => result.status != null);
+  }
+
   async resetTaskQueue() {
     this.logger.debug('resetTaskQueue');
     this.checkInitialized();
@@ -332,14 +382,14 @@ export class ObservationUploader {
     await this.flush();
   }
 
-  subscribeToTaskInvocations(callback: Subscriber) {
+  subscribeToStateUpdates(callback: StateSubscriber) {
     this.checkInitialized();
-    this.subscribers.push(callback);
+    this.stateSubscribers.push(callback);
   }
 
-  unsubscribeFromTaskInvocations(callback: Subscriber) {
+  unsubscribeFromStateUpdates(callback: StateSubscriber) {
     this.checkInitialized();
-    this.subscribers = this.subscribers.filter(subscriber => subscriber !== callback);
+    this.stateSubscribers = this.stateSubscribers.filter(subscriber => subscriber !== callback);
   }
 
   getState(): UploaderState {

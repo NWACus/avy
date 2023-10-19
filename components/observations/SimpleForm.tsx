@@ -22,8 +22,8 @@ import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField} from 'components/form/TextField';
 import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
-import {getUploader} from 'components/observations/uploader/ObservationsUploader';
-import {TaskQueueEntry} from 'components/observations/uploader/Task';
+import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
+import {TaskStatus} from 'components/observations/uploader/Task';
 import {Body, BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
@@ -70,40 +70,57 @@ export const SimpleForm: React.FC<{
     mutationFn: async (observationFormData: ObservationFormData) => {
       logger.info({formValues: observationFormData}, 'submitting observation');
       const observationId = await getUploader().submitObservation({center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
-      const promise: Promise<void> = new Promise((resolve, _reject) => {
-        const listener = (entry: TaskQueueEntry, success: boolean) => {
-          if (entry.type === 'observation' && entry.id === observationId) {
-            if (success) {
+      const promise: Promise<void> = new Promise((resolve, reject) => {
+        let lastObsStatus: TaskStatus | null = null;
+        const listener = (uploaderState: UploaderState) => {
+          const upload = uploaderState.observations.find(o => o.id === observationId);
+          if (!upload) {
+            // if it's not there, then it must be done
+            if (lastObsStatus !== 'success') {
+              logger.debug('observation submitted successfully!', {observationId});
+              lastObsStatus = 'success';
               resolve();
-              getUploader().unsubscribeFromTaskInvocations(listener);
+              getUploader().unsubscribeFromStateUpdates(listener);
+              Toast.show({
+                type: 'success',
+                text1: 'Thank you! Your observation has been submitted.',
+                position: 'bottom',
+              });
             }
+            return;
+          }
+          if (upload.status !== lastObsStatus) {
+            if (!lastObsStatus) {
+              if (uploaderState.networkStatus === 'offline') {
+                Toast.show({
+                  type: 'info',
+                  text1: 'You are currently offline. Your observation will automatically be submitted when you are back online. Thank you!',
+                  position: 'bottom',
+                });
+              } else {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Your observation has been captured, and is uploading now. Thank you!',
+                  position: 'bottom',
+                });
+              }
+            } else if (upload.status === 'error') {
+              logger.debug('observation failed', {observationId});
+              reject();
+              getUploader().unsubscribeFromStateUpdates(listener);
+              Toast.show({
+                type: 'error',
+                text1: `I'm sorry, there was an error uploading your observation. Please try again later.`,
+                position: 'bottom',
+              });
+            }
+            lastObsStatus = upload.status;
           }
         };
-        getUploader().subscribeToTaskInvocations(listener);
+        getUploader().subscribeToStateUpdates(listener);
+        listener(getUploader().getState());
       });
       return promise;
-    },
-    onMutate: () => {
-      Toast.show({
-        type: 'info',
-        text1: 'Uploading your observation...',
-        position: 'bottom',
-      });
-    },
-    onSuccess: () => {
-      Toast.show({
-        type: 'success',
-        text1: 'Your observation was received!',
-        position: 'bottom',
-      });
-    },
-    onError: error => {
-      Toast.show({
-        type: 'error',
-        text1: 'There was an error uploading your observation',
-        position: 'bottom',
-      });
-      logger.error({error: error}, 'mutation failed');
     },
     retry: true,
     // This mutation is always allowed to run! The uploader manages retries and persistence of this task
@@ -483,7 +500,7 @@ export const SimpleForm: React.FC<{
                     mx={16}
                     mt={16}
                     buttonStyle="primary"
-                    disabled={mutation.isSuccess}
+                    disabled={mutation.isSuccess || mutation.isLoading}
                     busy={mutation.isLoading}
                     onPress={() =>
                       void (async () => {
@@ -493,7 +510,7 @@ export const SimpleForm: React.FC<{
                         void formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
                       })()
                     }>
-                    <BodySemibold>{mutation.isLoading ? 'Cancel submission' : 'Submit your observation'}</BodySemibold>
+                    <BodySemibold>{mutation.isLoading ? 'Uploading observation' : 'Submit your observation'}</BodySemibold>
                   </Button>
                   <VStack mx={16} mt={16} mb={32}>
                     {mutation.isSuccess && <Body>Thanks for your observation!</Body>}

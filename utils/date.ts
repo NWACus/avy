@@ -126,3 +126,8 @@ export const startOfSeasonLocalDate = (requestedTime: RequestedTime): Date => {
   // Months are zero-based, so September is 8
   return new Date(date.getMonth() >= 8 ? date.getFullYear() : date.getFullYear() - 1, 8, 1, 0, 0, 0, 0);
 };
+
+export const endOfSeasonLocalDate = (requestedTime: RequestedTime): Date => {
+  const startOfSeason = startOfSeasonLocalDate(requestedTime);
+  return new Date(startOfSeason.getFullYear() + 1, 8, 1, 0, 0, 0);
+};

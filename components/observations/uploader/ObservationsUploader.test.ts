@@ -176,8 +176,8 @@ describe('ObservationUploader', () => {
 
     await expect(async () => await uploader.submitObservation(fakeObservation)).rejects.toThrow(/ObservationUploader not initialized/);
     await expect(async () => await uploader.resetTaskQueue()).rejects.toThrow(/ObservationUploader not initialized/);
-    expect(() => uploader.subscribeToTaskInvocations(() => undefined)).toThrow(/ObservationUploader not initialized/);
-    expect(() => uploader.unsubscribeFromTaskInvocations(() => undefined)).toThrow(/ObservationUploader not initialized/);
+    expect(() => uploader.subscribeToStateUpdates(() => undefined)).toThrow(/ObservationUploader not initialized/);
+    expect(() => uploader.unsubscribeFromStateUpdates(() => undefined)).toThrow(/ObservationUploader not initialized/);
   });
 
   it('should start in an idle state', async () => {

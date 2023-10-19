@@ -14,13 +14,13 @@ import {DateField} from 'components/form/DateField';
 import {SwitchField} from 'components/form/SwitchField';
 import {BodyBlack, BodySemibold, BodySmBlack, Title3Semibold} from 'components/text';
 import {geoContains} from 'd3-geo';
-import {isAfter, isBefore, parseISO} from 'date-fns';
+import {endOfDay, isAfter, isBefore, parseISO} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, SafeAreaView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {colorLookup} from 'theme';
 import {MapLayer, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
-import {RequestedTime, requestedTimeToUTCDate, startOfSeasonLocalDate} from 'utils/date';
+import {RequestedTime, endOfSeasonLocalDate, requestedTimeToUTCDate, startOfSeasonLocalDate} from 'utils/date';
 import {z} from 'zod';
 
 const avalancheInstabilitySchema = z.enum(['observed', 'triggered', 'caught']);
@@ -56,7 +56,7 @@ const DATE_LABELS: Record<DateValue, string> = {
 };
 
 const currentSeasonDates = (requestedTime: RequestedTime): {from: Date; to: Date} => {
-  const endDate = requestedTimeToUTCDate(requestedTime);
+  const endDate = endOfSeasonLocalDate(requestedTime);
   const startDate = startOfSeasonLocalDate(requestedTime);
   return {from: startDate, to: endDate};
 };
@@ -228,12 +228,19 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   });
 
   const onSubmitHandler = (data: ObservationFilterConfig) => {
-    // When the user selects `current_season`, the date fields might be set to a previous custom range.
-    // Make sure they're overridden with the season dates.
     if (data.dates.value === 'current_season') {
+      // When the user selects `current_season`, the date fields might be set to a previous custom range.
+      // Make sure they're overridden with the season dates.
       data.dates = {
         value: 'current_season',
         ...currentSeasonDates(requestedTime),
+      };
+    } else {
+      // When the user specfies a date range, make sure it runs until midnight of the last day
+      data.dates = {
+        value: 'custom',
+        from: data.dates.from,
+        to: endOfDay(data.dates.to),
       };
     }
     setFilterConfig(data);
