@@ -83,6 +83,10 @@ export const prefetchNACObservations = async (queryClient: QueryClient, national
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
+    // Prefetching is looping forever without these params being set. Not sure why!
+    // Theory: this GQL path uses POST instead of GET, and the POST is not being cached by default...?
+    staleTime: 60 * 60 * 1000, // any fetched data we have is valid for an hour
+    cacheTime: 60 * 60 * 1000, // drop it from memory after an hour
   });
 };
 
