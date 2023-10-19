@@ -19,7 +19,7 @@ import {uploadImage} from 'components/observations/uploader/uploadImage';
 import {uploadObservation} from 'components/observations/uploader/uploadObservation';
 import {logger} from 'logger';
 import {filterLoggedData} from 'logging/filterLoggedData';
-import {AvalancheCenterID, MediaUsage, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MediaType, MediaUsage, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
 
 type Subscriber = (entry: TaskQueueEntry, success: boolean, attempts: number) => void;
 export interface ObservationFragmentWithStatus {
@@ -330,7 +330,19 @@ export class ObservationUploader {
       locationName: observation.location_name,
       instability: observation.instability,
       observationSummary: observation.observation_summary,
-      media: [], // coming soon
+      media: this.taskQueue
+        .filter(t => t.parentId === observationTask.id)
+        .filter(isImageTask)
+        .map(t => ({
+          type: MediaType.Image,
+          caption: null,
+          url: {
+            original: t.data.image.uri,
+            large: t.data.image.uri,
+            medium: t.data.image.uri,
+            thumbnail: t.data.image.uri,
+          },
+        })),
     };
   }
 
