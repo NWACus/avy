@@ -22,16 +22,15 @@ import {useRefresh} from 'hooks/useRefresh';
 import {
   ActivityIndicator,
   ColorValue,
-  FlatList,
-  FlatListProps,
   GestureResponderEvent,
   LayoutAnimation,
-  ListRenderItemInfo,
   Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  RefreshControl,
   ScrollView,
+  SectionList,
+  SectionListProps,
+  SectionListRenderItemInfo,
   TouchableOpacity,
 } from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
@@ -47,7 +46,7 @@ interface ObservationsListViewItem {
   pending?: boolean;
 }
 
-interface ObservationsListViewProps extends Omit<FlatListProps<ObservationsListViewItem>, 'data' | 'renderItem'> {
+interface ObservationsListViewProps extends Omit<SectionListProps<ObservationsListViewItem>, 'sections' | 'renderItem' | 'renderSectionHeader'> {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
   additionalFilters?: Partial<ObservationFilterConfig>;
@@ -151,31 +150,55 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   // an observer type, we only show observations that match both of those at the same time
   const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters) : []), [mapLayer, filterConfig, additionalFilters]);
 
-  const pendingObservations = usePendingObservations();
+  interface Section {
+    title: string;
+    data: ObservationsListViewItem[];
+  }
 
-  const displayedObservations: ObservationsListViewItem[] = useMemo(
-    () => [
-      ...pendingObservations.map(({observation}) => ({
-        id: observation.id,
-        observation: observation,
-        source: 'nac',
-        zone: observation.locationName,
-        pending: true,
-      })),
-      ...observations
-        .filter(observation => resolvedFilters.every(({filter}) => filter(observation)))
-        .map(observation => ({
+  const pendingObservations = usePendingObservations();
+  const pendingObservationsSection: Section = {
+    title: 'Pending',
+    data: pendingObservations.map(
+      ({observation}) =>
+        ({
           id: observation.id,
           observation: observation,
-          source: observation.source,
-          zone: observation.zone,
-        })),
-    ],
-    [observations, resolvedFilters, pendingObservations],
+          source: 'nac',
+          zone: observation.locationName,
+          pending: true,
+        } as const),
+    ),
+  };
+
+  const observationsSection: Section = useMemo(
+    () => ({
+      title: 'Published Results',
+      data: observations
+        .filter(observation => resolvedFilters.every(({filter}) => filter(observation)))
+        .map(
+          observation =>
+            ({
+              id: observation.id,
+              observation: observation,
+              source: observation.source,
+              zone: observation.zone,
+            } as const),
+        ),
+    }),
+    [observations, resolvedFilters],
   );
 
+  const hasPendingObservations = pendingObservationsSection.data.length > 0;
+  const sections: Section[] = [];
+  if (hasPendingObservations) {
+    sections.push(pendingObservationsSection);
+  }
+  if (observationsSection.data.length > 0) {
+    sections.push(observationsSection);
+  }
+
   const renderItem = useCallback(
-    ({item}: ListRenderItemInfo<ObservationsListViewItem>) => (
+    ({item}: SectionListRenderItemInfo<ObservationsListViewItem, Section>) => (
       <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} pending={item.pending} />
     ),
     [],
@@ -256,7 +279,15 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         </ScrollView>
       </HStack>
       <Divider />
-      <FlatList
+      <SectionList
+        sections={sections}
+        renderSectionHeader={({section: {title}}) =>
+          hasPendingObservations ? (
+            <View px={16} py={8}>
+              <BodySm>{title}</BodySm>
+            </View>
+          ) : null
+        }
         onScroll={onScroll}
         onScrollEndDrag={onScroll}
         scrollEventThrottle={160}
@@ -267,7 +298,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         }}
         ListFooterComponent={() => {
           if (!moreDataAvailable) {
-            if (displayedObservations.length === 0) {
+            if (observationsSection.data.length === 0) {
               return null;
             }
             return (
@@ -276,11 +307,11 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
                   <FormattedMessage
                     description="How many observations were found"
                     defaultMessage="{count, plural,
-    =0 {No matching observations in this time period}
-    one {One matching observation in this time period}
-    other {# matching observations in this time period}}"
+        =0 {No matching observations in this time period}
+        one {One matching observation in this time period}
+        other {# matching observations in this time period}}"
                     values={{
-                      count: displayedObservations.length,
+                      count: observationsSection.data.length,
                     }}
                   />
                 </Body>
@@ -309,9 +340,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         }
         contentContainerStyle={{flexGrow: 1}}
         style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh()} />}
-        data={displayedObservations}
-        getItemLayout={(data, index) => ({
+        refreshing={isRefreshing}
+        onRefresh={() => void refresh()}
+        getItemLayout={(_data, index) => ({
           length: OBSERVATION_SUMMARY_CARD_HEIGHT,
           offset: OBSERVATION_SUMMARY_CARD_HEIGHT * index,
           index,
@@ -370,10 +401,7 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
   const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
   const redFlags = observation.instability.collapsing || observation.instability.cracking;
   const onPress = useCallback(() => {
-    if (pending) {
-      // we aren't prepared to render the full screen view for a pending ob
-      return;
-    } else if (source === 'nwac') {
+    if (source === 'nwac') {
       navigation.navigate('nwacObservation', {
         id: observation.id,
       });
@@ -382,7 +410,7 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
         id: observation.id,
       });
     }
-  }, [navigation, source, observation.id, pending]);
+  }, [navigation, source, observation.id]);
 
   return (
     <Card
@@ -392,15 +420,16 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
       borderRadius={10}
       borderColor={colorLookup('light.300')}
       borderWidth={1}
-      onPress={onPress}
+      onPress={pending ? undefined : onPress}
+      style={{opacity: pending ? 0.5 : 1.0}}
       header={
         <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
-          <BodySmBlack fontStyle={pending ? 'italic' : undefined}>{utcDateToLocalDateString(observation.createdAt)}</BodySmBlack>
+          <BodySmBlack>{utcDateToLocalDateString(observation.createdAt)}</BodySmBlack>
           <HStack space={8} alignItems="center">
             {redFlags && <MaterialCommunityIcons name="flag" size={bodySize} color={colorFor(DangerLevel.Considerable).string()} />}
             {avalanches && <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />}
             <Caption1Semibold color={colorsFor(observation.observerType).primary} style={{textTransform: 'uppercase'}}>
-              {pending ? 'Uploading' : observation.observerType}
+              {observation.observerType}
             </Caption1Semibold>
           </HStack>
         </HStack>
