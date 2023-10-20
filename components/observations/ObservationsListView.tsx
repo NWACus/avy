@@ -319,7 +319,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         renderItem={renderItem}
         {...props}
       />
-      <Center position="absolute" bottom={16} left={0} right={0}>
+      <HStack position="absolute" bottom={16} right={16} justifyContent="flex-end">
         {/* Padding numbers are carefully chosen to center things, and to make the button perfectly round
         when the text is hidden. Expo icons are never vertically centered correctly by default for some reason. */}
         <Button buttonStyle="primary" onPress={submit} borderRadius={32} paddingHorizontal={13}>
@@ -329,7 +329,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             {showSubmitButtonText && <BodySmBlack color="white">Submit</BodySmBlack>}
           </HStack>
         </Button>
-      </Center>
+      </HStack>
     </VStack>
   );
 };
