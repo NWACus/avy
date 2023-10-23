@@ -6,7 +6,7 @@ import {AvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZone
 import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {formatData, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
 import {geoDistance} from 'd3-geo';
-import {format, isAfter, parseISO} from 'date-fns';
+import {format} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import React, {useRef, useState} from 'react';
 import {View as RNView, StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
@@ -14,28 +14,16 @@ import {default as AnimatedMapView, MAP_TYPES, MapCircle, MapPressEvent, default
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {WeatherStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {
-  AvalancheCenterID,
-  DangerLevel,
-  MapLayer,
-  MapLayerFeature,
-  Variable,
-  WeatherStation,
-  WeatherStationCollection,
-  WeatherStationSource,
-  WeatherStationTimeseries,
-  WeatherStationTimeseriesEntry,
-} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, DangerLevel, MapLayer, MapLayerFeature, Variable, WeatherStation, WeatherStationCollection, WeatherStationSource} from 'types/nationalAvalancheCenter';
 import {RequestedTime, RequestedTimeString, formatRequestedTime, parseRequestedTimeString} from 'utils/date';
 
 export const WeatherStationMap: React.FunctionComponent<{
   mapLayer: MapLayer;
   weatherStations: WeatherStationCollection;
-  timeseries: WeatherStationTimeseries;
   center_id: AvalancheCenterID;
   requestedTime: RequestedTimeString;
   toggleList: () => void;
-}> = ({mapLayer, weatherStations, timeseries, center_id, requestedTime, toggleList}) => {
+}> = ({mapLayer, weatherStations, center_id, requestedTime, toggleList}) => {
   const [ready, setReady] = useState<boolean>(false);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const avalancheCenterMapRegion: Region = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
@@ -172,7 +160,6 @@ export const WeatherStationMap: React.FunctionComponent<{
         center_id={center_id}
         date={parseRequestedTimeString(requestedTime)}
         stations={weatherStations}
-        timeseries={timeseries}
         selectedStationId={selectedStationId}
         setSelectedStationId={setSelectedStationId}
         controller={controller}
@@ -221,12 +208,11 @@ export const WeatherStationCards: React.FunctionComponent<{
   center_id: AvalancheCenterID;
   date: RequestedTime;
   stations: WeatherStationCollection;
-  timeseries: WeatherStationTimeseries;
   selectedStationId: string | null;
   setSelectedStationId: React.Dispatch<React.SetStateAction<string | null>>;
   controller: AnimatedMapWithDrawerController;
   buttonOnPress: () => void;
-}> = ({center_id, date, stations, timeseries, selectedStationId, setSelectedStationId, controller, buttonOnPress}) => {
+}> = ({center_id, date, stations, selectedStationId, setSelectedStationId, controller, buttonOnPress}) => {
   return AnimatedCards<WeatherStation, string>({
     center_id: center_id,
     date: date,
@@ -236,15 +222,7 @@ export const WeatherStationCards: React.FunctionComponent<{
     setSelectedItemId: setSelectedStationId,
     controller: controller,
     renderItem: ({date, center_id, item}) => (
-      <WeatherStationCard
-        mode={'map'}
-        center_id={center_id}
-        date={date}
-        station={item}
-        timeseries={timeseries.STATION.find(t => t.stid === item.properties.stid)}
-        units={timeseries.UNITS}
-        variables={timeseries.VARIABLES}
-      />
+      <WeatherStationCard mode={'map'} center_id={center_id} date={date} station={item} units={stations.properties.units} variables={stations.properties.variables} />
     ),
     buttonOnPress: buttonOnPress,
   });
@@ -255,15 +233,14 @@ interface rowData {
   data: number | string | null;
 }
 
-const weatherStationCardDateString = (date: Date): string => {
-  return format(date, `MMM d h:mm a`);
+const weatherStationCardDateString = (dateString: string | number | null | undefined): string | null => {
+  return typeof dateString === 'string' ? format(new Date(dateString), `MMM d h:mm a`) : null;
 };
 
 export const WeatherStationCard: React.FunctionComponent<{
   center_id: AvalancheCenterID;
   date: RequestedTime;
   station: WeatherStation;
-  timeseries?: WeatherStationTimeseriesEntry;
   units: Record<string, string>;
   variables: Variable[];
   mode: 'map' | 'list';
@@ -272,7 +249,6 @@ export const WeatherStationCard: React.FunctionComponent<{
     center_id,
     date,
     station,
-    timeseries,
     units,
     variables,
     mode,
@@ -280,7 +256,6 @@ export const WeatherStationCard: React.FunctionComponent<{
     center_id: AvalancheCenterID;
     date: RequestedTime;
     station: WeatherStation;
-    timeseries?: WeatherStationTimeseriesEntry;
     units: Record<string, string>;
     variables: Variable[];
     mode: 'map' | 'list';
@@ -288,24 +263,13 @@ export const WeatherStationCard: React.FunctionComponent<{
     const {width} = useWindowDimensions();
     const navigation = useNavigation<WeatherStackNavigationProps>();
 
-    let latestObservationDate: Date | undefined;
-    let latestObservation: Record<string, string | number | null> | undefined;
-    if (timeseries) {
-      for (const observation of timeseries.observations) {
-        if ('date_time' in observation) {
-          const observationTime = parseISO(String(observation['date_time']));
-          if (latestObservationDate === undefined || isAfter(observationTime, latestObservationDate)) {
-            latestObservationDate = observationTime;
-            latestObservation = observation;
-          }
-        }
-      }
-    }
+    const latestObservationDateString = weatherStationCardDateString(station.properties.data['date_time']);
+    const latestObservation: Record<string, string | number | null> | undefined = station.properties.data;
 
-    const orderedVariables = timeseries && orderStationVariables(variables, timeseries.timezone);
+    const orderedVariables = latestObservation && orderStationVariables(variables, station.properties.timezone);
     const rows: rowData[] | undefined = orderedVariables?.map(v => {
       let data = null;
-      if (timeseries && latestObservation && v.variable in latestObservation) {
+      if (latestObservation && v.variable in latestObservation) {
         data = latestObservation[v.variable];
       }
       return {
@@ -348,8 +312,8 @@ export const WeatherStationCard: React.FunctionComponent<{
             <HStack space={2}>
               <BodySmSemibold>
                 {station.properties.source.toUpperCase()} | {station.properties.elevation} ft
-                {latestObservationDate && ' | '}
-                {latestObservationDate && weatherStationCardDateString(latestObservationDate)}
+                {latestObservationDateString && ' | '}
+                {latestObservationDateString}
               </BodySmSemibold>
             </HStack>
             {rows && (

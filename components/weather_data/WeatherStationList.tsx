@@ -7,7 +7,7 @@ import {WeatherStationCard} from 'components/weather_data/WeatherStationMap';
 import React, {useCallback, useMemo} from 'react';
 import {FlatList, ListRenderItemInfo, Modal, ScrollView, TouchableOpacity} from 'react-native';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, MapLayer, WeatherStation, WeatherStationCollection, WeatherStationTimeseries, WeatherStationTimeseriesEntry} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MapLayer, WeatherStation, WeatherStationCollection, WeatherStationTimeseriesEntry} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {RequestedTimeString, parseRequestedTimeString, requestedTimeToUTCDate} from 'utils/date';
 
@@ -19,12 +19,11 @@ interface WeatherStationListItem {
 export const WeatherStationList: React.FunctionComponent<{
   mapLayer: MapLayer;
   weatherStations: WeatherStationCollection;
-  timeseries: WeatherStationTimeseries;
   center_id: AvalancheCenterID;
   requestedTime: RequestedTimeString;
   toggleMap: () => void;
   initialFilterConfig?: WeatherStationFilterConfig;
-}> = ({mapLayer, weatherStations, timeseries, center_id, requestedTime, toggleMap, initialFilterConfig}) => {
+}> = ({mapLayer, weatherStations, center_id, requestedTime, toggleMap, initialFilterConfig}) => {
   const parsedTime = parseRequestedTimeString(requestedTime);
   const currentTime = requestedTimeToUTCDate(parsedTime);
   const [filterConfig, setFilterConfig] = React.useState<WeatherStationFilterConfig>({...initialFilterConfig});
@@ -46,11 +45,8 @@ export const WeatherStationList: React.FunctionComponent<{
   );
 
   const displayedStations: WeatherStationListItem[] = useMemo(
-    () =>
-      weatherStations.features
-        .map(s => ({station: s, timeseries: timeseries.STATION.find(t => t.stid === s.properties.stid)}))
-        .filter(item => resolvedFilters.every(({filter}) => filter(item.station, item.timeseries))),
-    [weatherStations, timeseries, resolvedFilters],
+    () => weatherStations.features.map(s => ({station: s})).filter(item => resolvedFilters.every(({filter}) => filter(item.station))),
+    [weatherStations, resolvedFilters],
   );
 
   const renderItem = useCallback(
@@ -59,13 +55,12 @@ export const WeatherStationList: React.FunctionComponent<{
         center_id={center_id}
         date={currentTime}
         station={item.station}
-        timeseries={item.timeseries}
-        units={timeseries.UNITS}
-        variables={timeseries.VARIABLES}
+        units={weatherStations.properties.units}
+        variables={weatherStations.properties.variables}
         mode={'list'}
       />
     ),
-    [center_id, currentTime, timeseries],
+    [center_id, currentTime, weatherStations.properties.units, weatherStations.properties.variables],
   );
 
   return (

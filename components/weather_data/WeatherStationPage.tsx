@@ -5,11 +5,10 @@ import {WeatherStationMap} from 'components/weather_data/WeatherStationMap';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
-import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import React from 'react';
-import {AvalancheCenterID, WeatherStationSource} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
-import {parseRequestedTimeString, RequestedTimeString} from 'utils/date';
+import {RequestedTimeString} from 'utils/date';
 
 interface Props {
   center_id: AvalancheCenterID;
@@ -40,42 +39,18 @@ export const WeatherStations: React.FunctionComponent<{
   requestedTime: RequestedTimeString;
 }> = ({center_id, token, requestedTime}) => {
   const [list, setList] = React.useState<boolean>(false);
-  const parsedTime = parseRequestedTimeString(requestedTime);
   const mapLayerResult = useMapLayer(center_id);
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata(center_id, token);
   const weatherStations = weatherStationsResult.data;
-  const stationIds: Record<string, WeatherStationSource> = weatherStations
-    ? Object.fromEntries(new Map(weatherStations?.features.map(s => [s.properties.stid, s.properties.source])))
-    : {};
-  const timeseriesResult = useWeatherStationTimeseries(token, stationIds, parsedTime, {days: 1});
-  const timeseries = timeseriesResult.data;
 
-  if (incompleteQueryState(mapLayerResult, weatherStationsResult, timeseriesResult) || !mapLayer || !weatherStations || !timeseries) {
-    return <QueryState results={[mapLayerResult, weatherStationsResult, timeseriesResult]} />;
+  if (incompleteQueryState(mapLayerResult, weatherStationsResult) || !mapLayer || !weatherStations) {
+    return <QueryState results={[mapLayerResult, weatherStationsResult]} />;
   }
 
   if (list) {
-    return (
-      <WeatherStationList
-        center_id={center_id}
-        requestedTime={requestedTime}
-        mapLayer={mapLayer}
-        weatherStations={weatherStations}
-        timeseries={timeseries}
-        toggleMap={() => setList(false)}
-      />
-    );
+    return <WeatherStationList center_id={center_id} requestedTime={requestedTime} mapLayer={mapLayer} weatherStations={weatherStations} toggleMap={() => setList(false)} />;
   } else {
-    return (
-      <WeatherStationMap
-        center_id={center_id}
-        requestedTime={requestedTime}
-        mapLayer={mapLayer}
-        weatherStations={weatherStations}
-        timeseries={timeseries}
-        toggleList={() => setList(true)}
-      />
-    );
+    return <WeatherStationMap center_id={center_id} requestedTime={requestedTime} mapLayer={mapLayer} weatherStations={weatherStations} toggleList={() => setList(true)} />;
   }
 };
