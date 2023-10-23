@@ -1324,8 +1324,12 @@ export const snotelWeatherStationPropertiesSchema = z.object({
 
 export const weatherStationPropertiesSchema = z.discriminatedUnion('source', [
   nwacWeatherStationPropertiesSchema,
-  mesowestWeatherStationPropertiesSchema,
-  snotelWeatherStationPropertiesSchema,
+  mesowestWeatherStationPropertiesSchema.extend({
+    data: z.record(z.string(), z.string().or(z.number()).or(z.null())),
+  }),
+  snotelWeatherStationPropertiesSchema.extend({
+    data: z.record(z.string(), z.string().or(z.number()).or(z.null())),
+  }),
 ]);
 export type WeatherStationProperties = z.infer<typeof weatherStationPropertiesSchema>;
 

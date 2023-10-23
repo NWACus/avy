@@ -1,34 +1,31 @@
 import {useNavigation} from '@react-navigation/native';
-import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {MapViewZone, defaultMapRegionForGeometries} from 'components/content/ZoneMap';
 import {HStack, VStack, View} from 'components/core';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
 import {AvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZonePolygon';
-import {BodyBlack, BodySm, Title3Black} from 'components/text';
+import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
+import {formatData, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
 import {geoDistance} from 'd3-geo';
-import {useMapLayer} from 'hooks/useMapLayer';
-import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
+import {format} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import React, {useRef, useState} from 'react';
-import {View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
+import {View as RNView, StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
 import {default as AnimatedMapView, MAP_TYPES, MapCircle, MapPressEvent, default as MapView, Region} from 'react-native-maps';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {WeatherStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, DangerLevel, MapLayerFeature, WeatherStation, WeatherStationCollection, WeatherStationSource} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, DangerLevel, MapLayer, MapLayerFeature, Variable, WeatherStation, WeatherStationCollection, WeatherStationSource} from 'types/nationalAvalancheCenter';
 import {RequestedTime, RequestedTimeString, formatRequestedTime, parseRequestedTimeString} from 'utils/date';
 
 export const WeatherStationMap: React.FunctionComponent<{
+  mapLayer: MapLayer;
+  weatherStations: WeatherStationCollection;
   center_id: AvalancheCenterID;
-  token: string;
   requestedTime: RequestedTimeString;
-}> = ({center_id, token, requestedTime}) => {
+  toggleList: () => void;
+}> = ({mapLayer, weatherStations, center_id, requestedTime, toggleList}) => {
   const [ready, setReady] = useState<boolean>(false);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const mapLayerResult = useMapLayer(center_id);
-  const mapLayer = mapLayerResult.data;
-  const weatherStationsResult = useWeatherStationsMetadata(center_id, token);
-  const weatherStations = weatherStationsResult.data;
   const avalancheCenterMapRegion: Region = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
   const [circleRadius, setCircleRadius] = useState<number>(radiusForExtent(avalancheCenterMapRegion.latitudeDelta));
 
@@ -86,10 +83,6 @@ export const WeatherStationMap: React.FunctionComponent<{
     controller.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
   }, [avalancheCenterMapRegion, controller]);
 
-  if (incompleteQueryState(mapLayerResult, weatherStationsResult) || !mapLayer || !weatherStations) {
-    return <QueryState results={[mapLayerResult, weatherStationsResult]} />;
-  }
-
   // we want light grey zones in the background here
   const zones: MapViewZone[] = mapLayer.features.map((feature: MapLayerFeature) => ({
     zone_id: feature.id,
@@ -102,6 +95,14 @@ export const WeatherStationMap: React.FunctionComponent<{
     end_date: feature.properties.end_date,
     fillOpacity: 0.1,
   }));
+
+  const points = React.useMemo(
+    () =>
+      weatherStations?.features
+        ?.filter(station => station.geometry.type === 'Point')
+        .map(station => <WeatherStationPoint key={station.properties.stid} station={station} selected={station.properties.stid === selectedStationId} radiusKm={circleRadius} />),
+    [weatherStations, selectedStationId, circleRadius],
+  );
 
   return (
     <>
@@ -121,12 +122,7 @@ export const WeatherStationMap: React.FunctionComponent<{
         }}
         onPress={onPressMapView}>
         {ready && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={false} renderFillColor={true} />)}
-        {ready &&
-          weatherStations?.features
-            ?.filter(station => station.geometry.type === 'Point')
-            .map(station => (
-              <WeatherStationPoint key={station.properties.stid} station={station} selected={station.properties.stid === selectedStationId} radiusKm={circleRadius} />
-            ))}
+        {ready && points}
       </MapView.Animated>
       <SafeAreaView>
         <View>
@@ -167,6 +163,9 @@ export const WeatherStationMap: React.FunctionComponent<{
         selectedStationId={selectedStationId}
         setSelectedStationId={setSelectedStationId}
         controller={controller}
+        buttonOnPress={() => {
+          toggleList();
+        }}
       />
     </>
   );
@@ -176,18 +175,19 @@ export const EARTH_RADIUS_KM = 6378.1;
 export const radiusForExtent = (latitudeDelta: number): number => {
   const latitudeDeltaRadians = (latitudeDelta * Math.PI) / 180;
   const latitudeDeltaKilometers = latitudeDeltaRadians * EARTH_RADIUS_KM;
-  return latitudeDeltaKilometers / 100;
+  return latitudeDeltaKilometers / 75;
 };
 export const WeatherStationPoint: React.FunctionComponent<{
   station: WeatherStation;
   selected: boolean;
   radiusKm: number;
-}> = ({station, selected, radiusKm}) => {
+}> = React.memo(({station, selected, radiusKm}: {station: WeatherStation; selected: boolean; radiusKm: number}) => {
   if (station.geometry.type !== 'Point') {
     return <></>;
   }
 
   const highlight = colorLookup('blue.100');
+  const lowlight = colorLookup('gray.900');
   const colors = colorsForSource(station.properties.source);
   const coordinate = {latitude: station.geometry.coordinates[1], longitude: station.geometry.coordinates[0]};
 
@@ -196,12 +196,14 @@ export const WeatherStationPoint: React.FunctionComponent<{
       key={station.properties.stid}
       center={coordinate}
       radius={radiusKm * 1000} // in meters
-      strokeWidth={selected ? 8 : 4}
-      strokeColor={selected ? highlight.toString() : colors.primary}
-      fillColor={colors.secondary}
+      strokeWidth={selected ? 2 : 1}
+      strokeColor={selected ? highlight.toString() : lowlight.toString()}
+      fillColor={colors.primary}
     />
   );
-};
+});
+WeatherStationPoint.displayName = 'WeatherStationPoint';
+
 export const WeatherStationCards: React.FunctionComponent<{
   center_id: AvalancheCenterID;
   date: RequestedTime;
@@ -209,7 +211,8 @@ export const WeatherStationCards: React.FunctionComponent<{
   selectedStationId: string | null;
   setSelectedStationId: React.Dispatch<React.SetStateAction<string | null>>;
   controller: AnimatedMapWithDrawerController;
-}> = ({center_id, date, stations, selectedStationId, setSelectedStationId, controller}) => {
+  buttonOnPress: () => void;
+}> = ({center_id, date, stations, selectedStationId, setSelectedStationId, controller, buttonOnPress}) => {
   return AnimatedCards<WeatherStation, string>({
     center_id: center_id,
     date: date,
@@ -218,54 +221,131 @@ export const WeatherStationCards: React.FunctionComponent<{
     selectedItemId: selectedStationId,
     setSelectedItemId: setSelectedStationId,
     controller: controller,
-    renderItem: ({date, center_id, item}) => <WeatherStationCard center_id={center_id} date={date} station={item} />,
+    renderItem: ({date, center_id, item}) => (
+      <WeatherStationCard mode={'map'} center_id={center_id} date={date} station={item} units={stations.properties.units} variables={stations.properties.variables} />
+    ),
+    buttonOnPress: buttonOnPress,
   });
 };
+
+interface rowData {
+  variable: Variable;
+  data: number | string | null;
+}
+
+const weatherStationCardDateString = (dateString: string | number | null | undefined): string | null => {
+  return typeof dateString === 'string' ? format(new Date(dateString), `MMM d h:mm a`) : null;
+};
+
 export const WeatherStationCard: React.FunctionComponent<{
   center_id: AvalancheCenterID;
   date: RequestedTime;
   station: WeatherStation;
-}> = React.memo(({center_id, date, station}: {center_id: AvalancheCenterID; date: RequestedTime; station: WeatherStation}) => {
-  const {width} = useWindowDimensions();
-  const navigation = useNavigation<WeatherStackNavigationProps>();
+  units: Record<string, string>;
+  variables: Variable[];
+  mode: 'map' | 'list';
+}> = React.memo(
+  ({
+    center_id,
+    date,
+    station,
+    units,
+    variables,
+    mode,
+  }: {
+    center_id: AvalancheCenterID;
+    date: RequestedTime;
+    station: WeatherStation;
+    units: Record<string, string>;
+    variables: Variable[];
+    mode: 'map' | 'list';
+  }) => {
+    const {width} = useWindowDimensions();
+    const navigation = useNavigation<WeatherStackNavigationProps>();
 
-  const colors = colorsForSource(station.properties.source);
+    const latestObservationDateString = weatherStationCardDateString(station.properties.data['date_time']);
+    const latestObservation: Record<string, string | number | null> | undefined = station.properties.data;
 
-  return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={() => {
-        navigation.navigate('stationDetail', {
-          center_id: center_id,
-          stationId: station.properties.stid,
-          source: station.properties.source,
-          requestedTime: formatRequestedTime(date),
-        });
-      }}>
-      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={'100%'}>
-        <View height={8} width="100%" bg={colors.primary} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
-        <VStack px={24} pt={12} pb={12} space={8}>
-          <HStack flex={1} space={8} alignItems="center" justifyContent="space-between">
-            <HStack flex={1}>
-              <Title3Black style={{textTransform: 'capitalize'}}>{station.properties.name.toLowerCase()}</Title3Black>
+    const orderedVariables = latestObservation && orderStationVariables(variables, station.properties.timezone);
+    const rows: rowData[] | undefined = orderedVariables?.map(v => {
+      let data = null;
+      if (latestObservation && v.variable in latestObservation) {
+        data = latestObservation[v.variable];
+      }
+      return {
+        variable: v,
+        data: data,
+      };
+    });
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => {
+          navigation.navigate('stationDetail', {
+            center_id: center_id,
+            stationId: station.properties.stid,
+            source: station.properties.source,
+            requestedTime: formatRequestedTime(date),
+          });
+        }}>
+        <VStack
+          borderRadius={8}
+          bg="white"
+          {...(mode === 'map'
+            ? {
+                width: width * CARD_WIDTH,
+                mx: CARD_MARGIN * width,
+                height: '100%',
+              }
+            : {
+                mx: 8,
+                my: 8,
+              })}>
+          <View height={8} width="100%" bg={colorLookup('border.base')} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
+          <VStack px={24} pt={12} space={8}>
+            <HStack flex={1} space={8} alignItems="center" justifyContent="space-between">
+              <HStack flex={1}>
+                <Title3Black style={{textTransform: 'capitalize'}}>{station.properties.name.toLowerCase()}</Title3Black>
+              </HStack>
             </HStack>
-          </HStack>
-          <VStack py={8}>
-            <Text>
-              <BodySm>Operator: </BodySm>
-              <BodyBlack color={colors.primary}>{station.properties.source.toUpperCase()}</BodyBlack>
-            </Text>
-            <Text>
-              <BodySm>Elevation: </BodySm>
-              <BodySm>{station.properties.elevation} ft</BodySm>
-            </Text>
+            <HStack space={2}>
+              <BodySmSemibold>
+                {station.properties.source.toUpperCase()} | {station.properties.elevation} ft
+                {latestObservationDateString && ' | '}
+                {latestObservationDateString}
+              </BodySmSemibold>
+            </HStack>
+            {rows && (
+              // should this be a ListView? maybe yes
+              <VStack>
+                {rows
+                  .filter(({variable, data}) => variable.variable !== 'date_time' && !!data)
+                  .map(({variable, data}, index) => (
+                    <HStack
+                      key={variable.variable}
+                      justifyContent={'space-between'}
+                      alignContent="center"
+                      height={24}
+                      bg={index % 2 ? 'white' : colorLookup('background.base')}
+                      px={8}>
+                      <BodySm>{variable.long_name}</BodySm>
+                      <HStack space={2}>
+                        <BodySm>{formatData(variable, [data])[0]}</BodySm>
+                        <BodySm>{formatUnits(variable, units)}</BodySm>
+                      </HStack>
+                    </HStack>
+                  ))}
+              </VStack>
+            )}
           </VStack>
         </VStack>
-      </VStack>
-    </TouchableOpacity>
-  );
-});
+      </TouchableOpacity>
+    );
+  },
+);
 WeatherStationCard.displayName = 'WeatherStationCard';
+
 const colorsForSource = (source: WeatherStationSource) => {
   switch (source) {
     case WeatherStationSource.NWAC:
