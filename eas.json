@@ -22,11 +22,17 @@
     },
     "preview": {
       "channel": "preview",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_HIDE_WEATHER_TAB_NON_NWAC": "true"
+      }
     },
     "release": {
       "channel": "release",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_HIDE_WEATHER_TAB_NON_NWAC": "true"
+      }
     }
   },
   "submit": {

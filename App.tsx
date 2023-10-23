@@ -374,9 +374,11 @@ const BaseApp: React.FunctionComponent<{
                           )
                         }
                       </TabNavigator.Screen>
-                      <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
-                        {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
-                      </TabNavigator.Screen>
+                      {(avalancheCenterId === 'NWAC' || !process.env.EXPO_PUBLIC_HIDE_WEATHER_TAB_NON_NWAC) && (
+                        <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
+                          {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                        </TabNavigator.Screen>
+                      )}
                       <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
                         {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
                       </TabNavigator.Screen>
