@@ -1,6 +1,3 @@
-// useAvalancheForecastFragments pulls in Sentry, which makes Jest blow up
-jest.mock('@sentry/react-native', () => ({init: () => jest.fn()}));
-
 import {isBetween} from 'hooks/useAvalancheForecastFragment';
 
 describe('useAvalancheForecastFragment', () => {

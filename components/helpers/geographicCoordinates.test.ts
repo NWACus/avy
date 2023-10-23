@@ -1,6 +1,3 @@
-// useAvalancheForecastFragments pulls in Sentry, which makes Jest blow up
-jest.mock('@sentry/react-native', () => ({init: () => jest.fn()}));
-
 import {boundsForRegions, RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
 import {LatLng} from 'react-native-maps';
 
