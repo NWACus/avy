@@ -22,10 +22,7 @@
     },
     "preview": {
       "channel": "preview",
-      "autoIncrement": true,
-      "env": {
-        "EXPO_PUBLIC_HIDE_WEATHER_TAB_NON_NWAC": "true"
-      }
+      "autoIncrement": true
     },
     "release": {
       "channel": "release",
