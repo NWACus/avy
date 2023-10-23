@@ -353,18 +353,18 @@ export const avalancheCenterForecastWidgetConfigurationSchema = z.object({
 });
 
 export const avalancheCenterStationsWidgetConfigurationSchema = z.object({
-  center: latLngSchema,
-  zoom: z.number(),
-  center_id: z.string(),
-  alternate_zones: z.any(),
-  units: unitsSchema,
-  timezone: z.string(),
-  color_rules: z.boolean(),
-  source_legend: z.boolean(),
-  sources: z.array(z.string()),
-  within: z.union([z.string(), z.number()]),
+  center: latLngSchema.optional(),
+  zoom: z.number().optional(),
+  center_id: z.string().optional(),
+  alternate_zones: z.any().optional(),
+  units: unitsSchema.optional(),
+  timezone: z.string().optional(),
+  color_rules: z.boolean().optional(),
+  source_legend: z.boolean().optional(),
+  sources: z.array(z.string()).optional(),
+  within: z.union([z.string(), z.number()]).optional(),
   external_modal_links: z.union([z.record(externalModalLinkSchema), z.array(externalModalLinkSchema)]).optional(),
-  token: z.string(),
+  token: z.string().optional(),
 });
 
 export const avalancheForecastZoneConfigurationSchema = z.object({

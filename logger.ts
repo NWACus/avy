@@ -33,7 +33,7 @@ const streams: StreamOptions[] = [
 // Log to file in preview and development channels, but not in tests
 if (Updates.channel !== 'release' && process.env.NODE_ENV === 'test') {
   streams.push({
-    level: 'DEBUG',
+    level: 'INFO',
     stream: new FileStream(logFilePath),
   });
 }

@@ -2,6 +2,7 @@ import {LogStream} from 'browser-bunyan';
 import * as FileSystem from 'expo-file-system';
 import {debounce} from 'lodash';
 import {filterLoggedData} from 'logging/filterLoggedData';
+import * as Sentry from 'sentry-expo';
 
 export class FileStream implements LogStream {
   private readonly filePath: string;
@@ -21,7 +22,19 @@ export class FileStream implements LogStream {
     const buffer = this.buffer;
     this.buffer = [];
     const contents = await FileSystem.readAsStringAsync(this.filePath);
-    return await FileSystem.writeAsStringAsync(this.filePath, contents + buffer.join('\n') + '\n');
+    try {
+      return await FileSystem.writeAsStringAsync(this.filePath, contents + buffer.join('\n') + '\n');
+    } catch (error) {
+      Sentry.Native.captureException(error, {
+        extra: {
+          message: 'Unexpected error flushing log',
+        },
+        tags: {
+          file_system_error: true,
+          path: this.filePath,
+        },
+      });
+    }
   }, this.FLUSH_INTERVAL_MS);
 
   write(record: object): void {

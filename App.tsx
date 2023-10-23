@@ -313,11 +313,15 @@ const BaseApp: React.FunctionComponent<{
     void (async () => {
       if (fontsLoaded && splashScreenState === 'visible') {
         setSplashScreenState('hiding');
-        await SplashScreen.hideAsync();
+        try {
+          await SplashScreen.hideAsync();
+        } catch (error) {
+          logger.error({error}, 'Error from SplashScreen.hideAsync');
+        }
         setSplashScreenState('hidden');
       }
     })();
-  }, [fontsLoaded, splashScreenState, setSplashScreenState]);
+  }, [fontsLoaded, logger, splashScreenState, setSplashScreenState]);
 
   if (!fontsLoaded || splashScreenState !== 'hidden') {
     // The splash screen keeps rendering while fonts are loading
