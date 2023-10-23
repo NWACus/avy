@@ -3,10 +3,10 @@ import {MapViewZone, defaultMapRegionForGeometries} from 'components/content/Zon
 import {HStack, VStack, View} from 'components/core';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
 import {AvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZonePolygon';
-import {BodySm, Title3Black} from 'components/text';
+import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {formatData, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
 import {geoDistance} from 'd3-geo';
-import {isAfter, parseISO} from 'date-fns';
+import {format, isAfter, parseISO} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import React, {useRef, useState} from 'react';
 import {View as RNView, StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
@@ -26,7 +26,7 @@ import {
   WeatherStationTimeseries,
   WeatherStationTimeseriesEntry,
 } from 'types/nationalAvalancheCenter';
-import {RequestedTime, RequestedTimeString, formatRequestedTime, parseRequestedTimeString, utcDateToLocalTimeString} from 'utils/date';
+import {RequestedTime, RequestedTimeString, formatRequestedTime, parseRequestedTimeString} from 'utils/date';
 
 export const WeatherStationMap: React.FunctionComponent<{
   mapLayer: MapLayer;
@@ -255,6 +255,10 @@ interface rowData {
   data: number | string | null;
 }
 
+const weatherStationCardDateString = (date: Date): string => {
+  return format(date, `MMM d h:mm a`);
+};
+
 export const WeatherStationCard: React.FunctionComponent<{
   center_id: AvalancheCenterID;
   date: RequestedTime;
@@ -283,7 +287,6 @@ export const WeatherStationCard: React.FunctionComponent<{
   }) => {
     const {width} = useWindowDimensions();
     const navigation = useNavigation<WeatherStackNavigationProps>();
-    const colors = colorsForSource(station.properties.source);
 
     let latestObservationDate: Date | undefined;
     let latestObservation: Record<string, string | number | null> | undefined;
@@ -335,7 +338,7 @@ export const WeatherStationCard: React.FunctionComponent<{
                 mx: 8,
                 my: 8,
               })}>
-          <View height={8} width="100%" bg={colors.primary} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
+          <View height={8} width="100%" bg={colorLookup('border.base')} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
           <VStack px={24} pt={12} space={8}>
             <HStack flex={1} space={8} alignItems="center" justifyContent="space-between">
               <HStack flex={1}>
@@ -343,18 +346,25 @@ export const WeatherStationCard: React.FunctionComponent<{
               </HStack>
             </HStack>
             <HStack space={2}>
-              <BodySm>{station.properties.source.toUpperCase()}</BodySm>
-              <BodySm>|</BodySm>
-              <BodySm>{station.properties.elevation} ft</BodySm>
-              {latestObservationDate && <BodySm>|</BodySm>}
-              {latestObservationDate && <BodySm>{utcDateToLocalTimeString(latestObservationDate)}</BodySm>}
+              <BodySmSemibold>
+                {station.properties.source.toUpperCase()} | {station.properties.elevation} ft
+                {latestObservationDate && ' | '}
+                {latestObservationDate && weatherStationCardDateString(latestObservationDate)}
+              </BodySmSemibold>
             </HStack>
             {rows && (
-              <VStack space={2} px={24}>
+              // should this be a ListView? maybe yes
+              <VStack>
                 {rows
                   .filter(({variable, data}) => variable.variable !== 'date_time' && !!data)
-                  .map(({variable, data}) => (
-                    <HStack key={variable.variable} justifyContent={'space-between'}>
+                  .map(({variable, data}, index) => (
+                    <HStack
+                      key={variable.variable}
+                      justifyContent={'space-between'}
+                      alignContent="center"
+                      height={24}
+                      bg={index % 2 ? 'white' : colorLookup('background.base')}
+                      px={8}>
                       <BodySm>{variable.long_name}</BodySm>
                       <HStack space={2}>
                         <BodySm>{formatData(variable, [data])[0]}</BodySm>
@@ -371,6 +381,7 @@ export const WeatherStationCard: React.FunctionComponent<{
   },
 );
 WeatherStationCard.displayName = 'WeatherStationCard';
+
 const colorsForSource = (source: WeatherStationSource) => {
   switch (source) {
     case WeatherStationSource.NWAC:
