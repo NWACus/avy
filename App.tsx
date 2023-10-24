@@ -309,24 +309,8 @@ const BaseApp: React.FunctionComponent<{
 
   const navigationRef = useNavigationContainerRef();
 
-  // Hide the splash screen after fonts load. We're careful not to call hideAsync more than once;
-  // this seems to be the cause of the "No native splash screen registered" errors.
+  // Hide the splash screen after fonts load and updates are applied.
   // TODO: for maximum seamlessness, hide it after the map view is ready
-  const [splashScreenState, setSplashScreenState] = React.useState<'visible' | 'hiding' | 'hidden'>('visible');
-  useEffect(() => {
-    void (async () => {
-      if (fontsLoaded && splashScreenState === 'visible') {
-        setSplashScreenState('hiding');
-        try {
-          await SplashScreen.hideAsync();
-        } catch (error) {
-          logger.error({error}, 'Error from SplashScreen.hideAsync');
-        }
-        setSplashScreenState('hidden');
-      }
-    })();
-  }, [fontsLoaded, logger, splashScreenState, setSplashScreenState]);
-
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('checking');
   useEffect(() => {
     updateCheck()
@@ -337,6 +321,21 @@ const BaseApp: React.FunctionComponent<{
         setUpdateStatus('ready');
       });
   }, [setUpdateStatus, logger]);
+
+  const [splashScreenState, setSplashScreenState] = React.useState<'visible' | 'hiding' | 'hidden'>('visible');
+  useEffect(() => {
+    void (async () => {
+      if (fontsLoaded && updateStatus === 'ready' && splashScreenState === 'visible') {
+        setSplashScreenState('hiding');
+        try {
+          await SplashScreen.hideAsync();
+        } catch (error) {
+          logger.error({error}, 'Error from SplashScreen.hideAsync');
+        }
+        setSplashScreenState('hidden');
+      }
+    })();
+  }, [fontsLoaded, logger, splashScreenState, setSplashScreenState, updateStatus]);
 
   if (!fontsLoaded || splashScreenState !== 'hidden' || updateStatus !== 'ready') {
     // The splash screen keeps rendering while fonts are loading or updates are in progress
