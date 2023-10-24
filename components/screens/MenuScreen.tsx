@@ -259,7 +259,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                         </HStack>
                       </VStack>
                     </Card>
-                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Debug Settings</BodyBlack>}>
+                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Observation Uploader</BodyBlack>}>
                       <VStack space={12}>
                         <Button buttonStyle="normal" onPress={() => logger.info({stats: getUploader().getState()}, 'ObservationUploader state')}>
                           Dump state to log
