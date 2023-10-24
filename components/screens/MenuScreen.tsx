@@ -259,7 +259,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                         </HStack>
                       </VStack>
                     </Card>
-                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Debug Settings</BodyBlack>}>
+                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Observation Uploader</BodyBlack>}>
                       <VStack space={12}>
                         <Button buttonStyle="normal" onPress={() => logger.info({stats: getUploader().getState()}, 'ObservationUploader state')}>
                           Dump state to log
@@ -273,7 +273,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                       <VStack space={4}>
                         <Body>Config</Body>
                         {(() => {
-                          const dsn = Constants.expoConfig?.extra?.sentry_dsn as string | undefined;
+                          const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
                           return (
                             <BodySm fontFamily={Platform.select({ios: 'Courier New', android: 'monospace'})} color={colorLookup(dsn ? 'text' : 'red')}>
                               SENTRY_DSN: {dsn ? `${dsn.slice(0, 15)}...` : 'not supplied'}

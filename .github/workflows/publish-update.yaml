@@ -30,3 +30,4 @@ jobs:
           channel: ${{ github.ref_name }}
           message: '${{ github.sha || github.ref_name }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
+          sentry_dsn: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}

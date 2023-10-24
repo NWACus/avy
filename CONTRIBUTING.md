@@ -15,7 +15,7 @@ For development, you will need a number of environment variables set to secret v
 - `ANDROID_GOOGLE_MAPS_API_KEY`
 - `IOS_GOOGLE_MAPS_API_KEY`
 - `SENTRY_API_TOKEN`
-- `SENTRY_DSN`
+- `EXPO_PUBLIC_SENTRY_DSN`
 
 These secrets can be uploaded to the Expo servers if they ever become out-of-sync with:
 

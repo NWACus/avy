@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
 import {
   Lato_100Thin,
@@ -22,7 +22,6 @@ import {AppStateStatus, Platform, StatusBar, StyleSheet, UIManager, useColorSche
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import * as BackgroundFetch from 'expo-background-fetch';
-import Constants from 'expo-constants';
 import * as TaskManager from 'expo-task-manager';
 import * as Sentry from 'sentry-expo';
 
@@ -65,6 +64,7 @@ import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 import * as messages from 'compiled-lang/en.json';
 import {filterLoggedData} from 'logging/filterLoggedData';
+import {updateCheck, UpdateStatus} from 'Updates';
 
 logger.info('App starting.');
 
@@ -118,9 +118,9 @@ axios.interceptors.response.use(response => {
 void SplashScreen.preventAutoHideAsync();
 
 if (Sentry?.init) {
-  const dsn = (Constants.expoConfig?.extra?.sentry_dsn as string) ?? 'LOADED_FROM_ENVIRONMENT';
+  const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
   // Only initialize Sentry if we can find the correct env setup
-  if (dsn === 'LOADED_FROM_ENVIRONMENT') {
+  if (!dsn) {
     logger.warn('Sentry integration not configured, check your environment');
   } else {
     Sentry.init({
@@ -133,6 +133,10 @@ if (Sentry?.init) {
           const data = await FileSystem.readAsStringAsync(logFilePath);
           hint.attachments = [{filename: 'log.json', data, contentType: 'application/json'}];
         }
+        event.tags = {
+          ...(event.tags ?? {}),
+          git_revision: process.env.EXPO_PUBLIC_GIT_REVISION,
+        };
         return event;
       },
     });
@@ -305,13 +309,23 @@ const BaseApp: React.FunctionComponent<{
 
   const navigationRef = useNavigationContainerRef();
 
-  // Hide the splash screen after fonts load. We're careful not to call hideAsync more than once;
-  // this seems to be the cause of the "No native splash screen registered" errors.
+  // Hide the splash screen after fonts load and updates are applied.
   // TODO: for maximum seamlessness, hide it after the map view is ready
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('checking');
+  useEffect(() => {
+    updateCheck()
+      .then(setUpdateStatus)
+      .catch((error: Error) => {
+        logger.error({error}, 'Unexpected error checking for updates');
+        // No need to keep blocking the app from loading
+        setUpdateStatus('ready');
+      });
+  }, [setUpdateStatus, logger]);
+
   const [splashScreenState, setSplashScreenState] = React.useState<'visible' | 'hiding' | 'hidden'>('visible');
   useEffect(() => {
     void (async () => {
-      if (fontsLoaded && splashScreenState === 'visible') {
+      if (fontsLoaded && updateStatus === 'ready' && splashScreenState === 'visible') {
         setSplashScreenState('hiding');
         try {
           await SplashScreen.hideAsync();
@@ -321,10 +335,10 @@ const BaseApp: React.FunctionComponent<{
         setSplashScreenState('hidden');
       }
     })();
-  }, [fontsLoaded, logger, splashScreenState, setSplashScreenState]);
+  }, [fontsLoaded, logger, splashScreenState, setSplashScreenState, updateStatus]);
 
-  if (!fontsLoaded || splashScreenState !== 'hidden') {
-    // The splash screen keeps rendering while fonts are loading
+  if (!fontsLoaded || splashScreenState !== 'hidden' || updateStatus !== 'ready') {
+    // The splash screen keeps rendering while fonts are loading or updates are in progress
     return null;
   }
 

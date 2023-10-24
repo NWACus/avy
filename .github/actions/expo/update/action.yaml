@@ -17,6 +17,10 @@ inputs:
     required: true
     type: string
     description: 'The Expo auth token'
+  sentry_dsn:
+    required: true
+    type: string
+    description: 'The Sentry DSN'
 
 runs:
   using: 'composite'
@@ -32,7 +36,15 @@ runs:
       shell: bash
       # Setting NODE_OPTIONS to increase the memory limit for the build command
       run: |
-        output="$(NODE_OPTIONS=--max_old_space_size=4096 EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) eas update --branch=${{ inputs.channel }} --message="${{ inputs.message }}" --non-interactive --json)"
+        output="$(\
+          NODE_OPTIONS=--max_old_space_size=4096 \
+          EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) \
+          EXPO_PUBLIC_SENTRY_DSN=${{ inputs.sentry_dsn }} \
+          eas update \
+            --branch=${{ inputs.channel }} \
+            --message="${{ inputs.message }}" \
+            --non-interactive \
+            --json)"
         echo "ios_id=$( jq --raw-output '.[] | select(.platform == "ios" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
         echo "android_id=$( jq --raw-output '.[] | select(.platform == "android" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
 

@@ -69,9 +69,12 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
   }
 
   const zone: AvalancheForecastZone | undefined = center.zones.find(item => item.id === forecast_zone_id);
-  if (!zone || zone.status == AvalancheForecastZoneStatus.Disabled) {
+  if (!zone || zone.status === AvalancheForecastZoneStatus.Disabled) {
     const message = `Avalanche center ${center_id} had no zone with id ${forecast_zone_id}`;
-    Sentry.Native.captureException(new Error(message));
+    if (!zone) {
+      // If the zone is intentionally disabled, don't log to Sentry
+      Sentry.Native.captureException(new Error(message));
+    }
     return <NotFound what={[new NotFoundError(message, 'avalanche forecast zone')]} />;
   }
 

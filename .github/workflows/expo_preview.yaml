@@ -39,6 +39,7 @@ jobs:
           channel: 'xxx-pr-${{ github.event.issue.number }}'
           message: '${{ github.event.issue.title }}'
           expo_token: ${{ secrets.EXPO_TOKEN }}
+          sentry_dsn: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
 
       - name: Add workflow result as comment on PR
         uses: actions/github-script@v6
