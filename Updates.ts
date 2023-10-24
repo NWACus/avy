@@ -8,6 +8,10 @@ export const updateCheck = async (): Promise<UpdateStatus> => {
     logger.warn('Emergency launch detected - update checking disabled');
     return 'ready';
   }
+  if (Updates.channel !== 'preview' && Updates.channel !== 'release') {
+    return 'ready';
+  }
+
   const update = await Updates.checkForUpdateAsync();
   if (update.isAvailable) {
     await Updates.fetchUpdateAsync();
