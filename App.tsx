@@ -133,6 +133,10 @@ if (Sentry?.init) {
           const data = await FileSystem.readAsStringAsync(logFilePath);
           hint.attachments = [{filename: 'log.json', data, contentType: 'application/json'}];
         }
+        event.tags = {
+          ...(event.tags ?? {}),
+          git_revision: process.env.EXPO_PUBLIC_GIT_REVISION,
+        };
         return event;
       },
     });
