@@ -91,7 +91,7 @@ export const prefetchAllActiveForecasts = async (
         void (async () => {
           void NWACWeatherForecastQuery.prefetch(queryClient, nwacHost, zone.id, currentDateTime, logger);
           void AvalancheWarningQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime, logger);
-          if (metadata.config?.blog) {
+          if (process.env.EXPO_PUBLIC_ENABLE_CONDITIONS_BLOG && metadata.config?.blog) {
             void SynopsisQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime, logger);
           }
           await AvalancheForecastQuery.prefetch(
