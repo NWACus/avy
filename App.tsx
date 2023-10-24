@@ -22,7 +22,6 @@ import {AppStateStatus, Platform, StatusBar, StyleSheet, UIManager, useColorSche
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import * as BackgroundFetch from 'expo-background-fetch';
-import Constants from 'expo-constants';
 import * as TaskManager from 'expo-task-manager';
 import * as Sentry from 'sentry-expo';
 
@@ -119,9 +118,9 @@ axios.interceptors.response.use(response => {
 void SplashScreen.preventAutoHideAsync();
 
 if (Sentry?.init) {
-  const dsn = (Constants.expoConfig?.extra?.sentry_dsn as string) ?? 'LOADED_FROM_ENVIRONMENT';
+  const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
   // Only initialize Sentry if we can find the correct env setup
-  if (dsn === 'LOADED_FROM_ENVIRONMENT') {
+  if (!dsn) {
     logger.warn('Sentry integration not configured, check your environment');
   } else {
     Sentry.init({
