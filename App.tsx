@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
 import {
   Lato_100Thin,
@@ -65,6 +65,7 @@ import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 import * as messages from 'compiled-lang/en.json';
 import {filterLoggedData} from 'logging/filterLoggedData';
+import {updateCheck, UpdateStatus} from 'Updates';
 
 logger.info('App starting.');
 
@@ -327,8 +328,19 @@ const BaseApp: React.FunctionComponent<{
     })();
   }, [fontsLoaded, logger, splashScreenState, setSplashScreenState]);
 
-  if (!fontsLoaded || splashScreenState !== 'hidden') {
-    // The splash screen keeps rendering while fonts are loading
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('checking');
+  useEffect(() => {
+    updateCheck()
+      .then(setUpdateStatus)
+      .catch((error: Error) => {
+        logger.error({error}, 'Unexpected error checking for updates');
+        // No need to keep blocking the app from loading
+        setUpdateStatus('ready');
+      });
+  }, [setUpdateStatus, logger]);
+
+  if (!fontsLoaded || splashScreenState !== 'hidden' || updateStatus !== 'ready') {
+    // The splash screen keeps rendering while fonts are loading or updates are in progress
     return null;
   }
 
