@@ -17,6 +17,10 @@ inputs:
     required: true
     type: string
     description: 'The Expo auth token'
+  sentry_dsn:
+    required: true
+    type: string
+    description: 'The Sentry DSN'
 
 runs:
   using: 'composite'
@@ -35,7 +39,7 @@ runs:
         output="$(\
           NODE_OPTIONS=--max_old_space_size=4096 \
           EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) \
-          EXPO_PUBLIC_SENTRY_DSN=${{ secrets.EXPO_PUBLIC_SENTRY_DSN }} \
+          EXPO_PUBLIC_SENTRY_DSN=${{ inputs.sentry_dsn }} \
           eas update \
             --branch=${{ inputs.channel }} \
             --message="${{ inputs.message }}" \
