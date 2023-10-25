@@ -243,6 +243,15 @@ export const SimpleForm: React.FC<{
                         }}
                         disabled={disableFormControls}
                       />
+                      <SwitchField
+                        name="show_name"
+                        label="Show name to public?"
+                        items={[
+                          {label: 'Yes', value: true},
+                          {label: 'No', value: false},
+                        ]}
+                        disabled={disableFormControls}
+                      />
                       <TextField
                         name="email"
                         label="Email address"
