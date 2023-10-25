@@ -9,7 +9,7 @@ import {format} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import React, {useRef, useState} from 'react';
 import {View as RNView, StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
-import {default as AnimatedMapView, MAP_TYPES, MapMarker, default as MapView, Region} from 'react-native-maps';
+import {default as AnimatedMapView, LatLng, MAP_TYPES, MapMarker, default as MapView, Region} from 'react-native-maps';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Svg, {Circle} from 'react-native-svg';
 import {WeatherStackNavigationProps} from 'routes';
@@ -80,9 +80,13 @@ export const WeatherStationMap: React.FunctionComponent<{
         }))
         .filter(({latitude, longitude}) => latitude !== 1000 && longitude !== 1000)
         .map(({station, latitude, longitude}) => (
-          <MapMarker key={station.properties.stid} coordinate={{latitude, longitude}} onPress={() => onPressMarker(station)}>
-            {iconForSource(station.properties.source, station.properties.stid === selectedStationId)}
-          </MapMarker>
+          <WeatherStationMarker
+            key={station.properties.stid}
+            selected={station.properties.stid === selectedStationId}
+            coordinate={{latitude, longitude}}
+            onPressMarker={onPressMarker}
+            station={station}
+          />
         )),
     [weatherStations, selectedStationId, onPressMarker],
   );
@@ -147,6 +151,43 @@ export const WeatherStationMap: React.FunctionComponent<{
         }}
       />
     </>
+  );
+};
+
+const WeatherStationMarker: React.FC<{station: WeatherStation; selected: boolean; coordinate: LatLng; onPressMarker: (station: WeatherStation) => void}> = ({
+  station,
+  selected,
+  coordinate,
+  onPressMarker,
+}) => {
+  // We set tracksViewChanges={false} for maximum performance, but that means that we need to manually
+  // trigger redraws of a marker when the selected state changes.
+  const markerRef = useRef<MapMarker>(null);
+  const forceMarkerRedraw = () => {
+    markerRef.current?.redraw();
+  };
+  const [currentlySelected, setCurrentlySelected] = useState(false);
+  if (currentlySelected !== selected) {
+    setCurrentlySelected(selected);
+    forceMarkerRedraw();
+  }
+
+  return (
+    <MapMarker
+      ref={markerRef}
+      key={station.properties.stid}
+      coordinate={coordinate}
+      onPress={() => {
+        onPressMarker(station);
+      }}
+      stopPropagation={true}
+      tappable={true}
+      draggable={false}
+      tracksViewChanges={false}
+      tracksInfoWindowChanges={false}
+      anchor={{x: 0.5, y: 0.5}}>
+      {iconForSource(station.properties.source, selected)}
+    </MapMarker>
   );
 };
 
