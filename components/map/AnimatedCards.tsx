@@ -35,7 +35,7 @@ export enum AnimatedDrawerState {
 export class AnimatedMapWithDrawerController {
   // These offsets are applied through translateY on the FlatList drawer
   static readonly OFFSETS = {
-    [AnimatedDrawerState.Hidden]: 300,
+    [AnimatedDrawerState.Hidden]: 280,
     [AnimatedDrawerState.Docked]: 155,
     [AnimatedDrawerState.Visible]: 0,
   };
@@ -166,26 +166,6 @@ export class AnimatedMapWithDrawerController {
     ];
     return {
       translateY: this.yOffset.interpolate({
-        inputRange: allowedRange,
-        outputRange: allowedRange,
-        extrapolate: 'clamp',
-      }),
-    };
-  }
-
-  getButtonTransform() {
-    const allowedRange = [
-      AnimatedMapWithDrawerController.OFFSETS[AnimatedDrawerState.Visible] -
-        AnimatedMapWithDrawerController.SNAP_THRESHOLD -
-        AnimatedMapWithDrawerController.BUTTON_PADDING -
-        this.cardDrawerMaximumHeight,
-      AnimatedMapWithDrawerController.OFFSETS[AnimatedDrawerState.Hidden] +
-        AnimatedMapWithDrawerController.SNAP_THRESHOLD -
-        AnimatedMapWithDrawerController.BUTTON_PADDING -
-        this.cardDrawerMaximumHeight,
-    ];
-    return {
-      translateY: this.buttonYOffset.interpolate({
         inputRange: allowedRange,
         outputRange: allowedRange,
         extrapolate: 'clamp',
@@ -421,15 +401,22 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
   }
 
   return (
-    <>
+    <Animated.View
+      style={[
+        {
+          position: 'absolute',
+          width: '100%',
+          bottom: 6,
+          transform: [controller.getTransform()],
+        },
+      ]}>
       {buttonOnPress && (
-        <Animated.View
+        <View
           style={[
             {
               position: 'absolute',
-              width: '100%',
-              bottom: 6,
-              transform: [controller.getButtonTransform()],
+              right: 0,
+              top: -48,
             },
           ]}>
           <TouchableOpacity onPress={() => buttonOnPress()}>
@@ -440,22 +427,15 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
               </View>
             </HStack>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
       )}
       <Animated.FlatList
         initialNumToRender={items.length}
         onLayout={(event: LayoutChangeEvent) => controller.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height)}
         ref={flatListRef}
         horizontal
+        style={{width: '100%'}}
         showsHorizontalScrollIndicator={false}
-        style={[
-          {
-            position: 'absolute',
-            width: '100%',
-            bottom: 6,
-            transform: [controller.getTransform()],
-          },
-        ]}
         onScroll={handleScroll}
         scrollEventThrottle={200}
         onMomentumScrollBegin={() => setUserScrolling(true)}
@@ -474,6 +454,6 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
         )}
         renderItem={({item}: {item: ItemRenderData<T, U>}) => renderItem(item)}
       />
-    </>
+    </Animated.View>
   );
 };
