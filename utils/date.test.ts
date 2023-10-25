@@ -1,6 +1,14 @@
 import {toDate} from 'date-fns-tz';
 import * as TimezoneMock from 'timezone-mock';
-import {apiDateString, nominalForecastDateString, nominalNWACWeatherForecastDate, startOfSeasonLocalDate, utcDateToLocalDateString, utcDateToLocalTimeString} from 'utils/date';
+import {
+  apiDateString,
+  nominalForecastDateString,
+  nominalNWACWeatherForecastDate,
+  normalizeTimeZone,
+  startOfSeasonLocalDate,
+  utcDateToLocalDateString,
+  utcDateToLocalTimeString,
+} from 'utils/date';
 
 describe('Dates', () => {
   describe('apiDateString', () => {
@@ -122,6 +130,32 @@ describe('Dates', () => {
     });
     it('returns September 1 of the current year when date is september 31', () => {
       expect(startOfSeasonLocalDate(localDate('2023-09-01'))).toEqual(localDate('2023-09-01'));
+    });
+  });
+
+  describe('normalizeTimeZone', () => {
+    it('returns the iana timezone when given a valid timezone', () => {
+      expect(normalizeTimeZone('America/Los_Angeles')).toEqual({ianaName: 'America/Los_Angeles', abbreviation: null});
+    });
+
+    it('returns the iana timezone when an abbreviation used in north america', () => {
+      expect(normalizeTimeZone('PST')).toEqual({ianaName: 'America/Los_Angeles', abbreviation: 'PST'});
+      expect(normalizeTimeZone('PDT')).toEqual({ianaName: 'America/Los_Angeles', abbreviation: 'PDT'});
+
+      expect(normalizeTimeZone('AKST')).toEqual({ianaName: 'America/Anchorage', abbreviation: 'AKST'});
+      expect(normalizeTimeZone('AKDT')).toEqual({ianaName: 'America/Anchorage', abbreviation: 'AKDT'});
+
+      expect(normalizeTimeZone('MST')).toEqual({ianaName: 'America/Denver', abbreviation: 'MST'});
+      expect(normalizeTimeZone('MDT')).toEqual({ianaName: 'America/Denver', abbreviation: 'MDT'});
+    });
+
+    it('treats abbreviations as case-insensitive', () => {
+      expect(normalizeTimeZone('PsT')).toEqual({ianaName: 'America/Los_Angeles', abbreviation: 'PST'});
+      expect(normalizeTimeZone('pDt')).toEqual({ianaName: 'America/Los_Angeles', abbreviation: 'PDT'});
+    });
+
+    it('does not validate the IANA timezone name', () => {
+      expect(normalizeTimeZone('foo/bar')).toEqual({ianaName: 'foo/bar', abbreviation: null});
     });
   });
 });

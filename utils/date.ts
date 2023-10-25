@@ -1,11 +1,38 @@
 import {add, isAfter} from 'date-fns';
 import {format, formatInTimeZone as formatInTimeZoneDateFnsTz, toDate} from 'date-fns-tz';
 
+// Snowbound returns time zone abbreviations, but we need IANA timezone names, especially on Android
+// where Intl support is a pile of 💩
+const timeZoneMapping: Record<string, string> = {
+  AKST: 'America/Anchorage',
+  AKDT: 'America/Anchorage',
+  PST: 'America/Los_Angeles',
+  PDT: 'America/Los_Angeles',
+  MST: 'America/Denver',
+  MDT: 'America/Denver',
+  CST: 'America/Chicago',
+  CDT: 'America/Chicago',
+  EST: 'America/New_York',
+  EDT: 'America/New_York',
+} as const;
+
+interface NormalizedTimeZone {
+  abbreviation: string | null;
+  ianaName: string;
+}
+
+export function normalizeTimeZone(input: string): NormalizedTimeZone {
+  const abbreviation = timeZoneMapping[input.toUpperCase()] ? input.toUpperCase() : null;
+  const ianaName = timeZoneMapping[input.toUpperCase()] || input;
+  return {abbreviation, ianaName};
+}
+
 export const formatInTimeZone = (date: string | number | Date, timeZone: string, formatString: string) => {
+  const normalizedTimeZone = normalizeTimeZone(timeZone);
   try {
-    return formatInTimeZoneDateFnsTz(date, timeZone, formatString);
+    return formatInTimeZoneDateFnsTz(date, normalizedTimeZone.ianaName, formatString);
   } catch (e: unknown) {
-    throw new Error(`Failed to format date: ${(e as Error).message}, ${date.toString()}, ${formatString}, ${timeZone}`, {cause: e});
+    throw new Error(`Failed to format date: ${(e as Error).message}, ${date.toString()}, ${formatString}, ${timeZone}, ${normalizedTimeZone.ianaName}`, {cause: e});
   }
 };
 
@@ -27,8 +54,9 @@ export const toSnowboundStringUTC = (date: Date) => formatInTimeZone(date, 'UTC'
 // |  01/01 20:00  |   18 (hours)    |  01/02              |
 export const nominalForecastDate = (requestedTime: Date, expiryTimeZone: string, expiryTimeHours: number): Date => {
   // requestedTime is in UTC, expiryTimeHours is relative to the locale-specific start of day
-  const expiryTimeString = `${formatInTimeZone(requestedTime, expiryTimeZone, 'yyyy-MM-dd')} ${String(expiryTimeHours).padStart(2, '0')}:00:00`;
-  const expiryTime = toDate(expiryTimeString, {timeZone: expiryTimeZone});
+  const normalizedExpiryTimeZone = normalizeTimeZone(expiryTimeZone);
+  const expiryTimeString = `${formatInTimeZone(requestedTime, normalizedExpiryTimeZone.ianaName, 'yyyy-MM-dd')} ${String(expiryTimeHours).padStart(2, '0')}:00:00`;
+  const expiryTime = toDate(expiryTimeString, {timeZone: normalizedExpiryTimeZone.ianaName});
   if (isAfter(expiryTime, requestedTime)) {
     return requestedTime;
   } else {
@@ -118,10 +146,10 @@ export const startOfSeasonLocalDate = (requestedTime: RequestedTime): Date => {
   // Given the requestedTime value, let's jump through some hoops to get the date at midnight local time
   // Midnight on September 1 in UTC is 6pm on August 31 in Seattle, and we don't want to get 8/31 back from this method - we want to get 9/1.
   const utcDate: Date = requestedTimeToUTCDate(requestedTime);
-  const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const localDateString = formatInTimeZone(utcDate, localTimeZone, 'yyyy-MM-dd');
+  const localTimeZone = normalizeTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  const localDateString = formatInTimeZone(utcDate, localTimeZone.ianaName, 'yyyy-MM-dd');
   // can't do new Date(localDateString) or that'll interpret the date as UTC
-  const date = toDate(localDateString, {timeZone: localTimeZone});
+  const date = toDate(localDateString, {timeZone: localTimeZone.ianaName});
 
   // Months are zero-based, so September is 8
   return new Date(date.getMonth() >= 8 ? date.getFullYear() : date.getFullYear() - 1, 8, 1, 0, 0, 0, 0);
