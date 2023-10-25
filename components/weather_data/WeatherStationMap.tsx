@@ -72,15 +72,15 @@ export const WeatherStationMap: React.FunctionComponent<{
   const points = React.useMemo(
     () =>
       weatherStations?.features
-        ?.filter(station => station.geometry.type === 'Point')
-        .map(station => (
-          <MapMarker
-            key={station.properties.stid}
-            // `as number` shouldn't be necessary here, but tsc is still inferring the type
-            // of station.geometry.coordinates as (number | number[] | number[][] | number[][][] | number[][][][])
-            // despite the call to `filter`
-            coordinate={{latitude: station.geometry.coordinates[1] as number, longitude: station.geometry.coordinates[0] as number}}
-            onPress={() => onPressMarker(station)}>
+        ?.map(station => ({
+          station,
+          // Use 1000 as a sentinel value for invalid coordinates
+          latitude: station.geometry.type === 'Point' ? station.geometry.coordinates[1] : 1000,
+          longitude: station.geometry.type === 'Point' ? station.geometry.coordinates[0] : 1000,
+        }))
+        .filter(({latitude, longitude}) => latitude === 1000 || longitude === 1000)
+        .map(({station, latitude, longitude}) => (
+          <MapMarker key={station.properties.stid} coordinate={{latitude, longitude}} onPress={() => onPressMarker(station)}>
             {iconForSource(station.properties.source, station.properties.stid === selectedStationId)}
           </MapMarker>
         )),
