@@ -5,13 +5,13 @@ import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CAR
 import {AvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZonePolygon';
 import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {formatData, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
-import {geoDistance} from 'd3-geo';
 import {format} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import React, {useRef, useState} from 'react';
 import {View as RNView, StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
-import {default as AnimatedMapView, MAP_TYPES, MapCircle, MapPressEvent, default as MapView, Region} from 'react-native-maps';
+import {default as AnimatedMapView, MAP_TYPES, MapMarker, default as MapView, Region} from 'react-native-maps';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import Svg, {Circle} from 'react-native-svg';
 import {WeatherStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MapLayer, MapLayerFeature, Variable, WeatherStation, WeatherStationCollection, WeatherStationSource} from 'types/nationalAvalancheCenter';
@@ -27,52 +27,25 @@ export const WeatherStationMap: React.FunctionComponent<{
   const [ready, setReady] = useState<boolean>(false);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const avalancheCenterMapRegion: Region = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
-  const [circleRadius, setCircleRadius] = useState<number>(radiusForExtent(avalancheCenterMapRegion.latitudeDelta));
 
   const topElements = React.useRef<RNView>(null);
 
   const navigation = useNavigation<WeatherStackNavigationProps>();
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
-  const onPressMapView = React.useCallback(
-    (event: MapPressEvent) => {
-      // react-native-maps does not give us an onPress for our circles, so we need to determine
-      // whether the user tapped 'on' a circle by looking at their tap point and figuring out if
-      // it's 'close enough' given the size of the circle we're drawing. First, let's find the
-      // distance to all stations and record the closest distance we encountered
-      const coordinate = event.nativeEvent.coordinate;
-      if (!coordinate) {
-        return;
-      }
-
-      let closestDistance: number = Number.MAX_SAFE_INTEGER;
-      let closestStation: WeatherStation | undefined = undefined;
-      for (const station of weatherStations?.features || []) {
-        if (station.geometry.type !== 'Point') {
-          continue;
-        }
-        const distance = EARTH_RADIUS_KM * geoDistance([coordinate.longitude, coordinate.latitude], [station.geometry.coordinates[0], station.geometry.coordinates[1]]);
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestStation = station;
-        }
-      }
-
-      // now, determine if that closest distance is within the size of the circles we'd be drawing
-      // at this map zoom level - double the allowable radius to give a bigger touch target
-      if (closestDistance <= circleRadius * 2 && closestStation) {
-        if (selectedStationId === closestStation.properties.stid) {
-          navigation.navigate('stationDetail', {
-            center_id: center_id,
-            stationId: closestStation.properties.stid,
-            source: closestStation.properties.source,
-            requestedTime: requestedTime,
-          });
-        } else {
-          setSelectedStationId(closestStation.properties.stid);
-        }
+  const onPressMarker = React.useCallback(
+    (station: WeatherStation) => {
+      if (selectedStationId === station.properties.stid) {
+        navigation.navigate('stationDetail', {
+          center_id: center_id,
+          stationId: station.properties.stid,
+          source: station.properties.source,
+          requestedTime: requestedTime,
+        });
+      } else {
+        setSelectedStationId(station.properties.stid);
       }
     },
-    [navigation, selectedStationId, requestedTime, weatherStations, circleRadius, center_id],
+    [navigation, selectedStationId, requestedTime, center_id],
   );
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
@@ -99,9 +72,19 @@ export const WeatherStationMap: React.FunctionComponent<{
   const points = React.useMemo(
     () =>
       weatherStations?.features
-        ?.filter(station => station.geometry.type === 'Point')
-        .map(station => <WeatherStationPoint key={station.properties.stid} station={station} selected={station.properties.stid === selectedStationId} radiusKm={circleRadius} />),
-    [weatherStations, selectedStationId, circleRadius],
+        ?.map(station => ({
+          station,
+          // Use 1000 as a sentinel value for invalid coordinates
+          latitude: station.geometry.type === 'Point' ? station.geometry.coordinates[1] : 1000,
+          longitude: station.geometry.type === 'Point' ? station.geometry.coordinates[0] : 1000,
+        }))
+        .filter(({latitude, longitude}) => latitude === 1000 || longitude === 1000)
+        .map(({station, latitude, longitude}) => (
+          <MapMarker key={station.properties.stid} coordinate={{latitude, longitude}} onPress={() => onPressMarker(station)}>
+            {iconForSource(station.properties.source, station.properties.stid === selectedStationId)}
+          </MapMarker>
+        )),
+    [weatherStations, selectedStationId, onPressMarker],
   );
 
   return (
@@ -116,11 +99,7 @@ export const WeatherStationMap: React.FunctionComponent<{
         mapType={MAP_TYPES.TERRAIN}
         zoomEnabled={true}
         scrollEnabled={true}
-        initialRegion={avalancheCenterMapRegion}
-        onRegionChange={region => {
-          setCircleRadius(radiusForExtent(region.latitudeDelta));
-        }}
-        onPress={onPressMapView}>
+        initialRegion={avalancheCenterMapRegion}>
         {ready && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={false} renderFillColor={true} />)}
         {ready && points}
       </MapView.Animated>
@@ -170,39 +149,6 @@ export const WeatherStationMap: React.FunctionComponent<{
     </>
   );
 };
-
-export const EARTH_RADIUS_KM = 6378.1;
-export const radiusForExtent = (latitudeDelta: number): number => {
-  const latitudeDeltaRadians = (latitudeDelta * Math.PI) / 180;
-  const latitudeDeltaKilometers = latitudeDeltaRadians * EARTH_RADIUS_KM;
-  return latitudeDeltaKilometers / 75;
-};
-export const WeatherStationPoint: React.FunctionComponent<{
-  station: WeatherStation;
-  selected: boolean;
-  radiusKm: number;
-}> = React.memo(({station, selected, radiusKm}: {station: WeatherStation; selected: boolean; radiusKm: number}) => {
-  if (station.geometry.type !== 'Point') {
-    return <></>;
-  }
-
-  const highlight = colorLookup('blue.100');
-  const lowlight = colorLookup('gray.900');
-  const colors = colorsForSource(station.properties.source);
-  const coordinate = {latitude: station.geometry.coordinates[1], longitude: station.geometry.coordinates[0]};
-
-  return (
-    <MapCircle
-      key={station.properties.stid}
-      center={coordinate}
-      radius={radiusKm * 1000} // in meters
-      strokeWidth={selected ? 2 : 1}
-      strokeColor={selected ? highlight.toString() : lowlight.toString()}
-      fillColor={colors.primary}
-    />
-  );
-});
-WeatherStationPoint.displayName = 'WeatherStationPoint';
 
 export const WeatherStationCards: React.FunctionComponent<{
   center_id: AvalancheCenterID;
@@ -346,14 +292,54 @@ export const WeatherStationCard: React.FunctionComponent<{
 );
 WeatherStationCard.displayName = 'WeatherStationCard';
 
-const colorsForSource = (source: WeatherStationSource) => {
+const iconSize = 24;
+const strokeWidth = 5;
+const radius = 50 - 2 * strokeWidth;
+const circleIcons = {
+  [WeatherStationSource.NWAC]: {
+    selected: (
+      <Svg height={iconSize} width={iconSize} viewBox="0 0 100 100">
+        <Circle cx="50" cy="50" r={radius} stroke="white" strokeWidth={strokeWidth} fill={colorLookup('weather.nwac.primary')} />
+      </Svg>
+    ),
+    unselected: (
+      <Svg height={iconSize} width={iconSize} viewBox="0 0 100 100">
+        <Circle cx="50" cy="50" r={radius} stroke={colorLookup('text')} strokeWidth={strokeWidth} fill={colorLookup('weather.nwac.primary')} />
+      </Svg>
+    ),
+  },
+  [WeatherStationSource.SNOTEL]: {
+    selected: (
+      <Svg height={iconSize} width={iconSize} viewBox="0 0 100 100">
+        <Circle cx="50" cy="50" r={radius} stroke="white" strokeWidth={strokeWidth} fill={colorLookup('weather.snotel.primary')} />
+      </Svg>
+    ),
+    unselected: (
+      <Svg height={iconSize} width={iconSize} viewBox="0 0 100 100">
+        <Circle cx="50" cy="50" r={radius} stroke={colorLookup('text')} strokeWidth={strokeWidth} fill={colorLookup('weather.snotel.primary')} />
+      </Svg>
+    ),
+  },
+  [WeatherStationSource.MESOWEST]: {
+    selected: (
+      <Svg height={iconSize} width={iconSize} viewBox="0 0 100 100">
+        <Circle cx="50" cy="50" r={radius} stroke="white" strokeWidth={strokeWidth} fill={colorLookup('weather.mesowest.primary')} />
+      </Svg>
+    ),
+    unselected: (
+      <Svg height={iconSize} width={iconSize} viewBox="0 0 100 100">
+        <Circle cx="50" cy="50" r={radius} stroke={colorLookup('text')} strokeWidth={strokeWidth} fill={colorLookup('weather.mesowest.primary')} />
+      </Svg>
+    ),
+  },
+} as const;
+
+const iconForSource = (source: WeatherStationSource, selected: boolean) => {
   switch (source) {
     case WeatherStationSource.NWAC:
-      return {primary: colorLookup('weather.nwac.primary').toString(), secondary: colorLookup('weather.nwac.secondary').toString()};
     case WeatherStationSource.SNOTEL:
-      return {primary: colorLookup('weather.snotel.primary').toString(), secondary: colorLookup('weather.snotel.secondary').toString()};
     case WeatherStationSource.MESOWEST:
-      return {primary: colorLookup('weather.mesowest.primary').toString(), secondary: colorLookup('weather.mesowest.secondary').toString()};
+      return selected ? circleIcons[source].selected : circleIcons[source].unselected;
   }
   const invalid: never = source;
   // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
