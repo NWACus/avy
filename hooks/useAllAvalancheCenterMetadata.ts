@@ -27,7 +27,6 @@ export const useAllAvalancheCenterMetadata = (capabilities: AllAvalancheCenterCa
             queryKey: AvalancheCenterMetadataQuery.queryKey(nationalAvalancheCenterHost, center),
             queryFn: async (): Promise<AvalancheCenter> => AvalancheCenterMetadataQuery.fetchQuery(queryClient, nationalAvalancheCenterHost, center, logger),
             enabled: !!capabilities,
-            staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
             cacheTime: Infinity, // hold on to this cached data forever
           };
         })

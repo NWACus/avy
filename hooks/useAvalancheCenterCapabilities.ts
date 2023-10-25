@@ -25,7 +25,6 @@ export const useAvalancheCenterCapabilities = (): UseQueryResult<AllAvalancheCen
   return useQuery<AllAvalancheCenterCapabilities, AxiosError | ZodError>({
     queryKey: key,
     queryFn: async (): Promise<AllAvalancheCenterCapabilities> => fetchAvalancheCenterCapabilities(nationalAvalancheCenterWordpressHost, thisLogger),
-    staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
     cacheTime: Infinity, // hold on to this cached data forever
   });
 };
@@ -48,6 +47,8 @@ export const prefetchAvalancheCenterCapabilities = async (queryClient: QueryClie
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
+    cacheTime: Infinity, // hold this in the query cache forever
+    staleTime: 24 * 60 * 60 * 1000, // don't bother prefetching again for a day
   });
 };
 
