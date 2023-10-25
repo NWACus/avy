@@ -78,7 +78,7 @@ export const WeatherStationMap: React.FunctionComponent<{
           latitude: station.geometry.type === 'Point' ? station.geometry.coordinates[1] : 1000,
           longitude: station.geometry.type === 'Point' ? station.geometry.coordinates[0] : 1000,
         }))
-        .filter(({latitude, longitude}) => latitude === 1000 || longitude === 1000)
+        .filter(({latitude, longitude}) => latitude !== 1000 && longitude !== 1000)
         .map(({station, latitude, longitude}) => (
           <MapMarker key={station.properties.stid} coordinate={{latitude, longitude}} onPress={() => onPressMarker(station)}>
             {iconForSource(station.properties.source, station.properties.stid === selectedStationId)}
