@@ -7,16 +7,16 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {useBackHandler} from '@react-native-community/hooks';
 import {Button} from 'components/content/Button';
-import {HStack, VStack, View} from 'components/core';
+import {Center, HStack, VStack, View} from 'components/core';
 import {CheckboxSelectField} from 'components/form/CheckboxSelectField';
 import {Conditional} from 'components/form/Conditional';
 import {DateField} from 'components/form/DateField';
 import {SwitchField} from 'components/form/SwitchField';
-import {BodyBlack, BodySemibold, BodySmBlack, Title3Semibold} from 'components/text';
+import {Body, BodyBlack, BodySemibold, BodySmBlack, Title3Semibold, bodySize} from 'components/text';
 import {geoContains} from 'd3-geo';
 import {endOfDay, isAfter, isBefore, parseISO} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
+import {FieldErrors, FormProvider, useController, useForm, useFormContext} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, SafeAreaView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {colorLookup} from 'theme';
 import {MapLayer, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
@@ -194,6 +194,43 @@ interface ObservationsFilterFormProps {
   setVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+interface DateToggleFieldProps {
+  name: string;
+  dateRange: {min: Date; max: Date};
+  disabled?: boolean;
+}
+export const DateToggleField = ({name, dateRange, disabled}: DateToggleFieldProps) => {
+  const {setValue} = useFormContext();
+  const {field} = useController({name});
+
+  const value = (field.value || 'current_season') as DateValue;
+
+  const onToggle = React.useCallback(() => {
+    const nextValue = value === 'current_season' ? 'custom' : 'current_season';
+    setValue(name, nextValue, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
+    if (nextValue === 'custom') {
+      setValue('dates.from', dateRange.min, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
+      setValue('dates.to', dateRange.max, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
+    }
+  }, [setValue, name, value, dateRange]);
+
+  return (
+    <TouchableOpacity disabled={disabled} onPress={onToggle}>
+      <VStack width="100%" flex={1} flexGrow={1} bg={'white'}>
+        <HStack width="100%" height={40} justifyContent="space-between" alignItems="center" space={8}>
+          <View>
+            <Body>{DATE_LABELS[value]}</Body>
+          </View>
+          <Center px={8}>
+            <AntDesign name={value === 'current_season' ? 'down' : 'close'} size={bodySize} style={{marginRight: -8}} />
+          </Center>
+        </HStack>
+      </VStack>
+    </TouchableOpacity>
+  );
+};
+DateToggleField.displayName = 'DateToggleField';
+
 const formFieldSpacing = 16;
 
 export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterFormProps> = ({
@@ -272,6 +309,11 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
     });
   };
 
+  const minMaxDates = {
+    min: startOfSeasonLocalDate(requestedTime),
+    max: requestedTimeToUTCDate(requestedTime),
+  };
+
   return (
     <FormProvider {...formContext}>
       <SelectModalProvider>
@@ -293,14 +335,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     <BodyBlack>Date</BodyBlack>
                   </View>
                   <VStack space={8} px={16} bg="white">
-                    <CheckboxSelectField
-                      name="dates.value"
-                      items={(['current_season', 'custom'] as const).map(val => ({
-                        value: val,
-                        label: DATE_LABELS[val],
-                      }))}
-                      radio
-                    />
+                    <DateToggleField name="dates.value" dateRange={minMaxDates} />
                     <Conditional name="dates.value" value={'custom'}>
                       <View bg="white">
                         <BodySmBlack>From</BodySmBlack>
@@ -308,7 +343,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     </Conditional>
                     <Conditional name="dates.value" value={'custom'}>
                       <View bg="white">
-                        <DateField name="dates.from" minimumDate={startOfSeasonLocalDate(requestedTime)} maximumDate={requestedTimeToUTCDate(requestedTime)} />
+                        <DateField name="dates.from" minimumDate={minMaxDates.min} maximumDate={minMaxDates.max} />
                       </View>
                     </Conditional>
                     <Conditional name="dates.value" value={'custom'}>
@@ -318,7 +353,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     </Conditional>
                     <Conditional name="dates.value" value={'custom'}>
                       <View bg="white" pb={formFieldSpacing}>
-                        <DateField name="dates.to" minimumDate={startOfSeasonLocalDate(requestedTime)} maximumDate={requestedTimeToUTCDate(requestedTime)} />
+                        <DateField name="dates.to" minimumDate={minMaxDates.min} maximumDate={minMaxDates.max} />
                       </View>
                     </Conditional>
                   </VStack>
