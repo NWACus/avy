@@ -98,7 +98,7 @@ export const MenuStackScreen = (
       <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
       <MenuStack.Screen name="observation" component={ObservationScreen} />
       <MenuStack.Screen name="nwacObservation" component={NWACObservationScreen} />
-      <MenuStack.Screen name="about" component={AboutScreen} options={() => ({title: 'About This App'})} />
+      <MenuStack.Screen name="about" component={AboutScreen} options={() => ({title: 'Avy'})} />
       <MenuStack.Screen name="outcome" component={OutcomeScreen} />
       <MenuStack.Screen name="expoConfig" component={ExpoConfigScreen} />
     </MenuStack.Navigator>
@@ -145,7 +145,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                       },
                     },
                     {
-                      label: 'About this app',
+                      label: 'About Avy',
                       data: 'About',
                       action: () => {
                         navigation.navigate('about');
