@@ -17,6 +17,15 @@ export interface TextWrapperProps extends TextProps {
   textAlign?: TextStyle['textAlign'];
   textTransform?: TextStyle['textTransform'];
   unescapeHTMLEntities?: boolean;
+  translate?: boolean;
+}
+
+const translations = [{from: /SNFAC/g, to: 'SAC'}];
+
+function replaceCenterIds(input: string): string {
+  return translations.reduce((acc, {from, to}) => {
+    return acc.replace(from, to);
+  }, input);
 }
 
 const TextWrapper: React.FC<TextWrapperProps> = ({
@@ -30,6 +39,7 @@ const TextWrapper: React.FC<TextWrapperProps> = ({
   textTransform,
   children,
   unescapeHTMLEntities = false,
+  translate: translateCenterIds = true,
   ...props
 }) => {
   const style = omitBy(
@@ -47,11 +57,18 @@ const TextWrapper: React.FC<TextWrapperProps> = ({
   if (style.fontFamily && fontStyle === 'italic') {
     style.fontFamily = String(style.fontFamily) + '_Italic';
   }
+  const stringTransforms: ((input: string) => string)[] = [];
+  if (unescapeHTMLEntities) {
+    stringTransforms.push(decode);
+  }
+  if (translateCenterIds) {
+    stringTransforms.push(replaceCenterIds);
+  }
   return (
     <Text {...merge({}, props, {style})}>
       {React.Children.map(children, child => {
-        if (unescapeHTMLEntities && typeof child === 'string') {
-          return decode(child);
+        if (typeof child === 'string') {
+          return stringTransforms.reduce((acc, transform) => transform(acc), child);
         } else {
           return child;
         }
