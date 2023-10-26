@@ -68,7 +68,7 @@ import {sendMail} from 'network/sendMail';
 import {clearPreferences, usePreferences} from 'Preferences';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, userFacingCenterId} from 'types/nationalAvalancheCenter';
 import {RequestedTime, requestedTimeToUTCDate, toISOStringUTC} from 'utils/date';
 
 const MenuStack = createNativeStackNavigator<MenuStackParamList>();
@@ -126,7 +126,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
             <VStack width="100%" height="100%" justifyContent="flex-start" alignItems="stretch" bg="background.base" pt={4} px={4} space={4}>
               <Card borderRadius={0} borderColor="white" header={<Title3Black>More</Title3Black>} noDivider>
                 <Body>
-                  {data?.name && `${data.name} `}({avalancheCenterId})
+                  {data?.name && `${data.name} `}({userFacingCenterId(avalancheCenterId)})
                 </Body>
               </Card>
               <View py={16} px={32}>

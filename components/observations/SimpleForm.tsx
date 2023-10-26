@@ -29,7 +29,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, ImageMediaItem, InstabilityDistribution, MediaType} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, ImageMediaItem, InstabilityDistribution, MediaType, userFacingCenterId} from 'types/nationalAvalancheCenter';
 import {startOfSeasonLocalDate} from 'utils/date';
 
 export const SimpleForm: React.FC<{
@@ -204,7 +204,7 @@ export const SimpleForm: React.FC<{
               <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}} ref={scrollViewRef}>
                 <VStack width="100%" justifyContent="flex-start" alignItems="stretch" pt={8} pb={8}>
                   <View px={16} pb={formFieldSpacing}>
-                    <Body>Help keep the {center_id} community informed by submitting your observation.</Body>
+                    <Body>Help keep the {userFacingCenterId(center_id)} community informed by submitting your observation.</Body>
                   </View>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Privacy</Title3Semibold>}>
                     <VStack space={formFieldSpacing} mt={8}>
