@@ -1,6 +1,6 @@
 import {Select, SelectRef, SelectStyles} from '@mobile-reality/react-native-select-pro';
 import {VStack} from 'components/core';
-import {BodyXSm, BodyXSmBlack, bodySize} from 'components/text';
+import {BodySmBlack, BodyXSm, bodySize} from 'components/text';
 import React, {useEffect, useRef} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
 import {View as RNView} from 'react-native';
@@ -92,7 +92,7 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
 
   return (
     <VStack width="100%" space={4} ref={ref}>
-      <BodyXSmBlack>{label}</BodyXSmBlack>
+      <BodySmBlack>{label}</BodySmBlack>
       <Select
         key={JSON.stringify(defaultOption)} // force a re-render when the default changes
         disabled={disabled}

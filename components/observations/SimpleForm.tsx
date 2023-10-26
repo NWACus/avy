@@ -1,4 +1,4 @@
-import {AntDesign} from '@expo/vector-icons';
+import {AntDesign, MaterialIcons} from '@expo/vector-icons';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useBackHandler} from '@react-native-community/hooks';
 import {useNavigation} from '@react-navigation/native';
@@ -14,7 +14,7 @@ import {ClientContext, ClientProps} from 'clientContext';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {ImageList} from 'components/content/carousel/ImageList';
-import {VStack, View} from 'components/core';
+import {HStack, VStack, View} from 'components/core';
 import {Conditional} from 'components/form/Conditional';
 import {DateField} from 'components/form/DateField';
 import {LocationField} from 'components/form/LocationField';
@@ -499,15 +499,23 @@ export const SimpleForm: React.FC<{
                           )}
                         />
                       )}
-                      <Button buttonStyle="normal" onPress={() => void pickImage()} disabled={images.length === maxImageCount || disableFormControls}>
-                        <BodyBlack>Select an image</BodyBlack>
-                      </Button>
+                      <Button
+                        buttonStyle="normal"
+                        onPress={() => void pickImage()}
+                        disabled={images.length === maxImageCount || disableFormControls || true}
+                        renderChildren={({textColor}) => (
+                          <HStack alignItems="center" space={4}>
+                            <MaterialIcons name="add" size={24} color={textColor} style={{marginTop: 1}} />
+                            <BodyBlack color={textColor}>Add images</BodyBlack>
+                          </HStack>
+                        )}
+                      />
                     </VStack>
                   </Card>
 
                   <Button
                     mx={16}
-                    mt={16}
+                    mt={8}
                     buttonStyle="primary"
                     disabled={mutation.isSuccess || mutation.isLoading}
                     busy={mutation.isLoading}

@@ -78,9 +78,10 @@ interface BaseButtonProps extends ViewProps {
 interface StyledButtonProps extends BaseButtonProps {
   buttonStyle: ButtonStyle;
   onPress?: (event: GestureResponderEvent) => void;
+  renderChildren?: (style: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => React.ReactNode;
 }
 
-const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, onPress, disabled = false, busy = false, ...props}) => {
+const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, renderChildren, onPress, disabled = false, busy = false, ...props}) => {
   const [pressed, setIsPressed] = useState<boolean>(false);
   const colorStyleSource = disabled ? buttonStyle.disabled : pressed ? buttonStyle.pressed : buttonStyle;
   const {backgroundColor, borderColor, textColor} = colorStyleSource;
@@ -90,7 +91,7 @@ const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, onPre
       <View borderColor={borderColor} borderWidth={2} borderRadius={8} py={12} px={16} {...props} backgroundColor={backgroundColor}>
         <Center>
           <View style={{position: 'relative'}}>
-            <Text style={{color: textColor}}>{children}</Text>
+            {renderChildren ? renderChildren({backgroundColor, textColor}) : <Text style={{color: textColor}}>{children}</Text>}
             {busy && <ActivityIndicator size={bodySize} color={textColor} style={{position: 'absolute', right: -1.5 * bodySize, top: 0.25 * bodySize}} />}
           </View>
         </Center>
@@ -102,6 +103,7 @@ const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, onPre
 interface ButtonProps extends BaseButtonProps {
   buttonStyle?: PredefinedButtonStyle;
   onPress?: (event: GestureResponderEvent) => void;
+  renderChildren?: (style: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => React.ReactNode;
 }
 
 export const Button: React.FC<ButtonProps> = ({buttonStyle = 'normal', ...props}) => <StyledButton buttonStyle={styles[buttonStyle]} {...props} />;

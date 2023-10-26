@@ -1,5 +1,5 @@
 import {View, ViewProps, VStack} from 'components/core';
-import {BodyXSm, BodyXSmBlack} from 'components/text';
+import {BodySmBlack, BodyXSm} from 'components/text';
 import {merge} from 'lodash';
 import React from 'react';
 import {useController} from 'react-hook-form';
@@ -26,7 +26,7 @@ export const TextField = React.forwardRef<RNView, TextFieldProps>(
     const {field, fieldState} = useController({name});
     return (
       <VStack width="100%" space={4} {...props} ref={ref}>
-        <BodyXSmBlack>{label}</BodyXSmBlack>
+        <BodySmBlack>{label}</BodySmBlack>
         <View p={8} borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4}>
           <TextInput
             onBlur={field.onBlur}

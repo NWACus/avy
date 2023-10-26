@@ -1,6 +1,6 @@
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import {ViewProps, VStack} from 'components/core';
-import {BodyXSmBlack} from 'components/text';
+import {BodySmBlack} from 'components/text';
 import React from 'react';
 import {useController} from 'react-hook-form';
 import {colorLookup} from 'theme';
@@ -22,7 +22,7 @@ export function SwitchField<T>({name, label, items, disabled, ...props}: SwitchF
 
   return (
     <VStack width="100%" space={4} {...props}>
-      {label && <BodyXSmBlack>{label}</BodyXSmBlack>}
+      {label && <BodySmBlack>{label}</BodySmBlack>}
       <SegmentedControl
         tintColor="white"
         activeFontStyle={{color: colorLookup('text') as string, fontSize: 16, fontFamily: 'Lato_400Regular'}}
