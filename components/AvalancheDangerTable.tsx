@@ -2,7 +2,7 @@ import React from 'react';
 
 import {HStack, View, VStack} from 'components/core';
 import {dangerName, dangerValue} from 'components/helpers/dangerText';
-import {Body, BodyBlack, BodySmBlack, Caption1} from 'components/text';
+import {Body, BodyBlack, BodySmBlack, BodyXSm, BodyXSmBlack} from 'components/text';
 import {AvalancheDangerForecast, DangerLevel, ElevationBandNames, ForecastPeriod} from 'types/nationalAvalancheCenter';
 import {utcDateToLocalDateString} from 'utils/date';
 
@@ -62,11 +62,16 @@ export const AvalancheDangerTable: React.FunctionComponent<AvalancheDangerTableP
         <VStack width="100%" height="100%" position="absolute" justifyContent="space-evenly" alignItems="stretch" space={4} zIndex={30}>
           {(['upper', 'middle', 'lower'] as const).map((layer, index) => (
             <HStack flex={1} justifyContent="space-between" flexDirection={elevation_band_names ? 'row' : 'row-reverse'} key={index} paddingHorizontal={4}>
-              {elevation_band_names && (
-                <View my={4} px={1} justifyContent="center">
-                  <Caption1>{(elevation_band_names[layer] ?? defaultElevationBands[layer]).replace('<br>', '\n')}</Caption1>
-                </View>
-              )}
+              {elevation_band_names &&
+                (() => {
+                  const [bandName, elevation] = (elevation_band_names[layer] ?? defaultElevationBands[layer]).replace('<br>', '\n').split('\n');
+                  return (
+                    <View my={4} ml={4} p={4} minWidth={100} justifyContent="center" bg="white">
+                      <BodyXSmBlack>{bandName}</BodyXSmBlack>
+                      {elevation && <BodyXSm>{elevation}</BodyXSm>}
+                    </View>
+                  );
+                })()}
               <HStack space={8} alignItems="center" px={1}>
                 <View my={4} px={1} justifyContent="center">
                   <HStack style={{paddingHorizontal: 4}} space={2}>
