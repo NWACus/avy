@@ -23,7 +23,7 @@ export const WeatherScreen = ({route}: NativeStackScreenProps<TabNavigatorParamL
       <WeatherStack.Screen
         name="stationList"
         component={StationListScreen}
-        options={{title: 'Weather Stations', header: props => (center_id === 'NWAC' ? <NavigationHeader center_id={center_id} {...props} large /> : <></>)}}
+        options={{title: 'Weather Stations', header: props => (center_id === 'NWAC' ? <NavigationHeader center_id={center_id} {...props} /> : <></>)}}
         initialParams={{center_id: center_id, requestedTime}}
       />
       <WeatherStack.Screen name="stationsDetail" component={StationsDetailScreen} options={{title: 'Weather Station'}} />
