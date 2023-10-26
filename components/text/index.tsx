@@ -84,6 +84,7 @@ export const Body: React.FunctionComponent<TextWrapperProps> = props => (
 export const BodySemibold: React.FunctionComponent<TextWrapperProps> = props => <Body fontFamily="Lato_700Bold" {...props} />;
 export const BodyBlack: React.FunctionComponent<TextWrapperProps> = props => <Body fontFamily="Lato_900Black" {...props} />;
 
+export const bodySmSize = 14;
 export const BodySm: React.FunctionComponent<TextWrapperProps> = props => (
   <TextWrapper fontSize={14} lineHeight={21} fontFamily="Lato_400Regular" letterSpacing={-0.31} {...props} />
 );
