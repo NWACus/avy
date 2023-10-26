@@ -38,7 +38,7 @@ export default {
     </table><p>Danger ratings are typically provided for three distinct
     elevation bands. Although the danger ratings are assigned numerical levels, the danger increases exponentially between levels.
     In other words, the hazard rises more dramatically as it ascends toward the higher levels on the scale.</p>
-    <p><a href='https://avalanche.org/avalanche-encyclopedia/danger-scale/'>Click here</a> to learn more.</p>`,
+    <p><a href='https://avalanche.org/avalanche-encyclopedia/danger-scale/'><strong>Learn more</strong></a></p>`,
   weather: {
     precipitation: `
       <p><strong>Water Equivalent (WE)</strong> is the liquid water equivalent of all precipitation types; rain, snow, ice pellets, etc., forecast to the hundredth of an inch at specific locations. To use WE as a proxy for snowfall amounts, start with a snow to water ratio of 10:1 (10 inches of snow = 1 inch WE). Temperatures at or near freezing will generally have a lower ratio (heavy wet snow) and very cold temperatures can have a much higher ratio (dry fluffy snow).</p>
