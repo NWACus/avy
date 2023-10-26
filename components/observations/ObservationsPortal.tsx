@@ -6,7 +6,7 @@ import {Body, BodyBlack, Title3Black} from 'components/text';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {ObservationsStackNavigationProps} from 'routes';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, userFacingCenterId} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 export const ObservationsPortal: React.FC<{
@@ -22,7 +22,7 @@ export const ObservationsPortal: React.FC<{
         <Topo width={887.0152587890625} height={456.3430480957031} style={{position: 'absolute', left: -306.15625, bottom: -60}} />
         <VStack height="100%" width="100%" justifyContent="center" alignItems="stretch" space={16} px={32} pb={200}>
           <Title3Black textAlign="center">You haven&apos;t submitted any observations in the App yet</Title3Black>
-          <Body textAlign="center">Help keep the {center_id} community informed by submitting your observation.</Body>
+          <Body textAlign="center">Help keep the {userFacingCenterId(center_id)} community informed by submitting your observation.</Body>
           <Button buttonStyle="primary" onPress={() => navigation.navigate('observationSubmit', {center_id})}>
             <BodyBlack>Submit an observation</BodyBlack>
           </Button>

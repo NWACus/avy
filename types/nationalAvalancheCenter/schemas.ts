@@ -20,6 +20,11 @@ export const avalancheCenterIDSchema = z.enum([
 ]);
 
 export type AvalancheCenterID = z.infer<typeof avalancheCenterIDSchema>;
+
+export function userFacingCenterId(input: AvalancheCenterID): string {
+  return input === 'SNFAC' ? 'SAC' : input;
+}
+
 export enum DangerLevel {
   GeneralInformation = -1,
   None,

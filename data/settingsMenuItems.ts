@@ -23,7 +23,7 @@ export const settingsMenuItems: Record<string, {title: string; url: string}[]> =
   ],
   SNFAC: [
     {
-      title: 'About SNFAC',
+      title: 'About SAC',
       url: 'http://www.sawtoothavalanche.com/about/',
     },
     {
