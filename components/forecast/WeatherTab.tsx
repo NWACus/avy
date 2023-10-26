@@ -5,7 +5,7 @@ import {Card, CollapsibleCard} from 'components/content/Card';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {InternalError, NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {HStack, VStack, View} from 'components/core';
-import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, BodyXSmBlack, Title3Black, bodyXSmSize} from 'components/text';
+import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, BodyXSmBlack, Title3Black, bodySmSize} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {NWACStationsByZone, ZoneWithWeatherStations} from 'components/weather_data/NWACWeatherStationList';
 import helpStrings from 'content/helpStrings';
@@ -56,7 +56,7 @@ const SmallHeaderWithTooltip: React.FunctionComponent<{
   // text - neither `center` nor `baseline` alignment look good on their own
   <HStack space={6} alignItems="center" justifyContent="space-between" width="100%">
     <BodyXSmBlack style={{flex: 1}}>{title}</BodyXSmBlack>
-    {content && <InfoTooltip size={bodyXSmSize} title={dialogTitle || title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />}
+    {content && <InfoTooltip size={bodySmSize} title={dialogTitle || title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />}
   </HStack>
 );
 
@@ -248,7 +248,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh} />}>
       <VStack space={8} backgroundColor={colorLookup('background.base')}>
-        <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
+        <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>} noDivider>
           <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
             <VStack space={8} style={{flex: 1}}>
               <AllCapsSmBlack>Issued</AllCapsSmBlack>
@@ -270,62 +270,69 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
               </AllCapsSm>
             </VStack>
           </HStack>
-          <VStack alignItems="stretch" pt={4}>
-            {nwacForecasts.map((f, index) => (
-              <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index === 0 ? colorLookup('light.300') : 'white'}>
+        </Card>
+        {nwacForecasts.map((f, index) => (
+          <Card
+            borderRadius={0}
+            borderColor="white"
+            noDivider
+            key={index}
+            header={
+              <VStack space={2} key={index}>
                 <BodyBlack>{f.title}</BodyBlack>
                 <Body>{f.description}</Body>
-                <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} mt={12}>
-                  <HStack justifyContent="space-between" alignItems="stretch" borderBottomWidth={1} borderColor={colorLookup('light.300')}>
-                    <VStack flexBasis={0.5} flex={1} m={12}>
-                      <SmallHeaderWithTooltip title="5K ft Temps (°F)" dialogTitle="Temperature" content={helpStrings.weather.temperature} />
-                      <BodySm color={colorLookup('text.secondary')}>
-                        {f.five_thousand_foot_temperatures.max} (max) / {f.five_thousand_foot_temperatures.min} (min)
-                      </BodySm>
-                    </VStack>
-                    <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
-                    <VStack flexBasis={0.5} flex={1} m={12}>
-                      <SmallHeaderWithTooltip title="Snow Level (ft)" dialogTitle="Snow Level" content={helpStrings.weather.snowLevelNoAsterisk} />
-                      {f.snow_levels.map(({level, period}, lindex) => (
-                        <BodySm color={colorLookup('text.secondary')} key={`forecast-${index}-snow-level-${lindex}`}>
-                          {Intl.NumberFormat().format(level)} {period}
-                        </BodySm>
-                      ))}
-                    </VStack>
-                  </HStack>
-                  <HStack justifyContent="space-between" alignItems="flex-start">
-                    <VStack flexBasis={0.5} flex={1} m={12}>
-                      <SmallHeaderWithTooltip title="Precipitation (in)" dialogTitle="Precipitation" content={helpStrings.weather.precipitation} />
-                      {f.precipitation.map(({name, value}) => (
-                        <HStack key={name} justifyContent="space-between" alignItems="flex-start" alignSelf="stretch">
-                          <View flex={1} flexGrow={2} pr={12}>
-                            <BodySm color={colorLookup('text.secondary')} style={{flex: 1, flexBasis: 0.75}}>
-                              {name}
-                            </BodySm>
-                          </View>
-                          <View flex={1} flexGrow={1}>
-                            <BodySm color={colorLookup('text.secondary')} textAlign="right">
-                              {value}
-                            </BodySm>
-                          </View>
-                        </HStack>
-                      ))}
-                    </VStack>
-                    <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
-                    <VStack flexBasis={0.5} flex={1} m={12}>
-                      <SmallHeaderWithTooltip title="Ridgeline Winds (mph)" dialogTitle="Ridgeline Winds" content={helpStrings.weather.wind} />
-                      {f.ridgeline_winds.map(({direction, speed, period}, lindex) => (
-                        <BodySm color={colorLookup('text.secondary')} key={`forecast-${index}-winds-${lindex}`}>
-                          {direction} {speed} {period}
-                        </BodySm>
-                      ))}
-                    </VStack>
-                  </HStack>
-                </View>
               </VStack>
-            ))}
-          </VStack>
-        </Card>
+            }
+            noInternalSpace>
+            <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} mt={12}>
+              <HStack justifyContent="space-between" alignItems="stretch" borderBottomWidth={1} borderColor={colorLookup('light.300')}>
+                <VStack flexBasis={0.5} flex={1} m={12}>
+                  <SmallHeaderWithTooltip title="5K ft Temps (°F)" dialogTitle="Temperature" content={helpStrings.weather.temperature} />
+                  <BodySm color={colorLookup('text.secondary')}>
+                    {f.five_thousand_foot_temperatures.max} (max) / {f.five_thousand_foot_temperatures.min} (min)
+                  </BodySm>
+                </VStack>
+                <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
+                <VStack flexBasis={0.5} flex={1} m={12}>
+                  <SmallHeaderWithTooltip title="Snow Level (ft)" dialogTitle="Snow Level" content={helpStrings.weather.snowLevelNoAsterisk} />
+                  {f.snow_levels.map(({level, period}, lindex) => (
+                    <BodySm color={colorLookup('text.secondary')} key={`forecast-${index}-snow-level-${lindex}`}>
+                      {Intl.NumberFormat().format(level)} {period}
+                    </BodySm>
+                  ))}
+                </VStack>
+              </HStack>
+              <HStack justifyContent="space-between" alignItems="flex-start">
+                <VStack flexBasis={0.5} flex={1} m={12}>
+                  <SmallHeaderWithTooltip title="Precipitation (in)" dialogTitle="Precipitation" content={helpStrings.weather.precipitation} />
+                  {f.precipitation.map(({name, value}) => (
+                    <HStack key={name} justifyContent="space-between" alignItems="flex-start" alignSelf="stretch">
+                      <View flex={1} flexGrow={2} pr={12}>
+                        <BodySm color={colorLookup('text.secondary')} style={{flex: 1, flexBasis: 0.75}}>
+                          {name}
+                        </BodySm>
+                      </View>
+                      <View flex={1} flexGrow={1}>
+                        <BodySm color={colorLookup('text.secondary')} textAlign="right">
+                          {value}
+                        </BodySm>
+                      </View>
+                    </HStack>
+                  ))}
+                </VStack>
+                <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
+                <VStack flexBasis={0.5} flex={1} m={12}>
+                  <SmallHeaderWithTooltip title="Ridgeline Winds (mph)" dialogTitle="Ridgeline Winds" content={helpStrings.weather.wind} />
+                  {f.ridgeline_winds.map(({direction, speed, period}, lindex) => (
+                    <BodySm color={colorLookup('text.secondary')} key={`forecast-${index}-winds-${lindex}`}>
+                      {direction} {speed} {period}
+                    </BodySm>
+                  ))}
+                </VStack>
+              </HStack>
+            </View>
+          </Card>
+        ))}
         <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Data</Title3Black>}>
           <VStack>
             {groupedWeatherStations.length > 0 && (
