@@ -2,7 +2,7 @@ import {View as RNView, TouchableOpacity} from 'react-native';
 
 import {Entypo} from '@expo/vector-icons';
 import {HStack, View, ViewProps, VStack} from 'components/core';
-import {Body, bodySize} from 'components/text';
+import {Body} from 'components/text';
 import React, {useEffect, useRef, useState} from 'react';
 import {LayoutRectangle, Modal, StyleSheet, TouchableWithoutFeedback} from 'react-native';
 import {colorLookup} from 'theme';
@@ -41,7 +41,7 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
         <View ref={ref} borderColor={borderColor} borderWidth={2} borderRadius={4} p={8} flexDirection="column" justifyContent="center" {...props}>
           <HStack justifyContent="space-between" alignItems="center">
             <Body>{selectedItem}</Body>
-            <Entypo name={dropdownVisible ? 'chevron-small-up' : 'chevron-small-down'} size={bodySize} color={colorLookup('text')} />
+            <Entypo name={dropdownVisible ? 'chevron-small-up' : 'chevron-small-down'} size={32} style={{marginTop: -2.25}} color={colorLookup('text')} />
           </HStack>
         </View>
       </TouchableOpacity>
