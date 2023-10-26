@@ -26,7 +26,6 @@ export const useWeatherStationsMetadata = (center: AvalancheCenterID, token: str
     queryKey: key,
     queryFn: (): Promise<WeatherStationCollection> => fetchWeatherStationsMetadata(host, token ?? '', thisLogger),
     enabled: !!token,
-    staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
 };
@@ -49,6 +48,8 @@ export const prefetchWeatherStationsMetadata = async (queryClient: QueryClient, 
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
+    cacheTime: 24 * 60 * 60 * 1000, // hold this in the query cache for a day
+    staleTime: 24 * 60 * 60 * 1000, // don't bother prefetching again for a day
   });
 };
 

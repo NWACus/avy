@@ -40,7 +40,6 @@ export const useCachedImageURI = (uri: string) => {
     queryKey: key,
     queryFn: async () => fetchCachedImageURI(uri, thisLogger),
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
-    staleTime: 24 * 60 * 60 * 1000, // do not refresh this data
     networkMode: requiresNetwork ? 'online' : 'always',
   });
 };
@@ -81,6 +80,8 @@ const prefetchCachedImageURI = async (queryClient: QueryClient, logger: Logger, 
       thisLogger.trace({duration: formatDistanceToNowStrict(start), destination: result}, `finished prefetching`);
       return result;
     },
+    cacheTime: 24 * 60 * 60 * 1000, // hold this in the query cache for a day
+    staleTime: 24 * 60 * 60 * 1000, // don't bother prefetching again for a day
   });
 };
 

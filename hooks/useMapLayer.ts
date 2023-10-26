@@ -26,7 +26,6 @@ export const useMapLayer = (center_id: AvalancheCenterID | undefined): UseQueryR
     queryKey: key,
     queryFn: async (): Promise<MapLayer> => (center_id ? fetchMapLayer(nationalAvalancheCenterHost, center_id, thisLogger) : new Promise(() => null)),
     enabled: !!center_id,
-    staleTime: 24 * 60 * 60 * 1000, // don't bother re-fetching for one day (in milliseconds)
     cacheTime: Infinity, // hold on to this cached data forever
   });
 };
@@ -49,6 +48,8 @@ export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalanc
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
+    cacheTime: Infinity, // hold this in the query cache forever
+    staleTime: 24 * 60 * 60 * 1000, // don't bother prefetching again for a day
   });
 };
 

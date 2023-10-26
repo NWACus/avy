@@ -50,7 +50,6 @@ export const useNWACObservations = (center_id: AvalancheCenterID, endDate: Reque
         return undefined;
       }
     },
-    staleTime: 60 * 60 * 1000, // re-fetch in the background once an hour (in milliseconds)
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
     enabled: options.enabled,
   });
@@ -86,6 +85,8 @@ export const prefetchNWACObservations = async (queryClient: QueryClient, nwacHos
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
+    cacheTime: 24 * 60 * 60 * 1000, // hold this in the query cache for a day
+    staleTime: 24 * 60 * 60 * 1000, // don't bother prefetching again for a day
   });
 };
 
