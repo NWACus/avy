@@ -3,7 +3,7 @@ import {View as RNView, TouchableOpacity} from 'react-native';
 import {Entypo} from '@expo/vector-icons';
 import {HStack, View, ViewProps, VStack} from 'components/core';
 import {Body, bodySize} from 'components/text';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {LayoutRectangle, Modal, StyleSheet, TouchableWithoutFeedback} from 'react-native';
 import {colorLookup} from 'theme';
 import tinycolor from 'tinycolor2';
@@ -21,12 +21,16 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
   const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
   const [layout, setLayout] = useState<LayoutRectangle>({x: 0, y: 0, width: 0, height: 0});
 
-  const onLayout = () => {
-    // onLayout returns position relative to parent - we need position relative to screen
+  // Every time through render, try to measure where we're at so that we can place the dropdown correctly.
+  // This used to be done in onLayout, but that inconsistently missed layout changes.
+  useEffect(() => {
     ref.current?.measureInWindow((x, y, width, height) => {
-      setLayout({x, y, width, height});
+      if (x !== layout.x || y !== layout.y || width !== layout.width || height !== layout.height) {
+        const newLayout = {x, y, width, height};
+        setLayout(newLayout);
+      }
     });
-  };
+  });
 
   return (
     <>
@@ -34,7 +38,7 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
         onPress={() => {
           setDropdownVisible(!dropdownVisible);
         }}>
-        <View ref={ref} borderColor={borderColor} borderWidth={2} borderRadius={4} p={8} flexDirection="column" justifyContent="center" onLayout={onLayout} {...props}>
+        <View ref={ref} borderColor={borderColor} borderWidth={2} borderRadius={4} p={8} flexDirection="column" justifyContent="center" {...props}>
           <HStack justifyContent="space-between" alignItems="center">
             <Body>{selectedItem}</Body>
             <Entypo name={dropdownVisible ? 'chevron-small-up' : 'chevron-small-down'} size={bodySize} color={colorLookup('text')} />
