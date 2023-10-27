@@ -353,7 +353,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         when the text is hidden. Expo icons are never vertically centered correctly by default for some reason. */}
         <Button buttonStyle="primary" onPress={submit} borderRadius={32} paddingHorizontal={13}>
           {/* setting the key property to force re-render of the HStack when showSubmitButtonText changes */}
-          <HStack alignItems="center" space={8} key={showSubmitButtonText ? 'show' : 'hide'} pt={4} pl={1} pr={1}>
+          <HStack alignItems="center" space={4} key={showSubmitButtonText ? 'show' : 'hide'} pt={4} pl={1} pr={1}>
             <MaterialIcons name="add" size={24} color="white" />
             {showSubmitButtonText && <BodySmBlack color="white">Submit</BodySmBlack>}
           </HStack>
