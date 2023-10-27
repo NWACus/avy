@@ -53,6 +53,7 @@
       ]
     },
     "plugins": [
+      "expo-localization",
       [
         "expo-build-properties",
         {

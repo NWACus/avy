@@ -31,6 +31,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createAsyncStoragePersister} from '@tanstack/query-async-storage-persister';
 import {focusManager, QueryCache, QueryClient, useQueryClient} from '@tanstack/react-query';
 import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
+import {PostHogProvider, usePostHog} from 'posthog-react-native';
 
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
@@ -337,6 +338,11 @@ const BaseApp: React.FunctionComponent<{
     })();
   }, [fontsLoaded, logger, splashScreenState, setSplashScreenState, updateStatus]);
 
+  const posthog = usePostHog();
+  useEffect(() => {
+    posthog?.capture('App component loaded', {foo: 'bar'});
+  }, [posthog]);
+
   if (!fontsLoaded || splashScreenState !== 'hidden' || updateStatus !== 'ready') {
     // The splash screen keeps rendering while fonts are loading or updates are in progress
     return null;
@@ -349,56 +355,62 @@ const BaseApp: React.FunctionComponent<{
           <HTMLRendererConfig>
             <SafeAreaProvider>
               <NavigationContainer ref={navigationRef}>
-                <SelectProvider>
-                  <StatusBar barStyle="dark-content" />
-                  <View style={StyleSheet.absoluteFill}>
-                    <TabNavigator.Navigator
-                      initialRouteName="Home"
-                      screenOptions={({route}) => ({
-                        headerShown: false,
-                        tabBarIcon: ({color, size}) => {
-                          if (route.name === 'Home') {
-                            return <MaterialCommunityIcons name="map-outline" size={size} color={color} />;
-                          } else if (route.name === 'Observations') {
-                            return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;
-                          } else if (route.name === 'Weather Data') {
-                            return <Ionicons name="stats-chart-outline" size={size} color={color} />;
-                          } else if (route.name === 'Menu') {
-                            return <MaterialCommunityIcons name="dots-horizontal" size={size} color={color} />;
-                          }
-                        },
-                        // these two properties should really take ColorValue but oh well
-                        tabBarActiveTintColor: colorLookup('primary') as string,
-                        tabBarInactiveTintColor: colorLookup('text.secondary') as string,
-                      })}>
-                      <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
-                        {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
-                      </TabNavigator.Screen>
-                      <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
-                        {state =>
-                          ObservationsTabScreen(
-                            merge(state, {
-                              route: {
-                                params: {
-                                  center_id: avalancheCenterId,
-                                  requestedTime: formatRequestedTime(requestedTime),
-                                },
-                              },
-                            }),
-                          )
-                        }
-                      </TabNavigator.Screen>
-                      {(avalancheCenterId === 'NWAC' || !process.env.EXPO_PUBLIC_HIDE_WEATHER_TAB_NON_NWAC) && (
-                        <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
-                          {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                <PostHogProvider
+                  apiKey="phc_Rkd3UdJDX6ouFTuS74KujFhM1xwKZm1AeRbzblYSAao"
+                  options={{
+                    host: 'https://app.posthog.com',
+                  }}>
+                  <SelectProvider>
+                    <StatusBar barStyle="dark-content" />
+                    <View style={StyleSheet.absoluteFill}>
+                      <TabNavigator.Navigator
+                        initialRouteName="Home"
+                        screenOptions={({route}) => ({
+                          headerShown: false,
+                          tabBarIcon: ({color, size}) => {
+                            if (route.name === 'Home') {
+                              return <MaterialCommunityIcons name="map-outline" size={size} color={color} />;
+                            } else if (route.name === 'Observations') {
+                              return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;
+                            } else if (route.name === 'Weather Data') {
+                              return <Ionicons name="stats-chart-outline" size={size} color={color} />;
+                            } else if (route.name === 'Menu') {
+                              return <MaterialCommunityIcons name="dots-horizontal" size={size} color={color} />;
+                            }
+                          },
+                          // these two properties should really take ColorValue but oh well
+                          tabBarActiveTintColor: colorLookup('primary') as string,
+                          tabBarInactiveTintColor: colorLookup('text.secondary') as string,
+                        })}>
+                        <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
+                          {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
                         </TabNavigator.Screen>
-                      )}
-                      <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
-                        {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-                      </TabNavigator.Screen>
-                    </TabNavigator.Navigator>
-                  </View>
-                </SelectProvider>
+                        <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
+                          {state =>
+                            ObservationsTabScreen(
+                              merge(state, {
+                                route: {
+                                  params: {
+                                    center_id: avalancheCenterId,
+                                    requestedTime: formatRequestedTime(requestedTime),
+                                  },
+                                },
+                              }),
+                            )
+                          }
+                        </TabNavigator.Screen>
+                        {(avalancheCenterId === 'NWAC' || !process.env.EXPO_PUBLIC_HIDE_WEATHER_TAB_NON_NWAC) && (
+                          <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
+                            {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                          </TabNavigator.Screen>
+                        )}
+                        <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
+                          {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                        </TabNavigator.Screen>
+                      </TabNavigator.Navigator>
+                    </View>
+                  </SelectProvider>
+                </PostHogProvider>
               </NavigationContainer>
             </SafeAreaProvider>
           </HTMLRendererConfig>
