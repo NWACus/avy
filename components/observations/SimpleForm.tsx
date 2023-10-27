@@ -502,7 +502,7 @@ export const SimpleForm: React.FC<{
                       <Button
                         buttonStyle="normal"
                         onPress={() => void pickImage()}
-                        disabled={images.length === maxImageCount || disableFormControls || true}
+                        disabled={images.length === maxImageCount || disableFormControls}
                         renderChildren={({textColor}) => (
                           <HStack alignItems="center" space={4}>
                             <MaterialIcons name="add" size={24} color={textColor} style={{marginTop: 1}} />
