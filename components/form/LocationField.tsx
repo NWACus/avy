@@ -4,7 +4,7 @@ import {MapViewZone, ZoneMap, defaultMapRegionForGeometries, defaultMapRegionFor
 import {Center, HStack, VStack, View} from 'components/core';
 import {KeysMatching} from 'components/form/TextField';
 import {LocationPoint, ObservationFormData} from 'components/observations/ObservationFormData';
-import {Body, BodyXSm, BodyXSmBlack, Title3Black, bodySize} from 'components/text';
+import {Body, BodySmBlack, BodyXSm, Title3Black, bodySize} from 'components/text';
 import {useMapLayer} from 'hooks/useMapLayer';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useController} from 'react-hook-form';
@@ -73,7 +73,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
 
   return (
     <VStack width="100%" space={4} ref={ref}>
-      <BodyXSmBlack>{label}</BodyXSmBlack>
+      <BodySmBlack>{label}</BodySmBlack>
       <TouchableOpacity onPress={toggleModal} disabled={disabled}>
         <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
           <View p={8}>
