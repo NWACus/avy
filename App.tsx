@@ -31,7 +31,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createAsyncStoragePersister} from '@tanstack/query-async-storage-persister';
 import {focusManager, QueryCache, QueryClient, useQueryClient} from '@tanstack/react-query';
 import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
-import {PostHogProvider, usePostHog} from 'posthog-react-native';
 
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
@@ -64,6 +63,7 @@ import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 import * as messages from 'compiled-lang/en.json';
+import KillSwitchMonitor from 'components/KillSwitchMonitor';
 import {filterLoggedData} from 'logging/filterLoggedData';
 import {updateCheck, UpdateStatus} from 'Updates';
 
@@ -220,7 +220,10 @@ const App = () => {
   try {
     useOnlineManager();
 
-    useAppState(onAppStateChange);
+    const appState = useAppState();
+    useEffect(() => {
+      onAppStateChange(appState);
+    }, [appState]);
 
     return (
       <LoggerContext.Provider value={{logger: logger}}>
@@ -338,11 +341,6 @@ const BaseApp: React.FunctionComponent<{
     })();
   }, [fontsLoaded, logger, splashScreenState, setSplashScreenState, updateStatus]);
 
-  const posthog = usePostHog();
-  useEffect(() => {
-    posthog?.capture('App component loaded', {foo: 'bar'});
-  }, [posthog]);
-
   if (!fontsLoaded || splashScreenState !== 'hidden' || updateStatus !== 'ready') {
     // The splash screen keeps rendering while fonts are loading or updates are in progress
     return null;
@@ -355,11 +353,7 @@ const BaseApp: React.FunctionComponent<{
           <HTMLRendererConfig>
             <SafeAreaProvider>
               <NavigationContainer ref={navigationRef}>
-                <PostHogProvider
-                  apiKey="phc_Rkd3UdJDX6ouFTuS74KujFhM1xwKZm1AeRbzblYSAao"
-                  options={{
-                    host: 'https://app.posthog.com',
-                  }}>
+                <KillSwitchMonitor>
                   <SelectProvider>
                     <StatusBar barStyle="dark-content" />
                     <View style={StyleSheet.absoluteFill}>
@@ -410,7 +404,7 @@ const BaseApp: React.FunctionComponent<{
                       </TabNavigator.Navigator>
                     </View>
                   </SelectProvider>
-                </PostHogProvider>
+                </KillSwitchMonitor>
               </NavigationContainer>
             </SafeAreaProvider>
           </HTMLRendererConfig>
