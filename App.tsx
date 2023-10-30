@@ -18,7 +18,7 @@ import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer, useNavigationContainerRef} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
-import {AppStateStatus, Platform, StatusBar, StyleSheet, UIManager, useColorScheme, View} from 'react-native';
+import {AppState, AppStateStatus, Platform, StatusBar, StyleSheet, UIManager, useColorScheme, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import * as BackgroundFetch from 'expo-background-fetch';
@@ -39,7 +39,6 @@ import {MenuStackScreen} from 'components/screens/MenuScreen';
 import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
 import {WeatherScreen} from 'components/screens/WeatherScreen';
 import {HTMLRendererConfig} from 'components/text/HTML';
-import {useAppState} from 'hooks/useAppState';
 import ImageCache, {queryKeyPrefix} from 'hooks/useCachedImageURI';
 import {useOnlineManager} from 'hooks/useOnlineManager';
 import {IntlProvider} from 'intl';
@@ -63,6 +62,7 @@ import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 import * as messages from 'compiled-lang/en.json';
+import KillSwitchMonitor from 'components/KillSwitchMonitor';
 import {filterLoggedData} from 'logging/filterLoggedData';
 import {updateCheck, UpdateStatus} from 'Updates';
 
@@ -200,12 +200,14 @@ const asyncStoragePersister = createAsyncStoragePersister({
 
 const TabNavigator = createBottomTabNavigator<TabNavigatorParamList>();
 
-const onAppStateChange = (status: AppStateStatus) => {
+// We add the listener at startup and never plan to stop listening, so there's
+// no need to unsubscribe here.
+AppState.addEventListener('change', (status: AppStateStatus) => {
   // React Query already supports in web browser refetch on window focus by default
   if (Platform.OS !== 'web') {
     focusManager.setFocused(status === 'active');
   }
-};
+});
 
 const toastConfig = {
   success: (props: ToastConfigParams<string>) => <SuccessToast content={props.text1 ?? 'Success'} {...props} />,
@@ -218,8 +220,6 @@ const toastConfig = {
 const App = () => {
   try {
     useOnlineManager();
-
-    useAppState(onAppStateChange);
 
     return (
       <LoggerContext.Provider value={{logger: logger}}>
@@ -349,56 +349,58 @@ const BaseApp: React.FunctionComponent<{
           <HTMLRendererConfig>
             <SafeAreaProvider>
               <NavigationContainer ref={navigationRef}>
-                <SelectProvider>
-                  <StatusBar barStyle="dark-content" />
-                  <View style={StyleSheet.absoluteFill}>
-                    <TabNavigator.Navigator
-                      initialRouteName="Home"
-                      screenOptions={({route}) => ({
-                        headerShown: false,
-                        tabBarIcon: ({color, size}) => {
-                          if (route.name === 'Home') {
-                            return <MaterialCommunityIcons name="map-outline" size={size} color={color} />;
-                          } else if (route.name === 'Observations') {
-                            return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;
-                          } else if (route.name === 'Weather Data') {
-                            return <Ionicons name="stats-chart-outline" size={size} color={color} />;
-                          } else if (route.name === 'Menu') {
-                            return <MaterialCommunityIcons name="dots-horizontal" size={size} color={color} />;
-                          }
-                        },
-                        // these two properties should really take ColorValue but oh well
-                        tabBarActiveTintColor: colorLookup('primary') as string,
-                        tabBarInactiveTintColor: colorLookup('text.secondary') as string,
-                      })}>
-                      <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
-                        {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
-                      </TabNavigator.Screen>
-                      <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
-                        {state =>
-                          ObservationsTabScreen(
-                            merge(state, {
-                              route: {
-                                params: {
-                                  center_id: avalancheCenterId,
-                                  requestedTime: formatRequestedTime(requestedTime),
-                                },
-                              },
-                            }),
-                          )
-                        }
-                      </TabNavigator.Screen>
-                      {(avalancheCenterId === 'NWAC' || !process.env.EXPO_PUBLIC_HIDE_WEATHER_TAB_NON_NWAC) && (
-                        <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
-                          {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                <KillSwitchMonitor>
+                  <SelectProvider>
+                    <StatusBar barStyle="dark-content" />
+                    <View style={StyleSheet.absoluteFill}>
+                      <TabNavigator.Navigator
+                        initialRouteName="Home"
+                        screenOptions={({route}) => ({
+                          headerShown: false,
+                          tabBarIcon: ({color, size}) => {
+                            if (route.name === 'Home') {
+                              return <MaterialCommunityIcons name="map-outline" size={size} color={color} />;
+                            } else if (route.name === 'Observations') {
+                              return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;
+                            } else if (route.name === 'Weather Data') {
+                              return <Ionicons name="stats-chart-outline" size={size} color={color} />;
+                            } else if (route.name === 'Menu') {
+                              return <MaterialCommunityIcons name="dots-horizontal" size={size} color={color} />;
+                            }
+                          },
+                          // these two properties should really take ColorValue but oh well
+                          tabBarActiveTintColor: colorLookup('primary') as string,
+                          tabBarInactiveTintColor: colorLookup('text.secondary') as string,
+                        })}>
+                        <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
+                          {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
                         </TabNavigator.Screen>
-                      )}
-                      <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
-                        {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-                      </TabNavigator.Screen>
-                    </TabNavigator.Navigator>
-                  </View>
-                </SelectProvider>
+                        <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
+                          {state =>
+                            ObservationsTabScreen(
+                              merge(state, {
+                                route: {
+                                  params: {
+                                    center_id: avalancheCenterId,
+                                    requestedTime: formatRequestedTime(requestedTime),
+                                  },
+                                },
+                              }),
+                            )
+                          }
+                        </TabNavigator.Screen>
+                        {(avalancheCenterId === 'NWAC' || !process.env.EXPO_PUBLIC_HIDE_WEATHER_TAB_NON_NWAC) && (
+                          <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
+                            {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                          </TabNavigator.Screen>
+                        )}
+                        <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
+                          {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                        </TabNavigator.Screen>
+                      </TabNavigator.Navigator>
+                    </View>
+                  </SelectProvider>
+                </KillSwitchMonitor>
               </NavigationContainer>
             </SafeAreaProvider>
           </HTMLRendererConfig>
