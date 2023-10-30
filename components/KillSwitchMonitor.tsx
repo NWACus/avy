@@ -6,6 +6,7 @@ import * as Updates from 'expo-updates';
 import _ from 'lodash';
 import PostHog, {PostHogProvider, useFeatureFlag, usePostHog} from 'posthog-react-native';
 
+import {useNetInfo} from '@react-native-community/netinfo';
 import NoConnection from 'assets/illustrations/NoConnection.svg';
 import {Button} from 'components/content/Button';
 import {Outcome} from 'components/content/Outcome';
@@ -51,6 +52,14 @@ const KillSwitchMonitor: React.FC<KillSwitchMonitorProps> = ({children}) => {
       tryReloadFeatureFlagsWithDebounce(posthog);
     }
   }, [appState, posthog]);
+
+  const netInfo = useNetInfo();
+  useEffect(() => {
+    if (posthog && netInfo.isConnected && netInfo.isInternetReachable) {
+      logger.debug('network online, reloading feature flags');
+      tryReloadFeatureFlagsWithDebounce(posthog);
+    }
+  }, [netInfo, posthog]);
 
   const downForMaintenance = !!useFeatureFlag('down-for-maintenance');
   const updateRequired = !!useFeatureFlag(`update-required`);
