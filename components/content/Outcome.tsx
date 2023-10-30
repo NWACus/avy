@@ -27,7 +27,7 @@ export const Outcome: React.FunctionComponent<OutcomeOptions> = ({
 }) => {
   return (
     <View style={inline ? {} : {height: '100%', width: '100%'}} bg="white" pb={32}>
-      <VStack justifyContent={'center'} flex={1}>
+      <VStack justifyContent={'center'} flex={inline ? 0 : 1}>
         <View mx={16}>
           <VStack space={24} alignItems={'center'}>
             <View mb={illustrationBottomMargin} ml={illustrationLeftMargin}>
