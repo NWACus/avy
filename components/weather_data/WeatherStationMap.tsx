@@ -183,7 +183,8 @@ const WeatherStationMarker: React.FC<{station: WeatherStation; selected: boolean
       draggable={false}
       tracksViewChanges={false}
       tracksInfoWindowChanges={false}
-      anchor={{x: 0.5, y: 0.5}}>
+      anchor={{x: 0.5, y: 0.5}}
+      zIndex={selected ? 100 : 0}>
       {iconForSource(station.properties.source, selected)}
     </MapMarker>
   );
