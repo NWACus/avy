@@ -146,9 +146,7 @@ export const WeatherStationMap: React.FunctionComponent<{
         selectedStationId={selectedStationId}
         setSelectedStationId={setSelectedStationId}
         controller={controller}
-        buttonOnPress={() => {
-          toggleList();
-        }}
+        buttonOnPress={process.env.EXPO_PUBLIC_WEATHER_STATION_LIST_TOGGLE ? toggleList : undefined}
       />
     </>
   );
@@ -198,20 +196,20 @@ export const WeatherStationCards: React.FunctionComponent<{
   selectedStationId: string | null;
   setSelectedStationId: React.Dispatch<React.SetStateAction<string | null>>;
   controller: AnimatedMapWithDrawerController;
-  buttonOnPress: () => void;
+  buttonOnPress?: () => void;
 }> = ({center_id, date, stations, selectedStationId, setSelectedStationId, controller, buttonOnPress}) => {
   return AnimatedCards<WeatherStation, string>({
-    center_id: center_id,
-    date: date,
+    center_id,
+    date,
     items: stations.features,
     getItemId: station => station.properties.stid,
     selectedItemId: selectedStationId,
     setSelectedItemId: setSelectedStationId,
-    controller: controller,
+    controller,
     renderItem: ({date, center_id, item}) => (
       <WeatherStationCard mode={'map'} center_id={center_id} date={date} station={item} units={stations.properties.units} variables={stations.properties.variables} />
     ),
-    buttonOnPress: buttonOnPress,
+    buttonOnPress,
   });
 };
 
