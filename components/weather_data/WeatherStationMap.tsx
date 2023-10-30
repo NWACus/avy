@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import centroid from '@turf/centroid';
 import turfClustersDBScan from '@turf/clusters-dbscan';
@@ -93,6 +93,9 @@ export const WeatherStationMap: React.FunctionComponent<{
     },
     [navigation, selectedStationId, requestedTime, center_id],
   );
+  const onPressMapView = useCallback(() => {
+    setSelectedStationId(null);
+  }, []);
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
@@ -189,6 +192,21 @@ export const WeatherStationMap: React.FunctionComponent<{
     [sortedStations, selectedStationId, onPressMarker],
   );
 
+  useEffect(() => {
+    const station = sortedStations.features.find(station => station.properties.stid === selectedStationId);
+    if (station) {
+      mapView.current?.animateCamera(
+        {
+          center: {
+            longitude: station.geometry.coordinates[0],
+            latitude: station.geometry.coordinates[1],
+          },
+        },
+        {duration: 250},
+      );
+    }
+  }, [selectedStationId, sortedStations]);
+
   return (
     <>
       <MapView.Animated
@@ -197,6 +215,7 @@ export const WeatherStationMap: React.FunctionComponent<{
         onLayout={() => {
           setReady(true);
         }}
+        onPress={onPressMapView}
         provider={'google'}
         mapType={MAP_TYPES.TERRAIN}
         zoomEnabled={true}
