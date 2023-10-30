@@ -18,7 +18,7 @@ import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer, useNavigationContainerRef} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
-import {AppStateStatus, Platform, StatusBar, StyleSheet, UIManager, useColorScheme, View} from 'react-native';
+import {AppState, AppStateStatus, Platform, StatusBar, StyleSheet, UIManager, useColorScheme, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import * as BackgroundFetch from 'expo-background-fetch';
@@ -39,7 +39,6 @@ import {MenuStackScreen} from 'components/screens/MenuScreen';
 import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
 import {WeatherScreen} from 'components/screens/WeatherScreen';
 import {HTMLRendererConfig} from 'components/text/HTML';
-import {useAppState} from 'hooks/useAppState';
 import ImageCache, {queryKeyPrefix} from 'hooks/useCachedImageURI';
 import {useOnlineManager} from 'hooks/useOnlineManager';
 import {IntlProvider} from 'intl';
@@ -201,12 +200,14 @@ const asyncStoragePersister = createAsyncStoragePersister({
 
 const TabNavigator = createBottomTabNavigator<TabNavigatorParamList>();
 
-const onAppStateChange = (status: AppStateStatus) => {
+// We add the listener at startup and never plan to stop listening, so there's
+// no need to unsubscribe here.
+AppState.addEventListener('change', (status: AppStateStatus) => {
   // React Query already supports in web browser refetch on window focus by default
   if (Platform.OS !== 'web') {
     focusManager.setFocused(status === 'active');
   }
-};
+});
 
 const toastConfig = {
   success: (props: ToastConfigParams<string>) => <SuccessToast content={props.text1 ?? 'Success'} {...props} />,
@@ -219,11 +220,6 @@ const toastConfig = {
 const App = () => {
   try {
     useOnlineManager();
-
-    const appState = useAppState();
-    useEffect(() => {
-      onAppStateChange(appState);
-    }, [appState]);
 
     return (
       <LoggerContext.Provider value={{logger: logger}}>
