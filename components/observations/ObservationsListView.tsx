@@ -13,7 +13,7 @@ import {Center, Divider, HStack, VStack, View} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
-import {Body, BodyBlack, BodySm, BodySmBlack, Caption1Semibold, bodySize} from 'components/text';
+import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
 import {compareDesc, parseISO} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
@@ -239,24 +239,35 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           setVisible={setFilterModalVisible}
         />
       </Modal>
-      <HStack space={8} pt={4} pb={16} pl={16} justifyContent="space-between" width="100%">
+      <HStack space={8} pb={8} pl={16} justifyContent="space-between" width="100%">
         <FilterPillButton
           label="Filters"
-          textColor={colorLookup('text')}
+          textColor={colorLookup('primary')}
           backgroundColor={colorLookup('white')}
           onPress={() => setFilterModalVisible(true)}
-          headIcon={<FontAwesome name="sliders" size={16} color={colorLookup('text')} style={{marginRight: 2}} />}
+          headIcon={<FontAwesome name="sliders" size={bodyXSmSize} color={colorLookup('primary')} style={{marginRight: 2}} />}
+          tailIcon={
+            resolvedFilters.length > 1 && (
+              <Center backgroundColor={colorLookup('primary')} width={14} height={14} borderRadius={7} minWidth={bodyXSmSize}>
+                <BodyXSm color={'white'} fontSize={10} lineHeight={14}>
+                  {resolvedFilters.length - 1}
+                </BodyXSm>
+              </Center>
+            )
+          }
         />
         <Divider direction="vertical" />
         <ScrollView horizontal style={{width: '100%'}} showsHorizontalScrollIndicator={false}>
           <HStack space={8} py={4} pr={16}>
             {resolvedFilters.map(({label, removeFilter}) => {
               const canBeDeleted = removeFilter !== undefined;
-              const textColor = canBeDeleted ? colorLookup('blue2') : colorLookup('text');
-              const backgroundColor = canBeDeleted ? colorLookup('color-tag') : colorLookup('white');
+              const textColor = colorLookup('primary');
+              const backgroundColor = colorLookup('white');
               const tailIcon = canBeDeleted ? (
-                <MaterialCommunityIcons name="close" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('blue2')} />
-              ) : undefined;
+                <MaterialCommunityIcons name="close" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('primary')} />
+              ) : (
+                <MaterialCommunityIcons name="chevron-down" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('primary')} />
+              );
               return (
                 <FilterPillButton
                   key={label}
@@ -377,9 +388,28 @@ export interface FilterPillButtonProps {
 }
 export const FilterPillButton: React.FC<FilterPillButtonProps> = ({label, headIcon, tailIcon, onPress, textColor, backgroundColor}) => (
   <TouchableOpacity onPress={onPress}>
-    <HStack bg={backgroundColor} px={8} py={2} space={4} borderRadius={30} borderWidth={1} borderColor={textColor} alignItems="center">
+    <HStack
+      bg={backgroundColor}
+      px={8}
+      py={2}
+      space={4}
+      borderRadius={30}
+      borderWidth={0.5}
+      borderColor={textColor}
+      alignItems="center"
+      style={{
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 1,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 1.41,
+
+        elevation: 2,
+      }}>
       {headIcon}
-      <BodySm color={textColor}>{label}</BodySm>
+      <BodyXSm color={textColor}>{label}</BodyXSm>
       {tailIcon}
     </HStack>
   </TouchableOpacity>
