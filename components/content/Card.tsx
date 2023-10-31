@@ -1,6 +1,6 @@
 import React, {PropsWithChildren, ReactNode, useCallback, useState} from 'react';
 
-import {ColorValue, TouchableOpacity} from 'react-native';
+import {ColorValue, TouchableOpacity, ViewStyle} from 'react-native';
 import Collapsible from 'react-native-collapsible';
 
 import {FontAwesome} from '@expo/vector-icons';
@@ -18,6 +18,18 @@ export interface CardProps extends ViewProps {
   noInternalSpace?: boolean;
 }
 
+const pressableStyle: ViewStyle = {
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.23,
+  shadowRadius: 2.62,
+
+  elevation: 4,
+} as const;
+
 export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({
   header,
   onPress,
@@ -27,12 +39,13 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({
   noDivider,
   noInternalSpace,
   children,
+  style,
   ...boxProps
 }) => {
   const pressHandler = useCallback(() => onPress?.(), [onPress]);
 
   return (
-    <View {...boxProps}>
+    <View {...boxProps} style={Object.assign({}, style, onPress ? pressableStyle : {})}>
       <TouchableOpacity onPress={pressHandler} disabled={!onPress}>
         <View bg="white" borderWidth={borderWidth ?? 2} borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.300'} p={16}>
           <VStack space={noInternalSpace ? 0 : 8}>

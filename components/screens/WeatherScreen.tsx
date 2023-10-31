@@ -38,7 +38,7 @@ const StationListScreen = ({route}: NativeStackScreenProps<WeatherStackParamList
     <View style={{...StyleSheet.absoluteFillObject}} bg="white">
       {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
       <SafeAreaView edges={edges} style={{height: '100%', width: '100%'}}>
-        <VStack width="100%" height="100%" justifyContent="space-between" alignItems="stretch" bg="background.base">
+        <VStack width="100%" height="100%" justifyContent="space-between" alignItems="stretch" bg="primary.background">
           <WeatherStationPage {...route.params} />
         </VStack>
       </SafeAreaView>

@@ -116,7 +116,7 @@ export const WeatherStationList: React.FunctionComponent<{
         <Divider />
         <FlatList
           ListEmptyComponent={<NotFound inline terminal what={[new NotFoundError('no weather stations found', 'any matching weather stations')]} />}
-          style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
+          style={{backgroundColor: colorLookup('primary.background'), width: '100%', height: '100%'}}
           data={displayedStations}
           renderItem={renderItem}
         />

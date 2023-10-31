@@ -210,7 +210,7 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
         <SafeAreaView style={{flex: 1, height: '100%'}}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}}>
             <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}} ref={scrollViewRef}>
-              <VStack space={12} backgroundColor={colorLookup('background.base')} pt={4}>
+              <VStack space={12} backgroundColor={colorLookup('primary.background')} pt={4}>
                 <Card
                   borderRadius={0}
                   borderColor="white"
