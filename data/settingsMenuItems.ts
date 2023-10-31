@@ -27,8 +27,12 @@ export const settingsMenuItems: Record<string, {title: string; url: string}[]> =
       url: 'http://www.sawtoothavalanche.com/about/',
     },
     {
-      title: 'Donate',
-      url: 'https://friends.sawtoothavalanche.com/make-a-donation/',
+      title: 'Avalanche Education',
+      url: 'https://www.sawtoothavalanche.com/idaho-avalanche-education-calendar/',
+    },
+    {
+      title: 'Become a Member',
+      url: 'https://friends.sawtoothavalanche.com/memberships/',
     },
     {
       title: 'News and Events',
