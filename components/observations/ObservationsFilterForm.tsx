@@ -145,15 +145,13 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
     label: dateLabelForFilterConfig(config.dates),
   });
 
-  filterFuncs.push(
-    ...config.zones.map(zone => ({
-      filter: (observation: ObservationFragment) => zone === matchesZone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng),
-      label: zone,
-      // If the zone was specified as part of the initialFilterConfig (i.e. we're browsing the Obs tab of a particular zone),
-      // then removeFilter should be undefined since re-setting the filters should keep that zone filter around
-      removeFilter: additionalFilters?.zones ? undefined : (config: ObservationFilterConfig) => ({...config, zone: config.zones.filter(z => z !== zone)}),
-    })),
-  );
+  if (config.zones.length > 0) {
+    filterFuncs.push({
+      filter: (observation: ObservationFragment) => config.zones.includes(matchesZone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng)),
+      removeFilter: additionalFilters?.zones ? undefined : (config: ObservationFilterConfig) => ({...config, zones: []}),
+      label: config.zones.join(', '),
+    });
+  }
 
   filterFuncs.push(
     ...config.observerTypes.map(observerType => ({
