@@ -131,7 +131,7 @@ export const NWACStationList: React.FunctionComponent<{token: string; requestedT
         .map(([k, v]) => ({
           label: k,
           data: v,
-          action: (name: string, data: WeatherStationProperties[]) => {
+          action: ({label, data}: {label: string; data: WeatherStationProperties[]}) => {
             navigation.navigate('stationsDetail', {
               center_id: 'NWAC',
               stations: data
@@ -140,7 +140,7 @@ export const NWACStationList: React.FunctionComponent<{token: string; requestedT
                   accum[value.id] = value.source;
                   return accum;
                 }, {} as Record<string, WeatherStationSource>),
-              name: name,
+              name: label,
               requestedTime: requestedTime,
               zoneName: zone.feature.properties.name,
             });

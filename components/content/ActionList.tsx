@@ -8,7 +8,7 @@ import {colorLookup} from 'theme';
 interface Action<T> {
   label: string;
   data: T;
-  action?: (label: string, data: T) => void;
+  action?: (action: {label: string; data: T}) => void;
   // Someday, might be nice to support nesting
   // children?: Action[];
 }
@@ -21,7 +21,7 @@ export function ActionList<T>({actions, ...props}: ActionListProps<T>) {
   return (
     <VStack {...props}>
       {actions.map(({label, data, action}) => (
-        <TouchableOpacity onPress={() => action && action(label, data)} key={label}>
+        <TouchableOpacity onPress={() => action && action({label, data})} key={label}>
           <HStack borderBottomWidth={1} borderColor={colorLookup('light.300')} py={8} justifyContent="space-between">
             <Body style={{flex: 1, flexGrow: 1}}>{label}</Body>
             <Entypo name={'chevron-small-right'} color={colorLookup('light.300')} size={24} />

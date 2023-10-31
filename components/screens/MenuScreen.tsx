@@ -14,7 +14,6 @@ import {MenuStackNavigationProps, MenuStackParamList, TabNavigationProps, TabNav
 
 import {Divider, HStack, View, VStack} from 'components/core';
 
-import * as Application from 'expo-application';
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
@@ -31,10 +30,10 @@ import {Button} from 'components/content/Button';
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
-import {TableRow} from 'components/observations/ObservationDetailView';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
+import {AboutScreen} from 'components/screens/menu/AboutScreen';
 import {NWACObservationScreen, ObservationScreen} from 'components/screens/ObservationsScreen';
 import {
   AllCapsSm,
@@ -859,25 +858,6 @@ export const AvalancheCenterSelectorScreen = (centers: AvalancheCenters, avalanc
   };
   AvalancheCenterSelectorScreen.displayName = 'AvalancheCenterSelectorScreen';
   return AvalancheCenterSelectorScreen;
-};
-
-export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
-  return (
-    <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
-      <VStack space={8} backgroundColor={colorLookup('background.base')} width="100%" height="100%">
-        <Card marginTop={8} borderRadius={0} borderColor="white" header={<Title3Black>Versions</Title3Black>}>
-          <TableRow label="Application Version" value={Application.nativeApplicationVersion || '<unknown>'} />
-          <TableRow label="Build Version" value={Application.nativeBuildVersion || '<unknown>'} />
-          <TableRow label="Runtime Version" value={Updates.runtimeVersion || '<unknown>'} />
-        </Card>
-        <Card borderRadius={0} borderColor="white" header={<Title3Black>Updates</Title3Black>}>
-          <TableRow label="Update channel" value={Updates.channel || '<unknown>'} />
-          <TableRow label="Revision" value={process.env.EXPO_PUBLIC_GIT_REVISION || '<unknown>'} />
-          <TableRow label="Update ID" value={Updates.updateId || '<unknown>'} />
-        </Card>
-      </VStack>
-    </SafeAreaView>
-  );
 };
 
 export const OutcomeScreen = ({route}: NativeStackScreenProps<MenuStackParamList, 'outcome'>) => {
