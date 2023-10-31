@@ -227,6 +227,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     );
   }
 
+  // Get a count of the number of user-defined filters that can be removed; this is used as the badge count
+  const optionalFilterCount = resolvedFilters.filter(value => value.removeFilter !== undefined).length;
+
   return (
     <VStack width="100%" height="100%" space={0}>
       <Modal visible={filterModalVisible}>
@@ -247,10 +250,10 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           onPress={() => setFilterModalVisible(true)}
           headIcon={<FontAwesome name="sliders" size={bodyXSmSize} color={colorLookup('primary')} style={{marginRight: 2}} />}
           tailIcon={
-            resolvedFilters.length > 1 && (
+            optionalFilterCount > 0 && (
               <Center backgroundColor={colorLookup('primary')} width={14} height={14} borderRadius={7} minWidth={bodyXSmSize}>
                 <BodyXSm color={'white'} fontSize={10} lineHeight={14}>
-                  {resolvedFilters.length - 1}
+                  {optionalFilterCount}
                 </BodyXSm>
               </Center>
             )
@@ -259,15 +262,15 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         <Divider direction="vertical" />
         <ScrollView horizontal style={{width: '100%'}} showsHorizontalScrollIndicator={false}>
           <HStack space={8} py={4} pr={16}>
-            {resolvedFilters.map(({label, removeFilter}) => {
+            {resolvedFilters.map(({label, removeFilter, type: filterType}) => {
               const canBeDeleted = removeFilter !== undefined;
               const textColor = colorLookup('primary');
               const backgroundColor = colorLookup('white');
               const tailIcon = canBeDeleted ? (
                 <MaterialCommunityIcons name="close" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('primary')} />
-              ) : (
+              ) : filterType === 'date' ? (
                 <MaterialCommunityIcons name="chevron-down" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('primary')} />
-              );
+              ) : undefined;
               return (
                 <FilterPillButton
                   key={label}

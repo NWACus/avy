@@ -130,6 +130,7 @@ const matchesAvalancheInstability = (instability: avalancheInstability, observat
 };
 
 interface FilterListItem {
+  type: 'date' | 'zone' | 'observer' | 'instability';
   filter: FilterFunction;
   label: string;
   removeFilter?: (config: ObservationFilterConfig) => ObservationFilterConfig;
@@ -141,12 +142,14 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
 
   const filterFuncs: FilterListItem[] = [];
   filterFuncs.push({
+    type: 'date',
     filter: matchesDates(config.dates),
     label: dateLabelForFilterConfig(config.dates),
   });
 
   if (config.zones.length > 0) {
     filterFuncs.push({
+      type: 'zone',
       filter: (observation: ObservationFragment) => config.zones.includes(matchesZone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng)),
       removeFilter: additionalFilters?.zones ? undefined : (config: ObservationFilterConfig) => ({...config, zones: []}),
       label: config.zones.join(', '),
@@ -154,11 +157,15 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
   }
 
   filterFuncs.push(
-    ...config.observerTypes.map(observerType => ({
-      filter: (observation: ObservationFragment) => observerType === observation.observerType,
-      label: startCase(observerType),
-      removeFilter: (config: ObservationFilterConfig) => ({...config, observerTypes: config.observerTypes.filter(ot => ot !== observerType)}),
-    })),
+    ...config.observerTypes.map(
+      observerType =>
+        ({
+          type: 'observer',
+          filter: (observation: ObservationFragment) => observerType === observation.observerType,
+          label: startCase(observerType),
+          removeFilter: (config: ObservationFilterConfig) => ({...config, observerTypes: config.observerTypes.filter(ot => ot !== observerType)}),
+        } as const),
+    ),
   );
 
   if (config.instability && (config.instability.avalanches || config.instability.cracking || config.instability.collapsing)) {
@@ -174,6 +181,7 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
     }
 
     filterFuncs.push({
+      type: 'instability',
       filter: observation => matchesInstability(config.instability, observation),
       label: labelStrings.map(startCase).join(', '),
       removeFilter: config => ({...config, instability: undefined}),
