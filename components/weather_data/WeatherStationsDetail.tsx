@@ -1,13 +1,14 @@
 import React, {useState} from 'react';
-import {ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
+import {ScrollView} from 'react-native';
 
 import {uniq} from 'lodash';
 
 import {useNavigation} from '@react-navigation/native';
+import {ButtonBar} from 'components/content/ButtonBar';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {Center, Divider, HStack, View, VStack} from 'components/core';
-import {AllCapsSm, Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
+import {Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
 import {compareDesc, format} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
@@ -254,18 +255,20 @@ export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, station
           )}
         </HStack>
         <Divider />
-        <HStack space={16} py={8}>
-          <TouchableOpacity onPress={() => setDays(1)} disabled={days === 1}>
-            <View style={days === 1 ? styles.buttonSelected : styles.button}>
-              <AllCapsSm>24 hour</AllCapsSm>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setDays(7)} disabled={days === 7}>
-            <View style={days === 7 ? styles.buttonSelected : styles.button}>
-              <AllCapsSm>7 day</AllCapsSm>
-            </View>
-          </TouchableOpacity>
-        </HStack>
+        <ButtonBar
+          alignSelf="flex-start"
+          flex={0}
+          items={[
+            {label: '24 hour', value: 1},
+            {label: '7 day', value: 7},
+          ]}
+          selectedItem={days}
+          onSelectionChange={(item: number) => {
+            setDays(item);
+          }}
+          size="small"
+          paddingTop={6}
+        />
         <TimeSeriesTable timeSeries={timeseries} />
         {/* TODO(skuznets): For some reason, the table is running off the bottom of the view, and I just don't have time to keep debugging this.
              Adding the placeholder here does the trick. :dizzy_face: */}
@@ -274,15 +277,3 @@ export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, station
     </VStack>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    borderRadius: 12,
-    padding: 8,
-  },
-  buttonSelected: {
-    borderRadius: 12,
-    backgroundColor: colorLookup('primary.outline'),
-    padding: 8,
-  },
-});
