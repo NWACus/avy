@@ -1,17 +1,17 @@
 import React, {useState} from 'react';
-import {ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
+import {ScrollView} from 'react-native';
 
 import * as Sentry from 'sentry-expo';
 
+import {ButtonBar} from 'components/content/ButtonBar';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {Divider, HStack, View, VStack} from 'components/core';
-import {AllCapsSm, BodyBlack, bodySize} from 'components/text';
+import {BodyBlack, bodySize} from 'components/text';
 import {Column, formatDateTime} from 'components/weather_data/WeatherStationsDetail';
 import {compareDesc} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
-import {colorLookup} from 'theme';
 import {AvalancheCenterID, StationNote, Variable, WeatherStationSource} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {formatInTimeZone, parseRequestedTimeString, RequestedTimeString, utcDateToLocalDateString} from 'utils/date';
@@ -99,18 +99,20 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
           )}
         </HStack>
         <Divider />
-        <HStack space={16} py={8}>
-          <TouchableOpacity onPress={() => setDays(1)} disabled={days === 1}>
-            <View style={days === 1 ? styles.buttonSelected : styles.button}>
-              <AllCapsSm>24 hour</AllCapsSm>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setDays(7)} disabled={days === 7}>
-            <View style={days === 7 ? styles.buttonSelected : styles.button}>
-              <AllCapsSm>7 day</AllCapsSm>
-            </View>
-          </TouchableOpacity>
-        </HStack>
+        <ButtonBar
+          alignSelf="flex-start"
+          flex={0}
+          items={[
+            {label: '24 hour', value: 1},
+            {label: '7 day', value: 7},
+          ]}
+          selectedItem={days}
+          onSelectionChange={(item: number) => {
+            setDays(item);
+          }}
+          size="small"
+          paddingTop={6}
+        />
         <ScrollView style={{width: '100%', height: '100%'}}>
           <ScrollView horizontal style={{width: '100%', height: '100%'}}>
             <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
@@ -133,18 +135,6 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
     </VStack>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    borderRadius: 12,
-    padding: 8,
-  },
-  buttonSelected: {
-    borderRadius: 12,
-    backgroundColor: colorLookup('primary.outline'),
-    padding: 8,
-  },
-});
 
 // the following is adapted from the NAC Vue.js application - unfortunately this is logic that will for the meanwhile
 // live client-side and must be reproduced in all clients that render tables from this data.
