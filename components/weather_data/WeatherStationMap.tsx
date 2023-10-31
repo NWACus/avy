@@ -1,21 +1,67 @@
+import _ from 'lodash';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+
+import centroid from '@turf/centroid';
+import turfClustersDBScan from '@turf/clusters-dbscan';
+import {FeatureCollection, Point, Position, Properties, Units, featureCollection} from '@turf/helpers';
+
 import {useNavigation} from '@react-navigation/native';
-import {MapViewZone, defaultMapRegionForGeometries} from 'components/content/ZoneMap';
-import {HStack, VStack, View} from 'components/core';
-import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
-import {AvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZonePolygon';
-import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
-import {formatData, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
-import {format} from 'date-fns';
-import {LoggerContext, LoggerProps} from 'loggerContext';
-import React, {useRef, useState} from 'react';
 import {View as RNView, StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
 import {default as AnimatedMapView, LatLng, MAP_TYPES, MapMarker, default as MapView, Region} from 'react-native-maps';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Svg, {Circle} from 'react-native-svg';
+
+import {format} from 'date-fns';
+
+import {MapViewZone, defaultMapRegionForGeometries} from 'components/content/ZoneMap';
+import {Center, HStack, VStack, View} from 'components/core';
+import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
+import {AvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZonePolygon';
+import {BodySm, BodySmSemibold, BodyXSm, Title3Black} from 'components/text';
+import {formatData, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {WeatherStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MapLayer, MapLayerFeature, Variable, WeatherStation, WeatherStationCollection, WeatherStationSource} from 'types/nationalAvalancheCenter';
 import {RequestedTime, RequestedTimeString, formatRequestedTime, parseRequestedTimeString} from 'utils/date';
+
+type ClusteredWeatherStation = Omit<WeatherStationCollection['features'][0], 'properties' | 'id'> & {
+  // TODO I think our definition of `id` (number | string | null | undefined) might be overly generic relative to the GeoJSON spec
+  id: string | undefined;
+  properties: WeatherStationCollection['features'][0]['properties'] & {
+    cluster: number | null;
+    dbscan: 'core' | 'edge' | 'noise';
+    clusterCentroid?: Position;
+  };
+};
+
+type ClusteredWeatherStationCollection = Omit<WeatherStationCollection, 'features'> & {
+  features: ClusteredWeatherStation[];
+};
+
+function clustersDBScan(
+  weatherStations: WeatherStationCollection,
+  maxDistance: number,
+  options?: {
+    units?: Units;
+    minPoints?: number;
+    mutate?: boolean;
+  },
+): ClusteredWeatherStationCollection {
+  // Turf's types are not genericized for this function, so we have to explicitly cast the result
+  const result = turfClustersDBScan(weatherStations as FeatureCollection<Point, Properties>, maxDistance, options) as ClusteredWeatherStationCollection;
+
+  // With all features grouped by cluster, calculate the centroid of each cluster and attach it to each feature
+  Object.entries(_.groupBy(result.features, f => f.properties.cluster || -1)).forEach(([cluster, features]) => {
+    if (cluster !== '-1') {
+      const clusterCentroid = centroid(featureCollection(features));
+      features.forEach(f => {
+        f.properties.clusterCentroid = clusterCentroid.geometry.coordinates;
+      });
+    }
+  });
+  return result;
+}
 
 export const WeatherStationMap: React.FunctionComponent<{
   mapLayer: MapLayer;
@@ -47,6 +93,9 @@ export const WeatherStationMap: React.FunctionComponent<{
     },
     [navigation, selectedStationId, requestedTime, center_id],
   );
+  const onPressMapView = useCallback(() => {
+    setSelectedStationId(null);
+  }, []);
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
@@ -69,27 +118,94 @@ export const WeatherStationMap: React.FunctionComponent<{
     fillOpacity: 0.1,
   }));
 
-  const points = React.useMemo(
-    () =>
-      weatherStations?.features
-        ?.map(station => ({
-          station,
-          // Use 1000 as a sentinel value for invalid coordinates
-          latitude: station.geometry.type === 'Point' ? station.geometry.coordinates[1] : 1000,
-          longitude: station.geometry.type === 'Point' ? station.geometry.coordinates[0] : 1000,
+  // Cluster the stations. This generates rough clusters to group things that are widely separated.
+  // Ideas for future refinement:
+  // - Use a second pass of clustering to get tighter clusters within each mega-cluster
+  const clusteredStations = React.useMemo(() => {
+    // Create an initial clustering
+    const firstPass = clustersDBScan(
+      {
+        ...weatherStations,
+        features: weatherStations.features.map(f => ({...f, id: undefined})),
+      },
+      35.0, // kilometers
+      {minPoints: 2},
+    );
+    return firstPass;
+  }, [weatherStations]);
+
+  const sortedStations = React.useMemo(
+    () => ({
+      ...clusteredStations,
+      features: clusteredStations.features
+        .map(f => ({
+          ...f,
+          properties: {
+            ...f.properties,
+            latitudeRow: Math.round(f.geometry.coordinates[1] * 2.0),
+          },
         }))
-        .filter(({latitude, longitude}) => latitude !== 1000 && longitude !== 1000)
-        .map(({station, latitude, longitude}) => (
+        .sort((a, b) => {
+          // Sort by cluster...
+          if (a.properties.cluster !== b.properties.cluster) {
+            if (a.properties.cluster == null && b.properties.cluster != null) {
+              // Sort clustered values ahead of non clustered values
+              return 1;
+            }
+            if (a.properties.cluster != null && b.properties.cluster == null) {
+              // Sort clustered values ahead of non clustered values
+              return -1;
+            }
+            if (a.properties.cluster != null && b.properties.cluster != null) {
+              // Different clusters, but both clustered
+              // Sort clusters roughly left to right
+              // It's b - a because longitude is negative in North America
+              return (b.properties.clusterCentroid?.at(0) || 0) - (a.properties.clusterCentroid?.at(0) || 0);
+            }
+          }
+          // ...then top to bottom in strips based on latitude...
+          const rowDiff = b.properties.latitudeRow - a.properties.latitudeRow;
+          if (rowDiff !== 0) {
+            return rowDiff;
+          }
+          // ...then left to right based on longitude
+          return a.geometry.coordinates[0] - b.geometry.coordinates[0];
+        }),
+    }),
+    [clusteredStations],
+  );
+
+  const markers = React.useMemo(
+    () =>
+      sortedStations.features.map(station => {
+        return (
           <WeatherStationMarker
             key={station.properties.stid}
             selected={station.properties.stid === selectedStationId}
-            coordinate={{latitude, longitude}}
+            coordinate={{latitude: station.geometry.coordinates[1], longitude: station.geometry.coordinates[0]}}
             onPressMarker={onPressMarker}
             station={station}
+            cluster={station.properties.cluster}
           />
-        )),
-    [weatherStations, selectedStationId, onPressMarker],
+        );
+      }),
+    [sortedStations, selectedStationId, onPressMarker],
   );
+
+  useEffect(() => {
+    const station = sortedStations.features.find(station => station.properties.stid === selectedStationId);
+    if (station) {
+      mapView.current?.animateCamera(
+        {
+          center: {
+            longitude: station.geometry.coordinates[0],
+            latitude: station.geometry.coordinates[1],
+          },
+        },
+        {duration: 250},
+      );
+    }
+  }, [selectedStationId, sortedStations]);
 
   return (
     <>
@@ -99,13 +215,14 @@ export const WeatherStationMap: React.FunctionComponent<{
         onLayout={() => {
           setReady(true);
         }}
+        onPress={onPressMapView}
         provider={'google'}
         mapType={MAP_TYPES.TERRAIN}
         zoomEnabled={true}
         scrollEnabled={true}
         initialRegion={avalancheCenterMapRegion}>
         {ready && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={false} renderFillColor={true} />)}
-        {ready && points}
+        {ready && markers}
       </MapView.Animated>
       <SafeAreaView>
         <View>
@@ -142,24 +259,23 @@ export const WeatherStationMap: React.FunctionComponent<{
         key={center_id}
         center_id={center_id}
         date={parseRequestedTimeString(requestedTime)}
-        stations={weatherStations}
+        stations={sortedStations}
         selectedStationId={selectedStationId}
         setSelectedStationId={setSelectedStationId}
         controller={controller}
-        buttonOnPress={() => {
-          toggleList();
-        }}
+        buttonOnPress={process.env.EXPO_PUBLIC_WEATHER_STATION_LIST_TOGGLE ? toggleList : undefined}
       />
     </>
   );
 };
 
-const WeatherStationMarker: React.FC<{station: WeatherStation; selected: boolean; coordinate: LatLng; onPressMarker: (station: WeatherStation) => void}> = ({
-  station,
-  selected,
-  coordinate,
-  onPressMarker,
-}) => {
+const WeatherStationMarker: React.FC<{
+  station: WeatherStation;
+  selected: boolean;
+  coordinate: LatLng;
+  onPressMarker: (station: WeatherStation) => void;
+  cluster: number | null | undefined;
+}> = ({station, selected, coordinate, onPressMarker, cluster}) => {
   // We set tracksViewChanges={false} for maximum performance, but that means that we need to manually
   // trigger redraws of a marker when the selected state changes.
   const markerRef = useRef<MapMarker>(null);
@@ -185,8 +301,15 @@ const WeatherStationMarker: React.FC<{station: WeatherStation; selected: boolean
       draggable={false}
       tracksViewChanges={false}
       tracksInfoWindowChanges={false}
-      anchor={{x: 0.5, y: 0.5}}>
-      {iconForSource(station.properties.source, selected)}
+      anchor={{x: 0.5, y: 0.5}}
+      zIndex={selected ? 100 : 0}>
+      {process.env.EXPO_PUBLIC_WEATHER_STATION_MAP_CLUSTER_DEBUG ? (
+        <Center width={32} height={16} bg={cluster != null ? 'yellow' : 'red'} borderRadius={4} borderWidth={selected ? 1 : 0} borderColor="magenta">
+          <BodyXSm>{cluster != null ? cluster : 'x'}</BodyXSm>
+        </Center>
+      ) : (
+        iconForSource(station.properties.source, selected)
+      )}
     </MapMarker>
   );
 };
@@ -198,20 +321,20 @@ export const WeatherStationCards: React.FunctionComponent<{
   selectedStationId: string | null;
   setSelectedStationId: React.Dispatch<React.SetStateAction<string | null>>;
   controller: AnimatedMapWithDrawerController;
-  buttonOnPress: () => void;
+  buttonOnPress?: () => void;
 }> = ({center_id, date, stations, selectedStationId, setSelectedStationId, controller, buttonOnPress}) => {
   return AnimatedCards<WeatherStation, string>({
-    center_id: center_id,
-    date: date,
+    center_id,
+    date,
     items: stations.features,
     getItemId: station => station.properties.stid,
     selectedItemId: selectedStationId,
     setSelectedItemId: setSelectedStationId,
-    controller: controller,
+    controller,
     renderItem: ({date, center_id, item}) => (
       <WeatherStationCard mode={'map'} center_id={center_id} date={date} station={item} units={stations.properties.units} variables={stations.properties.variables} />
     ),
-    buttonOnPress: buttonOnPress,
+    buttonOnPress,
   });
 };
 

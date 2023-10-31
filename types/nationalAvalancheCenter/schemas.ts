@@ -1219,6 +1219,14 @@ export const featureSchema = <T extends z.ZodTypeAny, U extends z.ZodTypeAny>(pr
     properties: propertiesSchema,
   });
 
+export const pointFeatureSchema = <T extends z.ZodTypeAny, U extends z.ZodTypeAny>(propertiesSchema: T, idSchema: U) =>
+  geoJsonObjectSchema.extend({
+    type: z.literal('Feature'),
+    geometry: pointSchema,
+    id: idSchema,
+    properties: propertiesSchema,
+  });
+
 export const featureCollectionSchema = <T extends z.ZodTypeAny>(featureSchema: T) =>
   geoJsonObjectSchema.extend({
     type: z.literal('FeatureCollection'),
@@ -1354,7 +1362,7 @@ export const weatherStationCollectionPropertiesSchema = z.object({
   units: unitSchema,
 });
 
-export const weatherStationSchema = featureSchema(weatherStationPropertiesSchema, z.number().or(z.string()).nullable().optional());
+export const weatherStationSchema = pointFeatureSchema(weatherStationPropertiesSchema, z.number().or(z.string()).nullable().optional());
 export type WeatherStation = z.infer<typeof weatherStationSchema>;
 export const weatherStationCollectionSchema = featureCollectionSchema(weatherStationSchema).extend({
   properties: weatherStationCollectionPropertiesSchema,
