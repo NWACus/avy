@@ -142,7 +142,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
 
     return (
       <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh} />}>
-        <VStack space={8} backgroundColor={colorLookup('background.base')}>
+        <VStack space={8} backgroundColor={colorLookup('primary.background')}>
           <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
             <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
               <VStack space={8} style={{flex: 1}}>
@@ -247,7 +247,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
 
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh} />}>
-      <VStack space={8} backgroundColor={colorLookup('background.base')}>
+      <VStack space={8} backgroundColor={colorLookup('primary.background')}>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>} noDivider>
           <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
             <VStack space={8} style={{flex: 1}}>
@@ -333,37 +333,38 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
             </View>
           </Card>
         ))}
-        <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Data</Title3Black>}>
-          <VStack>
-            {groupedWeatherStations.length > 0 && (
-              <ActionList
-                actions={groupedWeatherStations.map(([name, stations]) => ({
-                  label: name,
-                  data: stations,
-                  action: () => {
-                    navigation.navigate('stationsDetail', {
-                      center_id: center_id,
-                      stations: stations
-                        .map(s => ({id: s.stid, source: s.source}))
-                        .reduce((accum, value) => {
-                          accum[value.id] = value.source;
-                          return accum;
-                        }, {} as Record<string, WeatherStationSource>),
-                      name: name,
-                      requestedTime: formatRequestedTime(requestedTime),
-                      zoneName: zone.name,
-                    });
-                  },
-                }))}
-              />
-            )}
-            {groupedWeatherStations.length === 0 && (
-              <HStack py={6}>
-                <Body>No weather stations in this zone.</Body>
-              </HStack>
-            )}
-          </VStack>
-        </Card>
+        <VStack>
+          {groupedWeatherStations.length > 0 && (
+            <ActionList
+              pl={16}
+              backgroundColor="white"
+              header={<Title3Black>Weather Data</Title3Black>}
+              actions={groupedWeatherStations.map(([name, stations]) => ({
+                label: name,
+                data: stations,
+                action: () => {
+                  navigation.navigate('stationsDetail', {
+                    center_id: center_id,
+                    stations: stations
+                      .map(s => ({id: s.stid, source: s.source}))
+                      .reduce((accum, value) => {
+                        accum[value.id] = value.source;
+                        return accum;
+                      }, {} as Record<string, WeatherStationSource>),
+                    name: name,
+                    requestedTime: formatRequestedTime(requestedTime),
+                    zoneName: zone.name,
+                  });
+                },
+              }))}
+            />
+          )}
+          {groupedWeatherStations.length === 0 && (
+            <HStack py={6}>
+              <Body>No weather stations in this zone.</Body>
+            </HStack>
+          )}
+        </VStack>
         <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Synopsis</Title3Black>} startsCollapsed={true}>
           <HTML source={{html: nwacForecast.mountain_weather_forecast.synopsis_day1_day2}} />
         </CollapsibleCard>

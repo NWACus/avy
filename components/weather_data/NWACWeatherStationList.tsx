@@ -4,15 +4,15 @@ import {ScrollView} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {Logger} from 'browser-bunyan';
 import {ActionList} from 'components/content/ActionList';
-import {Card} from 'components/content/Card';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {VStack} from 'components/core';
 import {featureBounds, pointInFeature, RegionBounds} from 'components/helpers/geographicCoordinates';
-import {Title3Black} from 'components/text';
+import {BodyBlack} from 'components/text';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {WeatherStackNavigationProps} from 'routes';
+import {colorLookup} from 'theme';
 import {MapLayer, MapLayerFeature, WeatherStationCollection, WeatherStationProperties, WeatherStationSource} from 'types/nationalAvalancheCenter';
 import {RequestedTimeString} from 'utils/date';
 
@@ -150,12 +150,10 @@ export const NWACStationList: React.FunctionComponent<{token: string; requestedT
     }))
     .filter(d => d.actions.length > 0);
   return (
-    <ScrollView style={{width: '100%', height: '100%'}}>
-      <VStack space={8}>
+    <ScrollView style={{width: '100%', height: '100%', backgroundColor: colorLookup('primary.background')}}>
+      <VStack space={10}>
         {data.map((d, i) => (
-          <Card borderRadius={0} borderColor="white" header={<Title3Black>{d.zoneName}</Title3Black>} key={i}>
-            <ActionList actions={d.actions} />
-          </Card>
+          <ActionList header={<BodyBlack>{d.zoneName}</BodyBlack>} actions={d.actions} key={i} bg="white" pl={16} />
         ))}
       </VStack>
     </ScrollView>

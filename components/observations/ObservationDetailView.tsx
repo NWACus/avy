@@ -210,7 +210,7 @@ export const ObservationCard: React.FunctionComponent<{
       <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
         <VStack space={8} backgroundColor="white" style={{height: '100%', width: '100%'}}>
           <ScrollView style={{height: '100%', width: '100%'}}>
-            <VStack space={8} backgroundColor={colorLookup('background.base')}>
+            <VStack space={8} backgroundColor={colorLookup('primary.background')}>
               <View bg="white" py={8} px={16}>
                 <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
                   <VStack space={8} style={{flex: 1}}>

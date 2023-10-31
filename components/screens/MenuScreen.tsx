@@ -122,49 +122,51 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
         {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
         <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
           <ScrollView style={{width: '100%', height: '100%'}}>
-            <VStack width="100%" height="100%" justifyContent="flex-start" alignItems="stretch" bg="background.base" pt={4} px={4} space={4}>
+            <VStack width="100%" height="100%" justifyContent="flex-start" alignItems="stretch" bg={colorLookup('primary.background')} space={10}>
               <Card borderRadius={0} borderColor="white" header={<Title3Black>More</Title3Black>} noDivider>
                 <Body>
                   {data?.name && `${data.name} `}({userFacingCenterId(avalancheCenterId)})
                 </Body>
               </Card>
-              <View py={16} px={32}>
+              <View py={12} px={32}>
                 <Button buttonStyle="primary" onPress={() => void sendMail({to: 'developer+app-feedback@nwac.us', subject: 'NWAC app feedback', logger})}>
                   <BodyBlack>Submit App Feedback</BodyBlack>
                 </Button>
               </View>
-              <Card borderRadius={0} borderColor="white" header={<BodyBlack>Settings</BodyBlack>}>
-                <ActionList
-                  actions={[
-                    {
-                      label: 'Select avalanche center',
-                      data: 'Center',
-                      action: () => {
-                        navigation.navigate('avalancheCenterSelector', {debugMode: false});
-                      },
+              <ActionList
+                header={<BodyBlack>Settings</BodyBlack>}
+                bg="white"
+                pl={16}
+                actions={[
+                  {
+                    label: 'Select avalanche center',
+                    data: 'Center',
+                    action: () => {
+                      navigation.navigate('avalancheCenterSelector', {debugMode: false});
                     },
-                    {
-                      label: 'About Avy',
-                      data: 'About',
-                      action: () => {
-                        navigation.navigate('about');
-                      },
+                  },
+                  {
+                    label: 'About Avy',
+                    data: 'About',
+                    action: () => {
+                      navigation.navigate('about');
                     },
-                  ]}
-                />
-              </Card>
+                  },
+                ]}
+              />
               {menuItems && menuItems.length > 0 && (
-                <Card borderRadius={0} borderColor="white" header={<BodyBlack>General</BodyBlack>}>
-                  <ActionList
-                    actions={menuItems.map(item => ({
-                      label: item.title,
-                      data: item.title,
-                      action: () => {
-                        void WebBrowser.openBrowserAsync(item.url);
-                      },
-                    }))}
-                  />
-                </Card>
+                <ActionList
+                  header={<BodyBlack>General</BodyBlack>}
+                  bg="white"
+                  pl={16}
+                  actions={menuItems.map(item => ({
+                    label: item.title,
+                    data: item.title,
+                    action: () => {
+                      void WebBrowser.openBrowserAsync(item.url);
+                    },
+                  }))}
+                />
               )}
               {Updates.channel !== 'release' && (
                 <CollapsibleCard
@@ -176,6 +178,8 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                     <Card borderRadius={0} borderColor="white" header={<BodyBlack>Debug Settings</BodyBlack>}>
                       <VStack space={12}>
                         <ActionList
+                          bg="white"
+                          pl={16}
                           actions={[
                             {
                               label: 'Select avalanche center (debug)',
@@ -292,306 +296,310 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                         />
                       </VStack>
                     </Card>
-                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Design Previews</BodyBlack>}>
-                      <ActionList
-                        actions={[
-                          {
-                            label: 'Open button style preview',
-                            data: 'Button Style Preview',
-                            action: () => {
-                              navigation.navigate('buttonStylePreview');
-                            },
+                    <ActionList
+                      header={<BodyBlack>Design Previews</BodyBlack>}
+                      bg="white"
+                      pl={16}
+                      actions={[
+                        {
+                          label: 'Open button style preview',
+                          data: 'Button Style Preview',
+                          action: () => {
+                            navigation.navigate('buttonStylePreview');
                           },
-                          {
-                            label: 'Open text style preview',
-                            data: 'Text Style Preview',
-                            action: () => {
-                              navigation.navigate('textStylePreview');
-                            },
+                        },
+                        {
+                          label: 'Open text style preview',
+                          data: 'Text Style Preview',
+                          action: () => {
+                            navigation.navigate('textStylePreview');
                           },
-                          {
-                            label: 'Open toast preview',
-                            data: 'Toast Preview',
-                            action: () => {
-                              navigation.navigate('toastPreview');
-                            },
+                        },
+                        {
+                          label: 'Open toast preview',
+                          data: 'Toast Preview',
+                          action: () => {
+                            navigation.navigate('toastPreview');
                           },
-                          {
-                            label: 'Open avalanche component preview',
-                            action: () => {
-                              navigation.navigate('avalancheComponentPreview');
-                            },
-                            data: undefined,
+                        },
+                        {
+                          label: 'Open avalanche component preview',
+                          action: () => {
+                            navigation.navigate('avalancheComponentPreview');
                           },
-                        ]}
-                      />
-                    </Card>
-                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Screens</BodyBlack>}>
-                      <ActionList
-                        actions={[
-                          {
-                            label: 'View map layer with active warning',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('avalancheCenter', {
-                                center_id: 'NWAC',
-                                requestedTime: toISOStringUTC(new Date('2023-02-20T5:21:00-0800')),
-                              });
-                            },
+                          data: undefined,
+                        },
+                      ]}
+                    />
+                    <ActionList
+                      header={<BodyBlack>Screens</BodyBlack>}
+                      bg="white"
+                      pl={16}
+                      actions={[
+                        {
+                          label: 'View map layer with active warning',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('avalancheCenter', {
+                              center_id: 'NWAC',
+                              requestedTime: toISOStringUTC(new Date('2023-02-20T5:21:00-0800')),
+                            });
                           },
-                          {
-                            label: 'View forecast with active warning',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('forecast', {
-                                zoneName: 'West Slopes Central',
-                                center_id: 'NWAC',
-                                forecast_zone_id: 1130,
-                                requestedTime: toISOStringUTC(new Date('2023-02-20T5:21:00-0800')),
-                              });
-                            },
+                        },
+                        {
+                          label: 'View forecast with active warning',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('forecast', {
+                              zoneName: 'West Slopes Central',
+                              center_id: 'NWAC',
+                              forecast_zone_id: 1130,
+                              requestedTime: toISOStringUTC(new Date('2023-02-20T5:21:00-0800')),
+                            });
                           },
-                          {
-                            label: 'View forecast with active watch',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('forecast', {
-                                zoneName: 'Northwest Mountains',
-                                center_id: 'CBAC',
-                                forecast_zone_id: 298,
-                                requestedTime: toISOStringUTC(new Date('2023-03-21T5:21:00-0800')),
-                              });
-                            },
+                        },
+                        {
+                          label: 'View forecast with active watch',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('forecast', {
+                              zoneName: 'Northwest Mountains',
+                              center_id: 'CBAC',
+                              forecast_zone_id: 298,
+                              requestedTime: toISOStringUTC(new Date('2023-03-21T5:21:00-0800')),
+                            });
                           },
-                          {
-                            label: 'View forecast with active special bulletin',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('forecast', {
-                                zoneName: 'Northwest Mountains',
-                                center_id: 'CBAC',
-                                forecast_zone_id: 298,
-                                requestedTime: toISOStringUTC(new Date('2022-02-25T5:21:00-0800')),
-                              });
-                            },
+                        },
+                        {
+                          label: 'View forecast with active special bulletin',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('forecast', {
+                              zoneName: 'Northwest Mountains',
+                              center_id: 'CBAC',
+                              forecast_zone_id: 298,
+                              requestedTime: toISOStringUTC(new Date('2022-02-25T5:21:00-0800')),
+                            });
                           },
-                          {
-                            label: 'View forecast with synopsis', // TODO(skuznets): move this to BTAC or something that uses blogs still
-                            data: null,
-                            action: () => {
-                              navigation.navigate('forecast', {
-                                zoneName: 'West Slopes Central',
-                                center_id: 'NWAC',
-                                forecast_zone_id: 1130,
-                                requestedTime: toISOStringUTC(new Date('2022-04-10T5:21:00-0800')),
-                              });
-                            },
+                        },
+                        {
+                          label: 'View forecast with synopsis', // TODO(skuznets): move this to BTAC or something that uses blogs still
+                          data: null,
+                          action: () => {
+                            navigation.navigate('forecast', {
+                              zoneName: 'West Slopes Central',
+                              center_id: 'NWAC',
+                              forecast_zone_id: 1130,
+                              requestedTime: toISOStringUTC(new Date('2022-04-10T5:21:00-0800')),
+                            });
                           },
-                          // TODO(skuznets): choose a recent forecast that's a summary
-                          {
-                            label: 'View forecast with standard row/column weather forecast',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('forecast', {
-                                zoneName: 'Galena Summit & Eastern Mtns',
-                                center_id: 'SNFAC',
-                                forecast_zone_id: 714,
-                                requestedTime: toISOStringUTC(new Date('2023-04-13T5:21:00-0800')),
-                              });
-                            },
+                        },
+                        // TODO(skuznets): choose a recent forecast that's a summary
+                        {
+                          label: 'View forecast with standard row/column weather forecast',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('forecast', {
+                              zoneName: 'Galena Summit & Eastern Mtns',
+                              center_id: 'SNFAC',
+                              forecast_zone_id: 714,
+                              requestedTime: toISOStringUTC(new Date('2023-04-13T5:21:00-0800')),
+                            });
                           },
-                          {
-                            label: 'View forecast with custom row/column weather forecast',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('forecast', {
-                                zoneName: 'Tetons',
-                                center_id: 'BTAC',
-                                forecast_zone_id: 1329,
-                                requestedTime: toISOStringUTC(new Date('2023-05-01T21:21:00-0000')),
-                              });
-                            },
+                        },
+                        {
+                          label: 'View forecast with custom row/column weather forecast',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('forecast', {
+                              zoneName: 'Tetons',
+                              center_id: 'BTAC',
+                              forecast_zone_id: 1329,
+                              requestedTime: toISOStringUTC(new Date('2023-05-01T21:21:00-0000')),
+                            });
                           },
-                          {
-                            label: 'View forecast with another custom row/column weather forecast',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('forecast', {
-                                zoneName: 'Central Sierra Nevada',
-                                center_id: 'SAC',
-                                forecast_zone_id: 77,
-                                requestedTime: toISOStringUTC(new Date('2023-04-08T14:21:00-0000')),
-                              });
-                            },
+                        },
+                        {
+                          label: 'View forecast with another custom row/column weather forecast',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('forecast', {
+                              zoneName: 'Central Sierra Nevada',
+                              center_id: 'SAC',
+                              forecast_zone_id: 77,
+                              requestedTime: toISOStringUTC(new Date('2023-04-08T14:21:00-0000')),
+                            });
                           },
-                          {
-                            label: 'View forecast with inline weather forecast',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('forecast', {
-                                zoneName: 'Galena Summit & Eastern Mtns',
-                                center_id: 'SNFAC',
-                                forecast_zone_id: 714,
-                                requestedTime: toISOStringUTC(new Date('2020-04-08T5:21:00-0800')),
-                              });
-                            },
+                        },
+                        {
+                          label: 'View forecast with inline weather forecast',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('forecast', {
+                              zoneName: 'Galena Summit & Eastern Mtns',
+                              center_id: 'SNFAC',
+                              forecast_zone_id: 714,
+                              requestedTime: toISOStringUTC(new Date('2020-04-08T5:21:00-0800')),
+                            });
                           },
-                          {
-                            label: 'View expired forecast',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('forecast', {
-                                zoneName: 'West Slopes Central',
-                                center_id: 'NWAC',
-                                forecast_zone_id: 1130,
-                                requestedTime: toISOStringUTC(new Date('2023-02-01T5:21:00-0800')),
-                              });
-                            },
+                        },
+                        {
+                          label: 'View expired forecast',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('forecast', {
+                              zoneName: 'West Slopes Central',
+                              center_id: 'NWAC',
+                              forecast_zone_id: 1130,
+                              requestedTime: toISOStringUTC(new Date('2023-02-01T5:21:00-0800')),
+                            });
                           },
-                          {
-                            label: "View a forecast we can't find",
-                            data: null,
-                            action: () => {
-                              navigation.navigate('forecast', {
-                                zoneName: 'West Slopes Central',
-                                center_id: 'NWAC',
-                                forecast_zone_id: 1130,
-                                requestedTime: toISOStringUTC(new Date('2000-01-01T00:00:00-0800')),
-                              });
-                            },
+                        },
+                        {
+                          label: "View a forecast we can't find",
+                          data: null,
+                          action: () => {
+                            navigation.navigate('forecast', {
+                              zoneName: 'West Slopes Central',
+                              center_id: 'NWAC',
+                              forecast_zone_id: 1130,
+                              requestedTime: toISOStringUTC(new Date('2000-01-01T00:00:00-0800')),
+                            });
                           },
-                        ]}
-                      />
-                    </Card>
-                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Observations</BodyBlack>}>
-                      <ActionList
-                        actions={[
-                          {
-                            label: '1: simple',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('observation', {
-                                id: '65450a80-1f57-468b-a51e-8c19789e0fab',
-                              });
-                            },
+                        },
+                      ]}
+                    />
+                    <ActionList
+                      header={<BodyBlack>Observations</BodyBlack>}
+                      bg="white"
+                      pl={16}
+                      actions={[
+                        {
+                          label: '1: simple',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('observation', {
+                              id: '65450a80-1f57-468b-a51e-8c19789e0fab',
+                            });
                           },
-                          {
-                            label: '2: simple',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('observation', {
-                                id: '249e927f-aa0e-4e93-90fc-c9a54bc480d8',
-                              });
-                            },
+                        },
+                        {
+                          label: '2: simple',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('observation', {
+                              id: '249e927f-aa0e-4e93-90fc-c9a54bc480d8',
+                            });
                           },
-                          {
-                            label: '3: simple: icons',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('observation', {
-                                id: '441f400b-56ac-498c-8754-f9d407796a82',
-                              });
-                            },
+                        },
+                        {
+                          label: '3: simple: icons',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('observation', {
+                              id: '441f400b-56ac-498c-8754-f9d407796a82',
+                            });
                           },
-                          {
-                            label: '4: complex: weather',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('observation', {
-                                id: 'b8d347d1-7597-47be-9247-adc117100a69',
-                              });
-                            },
+                        },
+                        {
+                          label: '4: complex: weather',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('observation', {
+                              id: 'b8d347d1-7597-47be-9247-adc117100a69',
+                            });
                           },
-                          {
-                            label: '5: complex: weather, snowpack',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('observation', {
-                                id: '2d2f37b4-f46b-4ef2-967d-b018d41d0f2d',
-                              });
-                            },
+                        },
+                        {
+                          label: '5: complex: weather, snowpack',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('observation', {
+                              id: '2d2f37b4-f46b-4ef2-967d-b018d41d0f2d',
+                            });
                           },
-                          {
-                            label: '6: complex: snowpack',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('observation', {
-                                id: '999d1e0c-154e-43f8-b15f-6585eac4d985',
-                              });
-                            },
+                        },
+                        {
+                          label: '6: complex: snowpack',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('observation', {
+                              id: '999d1e0c-154e-43f8-b15f-6585eac4d985',
+                            });
                           },
-                          {
-                            label: '7: complex: avalanches',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('observation', {
-                                id: '4b80e7fc-0011-4fdf-8d86-f2534c1d981c',
-                              });
-                            },
+                        },
+                        {
+                          label: '7: complex: avalanches',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('observation', {
+                              id: '4b80e7fc-0011-4fdf-8d86-f2534c1d981c',
+                            });
                           },
-                          {
-                            label: '8: complex: avalanches',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('observation', {
-                                id: '5910e9e7-fe6e-46de-af08-9df9be9192e2',
-                              });
-                            },
+                        },
+                        {
+                          label: '8: complex: avalanches',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('observation', {
+                              id: '5910e9e7-fe6e-46de-af08-9df9be9192e2',
+                            });
                           },
-                          {
-                            label: 'NWAC pro observation with avalanches',
-                            data: null,
-                            action: () => {
-                              navigation.navigate('nwacObservation', {
-                                id: '20312',
-                              });
-                            },
+                        },
+                        {
+                          label: 'NWAC pro observation with avalanches',
+                          data: null,
+                          action: () => {
+                            navigation.navigate('nwacObservation', {
+                              id: '20312',
+                            });
                           },
-                        ]}
-                      />
-                    </Card>
-                    <Card borderRadius={0} borderColor="white" header={<BodyBlack>Components</BodyBlack>}>
-                      <ActionList
-                        actions={[
-                          {
-                            label: 'View connection lost outcome',
-                            data: 'Connection Lost',
-                            action: () => {
-                              navigation.navigate('outcome', {
-                                which: 'connection',
-                              });
-                            },
+                        },
+                      ]}
+                    />
+                    <ActionList
+                      header={<BodyBlack>Components</BodyBlack>}
+                      bg="white"
+                      pl={16}
+                      actions={[
+                        {
+                          label: 'View connection lost outcome',
+                          data: 'Connection Lost',
+                          action: () => {
+                            navigation.navigate('outcome', {
+                              which: 'connection',
+                            });
                           },
-                          {
-                            label: 'View terminal error outcome',
-                            data: 'Terminal Error',
-                            action: () => {
-                              navigation.navigate('outcome', {
-                                which: 'terminal-error',
-                              });
-                            },
+                        },
+                        {
+                          label: 'View terminal error outcome',
+                          data: 'Terminal Error',
+                          action: () => {
+                            navigation.navigate('outcome', {
+                              which: 'terminal-error',
+                            });
                           },
-                          {
-                            label: 'View retryable error outcome',
-                            data: 'Retryable Error',
-                            action: () => {
-                              navigation.navigate('outcome', {
-                                which: 'retryable-error',
-                              });
-                            },
+                        },
+                        {
+                          label: 'View retryable error outcome',
+                          data: 'Retryable Error',
+                          action: () => {
+                            navigation.navigate('outcome', {
+                              which: 'retryable-error',
+                            });
                           },
-                          {
-                            label: 'View not found outcome',
-                            data: 'Not Found',
-                            action: () => {
-                              navigation.navigate('outcome', {
-                                which: 'not-found',
-                              });
-                            },
+                        },
+                        {
+                          label: 'View not found outcome',
+                          data: 'Not Found',
+                          action: () => {
+                            navigation.navigate('outcome', {
+                              which: 'not-found',
+                            });
                           },
-                        ]}
-                      />
-                    </Card>
+                        },
+                      ]}
+                    />
                   </VStack>
                 </CollapsibleCard>
               )}

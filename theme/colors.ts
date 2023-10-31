@@ -23,7 +23,7 @@ export const COLORS: Record<string, ColorValue> = {
   'primary.hover': rgbaToHexString('rgba(64, 169, 255, 1)'),
   'primary.active': rgbaToHexString('rgba(9, 109, 217, 1)'),
   'primary.outline': rgbaToHexString('rgba(24, 144, 255, 0.2)'),
-  'primary.background': rgbaToHexString('rgba(246, 248, 252, 1)'),
+  'primary.background': rgbaToHexString('rgba(246, 248, 252, 1)'), // aka #F6F8FC
   'primary.border': rgbaToHexString('rgba(24, 144, 255, 0.2)'), // TODO: need to get this from the designers
   //
   // UI

@@ -60,7 +60,7 @@ export const SynopsisTab: React.FunctionComponent<SynopsisTabProps> = ({center_i
 
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh} />}>
-      <VStack space={8} backgroundColor={colorLookup('background.base')}>
+      <VStack space={8} backgroundColor={colorLookup('primary.background')}>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>{center.config.blog_title ?? 'Conditions Blog'}</Title3Black>}>
           <HStack justifyContent="space-evenly" space={8}>
             <VStack space={8} style={{flex: 1}}>

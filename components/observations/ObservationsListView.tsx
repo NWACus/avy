@@ -338,7 +338,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           )
         }
         contentContainerStyle={{flexGrow: 1}}
-        style={{backgroundColor: colorLookup('background.base'), width: '100%', height: '100%'}}
+        style={{backgroundColor: colorLookup('primary.background'), width: '100%', height: '100%'}}
         refreshing={isRefreshing}
         onRefresh={() => void refresh()}
         getItemLayout={(_data, index) => ({
