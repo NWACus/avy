@@ -1,6 +1,6 @@
 import React, {PropsWithChildren, ReactElement, useState} from 'react';
 
-import {TouchableOpacity} from 'react-native';
+import {TextStyle, TouchableOpacity} from 'react-native';
 
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, BodySemibold} from 'components/text';
@@ -32,9 +32,10 @@ export const TabControl: React.FunctionComponent<TabControlProps> = ({children, 
   const tabStyle = {
     width: `${Math.round(10000.0 / tabCount) / 100}%`,
   } as const;
-  const textStyle = {
+  const textStyle: TextStyle = {
     textAlign: 'center',
     paddingVertical: 8,
+    width: `${100 / React.Children.count(children)}%`,
   } as const;
 
   return (
@@ -68,11 +69,13 @@ export const TabControl: React.FunctionComponent<TabControlProps> = ({children, 
               <Center>
                 <View borderColor={selected ? selectedTextColor : backgroundColor} borderBottomWidth={4} borderRadius={0}>
                   {selected ? (
-                    <BodySemibold color={selectedTextColor} style={textStyle}>
+                    <BodySemibold color={selectedTextColor} style={textStyle} numberOfLines={1}>
                       {child.props.title}
                     </BodySemibold>
                   ) : (
-                    <Body style={textStyle}>{child.props.title}</Body>
+                    <Body style={textStyle} numberOfLines={1}>
+                      {child.props.title}
+                    </Body>
                   )}
                 </View>
               </Center>
