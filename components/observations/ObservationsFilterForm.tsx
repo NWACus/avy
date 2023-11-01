@@ -37,13 +37,9 @@ const observationFilterConfigSchema = z.object({
     to: z.date(),
   }),
   observerTypes: z.array(z.nativeEnum(PartnerType)),
-  instability: z
-    .object({
-      avalanches: avalancheInstabilitySchema.optional(),
-      cracking: z.boolean().optional(),
-      collapsing: z.boolean().optional(),
-    })
-    .optional(),
+  avalanches: z.array(avalancheInstabilitySchema),
+  cracking: z.boolean(),
+  collapsing: z.boolean(),
 });
 
 export type ObservationFilterConfig = z.infer<typeof observationFilterConfigSchema>;
@@ -65,6 +61,9 @@ export const createDefaultFilterConfig = (requestedTime: RequestedTime, defaults
   return {
     zones: [],
     observerTypes: [],
+    avalanches: [],
+    cracking: false,
+    collapsing: false,
     dates: {
       value: 'current_season',
       ...currentSeasonDates(requestedTime),
@@ -94,43 +93,27 @@ const matchesDates = (dates: z.infer<typeof observationFilterConfigSchema.shape.
   return (observation: ObservationFragment) => isAfter(parseISO(observation.createdAt), startDate) && isBefore(parseISO(observation.createdAt), endDate);
 };
 
-const matchesInstability = (instability: z.infer<typeof observationFilterConfigSchema.shape.instability>, observation: ObservationFragment): boolean => {
-  let matches = false;
-  if (!instability) {
-    return matches;
-  }
-  if (instability.avalanches) {
-    matches = matches || matchesAvalancheInstability(instability.avalanches, observation);
-  }
+const matchesInstability = ({cracking, collapsing}: {cracking: boolean; collapsing: boolean}, observation: ObservationFragment): boolean =>
+  !!((cracking && observation.instability?.cracking) || (collapsing && observation.instability?.collapsing));
 
-  if (instability.cracking) {
-    matches = matches || (observation.instability.cracking ?? false);
-  }
-
-  if (instability.collapsing) {
-    matches = matches || (observation.instability.collapsing ?? false);
-  }
-
-  return matches;
-};
-
-const matchesAvalancheInstability = (instability: avalancheInstability, observation: ObservationFragment): boolean => {
-  switch (instability) {
-    case 'observed':
-      return observation.instability?.avalanches_observed ?? false;
-    case 'triggered':
-      return observation.instability?.avalanches_triggered ?? false;
-    case 'caught':
-      return observation.instability?.avalanches_caught ?? false;
-  }
-
-  const invalid: never = instability;
-  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-  throw new Error(`Unknown instability: ${invalid}`);
+const matchesAvalanches = (avalanches: avalancheInstability[], observation: ObservationFragment): boolean => {
+  return avalanches.some(avalanche => {
+    switch (avalanche) {
+      case 'observed':
+        return observation.instability?.avalanches_observed ?? false;
+      case 'triggered':
+        return observation.instability?.avalanches_triggered ?? false;
+      case 'caught':
+        return observation.instability?.avalanches_caught ?? false;
+    }
+    const invalid: never = avalanche;
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    throw new Error(`Unknown instability: ${invalid}`);
+  });
 };
 
 interface FilterListItem {
-  type: 'date' | 'zone' | 'observer' | 'instability';
+  type: 'date' | 'zone' | 'observer' | 'instability' | 'avalanche';
   filter: FilterFunction;
   label: string;
   removeFilter?: (config: ObservationFilterConfig) => ObservationFilterConfig;
@@ -156,35 +139,38 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
     });
   }
 
-  filterFuncs.push(
-    ...config.observerTypes.map(
-      observerType =>
-        ({
-          type: 'observer',
-          filter: (observation: ObservationFragment) => observerType === observation.observerType,
-          label: startCase(observerType),
-          removeFilter: (config: ObservationFilterConfig) => ({...config, observerTypes: config.observerTypes.filter(ot => ot !== observerType)}),
-        } as const),
-    ),
-  );
+  if (config.observerTypes.length > 0) {
+    filterFuncs.push({
+      type: 'observer',
+      filter: (observation: ObservationFragment) => config.observerTypes.includes(observation.observerType),
+      removeFilter: (config: ObservationFilterConfig) => ({...config, observerTypes: []}),
+      label: config.observerTypes.map(startCase).join(', '),
+    });
+  }
 
-  if (config.instability && (config.instability.avalanches || config.instability.cracking || config.instability.collapsing)) {
+  if (config.avalanches.length > 0) {
+    filterFuncs.push({
+      type: 'avalanche',
+      filter: (observation: ObservationFragment) => matchesAvalanches(config.avalanches, observation),
+      removeFilter: (config: ObservationFilterConfig) => ({...config, avalanches: []}),
+      label: config.avalanches.map(startCase).join(', '),
+    });
+  }
+
+  if (config.cracking || config.collapsing) {
     const labelStrings: string[] = [];
-    if (config.instability.avalanches) {
-      labelStrings.push(`avalanches ${config.instability.avalanches}`);
-    }
-    if (config.instability.cracking) {
+    if (config.cracking) {
       labelStrings.push('cracking');
     }
-    if (config.instability.collapsing) {
+    if (config.collapsing) {
       labelStrings.push('collapsing');
     }
 
     filterFuncs.push({
       type: 'instability',
-      filter: observation => matchesInstability(config.instability, observation),
+      filter: observation => matchesInstability(config, observation),
       label: labelStrings.map(startCase).join(', '),
-      removeFilter: config => ({...config, instability: undefined}),
+      removeFilter: config => ({...config, cracking: false, collapsing: false}),
     });
   }
 
@@ -399,7 +385,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     <BodyBlack>Avalanches</BodyBlack>
                   </View>
                   <CheckboxSelectField
-                    name="instability.avalanches"
+                    name="avalanches"
                     items={[
                       {value: 'observed', label: 'Observed'},
                       {value: 'triggered', label: 'Triggered'},
@@ -411,7 +397,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     <BodyBlack>Snowpack Cracking</BodyBlack>
                   </View>
                   <SwitchField
-                    name="instability.cracking"
+                    name="cracking"
                     items={[
                       {label: 'No', value: false},
                       {label: 'Yes', value: true},
@@ -423,7 +409,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     <BodyBlack>Snowpack Collapsing</BodyBlack>
                   </View>
                   <SwitchField
-                    name="instability.collapsing"
+                    name="collapsing"
                     items={[
                       {label: 'No', value: false},
                       {label: 'Yes', value: true},

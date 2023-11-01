@@ -333,7 +333,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           } else if (observations.length > 0 && observationsResult.isFetchingNextPage) {
             return (
               <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
-                <ActivityIndicator size={'large'} color={colorLookup('textColor')} />
+                <ActivityIndicator size={'large'} color={colorLookup('text.secondary')} />
               </Center>
             );
           } else {
@@ -343,7 +343,10 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         ListEmptyComponent={
           moreDataAvailable ? (
             <Center height={'100%'}>
-              <ActivityIndicator size={'large'} color={colorLookup('textColor')} />
+              <VStack alignItems="center" space={8}>
+                <ActivityIndicator size={'large'} color={colorLookup('text.secondary')} />
+                <BodySm color={colorLookup('text.secondary')}>Searching for matching observations...</BodySm>
+              </VStack>
             </Center>
           ) : (
             <Center height={'100%'} bg="white">
