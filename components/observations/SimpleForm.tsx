@@ -178,13 +178,12 @@ export const SimpleForm: React.FC<{
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
-      aspect: [4, 3],
-      quality: 1,
-      orderedSelection: true,
-      selectionLimit: maxImageCount,
       exif: true,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+      quality: 0.2,
+      selectionLimit: maxImageCount,
     });
 
     if (!result.canceled) {
