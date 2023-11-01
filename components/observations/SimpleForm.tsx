@@ -25,7 +25,7 @@ import {TextField} from 'components/form/TextField';
 import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskStatus} from 'components/observations/uploader/Task';
-import {Body, BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
+import {Body, BodyBlack, BodySemibold, BodySm, Title3Semibold} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
@@ -172,6 +172,9 @@ export const SimpleForm: React.FC<{
     // Returning true marks the event as processed
     return true;
   });
+
+  const [imagePermissions] = ImagePicker.useMediaLibraryPermissions();
+  const missingImagePermissions = imagePermissions !== null && !imagePermissions.granted && !imagePermissions.canAskAgain;
 
   const maxImageCount = 8;
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
@@ -513,7 +516,7 @@ export const SimpleForm: React.FC<{
                       <Button
                         buttonStyle="normal"
                         onPress={() => void pickImage()}
-                        disabled={images.length === maxImageCount || disableFormControls}
+                        disabled={images.length === maxImageCount || disableFormControls || missingImagePermissions}
                         renderChildren={({textColor}) => (
                           <HStack alignItems="center" space={4}>
                             <MaterialIcons name="add" size={24} color={textColor} style={{marginTop: 1}} />
@@ -521,6 +524,9 @@ export const SimpleForm: React.FC<{
                           </HStack>
                         )}
                       />
+                      {missingImagePermissions && (
+                        <BodySm color={colorLookup('error.900')}>We need permission to access your photos to upload images. Please check your system settings.</BodySm>
+                      )}
                     </VStack>
                   </Card>
 
