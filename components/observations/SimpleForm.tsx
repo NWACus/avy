@@ -5,6 +5,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useMutation} from '@tanstack/react-query';
 import {AxiosError} from 'axios';
 import * as ImagePicker from 'expo-image-picker';
+import _ from 'lodash';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FieldErrors, FormProvider, useForm, useWatch} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
@@ -60,7 +61,7 @@ export const SimpleForm: React.FC<{
     }
   }, [cracking, formContext]);
 
-  const fieldRefs = useRef<{ref: RNView; field: keyof ObservationFormData}[]>([]);
+  const fieldRefs = useRef<{ref: RNView; field: string}[]>([]);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
@@ -141,7 +142,8 @@ export const SimpleForm: React.FC<{
     logger.error({errors: errors, formValues: formContext.getValues()}, 'submit error');
     // scroll to the first field with an error
     fieldRefs.current.some(({ref, field}) => {
-      if (errors[field] && scrollViewRef.current) {
+      // field can be a nested path like `instability.collapsing_description`, so we use _.get to get the value
+      if (_.get(errors, field) && scrollViewRef.current) {
         const handle = findNodeHandle(scrollViewRef.current);
         if (handle) {
           ref.measureLayout(
@@ -399,6 +401,11 @@ export const SimpleForm: React.FC<{
                           ]}
                           prompt=" "
                           disabled={disableFormControls}
+                          ref={element => {
+                            if (element) {
+                              fieldRefs.current.push({field: 'instability.cracking_description', ref: element});
+                            }
+                          }}
                         />
                       </Conditional>
                       <SwitchField
@@ -421,6 +428,11 @@ export const SimpleForm: React.FC<{
                           ]}
                           prompt=" "
                           disabled={disableFormControls}
+                          ref={element => {
+                            if (element) {
+                              fieldRefs.current.push({field: 'instability.collapsing_description', ref: element});
+                            }
+                          }}
                         />
                       </Conditional>
                     </VStack>
