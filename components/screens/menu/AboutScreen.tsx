@@ -13,7 +13,6 @@ import * as WebBrowser from 'expo-web-browser';
 import {Ionicons} from '@expo/vector-icons';
 
 import {ActionList} from 'components/content/ActionList';
-import {Button} from 'components/content/Button';
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
 import {MenuStackParamList} from 'routes';
@@ -30,12 +29,6 @@ const getUpdateGroupId = (): string => {
 export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
   const buildDate = Updates.createdAt || new Date();
   const [updateGroupId] = useState(getUpdateGroupId());
-  const [updateAvailable, setUpdateAvailable] = useState(false);
-  Updates.useUpdateEvents(event => {
-    if (event.type === Updates.UpdateEventType.UPDATE_AVAILABLE) {
-      setUpdateAvailable(true);
-    }
-  });
   return (
     <View style={StyleSheet.absoluteFillObject}>
       <VStack backgroundColor="white" width="100%" height="100%" pt={16} justifyContent="space-between">
@@ -60,44 +53,37 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
             ]}
           />
         </VStack>
-        <VStack space={16} px={32}>
-          {updateAvailable && (
-            <Button buttonStyle="primary" onPress={() => void (async () => await Updates.reloadAsync())()}>
-              <BodyBlack>Update available</BodyBlack>
-            </Button>
-          )}
-          <HStack space={4}>
-            <VStack py={8} space={4}>
+        <HStack space={4} px={32}>
+          <VStack py={8} space={4}>
+            <BodyXSm>
+              Avy version {Application.nativeApplicationVersion} ({Application.nativeBuildVersion}) | {toISOStringUTC(buildDate)} |{' '}
+              {(process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a').slice(0, 7)}
+            </BodyXSm>
+            {updateGroupId && (
               <BodyXSm>
-                Avy version {Application.nativeApplicationVersion} ({Application.nativeBuildVersion}) | {toISOStringUTC(buildDate)} |{' '}
-                {(process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a').slice(0, 7)}
+                Update: {updateGroupId} ({Updates.channel || 'development'})
               </BodyXSm>
-              {updateGroupId && (
-                <BodyXSm>
-                  Update: {updateGroupId} ({Updates.channel || 'development'})
-                </BodyXSm>
-              )}
-            </VStack>
-            <Ionicons.Button
-              name="copy-outline"
-              size={12}
-              color="black"
-              style={{backgroundColor: 'white'}}
-              iconStyle={{marginRight: 0}}
-              onPress={() => {
-                void (async () => {
-                  await Clipboard.setStringAsync(
-                    `Avy version ${Application.nativeApplicationVersion || 'n/a'} (${Application.nativeBuildVersion || 'n/a'})
+            )}
+          </VStack>
+          <Ionicons.Button
+            name="copy-outline"
+            size={12}
+            color="black"
+            style={{backgroundColor: 'white'}}
+            iconStyle={{marginRight: 0}}
+            onPress={() => {
+              void (async () => {
+                await Clipboard.setStringAsync(
+                  `Avy version ${Application.nativeApplicationVersion || 'n/a'} (${Application.nativeBuildVersion || 'n/a'})
 Build date ${toISOStringUTC(buildDate)}
 Git revision ${process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a'}
 Update group ID ${updateGroupId} (channel: ${Updates.channel || 'development'})
 Update ID ${Updates.updateId || 'n/a'} (platform: ${Platform.OS})`,
-                  );
-                })();
-              }}
-            />
-          </HStack>
-        </VStack>
+                );
+              })();
+            }}
+          />
+        </HStack>
       </VStack>
     </View>
   );
