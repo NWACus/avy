@@ -20,6 +20,7 @@ import {toISOStringUTC} from 'utils/date';
 
 export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
   const buildDate = Updates.createdAt || new Date();
+  const updateGroupId = Updates.manifest?.id || 'n/a';
   return (
     <View style={StyleSheet.absoluteFillObject}>
       <VStack backgroundColor="white" width="100%" height="100%" pt={16} justifyContent="space-between">
@@ -53,6 +54,11 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
             {Updates.updateId && (
               <BodyXSm>
                 Update: {Updates.updateId.slice(0, 18)} ({Updates.channel || 'development'})
+              </BodyXSm>
+            )}
+            {updateGroupId && (
+              <BodyXSm>
+                Update (group): {updateGroupId} ({Updates.channel || 'development'})
               </BodyXSm>
             )}
           </VStack>
