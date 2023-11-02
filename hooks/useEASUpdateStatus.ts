@@ -55,8 +55,6 @@ export const useEASUpdateStatus = () => {
         setUpdateStatus('checking-for-update');
         // the debounced method should block until the timeout elapses
         const updateAvailable = await checkUpdateAvailable();
-        // check again and make sure we're still in the idle state before
-        // changing to the update-available state
         if (updateAvailable) {
           setUpdateStatus('update-available');
         } else {
