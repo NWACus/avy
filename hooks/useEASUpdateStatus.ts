@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 
 import * as Updates from 'expo-updates';
-import _ from 'lodash';
 
 import {useNetInfo} from '@react-native-community/netinfo';
 import {useAppState} from 'hooks/useAppState';
@@ -9,8 +8,8 @@ import {logger as parentLogger} from 'logger';
 
 const logger = parentLogger.child({component: 'useEASUpdate'});
 
-const updateAvailable = async (): Promise<boolean> => {
-  logger.debug('checking for updates');
+const checkUpdateAvailable = async (): Promise<boolean> => {
+  logger.trace('checking for updates');
   try {
     const result = await Updates.checkForUpdateAsync();
     if (result.isAvailable) {
@@ -18,14 +17,10 @@ const updateAvailable = async (): Promise<boolean> => {
       return true;
     }
   } catch (error) {
-    logger.debug('error checking for updates', {error});
+    logger.trace('error checking for updates', {error});
   }
   return false;
 };
-
-// When returning to foreground, don't look for updates more frequently than every 5 minutes
-const UPDATE_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
-const updateAvailableDebounced = _.debounce(updateAvailable, UPDATE_REFRESH_INTERVAL_MS, {leading: true});
 
 // When this hook is mounted, it will do the following:
 //
@@ -46,7 +41,7 @@ export const useEASUpdateStatus = () => {
   // Wrapper to keep the state value and the ref in sync
   const setUpdateStatus = useCallback(
     (status: EASUpdateStatus) => {
-      logger.debug('update status changed', {status});
+      logger.trace('update status changed', {status});
       updateStatusRef.current = status;
       setUpdateStatusState(status);
     },
@@ -59,7 +54,7 @@ export const useEASUpdateStatus = () => {
         logger.debug('appState changed to active, checking for updates');
         setUpdateStatus('checking-for-update');
         // the debounced method should block until the timeout elapses
-        const updateAvailable = (await updateAvailableDebounced()) || false;
+        const updateAvailable = await checkUpdateAvailable();
         // check again and make sure we're still in the idle state before
         // changing to the update-available state
         if (updateAvailable) {
