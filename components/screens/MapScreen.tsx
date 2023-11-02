@@ -27,7 +27,7 @@ export const MapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'a
 
   const {center_id, requestedTime} = route.params;
   return (
-    <View style={{...styles.container, borderWidth: 8, borderColor: color}}>
+    <View style={{...styles.container, borderWidth: 4, borderColor: color}}>
       <AvalancheForecastZoneMap center={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />
     </View>
   );
