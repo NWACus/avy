@@ -4,10 +4,13 @@ import {StyleSheet, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
 import {AvalancheForecastZoneMap} from 'components/AvalancheForecastZoneMap';
+import {useEASUpdateChecker} from 'hooks/useEASUpdateChecker';
 import {HomeStackParamList} from 'routes';
 import {parseRequestedTimeString} from 'utils/date';
 
 export const MapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'avalancheCenter'>) => {
+  useEASUpdateChecker();
+
   const {center_id, requestedTime} = route.params;
   return (
     <View style={{...styles.container}}>
