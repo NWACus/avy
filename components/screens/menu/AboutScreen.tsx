@@ -20,7 +20,7 @@ import {toISOStringUTC} from 'utils/date';
 
 export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
   const buildDate = Updates.createdAt || new Date();
-  const updateGroupId = Updates.manifest?.id || 'n/a';
+  const updateGroupId = Updates.manifest?.metadata ? JSON.stringify(Updates.manifest.metadata, null, 2) : 'n/a';
   return (
     <View style={StyleSheet.absoluteFillObject}>
       <VStack backgroundColor="white" width="100%" height="100%" pt={16} justifyContent="space-between">
