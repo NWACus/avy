@@ -18,10 +18,11 @@ import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer, useNavigationContainerRef} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
-import {AppState, AppStateStatus, Platform, StatusBar, StyleSheet, UIManager, useColorScheme, View} from 'react-native';
+import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, UIManager, useColorScheme, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import * as BackgroundFetch from 'expo-background-fetch';
+import Constants from 'expo-constants';
 import * as TaskManager from 'expo-task-manager';
 import * as Sentry from 'sentry-expo';
 
@@ -62,9 +63,10 @@ import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 import * as messages from 'compiled-lang/en.json';
+import {Center} from 'components/core';
 import KillSwitchMonitor from 'components/KillSwitchMonitor';
 import {filterLoggedData} from 'logging/filterLoggedData';
-import {updateCheck, UpdateStatus} from 'Updates';
+import {startupUpdateCheck, UpdateStatus} from 'Updates';
 
 logger.info('App starting.');
 
@@ -116,7 +118,10 @@ axios.interceptors.response.use(response => {
 });
 
 // The SplashScreen stays up until we've loaded all of our fonts and other assets
-void SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync().catch((error: Error) => {
+  // We really don't care about these errors, they're common and not actionable
+  logger.debug('SplashScreen.preventAutoHideAsync threw error, ignoring', {error});
+});
 
 if (Sentry?.init) {
   const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
@@ -310,11 +315,31 @@ const BaseApp: React.FunctionComponent<{
 
   const navigationRef = useNavigationContainerRef();
 
-  // Hide the splash screen after fonts load and updates are applied.
-  // TODO: for maximum seamlessness, hide it after the map view is ready
+  const [splashScreenVisible, setSplashScreenVisible] = useState(true);
+  useEffect(() => {
+    // Hide the splash screen, but bake in a delay so that we are ready to render a view
+    // that looks just like it
+    if (splashScreenVisible) {
+      setSplashScreenVisible(false);
+      setTimeout(
+        () =>
+          void (async () => {
+            try {
+              await SplashScreen.hideAsync();
+            } catch (error) {
+              // We really don't care about these errors, they're common and not actionable
+              logger.debug({error}, 'Error from SplashScreen.hideAsync, ignoring');
+            }
+          })(),
+        500,
+      );
+    }
+  }, [splashScreenVisible, setSplashScreenVisible, logger]);
+
+  // Check for updates
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('checking');
   useEffect(() => {
-    updateCheck()
+    startupUpdateCheck()
       .then(setUpdateStatus)
       .catch((error: Error) => {
         logger.error({error}, 'Unexpected error checking for updates');
@@ -323,24 +348,31 @@ const BaseApp: React.FunctionComponent<{
       });
   }, [setUpdateStatus, logger]);
 
-  const [splashScreenState, setSplashScreenState] = React.useState<'visible' | 'hiding' | 'hidden'>('visible');
-  useEffect(() => {
-    void (async () => {
-      if (fontsLoaded && updateStatus === 'ready' && splashScreenState === 'visible') {
-        setSplashScreenState('hiding');
-        try {
-          await SplashScreen.hideAsync();
-        } catch (error) {
-          logger.error({error}, 'Error from SplashScreen.hideAsync');
-        }
-        setSplashScreenState('hidden');
-      }
-    })();
-  }, [fontsLoaded, logger, splashScreenState, setSplashScreenState, updateStatus]);
-
-  if (!fontsLoaded || splashScreenState !== 'hidden' || updateStatus !== 'ready') {
-    // The splash screen keeps rendering while fonts are loading or updates are in progress
-    return null;
+  if (!fontsLoaded || updateStatus !== 'ready') {
+    // Here, we render a view that looks exactly like the splash screen but now has an activity indicator
+    return (
+      <View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            backgroundColor: Constants.expoConfig?.splash?.backgroundColor,
+          },
+        ]}>
+        <Image
+          style={{
+            width: '100%',
+            height: '100%',
+            resizeMode: Constants.expoConfig?.splash?.resizeMode || 'contain',
+          }}
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          source={require('./assets/splash.png')}
+        />
+        <Center style={{position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
+          <ActivityIndicator size="large" style={{marginTop: 200}} />
+        </Center>
+      </View>
+    );
   }
 
   return (
