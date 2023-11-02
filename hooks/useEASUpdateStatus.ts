@@ -69,11 +69,11 @@ export const useEASUpdateStatus = () => {
         }
       }
     })();
-  }, [appState, netInfo, setUpdateStatus, updateStatusRef]);
+  }, [appState, netInfo, setUpdateStatus]);
 
   useEffect(() => {
     void (async () => {
-      if (updateStatusRef.current === 'update-available') {
+      if (updateStatusState === 'update-available') {
         logger.info('update available, downloading');
         setUpdateStatus('downloading-update');
         try {
@@ -86,7 +86,7 @@ export const useEASUpdateStatus = () => {
         }
       }
     })();
-  }, [updateStatusRef, setUpdateStatus]);
+  }, [updateStatusState, setUpdateStatus]);
 
   return updateStatusState;
 };
