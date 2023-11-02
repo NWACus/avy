@@ -62,7 +62,7 @@ export const useEASUpdateStatus = () => {
         const updateAvailable = (await updateAvailableDebounced()) || false;
         // check again and make sure we're still in the idle state before
         // changing to the update-available state
-        if (updateAvailable && updateStatusRef.current === 'idle') {
+        if (updateAvailable) {
           setUpdateStatus('update-available');
         } else {
           setUpdateStatus('idle');
