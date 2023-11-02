@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 import {Select, SelectRef, SelectStyles} from '@mobile-reality/react-native-select-pro';
 import {VStack} from 'components/core';
 import {BodySmBlack, BodyXSm, bodySize} from 'components/text';
@@ -106,7 +108,11 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
           const newValue = Array.isArray(field.value) ? field.value.filter(v => v !== removedValue) : '';
           setValue(name, newValue, {shouldValidate: false, shouldDirty: false, shouldTouch: false});
         }}
-        styles={selectStyles}
+        styles={_.merge({}, selectStyles, {
+          optionsList: {
+            minHeight: Math.min(10, menuItems.length) * 40,
+          },
+        })}
         // Setting `scrollToSelectedOption` based on https://github.com/MobileReality/react-native-select-pro/issues/230
         // Seems to fix problem with items not showing up in list
         scrollToSelectedOption={false}
