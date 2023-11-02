@@ -16,8 +16,10 @@ import * as WebBrowser from 'expo-web-browser';
 import {Ionicons} from '@expo/vector-icons';
 import {ActionList} from 'components/content/ActionList';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
+import {toISOStringUTC} from 'utils/date';
 
 export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
+  const buildDate = Updates.createdAt || new Date();
   return (
     <View style={StyleSheet.absoluteFillObject}>
       <VStack backgroundColor="white" width="100%" height="100%" pt={16} justifyContent="space-between">
@@ -45,7 +47,8 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
         <HStack space={4} px={32}>
           <VStack py={8} space={4}>
             <BodyXSm>
-              Avy version {Application.nativeApplicationVersion} ({Application.nativeBuildVersion}) | {(process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a').slice(0, 7)}
+              Avy version {Application.nativeApplicationVersion} ({Application.nativeBuildVersion}) | {toISOStringUTC(buildDate)} |{' '}
+              {(process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a').slice(0, 7)}
             </BodyXSm>
             {Updates.updateId && (
               <BodyXSm>
@@ -62,9 +65,10 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
             onPress={() => {
               void (async () => {
                 await Clipboard.setStringAsync(
-                  `Avy version ${Application.nativeApplicationVersion || 'n/a'} (${Application.nativeBuildVersion || 'n/a'})\nGit revision ${
-                    process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a'
-                  }\nUpdate ${Updates.updateId || 'n/a'} (${Updates.channel || 'development'})`,
+                  `Avy version ${Application.nativeApplicationVersion || 'n/a'} (${Application.nativeBuildVersion || 'n/a'})
+Build date ${toISOStringUTC(buildDate)}
+Git revision ${process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a'}
+Update ID ${Updates.updateId || 'n/a'} (${Updates.channel || 'development'})`,
                 );
               })();
             }}
