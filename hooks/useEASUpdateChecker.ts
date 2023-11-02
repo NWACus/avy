@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 
 import * as Updates from 'expo-updates';
 import _ from 'lodash';
@@ -6,18 +6,15 @@ import _ from 'lodash';
 import {useNetInfo} from '@react-native-community/netinfo';
 import {useAppState} from 'hooks/useAppState';
 import {logger as parentLogger} from 'logger';
-import {Alert} from 'react-native';
 
 const logger = parentLogger.child({component: 'useEASUpdate'});
 
-const tryCheckForUpdates = async (): Promise<boolean> => {
+const updateAvailable = async (): Promise<boolean> => {
   logger.debug('checking for updates');
   try {
     const result = await Updates.checkForUpdateAsync();
     if (result.isAvailable) {
       logger.info('update available, downloading');
-      await Updates.fetchUpdateAsync();
-      logger.info('update downloaded');
       return true;
     }
   } catch (error) {
@@ -28,7 +25,7 @@ const tryCheckForUpdates = async (): Promise<boolean> => {
 
 // When returning to foreground, don't look for updates more frequently than every 5 minutes
 const UPDATE_REFRESH_INTERVAL_MS = 0; // 5 * 60 * 1000;
-const tryCheckForUpdatesWithDebounce = _.debounce(tryCheckForUpdates, UPDATE_REFRESH_INTERVAL_MS, {leading: true});
+const updateAvailableDebounced = _.debounce(updateAvailable, UPDATE_REFRESH_INTERVAL_MS, {leading: true});
 
 // When this hook is mounted, it will do the following:
 //
@@ -39,40 +36,57 @@ const tryCheckForUpdatesWithDebounce = _.debounce(tryCheckForUpdates, UPDATE_REF
 //
 // The checks are throttled to only happen every UPDATE_REFRESH_INTERVAL_MS
 //
+type UpdateStatus = 'idle' | 'checking-for-update' | 'update-available' | 'downloading-update' | 'update-downloaded';
 export const useEASUpdateChecker = () => {
-  const [updateAvailable, setUpdateAvailable] = React.useState(false);
+  const updateStatusRef = React.useRef<UpdateStatus>('idle');
+  const [updateStatusState, setUpdateStatusState] = React.useState<UpdateStatus>(updateStatusRef.current);
   const appState = useAppState();
-
-  useEffect(() => {
-    void (async () => {
-      if (appState === 'active') {
-        logger.debug('appState changed to active, checking for updates');
-        setUpdateAvailable((await tryCheckForUpdatesWithDebounce()) || false);
-      }
-    })();
-  }, [appState, setUpdateAvailable]);
-
   const netInfo = useNetInfo();
+
+  // Wrapper to keep the state value and the ref in sync
+  const setUpdateStatus = useCallback(
+    (status: UpdateStatus) => {
+      logger.debug('update status changed', {status});
+      updateStatusRef.current = status;
+      setUpdateStatusState(status);
+    },
+    [setUpdateStatusState],
+  );
+
   useEffect(() => {
     void (async () => {
-      if (netInfo.isConnected && netInfo.isInternetReachable) {
-        logger.debug('network online, checking for updates');
-        setUpdateAvailable((await tryCheckForUpdatesWithDebounce()) || false);
+      if (updateStatusRef.current === 'idle' && appState === 'active' && netInfo.isConnected && netInfo.isInternetReachable) {
+        logger.debug('appState changed to active, checking for updates');
+        setUpdateStatus('checking-for-update');
+        // the debounced method should block until the timeout elapses
+        const updateAvailable = (await updateAvailableDebounced()) || false;
+        // check again and make sure we're still in the idle state before
+        // changing to the update-available state
+        if (updateAvailable && updateStatusRef.current === 'idle') {
+          setUpdateStatus('update-available');
+        } else {
+          setUpdateStatus('idle');
+        }
       }
     })();
-  }, [netInfo, setUpdateAvailable]);
+  }, [appState, netInfo, setUpdateStatus, updateStatusRef]);
 
   useEffect(() => {
-    if (updateAvailable) {
-      logger.info('update available, reloading');
-      Alert.alert('Update Available', 'A new version of the app is available. Press OK to apply the update.', [
-        {
-          text: 'OK',
-          onPress: () => void Updates.reloadAsync(),
-        },
-      ]);
-    }
-  }, [updateAvailable]);
+    void (async () => {
+      if (updateStatusRef.current === 'update-available') {
+        logger.info('update available, downloading');
+        setUpdateStatus('downloading-update');
+        try {
+          await Updates.fetchUpdateAsync();
+          logger.info('download success!');
+          setUpdateStatus('update-downloaded');
+        } catch (error) {
+          logger.warn({error}, 'error downloading update');
+          setUpdateStatus('idle');
+        }
+      }
+    })();
+  }, [updateStatusRef, setUpdateStatus]);
 
-  return updateAvailable;
+  return updateStatusState;
 };
