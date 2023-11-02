@@ -5,6 +5,7 @@ import * as Updates from 'expo-updates';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
+import {useIsFocused} from '@react-navigation/native';
 import {AvalancheForecastZoneMap} from 'components/AvalancheForecastZoneMap';
 import {useEASUpdateStatus} from 'hooks/useEASUpdateStatus';
 import {HomeStackParamList} from 'routes';
@@ -12,9 +13,10 @@ import {parseRequestedTimeString} from 'utils/date';
 
 export const MapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'avalancheCenter'>) => {
   const updateStatus = useEASUpdateStatus();
+  const isActiveScreen = useIsFocused();
 
   useEffect(() => {
-    if (updateStatus === 'update-downloaded') {
+    if (updateStatus === 'update-downloaded' && isActiveScreen) {
       Alert.alert('Update Available', 'A new version of the app is available. Press OK to apply the update.', [
         {
           text: 'OK',
@@ -22,7 +24,7 @@ export const MapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'a
         },
       ]);
     }
-  }, [updateStatus]);
+  }, [isActiveScreen, updateStatus]);
 
   const {center_id, requestedTime} = route.params;
   return (
