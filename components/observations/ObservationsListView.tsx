@@ -27,6 +27,7 @@ import {
   Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   ScrollView,
   SectionList,
   SectionListRenderItemInfo,
@@ -369,8 +370,10 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         {/* Padding numbers are carefully chosen to center things, and to make the button perfectly round
         when the text is hidden. Expo icons are never vertically centered correctly by default for some reason. */}
         <Button buttonStyle="primary" onPress={submit} borderRadius={32} paddingHorizontal={13}>
-          {/* setting the key property to force re-render of the HStack when showSubmitButtonText changes */}
-          <HStack alignItems="center" space={4} key={showSubmitButtonText ? 'show' : 'hide'} pt={4} pl={1} pr={1}>
+          {/* setting the key property to force re-render of the HStack when showSubmitButtonText change.
+          also, I hate the platform specific padding value here but I don't have time to dig into the rendering differences right now.
+           */}
+          <HStack alignItems="center" space={4} key={showSubmitButtonText ? 'show' : 'hide'} pt={Platform.OS === 'android' ? 0 : 4} pl={1} pr={1}>
             <MaterialIcons name="add" size={24} color="white" />
             {showSubmitButtonText && <BodySmBlack color="white">Submit</BodySmBlack>}
           </HStack>

@@ -69,6 +69,7 @@ import {updateCheck, UpdateStatus} from 'Updates';
 logger.info('App starting.');
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  logger.info('enabling android layout animations');
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
