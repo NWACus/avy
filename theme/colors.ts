@@ -19,7 +19,7 @@ export const COLORS: Record<string, ColorValue> = {
   // NWAC colors
   //
   // Primary
-  primary: rgbaToHexString('rgba(9, 109, 217, 1)'),
+  primary: rgbaToHexString('rgba(9, 109, 217, 1)'), // aka Core/primary-blue in Figma
   'primary.hover': rgbaToHexString('rgba(64, 169, 255, 1)'),
   'primary.active': rgbaToHexString('rgba(9, 109, 217, 1)'),
   'primary.outline': rgbaToHexString('rgba(24, 144, 255, 0.2)'),

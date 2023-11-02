@@ -6,10 +6,10 @@ import {KeysMatching} from 'components/form/TextField';
 import {LocationPoint, ObservationFormData} from 'components/observations/ObservationFormData';
 import {Body, BodySmBlack, BodyXSm, Title3Black, bodySize} from 'components/text';
 import {useMapLayer} from 'hooks/useMapLayer';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {Image, Modal, View as RNView, TouchableOpacity} from 'react-native';
-import {Region} from 'react-native-maps';
+import {Modal, View as RNView, TouchableOpacity, TouchableWithoutFeedback} from 'react-native';
+import MapView, {LatLng, MapMarker, Region} from 'react-native-maps';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -20,6 +20,9 @@ interface LocationFieldProps {
   center: AvalancheCenterID;
   disabled?: boolean;
 }
+
+const latLngToLocationPoint = (latLng: LatLng) => ({lat: latLng.latitude, lng: latLng.longitude});
+const locationPointToLatLng = (locationPoint: LocationPoint) => ({latitude: locationPoint.lat, longitude: locationPoint.lng});
 
 export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center, disabled}, ref) => {
   const {
@@ -32,17 +35,11 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   const mapLayer = mapLayerResult.data;
   const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
   const [mapReady, setMapReady] = useState<boolean>(false);
+  const mapRef = useRef<MapView>(null);
 
   const toggleModal = useCallback(() => {
     setModalVisible(!modalVisible);
   }, [modalVisible, setModalVisible]);
-
-  const onChangeRegion = useCallback(
-    (region: Region) => {
-      field.onChange({lat: region.latitude, lng: region.longitude});
-    },
-    [field],
-  );
 
   const value: LocationPoint | undefined = field.value as LocationPoint | undefined;
 
@@ -57,7 +54,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
       setInitialRegion(initialRegion);
       setMapReady(true);
     }
-  }, [mapLayer, setInitialRegion, onChangeRegion, value, mapReady, setMapReady]);
+  }, [mapLayer, setInitialRegion, value, mapReady, setMapReady]);
 
   const zones: MapViewZone[] =
     mapLayer?.features.map(feature => ({
@@ -108,22 +105,27 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                 <Center width="100%" height="100%">
                   {incompleteQueryState(mapLayerResult) && <QueryState results={[mapLayerResult]} />}
                   {mapReady && (
-                    <>
+                    <TouchableWithoutFeedback
+                      onPress={event => {
+                        void (async () => {
+                          const point = {x: event.nativeEvent.locationX, y: event.nativeEvent.locationY};
+                          const coordinate = await mapRef.current?.coordinateForPoint(point);
+                          if (coordinate) {
+                            field.onChange(latLngToLocationPoint(coordinate));
+                          }
+                        })();
+                      }}>
                       <ZoneMap
+                        ref={mapRef}
                         animated={false}
                         style={{width: '100%', height: '100%'}}
                         zones={zones}
                         initialRegion={initialRegion}
-                        onRegionChange={onChangeRegion}
-                        onRegionChangeComplete={onChangeRegion}
                         onPressPolygon={() => undefined}
-                        renderFillColor={false}
-                      />
-                      <Center width="100%" height="100%" position="absolute" backgroundColor={undefined} pointerEvents="none">
-                        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
-                        <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40, transform: [{translateY: -20}]}} />
-                      </Center>
-                    </>
+                        renderFillColor={false}>
+                        {field.value != null && <MapMarker coordinate={locationPointToLatLng(field.value as LocationPoint)} />}
+                      </ZoneMap>
+                    </TouchableWithoutFeedback>
                   )}
                 </Center>
               </VStack>
