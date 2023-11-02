@@ -13,14 +13,6 @@ import {parseRequestedTimeString} from 'utils/date';
 export const MapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'avalancheCenter'>) => {
   const updateStatus = useEASUpdateStatus();
 
-  const color = {
-    idle: 'green',
-    'checking-for-update': 'magenta',
-    'update-available': 'blue',
-    'downloading-update': 'yellow',
-    'update-downloaded': 'red',
-  }[updateStatus];
-
   useEffect(() => {
     if (updateStatus === 'update-downloaded') {
       Alert.alert('Update Available', 'A new version of the app is available. Press OK to apply the update.', [
@@ -34,7 +26,7 @@ export const MapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'a
 
   const {center_id, requestedTime} = route.params;
   return (
-    <View style={{...styles.container, borderWidth: 8, borderColor: color}}>
+    <View style={styles.container}>
       <AvalancheForecastZoneMap center={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />
     </View>
   );
