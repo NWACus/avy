@@ -1,5 +1,7 @@
-import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import React, {useEffect} from 'react';
+import {Alert, StyleSheet, View} from 'react-native';
+
+import * as Updates from 'expo-updates';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
@@ -9,25 +11,30 @@ import {HomeStackParamList} from 'routes';
 import {parseRequestedTimeString} from 'utils/date';
 
 export const MapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'avalancheCenter'>) => {
-  const updateAvailable = useEASUpdateStatus();
+  const updateStatus = useEASUpdateStatus();
 
-  // Alert.alert('Update Available', 'A new version of the app is available. Press OK to apply the update.', [
-  //   {
-  //     text: 'OK',
-  //     onPress: () => void Updates.reloadAsync(),
-  //   },
-  // ]);
   const color = {
     idle: 'green',
     'checking-for-update': 'magenta',
     'update-available': 'blue',
     'downloading-update': 'yellow',
     'update-downloaded': 'red',
-  }[updateAvailable];
+  }[updateStatus];
+
+  useEffect(() => {
+    if (updateStatus === 'update-downloaded') {
+      Alert.alert('Update Available', 'A new version of the app is available. Press OK to apply the update.', [
+        {
+          text: 'OK',
+          onPress: () => void Updates.reloadAsync(),
+        },
+      ]);
+    }
+  }, [updateStatus]);
 
   const {center_id, requestedTime} = route.params;
   return (
-    <View style={{...styles.container, borderWidth: 4, borderColor: color}}>
+    <View style={{...styles.container, borderWidth: 8, borderColor: color}}>
       <AvalancheForecastZoneMap center={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />
     </View>
   );
