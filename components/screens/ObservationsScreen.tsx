@@ -6,7 +6,6 @@ import {ObservationsPortal} from 'components/observations/ObservationsPortal';
 import {SimpleForm} from 'components/observations/SimpleForm';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {ObservationsStackParamList, TabNavigatorParamList} from 'routes';
 import {parseRequestedTimeString} from 'utils/date';
 
@@ -42,9 +41,7 @@ const ObservationsListScreen = ({route}: NativeStackScreenProps<ObservationsStac
   const {center_id, requestedTime} = route.params;
   return (
     <View style={{...styles.fullScreen, backgroundColor: 'white'}}>
-      <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
-        <ObservationsListView center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />
-      </SafeAreaView>
+      <ObservationsListView center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />
     </View>
   );
 };
