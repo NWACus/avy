@@ -9,11 +9,11 @@ import {HomeStackParamList} from 'routes';
 import {parseRequestedTimeString} from 'utils/date';
 
 export const MapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'avalancheCenter'>) => {
-  useEASUpdateChecker();
+  const updateAvailable = useEASUpdateChecker();
 
   const {center_id, requestedTime} = route.params;
   return (
-    <View style={{...styles.container}}>
+    <View style={{...styles.container, borderWidth: updateAvailable ? 4 : undefined, borderColor: updateAvailable ? 'blue' : undefined}}>
       <AvalancheForecastZoneMap center={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />
     </View>
   );

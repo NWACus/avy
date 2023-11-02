@@ -74,7 +74,7 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
               </BodyXSm>
               {updateGroupId && (
                 <BodyXSm>
-                  Update (group): {updateGroupId} ({Updates.channel || 'development'})
+                  Update: {updateGroupId} ({Updates.channel || 'development'})
                 </BodyXSm>
               )}
             </VStack>
