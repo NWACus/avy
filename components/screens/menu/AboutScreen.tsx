@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 
 import {StyleSheet} from 'react-native';
 
@@ -15,12 +15,19 @@ import * as WebBrowser from 'expo-web-browser';
 
 import {Ionicons} from '@expo/vector-icons';
 import {ActionList} from 'components/content/ActionList';
+import {Button} from 'components/content/Button';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
 import {toISOStringUTC} from 'utils/date';
 
 export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
   const buildDate = Updates.createdAt || new Date();
   const updateGroupId = Updates.manifest?.metadata ? JSON.stringify(Updates.manifest.metadata, null, 2) : 'n/a';
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  Updates.useUpdateEvents(event => {
+    if (event.type === Updates.UpdateEventType.UPDATE_AVAILABLE) {
+      setUpdateAvailable(true);
+    }
+  });
   return (
     <View style={StyleSheet.absoluteFillObject}>
       <VStack backgroundColor="white" width="100%" height="100%" pt={16} justifyContent="space-between">
@@ -45,41 +52,48 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
             ]}
           />
         </VStack>
-        <HStack space={4} px={32}>
-          <VStack py={8} space={4}>
-            <BodyXSm>
-              Avy version {Application.nativeApplicationVersion} ({Application.nativeBuildVersion}) | {toISOStringUTC(buildDate)} |{' '}
-              {(process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a').slice(0, 7)}
-            </BodyXSm>
-            {Updates.updateId && (
+        <VStack space={16} px={32}>
+          {updateAvailable && (
+            <Button buttonStyle="primary" onPress={() => void (async () => await Updates.reloadAsync())()}>
+              <BodyBlack>Update available</BodyBlack>
+            </Button>
+          )}
+          <HStack space={4}>
+            <VStack py={8} space={4}>
               <BodyXSm>
-                Update: {Updates.updateId.slice(0, 18)} ({Updates.channel || 'development'})
+                Avy version {Application.nativeApplicationVersion} ({Application.nativeBuildVersion}) | {toISOStringUTC(buildDate)} |{' '}
+                {(process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a').slice(0, 7)}
               </BodyXSm>
-            )}
-            {updateGroupId && (
-              <BodyXSm>
-                Update (group): {updateGroupId} ({Updates.channel || 'development'})
-              </BodyXSm>
-            )}
-          </VStack>
-          <Ionicons.Button
-            name="copy-outline"
-            size={12}
-            color="black"
-            style={{backgroundColor: 'white'}}
-            iconStyle={{marginRight: 0}}
-            onPress={() => {
-              void (async () => {
-                await Clipboard.setStringAsync(
-                  `Avy version ${Application.nativeApplicationVersion || 'n/a'} (${Application.nativeBuildVersion || 'n/a'})
+              {Updates.updateId && (
+                <BodyXSm>
+                  Update: {Updates.updateId} ({Updates.channel || 'development'})
+                </BodyXSm>
+              )}
+              {updateGroupId && (
+                <BodyXSm>
+                  Update (group): {updateGroupId} ({Updates.channel || 'development'})
+                </BodyXSm>
+              )}
+            </VStack>
+            <Ionicons.Button
+              name="copy-outline"
+              size={12}
+              color="black"
+              style={{backgroundColor: 'white'}}
+              iconStyle={{marginRight: 0}}
+              onPress={() => {
+                void (async () => {
+                  await Clipboard.setStringAsync(
+                    `Avy version ${Application.nativeApplicationVersion || 'n/a'} (${Application.nativeBuildVersion || 'n/a'})
 Build date ${toISOStringUTC(buildDate)}
 Git revision ${process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a'}
 Update ID ${Updates.updateId || 'n/a'} (${Updates.channel || 'development'})`,
-                );
-              })();
-            }}
-          />
-        </HStack>
+                  );
+                })();
+              }}
+            />
+          </HStack>
+        </VStack>
       </VStack>
     </View>
   );
