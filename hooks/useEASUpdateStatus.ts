@@ -24,7 +24,7 @@ const updateAvailable = async (): Promise<boolean> => {
 };
 
 // When returning to foreground, don't look for updates more frequently than every 5 minutes
-const UPDATE_REFRESH_INTERVAL_MS = 0; // 5 * 60 * 1000;
+const UPDATE_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 const updateAvailableDebounced = _.debounce(updateAvailable, UPDATE_REFRESH_INTERVAL_MS, {leading: true});
 
 // When this hook is mounted, it will do the following:
