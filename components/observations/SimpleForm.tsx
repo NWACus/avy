@@ -178,20 +178,27 @@ export const SimpleForm: React.FC<{
 
   const maxImageCount = 8;
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [imageLoadError, setImageLoadError] = useState(false);
   const pickImage = async () => {
-    // No permissions request is necessary for launching the image library
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsMultipleSelection: true,
-      exif: true,
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
-      quality: 0.2,
-      selectionLimit: maxImageCount,
-    });
+    try {
+      setImageLoadError(false);
+      // No permissions request is necessary for launching the image library
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsMultipleSelection: true,
+        exif: true,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+        quality: 0.2,
+        selectionLimit: maxImageCount,
+      });
 
-    if (!result.canceled) {
-      const newImages = images.concat(result.assets).slice(0, maxImageCount);
-      setImages(newImages);
+      if (!result.canceled) {
+        const newImages = images.concat(result.assets).slice(0, maxImageCount);
+        setImages(newImages);
+      }
+    } catch (error) {
+      setImageLoadError(true);
+      logger.error('ImagePicker error', {error});
     }
   };
 
@@ -513,20 +520,23 @@ export const SimpleForm: React.FC<{
                           )}
                         />
                       )}
-                      <Button
-                        buttonStyle="normal"
-                        onPress={() => void pickImage()}
-                        disabled={images.length === maxImageCount || disableFormControls || missingImagePermissions}
-                        renderChildren={({textColor}) => (
-                          <HStack alignItems="center" space={4}>
-                            <MaterialIcons name="add" size={24} color={textColor} style={{marginTop: 1}} />
-                            <BodyBlack color={textColor}>Add images</BodyBlack>
-                          </HStack>
+                      <VStack space={4}>
+                        <Button
+                          buttonStyle="normal"
+                          onPress={() => void pickImage()}
+                          disabled={images.length === maxImageCount || disableFormControls || missingImagePermissions}
+                          renderChildren={({textColor}) => (
+                            <HStack alignItems="center" space={4}>
+                              <MaterialIcons name="add" size={24} color={textColor} style={{marginTop: 1}} />
+                              <BodyBlack color={textColor}>Add images</BodyBlack>
+                            </HStack>
+                          )}
+                        />
+                        {missingImagePermissions && (
+                          <BodySm color={colorLookup('error.900')}>We need permission to access your photos to upload images. Please check your system settings.</BodySm>
                         )}
-                      />
-                      {missingImagePermissions && (
-                        <BodySm color={colorLookup('error.900')}>We need permission to access your photos to upload images. Please check your system settings.</BodySm>
-                      )}
+                        {imageLoadError && <BodySm color={colorLookup('error.900')}>An unexpected error occurred when loading your images.</BodySm>}
+                      </VStack>
                     </VStack>
                   </Card>
 
