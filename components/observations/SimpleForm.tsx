@@ -178,10 +178,8 @@ export const SimpleForm: React.FC<{
 
   const maxImageCount = 8;
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
-  const [imageLoadError, setImageLoadError] = useState(false);
   const pickImage = async () => {
     try {
-      setImageLoadError(false);
       // No permissions request is necessary for launching the image library
       const result = await ImagePicker.launchImageLibraryAsync({
         allowsMultipleSelection: true,
@@ -197,8 +195,17 @@ export const SimpleForm: React.FC<{
         setImages(newImages);
       }
     } catch (error) {
-      setImageLoadError(true);
       logger.error('ImagePicker error', {error});
+      // Are we offline? Things might be ok if they go online again.
+      const {networkStatus} = getUploader().getState();
+      Toast.show({
+        type: 'error',
+        text1:
+          networkStatus === 'offline'
+            ? `An unexpected error occurred when loading your images. Try again when you’re back online.`
+            : `An unexpected error occurred when loading your images.`,
+        position: 'bottom',
+      });
     }
   };
 
@@ -535,7 +542,6 @@ export const SimpleForm: React.FC<{
                         {missingImagePermissions && (
                           <BodySm color={colorLookup('error.900')}>We need permission to access your photos to upload images. Please check your system settings.</BodySm>
                         )}
-                        {imageLoadError && <BodySm color={colorLookup('error.900')}>An unexpected error occurred when loading your images.</BodySm>}
                       </VStack>
                     </VStack>
                   </Card>
