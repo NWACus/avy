@@ -32,20 +32,20 @@ const updateAvailableDebounced = _.debounce(updateAvailable, UPDATE_REFRESH_INTE
 // - listen for appState changes (background/foreground)
 // - listen for network changes (offline/online)
 // - if the app is in the foreground and the network is online, check for updates
-// - if an update is available, alert the user and then reload the app
+// - if an update is available, update the status
 //
 // The checks are throttled to only happen every UPDATE_REFRESH_INTERVAL_MS
 //
-type UpdateStatus = 'idle' | 'checking-for-update' | 'update-available' | 'downloading-update' | 'update-downloaded';
-export const useEASUpdateChecker = () => {
-  const updateStatusRef = React.useRef<UpdateStatus>('idle');
-  const [updateStatusState, setUpdateStatusState] = React.useState<UpdateStatus>(updateStatusRef.current);
+type EASUpdateStatus = 'idle' | 'checking-for-update' | 'update-available' | 'downloading-update' | 'update-downloaded';
+export const useEASUpdateStatus = () => {
+  const updateStatusRef = React.useRef<EASUpdateStatus>('idle');
+  const [updateStatusState, setUpdateStatusState] = React.useState<EASUpdateStatus>(updateStatusRef.current);
   const appState = useAppState();
   const netInfo = useNetInfo();
 
   // Wrapper to keep the state value and the ref in sync
   const setUpdateStatus = useCallback(
-    (status: UpdateStatus) => {
+    (status: EASUpdateStatus) => {
       logger.debug('update status changed', {status});
       updateStatusRef.current = status;
       setUpdateStatusState(status);

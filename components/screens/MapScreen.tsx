@@ -4,12 +4,12 @@ import {StyleSheet, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
 import {AvalancheForecastZoneMap} from 'components/AvalancheForecastZoneMap';
-import {useEASUpdateChecker} from 'hooks/useEASUpdateChecker';
+import {useEASUpdateStatus} from 'hooks/useEASUpdateStatus';
 import {HomeStackParamList} from 'routes';
 import {parseRequestedTimeString} from 'utils/date';
 
 export const MapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'avalancheCenter'>) => {
-  const updateAvailable = useEASUpdateChecker();
+  const updateAvailable = useEASUpdateStatus();
 
   // Alert.alert('Update Available', 'A new version of the app is available. Press OK to apply the update.', [
   //   {
@@ -27,7 +27,7 @@ export const MapScreen = ({route}: NativeStackScreenProps<HomeStackParamList, 'a
 
   const {center_id, requestedTime} = route.params;
   return (
-    <View style={{...styles.container, borderWidth: 4, borderColor: color}}>
+    <View style={{...styles.container, borderWidth: 8, borderColor: color}}>
       <AvalancheForecastZoneMap center={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />
     </View>
   );
