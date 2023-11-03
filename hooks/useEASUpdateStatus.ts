@@ -8,6 +8,14 @@ import {logger as parentLogger} from 'logger';
 
 const logger = parentLogger.child({component: 'useEASUpdate'});
 
+export const getUpdateGroupId = (): string => {
+  const metadata: unknown = Updates.manifest?.metadata;
+  if (metadata && typeof metadata === 'object') {
+    return _.get(metadata, 'updateGroup', 'n/a');
+  }
+  return 'n/a';
+};
+
 const checkUpdateAvailable = async (): Promise<boolean> => {
   logger.trace('checking for updates');
   try {

@@ -65,6 +65,7 @@ import {formatRequestedTime, RequestedTime} from 'utils/date';
 import * as messages from 'compiled-lang/en.json';
 import {Center} from 'components/core';
 import KillSwitchMonitor from 'components/KillSwitchMonitor';
+import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {filterLoggedData} from 'logging/filterLoggedData';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
 
@@ -131,6 +132,7 @@ if (Sentry?.init) {
   } else {
     Sentry.init({
       dsn,
+      release: getUpdateGroupId(),
       enableInExpoDevelopment: Boolean(process.env.EXPO_PUBLIC_SENTRY_IN_DEV),
       enableWatchdogTerminationTracking: true,
       beforeSend: async (event, hint) => {

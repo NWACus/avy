@@ -1,7 +1,5 @@
 import React, {useState} from 'react';
 
-import _ from 'lodash';
-
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {Platform, StyleSheet} from 'react-native';
 
@@ -15,16 +13,9 @@ import {Ionicons} from '@expo/vector-icons';
 import {ActionList} from 'components/content/ActionList';
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
+import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {MenuStackParamList} from 'routes';
 import {toISOStringUTC} from 'utils/date';
-
-const getUpdateGroupId = (): string => {
-  const metadata: unknown = Updates.manifest?.metadata;
-  if (metadata && typeof metadata === 'object') {
-    return _.get(metadata, 'updateGroup', 'n/a');
-  }
-  return 'n/a';
-};
 
 export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
   const buildDate = Updates.createdAt || new Date();
