@@ -489,11 +489,12 @@ export const SimpleForm: React.FC<{
                           }
                         }}
                         textInputProps={{
-                          placeholder: `• Signs of instability
-• Snowpack test results
+                          placeholder: `• Signs of instability?
+• Amount of new snow/total snow?
+• Weather observations?
+• Snowpack test results?
 • How cautiously or aggressively did you travel?
-• Weather observations
-• Overall impression of stability`,
+• Overall impression of stability?`,
                           multiline: true,
                         }}
                         disabled={disableFormControls}
