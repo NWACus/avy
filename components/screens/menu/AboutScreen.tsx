@@ -1,12 +1,9 @@
-import React from 'react';
+import React, {useState} from 'react';
 
-import {StyleSheet} from 'react-native';
+import _ from 'lodash';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-
-import {MenuStackParamList} from 'routes';
-
-import {Center, HStack, View, VStack} from 'components/core';
+import {Platform, StyleSheet} from 'react-native';
 
 import * as Application from 'expo-application';
 import * as Clipboard from 'expo-clipboard';
@@ -14,12 +11,24 @@ import * as Updates from 'expo-updates';
 import * as WebBrowser from 'expo-web-browser';
 
 import {Ionicons} from '@expo/vector-icons';
+
 import {ActionList} from 'components/content/ActionList';
+import {Center, HStack, View, VStack} from 'components/core';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
+import {MenuStackParamList} from 'routes';
 import {toISOStringUTC} from 'utils/date';
+
+const getUpdateGroupId = (): string => {
+  const metadata: unknown = Updates.manifest?.metadata;
+  if (metadata && typeof metadata === 'object') {
+    return _.get(metadata, 'updateGroup', 'n/a');
+  }
+  return 'n/a';
+};
 
 export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
   const buildDate = Updates.createdAt || new Date();
+  const [updateGroupId] = useState(getUpdateGroupId());
   return (
     <View style={StyleSheet.absoluteFillObject}>
       <VStack backgroundColor="white" width="100%" height="100%" pt={16} justifyContent="space-between">
@@ -50,9 +59,9 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
               Avy version {Application.nativeApplicationVersion} ({Application.nativeBuildVersion}) | {toISOStringUTC(buildDate)} |{' '}
               {(process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a').slice(0, 7)}
             </BodyXSm>
-            {Updates.updateId && (
+            {updateGroupId && (
               <BodyXSm>
-                Update: {Updates.updateId.slice(0, 18)} ({Updates.channel || 'development'})
+                Update: {updateGroupId} ({Updates.channel || 'development'})
               </BodyXSm>
             )}
           </VStack>
@@ -68,7 +77,8 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
                   `Avy version ${Application.nativeApplicationVersion || 'n/a'} (${Application.nativeBuildVersion || 'n/a'})
 Build date ${toISOStringUTC(buildDate)}
 Git revision ${process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a'}
-Update ID ${Updates.updateId || 'n/a'} (${Updates.channel || 'development'})`,
+Update group ID ${updateGroupId} (channel: ${Updates.channel || 'development'})
+Update ID ${Updates.updateId || 'n/a'} (platform: ${Platform.OS})`,
                 );
               })();
             }}
