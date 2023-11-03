@@ -13,12 +13,10 @@ import {Ionicons} from '@expo/vector-icons';
 import {ActionList} from 'components/content/ActionList';
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
-import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
+import {getUpdateGroupId, getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
 import {MenuStackParamList} from 'routes';
-import {toISOStringUTC} from 'utils/date';
 
 export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
-  const buildDate = Updates.createdAt || new Date();
   const [updateGroupId] = useState(getUpdateGroupId());
   return (
     <View style={StyleSheet.absoluteFillObject}>
@@ -47,7 +45,7 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
         <HStack space={4} px={32}>
           <VStack py={8} space={4}>
             <BodyXSm>
-              Avy version {Application.nativeApplicationVersion} ({Application.nativeBuildVersion}) | {toISOStringUTC(buildDate)} |{' '}
+              Avy version {Application.nativeApplicationVersion} ({Application.nativeBuildVersion}) | {getUpdateTimeAsVersionString()} |{' '}
               {(process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a').slice(0, 7)}
             </BodyXSm>
             {updateGroupId && (
@@ -66,7 +64,7 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
               void (async () => {
                 await Clipboard.setStringAsync(
                   `Avy version ${Application.nativeApplicationVersion || 'n/a'} (${Application.nativeBuildVersion || 'n/a'})
-Build date ${toISOStringUTC(buildDate)}
+Build date ${getUpdateTimeAsVersionString()}
 Git revision ${process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a'}
 Update group ID ${updateGroupId} (channel: ${Updates.channel || 'development'})
 Update ID ${Updates.updateId || 'n/a'} (platform: ${Platform.OS})`,
