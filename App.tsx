@@ -435,7 +435,7 @@ const BaseApp: React.FunctionComponent<{
                             {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
                           </TabNavigator.Screen>
                         )}
-                        <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}}>
+                        <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}} options={{title: 'More'}}>
                           {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
                         </TabNavigator.Screen>
                       </TabNavigator.Navigator>
