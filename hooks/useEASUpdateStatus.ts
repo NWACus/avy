@@ -1,12 +1,28 @@
 import React, {useCallback, useEffect} from 'react';
 
+import _ from 'lodash';
+
 import * as Updates from 'expo-updates';
 
 import {useNetInfo} from '@react-native-community/netinfo';
 import {useAppState} from 'hooks/useAppState';
 import {logger as parentLogger} from 'logger';
+import {formatInTimeZone} from 'utils/date';
 
 const logger = parentLogger.child({component: 'useEASUpdate'});
+
+export const getUpdateGroupId = (): string => {
+  const metadata: unknown = Updates.manifest?.metadata;
+  if (metadata && typeof metadata === 'object') {
+    return _.get(metadata, 'updateGroup', 'n/a');
+  }
+  return 'n/a';
+};
+
+export const getUpdateTimeAsVersionString = (): string => {
+  const updateDate = Updates.createdAt || new Date();
+  return formatInTimeZone(updateDate, 'UTC', 'yyyy.MM.dd.HH.mm');
+};
 
 const checkUpdateAvailable = async (): Promise<boolean> => {
   logger.trace('checking for updates');

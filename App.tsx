@@ -21,6 +21,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, UIManager, useColorScheme, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
+import * as Application from 'expo-application';
 import * as BackgroundFetch from 'expo-background-fetch';
 import Constants from 'expo-constants';
 import * as TaskManager from 'expo-task-manager';
@@ -65,6 +66,7 @@ import {formatRequestedTime, RequestedTime} from 'utils/date';
 import * as messages from 'compiled-lang/en.json';
 import {Center} from 'components/core';
 import KillSwitchMonitor from 'components/KillSwitchMonitor';
+import {getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
 import {filterLoggedData} from 'logging/filterLoggedData';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
 
@@ -131,6 +133,12 @@ if (Sentry?.init) {
   } else {
     Sentry.init({
       dsn,
+      // Set the dist value to the app binary and build. This should not vary often.
+      // Example: 1.0.0.54
+      dist: `${Application.nativeApplicationVersion || '0.0.0'}.${Application.nativeBuildVersion || '0'}`,
+      // Set the release to a version string based on the update build date (e.g. 2021.02.31.09.30).
+      // Then Sentry can clearly tell when versions are increasing.
+      release: getUpdateTimeAsVersionString(),
       enableInExpoDevelopment: Boolean(process.env.EXPO_PUBLIC_SENTRY_IN_DEV),
       enableWatchdogTerminationTracking: true,
       beforeSend: async (event, hint) => {

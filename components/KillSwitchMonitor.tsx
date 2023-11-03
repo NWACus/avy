@@ -13,6 +13,7 @@ import {Outcome} from 'components/content/Outcome';
 import {VStack} from 'components/core';
 import {BodyBlack} from 'components/text';
 import {useAppState} from 'hooks/useAppState';
+import {getUpdateGroupId, getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
 import {logger} from 'logger';
 
 type KillSwitchMonitorProps = {
@@ -38,6 +39,8 @@ const KillSwitchMonitor: React.FC<KillSwitchMonitorProps> = ({children}) => {
           // Posthog automatically captures `Application.nativeBuildVersion` as `App Build`, but stores it as a string.
           // We additionally capture it as a number here, so that we can use < and > in feature flag rules.
           buildNumber: Number.parseInt(Application.nativeBuildVersion || '0'),
+          updateGroupId: getUpdateGroupId(),
+          updateBuildTime: getUpdateTimeAsVersionString(),
           releaseChannel: Updates.releaseChannel,
         },
       });
