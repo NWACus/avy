@@ -13,7 +13,7 @@ const checkUpdateAvailable = async (): Promise<boolean> => {
   try {
     const result = await Updates.checkForUpdateAsync();
     if (result.isAvailable) {
-      logger.info('update available, downloading');
+      logger.info('update available!');
       return true;
     }
   } catch (error) {
@@ -51,7 +51,7 @@ export const useEASUpdateStatus = () => {
   useEffect(() => {
     void (async () => {
       if (updateStatusRef.current === 'idle' && appState === 'active' && netInfo.isConnected && netInfo.isInternetReachable) {
-        logger.debug('appState changed to active, checking for updates');
+        logger.trace('appState changed to active, checking for updates');
         setUpdateStatus('checking-for-update');
         // the debounced method should block until the timeout elapses
         const updateAvailable = await checkUpdateAvailable();
