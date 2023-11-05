@@ -19,46 +19,37 @@ export interface TextWrapperProps extends TextProps {
   unescapeHTMLEntities?: boolean;
 }
 
-const TextWrapper: React.FC<TextWrapperProps> = ({
-  color,
-  fontFamily,
-  fontSize,
-  fontStyle,
-  letterSpacing,
-  lineHeight,
-  textAlign,
-  textTransform,
-  children,
-  unescapeHTMLEntities = false,
-  ...props
-}) => {
-  const style = omitBy(
-    {
-      color: color ? colorLookup(color) : color,
-      fontFamily,
-      fontSize,
-      letterSpacing,
-      lineHeight,
-      textAlign,
-      textTransform,
-    },
-    isUndefined,
-  );
-  if (style.fontFamily && fontStyle === 'italic') {
-    style.fontFamily = String(style.fontFamily) + '_Italic';
-  }
-  return (
-    <Text {...merge({}, props, {style})}>
-      {React.Children.map(children, child => {
-        if (unescapeHTMLEntities && typeof child === 'string') {
-          return decode(child);
-        } else {
-          return child;
-        }
-      })}
-    </Text>
-  );
-};
+const TextWrapper: React.FC<TextWrapperProps> = React.memo(
+  ({color, fontFamily, fontSize, fontStyle, letterSpacing, lineHeight, textAlign, textTransform, children, unescapeHTMLEntities = false, ...props}: TextWrapperProps) => {
+    const style = omitBy(
+      {
+        color: color ? colorLookup(color) : color,
+        fontFamily,
+        fontSize,
+        letterSpacing,
+        lineHeight,
+        textAlign,
+        textTransform,
+      },
+      isUndefined,
+    );
+    if (style.fontFamily && fontStyle === 'italic') {
+      style.fontFamily = String(style.fontFamily) + '_Italic';
+    }
+    return (
+      <Text {...merge({}, props, {style})}>
+        {React.Children.map(children, child => {
+          if (unescapeHTMLEntities && typeof child === 'string') {
+            return decode(child);
+          } else {
+            return child;
+          }
+        })}
+      </Text>
+    );
+  },
+);
+TextWrapper.displayName = 'TextWrapper';
 
 // TODO figure out letter spacing values - what *are* the react native units?
 export const FeatureTitleBlack: React.FunctionComponent<TextWrapperProps> = props => (
