@@ -38,6 +38,10 @@
         "googleMaps": {"apiKey": "LOADED_FROM_ENVIRONMENT"}
       },
       "icon": "./assets/icon.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#152E57"
+      },
       "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "FOREGROUND_SERVICE", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
     },
     "hooks": {
