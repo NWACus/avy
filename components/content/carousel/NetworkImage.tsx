@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 
 import {merge} from 'lodash';
 
@@ -18,7 +18,7 @@ export interface NetworkImageProps {
   width: number;
   height: number;
   index: number;
-  onStateChange?: (state: NetworkImageState) => void;
+  onStateChange?: (index: number, state: NetworkImageState) => void;
   onPress?: (index: number) => void;
   imageStyle?: StyleProp<ImageStyle>;
   resizeMode?: 'cover' | 'contain';
@@ -31,9 +31,10 @@ export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, o
 
   React.useEffect(() => {
     if (onStateChange) {
-      onStateChange(status);
+      onStateChange(index, status);
     }
-  }, [onStateChange, status]);
+  }, [index, onStateChange, status]);
+  const onPressHandler = useCallback(() => onPress && onPress(index), [index, onPress]);
 
   const imageStyle = {};
   merge(imageStyle, defaultImageStyle, imageStyleProp ?? {});
@@ -52,7 +53,7 @@ export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, o
   let image = <Image source={{uri: cachedUri}} {...croppedThumbnailProps} />;
   if (onPress) {
     image = (
-      <TouchableOpacity activeOpacity={0.8} onPress={() => onPress(index)} disabled={status !== 'success'}>
+      <TouchableOpacity activeOpacity={0.8} onPress={onPressHandler} disabled={status !== 'success'}>
         {image}
       </TouchableOpacity>
     );

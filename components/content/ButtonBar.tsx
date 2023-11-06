@@ -1,7 +1,7 @@
 import {Button} from 'components/content/Button';
 import {HStack, ViewProps} from 'components/core';
 import {Body, BodyBlack, BodyXSm, BodyXSmBlack} from 'components/text';
-import React from 'react';
+import React, {useMemo} from 'react';
 
 interface ButtonBarProps<T> extends ViewProps {
   items: {label: string; value: T}[];
@@ -25,6 +25,9 @@ const LabelFonts = {
 
 export function ButtonBar<T>({items, selectedItem, onSelectionChange, disabled = false, size = 'normal', fullWidth = false, ...props}: ButtonBarProps<T>) {
   const buttonCount = items.length;
+  const pressHandlers = useMemo(() => {
+    return items.map(item => () => onSelectionChange(item.value));
+  }, [items, onSelectionChange]);
   return (
     <HStack space={0} {...props}>
       {items.map((item, index) => {
@@ -35,7 +38,7 @@ export function ButtonBar<T>({items, selectedItem, onSelectionChange, disabled =
         return (
           <Button
             key={item.label}
-            onPress={() => onSelectionChange(item.value)}
+            onPress={pressHandlers[index]}
             buttonStyle={selected ? 'primary' : 'normal'}
             minWidth={fullWidth ? `${100.0 / items.length}%` : undefined}
             px={24}

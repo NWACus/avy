@@ -42,6 +42,13 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
   const [loadingState, setLoadingState] = useState<NetworkImageState[]>(media.map(() => 'loading'));
 
   const onPressCallback = useCallback((index: number) => onPress(index), [onPress]);
+  const onStateCallback = useCallback(
+    (index: number, state: NetworkImageState) => {
+      loadingState[index] = state;
+      setLoadingState(loadingState);
+    },
+    [loadingState, setLoadingState],
+  );
 
   const renderItem = useCallback(
     ({item, index}: {item: ImageMediaItem; index: number}) => (
@@ -54,10 +61,7 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
           onPress={onPressCallback}
           imageStyle={imageStyle}
           resizeMode={resizeMode}
-          onStateChange={state => {
-            loadingState[index] = state;
-            setLoadingState(loadingState);
-          }}
+          onStateChange={onStateCallback}
         />
         {displayCaptions && item.caption && (
           <View flex={1} px={32}>
@@ -69,7 +73,7 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
         {renderOverlay?.(index)}
       </VStack>
     ),
-    [imageHeight, imageWidth, loadingState, displayCaptions, imageSize, imageStyle, resizeMode, onPressCallback, renderOverlay],
+    [imageWidth, imageHeight, imageSize, onPressCallback, imageStyle, resizeMode, onStateCallback, displayCaptions, renderOverlay],
   );
 
   const onScroll = useCallback(
@@ -83,6 +87,15 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
     },
     [cellWidth, onScrollPositionChanged],
   );
+  const ItemSeparatorComponent = useCallback(() => <View width={space} />, [space]);
+  const getItemLayout = useCallback(
+    (_data: unknown, index: number) => ({
+      length: cellWidth,
+      offset: cellWidth * index,
+      index,
+    }),
+    [cellWidth],
+  );
 
   return (
     <FlatList
@@ -90,8 +103,8 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
       data={media.filter(item => item.type === MediaType.Image).filter(item => item.url)}
       extraData={loadingState}
       renderItem={renderItem}
-      ItemSeparatorComponent={() => <View width={space} />}
-      getItemLayout={(_data, index) => ({length: cellWidth, offset: cellWidth * index, index})}
+      ItemSeparatorComponent={ItemSeparatorComponent}
+      getItemLayout={getItemLayout}
       centerContent
       snapToInterval={imageWidth + space}
       snapToAlignment="center"
