@@ -1,8 +1,7 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {ScrollView} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
-import {Logger} from 'browser-bunyan';
 import {ActionList} from 'components/content/ActionList';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {VStack} from 'components/core';
@@ -10,7 +9,7 @@ import {featureBounds, pointInFeature, RegionBounds} from 'components/helpers/ge
 import {BodyBlack} from 'components/text';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
-import {LoggerContext, LoggerProps} from 'loggerContext';
+import {logger} from 'logger';
 import {WeatherStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {MapLayer, MapLayerFeature, WeatherStationCollection, WeatherStationProperties, WeatherStationSource} from 'types/nationalAvalancheCenter';
@@ -66,7 +65,10 @@ export interface ZoneWithWeatherStations {
   stationGroups: Record<string, WeatherStationProperties[]>;
 }
 
-export const NWACStationsByZone = (mapLayer: MapLayer, stations: WeatherStationCollection, logger: Logger): ZoneWithWeatherStations[] => {
+export const NWACStationsByZone = (mapLayer: MapLayer | undefined, stations: WeatherStationCollection | undefined): ZoneWithWeatherStations[] => {
+  if (!mapLayer || !stations) {
+    return [];
+  }
   const zones: ZoneWithWeatherStations[] = mapLayer.features.map(f => ({
     feature: f,
     bounds: featureBounds(f),
@@ -110,45 +112,50 @@ export const NWACStationsByZone = (mapLayer: MapLayer, stations: WeatherStationC
     });
   return zones;
 };
+
 export const NWACStationList: React.FunctionComponent<{token: string; requestedTime: RequestedTimeString}> = ({token, requestedTime}) => {
-  const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const navigation = useNavigation<WeatherStackNavigationProps>();
   const mapLayerResult = useMapLayer('NWAC');
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata('NWAC', token);
   const weatherStations = weatherStationsResult.data;
 
+  const stationsByZone = useMemo(() => NWACStationsByZone(mapLayer, weatherStations), [mapLayer, weatherStations]);
+
+  const data = useMemo(
+    () =>
+      stationsByZone
+        .map(zone => ({
+          zoneName: zone.feature.properties.name,
+          actions: Object.entries(zone.stationGroups)
+            .map(([k, v]) => ({
+              label: k,
+              data: v,
+              action: ({label, data}: {label: string; data: WeatherStationProperties[]}) => {
+                navigation.navigate('stationsDetail', {
+                  center_id: 'NWAC',
+                  stations: data
+                    .map(s => ({id: s.stid, source: s.source}))
+                    .reduce((accum, value) => {
+                      accum[value.id] = value.source;
+                      return accum;
+                    }, {} as Record<string, WeatherStationSource>),
+                  name: label,
+                  requestedTime: requestedTime,
+                  zoneName: zone.feature.properties.name,
+                });
+              },
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label)),
+        }))
+        .filter(d => d.actions.length > 0),
+    [stationsByZone, navigation, requestedTime],
+  );
+
   if (incompleteQueryState(mapLayerResult, weatherStationsResult) || !mapLayer || !weatherStations) {
     return <QueryState results={[mapLayerResult, weatherStationsResult]} />;
   }
 
-  const stationsByZone = NWACStationsByZone(mapLayer, weatherStations, logger);
-
-  const data = stationsByZone
-    .map(zone => ({
-      zoneName: zone.feature.properties.name,
-      actions: Object.entries(zone.stationGroups)
-        .map(([k, v]) => ({
-          label: k,
-          data: v,
-          action: ({label, data}: {label: string; data: WeatherStationProperties[]}) => {
-            navigation.navigate('stationsDetail', {
-              center_id: 'NWAC',
-              stations: data
-                .map(s => ({id: s.stid, source: s.source}))
-                .reduce((accum, value) => {
-                  accum[value.id] = value.source;
-                  return accum;
-                }, {} as Record<string, WeatherStationSource>),
-              name: label,
-              requestedTime: requestedTime,
-              zoneName: zone.feature.properties.name,
-            });
-          },
-        }))
-        .sort((a, b) => a.label.localeCompare(b.label)),
-    }))
-    .filter(d => d.actions.length > 0);
   return (
     <ScrollView style={{width: '100%', height: '100%', backgroundColor: colorLookup('primary.background')}}>
       <VStack space={10}>
