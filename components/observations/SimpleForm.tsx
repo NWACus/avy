@@ -6,9 +6,9 @@ import {useMutation} from '@tanstack/react-query';
 import {AxiosError} from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import _ from 'lodash';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FieldErrors, FormProvider, useForm, useWatch} from 'react-hook-form';
-import {KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
+import {ColorValue, KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {ClientContext, ClientProps} from 'clientContext';
@@ -32,6 +32,25 @@ import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, ImageMediaItem, InstabilityDistribution, MediaType, userFacingCenterId} from 'types/nationalAvalancheCenter';
 import {startOfSeasonLocalDate} from 'utils/date';
+
+const ImageListOverlay: React.FC<{index: number; onPress: (index: number) => void}> = ({index, onPress}) => {
+  const onPressHandler = useCallback(() => {
+    onPress(index);
+  }, [index, onPress]);
+  return (
+    <View position="absolute" top={8} right={8}>
+      <AntDesign.Button
+        size={16}
+        name="close"
+        color="white"
+        backgroundColor="rgba(0, 0, 0, 0.3)"
+        iconStyle={{marginRight: 0}}
+        style={{textAlign: 'center'}}
+        onPress={onPressHandler}
+      />
+    </View>
+  );
+};
 
 export const SimpleForm: React.FC<{
   center_id: AvalancheCenterID;
@@ -61,11 +80,80 @@ export const SimpleForm: React.FC<{
     }
   }, [cracking, formContext]);
 
-  const fieldRefs = useRef<{ref: RNView; field: string}[]>([]);
+  const fieldRefs = useMemo(
+    () => [
+      {field: 'name', ref: React.createRef<RNView>()},
+      {field: 'email', ref: React.createRef<RNView>()},
+      {field: 'activity', ref: React.createRef<RNView>()},
+      {field: 'location_name', ref: React.createRef<RNView>()},
+      {field: 'location_point', ref: React.createRef<RNView>()},
+      {field: 'instability.cracking_description', ref: React.createRef<RNView>()},
+      {field: 'instability.collapsing_description', ref: React.createRef<RNView>()},
+      {field: 'avalanches_summary', ref: React.createRef<RNView>()},
+      {field: 'observation_summary', ref: React.createRef<RNView>()},
+    ],
+    [],
+  );
+  const getFieldRef = useCallback((field: string) => fieldRefs.find(f => f.field === field)?.ref, [fieldRefs]);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const today = new Date();
+
+  const [imagePermissions] = ImagePicker.useMediaLibraryPermissions();
+  const missingImagePermissions = imagePermissions !== null && !imagePermissions.granted && !imagePermissions.canAskAgain;
+
+  const maxImageCount = 8;
+  const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const pickImage = useCallback(() => {
+    void (async () => {
+      try {
+        // No permissions request is necessary for launching the image library
+        const result = await ImagePicker.launchImageLibraryAsync({
+          allowsMultipleSelection: true,
+          exif: true,
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+          quality: 0.2,
+          selectionLimit: maxImageCount,
+        });
+
+        if (!result.canceled) {
+          const newImages = images.concat(result.assets).slice(0, maxImageCount);
+          setImages(newImages);
+        }
+      } catch (error) {
+        logger.error('ImagePicker error', {error});
+        // Are we offline? Things might be ok if they go online again.
+        const {networkStatus} = getUploader().getState();
+        Toast.show({
+          type: 'error',
+          text1:
+            networkStatus === 'offline'
+              ? `An unexpected error occurred when loading your images. Try again when you’re back online.`
+              : `An unexpected error occurred when loading your images.`,
+          position: 'bottom',
+        });
+      }
+    })();
+  }, [images, logger]);
+
+  const removeImage = useCallback(
+    (index: number) => {
+      setImages(images.filter((_v, i) => i !== index));
+    },
+    [images, setImages],
+  );
+  const renderOverlay = useCallback((index: number) => <ImageListOverlay index={index} onPress={removeImage} />, [removeImage]);
+  const renderAddImageButton = useCallback(
+    ({textColor}: {textColor: ColorValue}) => (
+      <HStack alignItems="center" space={4}>
+        <MaterialIcons name="add" size={24} color={textColor} style={{marginTop: 1}} />
+        <BodyBlack color={textColor}>Add images</BodyBlack>
+      </HStack>
+    ),
+    [],
+  );
 
   const mutation = useMutation<void, AxiosError, ObservationFormData>({
     mutationFn: async (observationFormData: ObservationFormData) => {
@@ -128,39 +216,54 @@ export const SimpleForm: React.FC<{
     networkMode: 'always',
   });
 
-  const onSubmitHandler = (data: ObservationFormData) => {
-    // Submit button turns into a cancel button
-    if (mutation.isLoading) {
-      mutation.reset();
-      return;
-    }
-    data.images = images;
-    mutation.mutate(data);
-  };
-
-  const onSubmitErrorHandler = (errors: FieldErrors<Partial<ObservationFormData>>) => {
-    logger.error({errors: errors, formValues: formContext.getValues()}, 'submit error');
-    // scroll to the first field with an error
-    fieldRefs.current.some(({ref, field}) => {
-      // field can be a nested path like `instability.collapsing_description`, so we use _.get to get the value
-      if (_.get(errors, field) && scrollViewRef.current) {
-        const handle = findNodeHandle(scrollViewRef.current);
-        if (handle) {
-          ref.measureLayout(
-            handle,
-            (_left, top) => {
-              if (scrollViewRef.current) {
-                scrollViewRef.current.scrollTo({y: top});
-              }
-            },
-            () => undefined,
-          );
-          return true;
-        }
+  const onSubmitHandler = useCallback(
+    (data: ObservationFormData) => {
+      // Submit button turns into a cancel button
+      if (mutation.isLoading) {
+        mutation.reset();
+        return;
       }
-      return false;
-    });
-  };
+      data.images = images;
+      mutation.mutate(data);
+    },
+    [images, mutation],
+  );
+
+  const onSubmitErrorHandler = useCallback(
+    (errors: FieldErrors<Partial<ObservationFormData>>) => {
+      logger.error({errors: errors, formValues: formContext.getValues()}, 'submit error');
+      // scroll to the first field with an error
+      fieldRefs.some(({ref, field}) => {
+        // field can be a nested path like `instability.collapsing_description`, so we use _.get to get the value
+        if (_.get(errors, field) && scrollViewRef.current) {
+          const handle = findNodeHandle(scrollViewRef.current);
+          if (handle) {
+            ref.current?.measureLayout(
+              handle,
+              (_left, top) => {
+                if (scrollViewRef.current) {
+                  scrollViewRef.current.scrollTo({y: top});
+                }
+              },
+              () => undefined,
+            );
+            return true;
+          }
+        }
+        return false;
+      });
+    },
+    [fieldRefs, formContext, logger],
+  );
+
+  const onSubmitPress = useCallback(() => {
+    void (async () => {
+      // Force validation errors to show up on fields that haven't been visited yet
+      await formContext.trigger();
+      // Then try to submit the form
+      void formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
+    })();
+  }, [formContext, onSubmitHandler, onSubmitErrorHandler]);
 
   const onCloseHandler = useCallback(() => {
     formContext.reset();
@@ -172,42 +275,6 @@ export const SimpleForm: React.FC<{
     // Returning true marks the event as processed
     return true;
   });
-
-  const [imagePermissions] = ImagePicker.useMediaLibraryPermissions();
-  const missingImagePermissions = imagePermissions !== null && !imagePermissions.granted && !imagePermissions.canAskAgain;
-
-  const maxImageCount = 8;
-  const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
-  const pickImage = async () => {
-    try {
-      // No permissions request is necessary for launching the image library
-      const result = await ImagePicker.launchImageLibraryAsync({
-        allowsMultipleSelection: true,
-        exif: true,
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
-        quality: 0.2,
-        selectionLimit: maxImageCount,
-      });
-
-      if (!result.canceled) {
-        const newImages = images.concat(result.assets).slice(0, maxImageCount);
-        setImages(newImages);
-      }
-    } catch (error) {
-      logger.error('ImagePicker error', {error});
-      // Are we offline? Things might be ok if they go online again.
-      const {networkStatus} = getUploader().getState();
-      Toast.show({
-        type: 'error',
-        text1:
-          networkStatus === 'offline'
-            ? `An unexpected error occurred when loading your images. Try again when you’re back online.`
-            : `An unexpected error occurred when loading your images.`,
-        position: 'bottom',
-      });
-    }
-  };
 
   const formFieldSpacing = 16;
   const disableFormControls = mutation.isLoading || mutation.isSuccess;
@@ -254,11 +321,7 @@ export const SimpleForm: React.FC<{
                         name="name"
                         label="Name"
                         textInputProps={{placeholder: 'Jane Doe', textContentType: 'name'}}
-                        ref={element => {
-                          if (element) {
-                            fieldRefs.current.push({field: 'name', ref: element});
-                          }
-                        }}
+                        ref={getFieldRef('name')}
                         disabled={disableFormControls}
                       />
                       <SwitchField
@@ -273,11 +336,7 @@ export const SimpleForm: React.FC<{
                       <TextField
                         name="email"
                         label="Email address"
-                        ref={element => {
-                          if (element) {
-                            fieldRefs.current.push({field: 'email', ref: element});
-                          }
-                        }}
+                        ref={getFieldRef('email')}
                         textInputProps={{
                           placeholder: 'you@domain.com',
                           textContentType: 'emailAddress',
@@ -292,11 +351,7 @@ export const SimpleForm: React.FC<{
                         name="activity"
                         label="Activity"
                         prompt="What were you doing?"
-                        ref={element => {
-                          if (element) {
-                            fieldRefs.current.push({field: 'activity', ref: element});
-                          }
-                        }}
+                        ref={getFieldRef('activity')}
                         items={[
                           {
                             label: 'Skiing/Snowboarding',
@@ -332,28 +387,14 @@ export const SimpleForm: React.FC<{
                       <TextField
                         name="location_name"
                         label="Location"
-                        ref={element => {
-                          if (element) {
-                            fieldRefs.current.push({field: 'location_name', ref: element});
-                          }
-                        }}
+                        ref={getFieldRef('location_name')}
                         textInputProps={{
                           placeholder: 'Please describe your observation location using common geographical place names (drainages, peak names, etc).',
                           multiline: true,
                         }}
                         disabled={disableFormControls}
                       />
-                      <LocationField
-                        name="location_point"
-                        label="Latitude/Longitude"
-                        center={center_id}
-                        ref={element => {
-                          if (element) {
-                            fieldRefs.current.push({field: 'location_point', ref: element});
-                          }
-                        }}
-                        disabled={disableFormControls}
-                      />
+                      <LocationField name="location_point" label="Latitude/Longitude" center={center_id} ref={getFieldRef('location_point')} disabled={disableFormControls} />
                     </VStack>
                   </Card>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Signs of instability</Title3Semibold>}>
@@ -417,11 +458,7 @@ export const SimpleForm: React.FC<{
                           ]}
                           prompt=" "
                           disabled={disableFormControls}
-                          ref={element => {
-                            if (element) {
-                              fieldRefs.current.push({field: 'instability.cracking_description', ref: element});
-                            }
-                          }}
+                          ref={getFieldRef('instability.cracking_description')}
                         />
                       </Conditional>
                       <SwitchField
@@ -444,11 +481,7 @@ export const SimpleForm: React.FC<{
                           ]}
                           prompt=" "
                           disabled={disableFormControls}
-                          ref={element => {
-                            if (element) {
-                              fieldRefs.current.push({field: 'instability.collapsing_description', ref: element});
-                            }
-                          }}
+                          ref={getFieldRef('instability.collapsing_description')}
                         />
                       </Conditional>
                     </VStack>
@@ -459,11 +492,7 @@ export const SimpleForm: React.FC<{
                         <TextField
                           name="avalanches_summary"
                           label="Observed avalanches"
-                          ref={element => {
-                            if (element) {
-                              fieldRefs.current.push({field: 'avalanches_summary', ref: element});
-                            }
-                          }}
+                          ref={getFieldRef('avalanches_summary')}
                           textInputProps={{
                             placeholder: `• Location, aspect, and elevation
 • How recently did it occur?
@@ -483,11 +512,7 @@ export const SimpleForm: React.FC<{
                       <TextField
                         name="observation_summary"
                         label="What did you observe?"
-                        ref={element => {
-                          if (element) {
-                            fieldRefs.current.push({field: 'observation_summary', ref: element});
-                          }
-                        }}
+                        ref={getFieldRef('observation_summary')}
                         textInputProps={{
                           placeholder: `• Signs of instability?
 • Amount of new snow/total snow?
@@ -511,34 +536,15 @@ export const SimpleForm: React.FC<{
                           media={images.map((i): ImageMediaItem => ({url: {original: i.uri, large: '', medium: '', thumbnail: ''}, type: MediaType.Image, caption: ''}))}
                           displayCaptions={false}
                           imageSize="original"
-                          renderOverlay={index => (
-                            <View position="absolute" top={8} right={8}>
-                              <AntDesign.Button
-                                size={16}
-                                name="close"
-                                color="white"
-                                backgroundColor="rgba(0, 0, 0, 0.3)"
-                                iconStyle={{marginRight: 0}}
-                                style={{textAlign: 'center'}}
-                                onPress={() => {
-                                  setImages(images.filter((_v, i) => i !== index));
-                                }}
-                              />
-                            </View>
-                          )}
+                          renderOverlay={renderOverlay}
                         />
                       )}
                       <VStack space={4}>
                         <Button
                           buttonStyle="normal"
-                          onPress={() => void pickImage()}
+                          onPress={pickImage}
                           disabled={images.length === maxImageCount || disableFormControls || missingImagePermissions}
-                          renderChildren={({textColor}) => (
-                            <HStack alignItems="center" space={4}>
-                              <MaterialIcons name="add" size={24} color={textColor} style={{marginTop: 1}} />
-                              <BodyBlack color={textColor}>Add images</BodyBlack>
-                            </HStack>
-                          )}
+                          renderChildren={renderAddImageButton}
                         />
                         {missingImagePermissions && (
                           <BodySm color={colorLookup('error.900')}>We need permission to access your photos to upload images. Please check your system settings.</BodySm>
@@ -547,20 +553,7 @@ export const SimpleForm: React.FC<{
                     </VStack>
                   </Card>
 
-                  <Button
-                    mx={16}
-                    mt={8}
-                    buttonStyle="primary"
-                    disabled={mutation.isSuccess || mutation.isLoading}
-                    busy={mutation.isLoading}
-                    onPress={() =>
-                      void (async () => {
-                        // Force validation errors to show up on fields that haven't been visited yet
-                        await formContext.trigger();
-                        // Then try to submit the form
-                        void formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
-                      })()
-                    }>
+                  <Button mx={16} mt={8} buttonStyle="primary" disabled={mutation.isSuccess || mutation.isLoading} busy={mutation.isLoading} onPress={onSubmitPress}>
                     <BodySemibold>{mutation.isLoading ? 'Uploading observation' : 'Submit your observation'}</BodySemibold>
                   </Button>
                   <VStack mx={16} mt={16} mb={32}>
