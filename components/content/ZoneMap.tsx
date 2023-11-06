@@ -1,9 +1,10 @@
-import React, {useState} from 'react';
+import React from 'react';
 
 import MapView, {MAP_TYPES, MapViewProps, Region} from 'react-native-maps';
 
 import {RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
 import {AvalancheForecastZonePolygon, toLatLngList} from 'components/map/AvalancheForecastZonePolygon';
+import {useToggle} from 'hooks/useToggle';
 import {AvalancheCenterID, DangerLevel, Geometry} from 'types/nationalAvalancheCenter';
 
 const defaultAvalancheCenterMapRegionBounds: RegionBounds = {
@@ -32,11 +33,11 @@ interface ZoneMapProps extends MapViewProps {
 }
 
 export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones, selectedZoneId, onPressPolygon, renderFillColor = true, children, ...props}, ref) => {
-  const [ready, setReady] = useState<boolean>(false);
+  const [ready, {on: setReady}] = useToggle(false);
   const MapComponent = animated ? MapView.Animated : MapView;
 
   return (
-    <MapComponent ref={ref} onLayout={() => setReady(true)} provider={'google'} mapType={MAP_TYPES.TERRAIN} {...props}>
+    <MapComponent ref={ref} onLayout={setReady} provider={'google'} mapType={MAP_TYPES.TERRAIN} {...props}>
       {ready &&
         zones?.map(zone => (
           <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={selectedZoneId === zone.zone_id} renderFillColor={renderFillColor} onPress={onPressPolygon} />

@@ -19,6 +19,7 @@ import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CAR
 import {AvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZonePolygon';
 import {BodySm, BodySmSemibold, BodyXSm, Title3Black} from 'components/text';
 import {formatData, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
+import {useToggle} from 'hooks/useToggle';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {WeatherStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
@@ -70,7 +71,7 @@ export const WeatherStationMap: React.FunctionComponent<{
   requestedTime: RequestedTimeString;
   toggleList: () => void;
 }> = ({mapLayer, weatherStations, center_id, requestedTime, toggleList}) => {
-  const [ready, setReady] = useState<boolean>(false);
+  const [ready, {on: setReady}] = useToggle(false);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const avalancheCenterMapRegion: Region = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
 
@@ -207,14 +208,29 @@ export const WeatherStationMap: React.FunctionComponent<{
     }
   }, [selectedStationId, sortedStations]);
 
+  const onLayout = useCallback(() => {
+    // onLayout returns position relative to parent - we need position relative to screen
+    topElements.current?.measureInWindow((x, y, width, height) => {
+      controller.animateUsingUpdatedTopElementsHeight(y, height);
+    });
+
+    // we seem to see races between onLayout firing and the measureInWindow picking up the correct
+    // SafeAreaView bounds, so let's queue up another render pass in the future to hopefully converge
+    setTimeout(() => {
+      if (topElements.current) {
+        topElements.current.measureInWindow((x, y, width, height) => {
+          controller.animateUsingUpdatedTopElementsHeight(y, height);
+        });
+      }
+    }, 50);
+  }, [controller]);
+
   return (
     <>
       <MapView.Animated
         ref={mapView}
         style={StyleSheet.absoluteFillObject}
-        onLayout={() => {
-          setReady(true);
-        }}
+        onLayout={setReady}
         onPress={onPressMapView}
         provider={'google'}
         mapType={MAP_TYPES.TERRAIN}
@@ -226,32 +242,7 @@ export const WeatherStationMap: React.FunctionComponent<{
       </MapView.Animated>
       <SafeAreaView>
         <View>
-          <VStack
-            ref={topElements}
-            width="100%"
-            position="absolute"
-            top={0}
-            left={0}
-            right={0}
-            mt={8}
-            px={4}
-            flex={1}
-            onLayout={() => {
-              // onLayout returns position relative to parent - we need position relative to screen
-              topElements.current?.measureInWindow((x, y, width, height) => {
-                controller.animateUsingUpdatedTopElementsHeight(y, height);
-              });
-
-              // we seem to see races between onLayout firing and the measureInWindow picking up the correct
-              // SafeAreaView bounds, so let's queue up another render pass in the future to hopefully converge
-              setTimeout(() => {
-                if (topElements.current) {
-                  topElements.current.measureInWindow((x, y, width, height) => {
-                    controller.animateUsingUpdatedTopElementsHeight(y, height);
-                  });
-                }
-              }, 50);
-            }}></VStack>
+          <VStack ref={topElements} width="100%" position="absolute" top={0} left={0} right={0} mt={8} px={4} flex={1} onLayout={onLayout}></VStack>
         </View>
       </SafeAreaView>
 
@@ -287,15 +278,16 @@ const WeatherStationMarker: React.FC<{
     setCurrentlySelected(selected);
     forceMarkerRedraw();
   }
+  const onPressHandler = useCallback(() => {
+    onPressMarker(station);
+  }, [onPressMarker, station]);
 
   return (
     <MapMarker
       ref={markerRef}
       key={station.properties.stid}
       coordinate={coordinate}
-      onPress={() => {
-        onPressMarker(station);
-      }}
+      onPress={onPressHandler}
       stopPropagation={true}
       tappable={true}
       draggable={false}
@@ -387,18 +379,17 @@ export const WeatherStationCard: React.FunctionComponent<{
         data: data,
       };
     });
+    const onPress = useCallback(() => {
+      navigation.navigate('stationDetail', {
+        center_id: center_id,
+        stationId: station.properties.stid,
+        source: station.properties.source,
+        requestedTime: formatRequestedTime(date),
+      });
+    }, [navigation, center_id, station, date]);
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={() => {
-          navigation.navigate('stationDetail', {
-            center_id: center_id,
-            stationId: station.properties.stid,
-            source: station.properties.source,
-            requestedTime: formatRequestedTime(date),
-          });
-        }}>
+      <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
         <VStack
           borderRadius={8}
           bg="white"

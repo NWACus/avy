@@ -1,4 +1,4 @@
-import React, {PropsWithChildren} from 'react';
+import React, {PropsWithChildren, useCallback} from 'react';
 
 import {GestureResponderEvent, ScrollView, TouchableOpacity} from 'react-native';
 
@@ -29,33 +29,40 @@ const RoundButton = ({onPress, ...props}: {onPress: ((event: GestureResponderEve
 );
 
 export const ImageViewerModal: React.FunctionComponent<PropsWithChildren<ImageViewerModalProps>> = ({visible, media, startIndex, onClose, ..._props}) => {
-  const HeaderComponent = ({imageIndex}: {imageIndex: number}) => (
-    <SafeAreaProvider>
-      <SafeAreaView>
-        <HStack width="100%" justifyContent="space-between" alignItems="center" height={64}>
-          <View width={64} height={64} />
-          <Center>
-            <BodySm color="white">
-              {imageIndex + 1} / {media.length}
-            </BodySm>
-          </Center>
-          <RoundButton onPress={onClose} marginRight={16} />
-        </HStack>
-      </SafeAreaView>
-    </SafeAreaProvider>
+  const HeaderComponent = useCallback(
+    ({imageIndex}: {imageIndex: number}) => (
+      <SafeAreaProvider>
+        <SafeAreaView>
+          <HStack width="100%" justifyContent="space-between" alignItems="center" height={64}>
+            <View width={64} height={64} />
+            <Center>
+              <BodySm color="white">
+                {imageIndex + 1} / {media.length}
+              </BodySm>
+            </Center>
+            <RoundButton onPress={onClose} marginRight={16} />
+          </HStack>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    ),
+    [media.length, onClose],
   );
-  const FooterComponent = ({imageIndex}: {imageIndex: number}) => (
-    <View flex={1} px={32} pb={16}>
-      <ScrollView bounces={false}>{media[imageIndex].caption && <HTML source={{html: media[imageIndex].caption ?? ''}} />}</ScrollView>
-    </View>
+  const FooterComponent = useCallback(
+    ({imageIndex}: {imageIndex: number}) => (
+      <View flex={1} px={32} pb={16}>
+        <ScrollView bounces={false}>{media[imageIndex].caption && <HTML source={{html: media[imageIndex].caption ?? ''}} />}</ScrollView>
+      </View>
+    ),
+    [media],
   );
+  const keyExtractor = useCallback((_imageSrc: unknown, index: number) => index.toString(), []);
 
   return (
     // onRequestClose handles the back button on Android - there's also an explicit close button in this modal
     <HTMLRendererConfig baseStyle={htmlStyle}>
       <ImageView
         images={media.map(m => ({uri: m.url.original}))}
-        keyExtractor={(_imageSrc, index) => index.toString()}
+        keyExtractor={keyExtractor}
         imageIndex={startIndex}
         visible={visible}
         swipeToCloseEnabled

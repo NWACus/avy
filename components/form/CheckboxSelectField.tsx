@@ -1,7 +1,7 @@
 import {HStack, VStack, View, ViewProps} from 'components/core';
 import {Body, BodyXSmBlack, TextWrapperProps} from 'components/text';
 import Checkbox from 'expo-checkbox';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
 import {colorLookup} from 'theme';
 
@@ -42,6 +42,15 @@ export function CheckboxSelectField({name, label, items, disabled, labelComponen
     },
     [field, name, setValue, radio],
   );
+  const selectionHandlers = useMemo(
+    () =>
+      items.map(
+        ({value, label}) =>
+          (checked: boolean) =>
+            onChange({value, label}, checked),
+      ),
+    [items, onChange],
+  );
 
   return (
     <VStack width="100%" space={labelSpace} flex={1} flexGrow={1} bg={'white'} {...props}>
@@ -62,7 +71,7 @@ export function CheckboxSelectField({name, label, items, disabled, labelComponen
           <Checkbox
             disabled={disabled}
             value={Array.isArray(field.value) ? field.value.includes(value) : field.value === value}
-            onValueChange={(checked: boolean) => onChange({value, label}, checked)}
+            onValueChange={selectionHandlers[index]}
             color={colorLookup('blue1')}
           />
         </HStack>

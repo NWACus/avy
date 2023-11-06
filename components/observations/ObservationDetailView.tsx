@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {Image, ScrollView, StyleSheet} from 'react-native';
 
 import {MaterialCommunityIcons} from '@expo/vector-icons';
@@ -204,6 +204,7 @@ export const ObservationCard: React.FunctionComponent<{
       navigation.setOptions({title: `${zone_name} Observation`});
     }
   }, [navigation, zone_name]);
+  const emptyHandler = useCallback(() => undefined, []);
 
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
@@ -234,7 +235,7 @@ export const ObservationCard: React.FunctionComponent<{
                       style={{width: '100%', height: 200}}
                       animated={false}
                       zones={[]}
-                      onPressPolygon={() => undefined}
+                      onPressPolygon={emptyHandler}
                       pitchEnabled={false}
                       rotateEnabled={false}
                       scrollEnabled={false}

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 
 import {addDays, formatDistanceToNow, isAfter} from 'date-fns';
 
@@ -21,6 +21,7 @@ import {toDate} from 'date-fns-tz';
 import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {useAvalancheWarning} from 'hooks/useAvalancheWarning';
 import {useRefresh} from 'hooks/useRefresh';
+import {useToggle} from 'hooks/useToggle';
 import {RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
 import Collapsible from 'react-native-collapsible';
 import Toast from 'react-native-toast-message';
@@ -68,6 +69,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
   const warningResult = useAvalancheWarning(center_id, forecast_zone_id, requestedTime);
   const warning = warningResult.data;
   const {isRefreshing, refresh} = useRefresh(forecastResult.refetch, warningResult.refetch);
+  const onRefresh = useCallback(() => void refresh(), [refresh]);
 
   // When navigating from elsewhere in the app, the screen title should already
   // be set to the zone name. But if we warp directly to a forecast link, we
@@ -122,7 +124,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
   const imageItems = images(forecast.media);
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh} />}>
+    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>Avalanche Forecast</Title3Black>}>
           <HStack justifyContent="space-evenly" space={8}>
@@ -204,7 +206,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
 };
 
 const WarningCard: React.FunctionComponent<{warning: Warning | Watch | Special}> = ({warning}) => {
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, {toggle: toggleCollapsed}] = useToggle(true);
   const {accentColor, title} = assetsForType(warning.product_type);
 
   return (
@@ -256,7 +258,7 @@ const WarningCard: React.FunctionComponent<{warning: Warning | Watch | Special}>
             </VStack>
           </Collapsible>
         </VStack>
-        <TouchableOpacity onPress={() => setIsCollapsed(!isCollapsed)}>
+        <TouchableOpacity onPress={toggleCollapsed}>
           <HStack mr={12} justifyContent="space-between" alignItems="center">
             <FontAwesome name={isCollapsed ? 'angle-down' : 'angle-up'} color={'white'} backgroundColor={'#333333'} size={24} />
           </HStack>

@@ -3,7 +3,7 @@ import _ from 'lodash';
 import {Select, SelectRef, SelectStyles} from '@mobile-reality/react-native-select-pro';
 import {VStack} from 'components/core';
 import {BodySmBlack, BodyXSm, bodySize} from 'components/text';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
 import {View as RNView} from 'react-native';
 import {colorLookup} from 'theme';
@@ -91,6 +91,21 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
       selectRef.current?.clear();
     }
   }, [selectRef, field.value, multiple]);
+  const onSelect = useCallback(
+    ({value: selectedValue}: Item) => {
+      const newValue = Array.isArray(field.value) ? field.value.concat([selectedValue]) : selectedValue;
+      setValue(name, newValue, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
+    },
+    [field.value, name, setValue],
+  );
+  const onRemove = useCallback(
+    (option: Item) => {
+      const removedValue = option.value;
+      const newValue = Array.isArray(field.value) ? field.value.filter(v => v !== removedValue) : '';
+      setValue(name, newValue, {shouldValidate: false, shouldDirty: false, shouldTouch: false});
+    },
+    [field.value, name, setValue],
+  );
 
   return (
     <VStack width="100%" space={4} ref={ref}>
@@ -99,15 +114,8 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
         key={JSON.stringify(defaultOption)} // force a re-render when the default changes
         disabled={disabled}
         ref={selectRef}
-        onSelect={({value: selectedValue}) => {
-          const newValue = Array.isArray(field.value) ? field.value.concat([selectedValue]) : selectedValue;
-          setValue(name, newValue, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
-        }}
-        onRemove={option => {
-          const removedValue = option.value;
-          const newValue = Array.isArray(field.value) ? field.value.filter(v => v !== removedValue) : '';
-          setValue(name, newValue, {shouldValidate: false, shouldDirty: false, shouldTouch: false});
-        }}
+        onSelect={onSelect}
+        onRemove={onRemove}
         styles={_.merge({}, selectStyles, {
           optionsList: {
             minHeight: Math.min(10, menuItems.length) * 40,

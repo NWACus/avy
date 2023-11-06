@@ -4,6 +4,7 @@ import NoGPS from 'assets/illustrations/NoGPS.svg';
 import NoSearchResult from 'assets/illustrations/NoSearchResult.svg';
 import {Outcome} from 'components/content/Outcome';
 import {HStack} from 'components/core';
+import {useToggle} from 'hooks/useToggle';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import React from 'react';
 import {ActivityIndicator} from 'react-native';
@@ -102,12 +103,12 @@ export const NotFound: React.FunctionComponent<NotFoundProps> = ({what, terminal
 
 export const ConnectionLost: React.FunctionComponent = () => {
   // const navigation = useNavigation<TabNavigationProps>();
-  const [loading, setLoading] = React.useState<boolean>(false);
+  const [loading, {on: setLoadingOn, off: setLoadingOff}] = useToggle(false);
   React.useEffect(() => {
     if (loading) {
-      setTimeout(() => setLoading(false), 750); // TODO(skuznets): plumb through the refresh here
+      setTimeout(setLoadingOff, 750); // TODO(skuznets): plumb through the refresh here
     }
-  }, [loading]);
+  }, [loading, setLoadingOff]);
 
   if (loading) {
     return <Loading />;
@@ -119,7 +120,7 @@ export const ConnectionLost: React.FunctionComponent = () => {
         illustration={<NoGPS />}
         illustrationBottomMargin={-32}
         illustrationLeftMargin={-16}
-        onRetry={() => setLoading(true)}
+        onRetry={setLoadingOn}
         // onClose={() =>
         //   navigation.navigate('Home', {
         //     screen: 'avalancheCenter',
