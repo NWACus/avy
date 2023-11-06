@@ -19,6 +19,7 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
+import {useToggle} from 'hooks/useToggle';
 import {
   ActivityIndicator,
   ColorValue,
@@ -67,7 +68,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(requestedTime, additionalFilters), [requestedTime, additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
-  const [filterModalVisible, setFilterModalVisible] = useState<boolean>(false);
+  const [filterModalVisible, setFilterModalVisible, {on: showFilterModal}] = useToggle(false);
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
@@ -222,7 +223,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   useEffect(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   }, [showSubmitButtonText]);
-  const showFilterModal = useCallback(() => setFilterModalVisible(true), [setFilterModalVisible]);
   const getItemLayout = useCallback(
     (_data: unknown, index: number) => ({
       length: OBSERVATION_SUMMARY_CARD_HEIGHT,

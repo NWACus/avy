@@ -1,8 +1,9 @@
 import * as _ from 'lodash';
-import React, {PropsWithChildren, useCallback, useRef, useState} from 'react';
+import React, {PropsWithChildren, useRef} from 'react';
 
 import {Body} from 'components/text';
 import Constants from 'expo-constants';
+import {useToggle} from 'hooks/useToggle';
 import {Platform, ScrollView, TouchableOpacity, useWindowDimensions} from 'react-native';
 import {MixedStyleDeclaration, RenderHTMLConfigProvider, RenderHTMLSource, RenderHTMLSourceProps, TRenderEngineProvider} from 'react-native-render-html';
 import {colorLookup} from 'theme';
@@ -63,9 +64,7 @@ export const HTML: React.FunctionComponent<RenderHTMLSourceProps> = props => {
 
   if (__DEV__) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [showSource, setShowSource] = useState(false);
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const toggleSource = useCallback(() => setShowSource(!showSource), [showSource, setShowSource]);
+    const [showSource, _setShowSource, {toggle: toggleSource}] = useToggle(false);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const html = _.get(props, ['source', 'html'], undefined);
     return (
