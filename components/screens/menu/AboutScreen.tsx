@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {Platform, StyleSheet} from 'react-native';
@@ -18,6 +18,19 @@ import {MenuStackParamList} from 'routes';
 
 export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
   const [updateGroupId] = useState(getUpdateGroupId());
+  const openUrl = useCallback(({data}: {data: string}) => void WebBrowser.openBrowserAsync(data), []);
+  const copyVersionInfoToClipboard = useCallback(() => {
+    void (async () => {
+      await Clipboard.setStringAsync(
+        `Avy version ${Application.nativeApplicationVersion || 'n/a'} (${Application.nativeBuildVersion || 'n/a'})
+Build date ${getUpdateTimeAsVersionString()}
+Git revision ${process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a'}
+Update group ID ${updateGroupId} (channel: ${Updates.channel || 'development'})
+Update ID ${Updates.updateId || 'n/a'} (platform: ${Platform.OS})`,
+      );
+    })();
+  }, [updateGroupId]);
+
   return (
     <View style={StyleSheet.absoluteFillObject}>
       <VStack backgroundColor="white" width="100%" height="100%" pt={16} justifyContent="space-between">
@@ -37,8 +50,8 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
             header={<BodyBlack>Legal</BodyBlack>}
             pl={32}
             actions={[
-              {label: 'Terms of Use', data: 'https://nwac.us/terms-of-use/', action: ({data}) => void WebBrowser.openBrowserAsync(data)},
-              {label: 'Privacy Policy', data: 'https://nwac.us/privacy-policy/', action: ({data}) => void WebBrowser.openBrowserAsync(data)},
+              {label: 'Terms of Use', data: 'https://nwac.us/terms-of-use/', action: openUrl},
+              {label: 'Privacy Policy', data: 'https://nwac.us/privacy-policy/', action: openUrl},
             ]}
           />
         </VStack>
@@ -54,24 +67,7 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
               </BodyXSm>
             )}
           </VStack>
-          <Ionicons.Button
-            name="copy-outline"
-            size={12}
-            color="black"
-            style={{backgroundColor: 'white'}}
-            iconStyle={{marginRight: 0}}
-            onPress={() => {
-              void (async () => {
-                await Clipboard.setStringAsync(
-                  `Avy version ${Application.nativeApplicationVersion || 'n/a'} (${Application.nativeBuildVersion || 'n/a'})
-Build date ${getUpdateTimeAsVersionString()}
-Git revision ${process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a'}
-Update group ID ${updateGroupId} (channel: ${Updates.channel || 'development'})
-Update ID ${Updates.updateId || 'n/a'} (platform: ${Platform.OS})`,
-                );
-              })();
-            }}
-          />
+          <Ionicons.Button name="copy-outline" size={12} color="black" style={{backgroundColor: 'white'}} iconStyle={{marginRight: 0}} onPress={copyVersionInfoToClipboard} />
         </HStack>
       </VStack>
     </View>

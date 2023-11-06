@@ -85,6 +85,36 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   const {preferences, setPreferences} = usePreferences();
 
+  const onLayout = useCallback(() => {
+    // onLayout returns position relative to parent - we need position relative to screen
+    topElements.current?.measureInWindow((x, y, width, height) => {
+      controller.animateUsingUpdatedTopElementsHeight(y, height);
+    });
+
+    // we seem to see races between onLayout firing and the measureInWindow picking up the correct
+    // SafeAreaView bounds, so let's queue up another render pass in the future to hopefully converge
+    setTimeout(() => {
+      if (topElements.current) {
+        topElements.current.measureInWindow((x, y, width, height) => {
+          controller.animateUsingUpdatedTopElementsHeight(y, height);
+        });
+      }
+    }, 50);
+  }, [controller]);
+
+  const onSelectCenter = useCallback(
+    (center: AvalancheCenterID) => {
+      setPreferences({center: center, hasSeenCenterPicker: true});
+      // We need to clear navigation state to force all screens from the
+      // previous avalanche center selection to unmount
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'Home'}],
+      });
+    },
+    [setPreferences, navigation],
+  );
+
   if (incompleteQueryState(mapLayerResult, metadataResult, ...forecastResults, ...warningResults) || !mapLayer || !metadata) {
     return (
       <SafeAreaView edges={['top', 'left', 'right']}>
@@ -168,32 +198,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       />
       <SafeAreaView>
         <View>
-          <VStack
-            ref={topElements}
-            width="100%"
-            position="absolute"
-            top={0}
-            left={0}
-            right={0}
-            mt={8}
-            px={4}
-            flex={1}
-            onLayout={() => {
-              // onLayout returns position relative to parent - we need position relative to screen
-              topElements.current?.measureInWindow((x, y, width, height) => {
-                controller.animateUsingUpdatedTopElementsHeight(y, height);
-              });
-
-              // we seem to see races between onLayout firing and the measureInWindow picking up the correct
-              // SafeAreaView bounds, so let's queue up another render pass in the future to hopefully converge
-              setTimeout(() => {
-                if (topElements.current) {
-                  topElements.current.measureInWindow((x, y, width, height) => {
-                    controller.animateUsingUpdatedTopElementsHeight(y, height);
-                  });
-                }
-              }, 50);
-            }}>
+          <VStack ref={topElements} width="100%" position="absolute" top={0} left={0} right={0} mt={8} px={4} flex={1} onLayout={onLayout}>
             <DangerScale width="100%" />
           </VStack>
         </View>
@@ -208,19 +213,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         setSelectedZoneId={setSelectedZoneId}
         controller={controller}
       />
-      <AvalancheCenterSelectionModal
-        visible={showAvalancheCenterSelectionModal}
-        initialSelection={preferences.center}
-        onClose={center => {
-          setPreferences({center: center, hasSeenCenterPicker: true});
-          // We need to clear navigation state to force all screens from the
-          // previous avalanche center selection to unmount
-          navigation.reset({
-            index: 0,
-            routes: [{name: 'Home'}],
-          });
-        }}
-      />
+      <AvalancheCenterSelectionModal visible={showAvalancheCenterSelectionModal} initialSelection={preferences.center} onClose={onSelectCenter} />
     </>
   );
 };
@@ -254,18 +247,17 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
 
   const dangerLevel = zone.danger_level ?? DangerLevel.None;
   const dangerColor = colorFor(dangerLevel);
+  const onPress = useCallback(() => {
+    navigation.navigate('forecast', {
+      zoneName: zone.name,
+      center_id: zone.center_id,
+      forecast_zone_id: zone.zone_id,
+      requestedTime: formatRequestedTime(date),
+    });
+  }, [navigation, zone, date]);
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={() => {
-        navigation.navigate('forecast', {
-          zoneName: zone.name,
-          center_id: zone.center_id,
-          forecast_zone_id: zone.zone_id,
-          requestedTime: formatRequestedTime(date),
-        });
-      }}>
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
       <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={'100%'}>
         <View height={8} width="100%" bg={dangerColor.string()} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
         <VStack px={24} pt={4} pb={12} space={8}>
