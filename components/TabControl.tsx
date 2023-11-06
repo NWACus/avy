@@ -1,4 +1,4 @@
-import React, {PropsWithChildren, ReactElement, useCallback, useState} from 'react';
+import React, {PropsWithChildren, ReactElement, useState} from 'react';
 
 import {TextStyle, TouchableOpacity} from 'react-native';
 
@@ -38,7 +38,16 @@ export const TabControl: React.FunctionComponent<TabControlProps> = ({children, 
     width: `${100 / React.Children.count(children)}%`,
   } as const;
 
-  const onPress = useCallback((index: number) => () => setSelectedIndex(index), [setSelectedIndex]);
+  const onPressHandlers = React.useMemo(
+    () =>
+      React.Children.map(children, (child, index) => {
+        if (!child || typeof child === 'number' || typeof child === 'string' || typeof child === 'boolean') {
+          return;
+        }
+        return () => setSelectedIndex(index);
+      }) || [],
+    [children, setSelectedIndex],
+  );
 
   return (
     // overflow: hidden prevents the drop shadow on the HStack from rendering at the top edge of that component
@@ -67,7 +76,7 @@ export const TabControl: React.FunctionComponent<TabControlProps> = ({children, 
           }
           const selected = selectedIndex === index;
           return (
-            <TouchableOpacity onPress={onPress(index)} style={tabStyle} key={`tabcontrol-item-${index}`}>
+            <TouchableOpacity onPress={onPressHandlers[index]} style={tabStyle} key={`tabcontrol-item-${index}`}>
               <Center>
                 <View borderColor={selected ? selectedTextColor : backgroundColor} borderBottomWidth={4} borderRadius={0}>
                   {selected ? (
