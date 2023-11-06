@@ -65,9 +65,12 @@ import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 import {TRACE} from 'browser-bunyan';
 import * as messages from 'compiled-lang/en.json';
-import {Center} from 'components/core';
+import {Button} from 'components/content/Button';
+import {Center, VStack} from 'components/core';
 import KillSwitchMonitor from 'components/KillSwitchMonitor';
+import {Body, BodyBlack, Title3Black} from 'components/text';
 import {getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
+import {useToggle} from 'hooks/useToggle';
 import {filterLoggedData} from 'logging/filterLoggedData';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
 
@@ -360,6 +363,8 @@ const BaseApp: React.FunctionComponent<{
       });
   }, [setUpdateStatus, logger]);
 
+  const [startupPaused, {off: unpauseStartup}] = useToggle(process.env.EXPO_PUBLIC_PAUSE_ON_STARTUP === 'true');
+
   if (!fontsLoaded || updateStatus !== 'ready') {
     // Here, we render a view that looks exactly like the splash screen but now has an activity indicator
     return (
@@ -384,6 +389,21 @@ const BaseApp: React.FunctionComponent<{
           <ActivityIndicator size="large" style={{marginTop: 200}} />
         </Center>
       </View>
+    );
+  }
+
+  if (startupPaused) {
+    return (
+      <Center bg="magenta" width="100%" height="100%" justifyContent="center" alignItems="center" px={64}>
+        <VStack space={16}>
+          <Title3Black>Waiting for startup delay...</Title3Black>
+          <Body>You’re seeing this because EXPO_PUBLIC_PAUSE_ON_STARTUP is set.</Body>
+          <Body>Attach your profiler now.</Body>
+          <Button onPress={unpauseStartup} buttonStyle="primary">
+            <BodyBlack>Let’s go</BodyBlack>
+          </Button>
+        </VStack>
+      </Center>
     );
   }
 
