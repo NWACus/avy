@@ -12,6 +12,9 @@ import {formatInTimeZone} from 'utils/date';
 const logger = parentLogger.child({component: 'useEASUpdate'});
 
 export const getUpdateGroupId = (): string => {
+  if (Updates.isEmbeddedLaunch) {
+    return 'embedded';
+  }
   const metadata: unknown = Updates.manifest?.metadata;
   if (metadata && typeof metadata === 'object') {
     return _.get(metadata, 'updateGroup', 'n/a');
