@@ -18,8 +18,7 @@ import {useRefresh} from 'hooks/useRefresh';
 import {useWeatherForecast} from 'hooks/useWeatherForecast';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import {isArray} from 'lodash';
-import {LoggerContext, LoggerProps} from 'loggerContext';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
 import Toast from 'react-native-toast-message';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
@@ -78,7 +77,6 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata(center_id, metadata?.widget_config.stations?.token);
   const weatherStations = weatherStationsResult.data;
-  const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const stationsByZone: ZoneWithWeatherStations[] = [];
   const {isRefreshing, refresh} = useRefresh(
     nwacForecastResult.refetch,
@@ -87,6 +85,9 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     avalancheForecastResult.refetch,
     weatherForecastResult.refetch,
   );
+  const onRefresh = useCallback(() => {
+    void refresh();
+  }, [refresh]);
 
   const navigation = useNavigation<ForecastNavigationProp>();
   React.useEffect(() => {
@@ -127,6 +128,33 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     }
   }, [expiresTime]);
 
+  // In the UI, we show weather station groups, which may contain 1 or more weather stations.
+  // Example: Alpental Ski Area shows 3 weather stations.
+  const groupedWeatherStations = Object.entries(stationsByZone?.find(zoneData => zoneData.feature.id === zone.id)?.stationGroups || {}).sort((a, b) => a[0].localeCompare(b[0]));
+
+  const actionListData = useMemo(
+    () =>
+      groupedWeatherStations.map(([name, stations]) => ({
+        label: name,
+        data: stations,
+        action: () => {
+          navigation.navigate('stationsDetail', {
+            center_id: center_id,
+            stations: stations
+              .map(s => ({id: s.stid, source: s.source}))
+              .reduce((accum, value) => {
+                accum[value.id] = value.source;
+                return accum;
+              }, {} as Record<string, WeatherStationSource>),
+            name: name,
+            requestedTime: formatRequestedTime(requestedTime),
+            zoneName: zone.name,
+          });
+        },
+      })),
+    [center_id, groupedWeatherStations, navigation, requestedTime, zone.name],
+  );
+
   if (incompleteQueryState(avalancheCenterMetadataResult, mapLayerResult, avalancheForecastResult) || !metadata || !mapLayer || !avalancheForecast) {
     return <QueryState results={[nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, avalancheForecastResult]} />;
   }
@@ -141,7 +169,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     }
 
     return (
-      <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh} />}>
+      <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
         <VStack space={8} backgroundColor={colorLookup('primary.background')}>
           <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
             <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
@@ -195,7 +223,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
         />
       );
     } else {
-      stationsByZone.push(...NWACStationsByZone(mapLayer, weatherStations, logger));
+      stationsByZone.push(...NWACStationsByZone(mapLayer, weatherStations));
     }
   }
 
@@ -213,10 +241,6 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
       />
     );
   }
-
-  // In the UI, we show weather station groups, which may contain 1 or more weather stations.
-  // Example: Alpental Ski Area shows 3 weather stations.
-  const groupedWeatherStations = Object.entries(stationsByZone?.find(zoneData => zoneData.feature.id === zone.id)?.stationGroups || {}).sort((a, b) => a[0].localeCompare(b[0]));
 
   const author = `${nwacForecast.forecaster.first_name} ${nwacForecast.forecaster.last_name}`;
 
@@ -246,7 +270,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   }));
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh} />}>
+    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>} noDivider>
           <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
@@ -334,32 +358,9 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
           </Card>
         ))}
         <VStack>
-          {groupedWeatherStations.length > 0 && (
-            <ActionList
-              pl={16}
-              backgroundColor="white"
-              header={<Title3Black>Weather Data</Title3Black>}
-              actions={groupedWeatherStations.map(([name, stations]) => ({
-                label: name,
-                data: stations,
-                action: () => {
-                  navigation.navigate('stationsDetail', {
-                    center_id: center_id,
-                    stations: stations
-                      .map(s => ({id: s.stid, source: s.source}))
-                      .reduce((accum, value) => {
-                        accum[value.id] = value.source;
-                        return accum;
-                      }, {} as Record<string, WeatherStationSource>),
-                    name: name,
-                    requestedTime: formatRequestedTime(requestedTime),
-                    zoneName: zone.name,
-                  });
-                },
-              }))}
-            />
-          )}
-          {groupedWeatherStations.length === 0 && (
+          {actionListData.length > 0 ? (
+            <ActionList pl={16} backgroundColor="white" header={<Title3Black>Weather Data</Title3Black>} actions={actionListData} />
+          ) : (
             <HStack py={6}>
               <Body>No weather stations in this zone.</Body>
             </HStack>
