@@ -9,7 +9,7 @@ import {AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useNavigation} from '@react-navigation/native';
+import {RouteProp, useNavigation} from '@react-navigation/native';
 import {MenuStackNavigationProps, MenuStackParamList, TabNavigationProps, TabNavigatorParamList} from 'routes';
 
 import {Divider, HStack, View, VStack} from 'components/core';
@@ -80,24 +80,31 @@ export const MenuStackScreen = (
   setStaging: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
   const {center_id, requestedTime} = route.params;
+  const avalancheCenterSelectorOptions = useCallback(
+    ({route}: {route: RouteProp<MenuStackParamList, 'avalancheCenterSelector'>}) => ({
+      headerShown: true,
+      title: `Select Avalanche Center${route.params.debugMode ? ' (debug)' : ''}`,
+    }),
+    [],
+  );
   return (
-    <MenuStack.Navigator initialRouteName="menu" screenOptions={() => ({headerShown: true})}>
+    <MenuStack.Navigator initialRouteName="menu" screenOptions={{headerShown: true}}>
       <MenuStack.Screen name="menu" component={MenuScreen(queryCache, avalancheCenterId, staging, setStaging)} options={{title: `Settings`, headerShown: false}} />
       <MenuStack.Screen
         name="avalancheCenterSelector"
         component={AvalancheCenterSelectorScreen(AvalancheCenters.SupportedCenters, avalancheCenterId, setAvalancheCenter)}
-        options={({route}) => ({headerShown: true, title: `Select Avalanche Center${route.params.debugMode ? ' (debug)' : ''}`})}
+        options={avalancheCenterSelectorOptions}
       />
       <MenuStack.Screen name="buttonStylePreview" component={ButtonStylePreview} options={{title: `Button style preview`}} />
       <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text style preview`}} />
       <MenuStack.Screen name="avalancheComponentPreview" component={AvalancheComponentPreview} options={{title: `Avalanche component preview`}} />
       <MenuStack.Screen name="toastPreview" component={ToastPreview} options={{title: `Toast preview`}} />
       <MenuStack.Screen name="timeMachine" component={TimeMachine} options={{title: `Time machine`}} />
-      <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
-      <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={() => ({headerShown: false})} />
+      <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={{headerShown: false}} />
+      <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={{headerShown: false}} />
       <MenuStack.Screen name="observation" component={ObservationScreen} />
       <MenuStack.Screen name="nwacObservation" component={NWACObservationScreen} />
-      <MenuStack.Screen name="about" component={AboutScreen} options={() => ({title: 'Avy'})} />
+      <MenuStack.Screen name="about" component={AboutScreen} options={{title: 'Avy'}} />
       <MenuStack.Screen name="outcome" component={OutcomeScreen} />
       <MenuStack.Screen name="expoConfig" component={ExpoConfigScreen} />
     </MenuStack.Navigator>
@@ -117,6 +124,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
   const menuItems = settingsMenuItems[avalancheCenterId];
 
   const MenuScreen = function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
+    const sendMailHandler = useCallback(() => void sendMail({to: 'developer+app-feedback@nwac.us', subject: 'NWAC app feedback', logger}), []);
     return (
       <View style={{...StyleSheet.absoluteFillObject}} bg="white">
         {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
@@ -129,7 +137,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                 </Body>
               </Card>
               <View py={12} px={32}>
-                <Button buttonStyle="primary" onPress={() => void sendMail({to: 'developer+app-feedback@nwac.us', subject: 'NWAC app feedback', logger})}>
+                <Button buttonStyle="primary" onPress={sendMailHandler}>
                   <BodyBlack>Submit App Feedback</BodyBlack>
                 </Button>
               </View>
