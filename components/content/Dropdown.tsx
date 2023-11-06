@@ -3,7 +3,8 @@ import {View as RNView, TouchableOpacity} from 'react-native';
 import {Entypo} from '@expo/vector-icons';
 import {HStack, View, ViewProps, VStack} from 'components/core';
 import {Body} from 'components/text';
-import React, {useEffect, useRef, useState} from 'react';
+import {useToggle} from 'hooks/useToggle';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {LayoutRectangle, Modal, StyleSheet, TouchableWithoutFeedback} from 'react-native';
 import {colorLookup} from 'theme';
 import tinycolor from 'tinycolor2';
@@ -18,7 +19,7 @@ const borderColor = colorLookup('border.base');
 
 export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelectionChange, ...props}) => {
   const ref = useRef<RNView>(null);
-  const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
+  const [dropdownVisible, {off: hideDropdown, toggle: toggleDropdown}] = useToggle(false);
   const [layout, setLayout] = useState<LayoutRectangle>({x: 0, y: 0, width: 0, height: 0});
 
   // Every time through render, try to measure where we're at so that we can place the dropdown correctly.
@@ -32,12 +33,23 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
     });
   });
 
+  const selectionHandlers = useMemo(
+    () =>
+      Object.fromEntries(
+        items.map(item => [
+          item,
+          () => {
+            hideDropdown();
+            onSelectionChange?.(item);
+          },
+        ]),
+      ),
+    [items, hideDropdown, onSelectionChange],
+  );
+
   return (
     <>
-      <TouchableOpacity
-        onPress={() => {
-          setDropdownVisible(!dropdownVisible);
-        }}>
+      <TouchableOpacity onPress={toggleDropdown}>
         <View ref={ref} borderColor={borderColor} borderWidth={2} borderRadius={4} p={8} flexDirection="column" justifyContent="center" {...props}>
           <HStack justifyContent="space-between" alignItems="center">
             <Body>{selectedItem}</Body>
@@ -46,11 +58,7 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
         </View>
       </TouchableOpacity>
       <Modal visible={dropdownVisible} transparent animationType="none">
-        <TouchableWithoutFeedback
-          disabled={!dropdownVisible}
-          onPress={() => {
-            setDropdownVisible(false);
-          }}>
+        <TouchableWithoutFeedback disabled={!dropdownVisible} onPress={hideDropdown}>
           <View style={{...StyleSheet.absoluteFillObject}}>
             <VStack
               bg="white"
@@ -65,13 +73,7 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
               borderBottomLeftRadius={4}
               borderBottomRightRadius={4}>
               {items.sort().map((item, index) => (
-                <TouchableOpacity
-                  key={item}
-                  disabled={!dropdownVisible}
-                  onPress={() => {
-                    setDropdownVisible(false);
-                    onSelectionChange?.(item);
-                  }}>
+                <TouchableOpacity key={item} disabled={!dropdownVisible} onPress={selectionHandlers[item]}>
                   <View px={8} key={item} bg={item === selectedItem ? tinycolor(colorLookup('primary').toString()).setAlpha(0.1).toRgbString() : undefined}>
                     <View py={8} borderTopWidth={index > 0 ? 2 : 0} borderColor={borderColor}>
                       <Body key={item}>{item}</Body>

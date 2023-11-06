@@ -26,7 +26,7 @@ export const BaseToast: React.FunctionComponent<{
     </VStack>
   );
   if (onPress && onPress.name !== 'noop') {
-    return <TouchableWithoutFeedback onPress={() => onPress()}>{toast}</TouchableWithoutFeedback>;
+    return <TouchableWithoutFeedback onPress={onPress}>{toast}</TouchableWithoutFeedback>;
   }
 
   return toast;

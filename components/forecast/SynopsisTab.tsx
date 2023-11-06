@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 
 import {formatDistanceToNow, isAfter} from 'date-fns';
 
@@ -29,6 +29,7 @@ export const SynopsisTab: React.FunctionComponent<SynopsisTabProps> = ({center_i
   const synopsisResult = useSynopsis(center_id, forecast_zone_id, requestedTime);
   const synopsis = synopsisResult.data;
   const {isRefreshing, refresh} = useRefresh(synopsisResult.refetch);
+  const onRefresh = useCallback(() => void refresh(), [refresh]);
 
   const navigation = useNavigation<HomeStackNavigationProps>();
   React.useEffect(() => {
@@ -59,7 +60,7 @@ export const SynopsisTab: React.FunctionComponent<SynopsisTabProps> = ({center_i
   const imageItems = images(synopsis.media);
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh} />}>
+    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>{center.config.blog_title ?? 'Conditions Blog'}</Title3Black>}>
           <HStack justifyContent="space-evenly" space={8}>

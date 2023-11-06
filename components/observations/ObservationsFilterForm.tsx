@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 
 import {startCase} from 'lodash';
 
@@ -256,50 +256,71 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
     return true;
   });
 
-  const onSubmitHandler = (data: ObservationFilterConfig) => {
-    if (data.dates.value === 'current_season') {
-      // When the user selects `current_season`, the date fields might be set to a previous custom range.
-      // Make sure they're overridden with the season dates.
-      data.dates = {
-        value: 'current_season',
-        ...currentSeasonDates(requestedTime),
-      };
-    } else {
-      // When the user specfies a date range, make sure it runs until midnight of the last day
-      data.dates = {
-        value: 'custom',
-        from: data.dates.from,
-        to: endOfDay(data.dates.to),
-      };
-    }
-    setFilterConfig(data);
-  };
+  const onResetHandler = useCallback(() => formContext.reset(initialFilterConfig), [formContext, initialFilterConfig]);
+
+  const onSubmitHandler = useCallback(
+    (data: ObservationFilterConfig) => {
+      if (data.dates.value === 'current_season') {
+        // When the user selects `current_season`, the date fields might be set to a previous custom range.
+        // Make sure they're overridden with the season dates.
+        data.dates = {
+          value: 'current_season',
+          ...currentSeasonDates(requestedTime),
+        };
+      } else {
+        // When the user specfies a date range, make sure it runs until midnight of the last day
+        data.dates = {
+          value: 'custom',
+          from: data.dates.from,
+          to: endOfDay(data.dates.to),
+        };
+      }
+      setFilterConfig(data);
+    },
+    [setFilterConfig, requestedTime],
+  );
 
   const fieldRefs = React.useRef<{ref: RNView; field: keyof ObservationFilterConfig}[]>([]);
   const scrollViewRef = React.useRef<ScrollView>(null);
 
-  const onSubmitErrorHandler = (errors: FieldErrors<ObservationFilterConfig>) => {
-    logger.error({errors: errors, formValues: formContext.getValues()}, 'filters error');
-    // scroll to the first field with an error
-    fieldRefs.current.some(({ref, field}) => {
-      if (errors[field] && scrollViewRef.current) {
-        const handle = findNodeHandle(scrollViewRef.current);
-        if (handle) {
-          ref.measureLayout(
-            handle,
-            (_left, top) => {
-              if (scrollViewRef.current) {
-                scrollViewRef.current.scrollTo({y: top});
-              }
-            },
-            () => undefined,
-          );
-          return true;
+  const onSubmitErrorHandler = useCallback(
+    (errors: FieldErrors<ObservationFilterConfig>) => {
+      logger.error({errors: errors, formValues: formContext.getValues()}, 'filters error');
+      // scroll to the first field with an error
+      fieldRefs.current.some(({ref, field}) => {
+        if (errors[field] && scrollViewRef.current) {
+          const handle = findNodeHandle(scrollViewRef.current);
+          if (handle) {
+            ref.measureLayout(
+              handle,
+              (_left, top) => {
+                if (scrollViewRef.current) {
+                  scrollViewRef.current.scrollTo({y: top});
+                }
+              },
+              () => undefined,
+            );
+            return true;
+          }
         }
-      }
-      return false;
-    });
-  };
+        return false;
+      });
+    },
+    [formContext, logger],
+  );
+
+  const onApplyHandler = useCallback(
+    () =>
+      void (async () => {
+        // Force validation errors to show up on fields that haven't been visited yet
+        await formContext.trigger();
+        // Then try to submit the form
+        await formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
+        // Finally, close the modal
+        setVisible(false);
+      })(),
+    [formContext, onSubmitHandler, onSubmitErrorHandler, setVisible],
+  );
 
   const minMaxDates = {
     min: startOfSeasonLocalDate(requestedTime),
@@ -314,11 +335,11 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
             <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}} ref={scrollViewRef}>
               <VStack space={12} pt={4}>
                 <HStack justifyContent={'space-between'} alignItems={'center'} px={16}>
-                  <TouchableOpacity onPress={() => setVisible(false)}>
+                  <TouchableOpacity onPress={onCloseHandler}>
                     <AntDesign name="close" size={24} color="black" />
                   </TouchableOpacity>
                   <Title3Semibold>Filters</Title3Semibold>
-                  <TouchableOpacity onPress={() => formContext.reset(initialFilterConfig)}>
+                  <TouchableOpacity onPress={onResetHandler}>
                     <BodyBlack color={colorLookup('blue2')}>Reset</BodyBlack>
                   </TouchableOpacity>
                 </HStack>
@@ -420,20 +441,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                 </VStack>
               </VStack>
             </ScrollView>
-            <Button
-              mx={16}
-              mt={16}
-              buttonStyle="primary"
-              onPress={() =>
-                void (async () => {
-                  // Force validation errors to show up on fields that haven't been visited yet
-                  await formContext.trigger();
-                  // Then try to submit the form
-                  await formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
-                  // Finally, close the modal
-                  setVisible(false);
-                })()
-              }>
+            <Button mx={16} mt={16} buttonStyle="primary" onPress={onApplyHandler}>
               <BodySemibold>Apply Filters</BodySemibold>
             </Button>
           </KeyboardAvoidingView>

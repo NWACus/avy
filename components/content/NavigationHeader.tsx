@@ -4,7 +4,7 @@ import {NativeStackHeaderProps} from '@react-navigation/native-stack/lib/typescr
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {HStack, View} from 'components/core';
 import {Title1Black, Title3Black} from 'components/text';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -18,6 +18,7 @@ export const NavigationHeader: React.FunctionComponent<
   const title = getHeaderTitle(options, route.name);
   const TextComponent = large ? Title1Black : Title3Black;
   const insets = useSafeAreaInsets();
+  const goBack = useCallback(() => navigation.goBack(), [navigation]);
 
   return (
     // On phones with notches, the insets.top value will be non-zero and we don't need additional padding on top.
@@ -32,7 +33,7 @@ export const NavigationHeader: React.FunctionComponent<
             backgroundColor="white"
             iconStyle={{marginLeft: 0, marginRight: 0}}
             style={{textAlign: 'center', borderColor: 'transparent', borderWidth: 1}}
-            onPress={() => navigation.goBack()}
+            onPress={goBack}
           />
         ) : (
           <View width={42} />

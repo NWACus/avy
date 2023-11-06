@@ -1,7 +1,7 @@
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import {ViewProps, VStack} from 'components/core';
 import {BodySmBlack} from 'components/text';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {useController} from 'react-hook-form';
 import {colorLookup} from 'theme';
 
@@ -19,6 +19,15 @@ interface SwitchFieldProps<T> extends ViewProps {
 
 export function SwitchField<T>({name, label, items, disabled, ...props}: SwitchFieldProps<T>) {
   const {field} = useController({name});
+  const onValueChange = useCallback(
+    (label: string) => {
+      const value = items.find(i => i.label === label)?.value;
+      if (value !== undefined) {
+        field.onChange(value);
+      }
+    },
+    [items, field],
+  );
 
   return (
     <VStack width="100%" space={4} {...props}>
@@ -32,12 +41,7 @@ export function SwitchField<T>({name, label, items, disabled, ...props}: SwitchF
           items.findIndex(i => i.value === field.value),
           0,
         )}
-        onValueChange={(label: string) => {
-          const value = items.find(i => i.label === label)?.value;
-          if (value !== undefined) {
-            field.onChange(value);
-          }
-        }}
+        onValueChange={onValueChange}
         appearance="light"
         enabled={!disabled}
       />

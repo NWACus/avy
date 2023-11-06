@@ -4,6 +4,7 @@ import {Divider, HStack, VStack, View} from 'components/core';
 import {FilterPillButton} from 'components/observations/ObservationsListView';
 import {WeatherStationFilterConfig, WeatherStationFilterForm, filtersForConfig} from 'components/weather_data/WeatherStationFilterForm';
 import {WeatherStationCard} from 'components/weather_data/WeatherStationMap';
+import {useToggle} from 'hooks/useToggle';
 import React, {useCallback, useMemo} from 'react';
 import {FlatList, ListRenderItemInfo, Modal, ScrollView, TouchableOpacity} from 'react-native';
 import {colorLookup} from 'theme';
@@ -27,7 +28,7 @@ export const WeatherStationList: React.FunctionComponent<{
   const parsedTime = parseRequestedTimeString(requestedTime);
   const currentTime = requestedTimeToUTCDate(parsedTime);
   const [filterConfig, setFilterConfig] = React.useState<WeatherStationFilterConfig>({...initialFilterConfig});
-  const [filterModalVisible, setFilterModalVisible] = React.useState<boolean>(false);
+  const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
 
   // when the initial filter inputs change, we should honor those
   React.useEffect(() => {
@@ -63,6 +64,13 @@ export const WeatherStationList: React.FunctionComponent<{
     [center_id, currentTime, weatherStations.properties.units, weatherStations.properties.variables],
   );
 
+  const applyFilterRemoval = useCallback(
+    (removeFilter: (config: WeatherStationFilterConfig) => WeatherStationFilterConfig) => {
+      return () => setFilterConfig(removeFilter(filterConfig));
+    },
+    [filterConfig, setFilterConfig],
+  );
+
   return (
     <>
       <VStack width="100%" height="100%" space={0}>
@@ -80,7 +88,7 @@ export const WeatherStationList: React.FunctionComponent<{
             label="Filters"
             textColor={colorLookup('text')}
             backgroundColor={colorLookup('white')}
-            onPress={() => setFilterModalVisible(true)}
+            onPress={showFilterModal}
             headIcon={<FontAwesome name="sliders" size={16} color={colorLookup('text')} style={{marginRight: 2}} />}
           />
           <Divider direction="vertical" />
@@ -100,13 +108,7 @@ export const WeatherStationList: React.FunctionComponent<{
                     textColor={textColor}
                     backgroundColor={backgroundColor}
                     tailIcon={tailIcon}
-                    onPress={() => {
-                      if (removeFilter) {
-                        setFilterConfig(removeFilter(filterConfig));
-                      } else {
-                        setFilterModalVisible(true);
-                      }
-                    }}
+                    onPress={removeFilter ? applyFilterRemoval(removeFilter) : showFilterModal}
                   />
                 );
               })}
@@ -121,7 +123,7 @@ export const WeatherStationList: React.FunctionComponent<{
           renderItem={renderItem}
         />
       </VStack>
-      <TouchableOpacity onPress={() => toggleMap()}>
+      <TouchableOpacity onPress={toggleMap}>
         <HStack style={{position: 'absolute', width: '100%', bottom: 24}} px={8}>
           <View flex={1} />
           <View px={8} py={4} bg={'primary'} borderRadius={30}>

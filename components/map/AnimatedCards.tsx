@@ -2,9 +2,10 @@ import {AntDesign} from '@expo/vector-icons';
 import {Logger} from 'browser-bunyan';
 import {HStack, View} from 'components/core';
 import {add, isAfter} from 'date-fns';
+import {useToggle} from 'hooks/useToggle';
 import _ from 'lodash';
 import md5 from 'md5';
-import React, {RefObject, useRef, useState} from 'react';
+import React, {RefObject, useCallback, useRef, useState} from 'react';
 import {
   Animated,
   FlatList,
@@ -326,7 +327,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
 
   const [previouslySelectedItemId, setPreviouslySelectedItemId] = useState<U | null>(null);
   const [programaticallyScrolling, setProgramaticallyScrolling] = useState<boolean>(false);
-  const [userScrolling, setUserScrolling] = useState<boolean>(false);
+  const [userScrolling, {on: userScrollingOn, off: userScrollingOff}] = useToggle(false);
 
   const offsets = items?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
   const flatListProps = {
@@ -358,38 +359,44 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
   ).current;
 
   const flatListRef = useRef<FlatList>(null);
+  const onLayout = useCallback((event: LayoutChangeEvent) => controller.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height), [controller]);
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (!offsets || offsets.length === 0) {
-      return;
-    }
-    // we want to figure out what card the user scrolled to - so, we can figure out which card
-    // offset the center of the screen is at; by moving through the list backwards we can simply
-    // exit when we find an offset that's before the center of the screen (we know since we got
-    // that far in the iteration that the offset prior to that is on the other side of the center
-    // of the screen)
-    let index = 0;
-    const offset = event.nativeEvent.contentOffset.x + width / 2;
-    for (let i = offsets.length - 1; i >= 0; i--) {
-      if (offsets[i] <= offset) {
-        index = i;
-        break;
+  const renderItemAdapter = useCallback(({item}: {item: ItemRenderData<T, U>}) => renderItem(item), [renderItem]);
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (!offsets || offsets.length === 0) {
+        return;
       }
-    }
-    if (programaticallyScrolling) {
-      // when we're scrolling through the list programatically, the true state of the selection is
-      // the intended scroll target, not whichever card happens to be shown at the moment
-      const intendedIndex = items.findIndex(i => getItemId(i) === selectedItemId);
-      if (intendedIndex === index) {
-        // when the programmatic scroll reaches the intended index, we can call this programmatic
-        // scroll event finished
-        setProgramaticallyScrolling(false);
+      // we want to figure out what card the user scrolled to - so, we can figure out which card
+      // offset the center of the screen is at; by moving through the list backwards we can simply
+      // exit when we find an offset that's before the center of the screen (we know since we got
+      // that far in the iteration that the offset prior to that is on the other side of the center
+      // of the screen)
+      let index = 0;
+      const offset = event.nativeEvent.contentOffset.x + width / 2;
+      for (let i = offsets.length - 1; i >= 0; i--) {
+        if (offsets[i] <= offset) {
+          index = i;
+          break;
+        }
       }
-    } else if (userScrolling) {
-      // if the *user* is scrolling this drawer, though, the true state of our selection is up to them
-      setSelectedItemId(getItemId(items[index]));
-    }
-  };
+      if (programaticallyScrolling) {
+        // when we're scrolling through the list programatically, the true state of the selection is
+        // the intended scroll target, not whichever card happens to be shown at the moment
+        const intendedIndex = items.findIndex(i => getItemId(i) === selectedItemId);
+        if (intendedIndex === index) {
+          // when the programmatic scroll reaches the intended index, we can call this programmatic
+          // scroll event finished
+          setProgramaticallyScrolling(false);
+        }
+      } else if (userScrolling) {
+        // if the *user* is scrolling this drawer, though, the true state of our selection is up to them
+        setSelectedItemId(getItemId(items[index]));
+      }
+    },
+    [getItemId, items, offsets, programaticallyScrolling, selectedItemId, setSelectedItemId, userScrolling, width],
+  );
 
   if (selectedItemId !== previouslySelectedItemId) {
     if (selectedItemId && flatListRef.current) {
@@ -419,7 +426,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
               top: -48,
             },
           ]}>
-          <TouchableOpacity onPress={() => buttonOnPress()}>
+          <TouchableOpacity onPress={buttonOnPress}>
             <HStack px={8}>
               <View flex={1} />
               <View px={8} py={4} bg={'primary'} borderRadius={30}>
@@ -431,17 +438,17 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
       )}
       <Animated.FlatList
         initialNumToRender={items.length}
-        onLayout={(event: LayoutChangeEvent) => controller.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height)}
+        onLayout={onLayout}
         ref={flatListRef}
         horizontal
         style={{width: '100%'}}
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={200}
-        onMomentumScrollBegin={() => setUserScrolling(true)}
-        onMomentumScrollEnd={() => setUserScrolling(false)}
-        onScrollBeginDrag={() => setUserScrolling(true)}
-        onScrollEndDrag={() => setUserScrolling(false)}
+        onMomentumScrollBegin={userScrollingOn}
+        onMomentumScrollEnd={userScrollingOff}
+        onScrollBeginDrag={userScrollingOn}
+        onScrollEndDrag={userScrollingOff}
         {...panResponder.panHandlers}
         {...flatListProps}
         data={items.map(
@@ -452,7 +459,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
             center_id: center_id,
           }),
         )}
-        renderItem={({item}: {item: ItemRenderData<T, U>}) => renderItem(item)}
+        renderItem={renderItemAdapter}
       />
     </Animated.View>
   );

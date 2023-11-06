@@ -31,16 +31,20 @@ export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>>
 
   const [modalIndex, setModalIndex] = useState<number | null>(null);
 
-  const onPress = useCallback((index: number) => {
-    setModalIndex(index);
-  }, []);
+  const onPress = useCallback(
+    (index: number) => {
+      setModalIndex(index);
+    },
+    [setModalIndex],
+  );
+  const onClose = useCallback(() => setModalIndex(null), [setModalIndex]);
 
   return (
     <View {...props}>
       <HTMLRendererConfig baseStyle={{fontSize: 12, fontFamily: 'Lato_400Regular_Italic', textAlign: 'center'}}>
         <ImageList imageWidth={thumbnailWidth} imageHeight={thumbnailHeight} media={media} displayCaptions={displayCaptions} onPress={onPress} imageStyle={{borderRadius: 4}} />
       </HTMLRendererConfig>
-      <ImageViewerModal visible={modalIndex !== null} onClose={() => setModalIndex(null)} media={media} startIndex={modalIndex ?? 0} />
+      <ImageViewerModal visible={modalIndex !== null} onClose={onClose} media={media} startIndex={modalIndex ?? 0} />
     </View>
   );
 };

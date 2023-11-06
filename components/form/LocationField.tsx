@@ -1,4 +1,5 @@
 import {AntDesign, FontAwesome} from '@expo/vector-icons';
+import {GestureReponderEvent} from '@tamagui/web';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {MapViewZone, ZoneMap, defaultMapRegionForGeometries, defaultMapRegionForZones} from 'components/content/ZoneMap';
 import {Center, HStack, VStack, View} from 'components/core';
@@ -68,6 +69,20 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
       fillOpacity: feature.properties.fillOpacity,
     })) ?? [];
 
+  const onPress = useCallback(
+    (event: GestureReponderEvent) => {
+      void (async () => {
+        const point = {x: event.nativeEvent.locationX, y: event.nativeEvent.locationY};
+        const coordinate = await mapRef.current?.coordinateForPoint(point);
+        if (coordinate) {
+          field.onChange(latLngToLocationPoint(coordinate));
+        }
+      })();
+    },
+    [field],
+  );
+  const emptyHandler = useCallback(() => undefined, []);
+
   return (
     <VStack width="100%" space={4} ref={ref}>
       <BodySmBlack>{label}</BodySmBlack>
@@ -105,23 +120,14 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                 <Center width="100%" height="100%">
                   {incompleteQueryState(mapLayerResult) && <QueryState results={[mapLayerResult]} />}
                   {mapReady && (
-                    <TouchableWithoutFeedback
-                      onPress={event => {
-                        void (async () => {
-                          const point = {x: event.nativeEvent.locationX, y: event.nativeEvent.locationY};
-                          const coordinate = await mapRef.current?.coordinateForPoint(point);
-                          if (coordinate) {
-                            field.onChange(latLngToLocationPoint(coordinate));
-                          }
-                        })();
-                      }}>
+                    <TouchableWithoutFeedback onPress={onPress}>
                       <ZoneMap
                         ref={mapRef}
                         animated={false}
                         style={{width: '100%', height: '100%'}}
                         zones={zones}
                         initialRegion={initialRegion}
-                        onPressPolygon={() => undefined}
+                        onPressPolygon={emptyHandler}
                         renderFillColor={false}>
                         {field.value != null && <MapMarker coordinate={locationPointToLatLng(field.value as LocationPoint)} />}
                       </ZoneMap>

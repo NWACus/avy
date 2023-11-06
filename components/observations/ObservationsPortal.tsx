@@ -3,7 +3,7 @@ import Topo from 'assets/illustrations/topo.svg';
 import {Button} from 'components/content/Button';
 import {View, VStack} from 'components/core';
 import {Body, BodyBlack, Title3Black} from 'components/text';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {ObservationsStackNavigationProps} from 'routes';
 import {AvalancheCenterID, userFacingCenterId} from 'types/nationalAvalancheCenter';
@@ -14,6 +14,11 @@ export const ObservationsPortal: React.FC<{
   requestedTime: RequestedTime;
 }> = ({center_id, requestedTime}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
+  const onViewAll = useCallback(
+    () => navigation.navigate('observationsList', {center_id, requestedTime: formatRequestedTime(requestedTime)}),
+    [center_id, navigation, requestedTime],
+  );
+  const onSubmit = useCallback(() => navigation.navigate('observationSubmit', {center_id}), [center_id, navigation]);
   return (
     <View width="100%" height="100%" bg="#F6F8FC">
       {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
@@ -23,10 +28,10 @@ export const ObservationsPortal: React.FC<{
         <VStack height="100%" width="100%" justifyContent="center" alignItems="stretch" space={16} px={32} pb={200}>
           <Title3Black textAlign="center">You haven&apos;t submitted any observations in the App yet</Title3Black>
           <Body textAlign="center">Help keep the {userFacingCenterId(center_id)} community informed by submitting your observation.</Body>
-          <Button buttonStyle="primary" onPress={() => navigation.navigate('observationSubmit', {center_id})}>
+          <Button buttonStyle="primary" onPress={onSubmit}>
             <BodyBlack>Submit an observation</BodyBlack>
           </Button>
-          <Button onPress={() => navigation.navigate('observationsList', {center_id, requestedTime: formatRequestedTime(requestedTime)})}>
+          <Button onPress={onViewAll}>
             <BodyBlack>View all observations</BodyBlack>
           </Button>
         </VStack>

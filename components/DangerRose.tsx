@@ -1,6 +1,6 @@
-import React, {PropsWithChildren, ReactElement} from 'react';
+import React, {PropsWithChildren, ReactElement, useCallback} from 'react';
 
-import {StyleSheet, Text, TextStyle, View, ViewStyle} from 'react-native';
+import {LayoutChangeEvent, StyleSheet, Text, TextStyle, View, ViewStyle} from 'react-native';
 import Svg, {Path} from 'react-native-svg';
 
 import {AvalancheProblemLocation, ElevationBandNames} from 'types/nationalAvalancheCenter';
@@ -73,13 +73,14 @@ const AnchoredText: React.FunctionComponent<PropsWithChildren<BottomAnchorTextPr
     height: 0,
     width: 0,
   });
+  const onLayout = useCallback((event: LayoutChangeEvent) => {
+    const {width, height} = event.nativeEvent.layout;
+    setComponentDimensions({width: width, height: height});
+  }, []);
 
   return (
     <Text
-      onLayout={event => {
-        const {width, height} = event.nativeEvent.layout;
-        setComponentDimensions({width: width, height: height});
-      }}
+      onLayout={onLayout}
       style={{
         ...props.style,
         position: 'absolute',
