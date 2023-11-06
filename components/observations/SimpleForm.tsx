@@ -95,7 +95,7 @@ export const SimpleForm: React.FC<{
               if (uploaderState.networkStatus === 'offline') {
                 Toast.show({
                   type: 'info',
-                  text1: 'You are currently offline. Your observation will automatically be submitted when you are back online. Thank you!',
+                  text1: 'You are currently offline. Your observation will automatically be submitted when you are back online.',
                   position: 'bottom',
                 });
               } else {
