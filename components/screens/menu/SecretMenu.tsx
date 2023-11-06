@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-bind */
 // We normally want to avoid using fat arrow functions in props as it can cause excessive re-rendering,
 // but for the debug menu we shouldn't be too worried about it. It never renders in production.
 

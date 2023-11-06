@@ -23,6 +23,7 @@
     }
   },
   "rules": {
+    "react/jsx-no-bind": "error",
     "absolute-imports/only-absolute-imports": "error",
     "no-console": "error",
     // Preview random imports of components from tamagui that share names with
