@@ -12,7 +12,7 @@ export const useMapLayerAvalancheForecasts = (
   center_id: AvalancheCenterID,
   requestedTime: RequestedTime,
   mapLayer: MapLayer | undefined,
-  metadata: AvalancheCenter | undefined,
+  metadata: AvalancheCenter | undefined | null,
 ) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const queryClient = useQueryClient();

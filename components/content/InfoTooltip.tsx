@@ -4,7 +4,7 @@ import {Center, View, VStack} from 'components/core';
 import {BodyBlack, Title3Semibold} from 'components/text';
 import {HTML, HTMLRendererConfig, HTMLRendererConfigProps} from 'components/text/HTML';
 import {merge} from 'lodash';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {ColorValue, Insets, Modal, TextStyle, TouchableWithoutFeedback, ViewStyle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
@@ -43,8 +43,7 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
     setShowModal(false);
   }, [setShowModal]);
 
-  const finalHtmlStyle = {};
-  merge(finalHtmlStyle, baseHtmlStyle, htmlStyle);
+  const finalHtmlStyle = useMemo(() => merge({}, baseHtmlStyle, htmlStyle), [htmlStyle]);
 
   return (
     <>

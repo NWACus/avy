@@ -19,6 +19,7 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
+import {useToggle} from 'hooks/useToggle';
 import {
   ActivityIndicator,
   ColorValue,
@@ -67,7 +68,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(requestedTime, additionalFilters), [requestedTime, additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
-  const [filterModalVisible, setFilterModalVisible] = useState<boolean>(false);
+  const [filterModalVisible, setFilterModalVisible, {on: showFilterModal}] = useToggle(false);
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
@@ -120,28 +121,31 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [flatObservationList, mapLayer, displayNWACObservations],
   );
   const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
+  const refreshWrapper = useCallback(() => void refresh(), [refresh]);
 
-  const fetchMoreData = useCallback(async (observationsResult: ReturnType<typeof useNACObservations> | ReturnType<typeof useNWACObservations>) => {
-    const {isFetchingNextPage} = observationsResult;
-    let {hasNextPage, fetchNextPage} = observationsResult;
-    if (isFetchingNextPage || !hasNextPage) {
-      return;
-    }
+  const fetchMoreData = useCallback(() => {
+    void (async () => {
+      const {isFetchingNextPage} = observationsResult;
+      let {hasNextPage, fetchNextPage} = observationsResult;
+      if (isFetchingNextPage || !hasNextPage) {
+        return;
+      }
 
-    // Fetch until we get to the end of the data, or get at least one item
-    while (hasNextPage) {
-      const pageResult = await fetchNextPage();
-      if (!pageResult.hasNextPage) {
-        break;
+      // Fetch until we get to the end of the data, or get at least one item
+      while (hasNextPage) {
+        const pageResult = await fetchNextPage();
+        if (!pageResult.hasNextPage) {
+          break;
+        }
+        const fetchCount = pageResult.data?.pages[pageResult.data?.pages.length - 1].data?.length ?? 0;
+        if (fetchCount > 0) {
+          break;
+        }
+        hasNextPage = pageResult.hasNextPage;
+        fetchNextPage = pageResult.fetchNextPage;
       }
-      const fetchCount = pageResult.data?.pages[pageResult.data?.pages.length - 1].data?.length ?? 0;
-      if (fetchCount > 0) {
-        break;
-      }
-      hasNextPage = pageResult.hasNextPage;
-      fetchNextPage = pageResult.fetchNextPage;
-    }
-  }, []);
+    })();
+  }, [observationsResult]);
 
   const {from: filterStartDate} = filterConfig.dates;
   const moreDataAvailable = observationsResult.hasNextPage && (observations.length === 0 || new Date(observations[observations.length - 1].createdAt) > filterStartDate);
@@ -219,6 +223,61 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   useEffect(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   }, [showSubmitButtonText]);
+  const getItemLayout = useCallback(
+    (_data: unknown, index: number) => ({
+      length: OBSERVATION_SUMMARY_CARD_HEIGHT,
+      offset: OBSERVATION_SUMMARY_CARD_HEIGHT * index,
+      index,
+    }),
+    [],
+  );
+  const renderListFooter = useCallback(() => {
+    if (!moreDataAvailable) {
+      if (observationsSection.data.length === 0) {
+        return null;
+      }
+      return (
+        <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
+          <Body>
+            <FormattedMessage
+              description="How many observations were found"
+              defaultMessage="{count, plural,
+  =0 {No matching observations in this time period}
+  one {One matching observation in this time period}
+  other {# matching observations in this time period}}"
+              values={{
+                count: observationsSection.data.length,
+              }}
+            />
+          </Body>
+        </Center>
+      );
+    } else if (observations.length > 0 && observationsResult.isFetchingNextPage) {
+      return (
+        <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
+          <ActivityIndicator size={'large'} color={colorLookup('text.secondary')} />
+        </Center>
+      );
+    } else {
+      return <View height={OBSERVATION_SUMMARY_CARD_HEIGHT} />;
+    }
+  }, [moreDataAvailable, observationsSection.data.length, observations.length, observationsResult.isFetchingNextPage]);
+  const renderSectionHeader = useCallback(
+    ({section: {title}}: {section: {title: string}}) =>
+      hasPendingObservations ? (
+        <View px={16} py={8}>
+          <BodySm>{title}</BodySm>
+        </View>
+      ) : null,
+    [hasPendingObservations],
+  );
+
+  const applyFilterRemoval = useCallback(
+    (removeFilter: (config: ObservationFilterConfig) => ObservationFilterConfig) => {
+      return () => setFilterConfig(removeFilter(filterConfig));
+    },
+    [filterConfig, setFilterConfig],
+  );
 
   if (incompleteQueryState(observationsResult, mapResult) || !mapLayer) {
     return (
@@ -248,7 +307,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           label="Filters"
           textColor={colorLookup('primary')}
           backgroundColor={colorLookup('white')}
-          onPress={() => setFilterModalVisible(true)}
+          onPress={showFilterModal}
           headIcon={<FontAwesome name="sliders" size={bodyXSmSize} color={colorLookup('primary')} style={{marginRight: 2}} />}
           tailIcon={
             optionalFilterCount > 0 && (
@@ -279,13 +338,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
                   textColor={textColor}
                   backgroundColor={backgroundColor}
                   tailIcon={tailIcon}
-                  onPress={() => {
-                    if (removeFilter) {
-                      setFilterConfig(removeFilter(filterConfig));
-                    } else {
-                      setFilterModalVisible(true);
-                    }
-                  }}
+                  onPress={removeFilter ? applyFilterRemoval(removeFilter) : showFilterModal}
                 />
               );
             })}
@@ -295,52 +348,14 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       <Divider />
       <SectionList
         sections={sections}
-        renderSectionHeader={({section: {title}}) =>
-          hasPendingObservations ? (
-            <View px={16} py={8}>
-              <BodySm>{title}</BodySm>
-            </View>
-          ) : null
-        }
+        renderSectionHeader={renderSectionHeader}
         onScroll={onScroll}
         onScrollEndDrag={onScroll}
         scrollEventThrottle={160}
         // when within 5 page lengths of the end, start fetching the next set of data
         onEndReachedThreshold={5}
-        onEndReached={() => {
-          void fetchMoreData(observationsResult);
-        }}
-        ListFooterComponent={() => {
-          if (!moreDataAvailable) {
-            if (observationsSection.data.length === 0) {
-              return null;
-            }
-            return (
-              <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
-                <Body>
-                  <FormattedMessage
-                    description="How many observations were found"
-                    defaultMessage="{count, plural,
-        =0 {No matching observations in this time period}
-        one {One matching observation in this time period}
-        other {# matching observations in this time period}}"
-                    values={{
-                      count: observationsSection.data.length,
-                    }}
-                  />
-                </Body>
-              </Center>
-            );
-          } else if (observations.length > 0 && observationsResult.isFetchingNextPage) {
-            return (
-              <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
-                <ActivityIndicator size={'large'} color={colorLookup('text.secondary')} />
-              </Center>
-            );
-          } else {
-            return <View height={OBSERVATION_SUMMARY_CARD_HEIGHT} />;
-          }
-        }}
+        onEndReached={fetchMoreData}
+        ListFooterComponent={renderListFooter}
         ListEmptyComponent={
           moreDataAvailable ? (
             <Center height={'100%'}>
@@ -358,12 +373,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         contentContainerStyle={{flexGrow: 1}}
         style={{backgroundColor: colorLookup('primary.background'), width: '100%', height: '100%'}}
         refreshing={isRefreshing}
-        onRefresh={() => void refresh()}
-        getItemLayout={(_data, index) => ({
-          length: OBSERVATION_SUMMARY_CARD_HEIGHT,
-          offset: OBSERVATION_SUMMARY_CARD_HEIGHT * index,
-          index,
-        })}
+        onRefresh={refreshWrapper}
+        getItemLayout={getItemLayout}
         renderItem={renderItem}
       />
       <HStack position="absolute" bottom={16} right={16} justifyContent="flex-end">

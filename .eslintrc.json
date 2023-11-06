@@ -9,7 +9,7 @@
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint", "eslint-plugin-absolute-imports", "react", "react-hooks", "eslint-plugin-typescript-sort-keys"],
   "root": true,
-  "ignorePatterns": ["babel.config.js", "metro.config.js", "dist", ".expo", "types/generated"],
+  "ignorePatterns": ["babel.config.js", "metro.config.js", "dist", ".expo", "types/generated", "android"],
   "reportUnusedDisableDirectives": true,
   "parserOptions": {
     "project": true,

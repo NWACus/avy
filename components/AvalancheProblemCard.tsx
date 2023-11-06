@@ -1,14 +1,15 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 import {AvalancheProblemIcon} from 'components/AvalancheProblemIcon';
 import {AvalancheProblemLikelihoodLine} from 'components/AvalancheProblemLikelihoodLine';
 import {AvalancheProblemSizeLine} from 'components/AvalancheProblemSizeLine';
+import {AnnotatedDangerRose} from 'components/DangerRose';
 import {Card, CardProps} from 'components/content/Card';
 import {Carousel} from 'components/content/carousel';
 import {Center, HStack, VStack} from 'components/core';
-import {AnnotatedDangerRose} from 'components/DangerRose';
-import {AllCapsSm, allCapsSmLineHeight, Caption1Semibold} from 'components/text';
+import {AllCapsSm, Caption1Semibold, allCapsSmLineHeight} from 'components/text';
 import {HTML} from 'components/text/HTML';
+import {LayoutChangeEvent} from 'react-native';
 import {colorLookup} from 'theme';
 import {AvalancheProblem, ElevationBandNames, MediaType} from 'types/nationalAvalancheCenter';
 
@@ -32,8 +33,9 @@ const AspectCard: React.FC<AspectCardProps> = ({caption, ...props}) => (
 
 export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardProps> = ({problem, names}: AvalancheProblemCardProps) => {
   const [cardWidth, setCardWidth] = useState<number>(0);
+  const onLayout = useCallback((event: LayoutChangeEvent) => setCardWidth(event.nativeEvent.layout.width), [setCardWidth]);
   return (
-    <VStack space={8} onLayout={event => setCardWidth(event.nativeEvent.layout.width)}>
+    <VStack space={8} onLayout={onLayout}>
       <HStack flexWrap="wrap" justifyContent="space-evenly" alignItems="stretch">
         <AspectCard
           mr={16}

@@ -63,6 +63,7 @@ import config from 'tamagui.config';
 import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
+import {TRACE} from 'browser-bunyan';
 import * as messages from 'compiled-lang/en.json';
 import {Center} from 'components/core';
 import KillSwitchMonitor from 'components/KillSwitchMonitor';
@@ -83,22 +84,24 @@ const encodeParams = (params: {[s: string]: string}) => {
     .join('&');
 };
 
-const formatURI = (request: AxiosRequestConfig): string => {
+const formatURI = (request: AxiosRequestConfig, options: {includePostData?: boolean} = {}): string => {
   const method = request.method ?? 'GET';
   let msg = `${method.toUpperCase()} ${request.url ?? 'url'}`;
   if (request.params && Object.keys(request.params as {[s: string]: string}).length !== 0) {
     msg += `?${encodeParams(filterLoggedData(request.params) as {[s: string]: string})}`;
   }
-  if (request.data) {
+  if (request.data && options.includePostData) {
     msg += ` data: ${JSON.stringify(filterLoggedData(request.data))}`;
   }
   return msg;
 };
+
 axios.interceptors.request.use(request => {
   const msg = 'sending request';
-  const thisLogger = logger.child({uri: formatURI(request)});
+  const level = logger.level();
+  const thisLogger = logger.child({uri: formatURI(request, {includePostData: level <= TRACE})});
   thisLogger.debug(msg);
-  if (request.data) {
+  if (request.data && level <= TRACE) {
     thisLogger.trace(
       {
         data: JSON.stringify(filterLoggedData(request.data)),
@@ -111,9 +114,10 @@ axios.interceptors.request.use(request => {
 
 axios.interceptors.response.use(response => {
   const msg = 'received request response';
-  const thisLogger = logger.child({uri: formatURI(response.config), status: response.status});
+  const level = logger.level();
+  const thisLogger = logger.child({uri: formatURI(response.config, {includePostData: level <= TRACE}), status: response.status});
   thisLogger.debug(msg);
-  if (response.data) {
+  if (response.data && level <= TRACE) {
     thisLogger.trace({data: JSON.stringify(filterLoggedData(response.data))}, msg);
   }
   return response;

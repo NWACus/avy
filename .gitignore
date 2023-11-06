@@ -16,3 +16,4 @@ web-build/
 # Local environment variable overrides
 .env
 .envrc
+android
