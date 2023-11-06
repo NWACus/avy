@@ -41,8 +41,8 @@ Update ID ${Updates.updateId || 'n/a'} (platform: ${Platform.OS})`,
           <View px={32}>
             <Body>
               The Northwest Avalanche Center developed the Avy app to support wintertime mountain recreation with streamlined avalanche and weather information from avalanche
-              centers across the U.S. In year one, the app offers access to the Northwest Avalanche Center and the Sawtooth Avalanche Center with planned expansion in subsequent
-              years.
+              centers across the U.S. In winter 2023/24, the app offers access to the Northwest Avalanche Center and the Sawtooth Avalanche Center with planned expansion in
+              subsequent years.
             </Body>
           </View>
 
