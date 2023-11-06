@@ -1,4 +1,4 @@
-import React, {PropsWithChildren, ReactElement, useState} from 'react';
+import React, {PropsWithChildren, ReactElement, useCallback, useState} from 'react';
 
 import {TextStyle, TouchableOpacity} from 'react-native';
 
@@ -38,6 +38,8 @@ export const TabControl: React.FunctionComponent<TabControlProps> = ({children, 
     width: `${100 / React.Children.count(children)}%`,
   } as const;
 
+  const onPress = useCallback((index: number) => () => setSelectedIndex(index), [setSelectedIndex]);
+
   return (
     // overflow: hidden prevents the drop shadow on the HStack from rendering at the top edge of that component
     <VStack style={{width: '100%', flex: 1, flexGrow: 1, justifyContent: 'space-between', backgroundColor, overflow: 'hidden'}}>
@@ -65,7 +67,7 @@ export const TabControl: React.FunctionComponent<TabControlProps> = ({children, 
           }
           const selected = selectedIndex === index;
           return (
-            <TouchableOpacity onPress={() => setSelectedIndex(index)} style={tabStyle} key={`tabcontrol-item-${index}`}>
+            <TouchableOpacity onPress={onPress(index)} style={tabStyle} key={`tabcontrol-item-${index}`}>
               <Center>
                 <View borderColor={selected ? selectedTextColor : backgroundColor} borderBottomWidth={4} borderRadius={0}>
                   {selected ? (

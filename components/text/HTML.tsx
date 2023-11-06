@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import React, {PropsWithChildren, useRef, useState} from 'react';
+import React, {PropsWithChildren, useCallback, useRef, useState} from 'react';
 
 import {Body} from 'components/text';
 import Constants from 'expo-constants';
@@ -64,10 +64,12 @@ export const HTML: React.FunctionComponent<RenderHTMLSourceProps> = props => {
   if (__DEV__) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [showSource, setShowSource] = useState(false);
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const toggleSource = useCallback(() => setShowSource(!showSource), [showSource, setShowSource]);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const html = _.get(props, ['source', 'html'], undefined);
     return (
-      <TouchableOpacity activeOpacity={1} onLongPress={() => setShowSource(!showSource)}>
+      <TouchableOpacity activeOpacity={1} onLongPress={toggleSource}>
         {showSource && html ? (
           <ScrollView>
             <Body fontFamily={Platform.select({ios: 'Courier New', android: 'monospace'})}>{html}</Body>

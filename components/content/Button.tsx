@@ -1,6 +1,6 @@
 import {Center, View, ViewProps} from 'components/core';
 import {bodySize} from 'components/text';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {ActivityIndicator, ColorValue, GestureResponderEvent, Pressable, Text} from 'react-native';
 import {colorLookup} from 'theme';
 
@@ -70,14 +70,14 @@ const styles = {
 };
 
 interface BaseButtonProps extends ViewProps {
-  onPress?: (event: GestureResponderEvent) => void;
+  onPress: (event: GestureResponderEvent) => void;
   disabled?: boolean;
   busy?: boolean;
 }
 
 interface StyledButtonProps extends BaseButtonProps {
   buttonStyle: ButtonStyle;
-  onPress?: (event: GestureResponderEvent) => void;
+  onPress: (event: GestureResponderEvent) => void;
   renderChildren?: (style: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => React.ReactNode;
 }
 
@@ -85,9 +85,11 @@ const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, rende
   const [pressed, setIsPressed] = useState<boolean>(false);
   const colorStyleSource = disabled ? buttonStyle.disabled : pressed ? buttonStyle.pressed : buttonStyle;
   const {backgroundColor, borderColor, textColor} = colorStyleSource;
+  const onPressIn = useCallback(() => setIsPressed(true), [setIsPressed]);
+  const onPressOut = useCallback(() => setIsPressed(false), [setIsPressed]);
 
   return (
-    <Pressable disabled={disabled} onPressIn={() => setIsPressed(true)} onPressOut={() => setIsPressed(false)} onPress={event => onPress?.(event)}>
+    <Pressable disabled={disabled} onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
       <View borderColor={borderColor} borderWidth={2} borderRadius={8} py={12} px={16} {...props} backgroundColor={backgroundColor}>
         <Center>
           <View style={{position: 'relative'}}>
@@ -102,7 +104,7 @@ const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, rende
 
 interface ButtonProps extends BaseButtonProps {
   buttonStyle?: PredefinedButtonStyle;
-  onPress?: (event: GestureResponderEvent) => void;
+  onPress: (event: GestureResponderEvent) => void;
   renderChildren?: (style: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => React.ReactNode;
 }
 

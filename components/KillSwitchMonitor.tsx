@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {Modal} from 'react-native';
 
 import * as Application from 'expo-application';
@@ -67,6 +67,8 @@ const KillSwitchMonitor: React.FC<KillSwitchMonitorProps> = ({children}) => {
   const downForMaintenance = !!useFeatureFlag('down-for-maintenance');
   const updateRequired = !!useFeatureFlag(`update-required`);
 
+  const reloadFeatureFlags = useCallback(() => void posthog?.reloadFeatureFlagsAsync(), [posthog]);
+
   return (
     <>
       <Modal visible={downForMaintenance}>
@@ -79,7 +81,7 @@ const KillSwitchMonitor: React.FC<KillSwitchMonitorProps> = ({children}) => {
             illustrationBottomMargin={-32}
             illustrationLeftMargin={-16}
           />
-          <Button width={'100%'} buttonStyle="primary" onPress={() => void posthog?.reloadFeatureFlagsAsync()}>
+          <Button width={'100%'} buttonStyle="primary" onPress={reloadFeatureFlags}>
             <BodyBlack>Check again!</BodyBlack>
           </Button>
         </VStack>
