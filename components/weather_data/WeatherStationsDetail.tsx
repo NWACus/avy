@@ -263,9 +263,7 @@ export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, station
             {label: '7 day', value: 7},
           ]}
           selectedItem={days}
-          onSelectionChange={(item: number) => {
-            setDays(item);
-          }}
+          onSelectionChange={setDays}
           size="small"
           paddingTop={6}
         />

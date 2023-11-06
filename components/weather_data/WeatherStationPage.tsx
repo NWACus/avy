@@ -4,6 +4,7 @@ import {WeatherStationList} from 'components/weather_data/WeatherStationList';
 import {WeatherStationMap} from 'components/weather_data/WeatherStationMap';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
+import {useToggle} from 'hooks/useToggle';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import React from 'react';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -38,7 +39,7 @@ export const WeatherStations: React.FunctionComponent<{
   token: string;
   requestedTime: RequestedTimeString;
 }> = ({center_id, token, requestedTime}) => {
-  const [list, setList] = React.useState<boolean>(false);
+  const [list, {toggle: toggleList}] = useToggle(false);
   const mapLayerResult = useMapLayer(center_id);
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata(center_id, token);
@@ -49,8 +50,8 @@ export const WeatherStations: React.FunctionComponent<{
   }
 
   if (list) {
-    return <WeatherStationList center_id={center_id} requestedTime={requestedTime} mapLayer={mapLayer} weatherStations={weatherStations} toggleMap={() => setList(false)} />;
+    return <WeatherStationList center_id={center_id} requestedTime={requestedTime} mapLayer={mapLayer} weatherStations={weatherStations} toggleMap={toggleList} />;
   } else {
-    return <WeatherStationMap center_id={center_id} requestedTime={requestedTime} mapLayer={mapLayer} weatherStations={weatherStations} toggleList={() => setList(true)} />;
+    return <WeatherStationMap center_id={center_id} requestedTime={requestedTime} mapLayer={mapLayer} weatherStations={weatherStations} toggleList={toggleList} />;
   }
 };

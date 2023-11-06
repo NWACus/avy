@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 
 import {AntDesign} from '@expo/vector-icons';
 import {zodResolver} from '@hookform/resolvers/zod';
@@ -163,46 +163,67 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
     formContext.reset(currentFilterConfig);
   }, [formContext, currentFilterConfig]);
 
-  const onCloseHandler = React.useCallback(() => {
+  const closeWithoutSaving = useCallback(() => {
     formContext.reset(initialFilterConfig);
     setVisible(false);
   }, [initialFilterConfig, formContext, setVisible]);
+  const saveAndClose = useCallback(() => setVisible(false), [setVisible]);
 
   useBackHandler(() => {
-    onCloseHandler();
+    closeWithoutSaving();
     // Returning true marks the event as processed
     return true;
   });
 
-  const onSubmitHandler = (data: WeatherStationFilterConfig) => {
-    setFilterConfig(data);
-  };
+  const onSubmitHandler = useCallback(
+    (data: WeatherStationFilterConfig) => {
+      setFilterConfig(data);
+    },
+    [setFilterConfig],
+  );
 
   const fieldRefs = React.useRef<{ref: RNView; field: keyof WeatherStationFilterConfig}[]>([]);
   const scrollViewRef = React.useRef<ScrollView>(null);
 
-  const onSubmitErrorHandler = (errors: FieldErrors<WeatherStationFilterConfig>) => {
-    logger.error({errors: errors, formValues: formContext.getValues()}, 'filters error');
-    // scroll to the first field with an error
-    fieldRefs.current.some(({ref, field}) => {
-      if (errors[field] && scrollViewRef.current) {
-        const handle = findNodeHandle(scrollViewRef.current);
-        if (handle) {
-          ref.measureLayout(
-            handle,
-            (_left, top) => {
-              if (scrollViewRef.current) {
-                scrollViewRef.current.scrollTo({y: top});
-              }
-            },
-            () => undefined,
-          );
-          return true;
+  const onSubmitErrorHandler = useCallback(
+    (errors: FieldErrors<WeatherStationFilterConfig>) => {
+      logger.error({errors: errors, formValues: formContext.getValues()}, 'filters error');
+      // scroll to the first field with an error
+      fieldRefs.current.some(({ref, field}) => {
+        if (errors[field] && scrollViewRef.current) {
+          const handle = findNodeHandle(scrollViewRef.current);
+          if (handle) {
+            ref.measureLayout(
+              handle,
+              (_left, top) => {
+                if (scrollViewRef.current) {
+                  scrollViewRef.current.scrollTo({y: top});
+                }
+              },
+              () => undefined,
+            );
+            return true;
+          }
         }
-      }
-      return false;
-    });
-  };
+        return false;
+      });
+    },
+    [logger, formContext],
+  );
+  const onResetHandler = useCallback(() => formContext.reset(initialFilterConfig), [formContext, initialFilterConfig]);
+
+  const applyChanges = useCallback(
+    () =>
+      void (async () => {
+        // Force validation errors to show up on fields that haven't been visited yet
+        await formContext.trigger();
+        // Then try to submit the form
+        await formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
+        // Finally, close the modal
+        setVisible(false);
+      })(),
+    [formContext, onSubmitHandler, onSubmitErrorHandler, setVisible],
+  );
 
   return (
     <FormProvider {...formContext}>
@@ -216,11 +237,11 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
                   borderColor="white"
                   header={
                     <HStack justifyContent={'space-between'} alignItems={'center'}>
-                      <TouchableOpacity onPress={() => setVisible(false)}>
+                      <TouchableOpacity onPress={saveAndClose}>
                         <AntDesign name="close" size={24} color="black" />
                       </TouchableOpacity>
                       <Title3Semibold>Filters</Title3Semibold>
-                      <TouchableOpacity onPress={() => formContext.reset(initialFilterConfig)}>
+                      <TouchableOpacity onPress={onResetHandler}>
                         <BodyBlack color={colorLookup('blue2')}>Reset</BodyBlack>
                       </TouchableOpacity>
                     </HStack>
@@ -247,20 +268,7 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
                 </Card>
               </VStack>
             </ScrollView>
-            <Button
-              mx={16}
-              mt={16}
-              buttonStyle="primary"
-              onPress={() =>
-                void (async () => {
-                  // Force validation errors to show up on fields that haven't been visited yet
-                  await formContext.trigger();
-                  // Then try to submit the form
-                  await formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
-                  // Finally, close the modal
-                  setVisible(false);
-                })()
-              }>
+            <Button mx={16} mt={16} buttonStyle="primary" onPress={applyChanges}>
               <BodySemibold>Apply Filters</BodySemibold>
             </Button>
           </KeyboardAvoidingView>

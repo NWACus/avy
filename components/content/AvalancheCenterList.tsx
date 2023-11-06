@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 
 import {AvalancheCenterListData} from 'components/avalancheCenterList';
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
@@ -15,8 +15,9 @@ interface AvalancheCenterListItemProps {
 }
 const AvalancheCenterListItem: React.FC<AvalancheCenterListItemProps> = ({data, selected, setSelected}) => {
   const center_id: AvalancheCenterID = data.center.id as AvalancheCenterID;
+  const onPress = useCallback(() => setSelected(center_id), [setSelected, center_id]);
   return (
-    <TouchableOpacity onPress={() => setSelected(center_id)} activeOpacity={0.8}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
       <HStack
         justifyContent="space-between"
         alignItems="flex-start"
