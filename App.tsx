@@ -70,9 +70,11 @@ import {Body, BodyBlack, Title3Black} from 'components/text';
 import {getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
 import {useToggle} from 'hooks/useToggle';
 import {filterLoggedData} from 'logging/filterLoggedData';
+import mixpanel from 'mixpanel';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
 
 logger.info('App starting.');
+mixpanel.track('App starting');
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   logger.info('enabling android layout animations');

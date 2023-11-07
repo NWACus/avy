@@ -22,6 +22,7 @@
     "web": "EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) expo start --web"
   },
   "dependencies": {
+    "@bothrs/expo-mixpanel-analytics": "^2.0.3",
     "@browser-bunyan/console-formatted-stream": "^1.8.0",
     "@browser-bunyan/console-raw-stream": "^1.8.0",
     "@browser-bunyan/levels": "^1.8.0",
