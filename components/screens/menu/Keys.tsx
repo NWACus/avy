@@ -6,7 +6,7 @@ import React from 'react';
 const keys = [
   {name: 'EXPO_PUBLIC_SENTRY_DSN', value: process.env.EXPO_PUBLIC_SENTRY_DSN},
   {name: 'EXPO_PUBLIC_POSTHOG_API_KEY', value: process.env.EXPO_PUBLIC_POSTHOG_API_KEY},
-  {name: 'EXPO_PUBLIC_MIXPANEL_API_KEY', value: process.env.EXPO_PUBLIC_MIXPANEL_API_KEY},
+  {name: 'EXPO_PUBLIC_MIXPANEL_TOKEN', value: process.env.EXPO_PUBLIC_MIXPANEL_TOKEN},
   {name: 'IOS_GOOGLE_MAPS_API_KEY', value: Constants.expoConfig?.ios?.config?.googleMapsApiKey},
   {name: 'ANDROID_GOOGLE_MAPS_API_KEY', value: Constants.expoConfig?.android?.config?.googleMaps?.apiKey},
 ];
