@@ -115,7 +115,7 @@ export const SimpleForm: React.FC<{
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
           quality: 0.2,
-          selectionLimit: maxImageCount,
+          selectionLimit: maxImageCount - images.length,
         });
 
         if (!result.canceled) {
