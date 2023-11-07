@@ -74,7 +74,6 @@ import mixpanel from 'mixpanel';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
 
 logger.info('App starting.');
-mixpanel.track('App starting');
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   logger.info('enabling android layout animations');
@@ -294,6 +293,11 @@ const BaseApp: React.FunctionComponent<{
     [setPreferences],
   );
 
+  useEffect(() => {
+    mixpanel.identify(preferences.mixpanelUserId);
+    mixpanel.track('App starting');
+  }, [preferences.mixpanelUserId]);
+
   const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
   useEffect(() => {
@@ -331,6 +335,12 @@ const BaseApp: React.FunctionComponent<{
   }
 
   const navigationRef = useNavigationContainerRef();
+  const trackNavigationChange = useCallback(() => {
+    const route = navigationRef.current?.getCurrentRoute();
+    if (route) {
+      mixpanel.track('Screen viewed', {name: route.name, params: route.params});
+    }
+  }, [navigationRef]);
 
   const [splashScreenVisible, setSplashScreenVisible] = useState(true);
   useEffect(() => {
@@ -435,7 +445,7 @@ const BaseApp: React.FunctionComponent<{
       <TamaguiWrapper>
         <HTMLRendererConfig>
           <SafeAreaProvider>
-            <NavigationContainer ref={navigationRef}>
+            <NavigationContainer ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
               <KillSwitchMonitor>
                 <SelectProvider>
                   <StatusBar barStyle="dark-content" />

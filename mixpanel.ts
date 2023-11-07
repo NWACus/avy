@@ -1,4 +1,8 @@
+import * as Application from 'expo-application';
+
 import ExpoMixpanelAnalytics from '@bothrs/expo-mixpanel-analytics';
+
+import {getUpdateGroupId, getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
 import {logger as globalLogger} from 'logger';
 
 const logger = globalLogger.child({module: 'mixpanel'});
@@ -76,5 +80,12 @@ const initialize = (): ExpoMixpanelAnalytics => {
 };
 
 const mixpanel = initialize();
+mixpanel.register({
+  update_group_id: getUpdateGroupId(),
+  update_version: getUpdateTimeAsVersionString(),
+  application_version: Application.nativeApplicationVersion || 'n/a',
+  application_build: Application.nativeBuildVersion || 'n/a',
+  git_revision: process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a',
+});
 
 export default mixpanel;

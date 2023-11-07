@@ -4,6 +4,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {merge} from 'lodash';
 import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
+import uuid from 'react-native-uuid';
 import * as Sentry from 'sentry-expo';
 import {useAsyncEffect} from 'use-async-effect';
 import {z} from 'zod';
@@ -15,6 +16,10 @@ const preferencesSchema = z.object({
   center: avalancheCenterIDSchema.default('NWAC'),
   hasSeenCenterPicker: z.boolean().default(false),
   secretMenuCollapsed: z.boolean().default(true),
+  mixpanelUserId: z
+    .string()
+    .uuid()
+    .default(uuid.v4() as string),
 });
 
 export type Preferences = z.infer<typeof preferencesSchema>;
