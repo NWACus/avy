@@ -29,6 +29,7 @@ import {Card, CollapsibleCard} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
+import {Keys} from 'components/screens/menu/Keys';
 import {
   AllCapsSm,
   AllCapsSmBlack,
@@ -167,6 +168,9 @@ export const SecretMenu: React.FC<SecretMenuProps> = ({staging, setStaging}) => 
               <Switch value={staging} onValueChange={toggleStaging} />
             </HStack>
           </VStack>
+        </Card>
+        <Card borderRadius={0} borderColor="white" header={<BodyBlack>Keys</BodyBlack>}>
+          <Keys />
         </Card>
         <Card borderRadius={0} borderColor="white" header={<BodyBlack>Observation Uploader</BodyBlack>}>
           <VStack space={12}>
