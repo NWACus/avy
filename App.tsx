@@ -294,9 +294,12 @@ const BaseApp: React.FunctionComponent<{
   );
 
   useEffect(() => {
-    mixpanel.identify(preferences.mixpanelUserId);
-    mixpanel.track('App starting');
-  }, [preferences.mixpanelUserId]);
+    if (preferences.mixpanelUserId) {
+      console.error('mixpanel id found', preferences.mixpanelUserId);
+      mixpanel.identify(preferences.mixpanelUserId);
+      mixpanel.track('App starting');
+    }
+  }, [preferences.mixpanelUserId, setPreferences]);
 
   const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();

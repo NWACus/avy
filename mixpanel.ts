@@ -11,131 +11,99 @@ import {logger as globalLogger} from 'logger';
 
 const logger = globalLogger.child({module: 'mixpanel'});
 
-class FakeMixpanel implements ExpoMixpanelAnalytics {
-  ready = true;
-  token = process.env.EXPO_PUBLIC_MIXPANEL_TOKEN ?? '';
-  storageKey = '';
-  queue = [];
-  constants = {};
-  superProps = null;
-  register(props: unknown): void {
-    logger.debug('mixpanel.register', {props});
+class MixpanelWrapper {
+  private _mixpanel: ExpoMixpanelAnalytics | null;
+  private _pending: Array<() => void> = [];
+  private _ready = false;
+  private _ipAddress: string | null = null;
+
+  constructor() {
+    if (process.env.EXPO_PUBLIC_MIXPANEL_TOKEN && (process.env.NODE_ENV !== 'development' || process.env.EXPO_PUBLIC_MIXPANEL_IN_DEVELOPMENT === 'true')) {
+      logger.info('initializing mixpanel');
+      this._mixpanel = new ExpoMixpanelAnalytics(process.env.EXPO_PUBLIC_MIXPANEL_TOKEN);
+    } else {
+      if (!process.env.EXPO_PUBLIC_MIXPANEL_TOKEN) {
+        logger.warn('skipping mixpanel initialization, no token configured');
+      }
+      if (process.env.NODE_ENV === 'development' && process.env.EXPO_PUBLIC_MIXPANEL_IN_DEVELOPMENT !== 'true') {
+        logger.warn('faking mixpanel in development');
+      }
+      this._mixpanel = null;
+    }
+    this._registerCommonProps();
+
+    // Subscribe to network state changes and update the IP address when online.
+    // The callback will be invoked immediately with the current state.
+    addEventListener(state => {
+      if (state.isConnected && state.isInternetReachable) {
+        void this._updateIpAddressAsync();
+      }
+    });
   }
-  track(name: string, props?: unknown): void {
-    logger.debug('mixpanel.track', {name, props});
+
+  track(name: string, props?: Record<string, unknown>): void {
+    this._enqueue(() => {
+      logger.debug('track', {name, props});
+      this._mixpanel?.track(name, {
+        $ip: this._ipAddress,
+        offline: !this._ipAddress,
+        ...props,
+      });
+    });
   }
+
   identify(userId?: string): void {
-    logger.debug('mixpanel.identify', {userId});
+    this._enqueue(() => {
+      logger.debug('identify', {userId});
+      this._mixpanel?.identify(userId);
+    });
   }
-  reset(): void {
-    logger.debug('mixpanel.reset');
+
+  _enqueue(fn: () => void) {
+    this._pending.push(fn);
+    this._flush();
   }
-  people_set(props: unknown): void {
-    logger.debug('mixpanel.people_set', {props});
+
+  _flush() {
+    if (this._ready && this._pending.length > 0) {
+      logger.debug('_flush', {eventCount: this._pending.length});
+      this._pending.forEach(fn => fn());
+      this._pending = [];
+    }
   }
-  people_set_once(props: unknown): void {
-    logger.debug('mixpanel.people_set_once', {props});
+
+  async _updateIpAddressAsync(): Promise<void> {
+    try {
+      // Prefer to fetch the public IP address from ipify.org
+      this._ipAddress = await publicIP();
+    } catch (error) {
+      // fall back to the IP address of the device
+      try {
+        logger.warn('Unable to fetch public IP address!', {error});
+        this._ipAddress = await Network.getIpAddressAsync();
+      } catch (error) {
+        logger.warn('Unable to fetch private IP address either!', {error});
+        this._ipAddress = null;
+      }
+    }
+    // We're ready when we've tried at least once to get our IP address
+    logger.info('updated IP address', this._ipAddress);
+    this._ready = true;
+    this._flush();
   }
-  people_unset(props: unknown): void {
-    logger.debug('mixpanel.people_unset', {props});
-  }
-  people_increment(props: unknown): void {
-    logger.debug('mixpanel.people_increment', {props});
-  }
-  people_append(props: unknown): void {
-    logger.debug('mixpanel.people_append', {props});
-  }
-  people_union(props: unknown): void {
-    logger.debug('mixpanel.people_union', {props});
-  }
-  people_delete_user(): void {
-    logger.debug('mixpanel.people_delete_user');
-  }
-  _flush(): void {
-    logger.debug('mixpanel._flush');
-  }
-  _people(operation: unknown, props: unknown): void {
-    logger.debug('mixpanel._people', {operation, props});
-  }
-  _pushEvent(event: unknown): Promise<Response> {
-    logger.debug('mixpanel._pushEvent', {event});
-    return Promise.resolve(new Response());
-  }
-  _pushProfile(data: unknown): Promise<Response> {
-    logger.debug('mixpanel._pushProfile', {data});
-    return Promise.resolve(new Response());
+
+  _registerCommonProps(): void {
+    this._mixpanel?.register({
+      update_group_id: getUpdateGroupId(),
+      update_version: getUpdateTimeAsVersionString(),
+      application_version: Application.nativeApplicationVersion || 'n/a',
+      application_build: Application.nativeBuildVersion || 'n/a',
+      git_revision: process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a',
+      channel: Updates.channel || 'development',
+    });
   }
 }
 
-const initialize = (): ExpoMixpanelAnalytics => {
-  if (process.env.EXPO_PUBLIC_MIXPANEL_TOKEN && (process.env.NODE_ENV !== 'development' || process.env.EXPO_PUBLIC_MIXPANEL_IN_DEVELOPMENT === 'true')) {
-    logger.info('initializing mixpanel');
-    const mixpanel = new ExpoMixpanelAnalytics(process.env.EXPO_PUBLIC_MIXPANEL_TOKEN);
-    return mixpanel;
-  } else {
-    if (!process.env.EXPO_PUBLIC_MIXPANEL_TOKEN) {
-      logger.warn('skipping mixpanel initialization, no token configured');
-    }
-    if (process.env.NODE_ENV === 'development' && process.env.EXPO_PUBLIC_MIXPANEL_IN_DEVELOPMENT !== 'true') {
-      logger.warn('faking mixpanel in development');
-    }
-    return new FakeMixpanel();
-  }
-};
-
-const mixpanel = initialize();
-
-const registerPropsWithIpAddress = (ipAddress: string | undefined) => {
-  mixpanel.register({
-    update_group_id: getUpdateGroupId(),
-    update_version: getUpdateTimeAsVersionString(),
-    application_version: Application.nativeApplicationVersion || 'n/a',
-    application_build: Application.nativeBuildVersion || 'n/a',
-    git_revision: process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a',
-    channel: Updates.channel || 'development',
-    $ip: ipAddress,
-    offline: !ipAddress,
-  });
-};
-registerPropsWithIpAddress(undefined);
-
-// Getting the correct IP address unfortunately takes a while, and the first couple of events
-// get sent to Mixpanel without it. Fixing this is straightforward for someone enthusiastic:
-// 1) fork the expo-mixpanel-analytics package
-// 2) make sure the `ready` flag isn't set until the IP address is fetched
-//
-const getIpAddressAsync = async (): Promise<string | undefined> => {
-  try {
-    // Prefer to fetch the public IP address from ipify.org
-    return await publicIP();
-  } catch (error) {
-    // fall back to the IP address of the device
-    try {
-      logger.warn('Unable to fetch public IP address!', {error});
-      return await Network.getIpAddressAsync();
-    } catch (error) {
-      logger.warn('Unable to fetch private IP address either!', {error});
-      return undefined;
-    }
-  }
-};
-
-const updateIpAddressOnPropsAsync = () => {
-  getIpAddressAsync()
-    .then(ipAddress => {
-      registerPropsWithIpAddress(ipAddress);
-    })
-    .catch((error: Error) => {
-      logger.warn('error getting IP address', {error});
-    });
-};
-
-// Subscribe to network state changes and update the IP address when online.
-// The callback will be invoked immediately with the current state.
-addEventListener(state => {
-  if (state.isConnected && state.isInternetReachable) {
-    updateIpAddressOnPropsAsync();
-  }
-});
+const mixpanel = new MixpanelWrapper();
 
 export default mixpanel;

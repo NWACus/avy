@@ -16,10 +16,7 @@ const preferencesSchema = z.object({
   center: avalancheCenterIDSchema.default('NWAC'),
   hasSeenCenterPicker: z.boolean().default(false),
   secretMenuCollapsed: z.boolean().default(true),
-  mixpanelUserId: z
-    .string()
-    .uuid()
-    .default(uuid.v4() as string),
+  mixpanelUserId: z.string().uuid().optional(),
 });
 
 export type Preferences = z.infer<typeof preferencesSchema>;
@@ -53,9 +50,17 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
       // But do log it to Sentry as it shouldn't happen
       Sentry.Native.captureException(e);
     }
-    if (storedPreferences) {
-      setPreferences(merge({}, defaultPreferences, storedPreferences));
-    }
+    setPreferences(
+      merge(
+        {},
+        defaultPreferences,
+        {
+          // Generate a new UUID if one doesn't exist, but overwrite with stored prefs if that's set
+          mixpanelUserId: uuid.v4() as string,
+        },
+        storedPreferences,
+      ),
+    );
   }, []);
 
   useEffect(() => {
