@@ -40,6 +40,40 @@ describe('Preferences', () => {
     expect(AsyncStorage.setItem).toHaveBeenLastCalledWith(PREFERENCES_KEY, expect.stringContaining('"center":"NWAC"'));
   });
 
+  describe('mixpanelUserId', () => {
+    it('is not set when first loading', () => {
+      const {result} = renderHook(() => usePreferences());
+      expect(result.current.preferences.mixpanelUserId).toBeUndefined();
+    });
+
+    it('updates to a default value after loading', async () => {
+      await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify({center: 'BAC', hasSeenCenterPicker: true}));
+      const {result, waitForValueToChange} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
+      expect(result.current.preferences.mixpanelUserId).toBeUndefined();
+
+      await waitForValueToChange(() => result.current.preferences.mixpanelUserId);
+      expect(result.current.preferences.mixpanelUserId).toMatch(/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/);
+    });
+
+    it('does not overwrite a previously saved id', async () => {
+      await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify({center: 'BAC', hasSeenCenterPicker: true, mixpanelUserId: '00000000-0000-0000-0000-000000000000'}));
+      const {result, waitForValueToChange} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
+      expect(result.current.preferences.mixpanelUserId).toBeUndefined();
+
+      await waitForValueToChange(() => result.current.preferences.mixpanelUserId);
+      expect(result.current.preferences.mixpanelUserId).toEqual('00000000-0000-0000-0000-000000000000');
+    });
+
+    it('does overwrite an invalid id', async () => {
+      await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify({center: 'BAC', hasSeenCenterPicker: true, mixpanelUserId: 'not a uuid'}));
+      const {result, waitForValueToChange} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
+      expect(result.current.preferences.mixpanelUserId).toBeUndefined();
+
+      await waitForValueToChange(() => result.current.preferences.mixpanelUserId);
+      expect(result.current.preferences.mixpanelUserId).toMatch(/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/);
+    });
+  });
+
   afterEach(async () => {
     await clearPreferences();
     jest.restoreAllMocks();
