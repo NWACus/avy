@@ -10,12 +10,16 @@ import {getUpdateGroupId, getUpdateTimeAsVersionString} from 'hooks/useEASUpdate
 import {logger as globalLogger} from 'logger';
 
 const logger = globalLogger.child({module: 'mixpanel'});
+logger.level('DEBUG');
 
 class MixpanelWrapper {
   private _mixpanel: ExpoMixpanelAnalytics | null;
   private _pending: Array<() => void> = [];
-  private _ready = false;
-  private _ipAddress: string | null = null;
+  private _online = false;
+  // string: we went online and we have an address.
+  // null: we went online, tried to get the address, but failed.
+  // undefined: we went offline and haven't come back online to get the address yet.
+  private _ipAddress: string | null | undefined = undefined;
 
   constructor() {
     if (process.env.EXPO_PUBLIC_MIXPANEL_TOKEN && (process.env.NODE_ENV !== 'development' || process.env.EXPO_PUBLIC_MIXPANEL_IN_DEVELOPMENT === 'true')) {
@@ -35,18 +39,23 @@ class MixpanelWrapper {
     // Subscribe to network state changes and update the IP address when online.
     // The callback will be invoked immediately with the current state.
     addEventListener(state => {
-      void this._updateIpAddressAsync(state);
+      void this._updateNetworkStateAsync(state);
     });
   }
 
   track(name: string, props?: Record<string, unknown>): void {
+    // Track offline status at time of recording, but try to attach an IP address to the
+    // event at sending time.
+    const offline = !this._online;
     this._enqueue(() => {
-      logger.debug('track', {name, props});
-      this._mixpanel?.track(name, {
-        $ip: this._ipAddress,
-        offline: !this._ipAddress,
+      const augmentedProps = {
         ...props,
-      });
+        ip: this._ipAddress,
+        $ip: this._ipAddress,
+        offline,
+      };
+      logger.debug('track', {name, props: augmentedProps});
+      this._mixpanel?.track(name, augmentedProps);
     });
   }
 
@@ -63,34 +72,48 @@ class MixpanelWrapper {
   }
 
   _flush() {
-    if (this._ready && this._pending.length > 0) {
+    if (this._online && this._ipAddress !== undefined && this._pending.length > 0) {
       logger.debug('_flush', {eventCount: this._pending.length});
       this._pending.forEach(fn => fn());
       this._pending = [];
     }
   }
 
-  async _updateIpAddressAsync(state: NetInfoState): Promise<void> {
-    if (state.isConnected && state.isInternetReachable) {
+  async _updateNetworkStateAsync(state: NetInfoState): Promise<void> {
+    const online = !!state.isConnected && !!state.isInternetReachable;
+    logger.trace('network state updated', online, this._online, this._ipAddress);
+    if (online && !this._online) {
+      logger.debug('Network is back online, getting IP address');
+      this._online = true;
+      this._ipAddress = undefined;
+      let nextIpAddress: string | null = null;
       try {
         // Prefer to fetch the public IP address from ipify.org
-        this._ipAddress = await publicIP();
+        nextIpAddress = await publicIP();
       } catch (error) {
         // fall back to the IP address of the device
         try {
           logger.warn('Unable to fetch public IP address!', {error});
-          this._ipAddress = await Network.getIpAddressAsync();
+          nextIpAddress = await Network.getIpAddressAsync();
         } catch (error) {
           logger.warn('Unable to fetch private IP address either!', {error});
-          this._ipAddress = null;
+          nextIpAddress = null;
         }
       }
-    } else {
-      this._ipAddress = null;
+      // Note that when we get here, time could have elapsed, and we theoretically could
+      // even have re-entered this function. We should make sure that we seem to be in the
+      // state we expect to be in before setting the IP address.
+      // If we get here and we're still online, then we can set the IP address.
+      // If we went offline while this async task was executing, then we should ignore the result.
+      if (this._online) {
+        this._ipAddress = nextIpAddress;
+        logger.info('Updated IP address', this._ipAddress);
+      }
+    } else if (!online && this._online) {
+      logger.debug('Network is offline, setting IP address to undefined');
+      this._online = false;
+      this._ipAddress = undefined;
     }
-    // We're ready when we've tried at least once to get our IP address
-    logger.info('Updated IP address', this._ipAddress);
-    this._ready = true;
     this._flush();
   }
 
