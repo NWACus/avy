@@ -3,7 +3,7 @@ import * as Network from 'expo-network';
 import * as Updates from 'expo-updates';
 
 import ExpoMixpanelAnalytics from '@bothrs/expo-mixpanel-analytics';
-import {addEventListener} from '@react-native-community/netinfo';
+import {addEventListener, NetInfoState} from '@react-native-community/netinfo';
 import publicIP from 'react-native-public-ip';
 
 import {getUpdateGroupId, getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
@@ -19,14 +19,14 @@ class MixpanelWrapper {
 
   constructor() {
     if (process.env.EXPO_PUBLIC_MIXPANEL_TOKEN && (process.env.NODE_ENV !== 'development' || process.env.EXPO_PUBLIC_MIXPANEL_IN_DEVELOPMENT === 'true')) {
-      logger.info('initializing mixpanel');
+      logger.info('Initializing mixpanel');
       this._mixpanel = new ExpoMixpanelAnalytics(process.env.EXPO_PUBLIC_MIXPANEL_TOKEN);
     } else {
       if (!process.env.EXPO_PUBLIC_MIXPANEL_TOKEN) {
-        logger.warn('skipping mixpanel initialization, no token configured');
+        logger.warn('Skipping mixpanel initialization, no token configured');
       }
       if (process.env.NODE_ENV === 'development' && process.env.EXPO_PUBLIC_MIXPANEL_IN_DEVELOPMENT !== 'true') {
-        logger.warn('faking mixpanel in development');
+        logger.warn('Faking mixpanel in development');
       }
       this._mixpanel = null;
     }
@@ -35,9 +35,7 @@ class MixpanelWrapper {
     // Subscribe to network state changes and update the IP address when online.
     // The callback will be invoked immediately with the current state.
     addEventListener(state => {
-      if (state.isConnected && state.isInternetReachable) {
-        void this._updateIpAddressAsync();
-      }
+      void this._updateIpAddressAsync(state);
     });
   }
 
@@ -72,22 +70,26 @@ class MixpanelWrapper {
     }
   }
 
-  async _updateIpAddressAsync(): Promise<void> {
-    try {
-      // Prefer to fetch the public IP address from ipify.org
-      this._ipAddress = await publicIP();
-    } catch (error) {
-      // fall back to the IP address of the device
+  async _updateIpAddressAsync(state: NetInfoState): Promise<void> {
+    if (state.isConnected && state.isInternetReachable) {
       try {
-        logger.warn('Unable to fetch public IP address!', {error});
-        this._ipAddress = await Network.getIpAddressAsync();
+        // Prefer to fetch the public IP address from ipify.org
+        this._ipAddress = await publicIP();
       } catch (error) {
-        logger.warn('Unable to fetch private IP address either!', {error});
-        this._ipAddress = null;
+        // fall back to the IP address of the device
+        try {
+          logger.warn('Unable to fetch public IP address!', {error});
+          this._ipAddress = await Network.getIpAddressAsync();
+        } catch (error) {
+          logger.warn('Unable to fetch private IP address either!', {error});
+          this._ipAddress = null;
+        }
       }
+    } else {
+      this._ipAddress = null;
     }
     // We're ready when we've tried at least once to get our IP address
-    logger.info('updated IP address', this._ipAddress);
+    logger.info('Updated IP address', this._ipAddress);
     this._ready = true;
     this._flush();
   }
