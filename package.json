@@ -82,7 +82,7 @@
     "expo-checkbox": "~2.4.0",
     "expo-clipboard": "~4.3.1",
     "expo-constants": "~14.4.2",
-    "expo-dev-client": "~2.4.11",
+    "expo-dev-client": "~2.4.12",
     "expo-device": "~5.4.0",
     "expo-file-system": "~15.4.4",
     "expo-font": "~11.4.0",
