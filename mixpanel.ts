@@ -1,6 +1,10 @@
 import * as Application from 'expo-application';
+import * as Network from 'expo-network';
+import * as Updates from 'expo-updates';
 
 import ExpoMixpanelAnalytics from '@bothrs/expo-mixpanel-analytics';
+import {addEventListener} from '@react-native-community/netinfo';
+import publicIP from 'react-native-public-ip';
 
 import {getUpdateGroupId, getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
 import {logger as globalLogger} from 'logger';
@@ -80,12 +84,58 @@ const initialize = (): ExpoMixpanelAnalytics => {
 };
 
 const mixpanel = initialize();
-mixpanel.register({
-  update_group_id: getUpdateGroupId(),
-  update_version: getUpdateTimeAsVersionString(),
-  application_version: Application.nativeApplicationVersion || 'n/a',
-  application_build: Application.nativeBuildVersion || 'n/a',
-  git_revision: process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a',
+
+const registerPropsWithIpAddress = (ipAddress: string | undefined) => {
+  mixpanel.register({
+    update_group_id: getUpdateGroupId(),
+    update_version: getUpdateTimeAsVersionString(),
+    application_version: Application.nativeApplicationVersion || 'n/a',
+    application_build: Application.nativeBuildVersion || 'n/a',
+    git_revision: process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a',
+    channel: Updates.channel || 'development',
+    $ip: ipAddress,
+    offline: !ipAddress,
+  });
+};
+registerPropsWithIpAddress(undefined);
+
+// Getting the correct IP address unfortunately takes a while, and the first couple of events
+// get sent to Mixpanel without it. Fixing this is straightforward for someone enthusiastic:
+// 1) fork the expo-mixpanel-analytics package
+// 2) make sure the `ready` flag isn't set until the IP address is fetched
+//
+const getIpAddressAsync = async (): Promise<string | undefined> => {
+  try {
+    // Prefer to fetch the public IP address from ipify.org
+    return await publicIP();
+  } catch (error) {
+    // fall back to the IP address of the device
+    try {
+      logger.warn('Unable to fetch public IP address!', {error});
+      return await Network.getIpAddressAsync();
+    } catch (error) {
+      logger.warn('Unable to fetch private IP address either!', {error});
+      return undefined;
+    }
+  }
+};
+
+const updateIpAddressOnPropsAsync = () => {
+  getIpAddressAsync()
+    .then(ipAddress => {
+      registerPropsWithIpAddress(ipAddress);
+    })
+    .catch((error: Error) => {
+      logger.warn('error getting IP address', {error});
+    });
+};
+
+// Subscribe to network state changes and update the IP address when online.
+// The callback will be invoked immediately with the current state.
+addEventListener(state => {
+  if (state.isConnected && state.isInternetReachable) {
+    updateIpAddressOnPropsAsync();
+  }
 });
 
 export default mixpanel;
