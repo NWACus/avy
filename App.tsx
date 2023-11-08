@@ -293,13 +293,14 @@ const BaseApp: React.FunctionComponent<{
     [setPreferences],
   );
 
+  const [mixpanelUserIdentified, setMixpanelUserIdentified] = useState(false);
   useEffect(() => {
-    if (preferences.mixpanelUserId) {
-      console.error('mixpanel id found', preferences.mixpanelUserId);
+    if (preferences.mixpanelUserId && !mixpanelUserIdentified) {
       mixpanel.identify(preferences.mixpanelUserId);
       mixpanel.track('App starting');
+      setMixpanelUserIdentified(true);
     }
-  }, [preferences.mixpanelUserId, setPreferences]);
+  }, [preferences.mixpanelUserId, mixpanelUserIdentified]);
 
   const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
