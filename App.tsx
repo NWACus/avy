@@ -293,10 +293,14 @@ const BaseApp: React.FunctionComponent<{
     [setPreferences],
   );
 
+  const [mixpanelUserIdentified, setMixpanelUserIdentified] = useState(false);
   useEffect(() => {
-    mixpanel.identify(preferences.mixpanelUserId);
-    mixpanel.track('App starting');
-  }, [preferences.mixpanelUserId]);
+    if (preferences.mixpanelUserId && !mixpanelUserIdentified) {
+      mixpanel.identify(preferences.mixpanelUserId);
+      mixpanel.track('App starting');
+      setMixpanelUserIdentified(true);
+    }
+  }, [preferences.mixpanelUserId, mixpanelUserIdentified]);
 
   const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
@@ -338,7 +342,9 @@ const BaseApp: React.FunctionComponent<{
   const trackNavigationChange = useCallback(() => {
     const route = navigationRef.current?.getCurrentRoute();
     if (route) {
-      mixpanel.track('Screen viewed', {name: route.name, params: route.params});
+      const params = (route.params || {}) as Readonly<Record<string, unknown>>;
+      const {center_id, ...otherParams} = params;
+      mixpanel.track('Screen viewed', {screen_name: route.name, center_id: center_id || 'unknown', params: otherParams});
     }
   }, [navigationRef]);
 

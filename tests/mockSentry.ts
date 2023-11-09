@@ -1,1 +1,6 @@
-jest.mock('@sentry/react-native', () => ({init: () => jest.fn()}));
+jest.mock('sentry-expo', () => ({
+  init: jest.fn(),
+  Native: {
+    captureException: jest.fn(),
+  },
+}));

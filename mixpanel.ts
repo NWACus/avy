@@ -1,91 +1,135 @@
 import * as Application from 'expo-application';
+import * as Network from 'expo-network';
+import * as Updates from 'expo-updates';
 
 import ExpoMixpanelAnalytics from '@bothrs/expo-mixpanel-analytics';
+import {addEventListener, NetInfoState} from '@react-native-community/netinfo';
+import publicIP from 'react-native-public-ip';
 
 import {getUpdateGroupId, getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
 import {logger as globalLogger} from 'logger';
 
 const logger = globalLogger.child({module: 'mixpanel'});
 
-class FakeMixpanel implements ExpoMixpanelAnalytics {
-  ready = true;
-  token = process.env.EXPO_PUBLIC_MIXPANEL_TOKEN ?? '';
-  storageKey = '';
-  queue = [];
-  constants = {};
-  superProps = null;
-  register(props: unknown): void {
-    logger.debug('mixpanel.register', {props});
+class MixpanelWrapper {
+  private _mixpanel: ExpoMixpanelAnalytics | null;
+  private _pending: Array<() => void> = [];
+  private _online = false;
+  // string: we went online and we have an address.
+  // null: we went online, tried to get the address, but failed.
+  // undefined: we went offline and haven't come back online to get the address yet.
+  private _ipAddress: string | null | undefined = undefined;
+
+  constructor() {
+    if (process.env.EXPO_PUBLIC_MIXPANEL_TOKEN && (process.env.NODE_ENV !== 'development' || process.env.EXPO_PUBLIC_MIXPANEL_IN_DEVELOPMENT === 'true')) {
+      logger.info('Initializing mixpanel');
+      this._mixpanel = new ExpoMixpanelAnalytics(process.env.EXPO_PUBLIC_MIXPANEL_TOKEN);
+    } else {
+      if (!process.env.EXPO_PUBLIC_MIXPANEL_TOKEN) {
+        logger.warn('Skipping mixpanel initialization, no token configured');
+      }
+      if (process.env.NODE_ENV === 'development' && process.env.EXPO_PUBLIC_MIXPANEL_IN_DEVELOPMENT !== 'true') {
+        logger.warn('Faking mixpanel in development');
+      }
+      this._mixpanel = null;
+    }
+    this._registerCommonProps();
+
+    // Subscribe to network state changes and update the IP address when online.
+    // The callback will be invoked immediately with the current state.
+    addEventListener(state => {
+      void this._updateNetworkStateAsync(state);
+    });
   }
-  track(name: string, props?: unknown): void {
-    logger.debug('mixpanel.track', {name, props});
+
+  track(name: string, props?: Record<string, unknown>): void {
+    // Track offline status at time of recording, but try to attach an IP address to the
+    // event at sending time.
+    const offline = !this._online;
+    this._enqueue(() => {
+      const augmentedProps = {
+        ...props,
+        // Mixpanel has a bug in their HTTP API: you have to send both `ip` and `$ip` or geolocation will not work.
+        // Reported this to support, no idea if they'll fix it.
+        ip: this._ipAddress,
+        $ip: this._ipAddress,
+        offline,
+      };
+      logger.debug('track', {name, props: augmentedProps});
+      this._mixpanel?.track(name, augmentedProps);
+    });
   }
+
   identify(userId?: string): void {
-    logger.debug('mixpanel.identify', {userId});
+    this._enqueue(() => {
+      logger.debug('identify', {userId});
+      this._mixpanel?.identify(userId);
+    });
   }
-  reset(): void {
-    logger.debug('mixpanel.reset');
+
+  _enqueue(fn: () => void) {
+    this._pending.push(fn);
+    this._flush();
   }
-  people_set(props: unknown): void {
-    logger.debug('mixpanel.people_set', {props});
+
+  _flush() {
+    if (this._online && this._ipAddress !== undefined && this._pending.length > 0) {
+      logger.debug('_flush', {eventCount: this._pending.length});
+      this._pending.forEach(fn => fn());
+      this._pending = [];
+    }
   }
-  people_set_once(props: unknown): void {
-    logger.debug('mixpanel.people_set_once', {props});
+
+  async _updateNetworkStateAsync(state: NetInfoState): Promise<void> {
+    const online = !!state.isConnected && !!state.isInternetReachable;
+    logger.trace('network state updated', online, this._online, this._ipAddress);
+    if (online && !this._online) {
+      logger.debug('Network is back online, getting IP address');
+      this._online = true;
+      this._ipAddress = undefined;
+      let nextIpAddress: string | null = null;
+      try {
+        // Prefer to fetch the public IP address from ipify.org
+        nextIpAddress = await publicIP();
+      } catch (error) {
+        // fall back to the IP address of the device
+        try {
+          logger.warn('Unable to fetch public IP address!', {error});
+          nextIpAddress = await Network.getIpAddressAsync();
+        } catch (error) {
+          logger.warn('Unable to fetch private IP address either!', {error});
+          nextIpAddress = null;
+        }
+      }
+      // Note that when we get here, time could have elapsed, and we theoretically could
+      // even have re-entered this function. We should make sure that we seem to be in the
+      // state we expect to be in before setting the IP address.
+      // If we get here and we're still online, then we can set the IP address.
+      // If we went offline while the async task was executing, then we should ignore the result.
+      if (this._online) {
+        this._ipAddress = nextIpAddress;
+        logger.info('Updated IP address', this._ipAddress);
+      }
+    } else if (!online && this._online) {
+      logger.debug('Network is offline, setting IP address to undefined');
+      this._online = false;
+      this._ipAddress = undefined;
+    }
+    this._flush();
   }
-  people_unset(props: unknown): void {
-    logger.debug('mixpanel.people_unset', {props});
-  }
-  people_increment(props: unknown): void {
-    logger.debug('mixpanel.people_increment', {props});
-  }
-  people_append(props: unknown): void {
-    logger.debug('mixpanel.people_append', {props});
-  }
-  people_union(props: unknown): void {
-    logger.debug('mixpanel.people_union', {props});
-  }
-  people_delete_user(): void {
-    logger.debug('mixpanel.people_delete_user');
-  }
-  _flush(): void {
-    logger.debug('mixpanel._flush');
-  }
-  _people(operation: unknown, props: unknown): void {
-    logger.debug('mixpanel._people', {operation, props});
-  }
-  _pushEvent(event: unknown): Promise<Response> {
-    logger.debug('mixpanel._pushEvent', {event});
-    return Promise.resolve(new Response());
-  }
-  _pushProfile(data: unknown): Promise<Response> {
-    logger.debug('mixpanel._pushProfile', {data});
-    return Promise.resolve(new Response());
+
+  _registerCommonProps(): void {
+    this._mixpanel?.register({
+      update_group_id: getUpdateGroupId(),
+      update_version: getUpdateTimeAsVersionString(),
+      application_version: Application.nativeApplicationVersion || 'n/a',
+      application_build: Application.nativeBuildVersion || 'n/a',
+      git_revision: process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a',
+      channel: Updates.channel || 'development',
+    });
   }
 }
 
-const initialize = (): ExpoMixpanelAnalytics => {
-  if (process.env.EXPO_PUBLIC_MIXPANEL_TOKEN && (process.env.NODE_ENV !== 'development' || process.env.EXPO_PUBLIC_MIXPANEL_IN_DEVELOPMENT === 'true')) {
-    logger.info('initializing mixpanel');
-    const mixpanel = new ExpoMixpanelAnalytics(process.env.EXPO_PUBLIC_MIXPANEL_TOKEN);
-    return mixpanel;
-  } else {
-    if (!process.env.EXPO_PUBLIC_MIXPANEL_TOKEN) {
-      logger.warn('skipping mixpanel initialization, no token configured');
-    }
-    if (process.env.NODE_ENV === 'development' && process.env.EXPO_PUBLIC_MIXPANEL_IN_DEVELOPMENT !== 'true') {
-      logger.warn('faking mixpanel in development');
-    }
-    return new FakeMixpanel();
-  }
-};
-
-const mixpanel = initialize();
-mixpanel.register({
-  update_group_id: getUpdateGroupId(),
-  update_version: getUpdateTimeAsVersionString(),
-  application_version: Application.nativeApplicationVersion || 'n/a',
-  application_build: Application.nativeBuildVersion || 'n/a',
-  git_revision: process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a',
-});
+const mixpanel = new MixpanelWrapper();
 
 export default mixpanel;
