@@ -49,10 +49,7 @@ class MixpanelWrapper {
     this._enqueue(() => {
       const augmentedProps = {
         ...props,
-        // Mixpanel has a bug in their HTTP API: you have to send both `ip` and `$ip` or geolocation will not work.
-        // Reported this to support, no idea if they'll fix it.
         ip: this._ipAddress,
-        $ip: this._ipAddress,
         offline,
       };
       logger.debug('track', {name, props: augmentedProps});
