@@ -10,7 +10,6 @@ import {getUpdateGroupId, getUpdateTimeAsVersionString} from 'hooks/useEASUpdate
 import {logger as globalLogger} from 'logger';
 
 const logger = globalLogger.child({module: 'mixpanel'});
-logger.level('DEBUG');
 
 class MixpanelWrapper {
   private _mixpanel: ExpoMixpanelAnalytics | null;
@@ -50,6 +49,8 @@ class MixpanelWrapper {
     this._enqueue(() => {
       const augmentedProps = {
         ...props,
+        // Mixpanel has a bug in their HTTP API: you have to send both `ip` and `$ip` or geolocation will not work.
+        // Reported this to support, no idea if they'll fix it.
         ip: this._ipAddress,
         $ip: this._ipAddress,
         offline,
@@ -104,7 +105,7 @@ class MixpanelWrapper {
       // even have re-entered this function. We should make sure that we seem to be in the
       // state we expect to be in before setting the IP address.
       // If we get here and we're still online, then we can set the IP address.
-      // If we went offline while this async task was executing, then we should ignore the result.
+      // If we went offline while the async task was executing, then we should ignore the result.
       if (this._online) {
         this._ipAddress = nextIpAddress;
         logger.info('Updated IP address', this._ipAddress);
