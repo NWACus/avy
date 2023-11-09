@@ -26,7 +26,7 @@
     },
     "release": {
       "channel": "release",
-      "autoIncrement": true,
+      "autoIncrement": true
     }
   },
   "submit": {
