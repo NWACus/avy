@@ -41,7 +41,7 @@ const KillSwitchMonitor: React.FC<KillSwitchMonitorProps> = ({children}) => {
           buildNumber: Number.parseInt(Application.nativeBuildVersion || '0'),
           updateGroupId: getUpdateGroupId(),
           updateBuildTime: getUpdateTimeAsVersionString(),
-          releaseChannel: Updates.releaseChannel,
+          releaseChannel: Updates.channel || 'development',
         },
       });
     }
