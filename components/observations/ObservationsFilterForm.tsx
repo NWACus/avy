@@ -90,7 +90,7 @@ const matchesDates = (dates: z.infer<typeof observationFilterConfigSchema.shape.
     return () => true;
   }
   const {from: startDate, to: endDate} = dates;
-  return (observation: ObservationFragment) => isAfter(parseISO(observation.createdAt), startDate) && isBefore(parseISO(observation.createdAt), endDate);
+  return (observation: ObservationFragment) => isAfter(parseISO(observation.startDate), startDate) && isBefore(parseISO(observation.startDate), endDate);
 };
 
 const matchesInstability = ({cracking, collapsing}: {cracking: boolean; collapsing: boolean}, observation: ObservationFragment): boolean =>

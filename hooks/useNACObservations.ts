@@ -34,7 +34,7 @@ export const useNACObservations = (center_id: AvalancheCenterID, endDate: Reques
     const pageParam = typeof props.pageParam === 'string' ? props.pageParam : formatRequestedTime(endDate);
     const pageEndDate: Date = requestedTimeToUTCDate(parseRequestedTimeString(pageParam));
     const pageStartDate = sub(pageEndDate, PAGE_SIZE);
-    thisLogger.debug('fetching NAC page', pageStartDate, pageEndDate, lookbackWindowStart, requestedTimeToUTCDate(endDate));
+    thisLogger.debug({pageStartDate, pageEndDate, lookbackWindowStart, endDate: requestedTimeToUTCDate(endDate)}, 'fetching NAC page');
     return fetchNACObservations(nationalAvalancheCenterHost, center_id, pageStartDate, pageEndDate, thisLogger);
   };
 

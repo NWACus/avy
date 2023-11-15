@@ -49,7 +49,7 @@ import {
   SnowAvailableForTransport,
   WindLoading,
 } from 'types/nationalAvalancheCenter';
-import {utcDateToLocalTimeString} from 'utils/date';
+import {pacificDateToLocalShortDateString, utcDateToLocalShortDateString, utcDateToLocalTimeString} from 'utils/date';
 
 export const NWACObservationDetailView: React.FunctionComponent<{
   id: string;
@@ -217,7 +217,13 @@ export const ObservationCard: React.FunctionComponent<{
                   <VStack space={8} style={{flex: 1}}>
                     <AllCapsSmBlack>Submitted</AllCapsSmBlack>
                     <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                      {utcDateToLocalTimeString(observation.created_at)}
+                      {utcDateToLocalShortDateString(observation.created_at)}
+                    </AllCapsSm>
+                  </VStack>
+                  <VStack space={8} style={{flex: 1}}>
+                    <AllCapsSmBlack>Observed</AllCapsSmBlack>
+                    <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                      {pacificDateToLocalShortDateString(observation.start_date)}
                     </AllCapsSm>
                   </VStack>
                   <VStack space={8} style={{flex: 1}}>

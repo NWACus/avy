@@ -17,6 +17,7 @@ import {
 } from 'components/observations/uploader/Task';
 import {uploadImage} from 'components/observations/uploader/uploadImage';
 import {uploadObservation} from 'components/observations/uploader/uploadObservation';
+import {format} from 'date-fns';
 import {logger} from 'logger';
 import {filterLoggedData} from 'logging/filterLoggedData';
 import {AvalancheCenterID, MediaType, MediaUsage, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
@@ -325,7 +326,7 @@ export class ObservationUploader {
       id: observationTask.id,
       observerType: PartnerType.Public,
       name: observation.name,
-      createdAt: observation.start_date.toISOString(),
+      startDate: format(observation.start_date, 'yyyy-MM-dd'),
       locationPoint: observation.location_point,
       locationName: observation.location_name,
       instability: observation.instability,
