@@ -18,7 +18,7 @@ import {useRefresh} from 'hooks/useRefresh';
 import {useWeatherForecast} from 'hooks/useWeatherForecast';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import {isArray} from 'lodash';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
 import Toast from 'react-native-toast-message';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
@@ -60,10 +60,16 @@ const SmallHeaderWithTooltip: React.FunctionComponent<{
 );
 
 export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requestedTime, forecast_zone_id}) => {
+  if (center_id === 'NWAC') {
+    return <NWACWeatherTab zone={zone} center_id={center_id} requestedTime={requestedTime} forecast_zone_id={forecast_zone_id} />;
+  } else {
+    return <NACWeatherTab zone={zone} center_id={center_id} requestedTime={requestedTime} forecast_zone_id={forecast_zone_id} />;
+  }
+};
+
+export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requestedTime, forecast_zone_id}) => {
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = avalancheCenterMetadataResult.data;
-  const nwacForecastResult = useNWACWeatherForecast(center_id, zone.id, requestedTime);
-  const nwacForecast = nwacForecastResult.data;
   const avalancheForecastResult = useAvalancheForecast(center_id, forecast_zone_id, requestedTime, metadata);
   const avalancheForecast = avalancheForecastResult.data;
   const weatherForecastId = avalancheForecast
@@ -73,18 +79,74 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     : undefined;
   const weatherForecastResult = useWeatherForecast(weatherForecastId);
   const weatherForecast = weatherForecastResult.data;
+  const {isRefreshing, refresh} = useRefresh(avalancheCenterMetadataResult.refetch, avalancheForecastResult.refetch, weatherForecastResult.refetch);
+  const onRefresh = useCallback(() => {
+    void refresh();
+  }, [refresh]);
+
+  if (incompleteQueryState(avalancheCenterMetadataResult, avalancheForecastResult) || !metadata || !avalancheForecast) {
+    return <QueryState results={[avalancheCenterMetadataResult, avalancheForecastResult]} />;
+  }
+
+  if (!weatherForecastId) {
+    return <NotFound terminal what={[new NotFoundError('no associated weather forecast', 'weather forecast')]} />;
+  }
+
+  if (incompleteQueryState(weatherForecastResult) || !weatherForecast) {
+    return <QueryState results={[weatherForecastResult]} />;
+  }
+
+  return (
+    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
+      <VStack space={8} backgroundColor={colorLookup('primary.background')}>
+        <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
+          <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
+            <VStack space={8} style={{flex: 1}}>
+              <AllCapsSmBlack>Issued</AllCapsSmBlack>
+              <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                {utcDateToLocalTimeString(weatherForecast.published_time)}
+              </AllCapsSm>
+            </VStack>
+            <VStack space={8} style={{flex: 1}}>
+              <AllCapsSmBlack>Author</AllCapsSmBlack>
+              <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                {weatherForecast.author || 'Unknown'}
+                {'\n'}
+              </AllCapsSm>
+            </VStack>
+          </HStack>
+          {weatherForecast.weather_data && (
+            <VStack alignItems="stretch" pt={4}>
+              {weatherForecast.weather_data.map(
+                (item, i) =>
+                  zone.name === item.zone_name && ('periods' in item ? <InlineWeatherForecast key={i} forecast={item} /> : <RowColumnWeatherForecast key={i} forecast={item} />),
+              )}
+            </VStack>
+          )}
+          {weatherForecast.weather_discussion && (
+            <VStack space={2} py={12} borderBottomWidth={1} borderColor={colorLookup('light.300')}>
+              <BodyBlack>Weather Discussion</BodyBlack>
+              <HTML source={{html: weatherForecast.weather_discussion}} />
+            </VStack>
+          )}
+        </Card>
+        {/*// TODO: weather stations*/}
+      </VStack>
+    </ScrollView>
+  );
+};
+
+export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requestedTime}) => {
+  const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
+  const metadata = avalancheCenterMetadataResult.data;
+  const nwacForecastResult = useNWACWeatherForecast(center_id, zone.id, requestedTime);
+  const nwacForecast = nwacForecastResult.data;
   const mapLayerResult = useMapLayer(center_id);
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata(center_id, metadata?.widget_config.stations?.token);
   const weatherStations = weatherStationsResult.data;
-  const stationsByZone: ZoneWithWeatherStations[] = [];
-  const {isRefreshing, refresh} = useRefresh(
-    nwacForecastResult.refetch,
-    avalancheCenterMetadataResult.refetch,
-    mapLayerResult.refetch,
-    avalancheForecastResult.refetch,
-    weatherForecastResult.refetch,
-  );
+  const [stationsByZone, setStationsByZone] = useState<ZoneWithWeatherStations[]>([]);
+  const {isRefreshing, refresh} = useRefresh(nwacForecastResult.refetch, avalancheCenterMetadataResult.refetch, mapLayerResult.refetch);
   const onRefresh = useCallback(() => {
     void refresh();
   }, [refresh]);
@@ -128,84 +190,41 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     }
   }, [expiresTime]);
 
+  useEffect(() => {
+    if (metadata?.widget_config.stations?.token && weatherStations && mapLayer) {
+      setStationsByZone(NWACStationsByZone(mapLayer, weatherStations));
+    }
+  }, [metadata, weatherStations, mapLayer]);
+
   // In the UI, we show weather station groups, which may contain 1 or more weather stations.
   // Example: Alpental Ski Area shows 3 weather stations.
-  const groupedWeatherStations = Object.entries(stationsByZone?.find(zoneData => zoneData.feature.id === zone.id)?.stationGroups || {}).sort((a, b) => a[0].localeCompare(b[0]));
-
   const actionListData = useMemo(
     () =>
-      groupedWeatherStations.map(([name, stations]) => ({
-        label: name,
-        data: stations,
-        action: () => {
-          navigation.navigate('stationsDetail', {
-            center_id: center_id,
-            stations: stations
-              .map(s => ({id: s.stid, source: s.source}))
-              .reduce((accum, value) => {
-                accum[value.id] = value.source;
-                return accum;
-              }, {} as Record<string, WeatherStationSource>),
-            name: name,
-            requestedTime: formatRequestedTime(requestedTime),
-            zoneName: zone.name,
-          });
-        },
-      })),
-    [center_id, groupedWeatherStations, navigation, requestedTime, zone.name],
+      Object.entries(stationsByZone?.find(zoneData => zoneData.feature.id === zone.id)?.stationGroups || {})
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([name, stations]) => ({
+          label: name,
+          data: stations,
+          action: () => {
+            navigation.navigate('stationsDetail', {
+              center_id: center_id,
+              stations: stations
+                .map(s => ({id: s.stid, source: s.source}))
+                .reduce((accum, value) => {
+                  accum[value.id] = value.source;
+                  return accum;
+                }, {} as Record<string, WeatherStationSource>),
+              name: name,
+              requestedTime: formatRequestedTime(requestedTime),
+              zoneName: zone.name,
+            });
+          },
+        })),
+    [center_id, stationsByZone, navigation, requestedTime, zone.name, zone.id],
   );
 
-  if (incompleteQueryState(avalancheCenterMetadataResult, mapLayerResult, avalancheForecastResult) || !metadata || !mapLayer || !avalancheForecast) {
-    return <QueryState results={[nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult, avalancheForecastResult]} />;
-  }
-
-  if (center_id !== 'NWAC') {
-    if (!weatherForecastId) {
-      return <NotFound terminal what={[new NotFoundError('no associated weather forecast', 'weather forecast')]} />;
-    }
-
-    if (incompleteQueryState(weatherForecastResult) || !weatherForecast) {
-      return <QueryState results={[weatherForecastResult]} />;
-    }
-
-    return (
-      <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
-        <VStack space={8} backgroundColor={colorLookup('primary.background')}>
-          <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
-            <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
-              <VStack space={8} style={{flex: 1}}>
-                <AllCapsSmBlack>Issued</AllCapsSmBlack>
-                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                  {utcDateToLocalTimeString(weatherForecast.published_time)}
-                </AllCapsSm>
-              </VStack>
-              <VStack space={8} style={{flex: 1}}>
-                <AllCapsSmBlack>Author</AllCapsSmBlack>
-                <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                  {weatherForecast.author || 'Unknown'}
-                  {'\n'}
-                </AllCapsSm>
-              </VStack>
-            </HStack>
-            {weatherForecast.weather_data && (
-              <VStack alignItems="stretch" pt={4}>
-                {weatherForecast.weather_data.map(
-                  (item, i) =>
-                    zone.name === item.zone_name && ('periods' in item ? <InlineWeatherForecast key={i} forecast={item} /> : <RowColumnWeatherForecast key={i} forecast={item} />),
-                )}
-              </VStack>
-            )}
-            {weatherForecast.weather_discussion && (
-              <VStack space={2} py={12} borderBottomWidth={1} borderColor={colorLookup('light.300')}>
-                <BodyBlack>Weather Discussion</BodyBlack>
-                <HTML source={{html: weatherForecast.weather_discussion}} />
-              </VStack>
-            )}
-          </Card>
-          {/*// TODO: weather stations*/}
-        </VStack>
-      </ScrollView>
-    );
+  if (incompleteQueryState(avalancheCenterMetadataResult, mapLayerResult) || !metadata || !mapLayer) {
+    return <QueryState results={[nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult]} />;
   }
 
   if (metadata?.widget_config.stations?.token) {
@@ -222,8 +241,6 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
           }}
         />
       );
-    } else {
-      stationsByZone.push(...NWACStationsByZone(mapLayer, weatherStations));
     }
   }
 
