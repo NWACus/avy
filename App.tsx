@@ -86,14 +86,14 @@ const encodeParams = (params: {[s: string]: string}) => {
     .join('&');
 };
 
-const formatURI = (request: AxiosRequestConfig, options: {includePostData?: boolean} = {}): string => {
+const formatURI = (request: AxiosRequestConfig, options: {includePostData?: boolean; verbose?: boolean} = {}): string => {
   const method = request.method ?? 'GET';
   let msg = `${method.toUpperCase()} ${request.url ?? 'url'}`;
   if (request.params && Object.keys(request.params as {[s: string]: string}).length !== 0) {
-    msg += `?${encodeParams(filterLoggedData(request.params) as {[s: string]: string})}`;
+    msg += `?${encodeParams(options.verbose ? (request.params as {[s: string]: string}) : (filterLoggedData(request.params) as {[s: string]: string}))}`;
   }
   if (request.data && options.includePostData) {
-    msg += ` data: ${JSON.stringify(filterLoggedData(request.data))}`;
+    msg += ` data: ${JSON.stringify(options.verbose ? request.data : filterLoggedData(request.data))}`;
   }
   return msg;
 };
@@ -101,12 +101,12 @@ const formatURI = (request: AxiosRequestConfig, options: {includePostData?: bool
 axios.interceptors.request.use(request => {
   const msg = 'sending request';
   const level = logger.level();
-  const thisLogger = logger.child({uri: formatURI(request, {includePostData: level <= TRACE})});
+  const thisLogger = logger.child({uri: formatURI(request, {includePostData: level <= TRACE, verbose: level <= TRACE})});
   thisLogger.debug(msg);
   if (request.data && level <= TRACE) {
     thisLogger.trace(
       {
-        data: JSON.stringify(filterLoggedData(request.data)),
+        data: JSON.stringify(request.data),
       },
       msg,
     );
