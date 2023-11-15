@@ -302,7 +302,7 @@ export const OverviewFragmentDoc = `
   id
   observerType
   name
-  createdAt
+  startDate
   locationPoint {
     lat
     lng

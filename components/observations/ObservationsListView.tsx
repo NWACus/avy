@@ -109,7 +109,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           if (pageDelta !== 0) {
             return pageDelta;
           }
-          return compareDesc(parseISO(a.createdAt), parseISO(b.createdAt));
+          return compareDesc(parseISO(a.startDate), parseISO(b.startDate));
         })
         // sometimes, the NWAC API gives us duplicates. If this happens, prefer to keep the version that was fetched earlier
         .filter((v, i, a) => a.findIndex(v2 => v2.id === v.id) === i)
@@ -148,7 +148,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   }, [observationsResult]);
 
   const {from: filterStartDate} = filterConfig.dates;
-  const moreDataAvailable = observationsResult.hasNextPage && (observations.length === 0 || new Date(observations[observations.length - 1].createdAt) > filterStartDate);
+  const moreDataAvailable = observationsResult.hasNextPage && (observations.length === 0 || new Date(observations[observations.length - 1].startDate) > filterStartDate);
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
@@ -472,7 +472,7 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
       style={{opacity: pending ? 0.5 : 1.0}}
       header={
         <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
-          <BodySmBlack>{utcDateToLocalDateString(observation.createdAt)}</BodySmBlack>
+          <BodySmBlack>{utcDateToLocalDateString(observation.startDate)}</BodySmBlack>
           <HStack space={8} alignItems="center">
             {redFlags && <MaterialCommunityIcons name="flag" size={bodySize} color={colorFor(DangerLevel.Considerable).string()} />}
             {avalanches && <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />}

@@ -147,7 +147,7 @@ export const fetchNWACObservations = async (nwacHost: string, center_id: Avalanc
         id: String(object.id),
         observerType: object.content.observer_type,
         name: object.content.name ?? 'Unknown',
-        createdAt: object.post_date,
+        startDate: object.content.start_date,
         locationName: object.content.location_name ?? 'Unknown',
         instability: object.content.instability,
         observationSummary: object.content.observation_summary ?? 'None',
