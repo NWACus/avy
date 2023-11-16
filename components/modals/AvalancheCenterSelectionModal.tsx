@@ -1,5 +1,5 @@
 import React, {useCallback, useState} from 'react';
-import {StyleSheet} from 'react-native';
+import {ScrollView, StyleSheet} from 'react-native';
 
 import Topo from 'assets/illustrations/topo.svg';
 import {avalancheCenterList, AvalancheCenters} from 'components/avalancheCenterList';
@@ -60,11 +60,13 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
                 <Center px={32} pb={32}>
                   <Body textAlign="center">You can change this anytime in settings.</Body>
                 </Center>
-                <AvalancheCenterList
-                  selectedCenter={selectedCenter}
-                  setSelectedCenter={setSelectedCenter}
-                  data={avalancheCenterList(AvalancheCenters.SupportedCenters, metadata)}
-                />
+                <ScrollView>
+                  <AvalancheCenterList
+                    selectedCenter={selectedCenter}
+                    setSelectedCenter={setSelectedCenter}
+                    data={avalancheCenterList(AvalancheCenters.SupportedCenters, metadata)}
+                  />
+                </ScrollView>
               </VStack>
               <Divider />
               <Center height={100} width="100%" px={16} backgroundColor={'white'} alignItems="stretch">
