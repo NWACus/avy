@@ -49,7 +49,7 @@ export const HTMLRendererConfig: React.FunctionComponent<PropsWithChildren<HTMLR
 
   return (
     <TRenderEngineProvider baseStyle={baseStyle} tagsStyles={tagsStylesDefaults} systemFonts={systemFonts}>
-      <RenderHTMLConfigProvider enableExperimentalBRCollapsing enableExperimentalMarginCollapsing>
+      <RenderHTMLConfigProvider defaultTextProps={{maxFontSizeMultiplier: 1.4}} enableExperimentalBRCollapsing enableExperimentalMarginCollapsing>
         {children}
       </RenderHTMLConfigProvider>
     </TRenderEngineProvider>

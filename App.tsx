@@ -18,7 +18,7 @@ import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer, RouteProp, useNavigationContainerRef} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
-import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, Text, TextInput, UIManager, View} from 'react-native';
+import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, UIManager, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import * as Application from 'expo-application';
@@ -494,21 +494,5 @@ const BaseApp: React.FunctionComponent<{
     </>
   );
 };
-
-/* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
-// @ts-ignore
-Text.defaultProps = Text.defaultProps || {};
-// @ts-ignore
-Text.defaultProps.allowFontScaling = true;
-// @ts-ignore
-Text.defaultProps.maxFontSizeMultiplier = 1.4;
-
-// @ts-ignore
-TextInput.defaultProps = TextInput.defaultProps || {};
-// @ts-ignore
-TextInput.defaultProps.allowFontScaling = true;
-// @ts-ignore
-TextInput.defaultProps.maxFontSizeMultiplier = 1.4;
-/* eslint-enable */
 
 export default App;
