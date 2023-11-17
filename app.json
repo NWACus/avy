@@ -13,7 +13,7 @@
       "backgroundColor": "#152E57"
     },
     "runtimeVersion": {
-      "policy": "sdkVersion"
+      "policy": "appVersion"
     },
     "jsEngine": "hermes",
     "updates": {

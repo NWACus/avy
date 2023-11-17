@@ -1,11 +1,6 @@
 name: publish-update
 on:
   workflow_dispatch: {}
-  push:
-    branches:
-      - preview
-      # - release
-      - main
 
 defaults:
   run:
