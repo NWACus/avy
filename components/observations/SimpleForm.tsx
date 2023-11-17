@@ -84,6 +84,7 @@ export const SimpleForm: React.FC<{
     () => [
       {field: 'name', ref: React.createRef<RNView>()},
       {field: 'email', ref: React.createRef<RNView>()},
+      {field: 'phone', ref: React.createRef<RNView>()},
       {field: 'activity', ref: React.createRef<RNView>()},
       {field: 'location_name', ref: React.createRef<RNView>()},
       {field: 'location_point', ref: React.createRef<RNView>()},
@@ -279,6 +280,23 @@ export const SimpleForm: React.FC<{
   const formFieldSpacing = 16;
   const disableFormControls = mutation.isLoading || mutation.isSuccess;
 
+  const phoneNumberTextTransform = useCallback((text: string): string => {
+    const input = text.replace(/\D/g, '').substring(0, 10);
+    const zip = input.substring(0, 3);
+    const middle = input.substring(3, 6);
+    const last = input.substring(6, 10);
+
+    if (input.length > 6) {
+      return `(${zip}) ${middle} - ${last}`;
+    } else if (input.length > 3) {
+      return `(${zip}) ${middle}`;
+    } else if (input.length > 0) {
+      return `(${zip}`;
+    } else {
+      return '';
+    }
+  }, []);
+
   return (
     <FormProvider {...formContext}>
       <View width="100%" height="100%" bg="#F6F8FC">
@@ -342,6 +360,21 @@ export const SimpleForm: React.FC<{
                           placeholder: 'you@domain.com',
                           textContentType: 'emailAddress',
                           keyboardType: 'email-address',
+                          autoCapitalize: 'none',
+                          autoCorrect: false,
+                        }}
+                        disabled={disableFormControls}
+                      />
+                      <TextField
+                        name="phone"
+                        label="Phone number"
+                        comment="(optional, never shared with the public)"
+                        textTransform={phoneNumberTextTransform}
+                        ref={getFieldRef('phone')}
+                        textInputProps={{
+                          placeholder: '(012) 345-6789',
+                          textContentType: 'telephoneNumber',
+                          keyboardType: 'number-pad',
                           autoCapitalize: 'none',
                           autoCorrect: false,
                         }}

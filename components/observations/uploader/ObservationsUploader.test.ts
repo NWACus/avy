@@ -480,6 +480,7 @@ const fakeObservation: {apiPrefix: string; center_id: AvalancheCenterID; observa
       lng: -122.3321,
     },
     name: 'Brian',
+    phone: '(012) 345 - 6789',
     observation_summary: 'This is a test observation.',
     photoUsage: MediaUsage.Credit,
     private: false,

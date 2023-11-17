@@ -12,6 +12,7 @@ const FAKE_OBSERVATION_DATA: Partial<ObservationFormData> = {
   },
   email: 'brian@nwac.us',
   name: 'Brian',
+  phone: `(012) 345 - 6789`,
   observation_summary: '[TEST] This is a test observation.',
   location_name: '[TEST] Snoqualmie Pass',
 };
@@ -70,6 +71,10 @@ export const simpleObservationFormSchema = z
     location_name: z.string({required_error: required}).max(256, tooLong),
     location_point: locationPointSchema,
     name: z.string({required_error: required}).max(50, tooLong),
+    phone: z
+      .string()
+      .regex(/\(\d{3}\) \d{3} - \d{4}/, "That doesn't look like a phone number.")
+      .optional(),
     show_name: z.boolean().optional(),
     observation_summary: z.string({required_error: required}).max(1024, tooLong),
     photoUsage: z.nativeEnum(MediaUsage, {required_error: required}),
