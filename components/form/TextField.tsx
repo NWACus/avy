@@ -1,5 +1,5 @@
-import {View, ViewProps, VStack} from 'components/core';
-import {BodySmBlack, BodyXSm} from 'components/text';
+import {HStack, View, ViewProps, VStack} from 'components/core';
+import {BodySm, BodySmBlack, BodyXSm} from 'components/text';
 import React from 'react';
 import {useController} from 'react-hook-form';
 import {View as RNView, TextInput, TextInputProps} from 'react-native';
@@ -10,6 +10,7 @@ export type KeysMatching<T, V> = {[K in keyof T]-?: T[K] extends V ? K : never}[
 interface TextFieldProps extends ViewProps {
   name: string;
   label: string;
+  comment?: string;
   textInputProps?: Omit<TextInputProps, 'style'>;
   disabled?: boolean;
 }
@@ -20,11 +21,14 @@ const textInputDefaultStyle = {
   fontFamily: 'Lato_400Regular',
 };
 
-export const TextField = React.forwardRef<RNView, TextFieldProps>(({name, label, textInputProps = {}, disabled, ...props}, ref) => {
+export const TextField = React.forwardRef<RNView, TextFieldProps>(({name, label, comment, textInputProps = {}, disabled, ...props}, ref) => {
   const {field, fieldState} = useController({name});
   return (
     <VStack width="100%" space={4} {...props} ref={ref}>
-      <BodySmBlack>{label}</BodySmBlack>
+      <HStack space={4}>
+        <BodySmBlack>{label}</BodySmBlack>
+        {comment && <BodySm>{comment}</BodySm>}
+      </HStack>
       <View p={8} borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4}>
         <TextInput
           onBlur={field.onBlur}

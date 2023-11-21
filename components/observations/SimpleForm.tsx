@@ -336,6 +336,7 @@ export const SimpleForm: React.FC<{
                       <TextField
                         name="email"
                         label="Email address"
+                        comment="(never shared with the public)"
                         ref={getFieldRef('email')}
                         textInputProps={{
                           placeholder: 'you@domain.com',
