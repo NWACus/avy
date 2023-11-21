@@ -460,6 +460,16 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
     }
   }, [navigation, source, observation.id]);
 
+  let thumbnail = '';
+  if (observation.media && observation.media.length > 0) {
+    for (const item of observation.media) {
+      if (item.type === MediaType.Image && item.url?.thumbnail) {
+        thumbnail = item.url?.thumbnail;
+        break;
+      }
+    }
+  }
+
   return (
     <Card
       mx={8}
@@ -490,9 +500,7 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
           </Body>
         </VStack>
         <View width={52} height={52} flex={0} ml={8}>
-          {observation.media && observation.media.length > 0 && observation.media[0].type === MediaType.Image && observation.media[0].url?.thumbnail && (
-            <NetworkImage width={52} height={52} uri={observation.media[0].url.thumbnail} imageStyle={{borderRadius: 4}} index={0} onPress={undefined} onStateChange={undefined} />
-          )}
+          {thumbnail && <NetworkImage width={52} height={52} uri={thumbnail} imageStyle={{borderRadius: 4}} index={0} onPress={undefined} onStateChange={undefined} />}
         </View>
       </HStack>
     </Card>
