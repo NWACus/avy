@@ -8,7 +8,8 @@ export const avalancheCenterIDSchema = z.enum([
   'FAC', // Flathead: MT
   'IPAC', // Idaho Panhandle: ID, MT
   'KPAC', // Kachina: AZ
-  'MSAC', // Mount Shasta: CA
+  // TODO(skuznets): revert back to add in MSAC once their metadata endpoint is fixed
+  // 'MSAC', // Mount Shasta: CA
   'MWAC', // Mount Washington: NH
   'NWAC', // Northwest: WA, OR
   'PAC', // Payette: ID
