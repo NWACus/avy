@@ -765,6 +765,7 @@ export const FormatDangerConfidence = (value: DangerConfidence): string => {
 };
 export const InstabilityDistribution = {
   Isolated: 'isolated',
+  Specific: 'specific',
   Widespread: 'widespread',
   Low: 'low',
 } as const;
