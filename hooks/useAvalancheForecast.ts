@@ -20,7 +20,7 @@ export const useAvalancheForecast = (
   center_id: AvalancheCenterID,
   zone_id: number,
   requestedTime: RequestedTime,
-  center?: AvalancheCenter | null,
+  center?: AvalancheCenter,
 ): UseQueryResult<ForecastResult, AxiosError | ZodError> => {
   const expiryTimeHours = center?.config.expires_time;
   const expiryTimeZone = center?.timezone;
