@@ -41,7 +41,7 @@ const taskQueueEntrySchema = z.discriminatedUnion('type', [
       extraData: z.object({
         url: z.string().url(),
         center_id: avalancheCenterIDSchema,
-        organization: avalancheCenterIDSchema,
+        organization: avalancheCenterIDSchema.optional(),
         observer_type: z.literal('public'),
         media: z.array(mediaItemSchema),
       }),

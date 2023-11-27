@@ -212,7 +212,6 @@ export class ObservationUploader {
           extraData: {
             url,
             center_id,
-            organization: center_id,
             observer_type: 'public',
             media: [],
           },
