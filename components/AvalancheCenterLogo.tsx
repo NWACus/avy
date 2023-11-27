@@ -22,8 +22,7 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
     ['FAC']: Image.resolveAssetSource(require('../assets/logos/FAC.png')),
     ['IPAC']: Image.resolveAssetSource(require('../assets/logos/IPAC.png')),
     ['KPAC']: Image.resolveAssetSource(require('../assets/logos/KPAC.png')),
-    // TODO(skuznets): revert back to add in MSAC once their metadata endpoint is fixed
-    // ['MSAC']: Image.resolveAssetSource(require('../assets/logos/MSAC.png')),
+    ['MSAC']: Image.resolveAssetSource(require('../assets/logos/MSAC.png')),
     ['MWAC']: Image.resolveAssetSource(require('../assets/logos/MWAC.png')),
     ['NWAC']: Image.resolveAssetSource(require('../assets/logos/NWAC.png')),
     ['PAC']: Image.resolveAssetSource(require('../assets/logos/PAC.png')),
@@ -64,10 +63,9 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
     ['KPAC']: (s: ImageStyle) => {
       return <Image style={s} source={{uri: uri}} />;
     },
-    // TODO(skuznets): revert back to add in MSAC once their metadata endpoint is fixed
-    // ['MSAC']: (s: ImageStyle) => {
-    //   return <Image style={s} source={{uri: uri}} />;
-    // },
+    ['MSAC']: (s: ImageStyle) => {
+      return <Image style={s} source={{uri: uri}} />;
+    },
     ['MWAC']: (s: ImageStyle) => {
       return <Image style={s} source={{uri: uri}} />;
     },
@@ -124,9 +122,8 @@ export const preloadAvalancheCenterLogo = async (queryClient: QueryClient, logge
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/IPAC.png')).uri);
     case 'KPAC':
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/KPAC.png')).uri);
-    // TODO(skuznets): revert back to add in MSAC once their metadata endpoint is fixed
-    // case 'MSAC':
-    //   return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/MSAC.png')).uri);
+    case 'MSAC':
+      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/MSAC.png')).uri);
     case 'MWAC':
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/MWAC.png')).uri);
     case 'NWAC':

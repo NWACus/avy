@@ -13,7 +13,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenter, AvalancheCenterID, avalancheCenterSchema} from 'types/nationalAvalancheCenter';
 import {ZodError} from 'zod';
 
-export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID): UseQueryResult<AvalancheCenter | null, AxiosError | ZodError> => {
+export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID): UseQueryResult<AvalancheCenter, AxiosError | ZodError> => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const key = queryKey(nationalAvalancheCenterHost, center_id);
@@ -22,9 +22,9 @@ export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID): UseQue
     thisLogger.debug('initiating query');
   }, [thisLogger]);
 
-  return useQuery<AvalancheCenter | null, AxiosError | ZodError>({
+  return useQuery<AvalancheCenter, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async (): Promise<AvalancheCenter | null> => fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id, thisLogger),
+    queryFn: async (): Promise<AvalancheCenter> => fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id, thisLogger),
     cacheTime: Infinity, // hold on to this cached data forever
   });
 };
@@ -40,7 +40,7 @@ export const prefetchAvalancheCenterMetadata = async (queryClient: QueryClient, 
 
   await queryClient.prefetchQuery({
     queryKey: key,
-    queryFn: async (): Promise<AvalancheCenter | null> => {
+    queryFn: async (): Promise<AvalancheCenter> => {
       const start = new Date();
       thisLogger.trace(`prefetching`);
       const result = await fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id, thisLogger);
@@ -55,13 +55,13 @@ export const prefetchAvalancheCenterMetadata = async (queryClient: QueryClient, 
 export const fetchAvalancheCenterMetadataQuery = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger) =>
   await queryClient.fetchQuery({
     queryKey: queryKey(nationalAvalancheCenterHost, center_id),
-    queryFn: async (): Promise<AvalancheCenter | null> => {
+    queryFn: async (): Promise<AvalancheCenter> => {
       const result = await fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id, logger);
       return result;
     },
   });
 
-const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger): Promise<AvalancheCenter | null> => {
+const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger): Promise<AvalancheCenter> => {
   const url = `${nationalAvalancheCenterHost}/v2/public/avalanche-center/${center_id}`;
   const what = 'avalanche center metadata';
   const thisLogger = logger.child({url: url, center: center_id, what: what});
@@ -77,9 +77,7 @@ const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string,
         url,
       },
     });
-    // If we throw here, we'll just trigger retries forever based on react-query's retry policy.
-    // Since we know we're getting an unparseable result, we should stop asking.
-    return null;
+    throw parseResult.error;
   } else {
     return parseResult.data;
   }

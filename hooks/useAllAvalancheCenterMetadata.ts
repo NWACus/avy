@@ -20,12 +20,12 @@ export const useAllAvalancheCenterMetadata = (capabilities: AllAvalancheCenterCa
     knownCenters.push(...filterToKnownCenters(capabilities.centers.map(center => center.id)));
   }
 
-  return useQueries<UseQueryOptions<AvalancheCenter | null, AxiosError | ZodError>[]>({
+  return useQueries<UseQueryOptions<AvalancheCenter, AxiosError | ZodError>[]>({
     queries: knownCenters
       ? knownCenters.map(center => {
           return {
             queryKey: AvalancheCenterMetadataQuery.queryKey(nationalAvalancheCenterHost, center),
-            queryFn: async (): Promise<AvalancheCenter | null> => AvalancheCenterMetadataQuery.fetchQuery(queryClient, nationalAvalancheCenterHost, center, logger),
+            queryFn: async (): Promise<AvalancheCenter> => AvalancheCenterMetadataQuery.fetchQuery(queryClient, nationalAvalancheCenterHost, center, logger),
             enabled: !!capabilities,
             cacheTime: Infinity, // hold on to this cached data forever
           };
