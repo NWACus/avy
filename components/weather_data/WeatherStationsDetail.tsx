@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {uniq} from 'lodash';
 
@@ -12,6 +12,8 @@ import {Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack} from 'components/text'
 import {compareDesc, format} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
+import {useFeatureFlag} from 'posthog-react-native';
+import {ScrollView} from 'react-native';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, StationNote, WeatherStationSource, WeatherStationTimeseries} from 'types/nationalAvalancheCenter';
 import {parseRequestedTimeString, RequestedTimeString, utcDateToLocalDateString} from 'utils/date';
@@ -82,77 +84,89 @@ const shortUnits = (units: string): string => shortUnitsMap[units] || units;
 
 const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({timeSeries}) => {
   type Column = {elevation: number | undefined | null; field: string; dataByTime: Record<string, number | string | null>};
-  const tableColumns: Column[] = [];
-  for (const station of timeSeries.STATION) {
-    const dataByTimeByField: Record<string, Record<string, number | string | null>> = {};
-    for (const observation of station.observations) {
-      const date = observation['date_time'];
-      if (!date) {
-        continue; // can't record this time-less value
+  const tableColumns: Column[] = useMemo(() => {
+    const columns: Column[] = [];
+    for (const station of timeSeries.STATION) {
+      const dataByTimeByField: Record<string, Record<string, number | string | null>> = {};
+      for (const observation of station.observations) {
+        const date = observation['date_time'];
+        if (!date) {
+          continue; // can't record this time-less value
+        }
+        for (const [field, value] of Object.entries(observation)) {
+          if (field === 'date_time') {
+            // don't add station-specific date time columns
+            continue;
+          }
+          if (field === 'solar_radiation') {
+            // we don't display solar_radiation, only net_solar
+            continue;
+          }
+          if (!dataByTimeByField[field]) {
+            dataByTimeByField[field] = {};
+          }
+          dataByTimeByField[field][date] = value;
+        }
       }
-      for (const [field, value] of Object.entries(observation)) {
-        if (field === 'date_time') {
-          // don't add station-specific date time columns
+      for (const field of Object.keys(dataByTimeByField)) {
+        const values: (string | number | null)[] = Object.values(dataByTimeByField[field]);
+        if (values.findIndex(v => v !== null) === -1) {
+          // skip empty columns: when all values are null
           continue;
         }
-        if (field === 'solar_radiation') {
-          // we don't display solar_radiation, only net_solar
-          continue;
-        }
-        if (!dataByTimeByField[field]) {
-          dataByTimeByField[field] = {};
-        }
-        dataByTimeByField[field][date] = value;
+        columns.push({field: field, elevation: station.elevation, dataByTime: dataByTimeByField[field]});
       }
     }
-    for (const field of Object.keys(dataByTimeByField)) {
-      const values: (string | number | null)[] = Object.values(dataByTimeByField[field]);
-      if (values.findIndex(v => v !== null) === -1) {
-        // skip empty columns: when all values are null
-        continue;
-      }
-      tableColumns.push({field: field, elevation: station.elevation, dataByTime: dataByTimeByField[field]});
-    }
-  }
+    return columns;
+  }, [timeSeries]);
 
   // Determine all the times we need to display as rows
-  const times = uniq(tableColumns.map(column => Object.keys(column.dataByTime)).flat()).sort((a, b) => {
-    return compareDesc(new Date(a), new Date(b));
-  }); // descending by time
+  const times = useMemo(
+    () =>
+      uniq(tableColumns.map(column => Object.keys(column.dataByTime)).flat()).sort((a, b) => {
+        return compareDesc(new Date(a), new Date(b));
+      }), // descending by time
+    [tableColumns],
+  );
 
-  // Compute an accumulated precipitation column if we have hourly precipitation data
-  const precip = tableColumns.find(column => column.field === 'precip_accum_one_hour');
-  if (precip) {
-    const precip_accum: Column = {
-      dataByTime: {},
-      field: 'precip_accum',
-      elevation: precip.elevation,
-    };
-    let accum = 0;
-    for (const time of [...times].reverse()) {
-      if (time in precip.dataByTime) {
-        accum += Number(precip.dataByTime[time]);
-        precip_accum.dataByTime[time] = accum.toFixed(2);
+  useEffect(() => {
+    // Compute an accumulated precipitation column if we have hourly precipitation data
+    const precip = tableColumns.find(column => column.field === 'precip_accum_one_hour');
+    if (precip) {
+      const precip_accum: Column = {
+        dataByTime: {},
+        field: 'precip_accum',
+        elevation: precip.elevation,
+      };
+      let accum = 0;
+      for (const time of [...times].reverse()) {
+        if (time in precip.dataByTime) {
+          accum += Number(precip.dataByTime[time]);
+          precip_accum.dataByTime[time] = accum.toFixed(2);
+        }
       }
+      tableColumns.push(precip_accum);
     }
-    tableColumns.push(precip_accum);
-  }
 
-  // With the columns we have, what should the preferred ordering be?
-  tableColumns.sort((a, b) => {
-    // Column sorting rules:
-    // 1. preferred column sort, after that
-    // 2. elevation descending within same column
-    // TODO: have to sort wind values together by name, *then* by elevation :eyeroll:
-    // or wait - do we only want wind values at the highest elevation
-    return preferredFieldOrder[a.field] - preferredFieldOrder[b.field] || (a.elevation && b.elevation ? b.elevation - a.elevation : -1);
-  });
+    // With the columns we have, what should the preferred ordering be?
+    tableColumns.sort((a, b) => {
+      // Column sorting rules:
+      // 1. preferred column sort, after that
+      // 2. elevation descending within same column
+      // TODO: have to sort wind values together by name, *then* by elevation :eyeroll:
+      // or wait - do we only want wind values at the highest elevation
+      return preferredFieldOrder[a.field] - preferredFieldOrder[b.field] || (a.elevation && b.elevation ? b.elevation - a.elevation : -1);
+    });
+  }, [tableColumns, times]);
 
   // DataGrid expects data in row-major order, so we need to transpose our data
-  const data: string[][] = [];
-  for (const time of times) {
-    data.push(tableColumns.map(column => String(time in column.dataByTime ? column.dataByTime[time] : '-')));
-  }
+  const data: string[][] = useMemo(() => {
+    const result = [];
+    for (const time of times) {
+      result.push(tableColumns.map(column => String(column.dataByTime[time] !== null ? column.dataByTime[time] : '-')));
+    }
+    return result;
+  }, [tableColumns, times]);
 
   const renderCell = useCallback(
     ({rowIndex, item}: {rowIndex: number; item: string}) => (
@@ -214,43 +228,46 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     [],
   );
 
-  return (
-    <DataGrid
-      data={data}
-      columnHeaderData={tableColumns.map(column => ({
-        name: shortFieldMap[column.field],
-        units: shortUnits(timeSeries.UNITS[column.field]),
-        elevation: column.elevation?.toString() || '',
-      }))}
-      rowHeaderData={times.map(time => formatDateTime(time))}
-      columnWidths={[75, ...tableColumns.map(() => 50)]}
-      rowHeights={[60, ...times.map(() => 30)]}
-      renderCell={renderCell}
-      renderRowHeader={renderRowHeader}
-      renderColumnHeader={renderColumnHeader}
-      renderCornerHeader={renderCornerHeader}
-    />
-  );
+  const useNewTable = !!useFeatureFlag(`new-weather-table`) || process.env.EXPO_PUBLIC_NEW_WEATHER_TABLE === 'true';
 
-  // return (
-  //   <ScrollView style={{width: '100%', height: '100%'}}>
-  //     <ScrollView horizontal style={{width: '100%', height: '100%'}}>
-  //       <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
-  //         <Column borderRightWidth={1} name={shortFieldMap['date_time']} units={'PST'} elevation={' '} data={times.map(time => formatDateTime(time))} />
-  //         {tableColumns.map(({field, elevation, dataByTime}, columnIndex) => (
-  //           <Column
-  //             key={columnIndex}
-  //             borderRightWidth={0}
-  //             name={shortFieldMap[field]}
-  //             units={shortUnits(timeSeries.UNITS[field])}
-  //             elevation={elevation ? elevation.toString() : ''}
-  //             data={times.map(time => (time in dataByTime ? (dataByTime[time] === null ? '-' : String(dataByTime[time])) : '-'))}}
-  //           />
-  //         ))}
-  //       </HStack>
-  //     </ScrollView>
-  //   </ScrollView>
-  // );
+  if (useNewTable) {
+    return (
+      <DataGrid
+        data={data}
+        columnHeaderData={tableColumns.map(column => ({
+          name: shortFieldMap[column.field],
+          units: shortUnits(timeSeries.UNITS[column.field]),
+          elevation: column.elevation?.toString() || '',
+        }))}
+        rowHeaderData={times.map(time => formatDateTime(time))}
+        columnWidths={[75, ...tableColumns.map(() => 50)]}
+        rowHeights={[60, ...times.map(() => 30)]}
+        renderCell={renderCell}
+        renderRowHeader={renderRowHeader}
+        renderColumnHeader={renderColumnHeader}
+        renderCornerHeader={renderCornerHeader}
+      />
+    );
+  }
+  return (
+    <ScrollView style={{width: '100%', height: '100%'}}>
+      <ScrollView horizontal style={{width: '100%', height: '100%'}}>
+        <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
+          <Column borderRightWidth={1} name={shortFieldMap['date_time']} units={'PST'} elevation={' '} data={times.map(time => formatDateTime(time))} />
+          {tableColumns.map(({field, elevation, dataByTime}, columnIndex) => (
+            <Column
+              key={columnIndex}
+              borderRightWidth={0}
+              name={shortFieldMap[field]}
+              units={shortUnits(timeSeries.UNITS[field])}
+              elevation={elevation ? elevation.toString() : ''}
+              data={times.map(time => (dataByTime[time] !== null ? String(dataByTime[time]) : '-'))}
+            />
+          ))}
+        </HStack>
+      </ScrollView>
+    </ScrollView>
+  );
 };
 
 const columnPadding = 3;
