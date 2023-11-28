@@ -2,7 +2,7 @@ import {merge} from 'lodash';
 import * as React from 'react';
 
 import {View, ViewProps} from 'components/core/View';
-import {View as RNView, ViewStyle} from 'react-native';
+import {Animated, View as RNView, ViewStyle} from 'react-native';
 
 const baseStyle: ViewStyle = {
   flexDirection: 'column',
@@ -26,3 +26,6 @@ export const VStack = React.forwardRef<RNView, VStackProps>(({children, style: o
   );
 });
 VStack.displayName = 'VStack';
+
+export const AnimatedVStack = Animated.createAnimatedComponent(VStack);
+AnimatedVStack.displayName = 'AnimatedVStack';

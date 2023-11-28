@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import {View as RNView, ViewProps as RNViewProps, ViewStyle as RNViewStyle} from 'react-native';
+import {Animated, View as RNView, ViewProps as RNViewProps, ViewStyle as RNViewStyle} from 'react-native';
 
 import {colorLookup} from 'theme';
 
@@ -181,4 +181,7 @@ export const View = React.forwardRef<RNView, ViewProps>(({children, style = {}, 
     </RNView>
   );
 });
-View.displayName = 'View';
+View.displayName = 'AvyViewWrapper';
+
+export const AnimatedView = Animated.createAnimatedComponent(View);
+AnimatedView.displayName = 'AnimatedAvyViewWrapper';

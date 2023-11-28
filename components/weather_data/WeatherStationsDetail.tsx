@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {ScrollView} from 'react-native';
+import React, {useRef, useState} from 'react';
+import {Animated} from 'react-native';
 
 import {uniq} from 'lodash';
 
@@ -15,6 +15,149 @@ import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, StationNote, WeatherStationSource, WeatherStationTimeseries} from 'types/nationalAvalancheCenter';
 import {parseRequestedTimeString, RequestedTimeString, utcDateToLocalDateString} from 'utils/date';
+
+interface DataGridProps {
+  data: string[][];
+  columnNames: string[];
+  columnWidths: number[];
+  rowHeights: number[];
+}
+
+function DataGrid({data: _data, columnNames: _columnNames, columnWidths, rowHeights}: DataGridProps) {
+  const width = columnWidths.reduce((a, b) => a + b, 0);
+  const height = rowHeights.reduce((a, b) => a + b, 0);
+  const columns = columnWidths.length - 1;
+  const rows = rowHeights.length - 1;
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const columnHeaderHeight = rowHeights[0]; // useRef(new Animated.Value(rowHeights[0])).current;
+  const rowHeaderWidth = columnWidths[0]; // useRef(new Animated.Value(columnWidths[0])).current;
+
+  return (
+    <Animated.ScrollView
+      horizontal
+      bounces={false}
+      style={{width: '100%', height: '100%'}}
+      // snapToOffsets={columnWidths.slice(1)}
+      onScroll={Animated.event(
+        [
+          {
+            nativeEvent: {
+              contentOffset: {
+                x: scrollX,
+              },
+            },
+          },
+        ],
+        {useNativeDriver: true},
+      )}
+      scrollEventThrottle={1}>
+      <Animated.ScrollView
+        bounces={false}
+        style={{width: '100%', height: '100%'}}
+        // snapToOffsets={rowHeights.slice(1)}
+        onScroll={Animated.event(
+          [
+            {
+              nativeEvent: {
+                contentOffset: {
+                  y: scrollY,
+                },
+              },
+            },
+          ],
+          {useNativeDriver: true},
+        )}
+        scrollEventThrottle={1}>
+        <View style={{width: width, height: height}}>
+          {new Array(rows).fill(0).map((_, rowIndex) =>
+            new Array(columns).fill(0).map((_, columnIndex) => (
+              <View
+                key={`${rowIndex}-${columnIndex}`}
+                style={{
+                  width: columnWidths[columnIndex + 1],
+                  height: rowHeights[rowIndex + 1],
+                  backgroundColor: colorLookup((rowIndex + columnIndex) % 2 ? 'light.100' : 'light.300'),
+                  position: 'absolute',
+                  top: rowHeights[0] + rowHeights.slice(1, rowIndex + 1).reduce((a, b) => a + b, 0),
+                  left: columnWidths[0] + columnWidths.slice(1, columnIndex + 1).reduce((a, b) => a + b, 0),
+                }}>
+                <BodyXSm>{`x: ${columnIndex}, y: ${rowIndex}`}</BodyXSm>
+              </View>
+            )),
+          )}
+          <Animated.View
+            style={{
+              width: width - columnWidths[0],
+              height: rowHeights[0],
+              position: 'absolute',
+              top: 0,
+              left: rowHeaderWidth, // Animated.add(scrollX, rowHeaderWidth),
+              flexDirection: 'row',
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+              transform: [{translateY: scrollY}],
+            }}>
+            {new Array(columns).fill(0).map((_, columnIndex) => (
+              <Center
+                key={columnIndex}
+                style={{
+                  width: columnWidths[columnIndex + 1],
+                  height: rowHeights[0],
+                  backgroundColor: colorLookup('light.300'),
+                  borderRightWidth: 1,
+                  borderBottomWidth: 1,
+                  borderColor: colorLookup('text.tertiary'),
+                }}>
+                <BodyXSm>{columnIndex}</BodyXSm>
+              </Center>
+            ))}
+          </Animated.View>
+          <Animated.View
+            style={{
+              width: columnWidths[0],
+              height: height - rowHeights[0],
+              position: 'absolute',
+              top: columnHeaderHeight, // Animated.add(scrollY, columnHeaderHeight),
+              left: 0,
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignItems: 'stretch',
+              transform: [{translateX: scrollX}],
+            }}>
+            {new Array(rows).fill(0).map((_, rowIndex) => (
+              <Center
+                key={rowIndex}
+                style={{
+                  width: columnWidths[0],
+                  height: rowHeights[rowIndex + 1],
+                  backgroundColor: colorLookup('light.300'),
+                  borderRightWidth: 1,
+                  borderBottomWidth: 1,
+                  borderColor: colorLookup('text.tertiary'),
+                }}>
+                <BodyXSm>{rowIndex}</BodyXSm>
+              </Center>
+            ))}
+          </Animated.View>
+          <Animated.View
+            style={{
+              width: rowHeaderWidth,
+              height: columnHeaderHeight,
+              borderRightWidth: 1,
+              borderBottomWidth: 1,
+              borderColor: colorLookup('text.tertiary'),
+              backgroundColor: colorLookup('light.300'),
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              transform: [{translateX: scrollX}, {translateY: scrollY}],
+            }}></Animated.View>
+        </View>
+      </Animated.ScrollView>
+    </Animated.ScrollView>
+  );
+}
 
 interface Props {
   center_id: AvalancheCenterID;
@@ -152,25 +295,27 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     return preferredFieldOrder[a.field] - preferredFieldOrder[b.field] || (a.elevation && b.elevation ? b.elevation - a.elevation : -1);
   });
 
-  return (
-    <ScrollView style={{width: '100%', height: '100%'}}>
-      <ScrollView horizontal style={{width: '100%', height: '100%'}}>
-        <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
-          <Column borderRightWidth={1} name={shortFieldMap['date_time']} units={'PST'} elevation={' '} data={times.map(time => formatDateTime(time))} />
-          {tableColumns.map(({field, elevation, dataByTime}, columnIndex) => (
-            <Column
-              key={columnIndex}
-              borderRightWidth={0}
-              name={shortFieldMap[field]}
-              units={shortUnits(timeSeries.UNITS[field])}
-              elevation={elevation ? elevation.toString() : ''}
-              data={times.map(time => (time in dataByTime ? (dataByTime[time] === null ? '-' : String(dataByTime[time])) : '-'))}
-            />
-          ))}
-        </HStack>
-      </ScrollView>
-    </ScrollView>
-  );
+  return <DataGrid data={[]} columnNames={[]} columnWidths={[100, ...tableColumns.map(() => 50)]} rowHeights={[100, ...times.map(() => 50)]} />;
+
+  // return (
+  //   <ScrollView style={{width: '100%', height: '100%'}}>
+  //     <ScrollView horizontal style={{width: '100%', height: '100%'}}>
+  //       <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
+  //         <Column borderRightWidth={1} name={shortFieldMap['date_time']} units={'PST'} elevation={' '} data={times.map(time => formatDateTime(time))} />
+  //         {tableColumns.map(({field, elevation, dataByTime}, columnIndex) => (
+  //           <Column
+  //             key={columnIndex}
+  //             borderRightWidth={0}
+  //             name={shortFieldMap[field]}
+  //             units={shortUnits(timeSeries.UNITS[field])}
+  //             elevation={elevation ? elevation.toString() : ''}
+  //             data={times.map(time => (time in dataByTime ? (dataByTime[time] === null ? '-' : String(dataByTime[time])) : '-'))}}
+  //           />
+  //         ))}
+  //       </HStack>
+  //     </ScrollView>
+  //   </ScrollView>
+  // );
 };
 
 const columnPadding = 3;
@@ -273,7 +418,7 @@ export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, station
         <TimeSeriesTable timeSeries={timeseries} />
         {/* TODO(skuznets): For some reason, the table is running off the bottom of the view, and I just don't have time to keep debugging this.
              Adding the placeholder here does the trick. :dizzy_face: */}
-        <View height={16} />
+        <View height={72} />
       </VStack>
     </VStack>
   );
