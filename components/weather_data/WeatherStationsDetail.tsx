@@ -1,10 +1,10 @@
-import React, {useRef, useState} from 'react';
-import {Animated} from 'react-native';
+import React, {useState} from 'react';
 
 import {uniq} from 'lodash';
 
 import {useNavigation} from '@react-navigation/native';
 import {ButtonBar} from 'components/content/ButtonBar';
+import {DataGrid} from 'components/content/DataGrid';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {Center, Divider, HStack, View, VStack} from 'components/core';
@@ -15,149 +15,6 @@ import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, StationNote, WeatherStationSource, WeatherStationTimeseries} from 'types/nationalAvalancheCenter';
 import {parseRequestedTimeString, RequestedTimeString, utcDateToLocalDateString} from 'utils/date';
-
-interface DataGridProps {
-  data: string[][];
-  columnNames: string[];
-  columnWidths: number[];
-  rowHeights: number[];
-}
-
-function DataGrid({data: _data, columnNames: _columnNames, columnWidths, rowHeights}: DataGridProps) {
-  const width = columnWidths.reduce((a, b) => a + b, 0);
-  const height = rowHeights.reduce((a, b) => a + b, 0);
-  const columns = columnWidths.length - 1;
-  const rows = rowHeights.length - 1;
-  const scrollX = useRef(new Animated.Value(0)).current;
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const columnHeaderHeight = rowHeights[0]; // useRef(new Animated.Value(rowHeights[0])).current;
-  const rowHeaderWidth = columnWidths[0]; // useRef(new Animated.Value(columnWidths[0])).current;
-
-  return (
-    <Animated.ScrollView
-      horizontal
-      bounces={false}
-      style={{width: '100%', height: '100%'}}
-      // snapToOffsets={columnWidths.slice(1)}
-      onScroll={Animated.event(
-        [
-          {
-            nativeEvent: {
-              contentOffset: {
-                x: scrollX,
-              },
-            },
-          },
-        ],
-        {useNativeDriver: true},
-      )}
-      scrollEventThrottle={1}>
-      <Animated.ScrollView
-        bounces={false}
-        style={{width: '100%', height: '100%'}}
-        // snapToOffsets={rowHeights.slice(1)}
-        onScroll={Animated.event(
-          [
-            {
-              nativeEvent: {
-                contentOffset: {
-                  y: scrollY,
-                },
-              },
-            },
-          ],
-          {useNativeDriver: true},
-        )}
-        scrollEventThrottle={1}>
-        <View style={{width: width, height: height}}>
-          {new Array(rows).fill(0).map((_, rowIndex) =>
-            new Array(columns).fill(0).map((_, columnIndex) => (
-              <View
-                key={`${rowIndex}-${columnIndex}`}
-                style={{
-                  width: columnWidths[columnIndex + 1],
-                  height: rowHeights[rowIndex + 1],
-                  backgroundColor: colorLookup((rowIndex + columnIndex) % 2 ? 'light.100' : 'light.300'),
-                  position: 'absolute',
-                  top: rowHeights[0] + rowHeights.slice(1, rowIndex + 1).reduce((a, b) => a + b, 0),
-                  left: columnWidths[0] + columnWidths.slice(1, columnIndex + 1).reduce((a, b) => a + b, 0),
-                }}>
-                <BodyXSm>{`x: ${columnIndex}, y: ${rowIndex}`}</BodyXSm>
-              </View>
-            )),
-          )}
-          <Animated.View
-            style={{
-              width: width - columnWidths[0],
-              height: rowHeights[0],
-              position: 'absolute',
-              top: 0,
-              left: rowHeaderWidth, // Animated.add(scrollX, rowHeaderWidth),
-              flexDirection: 'row',
-              justifyContent: 'flex-start',
-              alignItems: 'center',
-              transform: [{translateY: scrollY}],
-            }}>
-            {new Array(columns).fill(0).map((_, columnIndex) => (
-              <Center
-                key={columnIndex}
-                style={{
-                  width: columnWidths[columnIndex + 1],
-                  height: rowHeights[0],
-                  backgroundColor: colorLookup('light.300'),
-                  borderRightWidth: 1,
-                  borderBottomWidth: 1,
-                  borderColor: colorLookup('text.tertiary'),
-                }}>
-                <BodyXSm>{columnIndex}</BodyXSm>
-              </Center>
-            ))}
-          </Animated.View>
-          <Animated.View
-            style={{
-              width: columnWidths[0],
-              height: height - rowHeights[0],
-              position: 'absolute',
-              top: columnHeaderHeight, // Animated.add(scrollY, columnHeaderHeight),
-              left: 0,
-              flexDirection: 'column',
-              justifyContent: 'flex-start',
-              alignItems: 'stretch',
-              transform: [{translateX: scrollX}],
-            }}>
-            {new Array(rows).fill(0).map((_, rowIndex) => (
-              <Center
-                key={rowIndex}
-                style={{
-                  width: columnWidths[0],
-                  height: rowHeights[rowIndex + 1],
-                  backgroundColor: colorLookup('light.300'),
-                  borderRightWidth: 1,
-                  borderBottomWidth: 1,
-                  borderColor: colorLookup('text.tertiary'),
-                }}>
-                <BodyXSm>{rowIndex}</BodyXSm>
-              </Center>
-            ))}
-          </Animated.View>
-          <Animated.View
-            style={{
-              width: rowHeaderWidth,
-              height: columnHeaderHeight,
-              borderRightWidth: 1,
-              borderBottomWidth: 1,
-              borderColor: colorLookup('text.tertiary'),
-              backgroundColor: colorLookup('light.300'),
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              transform: [{translateX: scrollX}, {translateY: scrollY}],
-            }}></Animated.View>
-        </View>
-      </Animated.ScrollView>
-    </Animated.ScrollView>
-  );
-}
 
 interface Props {
   center_id: AvalancheCenterID;
@@ -295,7 +152,64 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     return preferredFieldOrder[a.field] - preferredFieldOrder[b.field] || (a.elevation && b.elevation ? b.elevation - a.elevation : -1);
   });
 
-  return <DataGrid data={[]} columnNames={[]} columnWidths={[100, ...tableColumns.map(() => 50)]} rowHeights={[100, ...times.map(() => 50)]} />;
+  // DataGrid expects data in row-major order, so we need to transpose our data
+  const data: string[][] = [];
+  for (const time of times) {
+    data.push(tableColumns.map(column => String(time in column.dataByTime ? column.dataByTime[time] : '-')));
+  }
+
+  return (
+    <DataGrid
+      data={data}
+      columnHeaderData={tableColumns.map(column => ({name: shortFieldMap[column.field], units: shortUnits(timeSeries.UNITS[column.field]), elevation: column.elevation}))}
+      rowHeaderData={times.map(time => formatDateTime(time))}
+      columnWidths={[75, ...tableColumns.map(() => 50)]}
+      rowHeights={[60, ...times.map(() => 30)]}
+      // eslint-disable-next-line react/jsx-no-bind
+      renderCell={({rowIndex, item}) => (
+        <Center flex={1} backgroundColor={colorLookup(rowIndex % 2 ? 'light.100' : 'light.300')}>
+          <BodyXSm>{item}</BodyXSm>
+        </Center>
+      )}
+      // eslint-disable-next-line react/jsx-no-bind
+      renderRowHeader={({item, rowIndex}) => (
+        <Center flex={1} backgroundColor={colorLookup(rowIndex % 2 ? 'light.100' : 'light.300')} borderRightWidth={1} borderColor={colorLookup('text.tertiary')}>
+          <BodyXSm>{item}</BodyXSm>
+        </Center>
+      )}
+      // eslint-disable-next-line react/jsx-no-bind
+      renderColumnHeader={({item: {name, units, elevation}}) => (
+        <VStack
+          flex={1}
+          alignItems="center"
+          justifyContent="flex-start"
+          py={rowPadding}
+          px={columnPadding}
+          bg="blue2"
+          borderBottomWidth={1}
+          borderColor={colorLookup('text.tertiary')}>
+          <BodyXSmBlack color="white">{name}</BodyXSmBlack>
+          <BodyXSmBlack color="white">{units}</BodyXSmBlack>
+          {elevation && <BodyXSmBlack color="white">{elevation}</BodyXSmBlack>}
+        </VStack>
+      )}
+      // eslint-disable-next-line react/jsx-no-bind
+      renderCornerHeader={() => (
+        <VStack
+          flex={1}
+          alignItems="center"
+          justifyContent="flex-start"
+          py={rowPadding}
+          px={columnPadding}
+          bg="blue2"
+          borderBottomWidth={1}
+          borderColor={colorLookup('text.tertiary')}>
+          <BodyXSmBlack color="white">Time</BodyXSmBlack>
+          <BodyXSmBlack color="white">PST</BodyXSmBlack>
+        </VStack>
+      )}
+    />
+  );
 
   // return (
   //   <ScrollView style={{width: '100%', height: '100%'}}>
