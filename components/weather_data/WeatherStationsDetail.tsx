@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 import {uniq} from 'lodash';
 
@@ -81,10 +81,6 @@ const shortUnitsMap: Record<string, string> = {
 const shortUnits = (units: string): string => shortUnitsMap[units] || units;
 
 const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({timeSeries}) => {
-  if (timeSeries.STATION.length === 0) {
-    return <Body>No data found.</Body>;
-  }
-
   type Column = {elevation: number | undefined | null; field: string; dataByTime: Record<string, number | string | null>};
   const tableColumns: Column[] = [];
   for (const station of timeSeries.STATION) {
@@ -145,10 +141,10 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
   // With the columns we have, what should the preferred ordering be?
   tableColumns.sort((a, b) => {
     // Column sorting rules:
-    // 1. preferred column sort after that
+    // 1. preferred column sort, after that
     // 2. elevation descending within same column
     // TODO: have to sort wind values together by name, *then* by elevation :eyeroll:
-    // or wait - do we onlt want wind values at the highest elevation
+    // or wait - do we only want wind values at the highest elevation
     return preferredFieldOrder[a.field] - preferredFieldOrder[b.field] || (a.elevation && b.elevation ? b.elevation - a.elevation : -1);
   });
 
@@ -158,56 +154,81 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     data.push(tableColumns.map(column => String(time in column.dataByTime ? column.dataByTime[time] : '-')));
   }
 
+  const renderCell = useCallback(
+    ({rowIndex, item}: {rowIndex: number; item: string}) => (
+      <Center flex={1} backgroundColor={colorLookup(rowIndex % 2 ? 'light.100' : 'light.300')}>
+        <BodyXSm>{item}</BodyXSm>
+      </Center>
+    ),
+    [],
+  );
+  const renderRowHeader = useCallback(
+    ({item, rowIndex}: {rowIndex: number; item: string}) => (
+      <Center flex={1} backgroundColor={colorLookup(rowIndex % 2 ? 'light.100' : 'light.300')} borderRightWidth={1} borderColor={colorLookup('text.tertiary')}>
+        <BodyXSm>{item}</BodyXSm>
+      </Center>
+    ),
+    [],
+  );
+  const renderColumnHeader = useCallback(
+    ({
+      item: {name, units, elevation},
+    }: {
+      item: {
+        name: string;
+        units: string;
+        elevation?: string;
+      };
+    }) => (
+      <VStack
+        flex={1}
+        alignItems="center"
+        justifyContent="flex-start"
+        py={rowPadding}
+        px={columnPadding}
+        bg="blue2"
+        borderBottomWidth={1}
+        borderColor={colorLookup('text.tertiary')}>
+        <BodyXSmBlack color="white">{name}</BodyXSmBlack>
+        <BodyXSmBlack color="white">{units}</BodyXSmBlack>
+        {elevation && <BodyXSmBlack color="white">{elevation}</BodyXSmBlack>}
+      </VStack>
+    ),
+    [],
+  );
+  const renderCornerHeader = useCallback(
+    () => (
+      <VStack
+        flex={1}
+        alignItems="center"
+        justifyContent="flex-start"
+        py={rowPadding}
+        px={columnPadding}
+        bg="blue2"
+        borderBottomWidth={1}
+        borderColor={colorLookup('text.tertiary')}>
+        <BodyXSmBlack color="white">Time</BodyXSmBlack>
+        <BodyXSmBlack color="white">PST</BodyXSmBlack>
+      </VStack>
+    ),
+    [],
+  );
+
   return (
     <DataGrid
       data={data}
-      columnHeaderData={tableColumns.map(column => ({name: shortFieldMap[column.field], units: shortUnits(timeSeries.UNITS[column.field]), elevation: column.elevation}))}
+      columnHeaderData={tableColumns.map(column => ({
+        name: shortFieldMap[column.field],
+        units: shortUnits(timeSeries.UNITS[column.field]),
+        elevation: column.elevation?.toString() || '',
+      }))}
       rowHeaderData={times.map(time => formatDateTime(time))}
       columnWidths={[75, ...tableColumns.map(() => 50)]}
       rowHeights={[60, ...times.map(() => 30)]}
-      // eslint-disable-next-line react/jsx-no-bind
-      renderCell={({rowIndex, item}) => (
-        <Center flex={1} backgroundColor={colorLookup(rowIndex % 2 ? 'light.100' : 'light.300')}>
-          <BodyXSm>{item}</BodyXSm>
-        </Center>
-      )}
-      // eslint-disable-next-line react/jsx-no-bind
-      renderRowHeader={({item, rowIndex}) => (
-        <Center flex={1} backgroundColor={colorLookup(rowIndex % 2 ? 'light.100' : 'light.300')} borderRightWidth={1} borderColor={colorLookup('text.tertiary')}>
-          <BodyXSm>{item}</BodyXSm>
-        </Center>
-      )}
-      // eslint-disable-next-line react/jsx-no-bind
-      renderColumnHeader={({item: {name, units, elevation}}) => (
-        <VStack
-          flex={1}
-          alignItems="center"
-          justifyContent="flex-start"
-          py={rowPadding}
-          px={columnPadding}
-          bg="blue2"
-          borderBottomWidth={1}
-          borderColor={colorLookup('text.tertiary')}>
-          <BodyXSmBlack color="white">{name}</BodyXSmBlack>
-          <BodyXSmBlack color="white">{units}</BodyXSmBlack>
-          {elevation && <BodyXSmBlack color="white">{elevation}</BodyXSmBlack>}
-        </VStack>
-      )}
-      // eslint-disable-next-line react/jsx-no-bind
-      renderCornerHeader={() => (
-        <VStack
-          flex={1}
-          alignItems="center"
-          justifyContent="flex-start"
-          py={rowPadding}
-          px={columnPadding}
-          bg="blue2"
-          borderBottomWidth={1}
-          borderColor={colorLookup('text.tertiary')}>
-          <BodyXSmBlack color="white">Time</BodyXSmBlack>
-          <BodyXSmBlack color="white">PST</BodyXSmBlack>
-        </VStack>
-      )}
+      renderCell={renderCell}
+      renderRowHeader={renderRowHeader}
+      renderColumnHeader={renderColumnHeader}
+      renderCornerHeader={renderCornerHeader}
     />
   );
 
@@ -329,7 +350,7 @@ export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, station
           size="small"
           paddingTop={6}
         />
-        <TimeSeriesTable timeSeries={timeseries} />
+        {timeseries.STATION.length === 0 ? <Body>No data found.</Body> : <TimeSeriesTable timeSeries={timeseries} />}
         {/* TODO(skuznets): For some reason, the table is running off the bottom of the view, and I just don't have time to keep debugging this.
              Adding the placeholder here does the trick. :dizzy_face: */}
         <View height={72} />

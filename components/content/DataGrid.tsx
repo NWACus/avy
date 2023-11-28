@@ -30,8 +30,6 @@ export function DataGrid<ItemT, RowT, ColT>({
 }: DataGridProps<ItemT, RowT, ColT>) {
   const width = columnWidths.reduce((a, b) => a + b, 0);
   const height = rowHeights.reduce((a, b) => a + b, 0);
-  const columns = columnWidths.length - 1;
-  const rows = rowHeights.length - 1;
   const scrollX = useRef(new Animated.Value(0)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
   const headerHeight = rowHeights[0];
@@ -40,9 +38,17 @@ export function DataGrid<ItemT, RowT, ColT>({
   return (
     <Animated.ScrollView
       horizontal
+      // Setting this to true causes the left side header to move into the content area when overscrolling,
+      // no idea why. Would feel better to allow overscroll but I haven't found the problem yet.
       bounces={false}
       style={{width: '100%', height: '100%'}}
-      // snapToOffsets={columnWidths.slice(1)}
+      snapToOffsets={columnWidths.slice(1).reduce(
+        (accum, width) => {
+          accum.push(accum[accum.length - 1] + width);
+          return accum;
+        },
+        [0],
+      )}
       onScroll={Animated.event(
         [
           {
@@ -57,9 +63,14 @@ export function DataGrid<ItemT, RowT, ColT>({
       )}
       scrollEventThrottle={1}>
       <Animated.ScrollView
-        bounces={false}
         style={{width: '100%', height: '100%'}}
-        // snapToOffsets={rowHeights.slice(1)}
+        snapToOffsets={rowHeights.slice(1).reduce(
+          (accum, height) => {
+            accum.push(accum[accum.length - 1] + height);
+            return accum;
+          },
+          [0],
+        )}
         onScroll={Animated.event(
           [
             {
@@ -74,8 +85,8 @@ export function DataGrid<ItemT, RowT, ColT>({
         )}
         scrollEventThrottle={1}>
         <View style={{width: width, height: height}}>
-          {new Array(rows).fill(0).map((_, rowIndex) =>
-            new Array(columns).fill(0).map((_, columnIndex) => (
+          {data.map((row, rowIndex) =>
+            row.map((item, columnIndex) => (
               <View
                 key={`${rowIndex}-${columnIndex}`}
                 style={{
@@ -85,7 +96,7 @@ export function DataGrid<ItemT, RowT, ColT>({
                   top: rowHeights[0] + rowHeights.slice(1, rowIndex + 1).reduce((a, b) => a + b, 0),
                   left: columnWidths[0] + columnWidths.slice(1, columnIndex + 1).reduce((a, b) => a + b, 0),
                 }}>
-                {renderCell({item: data[rowIndex][columnIndex], rowIndex, columnIndex})}
+                {renderCell({item, rowIndex, columnIndex})}
               </View>
             )),
           )}
@@ -95,7 +106,7 @@ export function DataGrid<ItemT, RowT, ColT>({
               height: rowHeights[0],
               position: 'absolute',
               top: 0,
-              left: headerWidth, // Animated.add(scrollX, rowHeaderWidth),
+              left: headerWidth,
               flexDirection: 'row',
               justifyContent: 'flex-start',
               alignItems: 'center',
@@ -117,7 +128,7 @@ export function DataGrid<ItemT, RowT, ColT>({
               width: columnWidths[0],
               height: height - rowHeights[0],
               position: 'absolute',
-              top: headerHeight, // Animated.add(scrollY, columnHeaderHeight),
+              top: headerHeight,
               left: 0,
               flexDirection: 'column',
               justifyContent: 'flex-start',
