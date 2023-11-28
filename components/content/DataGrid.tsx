@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import {Animated} from 'react-native';
+import {Animated, useWindowDimensions} from 'react-native';
 
 import {View} from 'components/core';
 
@@ -19,8 +19,8 @@ interface DataGridProps<ItemT, RowT, ColT> {
 
 export function DataGrid<ItemT, RowT, ColT>({
   data,
-  columnWidths,
-  rowHeights,
+  columnWidths: unscaledColumnWidths,
+  rowHeights: unscaledRowHeights,
   renderCell,
   rowHeaderData,
   renderRowHeader,
@@ -28,6 +28,10 @@ export function DataGrid<ItemT, RowT, ColT>({
   renderColumnHeader,
   renderCornerHeader,
 }: DataGridProps<ItemT, RowT, ColT>) {
+  const fontScale = useWindowDimensions().fontScale;
+  const columnWidths = unscaledColumnWidths.map(width => Math.round(width * fontScale));
+  const rowHeights = unscaledRowHeights.map(height => Math.round(height * fontScale));
+
   const width = columnWidths.reduce((a, b) => a + b, 0);
   const height = rowHeights.reduce((a, b) => a + b, 0);
   const scrollX = useRef(new Animated.Value(0)).current;

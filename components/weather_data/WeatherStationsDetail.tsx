@@ -247,7 +247,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
           elevation: column.elevation?.toString() || '',
         }))}
         rowHeaderData={times.map(time => formatDateTime(time))}
-        columnWidths={[75, ...tableColumns.map(() => 50)]}
+        columnWidths={[70, ...tableColumns.map(({field}) => (shortFieldMap[field].length > 4 ? 50 : 40))]}
         rowHeights={[60, ...times.map(() => 30)]}
         renderCell={renderCell}
         renderRowHeader={renderRowHeader}
