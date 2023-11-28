@@ -1,19 +1,19 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-
-import {uniq} from 'lodash';
+import React, {useCallback, useMemo, useState} from 'react';
+import {ScrollView} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
+import {compareDesc, format} from 'date-fns';
+import {uniq} from 'lodash';
+import {useFeatureFlag} from 'posthog-react-native';
+
 import {ButtonBar} from 'components/content/ButtonBar';
 import {DataGrid} from 'components/content/DataGrid';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {Center, Divider, HStack, View, VStack} from 'components/core';
 import {Body, BodyBlack, bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
-import {compareDesc, format} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
-import {useFeatureFlag} from 'posthog-react-native';
-import {ScrollView} from 'react-native';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, StationNote, WeatherStationSource, WeatherStationTimeseries} from 'types/nationalAvalancheCenter';
 import {parseRequestedTimeString, RequestedTimeString, utcDateToLocalDateString} from 'utils/date';
@@ -129,7 +129,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     [tableColumns],
   );
 
-  useEffect(() => {
+  useMemo(() => {
     // Compute an accumulated precipitation column if we have hourly precipitation data
     const precip = tableColumns.find(column => column.field === 'precip_accum_one_hour');
     if (precip) {
