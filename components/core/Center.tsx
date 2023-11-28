@@ -2,7 +2,7 @@ import {merge} from 'lodash';
 import * as React from 'react';
 
 import {View, ViewProps} from 'components/core/View';
-import {Animated, ViewStyle} from 'react-native';
+import {ViewStyle} from 'react-native';
 
 const baseStyle: ViewStyle = {
   display: 'flex',
@@ -20,6 +20,3 @@ export const Center: React.FC<ViewProps> = ({children, style: originalStyle = {}
   );
 };
 Center.displayName = 'Center';
-
-export const AnimatedCenter = Animated.createAnimatedComponent(Center);
-AnimatedCenter.displayName = 'AnimatedCenter';

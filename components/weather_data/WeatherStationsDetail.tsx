@@ -168,6 +168,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     return result;
   }, [tableColumns, times]);
 
+  // Passed to DataGrid to render an individual cell
   const renderCell = useCallback(
     ({rowIndex, item}: {rowIndex: number; item: string}) => (
       <Center flex={1} backgroundColor={colorLookup(rowIndex % 2 ? 'light.100' : 'light.300')}>
@@ -176,6 +177,8 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     ),
     [],
   );
+
+  // Passed to DataGrid to render an individual row header (in this case, the time)
   const renderRowHeader = useCallback(
     ({item, rowIndex}: {rowIndex: number; item: string}) => (
       <Center flex={1} backgroundColor={colorLookup(rowIndex % 2 ? 'light.100' : 'light.300')} borderRightWidth={1} borderColor={colorLookup('text.tertiary')}>
@@ -184,6 +187,8 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     ),
     [],
   );
+
+  // Passed to DataGrid to render an individual column header (in this case, the label, units and elevation)
   const renderColumnHeader = useCallback(
     ({
       item: {name, units, elevation},
@@ -210,6 +215,8 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     ),
     [],
   );
+
+  // Passed to DataGrid to render the top-left corner cell. Shows the "Time" label and "PST" units
   const renderCornerHeader = useCallback(
     () => (
       <VStack
@@ -370,7 +377,7 @@ export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, station
         {timeseries.STATION.length === 0 ? <Body>No data found.</Body> : <TimeSeriesTable timeSeries={timeseries} />}
         {/* TODO(skuznets): For some reason, the table is running off the bottom of the view, and I just don't have time to keep debugging this.
              Adding the placeholder here does the trick. :dizzy_face: */}
-        <View height={72} />
+        <View height={16} />
       </VStack>
     </VStack>
   );

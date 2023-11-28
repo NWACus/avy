@@ -2,7 +2,7 @@ import {merge} from 'lodash';
 import * as React from 'react';
 
 import {View, ViewProps} from 'components/core/View';
-import {Animated, ViewStyle} from 'react-native';
+import {ViewStyle} from 'react-native';
 
 const baseStyle: ViewStyle = {
   flexDirection: 'row',
@@ -26,6 +26,3 @@ export const HStack: React.FC<HStackProps> = ({children, style: originalStyle = 
   );
 };
 HStack.displayName = 'HStack';
-
-export const AnimatedHStack = Animated.createAnimatedComponent(HStack);
-AnimatedHStack.displayName = 'AnimatedHStack';
