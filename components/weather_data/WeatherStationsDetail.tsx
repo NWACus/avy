@@ -161,7 +161,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
               name={shortFieldMap[field]}
               units={shortUnits(timeSeries.UNITS[field])}
               elevation={elevation ? elevation.toString() : ''}
-              data={times.map(time => (time in dataByTime ? (dataByTime[time] ? String(dataByTime[time]) : '-') : '-'))}
+              data={times.map(time => (time in dataByTime ? (dataByTime[time] === null ? '-' : String(dataByTime[time])) : '-'))}
             />
           ))}
         </HStack>
