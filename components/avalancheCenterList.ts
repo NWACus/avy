@@ -27,6 +27,11 @@ export const filterToKnownCenters = (ids: string[]): AvalancheCenterID[] => {
   return knownCenters;
 };
 
+export const filterToSupportedCenters = (ids: AvalancheCenterID[]): AvalancheCenterID[] => {
+  const supportedCenters: AvalancheCenterID[] = supportedAvalancheCenters.map(c => c.center);
+  return ids.filter(id => supportedCenters.includes(id));
+};
+
 export const avalancheCenterList = (centers: AvalancheCenters, metadata: AvalancheCenter[]): AvalancheCenterListData[] => {
   let whichCenters: AvalancheCenter[] = [];
   if (centers === AvalancheCenters.SupportedCenters) {
