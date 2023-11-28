@@ -215,15 +215,15 @@ export const ObservationCard: React.FunctionComponent<{
               <View bg="white" py={8} px={16}>
                 <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
                   <VStack space={8} style={{flex: 1}}>
-                    <AllCapsSmBlack>Submitted</AllCapsSmBlack>
-                    <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                      {utcDateToLocalShortDateString(observation.created_at)}
-                    </AllCapsSm>
-                  </VStack>
-                  <VStack space={8} style={{flex: 1}}>
                     <AllCapsSmBlack>Observed</AllCapsSmBlack>
                     <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
                       {pacificDateToLocalShortDateString(observation.start_date)}
+                    </AllCapsSm>
+                  </VStack>
+                  <VStack space={8} style={{flex: 1}}>
+                    <AllCapsSmBlack>Submitted</AllCapsSmBlack>
+                    <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                      {utcDateToLocalShortDateString(observation.created_at)}
                     </AllCapsSm>
                   </VStack>
                   <VStack space={8} style={{flex: 1}}>
