@@ -25,3 +25,4 @@ export const HStack: React.FC<HStackProps> = ({children, style: originalStyle = 
     </View>
   );
 };
+HStack.displayName = 'HStack';

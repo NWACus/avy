@@ -19,3 +19,4 @@ export const Center: React.FC<ViewProps> = ({children, style: originalStyle = {}
     </View>
   );
 };
+Center.displayName = 'Center';

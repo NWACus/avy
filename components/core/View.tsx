@@ -181,4 +181,4 @@ export const View = React.forwardRef<RNView, ViewProps>(({children, style = {}, 
     </RNView>
   );
 });
-View.displayName = 'View';
+View.displayName = 'AvyViewWrapper';
