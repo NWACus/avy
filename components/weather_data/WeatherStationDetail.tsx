@@ -1,18 +1,21 @@
-import React, {useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {ScrollView} from 'react-native';
 
 import * as Sentry from 'sentry-expo';
 
 import {ButtonBar} from 'components/content/ButtonBar';
+import {DataGrid} from 'components/content/DataGrid';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
-import {Divider, HStack, View, VStack} from 'components/core';
-import {BodyBlack, bodySize} from 'components/text';
+import {Center, Divider, HStack, View, VStack} from 'components/core';
+import {BodyBlack, bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
 import {Column, formatDateTime} from 'components/weather_data/WeatherStationsDetail';
 import {compareDesc} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
-import {AvalancheCenterID, StationNote, Variable, WeatherStationSource} from 'types/nationalAvalancheCenter';
+import {useFeatureFlag} from 'posthog-react-native';
+import {colorLookup} from 'theme';
+import {AvalancheCenterID, StationNote, Variable, WeatherStationSource, WeatherStationTimeseries} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {formatInTimeZone, parseRequestedTimeString, RequestedTimeString, utcDateToLocalDateString} from 'utils/date';
 
@@ -28,6 +31,7 @@ interface columnData {
   data: (number | string | null)[];
 }
 export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, source, requestedTime}) => {
+  const useNewTable = !!useFeatureFlag(`new-weather-table`) || process.env.EXPO_PUBLIC_NEW_WEATHER_TABLE === 'true';
   const [days, setDays] = useState(1);
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = avalancheCenterMetadataResult.data;
@@ -112,21 +116,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
           size="small"
           paddingTop={6}
         />
-        <ScrollView style={{width: '100%', height: '100%'}}>
-          <ScrollView horizontal style={{width: '100%', height: '100%'}}>
-            <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
-              {columns.map(({variable, data}, columnIndex) => (
-                <Column
-                  key={columnIndex}
-                  borderRightWidth={columnIndex == 0 ? 1 : 0}
-                  name={formatVariable(variable)}
-                  units={formatUnits(variable, timeseries.UNITS)}
-                  data={formatData(variable, data)}
-                />
-              ))}
-            </HStack>
-          </ScrollView>
-        </ScrollView>
+        {useNewTable ? <NewWeatherDataTable columns={columns} timeseries={timeseries} /> : <WeatherDataTable columns={columns} timeseries={timeseries} />}
         {/* TODO(skuznets): For some reason, the table is running off the bottom of the view, and I just don't have time to keep debugging this.
              Adding the placeholder here does the trick. :dizzy_face: */}
         <View height={16} />
@@ -196,7 +186,7 @@ const unitShortNames: Record<string, string> = {
   fahrenheit: 'F',
   degrees: 'deg',
   millibar: 'mbar',
-  'W/m**2': 'W/m2',
+  'W/m**2': 'W/m²',
   celsius: 'C',
   millimeters: 'mm',
 } as const;
@@ -269,6 +259,126 @@ export const orderStationVariables = (stationVariables: Variable[], timezone: st
   }
   return out;
 };
+
+const columnPadding = 3;
+const rowPadding = 2;
+
+function NewWeatherDataTable({columns: columnsWithTime, timeseries}: {columns: columnData[]; timeseries: WeatherStationTimeseries}) {
+  // DataGrid expects data in row-major order, so we need to transpose our data
+  const [times, ...columns] = columnsWithTime;
+  const data: string[][] = useMemo(() => {
+    const columnMajorArray = [...columns.map(column => formatData(column.variable, column.data))];
+    return columnMajorArray[0].map((_, rowIndex) => columnMajorArray.map(column => String(column[rowIndex])));
+  }, [columns]);
+
+  // Passed to DataGrid to render an individual cell
+  const renderCell = useCallback(
+    ({rowIndex, item}: {rowIndex: number; item: string}) => (
+      <Center flex={1} backgroundColor={colorLookup(rowIndex % 2 ? 'light.100' : 'light.300')}>
+        <BodyXSm>{item}</BodyXSm>
+      </Center>
+    ),
+    [],
+  );
+
+  // Passed to DataGrid to render an individual row header (in this case, the time)
+  const renderRowHeader = useCallback(
+    ({item, rowIndex}: {rowIndex: number; item: string}) => (
+      <Center flex={1} backgroundColor={colorLookup(rowIndex % 2 ? 'light.100' : 'light.300')} borderRightWidth={1} borderColor={colorLookup('text.tertiary')}>
+        <BodyXSm>{item}</BodyXSm>
+      </Center>
+    ),
+    [],
+  );
+
+  // Passed to DataGrid to render an individual column header (in this case, the label, units and elevation)
+  const renderColumnHeader = useCallback(
+    ({
+      item: {name, units},
+    }: {
+      item: {
+        name: string;
+        units: string;
+      };
+    }) => (
+      <VStack
+        flex={1}
+        alignItems="center"
+        justifyContent="flex-start"
+        py={rowPadding}
+        px={columnPadding}
+        bg="blue2"
+        borderBottomWidth={1}
+        borderColor={colorLookup('text.tertiary')}>
+        <BodyXSmBlack color="white">{name}</BodyXSmBlack>
+        <BodyXSmBlack color="white">{units}</BodyXSmBlack>
+      </VStack>
+    ),
+    [],
+  );
+
+  // Passed to DataGrid to render the top-left corner cell. Shows the "Time" label and "PST" units
+  const renderCornerHeader = useCallback(
+    () => (
+      <VStack
+        flex={1}
+        alignItems="center"
+        justifyContent="flex-start"
+        py={rowPadding}
+        px={columnPadding}
+        bg="blue2"
+        borderBottomWidth={1}
+        borderColor={colorLookup('text.tertiary')}>
+        <BodyXSmBlack color="white">Time</BodyXSmBlack>
+        <BodyXSmBlack color="white">PST</BodyXSmBlack>
+      </VStack>
+    ),
+    [],
+  );
+
+  const columnHeaderData = useMemo(
+    () =>
+      columns.map(({variable}) => ({
+        name: formatVariable(variable),
+        units: formatUnits(variable, timeseries.UNITS),
+      })),
+    [columns, timeseries.UNITS],
+  );
+
+  return (
+    <DataGrid
+      data={data}
+      columnHeaderData={columnHeaderData}
+      rowHeaderData={formatData(times.variable, times.data)}
+      columnWidths={[70, ...columnHeaderData.map(({name, units}) => (Math.max(name.length, units.length) > 4 ? 50 : 40))]}
+      rowHeights={[40, ...times.data.map(() => 30)]}
+      renderCell={renderCell}
+      renderRowHeader={renderRowHeader}
+      renderColumnHeader={renderColumnHeader}
+      renderCornerHeader={renderCornerHeader}
+    />
+  );
+}
+
+function WeatherDataTable({columns, timeseries}: {columns: columnData[]; timeseries: WeatherStationTimeseries}) {
+  return (
+    <ScrollView style={{width: '100%', height: '100%'}}>
+      <ScrollView horizontal style={{width: '100%', height: '100%'}}>
+        <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
+          {columns.map(({variable, data}, columnIndex) => (
+            <Column
+              key={columnIndex}
+              borderRightWidth={columnIndex == 0 ? 1 : 0}
+              name={formatVariable(variable)}
+              units={formatUnits(variable, timeseries.UNITS)}
+              data={formatData(variable, data)}
+            />
+          ))}
+        </HStack>
+      </ScrollView>
+    </ScrollView>
+  );
+}
 
 export function windDirection(deg: number | null): string | null {
   if (deg == null) {
