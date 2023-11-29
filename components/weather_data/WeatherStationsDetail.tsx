@@ -78,6 +78,7 @@ const shortUnitsMap: Record<string, string> = {
   inches: 'in',
   degrees: 'deg',
   millibar: 'mbar',
+  'MJ/m**2': 'MJ/m²',
 };
 
 const shortUnits = (units: string): string => shortUnitsMap[units] || units;
@@ -247,7 +248,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
           elevation: column.elevation?.toString() || '',
         }))}
         rowHeaderData={times.map(time => formatDateTime(time))}
-        columnWidths={[70, ...tableColumns.map(({field}) => (shortFieldMap[field].length > 4 ? 50 : 40))]}
+        columnWidths={[70, ...tableColumns.map(({field}) => (Math.max(shortFieldMap[field].length, shortUnits(timeSeries.UNITS[field]).length) > 4 ? 50 : 40))]}
         rowHeights={[60, ...times.map(() => 30)]}
         renderCell={renderCell}
         renderRowHeader={renderRowHeader}
