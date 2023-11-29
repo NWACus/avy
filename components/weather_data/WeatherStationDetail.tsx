@@ -329,11 +329,11 @@ function NewWeatherDataTable({columns: columnsWithTime, timeseries}: {columns: c
         bg="blue2"
         borderBottomWidth={1}
         borderColor={colorLookup('text.tertiary')}>
-        <BodyXSmBlack color="white">Time</BodyXSmBlack>
-        <BodyXSmBlack color="white">PST</BodyXSmBlack>
+        <BodyXSmBlack color="white">{formatVariable(times.variable)}</BodyXSmBlack>
+        <BodyXSmBlack color="white">{formatUnits(times.variable, timeseries.UNITS)}</BodyXSmBlack>
       </VStack>
     ),
-    [],
+    [times.variable, timeseries.UNITS],
   );
 
   const columnHeaderData = useMemo(
