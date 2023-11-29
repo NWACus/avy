@@ -109,7 +109,7 @@ export const fetchWeatherStationTimeseries = async (
     endDate: toSnowboundStringUTC(endDate),
     output: 'records',
     token: token,
-    calcDiff: true,
+    calcDiff: !Object.values(stations).includes(WeatherStationSource.NWAC), // TODO: the old-school NWAC "NOW" views don't want calculated diffs, but if we ever move them to normal tables, we will
   });
 
   const parseResult = weatherStationTimeseriesSchema.safeParse(data);
