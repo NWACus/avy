@@ -32,15 +32,8 @@ export const filterToSupportedCenters = (ids: AvalancheCenterID[]): AvalancheCen
   return ids.filter(id => supportedCenters.includes(id));
 };
 
-export const avalancheCenterList = (centers: AvalancheCenters, metadata: AvalancheCenter[]): AvalancheCenterListData[] => {
-  let whichCenters: AvalancheCenter[] = [];
-  if (centers === AvalancheCenters.SupportedCenters) {
-    whichCenters = metadata.filter(center => supportedAvalancheCenters.some(supported => supported.center === center.id));
-  } else {
-    whichCenters = metadata;
-  }
-
-  return whichCenters
+export const avalancheCenterList = (metadata: AvalancheCenter[]): AvalancheCenterListData[] => {
+  return metadata
     .map(center => ({
       center: center,
       description: supportedAvalancheCenters.find(supported => supported.center === center.id)?.description,

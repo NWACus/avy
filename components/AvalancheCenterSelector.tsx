@@ -20,8 +20,8 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
   const route = useRoute<NativeStackScreenProps<MenuStackParamList, 'avalancheCenterSelector'>['route']>();
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
-  const metadataResults = useAllAvalancheCenterMetadata(capabilities);
-  const availableCenters = route.params.debugMode ? AvalancheCenters.AllCenters : AvalancheCenters.SupportedCenters;
+  const whichCenters = route.params.debugMode ? AvalancheCenters.AllCenters : AvalancheCenters.SupportedCenters;
+  const metadataResults = useAllAvalancheCenterMetadata(capabilities, whichCenters);
   const setAvalancheCenterWrapper = React.useCallback(
     (center: AvalancheCenterID) => {
       setAvalancheCenter(center);
@@ -51,7 +51,7 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
       <AvalancheCenterList
         selectedCenter={currentCenterId}
         setSelectedCenter={setAvalancheCenterWrapper}
-        data={avalancheCenterList(availableCenters, metadata)}
+        data={avalancheCenterList(metadata)}
         width="100%"
         height="100%"
         bg="white"

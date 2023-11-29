@@ -30,7 +30,7 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
   }, [onClose, selectedCenter]);
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
-  const metadataResults = useAllAvalancheCenterMetadata(capabilities);
+  const metadataResults = useAllAvalancheCenterMetadata(capabilities, AvalancheCenters.SupportedCenters);
   const loading = incompleteQueryState(capabilitiesResult, ...metadataResults) || !capabilities;
   const metadata: AvalancheCenter[] = [];
   for (const result of metadataResults) {
@@ -61,11 +61,7 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
                   <Body textAlign="center">You can change this anytime in settings.</Body>
                 </Center>
                 <ScrollView>
-                  <AvalancheCenterList
-                    selectedCenter={selectedCenter}
-                    setSelectedCenter={setSelectedCenter}
-                    data={avalancheCenterList(AvalancheCenters.SupportedCenters, metadata)}
-                  />
+                  <AvalancheCenterList selectedCenter={selectedCenter} setSelectedCenter={setSelectedCenter} data={avalancheCenterList(metadata)} />
                 </ScrollView>
               </VStack>
               <Divider />
