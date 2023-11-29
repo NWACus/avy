@@ -70,9 +70,9 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
   });
 
   const variables = orderStationVariables(timeseries.VARIABLES, timeseries.STATION[0].timezone);
-  const columns: columnData[] = variables.map(v => ({variable: v, data: []}));
+  const allColumns: columnData[] = variables.map(v => ({variable: v, data: []}));
   for (const observation of observations) {
-    for (const column of columns) {
+    for (const column of allColumns) {
       if (column.variable.variable in observation) {
         column.data.push(observation[column.variable.variable]);
       } else {
@@ -81,6 +81,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
     }
   }
 
+  const columns = allColumns.filter(column => column.data.filter(i => !!i).length !== 0);
   return (
     <VStack width="100%" height="100%" alignItems="stretch">
       <VStack width="100%" height="100%" p={16} space={8}>
@@ -233,11 +234,11 @@ export const formatData = (variable: Variable, data: (number | string | null)[])
       formatter = (i: string | number | null) => windDirection(Number(i));
       break;
     default:
-      formatter = (i: string | number | null) => (i ? i.toString() : null);
+      formatter = (i: string | number | null) => (typeof i === 'number' ? i.toString() : i);
       break;
   }
 
-  return data.map(i => formatter(i) || '-');
+  return data.map(i => formatter(i)).map(i => (i === null ? '-' : i));
 };
 
 // orderStationVariables takes a list of variables exposed by a station and re-orders them, first listing

@@ -109,6 +109,7 @@ export const fetchWeatherStationTimeseries = async (
     endDate: toSnowboundStringUTC(endDate),
     output: 'records',
     token: token,
+    calcDiff: true,
   });
 
   const parseResult = weatherStationTimeseriesSchema.safeParse(data);

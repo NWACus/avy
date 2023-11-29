@@ -39,6 +39,7 @@ const preferredFieldOrder: Record<string, number> = {
   precip_accum: 12,
   snow_depth_24h: 15,
   snow_depth: 16,
+  snow_depth_24hr: 17,
 
   snow_water_equiv: 99,
   pressure: 99,
@@ -59,10 +60,12 @@ const shortFieldMap: Record<string, string> = {
   precip_accum: 'PcpSum',
   snow_depth: 'SnoHt',
   snow_water_equiv: 'snow_water_equiv',
+  snow_water_equiv_24hr: '\u2206SWE',
   pressure: 'Pres',
   precip_accum_one_hour: 'Pcp1',
   equip_temperature: 'EqTemp',
   snow_depth_24h: '24Sno',
+  snow_depth_24hr: '\u2206SnoHt',
   intermittent_snow: 'I/S_Sno',
   net_solar: 'SR',
   solar_radiation: 'SR',
@@ -161,7 +164,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
               name={shortFieldMap[field]}
               units={shortUnits(timeSeries.UNITS[field])}
               elevation={elevation ? elevation.toString() : ''}
-              data={times.map(time => (time in dataByTime ? (dataByTime[time] ? String(dataByTime[time]) : '-') : '-'))}
+              data={times.map(time => (time in dataByTime ? (dataByTime[time] === null ? '-' : String(dataByTime[time])) : '-'))}
             />
           ))}
         </HStack>
