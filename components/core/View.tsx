@@ -87,83 +87,83 @@ interface ViewAliasProps {
 type ViewAliasProp = keyof ViewAliasProps;
 type ViewStyleProp = keyof ViewStyleProps;
 
-const viewStylePropKeyset: Record<ViewStyleProp | ViewAliasProp, boolean> = {
-  backgroundColor: true,
+const viewStyleProps: Record<ViewStyleProp | ViewAliasProp, ViewStyleProp | ViewAliasProp> = {
+  backgroundColor: 'backgroundColor',
 
-  position: true,
-  top: true,
-  left: true,
-  right: true,
-  bottom: true,
-  zIndex: true,
+  position: 'position',
+  top: 'top',
+  left: 'left',
+  right: 'right',
+  bottom: 'bottom',
+  zIndex: 'zIndex',
 
-  padding: true,
-  paddingHorizontal: true,
-  paddingVertical: true,
-  paddingTop: true,
-  paddingLeft: true,
-  paddingRight: true,
-  paddingBottom: true,
+  padding: 'padding',
+  paddingHorizontal: 'paddingHorizontal',
+  paddingVertical: 'paddingVertical',
+  paddingTop: 'paddingTop',
+  paddingLeft: 'paddingLeft',
+  paddingRight: 'paddingRight',
+  paddingBottom: 'paddingBottom',
 
-  margin: true,
-  marginHorizontal: true,
-  marginVertical: true,
-  marginTop: true,
-  marginLeft: true,
-  marginRight: true,
-  marginBottom: true,
+  margin: 'margin',
+  marginHorizontal: 'marginHorizontal',
+  marginVertical: 'marginVertical',
+  marginTop: 'marginTop',
+  marginLeft: 'marginLeft',
+  marginRight: 'marginRight',
+  marginBottom: 'marginBottom',
 
-  alignContent: true,
-  alignItems: true,
-  alignSelf: true,
-  flex: true,
-  flexBasis: true,
-  flexDirection: true,
-  flexGrow: true,
-  flexShrink: true,
-  flexWrap: true,
-  justifyContent: true,
+  alignContent: 'alignContent',
+  alignItems: 'alignItems',
+  alignSelf: 'alignSelf',
+  flex: 'flex',
+  flexBasis: 'flexBasis',
+  flexDirection: 'flexDirection',
+  flexGrow: 'flexGrow',
+  flexShrink: 'flexShrink',
+  flexWrap: 'flexWrap',
+  justifyContent: 'justifyContent',
 
-  aspectRatio: true,
-  width: true,
-  height: true,
-  maxHeight: true,
-  maxWidth: true,
-  minHeight: true,
-  minWidth: true,
+  aspectRatio: 'aspectRatio',
+  width: 'width',
+  height: 'height',
+  maxHeight: 'maxHeight',
+  maxWidth: 'maxWidth',
+  minHeight: 'minHeight',
+  minWidth: 'minWidth',
 
-  borderBottomLeftRadius: true,
-  borderBottomRightRadius: true,
-  borderTopLeftRadius: true,
-  borderTopRightRadius: true,
-  borderRadius: true,
-  borderBottomWidth: true,
-  borderLeftWidth: true,
-  borderRightWidth: true,
-  borderTopWidth: true,
-  borderWidth: true,
-  borderColor: true,
+  borderBottomLeftRadius: 'borderBottomLeftRadius',
+  borderBottomRightRadius: 'borderBottomRightRadius',
+  borderTopLeftRadius: 'borderTopLeftRadius',
+  borderTopRightRadius: 'borderTopRightRadius',
+  borderRadius: 'borderRadius',
+  borderBottomWidth: 'borderBottomWidth',
+  borderLeftWidth: 'borderLeftWidth',
+  borderRightWidth: 'borderRightWidth',
+  borderTopWidth: 'borderTopWidth',
+  borderWidth: 'borderWidth',
+  borderColor: 'borderColor',
 
-  display: true,
-  overflow: true,
+  display: 'display',
+  overflow: 'overflow',
 
-  bg: true,
+  bg: 'bg',
 
-  p: true,
-  px: true,
-  py: true,
-  pt: true,
-  pl: true,
-  pr: true,
-  pb: true,
+  p: 'p',
+  px: 'px',
+  py: 'py',
+  pt: 'pt',
+  pl: 'pl',
+  pr: 'pr',
+  pb: 'pb',
 
-  m: true,
-  mx: true,
-  my: true,
-  mt: true,
-  ml: true,
-  mr: true,
-  mb: true,
+  m: 'm',
+  mx: 'mx',
+  my: 'my',
+  mt: 'mt',
+  ml: 'ml',
+  mr: 'mr',
+  mb: 'mb',
 } as const;
 
 const propAliasMapping: Record<keyof ViewAliasProps, keyof ViewStyleProps> = {
@@ -185,11 +185,6 @@ const propAliasMapping: Record<keyof ViewAliasProps, keyof ViewStyleProps> = {
   mr: 'marginRight',
   mb: 'marginBottom',
 } as const;
-
-const viewAliasPropKeyset = Object.keys(propAliasMapping).reduce((acc, aliasProp) => {
-  acc[aliasProp as ViewAliasProp] = true;
-  return acc;
-}, {} as Record<ViewAliasProp, boolean>);
 
 const unaliasAliasProps = (props: ViewAliasProps): ViewStyleProps => {
   const unaliasedProps: ViewStyleProps = {
@@ -253,7 +248,7 @@ const validateProp = (prop: ViewStyleProp, value: unknown): void => {
   }
 };
 
-function split<T extends object, K extends keyof T>(obj: T, keySet: Record<K, boolean>): [Pick<T, K>, Pick<T, Exclude<keyof T, K>>] {
+function split<T extends object, K extends keyof T>(obj: T, keySet: Record<K, string>): [Pick<T, K>, Pick<T, Exclude<keyof T, K>>] {
   const pick = {} as Pick<T, K>;
   const unpick = {} as Pick<T, Exclude<keyof T, K>>;
   (Object.keys(obj) as (keyof T)[]).forEach(k => {
@@ -270,8 +265,8 @@ function split<T extends object, K extends keyof T>(obj: T, keySet: Record<K, bo
 
 export interface ViewProps extends RNViewProps, ViewStyleProps, ViewAliasProps {}
 export const View = React.forwardRef<RNView, ViewProps>(({children, style, ...props}, ref) => {
-  const [allStyleProps, viewProps] = split(props, viewStylePropKeyset);
-  const [aliasedProps, unaliasedStyleProps] = split(allStyleProps, viewAliasPropKeyset);
+  const [allStyleProps, viewProps] = split(props, viewStyleProps);
+  const [aliasedProps, unaliasedStyleProps] = split(allStyleProps, propAliasMapping);
   const stylesFromProps = {
     ...unaliasedStyleProps,
     ...unaliasAliasProps(aliasedProps),
