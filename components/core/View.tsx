@@ -206,6 +206,7 @@ const unaliasAliasProps = (props: ViewAliasProps): ViewStyleProps => {
     marginRight: props.mr,
     marginBottom: props.mb,
   };
+  // Remove any undefined fields from unaliasedProps before returning it
   (Object.keys(unaliasedProps) as ViewStyleProp[]).forEach(key => unaliasedProps[key] === undefined && delete unaliasedProps[key]);
   return unaliasedProps;
 };
@@ -248,6 +249,9 @@ const validateProp = (prop: ViewStyleProp, value: unknown): void => {
   }
 };
 
+// Given an object and a set of keys, return an array of two objects:
+// 1. An object containing only the keys in the keySet
+// 2. An object containing only the keys not in the keySet
 function split<T extends object, K extends keyof T>(obj: T, keySet: Record<K, string>): [Pick<T, K>, Pick<T, Exclude<keyof T, K>>] {
   const pick = {} as Pick<T, K>;
   const unpick = {} as Pick<T, Exclude<keyof T, K>>;
