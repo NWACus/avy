@@ -328,15 +328,7 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
             </View>
           </Card>
         ))}
-        <VStack>
-          {actionListData.length > 0 ? (
-            <ActionList pl={16} backgroundColor="white" header={<Title3Black>Weather Data</Title3Black>} actions={actionListData} />
-          ) : (
-            <HStack py={6}>
-              <Body>No weather stations in this zone.</Body>
-            </HStack>
-          )}
-        </VStack>
+        {actionListData.length > 0 && <ActionList pl={16} backgroundColor="white" header={<Title3Black>Weather Data</Title3Black>} actions={actionListData} />}
         <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Synopsis</Title3Black>} startsCollapsed={true}>
           <HTML source={{html: nwacForecast.mountain_weather_forecast.synopsis_day1_day2}} />
         </CollapsibleCard>
