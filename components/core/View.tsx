@@ -249,12 +249,14 @@ const validateProp = (prop: ViewStyleProp, value: unknown): void => {
   }
 };
 
-// Given an object and a set of keys, return an array of two objects:
-// 1. An object containing only the keys in the keySet
-// 2. An object containing only the keys not in the keySet
-function split<T extends object, K extends keyof T>(obj: T, keySet: Record<K, string>): [Pick<T, K>, Pick<T, Exclude<keyof T, K>>] {
+/**
+ * Given an object and a set of keys, return an array of two objects:
+ * 1. An object containing only the keys in the keySet
+ * 2. An object containing only the keys not in the keySet
+ */
+function split<T extends object, K extends keyof T>(obj: T, keySet: Record<K, string>): [Pick<T, K>, Omit<T, K>] {
   const pick = {} as Pick<T, K>;
-  const unpick = {} as Pick<T, Exclude<keyof T, K>>;
+  const unpick = {} as Omit<T, K>;
   (Object.keys(obj) as (keyof T)[]).forEach(k => {
     if (k in keySet) {
       const kk = k as K;
