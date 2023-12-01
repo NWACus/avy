@@ -332,9 +332,11 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
         <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Synopsis</Title3Black>} startsCollapsed={true}>
           <HTML source={{html: nwacForecast.mountain_weather_forecast.synopsis_day1_day2}} />
         </CollapsibleCard>
-        <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Extended Synopsis</Title3Black>} startsCollapsed={true}>
-          <HTML source={{html: nwacForecast.mountain_weather_forecast.extended_synopsis}} />
-        </CollapsibleCard>
+        {nwacForecast.mountain_weather_forecast.extended_synopsis && (
+          <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Extended Synopsis</Title3Black>} startsCollapsed={true}>
+            <HTML source={{html: nwacForecast.mountain_weather_forecast.extended_synopsis}} />
+          </CollapsibleCard>
+        )}
         <Card
           marginTop={1}
           borderRadius={0}
