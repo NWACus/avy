@@ -713,7 +713,7 @@ export const mapLayerPropertiesSchema = z.object({
   start_date: z.string().nullable(),
   end_date: z.string().nullable(),
   warning: z.object({
-    product: warningResultSchema.nullable(),
+    product: z.string().nullable(),
   }),
   color: z.string(),
   stroke: z.string(),

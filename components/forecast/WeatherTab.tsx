@@ -20,6 +20,7 @@ import {isArray} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
+import * as Sentry from 'sentry-expo';
 import {colorLookup} from 'theme';
 import {
   AvalancheCenterID,
@@ -221,7 +222,39 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
 
   const author = `${nwacForecast.forecaster.first_name} ${nwacForecast.forecaster.last_name}`;
 
-  // we are guaranteed to get some multiple of 2 forecasts and twice that many periods
+  const num_periods = nwacForecast.periods.length;
+  const num_forecasts_match = nwacForecast.weather_forecasts.length !== num_periods;
+  const num_periods_even = num_periods % 2 !== 0;
+  const num_sub_periods_multiple = nwacForecast.sub_periods.length !== 2 * num_periods;
+  const num_5k_temps_match = nwacForecast.five_thousand_foot_temperatures.length !== num_periods;
+  if (num_periods_even || num_sub_periods_multiple || num_forecasts_match || num_5k_temps_match) {
+    Sentry.Native.captureException(
+      new Error(
+        `Assumptions not met on NWAC weather forecast for zone ${zone.id} at time ${requestedTime.toString()}: ${JSON.stringify({
+          num_periods_even,
+          num_sub_periods_multiple,
+          num_forecasts_match,
+          num_5k_temps_match,
+        })}`,
+      ),
+    );
+    return <InternalError />;
+  }
+  for (let i = 0; i < nwacForecast.precipitation_by_location.length; i++) {
+    const l = nwacForecast.precipitation_by_location[i];
+    if (l.precipitation.length !== num_periods) {
+      Sentry.Native.captureException(
+        new Error(
+          `Assumptions not met on NWAC weather forecast for zone ${
+            zone.id
+          } at time ${requestedTime.toString()}: forecast.precipitation_by_location[${i}].precipitation[] has length ${l.precipitation.length}, not ${num_periods}`,
+        ),
+      );
+      return <InternalError />;
+    }
+  }
+
+  // now we know we have some multiple of 2 forecasts and twice that many periods
   const nwacPeriodData = nwacForecast.sub_periods.map((period, index) => ({
     period: period.toLowerCase(),
     snow_level: nwacForecast.snow_levels[index].elevation,
