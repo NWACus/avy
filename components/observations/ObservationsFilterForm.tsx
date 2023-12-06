@@ -396,6 +396,8 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                       {value: PartnerType.Forecaster, label: 'Forecaster'},
                       {value: PartnerType.Intern, label: 'Intern'},
                       {value: PartnerType.Professional, label: 'Professional'},
+                      {value: PartnerType.Observer, label: 'Observer'},
+                      {value: PartnerType.Educator, label: 'Educator'},
                       {value: PartnerType.Volunteer, label: 'Volunteer'},
                       {value: PartnerType.Public, label: 'Public'},
                       {value: PartnerType.Other, label: 'Other'},
