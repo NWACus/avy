@@ -737,6 +737,7 @@ export const Activity = {
   'XC Skiing/Snowshoeing': 'xcskiing_snowshoeing',
   Climbing: 'climbing',
   'Walking/Hiking': 'walking',
+  'Flying/Heli': 'flying',
   Driving: 'driving',
   Other: 'other',
 } as const;
@@ -903,6 +904,16 @@ export type AvalancheCause = (typeof AvalancheCause)[keyof typeof AvalancheCause
 export const FormatAvalancheCause = (value: AvalancheCause): string => {
   return reverseLookup(AvalancheCause, value);
 };
+export const AvalancheTerminus = {
+  'TP - Top of Path': 'TP',
+  'MP - Middle of Path': 'MP',
+  'BP - Bottom of Path': 'BP',
+  'U - Unknown': 'U',
+} as const;
+export type AvalancheTerminus = (typeof AvalancheTerminus)[keyof typeof AvalancheTerminus];
+export const FormatAvalancheTerminus = (value: AvalancheTerminus): string => {
+  return reverseLookup(AvalancheTerminus, value);
+};
 export const AvalancheProblemDistribution = {
   Unknown: 'unknown',
   Isolated: 'isolated',
@@ -928,6 +939,8 @@ export const PartnerType = {
   Forecaster: 'forecaster',
   Intern: 'intern',
   Professional: 'professional',
+  Observer: 'observer',
+  Educator: 'educator',
   Volunteer: 'volunteer',
   Public: 'public',
   Other: 'other',
@@ -992,6 +1005,7 @@ export const observationSchema = z.object({
         number: z.number().nullable().optional(/* only because of NWAC */),
         avalancheType: z.nativeEnum(AvalancheType).or(z.string().length(0)).optional(),
         cause: z.nativeEnum(AvalancheCause).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
+        terminus: z.nativeEnum(AvalancheTerminus).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
         trigger: z.nativeEnum(AvalancheTrigger).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
         avgCrownDepth: z.number().optional(),
         dSize: z.string().optional().optional(/* only because of NWAC */),
