@@ -44,7 +44,7 @@ const loadImageData = async ({uri, width, height}: PickedImage): Promise<{imageD
   //
   // The solution is pretty simple: allow the expo image manipulation library to save a copy, which
   // writes the image with a "normal" orientation and applies any necessary transforms to make it look correct.
-  const result = await manipulateAsync(uri, manipulationActions, {format: SaveFormat.JPEG, base64: true});
+  const result = await manipulateAsync(uri, manipulationActions, {format: SaveFormat.JPEG, base64: true, compress: 0.9});
   return {imageDataBase64: result.base64 ?? '', filename, mimeType: 'image/jpeg'};
 };
 
