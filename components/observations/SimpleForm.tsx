@@ -116,7 +116,7 @@ export const SimpleForm: React.FC<{
           exif: true,
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
-          quality: 0.2,
+          quality: 0.9,
           selectionLimit: maxImageCount - images.length,
         });
 
