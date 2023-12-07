@@ -2,7 +2,7 @@ import React, {useCallback, useRef, useState} from 'react';
 
 import {useNavigation} from '@react-navigation/native';
 import {View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
-import AnimatedMapView, {Region} from 'react-native-maps';
+import AnimatedMapView, {PoiClickEvent, Region} from 'react-native-maps';
 
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
@@ -11,6 +11,7 @@ import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {defaultMapRegionForGeometries, MapViewZone, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
+import {pointInFeature} from 'components/helpers/geographicCoordinates';
 import {TravelAdvice} from 'components/helpers/travelAdvice';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
 import {AvalancheCenterSelectionModal} from 'components/modals/AvalancheCenterSelectionModal';
@@ -61,6 +62,29 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       }
     },
     [navigation, selectedZoneId, requestedTime],
+  );
+  // On the Android version of the Google Map layer, when a user taps on a map label (a place name, etc),
+  // we get a POI click event; we don't get to see the specific point that they tapped on, only the centroid
+  // of the POI itself. It doesn't look like we can turn off interactivity with POIs without hiding them entirely,
+  // so it seems like the best UX we can provide is to act as if the user tapped in the center of the POI itself
+  // and open the forecast zone for that point. When POI labels span multiple zones, that doesn't work perfectly.
+  const onPressPOI = useCallback(
+    (event: PoiClickEvent) => {
+      const matchingZones = mapLayer?.features.filter(feature => pointInFeature(event.nativeEvent.coordinate, feature));
+      if (matchingZones && matchingZones.length > 0) {
+        if (selectedZoneId === matchingZones[0].id) {
+          navigation.navigate('forecast', {
+            zoneName: matchingZones[0].properties.name,
+            center_id: center,
+            forecast_zone_id: matchingZones[0].id,
+            requestedTime: formatRequestedTime(requestedTime),
+          });
+        } else {
+          setSelectedZoneId(matchingZones[0].id);
+        }
+      }
+    },
+    [navigation, mapLayer, center, selectedZoneId, requestedTime],
   );
 
   const avalancheCenterMapRegion: Region = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
@@ -195,6 +219,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         zones={zones}
         selectedZoneId={selectedZoneId}
         onPressPolygon={onPressPolygon}
+        onPoiClick={onPressPOI}
       />
       <SafeAreaView>
         <View>

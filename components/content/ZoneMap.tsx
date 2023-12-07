@@ -1,6 +1,6 @@
 import React from 'react';
 
-import MapView, {MAP_TYPES, MapViewProps, Region} from 'react-native-maps';
+import MapView, {MAP_TYPES, MapViewProps, PoiClickEvent, Region} from 'react-native-maps';
 
 import {RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
 import {AvalancheForecastZonePolygon, toLatLngList} from 'components/map/AvalancheForecastZonePolygon';
@@ -30,6 +30,7 @@ interface ZoneMapProps extends MapViewProps {
   selectedZoneId?: number | null;
   renderFillColor?: boolean;
   onPressPolygon: (zone: MapViewZone) => void;
+  onPoiClick?: (event: PoiClickEvent) => void;
 }
 
 export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones, selectedZoneId, onPressPolygon, renderFillColor = true, children, ...props}, ref) => {
