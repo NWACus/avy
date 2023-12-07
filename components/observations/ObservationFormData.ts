@@ -33,7 +33,7 @@ export const defaultObservationFormData = (initialValues: Partial<ObservationFor
       photoUsage: MediaUsage.Credit,
       private: false,
       start_date: new Date(),
-      status: 'published',
+      status: 'draft',
       images: [],
       show_name: false,
     },
@@ -71,6 +71,7 @@ export const simpleObservationFormSchema = z
     location_name: z.string({required_error: required}).max(256, tooLong),
     location_point: locationPointSchema,
     name: z.string({required_error: required}).max(50, tooLong),
+    status: z.literal('draft').or(z.literal('published')),
     phone: z
       .string()
       .regex(/\(\d{3}\) \d{3} - \d{4}/, "That doesn't look like a phone number.")

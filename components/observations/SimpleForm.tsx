@@ -15,6 +15,7 @@ import * as Sentry from 'sentry-expo';
 import {ClientContext, ClientProps} from 'clientContext';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
+import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {ImageList} from 'components/content/carousel/ImageList';
 import {HStack, VStack, View} from 'components/core';
 import {Conditional} from 'components/form/Conditional';
@@ -27,6 +28,7 @@ import {ObservationFormData, defaultObservationFormData, simpleObservationFormSc
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskStatus} from 'components/observations/uploader/Task';
 import {Body, BodyBlack, BodySemibold, BodySm, Title3Semibold} from 'components/text';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
@@ -57,6 +59,8 @@ export const SimpleForm: React.FC<{
   center_id: AvalancheCenterID;
   onClose?: () => void;
 }> = ({center_id, onClose}) => {
+  const metadataResult = useAvalancheCenterMetadata(center_id);
+  const metadata = metadataResult.data;
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const formContext = useForm<ObservationFormData>({
@@ -66,6 +70,12 @@ export const SimpleForm: React.FC<{
     shouldFocusError: false,
     shouldUnregister: true,
   });
+
+  useEffect(() => {
+    if (formContext && !metadata?.widget_config.observation_viewer?.require_approval) {
+      formContext.setValue('status', 'published');
+    }
+  }, [formContext, metadata]);
 
   // When collapsing/cracking are toggled off, make sure the dependent fields are also cleared
   const collapsing = useWatch({control: formContext.control, name: 'instability.collapsing'});
@@ -298,6 +308,14 @@ export const SimpleForm: React.FC<{
       return '';
     }
   }, []);
+
+  if (incompleteQueryState(metadataResult) || !metadata) {
+    return (
+      <SafeAreaView edges={['top', 'left', 'right']}>
+        <QueryState results={[metadataResult]} />;
+      </SafeAreaView>
+    );
+  }
 
   return (
     <FormProvider {...formContext}>
