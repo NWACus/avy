@@ -110,6 +110,10 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
 
   const publishedTime = forecast.published_time ? toDate(forecast.published_time) : new Date();
 
+  // when a forecast center publishes in the morning, they want 'current' danger to mean today and 'tomorrow' to mean tomorrow
+  // however, when the publication is in the evening, 'current' means tomorrow and 'tomorrow' means two days from now
+  const forecastOffset = publishedTime.getHours() < 12 ? 0 : 1;
+
   let currentDanger: AvalancheDangerForecast | undefined = undefined;
   let outlookDanger: AvalancheDangerForecast | undefined = undefined;
   let highestDangerToday: DangerLevel = DangerLevel.None;
@@ -164,13 +168,13 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
           </Card>
         )}
         <Card borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Avalanche Danger" content={helpStrings.avalancheDanger} />}>
-          <AvalancheDangerTable date={addDays(publishedTime, 1)} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
+          <AvalancheDangerTable date={addDays(publishedTime, forecastOffset)} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
         </Card>
         <CollapsibleCard
           startsCollapsed
           borderRadius={0}
           borderColor="white"
-          header={<BodySmBlack>{utcDateToLocalDateString(addDays(publishedTime, 2))}</BodySmBlack>}
+          header={<BodySmBlack>{utcDateToLocalDateString(addDays(publishedTime, forecastOffset + 1))}</BodySmBlack>}
           noDivider={true}>
           <AvalancheDangerTable forecast={outlookDanger} size={'outlook'} />
         </CollapsibleCard>
