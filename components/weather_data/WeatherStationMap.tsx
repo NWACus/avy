@@ -412,7 +412,7 @@ export const WeatherStationCard: React.FunctionComponent<{
             </HStack>
             <HStack space={2}>
               <BodySmSemibold>
-                {station.properties.source.toUpperCase()} | {station.properties.elevation} ft
+                {formatSource(station.properties.source)} | {station.properties.elevation} ft
                 {latestObservationDateString && ' | '}
                 {latestObservationDateString}
               </BodySmSemibold>
@@ -446,6 +446,14 @@ export const WeatherStationCard: React.FunctionComponent<{
   },
 );
 WeatherStationCard.displayName = 'WeatherStationCard';
+
+const formatSource = (source: WeatherStationSource): string => {
+  if (source === WeatherStationSource.MESOWEST) {
+    return 'Synoptic Data';
+  } else {
+    return source.toUpperCase();
+  }
+};
 
 const iconSize = 24;
 const strokeWidth = 5;
