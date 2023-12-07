@@ -5,11 +5,25 @@ import MapView, {MAP_TYPES, MapViewProps, PoiClickEvent, Region} from 'react-nat
 import {RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
 import {AvalancheForecastZonePolygon, toLatLngList} from 'components/map/AvalancheForecastZonePolygon';
 import {useToggle} from 'hooks/useToggle';
-import {AvalancheCenterID, DangerLevel, Geometry} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, DangerLevel, Geometry, MapLayerFeature} from 'types/nationalAvalancheCenter';
 
 const defaultAvalancheCenterMapRegionBounds: RegionBounds = {
   topLeft: {latitude: 0, longitude: 0},
   bottomRight: {latitude: 0, longitude: 0},
+};
+
+export const mapViewZoneFor = (center: AvalancheCenterID, feature: MapLayerFeature): MapViewZone => {
+  return {
+    zone_id: feature.id,
+    geometry: feature.geometry,
+    hasWarning: feature.properties.warning.product !== null,
+    center_id: center,
+    name: feature.properties.name,
+    danger_level: feature.properties.danger_level,
+    start_date: feature.properties.start_date,
+    end_date: feature.properties.end_date,
+    fillOpacity: feature.properties.fillOpacity,
+  };
 };
 
 export type MapViewZone = {

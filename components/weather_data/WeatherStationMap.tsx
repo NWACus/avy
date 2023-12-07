@@ -13,7 +13,7 @@ import Svg, {Circle} from 'react-native-svg';
 
 import {format} from 'date-fns';
 
-import {MapViewZone, defaultMapRegionForGeometries} from 'components/content/ZoneMap';
+import {MapViewZone, defaultMapRegionForGeometries, mapViewZoneFor} from 'components/content/ZoneMap';
 import {Center, HStack, VStack, View} from 'components/core';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
 import {AvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZonePolygon';
@@ -108,14 +108,9 @@ export const WeatherStationMap: React.FunctionComponent<{
 
   // we want light grey zones in the background here
   const zones: MapViewZone[] = mapLayer.features.map((feature: MapLayerFeature) => ({
-    zone_id: feature.id,
-    geometry: feature.geometry,
+    ...mapViewZoneFor(center_id, feature),
     hasWarning: false,
-    center_id: center_id,
-    name: feature.properties.name,
     danger_level: DangerLevel.None,
-    start_date: feature.properties.start_date,
-    end_date: feature.properties.end_date,
     fillOpacity: 0.1,
   }));
 

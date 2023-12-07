@@ -8,7 +8,7 @@ import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
-import {defaultMapRegionForGeometries, MapViewZone, ZoneMap} from 'components/content/ZoneMap';
+import {defaultMapRegionForGeometries, MapViewZone, mapViewZoneFor, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {pointInFeature} from 'components/helpers/geographicCoordinates';
@@ -72,19 +72,10 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     (event: PoiClickEvent) => {
       const matchingZones = mapLayer?.features.filter(feature => pointInFeature(event.nativeEvent.coordinate, feature));
       if (matchingZones && matchingZones.length > 0) {
-        if (selectedZoneId === matchingZones[0].id) {
-          navigation.navigate('forecast', {
-            zoneName: matchingZones[0].properties.name,
-            center_id: center,
-            forecast_zone_id: matchingZones[0].id,
-            requestedTime: formatRequestedTime(requestedTime),
-          });
-        } else {
-          setSelectedZoneId(matchingZones[0].id);
-        }
+        onPressPolygon(mapViewZoneFor(center, matchingZones[0]));
       }
     },
-    [navigation, mapLayer, center, selectedZoneId, requestedTime],
+    [mapLayer?.features, onPressPolygon, center],
   );
 
   const avalancheCenterMapRegion: Region = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
@@ -160,17 +151,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   // default to the values in the map layer, but update it with the forecasts and wranings we've fetched
   const zonesById: Record<string, MapViewZone> = mapLayer.features.reduce((accum: Record<string, MapViewZone>, feature: MapLayerFeature) => {
-    accum[feature.id] = {
-      zone_id: feature.id,
-      geometry: feature.geometry,
-      hasWarning: feature.properties.warning.product !== null,
-      center_id: center,
-      name: feature.properties.name,
-      danger_level: feature.properties.danger_level,
-      start_date: feature.properties.start_date,
-      end_date: feature.properties.end_date,
-      fillOpacity: feature.properties.fillOpacity,
-    };
+    accum[feature.id] = mapViewZoneFor(center, feature);
     return accum;
   }, {});
   forecastResults
