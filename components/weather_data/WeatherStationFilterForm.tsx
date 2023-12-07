@@ -260,7 +260,7 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
                       radio
                       items={[
                         {value: WeatherStationSource.NWAC, label: WeatherStationSource.NWAC.toUpperCase()},
-                        {value: WeatherStationSource.MESOWEST, label: WeatherStationSource.MESOWEST.toUpperCase()},
+                        {value: WeatherStationSource.MESOWEST, label: 'Synoptic Data'},
                         {value: WeatherStationSource.SNOTEL, label: WeatherStationSource.SNOTEL.toUpperCase()},
                       ]}
                     />
