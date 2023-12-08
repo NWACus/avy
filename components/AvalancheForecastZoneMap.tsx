@@ -16,6 +16,7 @@ import {TravelAdvice} from 'components/helpers/travelAdvice';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
 import {AvalancheCenterSelectionModal} from 'components/modals/AvalancheCenterSelectionModal';
 import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
+import {isAfter} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts';
@@ -179,16 +180,17 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     .forEach(forecast => {
       forecast &&
         forecast.forecast_zone?.forEach(({id}) => {
-          const mapViewZoneData = zonesById[id];
-          if (mapViewZoneData) {
-            if (forecast.product_type === ProductType.Forecast) {
+          if (zonesById[id]) {
+            if (forecast.expires_time && isAfter(new Date(), new Date(forecast.expires_time))) {
+              zonesById[id].danger_level = DangerLevel.GeneralInformation;
+            } else if (forecast.product_type === ProductType.Forecast) {
               const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);
               if (currentDanger) {
-                mapViewZoneData.danger_level = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
+                zonesById[id].danger_level = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
               }
             }
-            mapViewZoneData.start_date = forecast.published_time;
-            mapViewZoneData.end_date = forecast.expires_time;
+            zonesById[id].start_date = forecast.published_time;
+            zonesById[id].end_date = forecast.expires_time;
           }
         });
     });
