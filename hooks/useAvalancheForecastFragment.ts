@@ -52,7 +52,7 @@ const fetchAvalancheForecastFragment = async (
   // we want to emulate the behavior of the NAC "current forecast" API - namely, we don't need to return a forecast
   // that was actually active at the specified time, if there was none - we just return the most recent one, even if
   // it had already expired
-  const forecast = forecasts?.findLast(forecast => isBefore(new Date(forecast.published_time), date) && forecast.forecast_zone.find(zone => zone.id === forecast_zone_id));
+  const forecast = forecasts?.find(forecast => isBefore(new Date(forecast.published_time), date) && forecast.forecast_zone.find(zone => zone.id === forecast_zone_id));
   if (!forecasts || !forecast) {
     throw new NotFoundError(`no avalanche forecast found for center ${center_id} and zone ${forecast_zone_id} active on ${date.toISOString()}`, 'avalanche forecast');
   }
