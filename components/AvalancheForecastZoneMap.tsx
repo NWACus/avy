@@ -17,6 +17,7 @@ import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CAR
 import {AvalancheCenterSelectionModal} from 'components/modals/AvalancheCenterSelectionModal';
 import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {isAfter} from 'date-fns';
+import {toDate} from 'date-fns-tz';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts';
@@ -26,7 +27,7 @@ import {usePreferences} from 'Preferences';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps, TabNavigationProps} from 'routes';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
-import {formatRequestedTime, RequestedTime, utcDateToLocalTimeString} from 'utils/date';
+import {formatRequestedTime, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTimeString} from 'utils/date';
 
 export interface MapProps {
   center: AvalancheCenterID;
@@ -181,7 +182,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       forecast &&
         forecast.forecast_zone?.forEach(({id}) => {
           if (zonesById[id]) {
-            if (forecast.expires_time && isAfter(new Date(), new Date(forecast.expires_time))) {
+            if (forecast.expires_time && isAfter(requestedTimeToUTCDate(requestedTime), toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}))) {
               zonesById[id].danger_level = DangerLevel.GeneralInformation;
             } else if (forecast.product_type === ProductType.Forecast) {
               const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);

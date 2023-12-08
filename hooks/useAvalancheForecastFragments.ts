@@ -74,7 +74,7 @@ const fetchAvalancheForecastFragments = async (nationalAvalancheCenterHost: stri
   const url = `${nationalAvalancheCenterHost}/v2/public/products`;
   const params = {
     avalanche_center_id: center_id,
-    date_start: apiDateString(sub(date, {days: 2})),
+    date_start: apiDateString(sub(date, {days: 7})),
     date_end: apiDateString(add(date, {days: 1})),
   };
   const what = 'avalanche forecast fragments';

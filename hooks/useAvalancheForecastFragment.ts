@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 
 import {QueryClient, useQuery, useQueryClient, UseQueryResult} from '@tanstack/react-query';
-import {add, areIntervalsOverlapping} from 'date-fns';
+import {add, areIntervalsOverlapping, isBefore} from 'date-fns';
 
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
@@ -49,11 +49,10 @@ const fetchAvalancheForecastFragment = async (
       forecasts.push(fragment);
     }
   }
-  const forecast = forecasts?.find(
-    forecast =>
-      isBetween(new Date(forecast.published_time), forecast.expires_time ? new Date(forecast.expires_time) : new Date(), date) &&
-      forecast.forecast_zone.find(zone => zone.id === forecast_zone_id),
-  );
+  // we want to emulate the behavior of the NAC "current forecast" API - namely, we don't need to return a forecast
+  // that was actually active at the specified time, if there was none - we just return the most recent one, even if
+  // it had already expired
+  const forecast = forecasts?.findLast(forecast => isBefore(new Date(forecast.published_time), date) && forecast.forecast_zone.find(zone => zone.id === forecast_zone_id));
   if (!forecasts || !forecast) {
     throw new NotFoundError(`no avalanche forecast found for center ${center_id} and zone ${forecast_zone_id} active on ${date.toISOString()}`, 'avalanche forecast');
   }
