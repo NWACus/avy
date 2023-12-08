@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 
 import {formatDistanceToNow, isAfter} from 'date-fns';
 
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {Card} from 'components/content/Card';
 import {Carousel, images} from 'components/content/carousel';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
@@ -38,20 +38,28 @@ export const SynopsisTab: React.FunctionComponent<SynopsisTabProps> = ({center_i
     });
   }, [navigation]);
 
-  React.useEffect(() => {
-    if (synopsis?.expires_time) {
-      const expires_time = new Date(synopsis.expires_time);
-      if (isAfter(new Date(), expires_time)) {
-        Toast.show({
-          type: 'error',
-          text1: `This blog expired ${formatDistanceToNow(expires_time)} ago.`,
-          autoHide: false,
-          position: 'bottom',
-          onPress: () => Toast.hide(),
-        });
+  useFocusEffect(
+    useCallback(() => {
+      if (synopsis?.expires_time) {
+        const expires_time = new Date(synopsis.expires_time);
+        if (isAfter(new Date(), expires_time)) {
+          setTimeout(
+            // entirely unclear why this needs to be in a setTimeout, but nothing works without it
+            () =>
+              Toast.show({
+                type: 'error',
+                text1: `This blog expired ${formatDistanceToNow(expires_time)} ago.`,
+                autoHide: false,
+                position: 'bottom',
+                onPress: () => Toast.hide(),
+              }),
+            0,
+          );
+        }
       }
-    }
-  }, [synopsis]);
+      return () => Toast.hide();
+    }, [synopsis]),
+  );
 
   if (incompleteQueryState(synopsisResult) || !synopsis) {
     return <QueryState results={[synopsisResult]} />;

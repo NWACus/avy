@@ -1,9 +1,9 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 
 import {addDays, formatDistanceToNow, isAfter} from 'date-fns';
 
 import {Feather, FontAwesome} from '@expo/vector-icons';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {colorFor} from 'components/AvalancheDangerTriangle';
@@ -83,26 +83,29 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
       }
     }
   }, [forecast, forecast_zone_id, navigation]);
-  React.useEffect(() => {
-    return navigation.addListener('beforeRemove', () => {
-      Toast.hide();
-    });
-  }, [navigation]);
 
-  useEffect(() => {
-    if (forecast?.expires_time) {
-      const expires_time = new Date(forecast.expires_time);
-      if (isAfter(new Date(), expires_time)) {
-        Toast.show({
-          type: 'error',
-          text1: `This avalanche forecast expired ${formatDistanceToNow(expires_time)} ago.`,
-          autoHide: false,
-          position: 'bottom',
-          onPress: () => Toast.hide(),
-        });
+  useFocusEffect(
+    useCallback(() => {
+      if (forecast?.expires_time) {
+        const expires_time = new Date(forecast.expires_time);
+        if (isAfter(new Date(), expires_time)) {
+          setTimeout(
+            // entirely unclear why this needs to be in a setTimeout, but nothing works without it
+            () =>
+              Toast.show({
+                type: 'error',
+                text1: `This avalanche forecast expired ${formatDistanceToNow(expires_time)} ago.`,
+                autoHide: false,
+                position: 'bottom',
+                onPress: () => Toast.hide(),
+              }),
+            0,
+          );
+        }
       }
-    }
-  }, [forecast]);
+      return () => Toast.hide();
+    }, [forecast]),
+  );
 
   if (incompleteQueryState(forecastResult, warningResult) || !forecast || !warning) {
     return <QueryState results={[forecastResult, warningResult]} />;
