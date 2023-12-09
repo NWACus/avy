@@ -130,6 +130,7 @@ export enum MediaType {
   External = 'external',
   Photo = 'photo',
   PDF = 'pdf',
+  Unknown = 'unknown',
   None = '',
 }
 
@@ -349,15 +350,15 @@ export const pdfMediaSchema = z.object({
   }),
 });
 
-export const mediaItemSchema = z.discriminatedUnion('type', [
-  emptyMediaSchema,
-  nullMediaSchema,
-  imageMediaSchema,
-  videoMediaSchema,
-  externalMediaSchema,
-  photoMediaSchema,
-  pdfMediaSchema,
-]);
+const unknownMediaSchema = z.object({
+  type: z.literal(MediaType.Unknown),
+});
+
+export const mediaItemSchema = z
+  .discriminatedUnion('type', [emptyMediaSchema, nullMediaSchema, imageMediaSchema, videoMediaSchema, externalMediaSchema, photoMediaSchema, pdfMediaSchema, unknownMediaSchema])
+  .catch({
+    type: MediaType.Unknown,
+  });
 export type MediaItem = z.infer<typeof mediaItemSchema>;
 
 export const avalancheCenterWeatherConfigurationSchema = z.object({
