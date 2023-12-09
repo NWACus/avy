@@ -129,6 +129,8 @@ export enum MediaType {
   Video = 'video',
   External = 'external',
   Photo = 'photo',
+  PDF = 'pdf',
+  Unknown = 'unknown',
   None = '',
 }
 
@@ -341,7 +343,22 @@ export const externalMediaSchema = imageMediaSchema.extend({
 });
 export type ExternalMediaItem = z.infer<typeof externalMediaSchema>;
 
-export const mediaItemSchema = z.discriminatedUnion('type', [emptyMediaSchema, nullMediaSchema, imageMediaSchema, videoMediaSchema, externalMediaSchema, photoMediaSchema]);
+export const pdfMediaSchema = z.object({
+  type: z.literal(MediaType.PDF),
+  url: z.object({
+    original: z.string().url(),
+  }),
+});
+
+const unknownMediaSchema = z.object({
+  type: z.literal(MediaType.Unknown),
+});
+
+export const mediaItemSchema = z
+  .discriminatedUnion('type', [emptyMediaSchema, nullMediaSchema, imageMediaSchema, videoMediaSchema, externalMediaSchema, photoMediaSchema, pdfMediaSchema, unknownMediaSchema])
+  .catch({
+    type: MediaType.Unknown,
+  });
 export type MediaItem = z.infer<typeof mediaItemSchema>;
 
 export const avalancheCenterWeatherConfigurationSchema = z.object({
