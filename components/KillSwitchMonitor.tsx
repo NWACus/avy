@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Modal} from 'react-native';
 
 import * as Application from 'expo-application';
@@ -15,6 +15,7 @@ import {BodyBlack} from 'components/text';
 import {useAppState} from 'hooks/useAppState';
 import {getUpdateGroupId, getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
 import {logger} from 'logger';
+import {usePreferences} from 'Preferences';
 
 type KillSwitchMonitorProps = {
   children: React.ReactNode;
@@ -46,6 +47,20 @@ const KillSwitchMonitor: React.FC<KillSwitchMonitorProps> = ({children}) => {
       });
     }
   }, [posthog]);
+
+  // We use the mixpanel user id (a unique UUID generated for each install of the app) as the posthog distinct id as well.
+  const {
+    preferences: {mixpanelUserId: distinctUserId},
+  } = usePreferences();
+  const [userIdentified, setUserIdentified] = useState(false);
+  useEffect(() => {
+    if (posthog && distinctUserId && !userIdentified) {
+      posthog.identify(distinctUserId);
+      setUserIdentified(true);
+      logger.debug('identified user, reloading feature flags', {distinctUserId});
+      tryReloadFeatureFlagsWithDebounce(posthog);
+    }
+  }, [posthog, distinctUserId, userIdentified]);
 
   const appState = useAppState();
 
