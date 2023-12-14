@@ -26,11 +26,13 @@ const defaultPreferences = preferencesSchema.parse({});
 interface PreferencesContextType {
   preferences: Preferences;
   setPreferences: (preferences: Partial<Preferences>) => void;
+  clearPreferences: () => void;
 }
 
 const PreferencesContext = createContext<PreferencesContextType>({
   preferences: defaultPreferences,
   setPreferences: () => undefined,
+  clearPreferences: () => undefined,
 });
 
 interface PreferencesProviderProps {
@@ -38,7 +40,7 @@ interface PreferencesProviderProps {
 }
 
 export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({children}) => {
-  const [preferences, setFullPreferences] = useState<Preferences>(defaultPreferences);
+  const [preferences, setPreferences] = useState<Preferences>(defaultPreferences);
 
   useAsyncEffect(async () => {
     let storedPreferences = {};
@@ -46,11 +48,11 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
       storedPreferences = preferencesSchema.parse(JSON.parse((await AsyncStorage.getItem(PREFERENCES_KEY)) ?? '{}'));
     } catch (e) {
       // Error parsing preferences, ignore as we'll fall back to defaults
-      await clearPreferences();
+      await AsyncStorage.removeItem(PREFERENCES_KEY);
       // But do log it to Sentry as it shouldn't happen
       Sentry.Native.captureException(e);
     }
-    setPreferences(
+    setPartialPreferences(
       merge(
         {},
         defaultPreferences,
@@ -67,16 +69,20 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
     void AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
   }, [preferences]);
 
-  const setPreferences = (newPreferences: Partial<Preferences>) => {
-    setFullPreferences(merge({}, preferences, newPreferences));
+  const setPartialPreferences = (newPreferences: Partial<Preferences>) => {
+    setPreferences(merge({}, preferences, newPreferences));
   };
 
-  return <PreferencesContext.Provider value={{preferences, setPreferences}}>{children}</PreferencesContext.Provider>;
+  const clearPreferences = () => {
+    // Clear everything _except_ the mixpanelUserId. It might not be set yet, but if it is we don't want to lose it.
+    setPreferences({...defaultPreferences, mixpanelUserId: preferences.mixpanelUserId});
+  };
+
+  return <PreferencesContext.Provider value={{preferences, setPreferences: setPartialPreferences, clearPreferences}}>{children}</PreferencesContext.Provider>;
 };
 
 export const usePreferences = () => useContext(PreferencesContext);
 
-export const clearPreferences = async () => {
-  await AsyncStorage.removeItem(PREFERENCES_KEY);
+export const resetPreferencesForTests = async () => {
   await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(defaultPreferences));
 };

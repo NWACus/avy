@@ -56,7 +56,7 @@ import {
 import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
 import {logFilePath, logger} from 'logger';
 import {sendMail} from 'network/sendMail';
-import {clearPreferences, usePreferences} from 'Preferences';
+import {usePreferences} from 'Preferences';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 import {RequestedTime, requestedTimeToUTCDate, toISOStringUTC} from 'utils/date';
@@ -74,7 +74,7 @@ export const SecretMenu: React.FC<SecretMenuProps> = ({staging, setStaging}) => 
 
     logger.info({environment: staging ? 'production' : 'staging'}, 'switching environment');
   }, [staging, setStaging]);
-  const {preferences, setPreferences} = usePreferences();
+  const {preferences, setPreferences, clearPreferences} = usePreferences();
   return (
     <CollapsibleCard
       startsCollapsed={preferences.secretMenuCollapsed}
