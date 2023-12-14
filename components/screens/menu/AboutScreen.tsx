@@ -14,9 +14,13 @@ import {ActionList} from 'components/content/ActionList';
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
 import {getUpdateGroupId, getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
+import {usePreferences} from 'Preferences';
 import {MenuStackParamList} from 'routes';
 
 export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
+  const {
+    preferences: {mixpanelUserId},
+  } = usePreferences();
   const [updateGroupId] = useState(getUpdateGroupId());
   const openUrl = useCallback(({data}: {data: string}) => void WebBrowser.openBrowserAsync(data), []);
   const copyVersionInfoToClipboard = useCallback(() => {
@@ -26,10 +30,11 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
 Build date ${getUpdateTimeAsVersionString()}
 Git revision ${process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a'}
 Update group ID ${updateGroupId} (channel: ${Updates.channel || 'development'})
-Update ID ${Updates.updateId || 'n/a'} (platform: ${Platform.OS})`,
+Update ID ${Updates.updateId || 'n/a'} (platform: ${Platform.OS})
+User ID ${mixpanelUserId || 'n/a'}`,
       );
     })();
-  }, [updateGroupId]);
+  }, [mixpanelUserId, updateGroupId]);
 
   return (
     <View style={StyleSheet.absoluteFillObject}>
@@ -66,6 +71,7 @@ Update ID ${Updates.updateId || 'n/a'} (platform: ${Platform.OS})`,
                 Update: {updateGroupId} ({Updates.channel || 'development'})
               </BodyXSm>
             )}
+            {mixpanelUserId && <BodyXSm>User ID: {mixpanelUserId}</BodyXSm>}
           </VStack>
           <Ionicons.Button name="copy-outline" size={12} color="black" style={{backgroundColor: 'white'}} iconStyle={{marginRight: 0}} onPress={copyVersionInfoToClipboard} />
         </HStack>
