@@ -50,7 +50,6 @@ const loadImageData = async ({uri, width, height}: PickedImage): Promise<{imageD
 };
 
 export const uploadImage = async (taskId: string, {apiPrefix, image, name, center_id, photoUsage, title}: UploadImageOptions): Promise<MediaItem> => {
-  console.log('uploadImage', JSON.stringify(image, null, 2));
   const {imageDataBase64, filename, mimeType} = await loadImageData(image);
 
   const payload = {
