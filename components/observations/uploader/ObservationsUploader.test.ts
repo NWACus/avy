@@ -479,6 +479,7 @@ const fakeObservation: {apiPrefix: string; center_id: AvalancheCenterID; observa
       lat: 47.6062,
       lng: -122.3321,
     },
+    status: 'published',
     name: 'Brian',
     phone: '(012) 345 - 6789',
     observation_summary: 'This is a test observation.',
