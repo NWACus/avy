@@ -192,6 +192,7 @@ export class ObservationUploader {
                 : undefined,
             },
             name: name ?? '',
+            title: `Public Observation: ${observationFormData.location_name}`,
             center_id: center_id,
             photoUsage: photoUsage ?? MediaUsage.Credit,
           },

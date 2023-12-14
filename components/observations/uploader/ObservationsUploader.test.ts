@@ -519,6 +519,7 @@ const imageUploadTask = (): TaskQueueEntry => ({
       exif: {Orientation: 1},
     },
     name: `created ${new Date().toLocaleTimeString()}`,
+    title: 'Public Observation: Snoqualmie Pass',
     center_id: 'NWAC',
     photoUsage: MediaUsage.Credit,
   },

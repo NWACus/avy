@@ -17,6 +17,7 @@ interface UploadImageOptions {
   center_id: AvalancheCenterID;
   image: PickedImage;
   name: string;
+  title: string;
   photoUsage: MediaUsage;
 }
 
@@ -48,7 +49,7 @@ const loadImageData = async ({uri, width, height}: PickedImage): Promise<{imageD
   return {imageDataBase64: result.base64 ?? '', filename, mimeType: 'image/jpeg'};
 };
 
-export const uploadImage = async (taskId: string, {apiPrefix, image, name, center_id, photoUsage}: UploadImageOptions): Promise<MediaItem> => {
+export const uploadImage = async (taskId: string, {apiPrefix, image, name, center_id, photoUsage, title}: UploadImageOptions): Promise<MediaItem> => {
   const {imageDataBase64, filename, mimeType} = await loadImageData(image);
 
   const payload = {
@@ -60,6 +61,7 @@ export const uploadImage = async (taskId: string, {apiPrefix, image, name, cente
     taken_by: name,
     access: photoUsage,
     source: 'public',
+    title,
     // TODO would be nice to tag images that came from this app, but haven't figured that out yet
   };
 
