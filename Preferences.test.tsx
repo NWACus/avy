@@ -91,6 +91,7 @@ describe('Preferences', () => {
       const {result, waitForNextUpdate} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
       expect(result.current.preferences.mixpanelUserId).toBeUndefined();
       await waitForNextUpdate();
+      // The center is invalid, so preferences parsing will fail. The previous user id is lost, and we get a different UUID in its place.
       expect(result.current.preferences.mixpanelUserId).toMatch(/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/);
       expect(result.current.preferences.mixpanelUserId).not.toEqual(userId);
     });
