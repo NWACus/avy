@@ -22,6 +22,7 @@ const taskQueueEntrySchema = z.discriminatedUnion('type', [
         exif: z
           .object({
             Orientation: z.number().or(z.string()).optional(),
+            DateTimeOriginal: z.string().optional(),
           })
           .optional(),
       }),
