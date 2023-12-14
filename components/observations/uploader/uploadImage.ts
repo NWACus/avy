@@ -1,5 +1,6 @@
 import axios from 'axios';
-import {Action, manipulateAsync, SaveFormat} from 'expo-image-manipulator';
+import {format, parse} from 'date-fns';
+import {Action, SaveFormat, manipulateAsync} from 'expo-image-manipulator';
 
 import {AvalancheCenterID, MediaItem, MediaUsage} from 'types/nationalAvalancheCenter';
 
@@ -10,6 +11,7 @@ interface PickedImage {
   exif?: {
     // this is how it's defined in expo-image-picker
     Orientation?: string | number;
+    DateTimeOriginal?: string;
   };
 }
 interface UploadImageOptions {
@@ -49,6 +51,22 @@ const loadImageData = async ({uri, width, height}: PickedImage): Promise<{imageD
   return {imageDataBase64: result.base64 ?? '', filename, mimeType: 'image/jpeg'};
 };
 
+// Return a date string in the format that the NAC API expects, or null if the EXIF data is missing or malformed
+export const captureDateFromExif = (exif?: PickedImage['exif']): string | null => {
+  // DateTimeOriginal format is defined to be "YYYY:MM:DD HH:MM:SS"
+  // reference: https://www.awaresystems.be/imaging/tiff/tifftags/privateifd/exif/datetimeoriginal.html
+  try {
+    if (exif?.DateTimeOriginal) {
+      const {DateTimeOriginal} = exif;
+      const date = parse(DateTimeOriginal, 'yyyy:MM:dd HH:mm:SS', new Date());
+      return format(date, 'yyyy-MM-dd');
+    }
+  } catch (e) {
+    // fall through
+  }
+  return null;
+};
+
 export const uploadImage = async (taskId: string, {apiPrefix, image, name, center_id, photoUsage, title}: UploadImageOptions): Promise<MediaItem> => {
   const {imageDataBase64, filename, mimeType} = await loadImageData(image);
 
@@ -62,6 +80,7 @@ export const uploadImage = async (taskId: string, {apiPrefix, image, name, cente
     access: photoUsage,
     source: 'public',
     title,
+    date_taken: captureDateFromExif(image.exif),
     // TODO would be nice to tag images that came from this app, but haven't figured that out yet
   };
 

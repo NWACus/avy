@@ -185,9 +185,8 @@ export class ObservationUploader {
               height: image.height,
               exif: image.exif
                 ? {
-                    // The type of ImagePickerAsset.exif is (unfortunately) Record<string, any>
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    Orientation: image.exif.Orientation,
+                    Orientation: typeof image.exif.Orientation === 'string' || typeof image.exif.Orientation === 'number' ? image.exif.Orientation : undefined,
+                    DateTimeOriginal: typeof image.exif.DateTimeOriginal === 'string' ? image.exif.DateTimeOriginal : undefined,
                   }
                 : undefined,
             },
