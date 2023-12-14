@@ -40,7 +40,7 @@ interface PreferencesProviderProps {
 }
 
 export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({children}) => {
-  const [preferences, setFullPreferences] = useState<Preferences>(defaultPreferences);
+  const [preferences, setPreferences] = useState<Preferences>(defaultPreferences);
 
   useAsyncEffect(async () => {
     let storedPreferences = {};
@@ -52,7 +52,7 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
       // But do log it to Sentry as it shouldn't happen
       Sentry.Native.captureException(e);
     }
-    setPreferences(
+    setPartialPreferences(
       merge(
         {},
         defaultPreferences,
@@ -69,16 +69,16 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
     void AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
   }, [preferences]);
 
-  const setPreferences = (newPreferences: Partial<Preferences>) => {
-    setFullPreferences(merge({}, preferences, newPreferences));
+  const setPartialPreferences = (newPreferences: Partial<Preferences>) => {
+    setPreferences(merge({}, preferences, newPreferences));
   };
 
   const clearPreferences = () => {
     // Clear everything _except_ the mixpanelUserId. It might not be set yet, but if it is we don't want to lose it.
-    setFullPreferences({...defaultPreferences, mixpanelUserId: preferences.mixpanelUserId});
+    setPreferences({...defaultPreferences, mixpanelUserId: preferences.mixpanelUserId});
   };
 
-  return <PreferencesContext.Provider value={{preferences, setPreferences, clearPreferences}}>{children}</PreferencesContext.Provider>;
+  return <PreferencesContext.Provider value={{preferences, setPreferences: setPartialPreferences, clearPreferences}}>{children}</PreferencesContext.Provider>;
 };
 
 export const usePreferences = () => useContext(PreferencesContext);
