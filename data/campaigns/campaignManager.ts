@@ -51,12 +51,13 @@ class CampaignManager implements ICampaignManager {
 
   private checkInitialized() {
     if (!this.initialized) {
-      this.logger.error('ObservationUploader not initialized');
-      throw new Error('ObservationUploader not initialized');
+      this.logger.error('CampaignManager not initialized');
+      throw new Error('CampaignManager not initialized');
     }
   }
 
-  async saveCampaignViews() {
+  private async saveCampaignViews() {
+    this.checkInitialized();
     // todo: debounce
     await AsyncStorage.setItem(CAMPAIGN_DATA_KEY, JSON.stringify(this.campaignViews));
   }
