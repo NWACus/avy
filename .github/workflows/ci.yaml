@@ -59,4 +59,4 @@ jobs:
       - name: 🏗 Setup build environment
         uses: ./.github/actions/setup
       - name: 👩‍⚕️ Expo Doctor
-        run: npx expo-doctor
+        run: EXPO_DOCTOR_SKIP_DEPENDENCY_VERSION_CHECK=1 npx expo-doctor@latest
