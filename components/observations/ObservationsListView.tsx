@@ -14,16 +14,19 @@ import {NACIcon} from 'components/icons/nac-icons';
 import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
+import {campaignManager} from 'data/campaigns/campaignManager';
 import {compareDesc, parseISO} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
+import {useFeatureFlag} from 'posthog-react-native';
 import {
   ActivityIndicator,
   ColorValue,
   GestureResponderEvent,
+  Image,
   LayoutAnimation,
   Modal,
   NativeScrollEvent,
@@ -71,6 +74,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
+  const [campaignActive] = useState(campaignManager.campaignActive('campaign-q4-2023'));
+  const campaignFeatureFlag = !!useFeatureFlag('campaign-q4-2023');
+  const showCampaign = campaignActive && campaignFeatureFlag;
 
   // Filter inputs changed via render props should overwrite our current state
   useEffect(() => {
@@ -346,6 +352,11 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         </ScrollView>
       </HStack>
       <Divider />
+      {showCampaign && (
+        // banner.png is 2000 x 729, which is an aspect ratio of 2.74348422
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        <Image source={require('assets/campaigns/campaign-q4-2023/banner.png')} style={{width: '100%', height: undefined, aspectRatio: 2.74348422}} resizeMode="contain" />
+      )}
       <SectionList
         sections={sections}
         renderSectionHeader={renderSectionHeader}
