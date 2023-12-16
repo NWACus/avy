@@ -1,9 +1,30 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
+import {
+  ActivityIndicator,
+  ColorValue,
+  GestureResponderEvent,
+  Image,
+  LayoutAnimation,
+  Modal,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Platform,
+  Pressable,
+  ScrollView,
+  SectionList,
+  SectionListRenderItemInfo,
+  TouchableOpacity,
+} from 'react-native';
+
 import {FormattedMessage} from 'react-intl';
 
 import {FontAwesome, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
+import {compareDesc, parseISO} from 'date-fns';
+import * as Linking from 'expo-linking';
+import {useFeatureFlag} from 'posthog-react-native';
+
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
@@ -14,26 +35,13 @@ import {NACIcon} from 'components/icons/nac-icons';
 import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
-import {compareDesc, parseISO} from 'date-fns';
+import {campaignManager} from 'data/campaigns/campaignManager';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
-import {
-  ActivityIndicator,
-  ColorValue,
-  GestureResponderEvent,
-  LayoutAnimation,
-  Modal,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  Platform,
-  ScrollView,
-  SectionList,
-  SectionListRenderItemInfo,
-  TouchableOpacity,
-} from 'react-native';
+import {logger} from 'logger';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
@@ -71,6 +79,13 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
+  const [campaignActive] = useState(campaignManager.campaignActive('campaign-q4-2023'));
+  const campaignFeatureFlag = !!useFeatureFlag('campaign-q4-2023');
+  const showCampaign = campaignActive && campaignFeatureFlag && center_id === 'NWAC';
+  const openCampaignLink = useCallback(() => {
+    const url = 'https://give.nwac.us/campaign/nwacs-year-end-fundraiser/c536433';
+    Linking.openURL(url).catch((error: Error) => logger.error('Error opening URL', {error, url}));
+  }, []);
 
   // Filter inputs changed via render props should overwrite our current state
   useEffect(() => {
@@ -346,6 +361,13 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         </ScrollView>
       </HStack>
       <Divider />
+      {showCampaign && (
+        // banner.png is 2000 x 729, which is an aspect ratio of 2.74348422
+        <Pressable onPress={openCampaignLink}>
+          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
+          <Image source={require('assets/campaigns/campaign-q4-2023/banner.png')} style={{width: '100%', height: undefined, aspectRatio: 2.74348422}} resizeMode="contain" />
+        </Pressable>
+      )}
       <SectionList
         sections={sections}
         renderSectionHeader={renderSectionHeader}
