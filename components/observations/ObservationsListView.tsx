@@ -23,7 +23,6 @@ import {FontAwesome, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-i
 import {useNavigation} from '@react-navigation/native';
 import {compareDesc, parseISO} from 'date-fns';
 import * as Linking from 'expo-linking';
-import {useFeatureFlag} from 'posthog-react-native';
 
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {Button} from 'components/content/Button';
@@ -35,7 +34,7 @@ import {NACIcon} from 'components/icons/nac-icons';
 import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
-import {campaignManager} from 'data/campaigns/campaignManager';
+import useCampaign from 'data/campaigns/useCampaign';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
@@ -79,13 +78,12 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
-  const [campaignActive] = useState(campaignManager.campaignActive('campaign-q4-2023'));
-  const campaignFeatureFlag = !!useFeatureFlag('campaign-q4-2023');
-  const showCampaign = campaignActive && campaignFeatureFlag && center_id === 'NWAC';
+  const [showCampaign, trackCampaign] = useCampaign('campaign-q4-2023', 'observation-list-view');
   const openCampaignLink = useCallback(() => {
+    trackCampaign();
     const url = 'https://give.nwac.us/campaign/nwacs-year-end-fundraiser/c536433';
     Linking.openURL(url).catch((error: Error) => logger.error('Error opening URL', {error, url}));
-  }, []);
+  }, [trackCampaign]);
 
   // Filter inputs changed via render props should overwrite our current state
   useEffect(() => {

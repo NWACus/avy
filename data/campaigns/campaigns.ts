@@ -1,9 +1,31 @@
-const CAMPAIGNS = {
+export type Campaign = {
+  startDate: Date;
+  endDate: Date;
+  enabled: boolean;
+  locations: Record<
+    string,
+    {
+      // -1 means unlimited
+      viewsPerDay: number;
+    }
+  >;
+};
+export type Campaigns = Record<string, Campaign>;
+export const UNLIMITED_VIEWS_PER_DAY = -1;
+
+const CAMPAIGNS: Campaigns = {
   'campaign-q4-2023': {
     startDate: new Date('2023-12-01'),
     endDate: new Date('2024-01-01'),
     enabled: true,
-    viewsPerDay: 1,
+    locations: {
+      'observation-list-view': {
+        viewsPerDay: UNLIMITED_VIEWS_PER_DAY,
+      },
+      'map-view': {
+        viewsPerDay: 1,
+      },
+    },
   },
 
   // These are for unit testing purposes only - don't remove them
@@ -11,13 +33,24 @@ const CAMPAIGNS = {
     startDate: new Date('2023-12-01'),
     endDate: new Date('2024-01-01'),
     enabled: true,
-    viewsPerDay: 3,
+    locations: {
+      'home-screen': {
+        viewsPerDay: 3,
+      },
+      'always-show': {
+        viewsPerDay: UNLIMITED_VIEWS_PER_DAY,
+      },
+    },
   },
   'test-disabled-campaign': {
     startDate: new Date('2023-12-01'),
     endDate: new Date('2024-01-01'),
     enabled: false,
-    viewsPerDay: 1,
+    locations: {
+      'home-screen': {
+        viewsPerDay: 3,
+      },
+    },
   },
 };
 
