@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {CAMPAIGN_DATA_KEY} from 'data/asyncStorageKeys';
-import {CampaignViewsSchema, ICampaignManager, createCampaignManagerForTests} from 'data/campaigns/campaignManager';
+import {AllCampaignsViewData, ICampaignManager, createCampaignManagerForTests} from 'data/campaigns/campaignManager';
 import CAMPAIGNS, {UNLIMITED_VIEWS_PER_DAY} from 'data/campaigns/campaigns';
 
 describe('campaignManager', () => {
@@ -55,7 +55,7 @@ describe('campaignManager', () => {
       const today = new Date('2023-12-15');
       await campaignManager.recordCampaignView(campaignId, 'home-screen', today);
 
-      const campaignViews = JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) || '{}') as CampaignViewsSchema;
+      const campaignViews = JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) || '{}') as AllCampaignsViewData;
       expect(campaignViews).toEqual({
         'test-enabled-campaign': {
           'home-screen': {
@@ -86,7 +86,7 @@ describe('campaignManager', () => {
       const today = new Date('2023-12-15');
       await campaignManager.recordCampaignView(campaignId, 'home-screen', today);
 
-      const campaignViews = JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) || '{}') as CampaignViewsSchema;
+      const campaignViews = JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) || '{}') as AllCampaignsViewData;
       expect(campaignViews).toEqual({
         'test-enabled-campaign': {
           'home-screen': {
@@ -158,7 +158,7 @@ describe('campaignManager', () => {
       const currentDate = new Date('2023-12-15');
       await campaignManager.recordCampaignView(campaignId, 'home-screen', currentDate);
 
-      const campaignViews = JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) || '{}') as CampaignViewsSchema;
+      const campaignViews = JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) || '{}') as AllCampaignsViewData;
       expect(campaignViews).toEqual({
         'test-enabled-campaign': {
           'home-screen': {

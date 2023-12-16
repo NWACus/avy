@@ -1,7 +1,7 @@
 /* ESLint reads references to mixpanel.track as attempts to call it */
 /* eslint-disable @typescript-eslint/unbound-method */
 import {renderHook} from '@testing-library/react-hooks';
-import useCampaign from 'data/campaigns/useCampaign';
+import {useCampaign} from 'data/campaigns/useCampaign';
 import mixpanel from 'mixpanel';
 import {useFeatureFlag} from 'posthog-react-native';
 

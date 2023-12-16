@@ -1,19 +1,6 @@
-export type Campaign = {
-  startDate: Date;
-  endDate: Date;
-  enabled: boolean;
-  locations: Record<
-    string,
-    {
-      // -1 means unlimited
-      viewsPerDay: number;
-    }
-  >;
-};
-export type Campaigns = Record<string, Campaign>;
 export const UNLIMITED_VIEWS_PER_DAY = -1;
 
-const CAMPAIGNS: Campaigns = {
+const CAMPAIGNS = {
   'campaign-q4-2023': {
     startDate: new Date('2023-12-01'),
     endDate: new Date('2024-01-01'),
@@ -52,8 +39,10 @@ const CAMPAIGNS: Campaigns = {
       },
     },
   },
-};
+} as const;
 
-export type CampaignId = keyof typeof CAMPAIGNS;
+export type Campaigns = typeof CAMPAIGNS;
+export type CampaignId = keyof Campaigns;
+export type CampaignLocationId<T extends CampaignId> = keyof Campaigns[T]['locations'];
 
 export default CAMPAIGNS;

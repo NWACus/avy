@@ -1,11 +1,15 @@
 import {campaignManager} from 'data/campaigns/campaignManager';
-import {CampaignId} from 'data/campaigns/campaigns';
+import {CampaignId, CampaignLocationId} from 'data/campaigns/campaigns';
 import {logger} from 'logger';
 import mixpanel from 'mixpanel';
 import {useFeatureFlag} from 'posthog-react-native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 
-const useCampaign = (campaignId: CampaignId, location: string, date: Date | undefined = undefined): [campaignEnabled: boolean, trackInteraction: () => void] => {
+export function useCampaign<T extends CampaignId>(
+  campaignId: T,
+  location: CampaignLocationId<T>,
+  date: Date | undefined = undefined,
+): [campaignEnabled: boolean, trackInteraction: () => void] {
   const campaignFeatureFlag = !!useFeatureFlag(campaignId);
   const [shouldShowCampaign] = useState(campaignManager.shouldShowCampaign(campaignId, location, date ?? new Date()));
   const campaignEnabled = shouldShowCampaign && campaignFeatureFlag;
@@ -30,6 +34,4 @@ const useCampaign = (campaignId: CampaignId, location: string, date: Date | unde
   }, [campaignEnabled, campaignId, interactionEventSent, location]);
 
   return [campaignEnabled, trackInteraction];
-};
-
-export default useCampaign;
+}
