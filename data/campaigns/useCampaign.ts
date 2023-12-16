@@ -21,7 +21,7 @@ export function useCampaign<T extends CampaignId>(
       campaignManager.recordCampaignView(campaignId, location).catch((error: Error) => {
         logger.error('Failed to record campaign view', {campaignId, location, error});
       });
-      mixpanel.track('Campaign viewed', {campaignId, location});
+      mixpanel.track('Campaign viewed', {campaign: campaignId, 'campaign-location': location});
     }
   }, [campaignEnabled, campaignId, location, showEventSent]);
 
@@ -29,7 +29,7 @@ export function useCampaign<T extends CampaignId>(
   const trackInteraction = useCallback(() => {
     if (!interactionEventSent.current && campaignEnabled) {
       interactionEventSent.current = true;
-      mixpanel.track('Campaign interaction', {campaignId, location});
+      mixpanel.track('Campaign interaction', {campaign: campaignId, 'campaign-location': location});
     }
   }, [campaignEnabled, campaignId, interactionEventSent, location]);
 

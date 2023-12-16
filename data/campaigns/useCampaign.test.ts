@@ -28,8 +28,8 @@ describe('useCampaign', () => {
     expect(campaignEnabled).toBe(true);
 
     expect(mixpanel.track).toHaveBeenCalledWith('Campaign viewed', {
-      campaignId,
-      location,
+      campaign: campaignId,
+      'campaign-location': location,
     });
   });
 
@@ -82,8 +82,8 @@ describe('useCampaign', () => {
       const [campaignEnabled, trackInteraction] = result.current;
       expect(campaignEnabled).toBe(true);
       expect(mixpanel.track).toHaveBeenCalledWith('Campaign viewed', {
-        campaignId,
-        location,
+        campaign: campaignId,
+        'campaign-location': location,
       });
 
       // Calling track interaction should send a mixpanel event on the first call, but not on subsequent calls
@@ -93,8 +93,8 @@ describe('useCampaign', () => {
 
       expect(mixpanel.track).toHaveBeenCalledTimes(2);
       expect(mixpanel.track).toHaveBeenLastCalledWith('Campaign interaction', {
-        campaignId,
-        location,
+        campaign: campaignId,
+        'campaign-location': location,
       });
     });
   });
