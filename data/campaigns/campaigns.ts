@@ -1,5 +1,20 @@
 export const UNLIMITED_VIEWS_PER_DAY = -1;
 
+/**
+ * This object defines campaigns that can be shown to users. Each campaign has a start and end date, and a list of
+ * locations where it can be shown. Each location has a maximum number of times the campaign can be shown per day.
+ * Some locations are unobtrusive and will show the campaign every time, while others like a modal popup will only
+ * show a fixed number of times per day.
+ *
+ * The campaign manager will keep track of how many times a campaign has been shown in each location, and will
+ * automatically prevent the campaign from being shown more than the maximum number of times per day.
+ *
+ * It's recommended to use the `useCampaign` hook to check if a campaign should be shown, as it will handle all the common tasks involved:
+ * - Checking the campaign feature flag
+ * - Calling the campaign manager to get enabled state and track views
+ * - Sending mixpanel events for campaign views and interactions
+ * @see data/campaigns/useCampaign.ts
+ */
 const CAMPAIGNS = {
   'campaign-q4-2023': {
     startDate: new Date('2023-12-01'),
