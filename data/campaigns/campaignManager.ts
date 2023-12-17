@@ -2,51 +2,49 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {CAMPAIGN_DATA_KEY} from 'data/asyncStorageKeys';
-import CAMPAIGNS, {CampaignId} from 'data/campaigns/campaigns';
-import {differenceInCalendarDays} from 'date-fns';
+import CAMPAIGNS, {ALWAYS_SHOW, CampaignId, CampaignLocationId} from 'data/campaigns/campaigns';
 import {logger} from 'logger';
 import * as Sentry from 'sentry-expo';
 import {z} from 'zod';
 
-const campaignViewSchema = z.object({
+const campaignLocationViewDataSchema = z.object({
   lastDisplayed: z.coerce.date().optional(),
-  timesDisplayed: z.number(),
 });
+type CampaignLocationViewData = z.infer<typeof campaignLocationViewDataSchema>;
 
-type CampaignViewSchema = z.infer<typeof campaignViewSchema>;
-
-const campaignViewsSchema = z.record(campaignViewSchema);
-export type CampaignViewsSchema = z.infer<typeof campaignViewsSchema>;
+const campaignViewDataSchema = z.record(campaignLocationViewDataSchema);
+const allCampaignsViewData = z.record(campaignViewDataSchema);
+export type AllCampaignsViewData = z.infer<typeof allCampaignsViewData>;
 
 export interface ICampaignManager {
-  /** Given a date, checks if the given campaign is active for that date. Does not reflect
-   * view counts or lastDisplayed values. Use for less intrusive elements. */
-  campaignActive(campaignId: CampaignId, atDate?: Date): boolean;
-
   /** Given a date, calls campaignActive to see if the given campaign is active for that date,
-   * and then checks `lastDisplayed` date and `viewsPerDay` to decide if the campaign should be shown.
-   * Used for more intrusive campaigns elements such as modals. */
-  shouldShowCampaign(campaignId: CampaignId, atDate?: Date): boolean;
+   * and then checks `lastDisplayed` date and `frequency` to decide if the campaign should be shown.
+   */
+  shouldShowCampaign<T extends CampaignId>(campaignId: T, location: CampaignLocationId<T>, atDate?: Date): boolean;
 
   /** Records a campaign view for the given campaignId. Use along with shouldShowCampaign to track
    * views of more intrusive campaign elements.
    * @see shouldShowCampaign */
-  recordCampaignView(campaignId: CampaignId, atDate?: Date): Promise<void>;
+  recordCampaignView<T extends CampaignId>(campaignId: T, location: CampaignLocationId<T>, atDate?: Date): Promise<void>;
 }
 
 class CampaignManager implements ICampaignManager {
   private initialized = false;
-  private campaignViews: Record<CampaignId, CampaignViewSchema> = {} as Record<CampaignId, CampaignViewSchema>;
+  private campaignViews: AllCampaignsViewData = {} as AllCampaignsViewData;
   private logger = logger.child({component: 'CampaignManager'});
 
   async initialize() {
     if (!this.initialized) {
       try {
-        const campaignViews = campaignViewsSchema.parse(JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) ?? '{}'));
-        // Filter out data from campaigns that don't exist anymore
+        const campaignViews = allCampaignsViewData.parse(JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) ?? '{}'));
+        // Only extract data from campaigns that are currently in use
         Object.entries(campaignViews).forEach(([campaignId, campaignView]) => {
           if (campaignId in CAMPAIGNS) {
-            this.campaignViews[campaignId as CampaignId] = campaignView;
+            Object.entries(campaignView).forEach(([location, locationView]) => {
+              if (location in CAMPAIGNS[campaignId as CampaignId].locations) {
+                this.setCampaignViewData(campaignId as CampaignId, location as CampaignLocationId<CampaignId>, locationView);
+              }
+            });
           }
         });
       } catch (e) {
@@ -57,7 +55,6 @@ class CampaignManager implements ICampaignManager {
       }
       this.initialized = true;
     }
-    return this.campaignViews;
   }
 
   private checkInitialized() {
@@ -68,52 +65,58 @@ class CampaignManager implements ICampaignManager {
   }
 
   private async saveCampaignViews() {
-    this.checkInitialized();
-    // todo: debounce
     await AsyncStorage.setItem(CAMPAIGN_DATA_KEY, JSON.stringify(this.campaignViews));
   }
 
-  campaignActive(campaignId: CampaignId, atDate: Date | undefined = undefined): boolean {
-    this.checkInitialized();
-    const campaign = CAMPAIGNS[campaignId];
-    const date = atDate ?? new Date();
-    return campaign.enabled && date >= campaign.startDate && date < campaign.endDate;
+  private getCampaignViewData<T extends CampaignId>(campaignId: T, location: CampaignLocationId<T>): CampaignLocationViewData {
+    if (typeof location !== 'string') {
+      // this should never happen. typescript simultaneously can tell you that only selected strings are allowed for `location`,
+      // and yet also treats it as string | symbol | number when you try to index into an object with it. this check
+      // makes the compiler behave as expected.
+      throw new Error(`Invalid location type for ${location.toString()}`);
+    }
+
+    const data = this.campaignViews[campaignId]?.[location] || {lastDisplayed: undefined};
+
+    // Return a copy of the data so that we don't accidentally mutate it
+    return {...data};
   }
 
-  shouldShowCampaign(campaignId: CampaignId, atDate: Date | undefined = undefined): boolean {
+  private setCampaignViewData<T extends CampaignId>(campaignId: T, location: CampaignLocationId<T>, data: CampaignLocationViewData): void {
+    if (typeof location !== 'string') {
+      // this should never happen. typescript simultaneously can tell you that only selected strings are allowed for `location`,
+      // and yet also treats it as string | symbol | number when you try to index into an object with it. this check
+      // makes the compiler behave as expected.
+      throw new Error(`Invalid location type for ${location.toString()}`);
+    }
+
+    this.campaignViews[campaignId] = this.campaignViews[campaignId] || {};
+    this.campaignViews[campaignId][location] = data;
+  }
+
+  shouldShowCampaign<T extends CampaignId>(campaignId: T, location: CampaignLocationId<T>, atDate: Date | undefined = undefined): boolean {
     this.checkInitialized();
     const campaign = CAMPAIGNS[campaignId];
     const date = atDate ?? new Date();
-    const campaignActive = this.campaignActive(campaignId, date);
+    const campaignActive = campaign.enabled && date >= campaign.startDate && date < campaign.endDate;
     if (!campaignActive) {
       return false;
     }
-    const campaignView = this.campaignViews[campaignId];
-    if (!campaignView || !campaignView.lastDisplayed) {
+    const campaignView = this.getCampaignViewData(campaignId, location);
+    if (!campaignView.lastDisplayed) {
       return true;
     }
 
-    return differenceInCalendarDays(date, campaignView.lastDisplayed) >= 1 || campaignView.timesDisplayed < campaign.viewsPerDay;
+    // Typescript gets really lost here trying to infer the type of campaign.locations[location]
+    const {frequency} = (campaign.locations as Record<string, {frequency: number}>)[location as string] ?? {frequency: ALWAYS_SHOW};
+    return date.getTime() - campaignView.lastDisplayed.getTime() >= frequency;
   }
 
-  async recordCampaignView(campaignId: CampaignId, atDate: Date | undefined = undefined) {
+  async recordCampaignView<T extends CampaignId>(campaignId: T, location: CampaignLocationId<T>, atDate: Date | undefined = undefined) {
     this.checkInitialized();
 
     const date = atDate ?? new Date();
-    const campaignView = this.campaignViews[campaignId];
-    if (!campaignView) {
-      this.campaignViews[campaignId] = {
-        lastDisplayed: date,
-        timesDisplayed: 1,
-      };
-    } else {
-      const lastDisplayed = campaignView.lastDisplayed;
-      campaignView.lastDisplayed = date;
-      if (lastDisplayed && differenceInCalendarDays(date, lastDisplayed) >= 1) {
-        campaignView.timesDisplayed = 0;
-      }
-      campaignView.timesDisplayed += 1;
-    }
+    this.setCampaignViewData(campaignId, location, {lastDisplayed: date});
     await this.saveCampaignViews();
   }
 }
