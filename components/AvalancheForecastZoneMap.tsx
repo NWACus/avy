@@ -148,7 +148,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   useFocusEffect(
     useCallback(() => {
       // Bake in a delay before showing the campaign modal, so that it doesn't pop up before the map is drawn
-      const timeout = setTimeout(() => setScreenFocused(true), 2000);
+      const timeout = setTimeout(() => setScreenFocused(true), 200);
       return () => {
         clearTimeout(timeout);
         setScreenFocused(false);
