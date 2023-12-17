@@ -2,7 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {CAMPAIGN_DATA_KEY} from 'data/asyncStorageKeys';
 import {AllCampaignsViewData, ICampaignManager, createCampaignManagerForTests} from 'data/campaigns/campaignManager';
-import CAMPAIGNS, {UNLIMITED_VIEWS_PER_DAY} from 'data/campaigns/campaigns';
+import CAMPAIGNS, {ALWAYS_SHOW} from 'data/campaigns/campaigns';
+import {addHours} from 'date-fns';
 
 describe('campaignManager', () => {
   let campaignManager: ICampaignManager;
@@ -26,7 +27,6 @@ describe('campaignManager', () => {
           'old-unused-campaign': {
             'home-screen': {
               lastDisplayed: '2023-12-15T00:00:00.000Z',
-              timesDisplayed: 1,
             },
           },
         }),
@@ -42,7 +42,6 @@ describe('campaignManager', () => {
           'old-unused-campaign': {
             'home-screen': {
               lastDisplayed: '2023-12-15T00:00:00.000Z',
-              timesDisplayed: 1,
             },
           },
         }),
@@ -60,7 +59,6 @@ describe('campaignManager', () => {
         'test-enabled-campaign': {
           'home-screen': {
             lastDisplayed: today.toISOString(),
-            timesDisplayed: 1,
           },
         },
       });
@@ -73,7 +71,6 @@ describe('campaignManager', () => {
           'test-enabled-campaign': {
             'home-screen': {
               lastDisplayed: '2023-12-15T00:00:00.000Z',
-              timesDisplayed: 2,
             },
           },
         }),
@@ -91,7 +88,6 @@ describe('campaignManager', () => {
         'test-enabled-campaign': {
           'home-screen': {
             lastDisplayed: today.toISOString(),
-            timesDisplayed: 3,
           },
         },
       });
@@ -123,28 +119,37 @@ describe('campaignManager', () => {
       expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', currentDate)).toBe(false);
     });
 
-    it('should respect the viewsPerDay field', async () => {
+    it('should respect the frequency field', async () => {
       const campaignId = 'test-enabled-campaign';
-      const today = new Date('2023-12-15');
-      const tomorrow = new Date('2023-12-16');
+      let date = new Date('2023-12-15');
 
-      // Should show the campaign 3 times today
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', today)).toBe(true);
-      await campaignManager.recordCampaignView(campaignId, 'home-screen', today);
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', today)).toBe(true);
-      await campaignManager.recordCampaignView(campaignId, 'home-screen', today);
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', today)).toBe(true);
-      await campaignManager.recordCampaignView(campaignId, 'home-screen', today);
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', today)).toBe(false);
+      // Should show the campaign no more than every 2 hours; should only show once at that time
+      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(true);
+      await campaignManager.recordCampaignView(campaignId, 'home-screen', date);
+      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(false);
 
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', tomorrow)).toBe(true);
+      // If only one hour has elapsed, we're still not ready to show again
+      date = addHours(date, 1);
+      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(false);
+
+      // If one more hour has elapsed, we are ready to show
+      date = addHours(date, 1);
+      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(true);
+      await campaignManager.recordCampaignView(campaignId, 'home-screen', date);
+      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(false);
+
+      // Add more hours and we can show again
+      date = addHours(date, 8);
+      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(true);
+      await campaignManager.recordCampaignView(campaignId, 'home-screen', date);
+      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(false);
     });
 
-    it('allows unlimited views per day when viewsPerDay === UNLIMITED_VIEWS_PER_DAY', async () => {
+    it('allows unlimited views per day when frequency === ALWAYS_SHOW', async () => {
       const campaignId = 'test-enabled-campaign';
       const today = new Date('2023-12-15');
 
-      expect(CAMPAIGNS[campaignId].locations['always-show'].viewsPerDay).toBe(UNLIMITED_VIEWS_PER_DAY);
+      expect(CAMPAIGNS[campaignId].locations['always-show'].frequency).toBe(ALWAYS_SHOW);
       for (let i = 0; i < 10; i++) {
         expect(campaignManager.shouldShowCampaign(campaignId, 'always-show', today)).toBe(true);
         await campaignManager.recordCampaignView(campaignId, 'always-show', today);
@@ -163,7 +168,6 @@ describe('campaignManager', () => {
         'test-enabled-campaign': {
           'home-screen': {
             lastDisplayed: currentDate.toISOString(),
-            timesDisplayed: 1,
           },
         },
       });

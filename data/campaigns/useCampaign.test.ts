@@ -1,9 +1,13 @@
 /* ESLint reads references to mixpanel.track as attempts to call it */
 /* eslint-disable @typescript-eslint/unbound-method */
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {renderHook} from '@testing-library/react-hooks';
-import {useCampaign} from 'data/campaigns/useCampaign';
 import mixpanel from 'mixpanel';
 import {useFeatureFlag} from 'posthog-react-native';
+
+import {CAMPAIGN_DATA_KEY} from 'data/asyncStorageKeys';
+import {ICampaignManager, createCampaignManagerForTests} from 'data/campaigns/campaignManager';
+import {useCampaign} from 'data/campaigns/useCampaign';
 
 jest.mock('mixpanel', () => ({
   track: jest.fn(),
@@ -14,7 +18,12 @@ jest.mock('posthog-react-native', () => ({
 }));
 
 describe('useCampaign', () => {
-  beforeEach(() => {
+  let campaignManager: ICampaignManager;
+
+  beforeEach(async () => {
+    await AsyncStorage.removeItem(CAMPAIGN_DATA_KEY);
+    campaignManager = await createCampaignManagerForTests();
+
     jest.clearAllMocks();
   });
 
@@ -23,7 +32,7 @@ describe('useCampaign', () => {
     const location = 'home-screen';
     const currentDate = new Date('2023-12-15');
 
-    const {result} = renderHook(() => useCampaign(campaignId, location, currentDate));
+    const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
     const [campaignEnabled] = result.current;
     expect(campaignEnabled).toBe(true);
 
@@ -38,7 +47,7 @@ describe('useCampaign', () => {
     const location = 'home-screen';
     const currentDate = new Date('2023-12-15');
 
-    const {result} = renderHook(() => useCampaign(campaignId, location, currentDate));
+    const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
     const [campaignEnabled] = result.current;
     expect(campaignEnabled).toBe(false);
 
@@ -52,7 +61,7 @@ describe('useCampaign', () => {
 
     (useFeatureFlag as jest.Mock).mockReturnValueOnce(false);
 
-    const {result} = renderHook(() => useCampaign(campaignId, location, currentDate));
+    const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
     const [campaignEnabled] = result.current;
     expect(campaignEnabled).toBe(false);
 
@@ -65,7 +74,7 @@ describe('useCampaign', () => {
       const location = 'home-screen';
       const currentDate = new Date('2023-12-15');
 
-      const {result} = renderHook(() => useCampaign(campaignId, location, currentDate));
+      const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
       const [campaignEnabled, trackInteraction] = result.current;
       expect(campaignEnabled).toBe(false);
 
@@ -78,7 +87,7 @@ describe('useCampaign', () => {
       const location = 'home-screen';
       const currentDate = new Date('2023-12-15');
 
-      const {result} = renderHook(() => useCampaign(campaignId, location, currentDate));
+      const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
       const [campaignEnabled, trackInteraction] = result.current;
       expect(campaignEnabled).toBe(true);
       expect(mixpanel.track).toHaveBeenCalledWith('Campaign viewed', {

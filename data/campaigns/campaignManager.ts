@@ -2,15 +2,13 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {CAMPAIGN_DATA_KEY} from 'data/asyncStorageKeys';
-import CAMPAIGNS, {CampaignId, CampaignLocationId, UNLIMITED_VIEWS_PER_DAY} from 'data/campaigns/campaigns';
-import {differenceInCalendarDays} from 'date-fns';
+import CAMPAIGNS, {ALWAYS_SHOW, CampaignId, CampaignLocationId} from 'data/campaigns/campaigns';
 import {logger} from 'logger';
 import * as Sentry from 'sentry-expo';
 import {z} from 'zod';
 
 const campaignLocationViewDataSchema = z.object({
   lastDisplayed: z.coerce.date().optional(),
-  timesDisplayed: z.number(),
 });
 type CampaignLocationViewData = z.infer<typeof campaignLocationViewDataSchema>;
 
@@ -20,7 +18,7 @@ export type AllCampaignsViewData = z.infer<typeof allCampaignsViewData>;
 
 export interface ICampaignManager {
   /** Given a date, calls campaignActive to see if the given campaign is active for that date,
-   * and then checks `lastDisplayed` date and `viewsPerDay` to decide if the campaign should be shown.
+   * and then checks `lastDisplayed` date and `frequency` to decide if the campaign should be shown.
    */
   shouldShowCampaign<T extends CampaignId>(campaignId: T, location: CampaignLocationId<T>, atDate?: Date): boolean;
 
@@ -78,7 +76,7 @@ class CampaignManager implements ICampaignManager {
       throw new Error(`Invalid location type for ${location.toString()}`);
     }
 
-    const data = this.campaignViews[campaignId]?.[location] || {lastDisplayed: undefined, timesDisplayed: 0};
+    const data = this.campaignViews[campaignId]?.[location] || {lastDisplayed: undefined};
 
     // Return a copy of the data so that we don't accidentally mutate it
     return {...data};
@@ -110,25 +108,15 @@ class CampaignManager implements ICampaignManager {
     }
 
     // Typescript gets really lost here trying to infer the type of campaign.locations[location]
-    const locationData = (campaign.locations as Record<string, {viewsPerDay: number}>)[location as string] ?? {viewsPerDay: UNLIMITED_VIEWS_PER_DAY};
-    const viewsPerDay = locationData.viewsPerDay;
-    const moreViewsAllowed = viewsPerDay === UNLIMITED_VIEWS_PER_DAY || campaignView.timesDisplayed < viewsPerDay;
-
-    return differenceInCalendarDays(date, campaignView.lastDisplayed) >= 1 || moreViewsAllowed;
+    const {frequency} = (campaign.locations as Record<string, {frequency: number}>)[location as string] ?? {frequency: ALWAYS_SHOW};
+    return date.getTime() - campaignView.lastDisplayed.getTime() >= frequency;
   }
 
   async recordCampaignView<T extends CampaignId>(campaignId: T, location: CampaignLocationId<T>, atDate: Date | undefined = undefined) {
     this.checkInitialized();
 
     const date = atDate ?? new Date();
-    const campaignView = this.getCampaignViewData(campaignId, location);
-    const lastDisplayed = campaignView.lastDisplayed;
-    campaignView.lastDisplayed = date;
-    if (lastDisplayed && differenceInCalendarDays(date, lastDisplayed) >= 1) {
-      campaignView.timesDisplayed = 0;
-    }
-    campaignView.timesDisplayed += 1;
-    this.setCampaignViewData(campaignId, location, campaignView);
+    this.setCampaignViewData(campaignId, location, {lastDisplayed: date});
     await this.saveCampaignViews();
   }
 }

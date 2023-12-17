@@ -1,13 +1,13 @@
-export const UNLIMITED_VIEWS_PER_DAY = -1;
+export const ALWAYS_SHOW = 0;
 
 /**
  * This object defines campaigns that can be shown to users. Each campaign has a start and end date, and a list of
- * locations where it can be shown. Each location has a maximum number of times the campaign can be shown per day.
+ * locations where it can be shown. Each location has a frequency, indicating how many milliseconds must elapse between showings.
  * Some locations are unobtrusive and will show the campaign every time, while others like a modal popup will only
- * show a fixed number of times per day.
+ * show at a slower rate.
  *
  * The campaign manager will keep track of how many times a campaign has been shown in each location, and will
- * automatically prevent the campaign from being shown more than the maximum number of times per day.
+ * automatically prevent the campaign from being shown faster than the frequency allows.
  *
  * It's recommended to use the `useCampaign` hook to check if a campaign should be shown, as it will handle all the common tasks involved:
  * - Checking the campaign feature flag
@@ -22,10 +22,10 @@ const CAMPAIGNS = {
     enabled: true,
     locations: {
       'observation-list-view': {
-        viewsPerDay: UNLIMITED_VIEWS_PER_DAY,
+        frequency: ALWAYS_SHOW,
       },
       'map-view': {
-        viewsPerDay: 1,
+        frequency: 8 * 60 * 60 * 1000, // 8 hours
       },
     },
   },
@@ -37,10 +37,10 @@ const CAMPAIGNS = {
     enabled: true,
     locations: {
       'home-screen': {
-        viewsPerDay: 3,
+        frequency: 2 * 60 * 60 * 1000, // 2 hours
       },
       'always-show': {
-        viewsPerDay: UNLIMITED_VIEWS_PER_DAY,
+        frequency: ALWAYS_SHOW,
       },
     },
   },
@@ -50,7 +50,7 @@ const CAMPAIGNS = {
     enabled: false,
     locations: {
       'home-screen': {
-        viewsPerDay: 3,
+        frequency: 2 * 60 * 60 * 1000, // 2 hours
       },
     },
   },
