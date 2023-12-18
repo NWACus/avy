@@ -5,6 +5,7 @@ import {CAMPAIGN_DATA_KEY} from 'data/asyncStorageKeys';
 import CAMPAIGNS, {ALWAYS_SHOW, CampaignId, CampaignLocationId} from 'data/campaigns/campaigns';
 import {logger} from 'logger';
 import * as Sentry from 'sentry-expo';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {z} from 'zod';
 
 const campaignLocationViewDataSchema = z.object({
@@ -20,7 +21,7 @@ export interface ICampaignManager {
   /** Given a date, calls campaignActive to see if the given campaign is active for that date,
    * and then checks `lastDisplayed` date and `frequency` to decide if the campaign should be shown.
    */
-  shouldShowCampaign<T extends CampaignId>(campaignId: T, location: CampaignLocationId<T>, atDate?: Date): boolean;
+  shouldShowCampaign<T extends CampaignId>(centerId: AvalancheCenterID, campaignId: T, location: CampaignLocationId<T>, atDate?: Date): boolean;
 
   /** Records a campaign view for the given campaignId. Use along with shouldShowCampaign to track
    * views of more intrusive campaign elements.
@@ -94,13 +95,17 @@ class CampaignManager implements ICampaignManager {
     this.campaignViews[campaignId][location] = data;
   }
 
-  shouldShowCampaign<T extends CampaignId>(campaignId: T, location: CampaignLocationId<T>, atDate: Date | undefined = undefined): boolean {
+  shouldShowCampaign<T extends CampaignId>(centerId: AvalancheCenterID, campaignId: T, location: CampaignLocationId<T>, atDate: Date | undefined = undefined): boolean {
     this.checkInitialized();
     const campaign = CAMPAIGNS[campaignId];
     const date = atDate ?? new Date();
     const campaignActive = campaign.enabled && date >= campaign.startDate && date < campaign.endDate;
     if (!campaignActive) {
       this.logger.debug('campaign not active');
+      return false;
+    }
+    if ('allowedCenters' in campaign && !(campaign.allowedCenters as readonly string[]).includes(centerId)) {
+      this.logger.debug('campaign not allowed for this center');
       return false;
     }
     const campaignView = this.getCampaignViewData(campaignId, location);

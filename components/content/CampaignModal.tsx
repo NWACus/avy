@@ -54,7 +54,7 @@ export const CampaignModal: React.FC<CampaignModalProps> = ({onAction = () => un
                 <View style={{position: 'relative', height: 160, width: '100%'}}>
                   <Image
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    source={require('assets/campaigns/campaign-q4-2023/banner.png')}
+                    source={require('assets/campaigns/nwac-campaign-q4-2023/banner.png')}
                     style={{height: undefined, width: undefined, aspectRatio: 2.74348422}}
                     resizeMode="contain"
                   />

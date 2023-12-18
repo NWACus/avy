@@ -48,7 +48,7 @@ describe('useCampaign', () => {
     const location = 'home-screen';
     const currentDate = new Date('2023-12-15');
 
-    const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
+    const {result} = renderHook(() => useCampaign('NWAC', campaignId, location, campaignManager, currentDate));
     act(() => {
       // we have to wait for the simulated useFocusEffect to run
       jest.advanceTimersToNextTimer();
@@ -57,6 +57,7 @@ describe('useCampaign', () => {
     expect(campaignEnabled).toBe(true);
 
     expect(mixpanel.track).toHaveBeenCalledWith('Campaign viewed', {
+      center: 'NWAC',
       campaign: campaignId,
       'campaign-location': location,
     });
@@ -67,7 +68,7 @@ describe('useCampaign', () => {
     const location = 'home-screen';
     const currentDate = new Date('2023-12-15');
 
-    const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
+    const {result} = renderHook(() => useCampaign('NWAC', campaignId, location, campaignManager, currentDate));
     act(() => {
       // we have to wait for the simulated useFocusEffect to run
       jest.advanceTimersToNextTimer();
@@ -85,7 +86,7 @@ describe('useCampaign', () => {
 
     (useFeatureFlag as jest.Mock).mockReturnValue(false);
 
-    const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
+    const {result} = renderHook(() => useCampaign('NWAC', campaignId, location, campaignManager, currentDate));
     act(() => {
       // we have to wait for the simulated useFocusEffect to run
       jest.advanceTimersToNextTimer();
@@ -103,7 +104,7 @@ describe('useCampaign', () => {
       const location = 'home-screen';
       const currentDate = new Date('2023-12-15');
 
-      const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
+      const {result} = renderHook(() => useCampaign('NWAC', campaignId, location, campaignManager, currentDate));
       act(() => {
         // we have to wait for the simulated useFocusEffect to run
         jest.advanceTimersToNextTimer();
@@ -120,7 +121,7 @@ describe('useCampaign', () => {
       const location = 'home-screen';
       const currentDate = new Date('2023-12-15');
 
-      const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
+      const {result} = renderHook(() => useCampaign('NWAC', campaignId, location, campaignManager, currentDate));
       act(() => {
         // we have to wait for the simulated useFocusEffect to run
         jest.advanceTimersToNextTimer();
@@ -128,6 +129,7 @@ describe('useCampaign', () => {
       const [campaignEnabled, trackInteraction] = result.current;
       expect(campaignEnabled).toBe(true);
       expect(mixpanel.track).toHaveBeenCalledWith('Campaign viewed', {
+        center: 'NWAC',
         campaign: campaignId,
         'campaign-location': location,
       });
@@ -139,6 +141,7 @@ describe('useCampaign', () => {
 
       expect(mixpanel.track).toHaveBeenCalledTimes(2);
       expect(mixpanel.track).toHaveBeenLastCalledWith('Campaign interaction', {
+        center: 'NWAC',
         campaign: campaignId,
         'campaign-location': location,
       });
