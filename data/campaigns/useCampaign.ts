@@ -4,7 +4,7 @@ import {CampaignId, CampaignLocationId} from 'data/campaigns/campaigns';
 import {logger as globalLogger} from 'logger';
 import mixpanel from 'mixpanel';
 import {useFeatureFlag} from 'posthog-react-native';
-import {useCallback, useRef, useState} from 'react';
+import {useCallback, useMemo, useRef, useState} from 'react';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 const logger = globalLogger.child({component: 'useCampaign'});
@@ -16,16 +16,22 @@ export function useCampaign<T extends CampaignId>(
   theCampaignManager: ICampaignManager = campaignManager,
   date: Date | undefined = undefined,
 ): [campaignEnabled: boolean, trackInteraction: () => void] {
-  const campaignFeatureFlag = !!useFeatureFlag(campaignId);
+  const campaignFeatureFlag = useFeatureFlag(campaignId);
   const [campaignEnabled, setCampaignEnabled] = useState(false);
-  logger.debug('useCampaign', {centerId, campaignId, location, campaignFeatureFlag, campaignEnabled});
+  const campaignFeatureFlagValue = useMemo(() => {
+    if (campaignFeatureFlag === undefined) {
+      logger.warn(`Campaign feature flag missing: ${campaignId}, assuming false`);
+    }
+    return !!campaignFeatureFlag;
+  }, [campaignFeatureFlag, campaignId]);
+  logger.debug('useCampaign', {centerId, campaignId, location, campaignFeatureFlag, campaignFeatureFlagValue, campaignEnabled});
 
   // When our parent screen is focused, check the status of the campaign. Keep the status constant until the screen is unfocused.
   useFocusEffect(
     useCallback(() => {
       const shouldShowCampaign = theCampaignManager.shouldShowCampaign(centerId, campaignId, location, date);
-      setCampaignEnabled(shouldShowCampaign && campaignFeatureFlag);
-      if (shouldShowCampaign && campaignFeatureFlag) {
+      setCampaignEnabled(shouldShowCampaign && campaignFeatureFlagValue);
+      if (shouldShowCampaign && campaignFeatureFlagValue) {
         theCampaignManager.recordCampaignView(campaignId, location).catch((error: Error) => {
           logger.error('Failed to record campaign view', {campaignId, location, error});
         });
@@ -35,7 +41,7 @@ export function useCampaign<T extends CampaignId>(
       return () => {
         setCampaignEnabled(false);
       };
-    }, [campaignFeatureFlag, campaignId, centerId, date, location, theCampaignManager]),
+    }, [campaignFeatureFlagValue, campaignId, centerId, date, location, theCampaignManager]),
   );
 
   logger.debug('Campaign enabled', {campaignId, location, campaignFeatureFlag, campaignEnabled});
