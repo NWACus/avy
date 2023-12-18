@@ -97,6 +97,7 @@ class CampaignManager implements ICampaignManager {
 
   shouldShowCampaign<T extends CampaignId>(centerId: AvalancheCenterID, campaignId: T, location: CampaignLocationId<T>, atDate: Date | undefined = undefined): boolean {
     this.checkInitialized();
+    this.logger.debug('shouldShowCampaign', {centerId, campaignId, location, atDate});
     const campaign = CAMPAIGNS[campaignId];
     const date = atDate ?? new Date();
     const campaignActive = campaign.enabled && date >= campaign.startDate && date < campaign.endDate;

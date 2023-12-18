@@ -18,6 +18,7 @@ export function useCampaign<T extends CampaignId>(
 ): [campaignEnabled: boolean, trackInteraction: () => void] {
   const campaignFeatureFlag = !!useFeatureFlag(campaignId);
   const [campaignEnabled, setCampaignEnabled] = useState(false);
+  logger.debug('useCampaign', {centerId, campaignId, location, campaignFeatureFlag, campaignEnabled});
 
   // When our parent screen is focused, check the status of the campaign. Keep the status constant until the screen is unfocused.
   useFocusEffect(
