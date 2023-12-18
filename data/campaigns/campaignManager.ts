@@ -100,6 +100,7 @@ class CampaignManager implements ICampaignManager {
     const date = atDate ?? new Date();
     const campaignActive = campaign.enabled && date >= campaign.startDate && date < campaign.endDate;
     if (!campaignActive) {
+      this.logger.debug('campaign not active');
       return false;
     }
     const campaignView = this.getCampaignViewData(campaignId, location);
@@ -109,7 +110,16 @@ class CampaignManager implements ICampaignManager {
 
     // Typescript gets really lost here trying to infer the type of campaign.locations[location]
     const {frequency} = (campaign.locations as Record<string, {frequency: number}>)[location as string] ?? {frequency: ALWAYS_SHOW};
-    return date.getTime() - campaignView.lastDisplayed.getTime() >= frequency;
+    const deltaMs = date.getTime() - campaignView.lastDisplayed.getTime();
+    this.logger.debug('shouldShowCampaign', {
+      location,
+      frequency,
+      date: date.toISOString(),
+      lastDisplayed: campaignView.lastDisplayed.toISOString(),
+      deltaMs,
+      show: deltaMs >= frequency,
+    });
+    return deltaMs >= frequency;
   }
 
   async recordCampaignView<T extends CampaignId>(campaignId: T, location: CampaignLocationId<T>, atDate: Date | undefined = undefined) {
@@ -129,4 +139,8 @@ export const createCampaignManagerForTests = async (): Promise<ICampaignManager>
   const campaignManager = new CampaignManager();
   await campaignManager.initialize();
   return campaignManager;
+};
+
+export const clearCampaignViewData = async (): Promise<void> => {
+  await AsyncStorage.removeItem(CAMPAIGN_DATA_KEY);
 };
