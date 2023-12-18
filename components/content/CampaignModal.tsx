@@ -2,9 +2,10 @@ import {AntDesign} from '@expo/vector-icons';
 import {Button} from 'components/content/Button';
 import {Center, View, VStack} from 'components/core';
 import {BodyBlack} from 'components/text';
+import {useCachedImageURI} from 'hooks/useCachedImageURI';
 import {useToggle} from 'hooks/useToggle';
 import React, {useCallback} from 'react';
-import {Image, Modal, TouchableOpacity, TouchableWithoutFeedback} from 'react-native';
+import {ActivityIndicator, Image, ImageSourcePropType, Modal, TouchableOpacity, TouchableWithoutFeedback} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 
@@ -18,6 +19,8 @@ export const CampaignModal: React.FC<CampaignModalProps> = ({onAction = () => un
     hideModal();
     onAction();
   }, [hideModal, onAction]);
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const {data: uri} = useCachedImageURI(Image.resolveAssetSource(require('assets/campaigns/nwac-campaign-q4-2023/banner.png') as ImageSourcePropType).uri);
 
   return (
     // Pressing the Android back button dismisses the modal
@@ -52,12 +55,13 @@ export const CampaignModal: React.FC<CampaignModalProps> = ({onAction = () => un
                   <AntDesign name="close" size={24} color="white" />
                 </TouchableOpacity>
                 <View style={{position: 'relative', height: 160, width: '100%'}}>
-                  <Image
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    source={require('assets/campaigns/campaign-q4-2023/banner.png')}
-                    style={{height: undefined, width: undefined, aspectRatio: 2.74348422}}
-                    resizeMode="contain"
-                  />
+                  {uri ? (
+                    <Image source={{uri}} style={{height: undefined, width: undefined, aspectRatio: 2.74348422}} resizeMode="contain" />
+                  ) : (
+                    <Center width="100%" height="100%">
+                      <ActivityIndicator size="large" color="white" />
+                    </Center>
+                  )}
                 </View>
                 <Center width="100%" px={16} alignItems="stretch">
                   <Button buttonStyle="primary" onPress={activateCampaign}>
