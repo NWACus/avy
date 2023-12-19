@@ -11,7 +11,7 @@ export async function uploadObservation(id: string, data: ObservationTaskData): 
   const payload: Partial<Observation> = {
     ...formData,
     ...params,
-    obs_source: 'public',
+    obs_source: 'avy_app',
     // Date has to be a plain-old YYYY-MM-DD string. This format is the same format used by
     // `apiDateString`, but that function also converts to UTC, which we don't want to do here (#584)
     start_date: format(formData.start_date, 'yyyy-MM-dd'),

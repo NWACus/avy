@@ -971,6 +971,8 @@ export const FormatPartnerType = (value: PartnerType): string => {
 const ObsSourceType = {
   Public: 'public',
   Dashboard: 'dashboard',
+  Widget: 'widget',
+  Avy: 'avy_app',
 } as const;
 
 export const instabilitySchema = z.object({
