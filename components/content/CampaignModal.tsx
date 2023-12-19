@@ -8,19 +8,30 @@ import React, {useCallback} from 'react';
 import {ActivityIndicator, Image, ImageSourcePropType, Modal, TouchableOpacity, TouchableWithoutFeedback} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 export interface CampaignModalProps {
+  center: AvalancheCenterID;
   onAction?: () => void;
 }
 
-export const CampaignModal: React.FC<CampaignModalProps> = ({onAction = () => undefined}) => {
+const imageUris = {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  NWAC: Image.resolveAssetSource(require('assets/campaigns/nwac-campaign-q4-2023/banner.png') as ImageSourcePropType).uri,
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  SNFAC: Image.resolveAssetSource(require('assets/campaigns/nwac-campaign-q4-2023/banner-sac.png') as ImageSourcePropType).uri,
+} as Record<string, string>;
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const missingImage = Image.resolveAssetSource(require('assets/campaigns/nwac-campaign-q4-2023/placeholder.png') as ImageSourcePropType).uri;
+
+export const CampaignModal: React.FC<CampaignModalProps> = ({center, onAction = () => undefined}) => {
   const [showModal, {off: hideModal}] = useToggle(true);
   const activateCampaign = useCallback(() => {
     hideModal();
     onAction();
   }, [hideModal, onAction]);
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const {data: uri} = useCachedImageURI(Image.resolveAssetSource(require('assets/campaigns/nwac-campaign-q4-2023/banner.png') as ImageSourcePropType).uri);
+  const {data: uri} = useCachedImageURI(imageUris[center] ?? missingImage);
 
   return (
     // Pressing the Android back button dismisses the modal
