@@ -968,12 +968,12 @@ export const FormatPartnerType = (value: PartnerType): string => {
   return reverseLookup(PartnerType, value);
 };
 
-export enum ObservationSource {
-  Public = 'public',
-  Dashboard = 'dashboard',
-  Widget = 'widget',
-  Avy = 'avy_app',
-}
+export const ObservationSource = {
+  Public: 'public',
+  Dashboard: 'dashboard',
+  Widget: 'widget',
+  Avy: 'avy_app',
+} as const;
 
 export const instabilitySchema = z.object({
   avalanches_observed: z.boolean().optional(/* only because of NWAC */),
