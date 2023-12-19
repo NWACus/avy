@@ -125,6 +125,7 @@ class CampaignManager implements ICampaignManager {
     }
     const campaignView = this.getCampaignViewData(campaignId, location);
     if (!campaignView.lastDisplayed) {
+      this.logger.debug("campaign hasn't been shown yet, returning true");
       return true;
     }
 

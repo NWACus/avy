@@ -18,26 +18,14 @@ export const ALWAYS_SHOW = 0;
 const CAMPAIGNS = {
   'nwac-campaign-q4-2023': {
     enabled: true,
-    allowedCenters: ['NWAC'],
+    allowedCenters: ['NWAC', 'SNFAC'],
     locations: {
       'observation-list-view': {
         frequency: ALWAYS_SHOW,
         startDate: new Date('2023-12-01'),
         endDate: new Date('2024-01-01'),
       },
-      'map-view': {
-        frequency: 16 * 60 * 60 * 1000, // 16 hours
-        startDate: new Date('2023-12-22'),
-        endDate: new Date('2024-01-01'),
-      },
-    },
-  },
-
-  'sac-campaign-q4-2023': {
-    enabled: true,
-    allowedCenters: ['SNFAC'],
-    locations: {
-      'observation-list-view': {
+      'menu-screen': {
         frequency: ALWAYS_SHOW,
         startDate: new Date('2023-12-01'),
         endDate: new Date('2024-01-01'),
