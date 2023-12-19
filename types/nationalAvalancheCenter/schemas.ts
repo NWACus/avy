@@ -968,10 +968,12 @@ export const FormatPartnerType = (value: PartnerType): string => {
   return reverseLookup(PartnerType, value);
 };
 
-const ObsSourceType = {
-  Public: 'public',
-  Dashboard: 'dashboard',
-} as const;
+export enum ObservationSource {
+  Public = 'public',
+  Dashboard = 'dashboard',
+  Widget = 'widget',
+  Avy = 'avy_app',
+}
 
 export const instabilitySchema = z.object({
   avalanches_observed: z.boolean().optional(/* only because of NWAC */),
@@ -1010,7 +1012,7 @@ export const observationSchema = z.object({
   instability: instabilitySchema,
   instability_summary: z.string().nullable().optional(/* only because of NWAC */),
   observation_summary: z.string().nullable().optional(/* only because of NWAC */),
-  obs_source: z.nativeEnum(ObsSourceType).optional(),
+  obs_source: z.nativeEnum(ObservationSource).optional(),
   media: z.array(mediaItemSchema).nullable().optional(/* only because of NWAC */),
   avalanches_summary: z.string().nullable().optional(/* only because of NWAC */),
   urls: z.array(z.string()).optional(/* only because of NWAC */),
