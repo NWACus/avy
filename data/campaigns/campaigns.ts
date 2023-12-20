@@ -32,7 +32,7 @@ const CAMPAIGNS = {
       },
       'map-view': {
         frequency: 16 * 60 * 60 * 1000, // 16 hours
-        startDate: new Date('2023-12-22'),
+        startDate: new Date('2023-12-24'),
         endDate: new Date('2024-01-01'),
       },
     },
