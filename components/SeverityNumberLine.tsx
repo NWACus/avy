@@ -13,9 +13,12 @@ export interface SeverityNumberLineProps {
   range: SeverityNumberLineRange;
 }
 
+// sizes: [1, 1.5]
+// {from: 3, to: 2.5}
+
 export const SeverityNumberLine: React.FunctionComponent<SeverityNumberLineProps> = ({labels, range}: SeverityNumberLineProps) => {
   const labelStyle = (item: number) => {
-    if (range.from <= item && range.to >= item) {
+    if (range.from >= item && range.to <= item) {
       return styles.active;
     }
     return styles.inactive;
@@ -28,7 +31,7 @@ export const SeverityNumberLine: React.FunctionComponent<SeverityNumberLineProps
     return padding + strokeWidth / 2 + axisHeight * (index / (labels.length - 1));
   };
   const rangePadding = 4;
-  const yBetween: number = y(range.to) - y(range.from) + rangePadding * 2;
+  const yBetween: number = y(range.to) - y(range.from) - rangePadding * 2;
   return (
     <View style={styles.container}>
       <View style={{height: '80%'}}>
@@ -41,7 +44,7 @@ export const SeverityNumberLine: React.FunctionComponent<SeverityNumberLineProps
           strokeLinejoin={'round'}
           strokeMiterlimit={1.5}>
           <Path stroke={'rgb(81,85,88)'} strokeWidth={strokeWidth} d={'M12.5,6l0,200Z'} />
-          <Path stroke={'rgb(81,85,88)'} strokeWidth={strokeWidth} fill={'rgb(200, 202, 206)'} d={`M0,${y(range.from) - rangePadding}l25,0l0,${yBetween}l-25,0l0,${-yBetween}Z`} />
+          <Path stroke={'rgb(81,85,88)'} strokeWidth={strokeWidth} fill={'rgb(200, 202, 206)'} d={`M0,${y(range.from) + rangePadding}l25,0l0,${yBetween}l-25,0l0,${-yBetween}Z`} />
         </Svg>
       </View>
       <View style={{justifyContent: 'space-between', height: '83%'}}>

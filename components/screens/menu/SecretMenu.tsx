@@ -704,28 +704,28 @@ export const ToastPreview = () => {
 
 export const AvalancheComponentPreview = () => {
   return (
-    <SafeAreaView style={styles.fullscreen}>
-      <ScrollView style={{width: '100%', height: '100%'}}>
-        <VStack space={4} p={8}>
-          {[
-            [1, 1],
-            [1, 1.5],
-            [1, 2],
-            [1.5, 2.5],
-            [2, 3],
-            [2, 4],
-            [2, 5],
-          ].map((size, index) => (
-            <HStack alignItems="center" justifyContent="space-around" px={16} key={index}>
+    <ScrollView style={{width: '100%', height: '100%'}}>
+      <HStack space={4} p={8} flex={1} flexWrap={'wrap'}>
+        {[
+          [1, 1],
+          [1, 1.5],
+          [1, 2],
+          [1.5, 2.5],
+          [2, 3],
+          [2, 4],
+          [2, 5],
+        ].map((size, index) => (
+          <HStack py={2} alignItems="center" justifyContent="space-around" key={index} minWidth={'45%'} flex={1}>
+            <VStack borderWidth={1} borderRadius={8} alignItems={'center'}>
+              <AvalancheProblemSizeLine size={size} />
               <BodyBlack>
                 D{size[0]} - D{size[1]}
               </BodyBlack>
-              <AvalancheProblemSizeLine size={size} />
-            </HStack>
-          ))}
-        </VStack>
-      </ScrollView>
-    </SafeAreaView>
+            </VStack>
+          </HStack>
+        ))}
+      </HStack>
+    </ScrollView>
   );
 };
 
