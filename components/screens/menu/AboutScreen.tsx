@@ -13,7 +13,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {ActionList} from 'components/content/ActionList';
 import {Center, HStack, View, VStack} from 'components/core';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
-import {getUpdateGroupId, getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
+import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {usePreferences} from 'Preferences';
 import {MenuStackParamList} from 'routes';
 
@@ -27,7 +27,6 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
     void (async () => {
       await Clipboard.setStringAsync(
         `Avy version ${Application.nativeApplicationVersion || 'n/a'} (${Application.nativeBuildVersion || 'n/a'})
-Build date ${getUpdateTimeAsVersionString()}
 Git revision ${process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a'}
 Update group ID ${updateGroupId} (channel: ${Updates.channel || 'development'})
 Update ID ${Updates.updateId || 'n/a'} (platform: ${Platform.OS})
@@ -63,8 +62,7 @@ User ID ${mixpanelUserId || 'n/a'}`,
         <HStack space={4} px={32}>
           <VStack py={8} space={4}>
             <BodyXSm>
-              Avy version {Application.nativeApplicationVersion} ({Application.nativeBuildVersion}) | {getUpdateTimeAsVersionString()} |{' '}
-              {(process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a').slice(0, 7)}
+              Avy version {Application.nativeApplicationVersion} ({Application.nativeBuildVersion}) | {(process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a').slice(0, 7)}
             </BodyXSm>
             {updateGroupId && (
               <BodyXSm>

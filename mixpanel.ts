@@ -6,7 +6,7 @@ import ExpoMixpanelAnalytics from '@bothrs/expo-mixpanel-analytics';
 import {addEventListener, NetInfoState} from '@react-native-community/netinfo';
 import publicIP from 'react-native-public-ip';
 
-import {getUpdateGroupId, getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
+import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {logger as globalLogger} from 'logger';
 
 const logger = globalLogger.child({module: 'mixpanel'});
@@ -118,7 +118,6 @@ class MixpanelWrapper {
   _registerCommonProps(): void {
     this._mixpanel?.register({
       update_group_id: getUpdateGroupId(),
-      update_version: getUpdateTimeAsVersionString(),
       application_version: Application.nativeApplicationVersion || 'n/a',
       application_build: Application.nativeBuildVersion || 'n/a',
       git_revision: process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a',

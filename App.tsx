@@ -67,7 +67,6 @@ import {Center, VStack} from 'components/core';
 import KillSwitchMonitor from 'components/KillSwitchMonitor';
 import {TamaguiWrapper} from 'components/TamaguiWrapper';
 import {Body, BodyBlack, Title3Black} from 'components/text';
-import {getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
 import {useToggle} from 'hooks/useToggle';
 import {filterLoggedData} from 'logging/filterLoggedData';
 import mixpanel from 'mixpanel';
@@ -142,9 +141,7 @@ if (Sentry?.init) {
       // Set the dist value to the app binary and build. This should not vary often.
       // Example: 1.0.0.54
       dist: `${Application.nativeApplicationVersion || '0.0.0'}.${Application.nativeBuildVersion || '0'}`,
-      // Set the release to a version string based on the update build date (e.g. 2021.02.31.09.30).
-      // Then Sentry can clearly tell when versions are increasing.
-      release: getUpdateTimeAsVersionString(),
+      release: process.env.EXPO_PUBLIC_GIT_REVISION,
       enableInExpoDevelopment: Boolean(process.env.EXPO_PUBLIC_SENTRY_IN_DEV),
       enableWatchdogTerminationTracking: true,
       beforeSend: async (event, hint) => {
