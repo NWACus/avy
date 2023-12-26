@@ -13,7 +13,7 @@ import {Outcome} from 'components/content/Outcome';
 import {VStack} from 'components/core';
 import {BodyBlack} from 'components/text';
 import {useAppState} from 'hooks/useAppState';
-import {getUpdateGroupId, getUpdateTimeAsVersionString} from 'hooks/useEASUpdateStatus';
+import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {logger} from 'logger';
 import {usePreferences} from 'Preferences';
 
@@ -41,7 +41,7 @@ const KillSwitchMonitor: React.FC<KillSwitchMonitorProps> = ({children}) => {
           // We additionally capture it as a number here, so that we can use < and > in feature flag rules.
           buildNumber: Number.parseInt(Application.nativeBuildVersion || '0'),
           updateGroupId: getUpdateGroupId(),
-          updateBuildTime: getUpdateTimeAsVersionString(),
+          updateBuildTime: process.env.EXPO_PUBLIC_GIT_REVISION,
           channel: Updates.channel || 'development',
         },
       });
