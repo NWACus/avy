@@ -11,12 +11,14 @@ interface SendMailProps {
   subject: string;
   logger: Logger;
   body?: string;
+  footer?: string;
   attachments?: string[];
 }
 
-export const sendMail = async ({to, subject, body, attachments, logger}: SendMailProps): Promise<boolean> => {
+export const sendMail = async ({to, subject, body, footer, attachments, logger}: SendMailProps): Promise<boolean> => {
   // MailComposer is not working correctly on iOS - use a mailto link on that platform
   // Filed https://github.com/expo/expo/issues/24613 to get an answer/resolution
+  body = `${body || ''}${footer ? `\n--\n ${footer}` : ''}`;
   if (Platform.OS === 'android') {
     try {
       if (await MailComposer.isAvailableAsync()) {

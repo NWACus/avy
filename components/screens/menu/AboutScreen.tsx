@@ -1,7 +1,7 @@
 import React, {useCallback, useState} from 'react';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {Platform, StyleSheet} from 'react-native';
+import {StyleSheet} from 'react-native';
 
 import * as Application from 'expo-application';
 import * as Clipboard from 'expo-clipboard';
@@ -12,6 +12,7 @@ import {Ionicons} from '@expo/vector-icons';
 
 import {ActionList} from 'components/content/ActionList';
 import {Center, HStack, View, VStack} from 'components/core';
+import {getVersionInfoFull} from 'components/screens/menu/Version';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {usePreferences} from 'Preferences';
@@ -25,13 +26,7 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
   const openUrl = useCallback(({data}: {data: string}) => void WebBrowser.openBrowserAsync(data), []);
   const copyVersionInfoToClipboard = useCallback(() => {
     void (async () => {
-      await Clipboard.setStringAsync(
-        `Avy version ${Application.nativeApplicationVersion || 'n/a'} (${Application.nativeBuildVersion || 'n/a'})
-Git revision ${process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a'}
-Update group ID ${updateGroupId} (channel: ${Updates.channel || 'development'})
-Update ID ${Updates.updateId || 'n/a'} (platform: ${Platform.OS})
-User ID ${mixpanelUserId || 'n/a'}`,
-      );
+      await Clipboard.setStringAsync(getVersionInfoFull(mixpanelUserId, updateGroupId));
     })();
   }, [mixpanelUserId, updateGroupId]);
 
