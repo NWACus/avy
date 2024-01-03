@@ -2,7 +2,7 @@
 // We normally want to avoid using fat arrow functions in props as it can cause excessive re-rendering,
 // but for the debug menu we shouldn't be too worried about it. It never renders in production.
 
-import React, {ReactNode, useCallback} from 'react';
+import React, {ReactNode, useCallback, useState} from 'react';
 
 import DateTimePicker, {DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import {Platform, ScrollView, SectionList, StyleSheet, Switch, TouchableOpacity} from 'react-native';
@@ -31,6 +31,7 @@ import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryS
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {Keys} from 'components/screens/menu/Keys';
+import {getVersionInfoFull} from 'components/screens/menu/Version';
 import {
   AllCapsSm,
   AllCapsSmBlack,
@@ -56,6 +57,7 @@ import {
 } from 'components/text';
 import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
 import {clearCampaignViewData} from 'data/campaigns/campaignManager';
+import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {logFilePath, logger} from 'logger';
 import {sendMail} from 'network/sendMail';
 import {usePreferences} from 'Preferences';
@@ -77,6 +79,7 @@ export const SecretMenu: React.FC<SecretMenuProps> = ({staging, setStaging}) => 
     logger.info({environment: staging ? 'production' : 'staging'}, 'switching environment');
   }, [staging, setStaging]);
   const {preferences, setPreferences, clearPreferences} = usePreferences();
+  const [updateGroupId] = useState(getUpdateGroupId());
   return (
     <CollapsibleCard
       startsCollapsed={preferences.secretMenuCollapsed}
@@ -127,6 +130,7 @@ export const SecretMenu: React.FC<SecretMenuProps> = ({staging, setStaging}) => 
                         to: 'developer+app-logs@nwac.us',
                         subject: 'NWAC app log files',
                         body: `\n\n---\n\nRun \`yarn bunyan ${logFilePath.split('/').slice(-1)[0]}\` to view.\nRun \`yarn bunyan --help\` for additional options.`,
+                        footer: getVersionInfoFull(preferences.mixpanelUserId, updateGroupId),
                         attachments: [logFilePath],
                         logger,
                       }))

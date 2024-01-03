@@ -35,14 +35,17 @@ import {
   TimeMachine,
   ToastPreview,
 } from 'components/screens/menu/SecretMenu';
+import {getVersionInfoFull} from 'components/screens/menu/Version';
 import {NWACObservationScreen, ObservationScreen} from 'components/screens/ObservationsScreen';
 import {Body, BodyBlack, Title3Black} from 'components/text';
 import {openCampaignLink} from 'data/campaigns/openCampaignLink';
 import {useCampaign} from 'data/campaigns/useCampaign';
 import {settingsMenuItems} from 'data/settingsMenuItems';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {sendMail} from 'network/sendMail';
+import {usePreferences} from 'Preferences';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, userFacingCenterId} from 'types/nationalAvalancheCenter';
 
@@ -93,8 +96,22 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
   const {data} = useAvalancheCenterMetadata(avalancheCenterId);
   const menuItems = settingsMenuItems[avalancheCenterId];
 
+  const {
+    preferences: {mixpanelUserId},
+  } = usePreferences();
+  const [updateGroupId] = getUpdateGroupId();
+
   const MenuScreen = function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
-    const sendMailHandler = useCallback(() => void sendMail({to: 'developer+app-feedback@nwac.us', subject: 'NWAC app feedback', logger}), []);
+    const sendMailHandler = useCallback(
+      () =>
+        void sendMail({
+          to: 'developer+app-feedback@nwac.us',
+          subject: 'NWAC app feedback',
+          footer: `Please do not delete, info below helps with debugging.\n\n ${getVersionInfoFull(mixpanelUserId, updateGroupId)}`,
+          logger,
+        }),
+      [],
+    );
     // begin Q4 2023 campaign
     const [showCampaign, trackCampaign] = useCampaign(avalancheCenterId, 'nwac-campaign-q4-2023', 'menu-screen');
     const onCampaignAction = useCallback(() => {
