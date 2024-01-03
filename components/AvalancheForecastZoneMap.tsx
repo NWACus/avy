@@ -11,6 +11,7 @@ import {CampaignModal} from 'components/content/CampaignModal';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {defaultMapRegionForGeometries, MapViewZone, mapViewZoneFor, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
+import {FocusAwareStatusBar} from 'components/core/FocusAwareStatusBar';
 import {DangerScale} from 'components/DangerScale';
 import {pointInFeature} from 'components/helpers/geographicCoordinates';
 import {TravelAdvice} from 'components/helpers/travelAdvice';
@@ -215,6 +216,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   return (
     <>
+      <FocusAwareStatusBar barStyle="light-content" translucent backgroundColor={'rgba(0, 0, 0, 0.35)'} />
       <ZoneMap
         ref={mapView}
         animated

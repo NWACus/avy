@@ -451,7 +451,7 @@ const BaseApp: React.FunctionComponent<{
             <NavigationContainer ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
               <KillSwitchMonitor>
                 <SelectProvider>
-                  <StatusBar barStyle="dark-content" />
+                  <StatusBar barStyle="dark-content" backgroundColor="white" />
                   <View style={StyleSheet.absoluteFill}>
                     <TabNavigator.Navigator initialRouteName="Home" screenOptions={tabNavigatorScreenOptions}>
                       <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
