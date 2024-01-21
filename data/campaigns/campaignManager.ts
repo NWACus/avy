@@ -2,7 +2,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {CAMPAIGN_DATA_KEY} from 'data/asyncStorageKeys';
-import CAMPAIGNS, {ALWAYS_SHOW, CampaignId, CampaignLocationId, CampaignLocations} from 'data/campaigns/campaigns';
+import CAMPAIGNS, {ALWAYS_SHOW, CampaignId, CampaignLocationId} from 'data/campaigns/campaigns';
 import {logger} from 'logger';
 import * as Sentry from 'sentry-expo';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -100,21 +100,7 @@ class CampaignManager implements ICampaignManager {
     this.logger.debug('shouldShowCampaign', {centerId, campaignId, location, atDate});
     const campaign = CAMPAIGNS[campaignId];
     const date = atDate ?? new Date();
-
-    // For typescript, the type of `locations` is inferred as a union of *all* the locations
-    // fields in the whole CAMPAIGNS object, as opposed to the specific one we're interested in.
-    // I think the generic typing could be improved here but I'm not sure what the answer is.
-    const {
-      frequency = ALWAYS_SHOW,
-      startDate = undefined,
-      endDate = undefined,
-    } = (campaign.locations as CampaignLocations<T>)[location] as {
-      readonly frequency: number | undefined;
-      readonly startDate: Date | undefined;
-      readonly endDate: Date | undefined;
-    };
-
-    const campaignActive = campaign.enabled && (!startDate || date >= startDate) && (!endDate || date < endDate);
+    const campaignActive = campaign.enabled && date >= campaign.startDate && date < campaign.endDate;
     if (!campaignActive) {
       this.logger.debug('campaign not active');
       return false;
@@ -125,10 +111,11 @@ class CampaignManager implements ICampaignManager {
     }
     const campaignView = this.getCampaignViewData(campaignId, location);
     if (!campaignView.lastDisplayed) {
-      this.logger.debug("campaign hasn't been shown yet, returning true");
       return true;
     }
 
+    // Typescript gets really lost here trying to infer the type of campaign.locations[location]
+    const {frequency} = (campaign.locations as Record<string, {frequency: number}>)[location as string] ?? {frequency: ALWAYS_SHOW};
     const deltaMs = date.getTime() - campaignView.lastDisplayed.getTime();
     this.logger.debug('shouldShowCampaign', {
       location,

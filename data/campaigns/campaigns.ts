@@ -17,61 +17,52 @@ export const ALWAYS_SHOW = 0;
  */
 const CAMPAIGNS = {
   'nwac-campaign-q4-2023': {
+    startDate: new Date('2023-12-01'),
+    endDate: new Date('2024-01-01'),
     enabled: true,
-    allowedCenters: ['NWAC', 'SNFAC'],
+    allowedCenters: ['NWAC'],
     locations: {
       'observation-list-view': {
         frequency: ALWAYS_SHOW,
-        startDate: new Date('2023-12-01'),
-        endDate: new Date('2024-01-01'),
-      },
-      'menu-screen': {
-        frequency: ALWAYS_SHOW,
-        startDate: new Date('2023-12-01'),
-        endDate: new Date('2024-01-01'),
       },
       'map-view': {
-        frequency: 16 * 60 * 60 * 1000, // 16 hours
-        startDate: new Date('2023-12-22'),
-        endDate: new Date('2024-01-01'),
+        frequency: 8 * 60 * 60 * 1000, // 8 hours
       },
     },
   },
 
   // These are for unit testing purposes only - don't remove them
   'test-enabled-campaign': {
+    startDate: new Date('2023-12-01'),
+    endDate: new Date('2024-01-01'),
     enabled: true,
     locations: {
       'home-screen': {
         frequency: 2 * 60 * 60 * 1000, // 2 hours
-        startDate: new Date('2023-12-01'),
-        endDate: new Date('2024-01-01'),
       },
       'always-show': {
         frequency: ALWAYS_SHOW,
-        startDate: new Date('2023-12-01'),
-        endDate: new Date('2024-01-01'),
       },
     },
   },
   'test-enabled-campaign-SNFAC-only': {
+    startDate: new Date('2023-12-01'),
+    endDate: new Date('2024-01-01'),
     enabled: true,
     allowedCenters: ['SNFAC'],
     locations: {
       'home-screen': {
         frequency: 2 * 60 * 60 * 1000, // 2 hours
-        startDate: new Date('2023-12-01'),
-        endDate: new Date('2024-01-01'),
       },
     },
   },
   'test-disabled-campaign': {
+    startDate: new Date('2023-12-01'),
+    endDate: new Date('2024-01-01'),
     enabled: false,
     locations: {
       'home-screen': {
         frequency: 2 * 60 * 60 * 1000, // 2 hours
-        startDate: new Date('2023-12-01'),
-        endDate: new Date('2024-01-01'),
       },
     },
   },
@@ -79,7 +70,6 @@ const CAMPAIGNS = {
 
 export type Campaigns = typeof CAMPAIGNS;
 export type CampaignId = keyof Campaigns;
-export type CampaignLocations<T extends CampaignId> = Campaigns[T]['locations'];
-export type CampaignLocationId<T extends CampaignId> = keyof CampaignLocations<T>;
+export type CampaignLocationId<T extends CampaignId> = keyof Campaigns[T]['locations'];
 
 export default CAMPAIGNS;

@@ -20,10 +20,10 @@ import {FormattedMessage} from 'react-intl';
 import {FontAwesome, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import {compareDesc, parseISO} from 'date-fns';
+import * as Linking from 'expo-linking';
 
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {Button} from 'components/content/Button';
-import {CampaignBanner} from 'components/content/CampaignBanner';
 import {Card} from 'components/content/Card';
 import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
@@ -31,14 +31,14 @@ import {Center, Divider, HStack, VStack, View} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
-import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
-import {openCampaignLink} from 'data/campaigns/openCampaignLink';
+import {Body, BodyBlack, BodySemibold, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
 import {useCampaign} from 'data/campaigns/useCampaign';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
+import {logger} from 'logger';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
@@ -76,14 +76,12 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
-
-  // begin Q4 2023 campaign
   const [showCampaign, trackCampaign] = useCampaign(center_id, 'nwac-campaign-q4-2023', 'observation-list-view');
-  const onCampaignAction = useCallback(() => {
+  const openCampaignLink = useCallback(() => {
     trackCampaign();
-    openCampaignLink(center_id, 'nwac-campaign-q4-2023');
-  }, [center_id, trackCampaign]);
-  // end Q4 2023 campaign
+    const url = 'https://give.nwac.us/campaign/nwacs-year-end-fundraiser/c536433';
+    Linking.openURL(url).catch((error: Error) => logger.error('Error opening URL', {error, url}));
+  }, [trackCampaign]);
 
   // Filter inputs changed via render props should overwrite our current state
   useEffect(() => {
@@ -284,7 +282,17 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const renderSectionHeader = useCallback(
     ({section: {title}}: {section: {title: string}}) => {
       if (title === 'Campaign') {
-        return <CampaignBanner center={center_id} onAction={onCampaignAction} />;
+        return (
+          <HStack mx={8} my={12} px={16} py={16} justifyContent="space-between" backgroundColor={colorLookup('NWAC-dark')} borderRadius={10}>
+            <VStack space={2}>
+              <BodySemibold color="white">❄️ NWAC Year End Giving</BodySemibold>
+              <BodySm color="white">The app relies on your support</BodySm>
+            </VStack>
+            <Button buttonStyle="primary" onPress={openCampaignLink}>
+              <BodyBlack color="white">Donate</BodyBlack>
+            </Button>
+          </HStack>
+        );
       } else if (hasPendingObservations) {
         return (
           <View px={16} py={8}>
@@ -295,7 +303,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         return null;
       }
     },
-    [center_id, hasPendingObservations, onCampaignAction],
+    [hasPendingObservations, openCampaignLink],
   );
 
   const applyFilterRemoval = useCallback(

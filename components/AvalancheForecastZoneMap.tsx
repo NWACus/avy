@@ -4,6 +4,8 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
 import AnimatedMapView, {PoiClickEvent, Region} from 'react-native-maps';
 
+import * as Linking from 'expo-linking';
+
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {colorFor} from 'components/AvalancheDangerTriangle';
@@ -18,7 +20,6 @@ import {TravelAdvice} from 'components/helpers/travelAdvice';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
 import {AvalancheCenterSelectionModal} from 'components/modals/AvalancheCenterSelectionModal';
 import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
-import {openCampaignLink} from 'data/campaigns/openCampaignLink';
 import {useCampaign} from 'data/campaigns/useCampaign';
 import {isAfter} from 'date-fns';
 import {toDate} from 'date-fns-tz';
@@ -138,10 +139,11 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   // Begin Q4 2023 campaign code
   const [showCampaign, trackCampaign] = useCampaign(center, 'nwac-campaign-q4-2023', 'map-view');
-  const onCampaignAction = useCallback(() => {
+  const openCampaignLink = useCallback(() => {
     trackCampaign();
-    openCampaignLink(center, 'nwac-campaign-q4-2023');
-  }, [center, trackCampaign]);
+    const url = 'https://give.nwac.us/campaign/nwacs-year-end-fundraiser/c536433';
+    Linking.openURL(url).catch((error: Error) => logger.error('Error opening URL', {error, url}));
+  }, [logger, trackCampaign]);
 
   const [screenFocused, setScreenFocused] = useState(false);
   useFocusEffect(
@@ -248,7 +250,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         controller={controller}
       />
       <AvalancheCenterSelectionModal visible={screenFocused && showAvalancheCenterSelectionModal} initialSelection={preferences.center} onClose={onSelectCenter} />
-      {screenFocused && !showAvalancheCenterSelectionModal && showCampaign && <CampaignModal center={center} onAction={onCampaignAction} />}
+      {screenFocused && !showAvalancheCenterSelectionModal && showCampaign && <CampaignModal onAction={openCampaignLink} />}
     </>
   );
 };
