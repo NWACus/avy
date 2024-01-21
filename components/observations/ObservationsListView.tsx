@@ -76,7 +76,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
-  const [showCampaign, trackCampaign] = useCampaign(center_id, 'nwac-campaign-q4-2023', 'observation-list-view');
+  const [showCampaign, trackCampaign] = useCampaign('campaign-q4-2023', 'observation-list-view');
   const openCampaignLink = useCallback(() => {
     trackCampaign();
     const url = 'https://give.nwac.us/campaign/nwacs-year-end-fundraiser/c536433';

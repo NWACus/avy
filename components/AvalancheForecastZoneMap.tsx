@@ -138,7 +138,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   );
 
   // Begin Q4 2023 campaign code
-  const [showCampaign, trackCampaign] = useCampaign(center, 'nwac-campaign-q4-2023', 'map-view');
+  const [showCampaign, trackCampaign] = useCampaign('campaign-q4-2023', 'map-view');
   const openCampaignLink = useCallback(() => {
     trackCampaign();
     const url = 'https://give.nwac.us/campaign/nwacs-year-end-fundraiser/c536433';

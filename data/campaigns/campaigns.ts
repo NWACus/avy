@@ -16,11 +16,10 @@ export const ALWAYS_SHOW = 0;
  * @see data/campaigns/useCampaign.ts
  */
 const CAMPAIGNS = {
-  'nwac-campaign-q4-2023': {
+  'campaign-q4-2023': {
     startDate: new Date('2023-12-01'),
     endDate: new Date('2024-01-01'),
     enabled: true,
-    allowedCenters: ['NWAC'],
     locations: {
       'observation-list-view': {
         frequency: ALWAYS_SHOW,
@@ -42,17 +41,6 @@ const CAMPAIGNS = {
       },
       'always-show': {
         frequency: ALWAYS_SHOW,
-      },
-    },
-  },
-  'test-enabled-campaign-SNFAC-only': {
-    startDate: new Date('2023-12-01'),
-    endDate: new Date('2024-01-01'),
-    enabled: true,
-    allowedCenters: ['SNFAC'],
-    locations: {
-      'home-screen': {
-        frequency: 2 * 60 * 60 * 1000, // 2 hours
       },
     },
   },

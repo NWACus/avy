@@ -48,7 +48,7 @@ describe('useCampaign', () => {
     const location = 'home-screen';
     const currentDate = new Date('2023-12-15');
 
-    const {result} = renderHook(() => useCampaign('NWAC', campaignId, location, campaignManager, currentDate));
+    const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
     act(() => {
       // we have to wait for the simulated useFocusEffect to run
       jest.advanceTimersToNextTimer();
@@ -57,7 +57,6 @@ describe('useCampaign', () => {
     expect(campaignEnabled).toBe(true);
 
     expect(mixpanel.track).toHaveBeenCalledWith('Campaign viewed', {
-      center: 'NWAC',
       campaign: campaignId,
       'campaign-location': location,
     });
@@ -68,7 +67,7 @@ describe('useCampaign', () => {
     const location = 'home-screen';
     const currentDate = new Date('2023-12-15');
 
-    const {result} = renderHook(() => useCampaign('NWAC', campaignId, location, campaignManager, currentDate));
+    const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
     act(() => {
       // we have to wait for the simulated useFocusEffect to run
       jest.advanceTimersToNextTimer();
@@ -86,7 +85,7 @@ describe('useCampaign', () => {
 
     (useFeatureFlag as jest.Mock).mockReturnValue(false);
 
-    const {result} = renderHook(() => useCampaign('NWAC', campaignId, location, campaignManager, currentDate));
+    const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
     act(() => {
       // we have to wait for the simulated useFocusEffect to run
       jest.advanceTimersToNextTimer();
@@ -98,36 +97,13 @@ describe('useCampaign', () => {
     expect(mixpanel.track).not.toHaveBeenCalled();
   });
 
-  it('should return false and warn for an enabled campaign when feature flag doesn‘t exist', () => {
-    const campaignId = 'test-enabled-campaign';
-    const location = 'home-screen';
-    const currentDate = new Date('2023-12-15');
-
-    (useFeatureFlag as jest.Mock).mockReturnValue(undefined);
-
-    const spy = jest.spyOn(console, 'warn');
-
-    const {result} = renderHook(() => useCampaign('NWAC', campaignId, location, campaignManager, currentDate));
-    act(() => {
-      // we have to wait for the simulated useFocusEffect to run
-      jest.advanceTimersToNextTimer();
-    });
-
-    const [campaignEnabled] = result.current;
-    expect(campaignEnabled).toBe(false);
-
-    // console.warn ends up being called with an array of arguments for color & formatting - we don't care about those
-    expect(spy.mock.calls[spy.mock.calls.length - 1]).toContain('Campaign feature flag missing: test-enabled-campaign, assuming false');
-    spy.mockRestore();
-  });
-
   describe('trackInteraction', () => {
     it('should be a no-op if called when the campaign is disabled', () => {
       const campaignId = 'test-disabled-campaign';
       const location = 'home-screen';
       const currentDate = new Date('2023-12-15');
 
-      const {result} = renderHook(() => useCampaign('NWAC', campaignId, location, campaignManager, currentDate));
+      const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
       act(() => {
         // we have to wait for the simulated useFocusEffect to run
         jest.advanceTimersToNextTimer();
@@ -144,7 +120,7 @@ describe('useCampaign', () => {
       const location = 'home-screen';
       const currentDate = new Date('2023-12-15');
 
-      const {result} = renderHook(() => useCampaign('NWAC', campaignId, location, campaignManager, currentDate));
+      const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
       act(() => {
         // we have to wait for the simulated useFocusEffect to run
         jest.advanceTimersToNextTimer();
@@ -152,7 +128,6 @@ describe('useCampaign', () => {
       const [campaignEnabled, trackInteraction] = result.current;
       expect(campaignEnabled).toBe(true);
       expect(mixpanel.track).toHaveBeenCalledWith('Campaign viewed', {
-        center: 'NWAC',
         campaign: campaignId,
         'campaign-location': location,
       });
@@ -164,7 +139,6 @@ describe('useCampaign', () => {
 
       expect(mixpanel.track).toHaveBeenCalledTimes(2);
       expect(mixpanel.track).toHaveBeenLastCalledWith('Campaign interaction', {
-        center: 'NWAC',
         campaign: campaignId,
         'campaign-location': location,
       });
