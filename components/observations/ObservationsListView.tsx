@@ -4,11 +4,13 @@ import {
   ActivityIndicator,
   ColorValue,
   GestureResponderEvent,
+  Image,
   LayoutAnimation,
   Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Platform,
+  Pressable,
   ScrollView,
   SectionList,
   SectionListRenderItemInfo,
@@ -31,7 +33,7 @@ import {Center, Divider, HStack, VStack, View} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
-import {Body, BodyBlack, BodySemibold, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
+import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
 import {useCampaign} from 'data/campaigns/useCampaign';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
@@ -205,12 +207,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   const hasPendingObservations = pendingObservationsSection.data.length > 0;
   const sections: Section[] = [];
-  if (showCampaign) {
-    sections.push({
-      title: 'Campaign',
-      data: [],
-    });
-  }
   if (hasPendingObservations) {
     sections.push(pendingObservationsSection);
   }
@@ -280,30 +276,13 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     }
   }, [moreDataAvailable, observationsSection.data.length, observations.length, observationsResult.isFetchingNextPage]);
   const renderSectionHeader = useCallback(
-    ({section: {title}}: {section: {title: string}}) => {
-      if (title === 'Campaign') {
-        return (
-          <HStack mx={8} my={12} px={16} py={16} justifyContent="space-between" backgroundColor={colorLookup('NWAC-dark')} borderRadius={10}>
-            <VStack space={2}>
-              <BodySemibold color="white">❄️ NWAC Year End Giving</BodySemibold>
-              <BodySm color="white">The app relies on your support</BodySm>
-            </VStack>
-            <Button buttonStyle="primary" onPress={openCampaignLink}>
-              <BodyBlack color="white">Donate</BodyBlack>
-            </Button>
-          </HStack>
-        );
-      } else if (hasPendingObservations) {
-        return (
-          <View px={16} py={8}>
-            <BodySm>{title}</BodySm>
-          </View>
-        );
-      } else {
-        return null;
-      }
-    },
-    [hasPendingObservations, openCampaignLink],
+    ({section: {title}}: {section: {title: string}}) =>
+      hasPendingObservations ? (
+        <View px={16} py={8}>
+          <BodySm>{title}</BodySm>
+        </View>
+      ) : null,
+    [hasPendingObservations],
   );
 
   const applyFilterRemoval = useCallback(
@@ -380,6 +359,13 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         </ScrollView>
       </HStack>
       <Divider />
+      {showCampaign && (
+        // banner.png is 2000 x 729, which is an aspect ratio of 2.74348422
+        <Pressable onPress={openCampaignLink}>
+          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
+          <Image source={require('assets/campaigns/campaign-q4-2023/banner.png')} style={{width: '100%', height: undefined, aspectRatio: 2.74348422}} resizeMode="contain" />
+        </Pressable>
+      )}
       <SectionList
         sections={sections}
         renderSectionHeader={renderSectionHeader}

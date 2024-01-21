@@ -19,7 +19,6 @@ import {Divider, HStack, View, VStack} from 'components/core';
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
-import * as Updates from 'expo-updates';
 
 import {useQueryClient} from '@tanstack/react-query';
 import {ClientContext} from 'clientContext';
@@ -56,7 +55,6 @@ import {
   Title3Semibold,
 } from 'components/text';
 import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
-import {clearCampaignViewData} from 'data/campaigns/campaignManager';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {logFilePath, logger} from 'logger';
 import {sendMail} from 'network/sendMail';
@@ -168,12 +166,6 @@ export const SecretMenu: React.FC<SecretMenuProps> = ({staging, setStaging}) => 
             </Button>
             <Button buttonStyle="normal" onPress={() => void clearPreferences()}>
               Reset preferences
-            </Button>
-            <Button buttonStyle="normal" onPress={() => void clearCampaignViewData()}>
-              Reset campaign view data
-            </Button>
-            <Button buttonStyle="normal" onPress={() => void Updates.reloadAsync()}>
-              Restart app
             </Button>
             <HStack justifyContent="space-between" alignItems="center" space={16}>
               <Body>Use staging environment</Body>

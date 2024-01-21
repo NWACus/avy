@@ -1,7 +1,7 @@
 /* ESLint reads references to mixpanel.track as attempts to call it */
 /* eslint-disable @typescript-eslint/unbound-method */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {act, renderHook} from '@testing-library/react-hooks';
+import {renderHook} from '@testing-library/react-hooks';
 import mixpanel from 'mixpanel';
 import {useFeatureFlag} from 'posthog-react-native';
 
@@ -14,13 +14,7 @@ jest.mock('mixpanel', () => ({
 }));
 
 jest.mock('posthog-react-native', () => ({
-  useFeatureFlag: jest.fn(),
-}));
-
-jest.mock('@react-navigation/native', () => ({
-  useFocusEffect: jest.fn().mockImplementation((callback: () => void) => {
-    setImmediate(callback);
-  }),
+  useFeatureFlag: jest.fn().mockReturnValue(true),
 }));
 
 describe('useCampaign', () => {
@@ -30,17 +24,7 @@ describe('useCampaign', () => {
     await AsyncStorage.removeItem(CAMPAIGN_DATA_KEY);
     campaignManager = await createCampaignManagerForTests();
 
-    (useFeatureFlag as jest.Mock).mockReturnValue(true);
-
     jest.clearAllMocks();
-  });
-
-  beforeAll(() => {
-    jest.useFakeTimers();
-  });
-
-  afterAll(() => {
-    jest.useRealTimers();
   });
 
   it('should return true for an enabled campaign', () => {
@@ -49,10 +33,6 @@ describe('useCampaign', () => {
     const currentDate = new Date('2023-12-15');
 
     const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
-    act(() => {
-      // we have to wait for the simulated useFocusEffect to run
-      jest.advanceTimersToNextTimer();
-    });
     const [campaignEnabled] = result.current;
     expect(campaignEnabled).toBe(true);
 
@@ -68,10 +48,6 @@ describe('useCampaign', () => {
     const currentDate = new Date('2023-12-15');
 
     const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
-    act(() => {
-      // we have to wait for the simulated useFocusEffect to run
-      jest.advanceTimersToNextTimer();
-    });
     const [campaignEnabled] = result.current;
     expect(campaignEnabled).toBe(false);
 
@@ -83,14 +59,9 @@ describe('useCampaign', () => {
     const location = 'home-screen';
     const currentDate = new Date('2023-12-15');
 
-    (useFeatureFlag as jest.Mock).mockReturnValue(false);
+    (useFeatureFlag as jest.Mock).mockReturnValueOnce(false);
 
     const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
-    act(() => {
-      // we have to wait for the simulated useFocusEffect to run
-      jest.advanceTimersToNextTimer();
-    });
-
     const [campaignEnabled] = result.current;
     expect(campaignEnabled).toBe(false);
 
@@ -104,10 +75,6 @@ describe('useCampaign', () => {
       const currentDate = new Date('2023-12-15');
 
       const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
-      act(() => {
-        // we have to wait for the simulated useFocusEffect to run
-        jest.advanceTimersToNextTimer();
-      });
       const [campaignEnabled, trackInteraction] = result.current;
       expect(campaignEnabled).toBe(false);
 
@@ -121,10 +88,6 @@ describe('useCampaign', () => {
       const currentDate = new Date('2023-12-15');
 
       const {result} = renderHook(() => useCampaign(campaignId, location, campaignManager, currentDate));
-      act(() => {
-        // we have to wait for the simulated useFocusEffect to run
-        jest.advanceTimersToNextTimer();
-      });
       const [campaignEnabled, trackInteraction] = result.current;
       expect(campaignEnabled).toBe(true);
       expect(mixpanel.track).toHaveBeenCalledWith('Campaign viewed', {

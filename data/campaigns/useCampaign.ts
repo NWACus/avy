@@ -1,12 +1,9 @@
-import {useFocusEffect} from '@react-navigation/native';
 import {ICampaignManager, campaignManager} from 'data/campaigns/campaignManager';
 import {CampaignId, CampaignLocationId} from 'data/campaigns/campaigns';
-import {logger as globalLogger} from 'logger';
+import {logger} from 'logger';
 import mixpanel from 'mixpanel';
 import {useFeatureFlag} from 'posthog-react-native';
-import {useCallback, useRef, useState} from 'react';
-
-const logger = globalLogger.child({component: 'useCampaign'});
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 export function useCampaign<T extends CampaignId>(
   campaignId: T,
@@ -15,34 +12,25 @@ export function useCampaign<T extends CampaignId>(
   date: Date | undefined = undefined,
 ): [campaignEnabled: boolean, trackInteraction: () => void] {
   const campaignFeatureFlag = !!useFeatureFlag(campaignId);
-  const [campaignEnabled, setCampaignEnabled] = useState(false);
+  const [shouldShowCampaign] = useState(theCampaignManager.shouldShowCampaign(campaignId, location, date ?? new Date()));
+  const campaignEnabled = shouldShowCampaign && campaignFeatureFlag;
 
-  // When our parent screen is focused, check the status of the campaign. Keep the status constant until the screen is unfocused.
-  useFocusEffect(
-    useCallback(() => {
-      const shouldShowCampaign = theCampaignManager.shouldShowCampaign(campaignId, location, date);
-      setCampaignEnabled(shouldShowCampaign && campaignFeatureFlag);
-      if (shouldShowCampaign && campaignFeatureFlag) {
-        theCampaignManager.recordCampaignView(campaignId, location).catch((error: Error) => {
-          logger.error('Failed to record campaign view', {campaignId, location, error});
-        });
-        mixpanel.track('Campaign viewed', {campaign: campaignId, 'campaign-location': location});
-        logger.debug('Sent campaign view event', {campaignId, location});
-      }
-      return () => {
-        setCampaignEnabled(false);
-      };
-    }, [campaignFeatureFlag, campaignId, date, location, theCampaignManager]),
-  );
-
-  logger.debug('Campaign enabled', {campaignId, location, campaignFeatureFlag, campaignEnabled});
+  const showEventSent = useRef(false);
+  useEffect(() => {
+    if (!showEventSent.current && campaignEnabled) {
+      showEventSent.current = true;
+      theCampaignManager.recordCampaignView(campaignId, location).catch((error: Error) => {
+        logger.error('Failed to record campaign view', {campaignId, location, error});
+      });
+      mixpanel.track('Campaign viewed', {campaign: campaignId, 'campaign-location': location});
+    }
+  }, [campaignEnabled, campaignId, location, showEventSent, theCampaignManager]);
 
   const interactionEventSent = useRef(false);
   const trackInteraction = useCallback(() => {
     if (!interactionEventSent.current && campaignEnabled) {
       interactionEventSent.current = true;
       mixpanel.track('Campaign interaction', {campaign: campaignId, 'campaign-location': location});
-      logger.debug('Sent campaign interaction event', {campaignId, location});
     }
   }, [campaignEnabled, campaignId, interactionEventSent, location]);
 
