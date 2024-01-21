@@ -1,9 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import {CAMPAIGN_DATA_KEY} from 'data/asyncStorageKeys';
-import {AllCampaignsViewData, ICampaignManager, createCampaignManagerForTests} from 'data/campaigns/campaignManager';
-import CAMPAIGNS, {ALWAYS_SHOW} from 'data/campaigns/campaigns';
-import {addHours} from 'date-fns';
+import {CampaignViewsSchema, ICampaignManager, createCampaignManagerForTests} from 'data/campaigns/campaignManager';
 
 describe('campaignManager', () => {
   let campaignManager: ICampaignManager;
@@ -25,9 +22,8 @@ describe('campaignManager', () => {
         CAMPAIGN_DATA_KEY,
         JSON.stringify({
           'old-unused-campaign': {
-            'home-screen': {
-              lastDisplayed: '2023-12-15T00:00:00.000Z',
-            },
+            lastDisplayed: '2023-12-15T00:00:00.000Z',
+            timesDisplayed: 1,
           },
         }),
       );
@@ -40,9 +36,8 @@ describe('campaignManager', () => {
         CAMPAIGN_DATA_KEY,
         JSON.stringify({
           'old-unused-campaign': {
-            'home-screen': {
-              lastDisplayed: '2023-12-15T00:00:00.000Z',
-            },
+            lastDisplayed: '2023-12-15T00:00:00.000Z',
+            timesDisplayed: 1,
           },
         }),
       );
@@ -52,14 +47,13 @@ describe('campaignManager', () => {
       // Record a campaign view, which then causes the campaign to be saved
       const campaignId = 'test-enabled-campaign';
       const today = new Date('2023-12-15');
-      await campaignManager.recordCampaignView(campaignId, 'home-screen', today);
+      await campaignManager.recordCampaignView(campaignId, today);
 
-      const campaignViews = JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) || '{}') as AllCampaignsViewData;
+      const campaignViews = JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) || '{}') as CampaignViewsSchema;
       expect(campaignViews).toEqual({
         'test-enabled-campaign': {
-          'home-screen': {
-            lastDisplayed: today.toISOString(),
-          },
+          lastDisplayed: today.toISOString(),
+          timesDisplayed: 1,
         },
       });
     });
@@ -69,9 +63,8 @@ describe('campaignManager', () => {
         CAMPAIGN_DATA_KEY,
         JSON.stringify({
           'test-enabled-campaign': {
-            'home-screen': {
-              lastDisplayed: '2023-12-15T00:00:00.000Z',
-            },
+            lastDisplayed: '2023-12-15T00:00:00.000Z',
+            timesDisplayed: 2,
           },
         }),
       );
@@ -81,14 +74,13 @@ describe('campaignManager', () => {
       // Record a campaign view, which then causes the campaign to be saved
       const campaignId = 'test-enabled-campaign';
       const today = new Date('2023-12-15');
-      await campaignManager.recordCampaignView(campaignId, 'home-screen', today);
+      await campaignManager.recordCampaignView(campaignId, today);
 
-      const campaignViews = JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) || '{}') as AllCampaignsViewData;
+      const campaignViews = JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) || '{}') as CampaignViewsSchema;
       expect(campaignViews).toEqual({
         'test-enabled-campaign': {
-          'home-screen': {
-            lastDisplayed: today.toISOString(),
-          },
+          lastDisplayed: today.toISOString(),
+          timesDisplayed: 3,
         },
       });
     });
@@ -98,62 +90,42 @@ describe('campaignManager', () => {
     it('should return true if the campaign is enabled and within the date range', () => {
       const campaignId = 'test-enabled-campaign';
       const currentDate = new Date('2023-12-15');
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', currentDate)).toBe(true);
+      expect(campaignManager.shouldShowCampaign(campaignId, currentDate)).toBe(true);
     });
 
     it('should return false if the campaign is disabled', () => {
       const campaignId = 'test-disabled-campaign';
       const currentDate = new Date('2023-12-15');
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', currentDate)).toBe(false);
+      expect(campaignManager.shouldShowCampaign(campaignId, currentDate)).toBe(false);
     });
 
     it('should return false if the campaign has ended', () => {
       const campaignId = 'test-enabled-campaign';
       const currentDate = new Date('2024-01-15');
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', currentDate)).toBe(false);
+      expect(campaignManager.shouldShowCampaign(campaignId, currentDate)).toBe(false);
     });
 
     it('should return false if the campaign has not started', () => {
       const campaignId = 'test-enabled-campaign';
       const currentDate = new Date('2022-12-15');
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', currentDate)).toBe(false);
+      expect(campaignManager.shouldShowCampaign(campaignId, currentDate)).toBe(false);
     });
 
-    it('should respect the frequency field', async () => {
-      const campaignId = 'test-enabled-campaign';
-      let date = new Date('2023-12-15');
-
-      // Should show the campaign no more than every 2 hours; should only show once at that time
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(true);
-      await campaignManager.recordCampaignView(campaignId, 'home-screen', date);
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(false);
-
-      // If only one hour has elapsed, we're still not ready to show again
-      date = addHours(date, 1);
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(false);
-
-      // If one more hour has elapsed, we are ready to show
-      date = addHours(date, 1);
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(true);
-      await campaignManager.recordCampaignView(campaignId, 'home-screen', date);
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(false);
-
-      // Add more hours and we can show again
-      date = addHours(date, 8);
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(true);
-      await campaignManager.recordCampaignView(campaignId, 'home-screen', date);
-      expect(campaignManager.shouldShowCampaign(campaignId, 'home-screen', date)).toBe(false);
-    });
-
-    it('allows unlimited views per day when frequency === ALWAYS_SHOW', async () => {
+    it('should respect the viewsPerDay field', async () => {
       const campaignId = 'test-enabled-campaign';
       const today = new Date('2023-12-15');
+      const tomorrow = new Date('2023-12-16');
 
-      expect(CAMPAIGNS[campaignId].locations['always-show'].frequency).toBe(ALWAYS_SHOW);
-      for (let i = 0; i < 10; i++) {
-        expect(campaignManager.shouldShowCampaign(campaignId, 'always-show', today)).toBe(true);
-        await campaignManager.recordCampaignView(campaignId, 'always-show', today);
-      }
+      // Should show the campaign 3 times today
+      expect(campaignManager.shouldShowCampaign(campaignId, today)).toBe(true);
+      await campaignManager.recordCampaignView(campaignId, today);
+      expect(campaignManager.shouldShowCampaign(campaignId, today)).toBe(true);
+      await campaignManager.recordCampaignView(campaignId, today);
+      expect(campaignManager.shouldShowCampaign(campaignId, today)).toBe(true);
+      await campaignManager.recordCampaignView(campaignId, today);
+      expect(campaignManager.shouldShowCampaign(campaignId, today)).toBe(false);
+
+      expect(campaignManager.shouldShowCampaign(campaignId, tomorrow)).toBe(true);
     });
   });
 
@@ -161,14 +133,13 @@ describe('campaignManager', () => {
     it('should record a campaign view', async () => {
       const campaignId = 'test-enabled-campaign';
       const currentDate = new Date('2023-12-15');
-      await campaignManager.recordCampaignView(campaignId, 'home-screen', currentDate);
+      await campaignManager.recordCampaignView(campaignId, currentDate);
 
-      const campaignViews = JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) || '{}') as AllCampaignsViewData;
+      const campaignViews = JSON.parse((await AsyncStorage.getItem(CAMPAIGN_DATA_KEY)) || '{}') as CampaignViewsSchema;
       expect(campaignViews).toEqual({
         'test-enabled-campaign': {
-          'home-screen': {
-            lastDisplayed: currentDate.toISOString(),
-          },
+          lastDisplayed: currentDate.toISOString(),
+          timesDisplayed: 1,
         },
       });
     });
