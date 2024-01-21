@@ -1,5 +1,5 @@
 const CAMPAIGNS = {
-  'campaign-q4-2023': {
+  'end-of-year-2023': {
     startDate: new Date('2023-12-01'),
     endDate: new Date('2024-01-01'),
     enabled: true,

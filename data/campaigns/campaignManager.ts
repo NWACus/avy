@@ -19,18 +19,7 @@ const campaignViewsSchema = z.record(campaignViewSchema);
 export type CampaignViewsSchema = z.infer<typeof campaignViewsSchema>;
 
 export interface ICampaignManager {
-  /** Given a date, checks if the given campaign is active for that date. Does not reflect
-   * view counts or lastDisplayed values. Use for less intrusive elements. */
-  campaignActive(campaignId: CampaignId, atDate?: Date): boolean;
-
-  /** Given a date, calls campaignActive to see if the given campaign is active for that date,
-   * and then checks `lastDisplayed` date and `viewsPerDay` to decide if the campaign should be shown.
-   * Used for more intrusive campaigns elements such as modals. */
   shouldShowCampaign(campaignId: CampaignId, atDate?: Date): boolean;
-
-  /** Records a campaign view for the given campaignId. Use along with shouldShowCampaign to track
-   * views of more intrusive campaign elements.
-   * @see shouldShowCampaign */
   recordCampaignView(campaignId: CampaignId, atDate?: Date): Promise<void>;
 }
 
@@ -73,18 +62,11 @@ class CampaignManager implements ICampaignManager {
     await AsyncStorage.setItem(CAMPAIGN_DATA_KEY, JSON.stringify(this.campaignViews));
   }
 
-  campaignActive(campaignId: CampaignId, atDate: Date | undefined = undefined): boolean {
-    this.checkInitialized();
-    const campaign = CAMPAIGNS[campaignId];
-    const date = atDate ?? new Date();
-    return campaign.enabled && date >= campaign.startDate && date < campaign.endDate;
-  }
-
   shouldShowCampaign(campaignId: CampaignId, atDate: Date | undefined = undefined): boolean {
     this.checkInitialized();
     const campaign = CAMPAIGNS[campaignId];
     const date = atDate ?? new Date();
-    const campaignActive = this.campaignActive(campaignId, date);
+    const campaignActive = campaign.enabled && date >= campaign.startDate && date < campaign.endDate;
     if (!campaignActive) {
       return false;
     }
