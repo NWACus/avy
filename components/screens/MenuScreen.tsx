@@ -21,6 +21,7 @@ import {AvalancheCenters} from 'components/avalancheCenterList';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
+import {FeatureFlagsDebuggerScreen} from 'components/FeatureFlagsDebugger';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
 import {AboutScreen} from 'components/screens/menu/AboutScreen';
@@ -71,18 +72,19 @@ export const MenuStackScreen = (
         component={AvalancheCenterSelectorScreen(AvalancheCenters.SupportedCenters, avalancheCenterId, setAvalancheCenter)}
         options={avalancheCenterSelectorOptions}
       />
-      <MenuStack.Screen name="buttonStylePreview" component={ButtonStylePreview} options={{title: `Button style preview`}} />
-      <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text style preview`}} />
-      <MenuStack.Screen name="avalancheComponentPreview" component={AvalancheComponentPreview} options={{title: `Avalanche component preview`}} />
-      <MenuStack.Screen name="toastPreview" component={ToastPreview} options={{title: `Toast preview`}} />
-      <MenuStack.Screen name="timeMachine" component={TimeMachine} options={{title: `Time machine`}} />
+      <MenuStack.Screen name="buttonStylePreview" component={ButtonStylePreview} options={{title: `Button Style Preview`}} />
+      <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text Style Preview`}} />
+      <MenuStack.Screen name="avalancheComponentPreview" component={AvalancheComponentPreview} options={{title: `Avalanche Component Preview`}} />
+      <MenuStack.Screen name="toastPreview" component={ToastPreview} options={{title: `Toast Preview`}} />
+      <MenuStack.Screen name="timeMachine" component={TimeMachine} options={{title: `Time Machine`}} />
       <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={{headerShown: false}} />
       <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={{headerShown: false}} />
       <MenuStack.Screen name="observation" component={ObservationScreen} />
       <MenuStack.Screen name="nwacObservation" component={NWACObservationScreen} />
       <MenuStack.Screen name="about" component={AboutScreen} options={{title: 'Avy'}} />
-      <MenuStack.Screen name="outcome" component={OutcomeScreen} />
-      <MenuStack.Screen name="expoConfig" component={ExpoConfigScreen} />
+      <MenuStack.Screen name="outcome" component={OutcomeScreen} options={{title: `Outcome Preview`}} />
+      <MenuStack.Screen name="expoConfig" component={ExpoConfigScreen} options={{title: `Expo Configuration Viewer`}} />
+      <MenuStack.Screen name="featureFlags" component={FeatureFlagsDebuggerScreen} options={{title: `Feature Flag Debugger`}} />
     </MenuStack.Navigator>
   );
 };

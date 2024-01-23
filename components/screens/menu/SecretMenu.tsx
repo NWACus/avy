@@ -112,6 +112,13 @@ export const SecretMenu: React.FC<SecretMenuProps> = ({staging, setStaging}) => 
                     navigation.navigate('expoConfig');
                   },
                 },
+                {
+                  label: 'Debug Feature Flags',
+                  data: 'Feature Flags',
+                  action: () => {
+                    navigation.navigate('featureFlags');
+                  },
+                },
               ]}
             />
             <HStack alignItems="center" justifyContent={'space-between'} space={16}>

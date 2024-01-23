@@ -130,5 +130,6 @@ export type MenuStackParamList = {
   };
 
   expoConfig: undefined;
+  featureFlags: undefined;
 };
 export type MenuStackNavigationProps = NativeStackNavigationProp<MenuStackParamList>;
