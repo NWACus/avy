@@ -245,7 +245,7 @@ export const avalancheCenterObservationViewerWidgetConfigurationSchema = z.objec
   obs_tab: z.boolean().optional(),
   obs_view_url: z.string().nullable().optional(),
   saturation: z.number(),
-  require_approval: z.boolean(),
+  require_approval: z.boolean().optional(),
 });
 
 export const unitsSchema = z.nativeEnum(Units);

@@ -1,13 +1,12 @@
 import React, {useCallback, useRef, useState} from 'react';
 
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
 import AnimatedMapView, {PoiClickEvent, Region} from 'react-native-maps';
 
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {colorFor} from 'components/AvalancheDangerTriangle';
-import {CampaignModal} from 'components/content/CampaignModal';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {defaultMapRegionForGeometries, MapViewZone, mapViewZoneFor, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
@@ -18,8 +17,6 @@ import {TravelAdvice} from 'components/helpers/travelAdvice';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
 import {AvalancheCenterSelectionModal} from 'components/modals/AvalancheCenterSelectionModal';
 import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
-import {openCampaignLink} from 'data/campaigns/openCampaignLink';
-import {useCampaign} from 'data/campaigns/useCampaign';
 import {isAfter} from 'date-fns';
 import {toDate} from 'date-fns-tz';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
@@ -136,26 +133,6 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     [setPreferences, navigation],
   );
 
-  // Begin Q4 2023 campaign code
-  const [showCampaign, trackCampaign] = useCampaign(center, 'nwac-campaign-q4-2023', 'map-view');
-  const onCampaignAction = useCallback(() => {
-    trackCampaign();
-    openCampaignLink(center, 'nwac-campaign-q4-2023');
-  }, [center, trackCampaign]);
-
-  const [screenFocused, setScreenFocused] = useState(false);
-  useFocusEffect(
-    useCallback(() => {
-      // Bake in a delay before showing the campaign modal, so that it doesn't pop up before the map is drawn
-      const timeout = setTimeout(() => setScreenFocused(true), 200);
-      return () => {
-        clearTimeout(timeout);
-        setScreenFocused(false);
-      };
-    }, [setScreenFocused]),
-  );
-  // End Q4 2023 campaign code
-
   if (incompleteQueryState(mapLayerResult, metadataResult, ...forecastResults, ...warningResults) || !mapLayer || !metadata) {
     return (
       <SafeAreaView edges={['top', 'left', 'right']}>
@@ -247,8 +224,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         setSelectedZoneId={setSelectedZoneId}
         controller={controller}
       />
-      <AvalancheCenterSelectionModal visible={screenFocused && showAvalancheCenterSelectionModal} initialSelection={preferences.center} onClose={onSelectCenter} />
-      {screenFocused && !showAvalancheCenterSelectionModal && showCampaign && <CampaignModal center={center} onAction={onCampaignAction} />}
+      <AvalancheCenterSelectionModal visible={showAvalancheCenterSelectionModal} initialSelection={preferences.center} onClose={onSelectCenter} />
     </>
   );
 };

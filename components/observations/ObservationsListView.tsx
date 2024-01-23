@@ -1,5 +1,25 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
+import {FormattedMessage} from 'react-intl';
+
+import {FontAwesome, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
+import {useNavigation} from '@react-navigation/native';
+import {colorFor} from 'components/AvalancheDangerTriangle';
+import {Button} from 'components/content/Button';
+import {Card} from 'components/content/Card';
+import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
+import {NetworkImage} from 'components/content/carousel/NetworkImage';
+import {Center, Divider, HStack, VStack, View} from 'components/core';
+import {NACIcon} from 'components/icons/nac-icons';
+import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
+import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
+import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
+import {compareDesc, parseISO} from 'date-fns';
+import {useMapLayer} from 'hooks/useMapLayer';
+import {useNACObservations} from 'hooks/useNACObservations';
+import {useNWACObservations} from 'hooks/useNWACObservations';
+import {useRefresh} from 'hooks/useRefresh';
+import {useToggle} from 'hooks/useToggle';
 import {
   ActivityIndicator,
   ColorValue,
@@ -14,31 +34,6 @@ import {
   SectionListRenderItemInfo,
   TouchableOpacity,
 } from 'react-native';
-
-import {FormattedMessage} from 'react-intl';
-
-import {FontAwesome, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
-import {useNavigation} from '@react-navigation/native';
-import {compareDesc, parseISO} from 'date-fns';
-
-import {colorFor} from 'components/AvalancheDangerTriangle';
-import {Button} from 'components/content/Button';
-import {CampaignBanner} from 'components/content/CampaignBanner';
-import {Card} from 'components/content/Card';
-import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
-import {NetworkImage} from 'components/content/carousel/NetworkImage';
-import {Center, Divider, HStack, VStack, View} from 'components/core';
-import {NACIcon} from 'components/icons/nac-icons';
-import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
-import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
-import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
-import {openCampaignLink} from 'data/campaigns/openCampaignLink';
-import {useCampaign} from 'data/campaigns/useCampaign';
-import {useMapLayer} from 'hooks/useMapLayer';
-import {useNACObservations} from 'hooks/useNACObservations';
-import {useNWACObservations} from 'hooks/useNWACObservations';
-import {useRefresh} from 'hooks/useRefresh';
-import {useToggle} from 'hooks/useToggle';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
@@ -76,14 +71,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
-
-  // begin Q4 2023 campaign
-  const [showCampaign, trackCampaign] = useCampaign(center_id, 'nwac-campaign-q4-2023', 'observation-list-view');
-  const onCampaignAction = useCallback(() => {
-    trackCampaign();
-    openCampaignLink(center_id, 'nwac-campaign-q4-2023');
-  }, [center_id, trackCampaign]);
-  // end Q4 2023 campaign
 
   // Filter inputs changed via render props should overwrite our current state
   useEffect(() => {
@@ -207,12 +194,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   const hasPendingObservations = pendingObservationsSection.data.length > 0;
   const sections: Section[] = [];
-  if (showCampaign) {
-    sections.push({
-      title: 'Campaign',
-      data: [],
-    });
-  }
   if (hasPendingObservations) {
     sections.push(pendingObservationsSection);
   }
@@ -282,20 +263,13 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     }
   }, [moreDataAvailable, observationsSection.data.length, observations.length, observationsResult.isFetchingNextPage]);
   const renderSectionHeader = useCallback(
-    ({section: {title}}: {section: {title: string}}) => {
-      if (title === 'Campaign') {
-        return <CampaignBanner center={center_id} onAction={onCampaignAction} />;
-      } else if (hasPendingObservations) {
-        return (
-          <View px={16} py={8}>
-            <BodySm>{title}</BodySm>
-          </View>
-        );
-      } else {
-        return null;
-      }
-    },
-    [center_id, hasPendingObservations, onCampaignAction],
+    ({section: {title}}: {section: {title: string}}) =>
+      hasPendingObservations ? (
+        <View px={16} py={8}>
+          <BodySm>{title}</BodySm>
+        </View>
+      ) : null,
+    [hasPendingObservations],
   );
 
   const applyFilterRemoval = useCallback(

@@ -20,8 +20,8 @@ import {QueryCache} from '@tanstack/react-query';
 import {AvalancheCenters} from 'components/avalancheCenterList';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
-import {CampaignBanner} from 'components/content/CampaignBanner';
 import {Card} from 'components/content/Card';
+import {FeatureFlagsDebuggerScreen} from 'components/FeatureFlagsDebugger';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
 import {AboutScreen} from 'components/screens/menu/AboutScreen';
@@ -38,8 +38,6 @@ import {
 import {getVersionInfoFull} from 'components/screens/menu/Version';
 import {NWACObservationScreen, ObservationScreen} from 'components/screens/ObservationsScreen';
 import {Body, BodyBlack, Title3Black} from 'components/text';
-import {openCampaignLink} from 'data/campaigns/openCampaignLink';
-import {useCampaign} from 'data/campaigns/useCampaign';
 import {settingsMenuItems} from 'data/settingsMenuItems';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
@@ -74,18 +72,19 @@ export const MenuStackScreen = (
         component={AvalancheCenterSelectorScreen(AvalancheCenters.SupportedCenters, avalancheCenterId, setAvalancheCenter)}
         options={avalancheCenterSelectorOptions}
       />
-      <MenuStack.Screen name="buttonStylePreview" component={ButtonStylePreview} options={{title: `Button style preview`}} />
-      <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text style preview`}} />
-      <MenuStack.Screen name="avalancheComponentPreview" component={AvalancheComponentPreview} options={{title: `Avalanche component preview`}} />
-      <MenuStack.Screen name="toastPreview" component={ToastPreview} options={{title: `Toast preview`}} />
-      <MenuStack.Screen name="timeMachine" component={TimeMachine} options={{title: `Time machine`}} />
+      <MenuStack.Screen name="buttonStylePreview" component={ButtonStylePreview} options={{title: `Button Style Preview`}} />
+      <MenuStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text Style Preview`}} />
+      <MenuStack.Screen name="avalancheComponentPreview" component={AvalancheComponentPreview} options={{title: `Avalanche Component Preview`}} />
+      <MenuStack.Screen name="toastPreview" component={ToastPreview} options={{title: `Toast Preview`}} />
+      <MenuStack.Screen name="timeMachine" component={TimeMachine} options={{title: `Time Machine`}} />
       <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={{headerShown: false}} />
       <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={{headerShown: false}} />
       <MenuStack.Screen name="observation" component={ObservationScreen} />
       <MenuStack.Screen name="nwacObservation" component={NWACObservationScreen} />
       <MenuStack.Screen name="about" component={AboutScreen} options={{title: 'Avy'}} />
-      <MenuStack.Screen name="outcome" component={OutcomeScreen} />
-      <MenuStack.Screen name="expoConfig" component={ExpoConfigScreen} />
+      <MenuStack.Screen name="outcome" component={OutcomeScreen} options={{title: `Outcome Preview`}} />
+      <MenuStack.Screen name="expoConfig" component={ExpoConfigScreen} options={{title: `Expo Configuration Viewer`}} />
+      <MenuStack.Screen name="featureFlags" component={FeatureFlagsDebuggerScreen} options={{title: `Feature Flag Debugger`}} />
     </MenuStack.Navigator>
   );
 };
@@ -112,71 +111,61 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
         }),
       [],
     );
-    // begin Q4 2023 campaign
-    const [showCampaign, trackCampaign] = useCampaign(avalancheCenterId, 'nwac-campaign-q4-2023', 'menu-screen');
-    const onCampaignAction = useCallback(() => {
-      trackCampaign();
-      openCampaignLink(avalancheCenterId, 'nwac-campaign-q4-2023');
-    }, [trackCampaign]);
-    // end Q4 2023 campaign
 
     return (
       <View style={{...StyleSheet.absoluteFillObject}} bg="white">
         {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
         <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
-          <VStack width="100%" height="100%" justifyContent="space-between" alignItems="stretch" bg={colorLookup('primary.background')}>
-            <ScrollView style={{flex: 1}}>
-              <VStack width="100%" height="100%" justifyContent="flex-start" alignItems="stretch" bg={colorLookup('primary.background')} space={10}>
-                <Card borderRadius={0} borderColor="white" header={<Title3Black>More</Title3Black>} noDivider>
-                  <Body>
-                    {data?.name && `${data.name} `}({userFacingCenterId(avalancheCenterId)})
-                  </Body>
-                </Card>
-                <View py={12} px={32}>
-                  <Button buttonStyle="primary" onPress={sendMailHandler}>
-                    <BodyBlack>Submit App Feedback</BodyBlack>
-                  </Button>
-                </View>
+          <ScrollView style={{width: '100%', height: '100%'}}>
+            <VStack width="100%" height="100%" justifyContent="flex-start" alignItems="stretch" bg={colorLookup('primary.background')} space={10}>
+              <Card borderRadius={0} borderColor="white" header={<Title3Black>More</Title3Black>} noDivider>
+                <Body>
+                  {data?.name && `${data.name} `}({userFacingCenterId(avalancheCenterId)})
+                </Body>
+              </Card>
+              <View py={12} px={32}>
+                <Button buttonStyle="primary" onPress={sendMailHandler}>
+                  <BodyBlack>Submit App Feedback</BodyBlack>
+                </Button>
+              </View>
+              <ActionList
+                header={<BodyBlack>Settings</BodyBlack>}
+                bg="white"
+                pl={16}
+                actions={[
+                  {
+                    label: 'Select avalanche center',
+                    data: 'Center',
+                    action: () => {
+                      navigation.navigate('avalancheCenterSelector', {debugMode: false});
+                    },
+                  },
+                  {
+                    label: 'About Avy',
+                    data: 'About',
+                    action: () => {
+                      navigation.navigate('about');
+                    },
+                  },
+                ]}
+              />
+              {menuItems && menuItems.length > 0 && (
                 <ActionList
-                  header={<BodyBlack>Settings</BodyBlack>}
+                  header={<BodyBlack>General</BodyBlack>}
                   bg="white"
                   pl={16}
-                  actions={[
-                    {
-                      label: 'Select avalanche center',
-                      data: 'Center',
-                      action: () => {
-                        navigation.navigate('avalancheCenterSelector', {debugMode: false});
-                      },
+                  actions={menuItems.map(item => ({
+                    label: item.title,
+                    data: item.title,
+                    action: () => {
+                      void WebBrowser.openBrowserAsync(item.url);
                     },
-                    {
-                      label: 'About Avy',
-                      data: 'About',
-                      action: () => {
-                        navigation.navigate('about');
-                      },
-                    },
-                  ]}
+                  }))}
                 />
-                {menuItems && menuItems.length > 0 && (
-                  <ActionList
-                    header={<BodyBlack>General</BodyBlack>}
-                    bg="white"
-                    pl={16}
-                    actions={menuItems.map(item => ({
-                      label: item.title,
-                      data: item.title,
-                      action: () => {
-                        void WebBrowser.openBrowserAsync(item.url);
-                      },
-                    }))}
-                  />
-                )}
-                {Updates.channel !== 'release' && <SecretMenu staging={staging} setStaging={setStaging} />}
-              </VStack>
-            </ScrollView>
-            {showCampaign && <CampaignBanner center={avalancheCenterId} onAction={onCampaignAction} />}
-          </VStack>
+              )}
+              {Updates.channel !== 'release' && <SecretMenu staging={staging} setStaging={setStaging} />}
+            </VStack>
+          </ScrollView>
         </SafeAreaView>
       </View>
     );
