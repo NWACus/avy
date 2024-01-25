@@ -71,7 +71,7 @@ import {FeatureFlagsProvider} from 'FeatureFlags';
 import {useToggle} from 'hooks/useToggle';
 import {filterLoggedData} from 'logging/filterLoggedData';
 import mixpanel from 'mixpanel';
-import {PostHogProvider} from 'posthog-react-native';
+import PostHog, {PostHogProvider} from 'posthog-react-native';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
 
 logger.info('App starting.');
@@ -235,6 +235,24 @@ const toastConfig = {
   error: (props: ToastConfigParams<string>) => <ErrorToast content={props.text1 ?? 'Error'} {...props} />,
   warning: (props: ToastConfigParams<string>) => <WarningToast content={props.text1 ?? 'Warning'} {...props} />,
 };
+
+let postHog: PostHog | undefined = undefined;
+
+const postHogAsync: Promise<PostHog | undefined> = process.env.EXPO_PUBLIC_POSTHOG_API_KEY
+  ? PostHog.initAsync(process.env.EXPO_PUBLIC_POSTHOG_API_KEY, {
+      host: 'https://app.posthog.com',
+    })
+  : new Promise<undefined>(resolve => {
+      resolve(undefined);
+    });
+
+postHogAsync
+  .then(client => {
+    postHog = client;
+  })
+  .catch((error: unknown) => {
+    logger.error({error: error}, 'error initializing posthog');
+  });
 
 const App = () => {
   try {
@@ -451,11 +469,7 @@ const BaseApp: React.FunctionComponent<{
         <HTMLRendererConfig>
           <SafeAreaProvider>
             <NavigationContainer ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
-              <PostHogProvider
-                apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY}
-                options={{
-                  host: 'https://app.posthog.com',
-                }}>
+              <PostHogProvider client={postHog}>
                 <FeatureFlagsProvider>
                   <KillSwitchMonitor>
                     <SelectProvider>
