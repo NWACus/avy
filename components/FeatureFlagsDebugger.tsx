@@ -89,7 +89,6 @@ const FeatureFlagCard: React.FunctionComponent<{flag: FeatureFlagKey}> = ({flag}
         </HStack>
         <HStack space={2} alignItems="center">
           <Body>Value:</Body>
-          {/*{typeof serverFeatureFlag === 'boolean' && <Switch disabled={!enableOverride} value={Boolean(clientFeatureFlag)} />}*/}
           {typeof serverFeatureFlag === 'boolean' && <Switch disabled={!enableOverride} value={Boolean(clientFeatureFlag)} onValueChange={toggleClientOverride} />}
           {typeof serverFeatureFlag === 'string' && <Body>TODO: handle string flags</Body>}
         </HStack>
