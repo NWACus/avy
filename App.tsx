@@ -67,6 +67,7 @@ import {Center, VStack} from 'components/core';
 import {KillSwitchMonitor} from 'components/KillSwitchMonitor';
 import {TamaguiWrapper} from 'components/TamaguiWrapper';
 import {Body, BodyBlack, Title3Black} from 'components/text';
+import * as Updates from 'expo-updates';
 import {FeatureFlagsProvider} from 'FeatureFlags';
 import {useToggle} from 'hooks/useToggle';
 import {filterLoggedData} from 'logging/filterLoggedData';
@@ -98,6 +99,10 @@ const formatURI = (request: AxiosRequestConfig, options: {includePostData?: bool
   }
   return msg;
 };
+
+axios.defaults.headers.common['User-Agent'] = `avy/${Application.nativeApplicationVersion || '0.0.0'}.${Application.nativeBuildVersion || '0'}+${
+  Updates.channel || 'development'
+})-${process.env.EXPO_PUBLIC_GIT_REVISION || 'git-revision'}`;
 
 axios.interceptors.request.use(request => {
   const msg = 'sending request';
