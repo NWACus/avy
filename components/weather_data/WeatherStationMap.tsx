@@ -21,6 +21,7 @@ import {BodySm, BodySmSemibold, BodyXSm, Title3Black} from 'components/text';
 import {formatData, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
 import {useToggle} from 'hooks/useToggle';
 import {LoggerContext, LoggerProps} from 'loggerContext';
+import {usePostHog} from 'posthog-react-native';
 import {WeatherStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MapLayer, MapLayerFeature, Variable, WeatherStation, WeatherStationCollection, WeatherStationSource} from 'types/nationalAvalancheCenter';
@@ -74,6 +75,11 @@ export const WeatherStationMap: React.FunctionComponent<{
   const [ready, {on: setReady}] = useToggle(false);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const avalancheCenterMapRegion: Region = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
+  const postHog = usePostHog();
+
+  postHog?.screen('weatherStationsMap', {
+    center: center_id,
+  });
 
   const topElements = React.useRef<RNView>(null);
 

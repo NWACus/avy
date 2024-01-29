@@ -7,10 +7,10 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {Card, CardProps} from 'components/content/Card';
-import {Carousel, images} from 'components/content/carousel';
-import {incompleteQueryState, QueryState} from 'components/content/QueryState';
+import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {ZoneMap} from 'components/content/ZoneMap';
-import {HStack, View, VStack} from 'components/core';
+import {Carousel, images} from 'components/content/carousel';
+import {HStack, VStack, View} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {matchesZone} from 'components/observations/ObservationsFilterForm';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize} from 'components/text';
@@ -18,6 +18,7 @@ import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservation} from 'hooks/useNACObservation';
 import {useNWACObservation} from 'hooks/useNWACObservation';
+import {usePostHog} from 'posthog-react-native';
 import {LatLng, Marker} from 'react-native-maps';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
@@ -205,6 +206,12 @@ export const ObservationCard: React.FunctionComponent<{
     }
   }, [navigation, zone_name]);
   const emptyHandler = useCallback(() => undefined, []);
+  const postHog = usePostHog();
+
+  postHog?.screen('observation', {
+    center: observation.center_id,
+    id: observation.id,
+  });
 
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>

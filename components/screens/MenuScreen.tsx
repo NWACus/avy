@@ -43,6 +43,7 @@ import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {sendMail} from 'network/sendMail';
+import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, userFacingCenterId} from 'types/nationalAvalancheCenter';
@@ -99,6 +100,10 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
     preferences: {mixpanelUserId},
   } = usePreferences();
   const [updateGroupId] = getUpdateGroupId();
+
+  const postHog = usePostHog();
+
+  postHog?.screen('menu');
 
   const MenuScreen = function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
     const sendMailHandler = useCallback(

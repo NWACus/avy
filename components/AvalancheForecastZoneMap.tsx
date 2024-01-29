@@ -24,6 +24,7 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts';
 import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {LoggerContext, LoggerProps} from 'loggerContext';
+import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps, TabNavigationProps} from 'routes';
@@ -45,6 +46,12 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const warningResults = useMapLayerAvalancheWarnings(center, requestedTime, mapLayer);
 
   const topElements = React.useRef<RNView>(null);
+
+  const postHog = usePostHog();
+
+  postHog?.screen('avalancheForecastMap', {
+    center: center,
+  });
 
   const navigation = useNavigation<HomeStackNavigationProps & TabNavigationProps>();
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);

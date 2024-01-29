@@ -17,6 +17,7 @@ import {useRefresh} from 'hooks/useRefresh';
 import {useWeatherForecast} from 'hooks/useWeatherForecast';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import {isArray} from 'lodash';
+import {usePostHog} from 'posthog-react-native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
@@ -82,6 +83,13 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
   const onRefresh = useCallback(() => {
     void refresh();
   }, [refresh]);
+
+  const postHog = usePostHog();
+
+  postHog?.screen('weatherForecastTab', {
+    center: center_id,
+    zone: zone.name,
+  });
 
   if (incompleteQueryState(avalancheCenterMetadataResult, avalancheForecastResult) || !metadata || !avalancheForecast) {
     return <QueryState results={[avalancheCenterMetadataResult, avalancheForecastResult]} />;
@@ -362,11 +370,23 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
           </Card>
         ))}
         {actionListData.length > 0 && <ActionList pl={16} backgroundColor="white" header={<Title3Black>Weather Data</Title3Black>} actions={actionListData} />}
-        <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Weather Synopsis</Title3Black>} startsCollapsed={true}>
+        <CollapsibleCard
+          identifier={'weatherSynopsis'}
+          marginTop={1}
+          borderRadius={0}
+          borderColor="white"
+          header={<Title3Black>Weather Synopsis</Title3Black>}
+          startsCollapsed={true}>
           <HTML source={{html: nwacForecast.mountain_weather_forecast.synopsis_day1_day2}} />
         </CollapsibleCard>
         {nwacForecast.mountain_weather_forecast.extended_synopsis && (
-          <CollapsibleCard marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Extended Synopsis</Title3Black>} startsCollapsed={true}>
+          <CollapsibleCard
+            identifier={'weatherExtendedSynopsis'}
+            marginTop={1}
+            borderRadius={0}
+            borderColor="white"
+            header={<Title3Black>Extended Synopsis</Title3Black>}
+            startsCollapsed={true}>
             <HTML source={{html: nwacForecast.mountain_weather_forecast.extended_synopsis}} />
           </CollapsibleCard>
         )}

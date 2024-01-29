@@ -3,6 +3,7 @@ import Topo from 'assets/illustrations/topo.svg';
 import {Button} from 'components/content/Button';
 import {View, VStack} from 'components/core';
 import {Body, BodyBlack, Title3Black} from 'components/text';
+import {usePostHog} from 'posthog-react-native';
 import React, {useCallback} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {ObservationsStackNavigationProps} from 'routes';
@@ -19,6 +20,11 @@ export const ObservationsPortal: React.FC<{
     [center_id, navigation, requestedTime],
   );
   const onSubmit = useCallback(() => navigation.navigate('observationSubmit', {center_id}), [center_id, navigation]);
+  const postHog = usePostHog();
+
+  postHog?.screen('observationsPortal', {
+    center: center_id,
+  });
   return (
     <View width="100%" height="100%" bg="#F6F8FC">
       {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}

@@ -12,6 +12,7 @@ import {matchesZone} from 'components/observations/ObservationsFilterForm';
 import {BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
 import {isAfter, isBefore, parseISO, sub} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
+import {usePostHog} from 'posthog-react-native';
 import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, SafeAreaView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {colorLookup} from 'theme';
@@ -162,6 +163,9 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
   React.useEffect(() => {
     formContext.reset(currentFilterConfig);
   }, [formContext, currentFilterConfig]);
+  const postHog = usePostHog();
+
+  postHog?.screen('weatherStationsFilter');
 
   const closeWithoutSaving = useCallback(() => {
     formContext.reset(initialFilterConfig);

@@ -20,6 +20,7 @@ import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
+import {usePostHog} from 'posthog-react-native';
 import {
   ActivityIndicator,
   ColorValue,
@@ -71,6 +72,13 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
+
+  const postHog = usePostHog();
+
+  postHog?.screen('observations', {
+    center: center_id,
+    zone: additionalFilters && additionalFilters.zones && additionalFilters.zones.length > 0 ? additionalFilters.zones[0] : 'global',
+  });
 
   // Filter inputs changed via render props should overwrite our current state
   useEffect(() => {

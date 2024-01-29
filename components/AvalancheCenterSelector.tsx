@@ -9,6 +9,7 @@ import {AvalancheCenterList} from 'components/content/AvalancheCenterList';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {useAllAvalancheCenterMetadata} from 'hooks/useAllAvalancheCenterMetadata';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
+import {usePostHog} from 'posthog-react-native';
 import {MenuStackParamList, TabNavigationProps} from 'routes';
 import {AvalancheCenter, AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
@@ -34,6 +35,9 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
     },
     [setAvalancheCenter, navigation],
   );
+  const postHog = usePostHog();
+
+  postHog?.screen('centerSelector');
 
   if (incompleteQueryState(capabilitiesResult, ...metadataResults) || !capabilities) {
     return <QueryState results={[capabilitiesResult, ...metadataResults]} />;
