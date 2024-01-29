@@ -80,6 +80,7 @@ export const SecretMenu: React.FC<SecretMenuProps> = ({staging, setStaging}) => 
   const [updateGroupId] = useState(getUpdateGroupId());
   return (
     <CollapsibleCard
+      identifier={'secretMenu'}
       startsCollapsed={preferences.secretMenuCollapsed}
       collapsedStateChanged={collapsed => setPreferences({secretMenuCollapsed: collapsed})}
       borderColor="white"

@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 
 import {addDays, formatDistanceToNow, isAfter} from 'date-fns';
 
@@ -22,6 +22,7 @@ import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {useAvalancheWarning} from 'hooks/useAvalancheWarning';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
+import {usePostHog} from 'posthog-react-native';
 import {RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
 import Collapsible from 'react-native-collapsible';
 import Toast from 'react-native-toast-message';
@@ -70,16 +71,19 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
   const warning = warningResult.data;
   const {isRefreshing, refresh} = useRefresh(forecastResult.refetch, warningResult.refetch);
   const onRefresh = useCallback(() => void refresh(), [refresh]);
+  const postHog = usePostHog();
 
   // When navigating from elsewhere in the app, the screen title should already
   // be set to the zone name. But if we warp directly to a forecast link, we
   // need to load the zone name dynamically.
   const navigation = useNavigation<HomeStackNavigationProps>();
+  const [zoneName, setZoneName] = useState('');
   React.useEffect(() => {
     if (forecast) {
       const thisZone: AvalancheForecastZoneSummary | undefined = forecast.forecast_zone.find(zone => zone.id === forecast_zone_id);
       if (thisZone) {
         navigation.setOptions({title: thisZone.name});
+        setZoneName(thisZone.name);
       }
     }
   }, [forecast, forecast_zone_id, navigation]);
@@ -110,6 +114,11 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
   if (incompleteQueryState(forecastResult, warningResult) || !forecast || !warning) {
     return <QueryState results={[forecastResult, warningResult]} />;
   }
+
+  postHog?.screen('avalancheForecastTab', {
+    center: center_id,
+    zone: zoneName,
+  });
 
   const publishedTime = forecast.published_time ? toDate(forecast.published_time) : new Date();
 
@@ -174,6 +183,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
           <AvalancheDangerTable date={addDays(publishedTime, forecastOffset)} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
         </Card>
         <CollapsibleCard
+          identifier={'outlookDangerTable'}
           startsCollapsed
           borderRadius={0}
           borderColor="white"
@@ -188,6 +198,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
           forecast.forecast_avalanche_problems &&
           forecast.forecast_avalanche_problems.map((problem, index) => (
             <CollapsibleCard
+              identifier={'avalancheProblem'}
               key={`avalanche-problem-${index}-card`}
               startsCollapsed
               borderRadius={0}
@@ -197,7 +208,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
             </CollapsibleCard>
           ))}
         {forecast.hazard_discussion && (
-          <CollapsibleCard startsCollapsed borderRadius={0} borderColor="white" header={<BodyBlack>Forecast Discussion</BodyBlack>}>
+          <CollapsibleCard identifier={'hazardDiscussion'} startsCollapsed borderRadius={0} borderColor="white" header={<BodyBlack>Forecast Discussion</BodyBlack>}>
             <HTML source={{html: forecast.hazard_discussion}} />
           </CollapsibleCard>
         )}

@@ -6,6 +6,7 @@ import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useToggle} from 'hooks/useToggle';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
+import {usePostHog} from 'posthog-react-native';
 import React from 'react';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
@@ -19,6 +20,11 @@ interface Props {
 export const WeatherStationPage: React.FC<Props> = ({center_id, requestedTime}) => {
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = avalancheCenterMetadataResult.data;
+  const postHog = usePostHog();
+
+  postHog?.screen('weatherTab', {
+    center: center_id,
+  });
   if (incompleteQueryState(avalancheCenterMetadataResult) || !metadata) {
     return <QueryState results={[avalancheCenterMetadataResult]} />;
   }

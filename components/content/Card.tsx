@@ -1,4 +1,4 @@
-import React, {PropsWithChildren, ReactNode, useCallback, useState} from 'react';
+import React, {PropsWithChildren, ReactNode, useCallback, useEffect, useState} from 'react';
 
 import {ColorValue, TouchableOpacity, ViewStyle} from 'react-native';
 import Collapsible from 'react-native-collapsible';
@@ -6,6 +6,7 @@ import Collapsible from 'react-native-collapsible';
 import {FontAwesome} from '@expo/vector-icons';
 
 import {Divider, HStack, View, ViewProps, VStack} from 'components/core';
+import {usePostHog} from 'posthog-react-native';
 import {colorLookup} from 'theme';
 
 export interface CardProps extends ViewProps {
@@ -59,12 +60,14 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({
 };
 
 export interface CollapsibleCardProps extends CardProps {
+  identifier: string;
   noDivider?: boolean;
   startsCollapsed: boolean;
   collapsedStateChanged?: (collapsed: boolean) => void;
 }
 
 export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({
+  identifier,
   startsCollapsed,
   collapsedStateChanged,
   header,
@@ -78,6 +81,10 @@ export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<Collapsi
     setIsCollapsed(!isCollapsed);
     collapsedStateChanged?.(!isCollapsed);
   }, [isCollapsed, collapsedStateChanged]);
+  const postHog = usePostHog();
+  useEffect(() => {
+    postHog?.capture('card', {identifier: identifier, isCollapsed: isCollapsed});
+  }, [identifier, postHog, isCollapsed]);
 
   return (
     <Card

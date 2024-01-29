@@ -102,7 +102,7 @@ const formatURI = (request: AxiosRequestConfig, options: {includePostData?: bool
 
 axios.defaults.headers.common['User-Agent'] = `avy/${Application.nativeApplicationVersion || '0.0.0'}.${Application.nativeBuildVersion || '0'}+${
   Updates.channel || 'development'
-})-${process.env.EXPO_PUBLIC_GIT_REVISION || 'git-revision'}`;
+}-${process.env.EXPO_PUBLIC_GIT_REVISION || 'git-revision'}`;
 
 axios.interceptors.request.use(request => {
   const msg = 'sending request';

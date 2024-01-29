@@ -4,7 +4,7 @@ import {ScrollView} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {compareDesc, format} from 'date-fns';
 import {uniq} from 'lodash';
-import {useFeatureFlag} from 'posthog-react-native';
+import {useFeatureFlag, usePostHog} from 'posthog-react-native';
 
 import {ButtonBar} from 'components/content/ButtonBar';
 import {DataGrid} from 'components/content/DataGrid';
@@ -319,6 +319,11 @@ export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, station
   const requestedTimeDate = parseRequestedTimeString(requestedTime);
   const timeseriesResult = useWeatherStationTimeseries(metadata?.widget_config.stations?.token, stations, requestedTimeDate, {days: days});
   const timeseries = timeseriesResult.data;
+  const postHog = usePostHog();
+
+  postHog?.screen('weatherStations', {
+    center: center_id,
+  });
 
   React.useEffect(() => {
     navigation.setOptions({title: zoneName});

@@ -13,7 +13,7 @@ import {Column, formatDateTime} from 'components/weather_data/WeatherStationsDet
 import {compareDesc} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
-import {useFeatureFlag} from 'posthog-react-native';
+import {useFeatureFlag, usePostHog} from 'posthog-react-native';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, StationNote, Variable, WeatherStationSource, WeatherStationTimeseries} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
@@ -40,6 +40,12 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
   identifier[stationId] = source;
   const timeseriesResult = useWeatherStationTimeseries(metadata?.widget_config.stations?.token, identifier, requestedTimeDate, {days: days});
   const timeseries = timeseriesResult.data;
+  const postHog = usePostHog();
+
+  postHog?.screen('weatherStation', {
+    center: center_id,
+    stationId: stationId,
+  });
 
   if (incompleteQueryState(avalancheCenterMetadataResult, timeseriesResult) || !metadata || !timeseries) {
     return <QueryState results={[avalancheCenterMetadataResult, timeseriesResult]} />;

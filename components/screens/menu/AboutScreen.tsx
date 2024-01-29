@@ -15,6 +15,7 @@ import {Center, HStack, View, VStack} from 'components/core';
 import {getVersionInfoFull} from 'components/screens/menu/Version';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
+import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
 import {MenuStackParamList} from 'routes';
 
@@ -29,6 +30,10 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
       await Clipboard.setStringAsync(getVersionInfoFull(mixpanelUserId, updateGroupId));
     })();
   }, [mixpanelUserId, updateGroupId]);
+
+  const postHog = usePostHog();
+
+  postHog?.screen('about');
 
   return (
     <View style={StyleSheet.absoluteFillObject}>

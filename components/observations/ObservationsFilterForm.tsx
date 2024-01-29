@@ -16,6 +16,7 @@ import {Body, BodyBlack, BodySemibold, BodySmBlack, Title3Semibold, bodySize} fr
 import {geoContains} from 'd3-geo';
 import {endOfDay, isAfter, isBefore, parseISO} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
+import {usePostHog} from 'posthog-react-native';
 import {FieldErrors, FormProvider, useController, useForm, useFormContext} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, SafeAreaView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {colorLookup} from 'theme';
@@ -255,6 +256,10 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
     // Returning true marks the event as processed
     return true;
   });
+
+  const postHog = usePostHog();
+
+  postHog?.screen('observationsFilter');
 
   const onResetHandler = useCallback(() => formContext.reset(initialFilterConfig), [formContext, initialFilterConfig]);
 

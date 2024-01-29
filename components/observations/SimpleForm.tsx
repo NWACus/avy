@@ -30,6 +30,7 @@ import {TaskStatus} from 'components/observations/uploader/Task';
 import {Body, BodyBlack, BodySemibold, BodySm, Title3Semibold} from 'components/text';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
+import {usePostHog} from 'posthog-react-native';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
@@ -69,6 +70,12 @@ export const SimpleForm: React.FC<{
     mode: 'onBlur',
     shouldFocusError: false,
     shouldUnregister: true,
+  });
+
+  const postHog = usePostHog();
+
+  postHog?.screen('observationForm', {
+    center: center_id,
   });
 
   useEffect(() => {
