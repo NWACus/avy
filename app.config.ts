@@ -11,5 +11,10 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   config.android!.config!.googleMaps!.apiKey = process.env.ANDROID_GOOGLE_MAPS_API_KEY;
   config.extra!.log_level = process.env.LOG_LEVEL != null ? process.env.LOG_LEVEL : 'info';
 
+  if (config.plugins === undefined) {
+    config.plugins = [];
+  }
+  config.plugins.push('expo-font');
+
   return config;
 };
