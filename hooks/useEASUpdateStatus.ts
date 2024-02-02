@@ -14,7 +14,8 @@ export const getUpdateGroupId = (): string => {
   if (Updates.isEmbeddedLaunch) {
     return 'embedded';
   }
-  const metadata: unknown = Updates.manifest?.metadata;
+  // Can be a NewManifest | BareManifest the `metadata` only exists se check for it first on a NewManifest
+  const metadata: unknown = 'metadata' in Updates.manifest ? Updates.manifest.metadata : null;
   if (metadata && typeof metadata === 'object') {
     return _.get(metadata, 'updateGroup', 'n/a');
   }
