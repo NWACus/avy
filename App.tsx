@@ -149,7 +149,6 @@ if (Sentry?.init) {
       // Example: 1.0.0.54
       dist: `${Application.nativeApplicationVersion || '0.0.0'}.${Application.nativeBuildVersion || '0'}`,
       release: process.env.EXPO_PUBLIC_GIT_REVISION,
-      enableInExpoDevelopment: Boolean(process.env.EXPO_PUBLIC_SENTRY_IN_DEV),
       enableWatchdogTerminationTracking: true,
       beforeSend: async (event, hint) => {
         const {exists} = await FileSystem.getInfoAsync(logFilePath);
