@@ -40,7 +40,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
   const onZoneChange = useCallback(
     (zoneName: string) => {
       if (center) {
-        const zone = center?.zones.find(z => z.name === zoneName && z.status === 'active');
+        const zone = center?.zones.find(z => z.name === zoneName && z.status === AvalancheForecastZoneStatus.Active);
         if (!zone) {
           logger.warn({zone: zoneName}, 'zone change callback called with zone not belonging to the center');
           return;
@@ -78,7 +78,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
     return <NotFound what={[new NotFoundError(message, 'avalanche forecast zone')]} />;
   }
 
-  const zones = uniq(center.zones.filter(z => z.status === 'active').map(z => z.name));
+  const zones = uniq(center.zones.filter(z => z.status === AvalancheForecastZoneStatus.Active).map(z => z.name));
 
   return (
     <VStack style={{height: '100%', width: '100%', justifyContent: 'space-between'}}>
