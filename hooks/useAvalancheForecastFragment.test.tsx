@@ -1,4 +1,11 @@
 import {isBetween} from 'hooks/useAvalancheForecastFragment';
+jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
+  __esModule: true,
+  default: {
+    ignoreLogs: jest.fn(),
+    ignoreAllLogs: jest.fn(),
+  },
+}));
 
 describe('useAvalancheForecastFragment', () => {
   describe('isBetween', () => {
