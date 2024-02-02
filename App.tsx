@@ -21,11 +21,11 @@ import * as SplashScreen from 'expo-splash-screen';
 import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, UIManager, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
+import * as Sentry from '@sentry/react-native';
 import * as Application from 'expo-application';
 import * as BackgroundFetch from 'expo-background-fetch';
 import Constants from 'expo-constants';
 import * as TaskManager from 'expo-task-manager';
-import * as Sentry from 'sentry-expo';
 
 import {merge} from 'lodash';
 
@@ -274,7 +274,7 @@ const App = () => {
       </LoggerContext.Provider>
     );
   } catch (error) {
-    Sentry.Native.captureException(error);
+    Sentry.captureException(error);
     throw error;
   }
 };

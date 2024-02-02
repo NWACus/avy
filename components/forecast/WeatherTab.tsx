@@ -1,5 +1,6 @@
 import {CompositeNavigationProp, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import * as Sentry from '@sentry/react-native';
 import {ActionList} from 'components/content/ActionList';
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {InfoTooltip} from 'components/content/InfoTooltip';
@@ -21,7 +22,6 @@ import {usePostHog} from 'posthog-react-native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
-import * as Sentry from 'sentry-expo';
 import {colorLookup} from 'theme';
 import {
   AvalancheCenterID,
@@ -236,7 +236,7 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
   const num_sub_periods_multiple = nwacForecast.sub_periods.length !== 2 * num_periods;
   const num_5k_temps_match = nwacForecast.five_thousand_foot_temperatures.length !== num_periods;
   if (num_periods_even || num_sub_periods_multiple || num_forecasts_match || num_5k_temps_match) {
-    Sentry.Native.captureException(
+    Sentry.captureException(
       new Error(
         `Assumptions not met on NWAC weather forecast for zone ${zone.id} at time ${requestedTime.toString()}: ${JSON.stringify({
           num_periods_even,
@@ -251,7 +251,7 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
   for (let i = 0; i < nwacForecast.precipitation_by_location.length; i++) {
     const l = nwacForecast.precipitation_by_location[i];
     if (l.precipitation.length !== num_periods) {
-      Sentry.Native.captureException(
+      Sentry.captureException(
         new Error(
           `Assumptions not met on NWAC weather forecast for zone ${
             zone.id

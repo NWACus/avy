@@ -3,8 +3,8 @@ import React, {useCallback} from 'react';
 import {uniq} from 'lodash';
 
 import {useNavigation} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import {TouchableOpacity} from 'react-native';
-import * as Sentry from 'sentry-expo';
 
 import {HStack, View, VStack} from 'components/core';
 
@@ -73,7 +73,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
     const message = `Avalanche center ${center_id} had no zone with id ${forecast_zone_id}`;
     if (!zone) {
       // If the zone is intentionally disabled, don't log to Sentry
-      Sentry.Native.captureException(new Error(message));
+      Sentry.captureException(new Error(message));
     }
     return <NotFound what={[new NotFoundError(message, 'avalanche forecast zone')]} />;
   }

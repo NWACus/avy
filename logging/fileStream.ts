@@ -1,8 +1,8 @@
+import * as Sentry from '@sentry/react-native';
 import {LogStream} from 'browser-bunyan';
 import * as FileSystem from 'expo-file-system';
 import {debounce} from 'lodash';
 import {filterLoggedData} from 'logging/filterLoggedData';
-import * as Sentry from 'sentry-expo';
 
 export class FileStream implements LogStream {
   private readonly filePath: string;
@@ -25,7 +25,7 @@ export class FileStream implements LogStream {
     try {
       return await FileSystem.writeAsStringAsync(this.filePath, contents + buffer.join('\n') + '\n');
     } catch (error) {
-      Sentry.Native.captureException(error, {
+      Sentry.captureException(error, {
         extra: {
           message: 'Unexpected error flushing log',
         },

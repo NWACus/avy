@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 
-import * as Sentry from 'sentry-expo';
+import * as Sentry from '@sentry/react-native';
 
 import {QueryClient, useInfiniteQuery} from '@tanstack/react-query';
 import axios, {AxiosError, AxiosResponse} from 'axios';
@@ -132,7 +132,7 @@ export const fetchNACObservations = async (
   const parseResult = observationListResultSchema.safeParse(data);
   if (!parseResult.success) {
     thisLogger.warn({error: parseResult.error}, 'failed to parse');
-    Sentry.Native.captureException(parseResult.error, {
+    Sentry.captureException(parseResult.error, {
       tags: {
         zod_error: true,
         url,

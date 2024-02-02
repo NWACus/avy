@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {ScrollView} from 'react-native';
 
-import * as Sentry from 'sentry-expo';
+import * as Sentry from '@sentry/react-native';
 
 import {ButtonBar} from 'components/content/ButtonBar';
 import {DataGrid} from 'components/content/DataGrid';
@@ -53,7 +53,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
 
   if (timeseries.STATION.length !== 1) {
     const message = `Avalanche center ${center_id} had no weather station with id ${stationId}`;
-    Sentry.Native.captureException(new Error(message));
+    Sentry.captureException(new Error(message));
     return <NotFound what={[new NotFoundError(message, 'weather station')]} />;
   }
 

@@ -2,6 +2,7 @@ import {AntDesign, MaterialIcons} from '@expo/vector-icons';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useBackHandler} from '@react-native-community/hooks';
 import {useNavigation} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import {useMutation} from '@tanstack/react-query';
 import {AxiosError} from 'axios';
 import * as ImagePicker from 'expo-image-picker';
@@ -10,7 +11,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FieldErrors, FormProvider, useForm, useWatch} from 'react-hook-form';
 import {ColorValue, KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import * as Sentry from 'sentry-expo';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import {Button} from 'components/content/Button';
@@ -143,7 +143,7 @@ export const SimpleForm: React.FC<{
         }
       } catch (error) {
         logger.error('ImagePicker error', {error});
-        Sentry.Native.captureMessage(`ImagePicker encountered an error: ${JSON.stringify(error)}`);
+        Sentry.captureMessage(`ImagePicker encountered an error: ${JSON.stringify(error)}`);
         // Are we offline? Things might be ok if they go online again.
         const {networkStatus} = getUploader().getState();
         Toast.show({
