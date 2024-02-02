@@ -2,6 +2,10 @@
   "name": "avalanche-forecast",
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
+  "resolutions": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
   "scripts": {
     "android": "EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) expo start --android",
     "ci": "yarn ci:prettier && yarn ci:eslint && yarn ci:tsc && yarn test",
@@ -111,7 +115,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.43.1",
-    "react-intl": "^6.4.7",
+    "react-intl": "^6.6.2",
     "react-native": "0.73.2",
     "react-native-collapsible": "^1.6.0",
     "react-native-gesture-handler": "~2.14.0",
@@ -149,7 +153,7 @@
     "@types/lodash": "^4.14.195",
     "@types/md5": "^2.3.2",
     "@types/polylabel": "^1.0.5",
-    "@types/react": "^18.2.45",
+    "@types/react": "18.2.22",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "add": "^2.0.6",
