@@ -1,6 +1,5 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-
   "compilerOptions": {
     "allowJs": true,
     "esModuleInterop": true,
@@ -11,7 +10,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "target": "ESNext",
-
     "allowSyntheticDefaultImports": true,
     "baseUrl": "./",
     "declaration": true,
@@ -26,6 +24,6 @@
   "ts-node": {
     "compilerOptions": {}
   },
-
-  "exclude": ["node_modules", "babel.config.js", "metro.config.js", "jest.config.js", "android"]
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js", "jest.config.js", "android"],
+  "extends": "expo/tsconfig.base"
 }

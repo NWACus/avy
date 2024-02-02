@@ -11,6 +11,14 @@ import {uploadImage as uploadImageOriginal} from 'components/observations/upload
 import {logger} from 'logger';
 import {AvalancheCenterID, MediaItem, MediaType, MediaUsage} from 'types/nationalAvalancheCenter';
 
+jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
+  __esModule: true,
+  default: {
+    ignoreLogs: jest.fn(),
+    ignoreAllLogs: jest.fn(),
+  },
+}));
+
 const uploadImage = uploadImageOriginal as jest.MockedFunction<typeof uploadImageOriginal>;
 const MockNetInfo = NetInfo as typeof NetInfo & {mockGoOffline: () => undefined; mockGoOnline: () => undefined};
 

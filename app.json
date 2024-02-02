@@ -20,6 +20,7 @@
       "url": "https://u.expo.dev/47e2fd36-5165-4eb4-9a2d-21beec393379",
       "fallbackToCacheTimeout": 0
     },
+    "platforms": ["ios", "android"],
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
@@ -76,9 +77,6 @@
       },
       "avalanche_center": "NWAC",
       "log_level": "info"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     }
   }
 }
