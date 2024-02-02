@@ -138,7 +138,9 @@ export const pacificDateToDayOfWeekString = (date: Date | string | undefined | n
 // we can cache a request for e.g. 01-01-2001 01:00:00 the same as 01-01-2001 02:00:00, since those will net the
 // same result.
 export type RequestedTime = Date | 'latest';
-export type RequestedTimeString = string | 'latest';
+
+// "latest" is a special string to mean Date.now()
+export type RequestedTimeString = string;
 export const requestedTimeToUTCDate = (requestedTime: RequestedTime): Date => {
   if (requestedTime !== 'latest') {
     return toDate(new Date(requestedTime), {timeZone: 'UTC'});

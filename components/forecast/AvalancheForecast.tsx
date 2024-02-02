@@ -3,8 +3,8 @@ import React, {useCallback} from 'react';
 import {uniq} from 'lodash';
 
 import {useNavigation} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import {TouchableOpacity} from 'react-native';
-import * as Sentry from 'sentry-expo';
 
 import {HStack, View, VStack} from 'components/core';
 
@@ -40,7 +40,7 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
   const onZoneChange = useCallback(
     (zoneName: string) => {
       if (center) {
-        const zone = center?.zones.find(z => z.name === zoneName && z.status === 'active');
+        const zone = center?.zones.find(z => z.name === zoneName && z.status === AvalancheForecastZoneStatus.Active);
         if (!zone) {
           logger.warn({zone: zoneName}, 'zone change callback called with zone not belonging to the center');
           return;
@@ -73,12 +73,12 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
     const message = `Avalanche center ${center_id} had no zone with id ${forecast_zone_id}`;
     if (!zone) {
       // If the zone is intentionally disabled, don't log to Sentry
-      Sentry.Native.captureException(new Error(message));
+      Sentry.captureException(new Error(message));
     }
     return <NotFound what={[new NotFoundError(message, 'avalanche forecast zone')]} />;
   }
 
-  const zones = uniq(center.zones.filter(z => z.status === 'active').map(z => z.name));
+  const zones = uniq(center.zones.filter(z => z.status === AvalancheForecastZoneStatus.Active).map(z => z.name));
 
   return (
     <VStack style={{height: '100%', width: '100%', justifyContent: 'space-between'}}>

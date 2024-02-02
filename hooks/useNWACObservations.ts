@@ -3,7 +3,7 @@ import React, {useEffect, useState} from 'react';
 import {QueryClient, useInfiniteQuery} from '@tanstack/react-query';
 import axios, {AxiosError, AxiosResponse} from 'axios';
 
-import * as Sentry from 'sentry-expo';
+import * as Sentry from '@sentry/react-native';
 
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
@@ -131,7 +131,7 @@ export const fetchNWACObservations = async (nwacHost: string, center_id: Avalanc
   const parseResult = nwacObservationsListSchema.safeParse(data);
   if (!parseResult.success) {
     thisLogger.warn({error: parseResult.error}, 'failed to parse');
-    Sentry.Native.captureException(parseResult.error, {
+    Sentry.captureException(parseResult.error, {
       tags: {
         zod_error: true,
         url,

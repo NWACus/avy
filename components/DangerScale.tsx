@@ -27,7 +27,7 @@ export const DangerScale: React.FunctionComponent<DangerScaleProps> = props => {
                 borderBottomRightRadius: level === DangerLevel.Extreme ? 24 : 0,
                 borderTopRightRadius: level === DangerLevel.Extreme ? 24 : 0,
               }}>
-              <BodyXSmBlack style={{paddingHorizontal: 4}} color={level < 4 ? 'text' : 'white'}>
+              <BodyXSmBlack style={{paddingHorizontal: 4}} color={level < DangerLevel.High ? 'text' : 'white'}>
                 {dangerShortText(level)}
               </BodyXSmBlack>
             </Center>

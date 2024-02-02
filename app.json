@@ -44,18 +44,6 @@
       },
       "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "FOREGROUND_SERVICE", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
     },
-    "hooks": {
-      "postPublish": [
-        {
-          "file": "sentry-expo/upload-sourcemaps",
-          "config": {
-            "organization": "nwac",
-            "project": "mobile-app",
-            "setCommits": true
-          }
-        }
-      ]
-    },
     "plugins": [
       "expo-localization",
       [
@@ -66,13 +54,21 @@
           }
         }
       ],
-      "sentry-expo",
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "nwac",
+          "project": "mobile-app",
+          "setCommits": true
+        }
+      ],
       [
         "expo-image-picker",
         {
           "photosPermission": "The app accesses your photos so you can share your observations with NWAC forecasters."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {

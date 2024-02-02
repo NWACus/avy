@@ -2,10 +2,10 @@
 // and provide a hook to update them.
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Sentry from '@sentry/react-native';
 import {merge} from 'lodash';
 import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
 import uuid from 'react-native-uuid';
-import * as Sentry from 'sentry-expo';
 import {useAsyncEffect} from 'use-async-effect';
 import {z} from 'zod';
 
@@ -50,7 +50,7 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
       // Error parsing preferences, ignore as we'll fall back to defaults
       await AsyncStorage.removeItem(PREFERENCES_KEY);
       // But do log it to Sentry as it shouldn't happen
-      Sentry.Native.captureException(e);
+      Sentry.captureException(e);
     }
     setPartialPreferences(
       merge(

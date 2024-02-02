@@ -3,7 +3,7 @@ import React, {useEffect, useState} from 'react';
 import {QueryClient, useQuery, UseQueryResult} from '@tanstack/react-query';
 import axios, {AxiosError, AxiosResponse} from 'axios';
 
-import * as Sentry from 'sentry-expo';
+import * as Sentry from '@sentry/react-native';
 
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
@@ -70,7 +70,7 @@ const fetchAvalancheCenterMetadata = async (nationalAvalancheCenterHost: string,
   const parseResult = avalancheCenterSchema.safeParse(data);
   if (!parseResult.success) {
     thisLogger.warn({url: url, error: parseResult.error}, 'failed to parse');
-    Sentry.Native.captureException(parseResult.error, {
+    Sentry.captureException(parseResult.error, {
       tags: {
         zod_error: true,
         center_id,

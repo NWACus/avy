@@ -22,6 +22,7 @@ import {
   AllAvalancheCenterCapabilities,
   AvalancheCenter,
   AvalancheCenterID,
+  AvalancheForecastZoneStatus,
   ForecastResult,
   ImageMediaItem,
   ProductType,
@@ -86,7 +87,7 @@ export const prefetchAllActiveForecasts = async (
 
   if (metadata?.widget_config?.forecast) {
     metadata?.zones
-      .filter(zone => zone.status === 'active')
+      .filter(zone => zone.status === AvalancheForecastZoneStatus.Active)
       .forEach(zone => {
         void (async () => {
           if (center_id === 'NWAC') {

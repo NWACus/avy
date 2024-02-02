@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import {UseQueryResult} from '@tanstack/react-query';
 import ErrorIllustration from 'assets/illustrations/Error.svg';
 import NoGPS from 'assets/illustrations/NoGPS.svg';
@@ -8,7 +9,6 @@ import {useToggle} from 'hooks/useToggle';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import React from 'react';
 import {ActivityIndicator} from 'react-native';
-import * as Sentry from 'sentry-expo';
 import {NotFoundError} from 'types/requests';
 
 interface QueryStateProps {
@@ -25,7 +25,7 @@ export const QueryState: React.FunctionComponent<QueryStateProps> = ({results, t
   const errors = results.filter(result => result.isError && !(result.error instanceof NotFoundError)).map(result => result.error);
   if (errors.length > 0) {
     errors.forEach(error => {
-      Sentry.Native.captureException(error);
+      Sentry.captureException(error);
     });
     logger.error({errors: errors}, 'queries errored');
     return <InternalError />;
@@ -42,7 +42,8 @@ export const QueryState: React.FunctionComponent<QueryStateProps> = ({results, t
   }
 
   logger.error({results: results}, 'QueryState called with a set of queries that were loaded and had no errors');
-  Sentry.Native.captureException(new Error(`QueryState called with a set of queries that were loaded and had no errors: ${JSON.stringify(results)}`));
+  Sentry.captureException(new Error(`QueryState called with a set of queries that were loaded and had no errors: ${JSON.stringify(results)}`));
+
   return <InternalError />;
 };
 
