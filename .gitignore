@@ -17,3 +17,7 @@ web-build/
 .env
 .envrc
 android
+
+# Jetbrains IDE files
+.idea
+
