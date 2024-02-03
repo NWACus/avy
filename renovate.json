@@ -1,0 +1,20 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base"
+  ],
+  "branchConcurrentLimit": 3,
+  "packageRules": [
+    {
+      "matchDatasources": ["npm"],
+      "stabilityDays": 10
+    },
+    {
+      "matchPackageNames": [
+        "@types/react",
+        "@types/react-dom"
+      ],
+      "enabled": false
+    }
+  ]
+}
