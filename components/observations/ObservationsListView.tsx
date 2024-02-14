@@ -168,19 +168,22 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   }
 
   const pendingObservations = usePendingObservations();
-  const pendingObservationsSection: Section = {
-    title: 'Pending',
-    data: pendingObservations.map(
-      ({observation}) =>
-        ({
-          id: observation.id,
-          observation: observation,
-          source: 'nac',
-          zone: observation.locationName,
-          pending: true,
-        } as const),
-    ),
-  };
+  const pendingObservationsSection: Section = useMemo(
+    () => ({
+      title: 'Pending',
+      data: pendingObservations.map(
+        ({observation}) =>
+          ({
+            id: observation.id,
+            observation: observation,
+            source: 'nac',
+            zone: observation.locationName,
+            pending: true,
+          } as const),
+      ),
+    }),
+    [pendingObservations],
+  );
 
   const observationsSection: Section = useMemo(
     () => ({
@@ -201,13 +204,10 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   );
 
   const hasPendingObservations = pendingObservationsSection.data.length > 0;
-  const sections: Section[] = [];
-  if (hasPendingObservations) {
-    sections.push(pendingObservationsSection);
-  }
-  if (observationsSection.data.length > 0) {
-    sections.push(observationsSection);
-  }
+
+  const sections: Section[] = useMemo(() => {
+    return [pendingObservationsSection, observationsSection].filter(section => section.data.length > 0);
+  }, [pendingObservationsSection, observationsSection]);
 
   const renderItem = useCallback(
     ({item}: SectionListRenderItemInfo<ObservationsListViewItem, Section>) => (
