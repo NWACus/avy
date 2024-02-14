@@ -1,15 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "allowJs": true,
-    "esModuleInterop": true,
-    "jsx": "react-native",
-    "lib": ["DOM", "ESNext"],
-    "moduleResolution": "node",
-    "noEmit": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "target": "ESNext",
     "allowSyntheticDefaultImports": true,
     "baseUrl": "./",
     "declaration": true,
@@ -19,11 +10,12 @@
     "isolatedModules": true,
     "outDir": "dist",
     "sourceMap": true,
-    "strict": true
+    "strict": true,
+    "jsx": "react-native"
   },
   "ts-node": {
     "compilerOptions": {}
   },
-  "exclude": ["node_modules", "babel.config.js", "metro.config.js", "jest.config.js", "android"],
+  "exclude": ["node_modules", "android"],
   "extends": "expo/tsconfig.base"
 }
