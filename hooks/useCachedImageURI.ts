@@ -48,6 +48,16 @@ function queryKey(uri: string) {
   return [queryKeyPrefix, {uri: uri}];
 }
 
+/**
+ * react-native iOS image component seems to be adding ".png" to any image URL that doesn't have
+ * a file extension. This was discovered by adding an `onError` callback prop to the <Image />
+ * component that reported "no such file MD5HASH.png".
+ *
+ * The work around here is to always append one. The extension doesnt't matter and doesn't change
+ * how the actual bits of the file are treated when rendering an image.
+ */
+const CACHE_FILE_EXTENSION = '.cache';
+
 const fetchCachedImageURI = async (uri: string, logger: Logger): Promise<string> => {
   if (!uri.startsWith('http')) {
     // this is already a local file, no need to download. We hit this case in production
@@ -57,12 +67,14 @@ const fetchCachedImageURI = async (uri: string, logger: Logger): Promise<string>
     return uri;
   }
   await initialize();
-  const destination = rootDirectory + md5(uri);
+
+  const destination = rootDirectory + md5(uri) + CACHE_FILE_EXTENSION;
   logger.debug({source: uri, destination: destination}, 'caching remote image');
   const result = await FileSystem.downloadAsync(uri, destination);
   if (result.status !== 200) {
     throw new Error(`Failed to fetch remote image at ${uri}: ${result.status}`);
   }
+
   return result.uri;
 };
 
