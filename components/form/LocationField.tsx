@@ -121,16 +121,18 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                   {incompleteQueryState(mapLayerResult) && <QueryState results={[mapLayerResult]} />}
                   {mapReady && (
                     <TouchableWithoutFeedback onPress={onPress}>
-                      <ZoneMap
-                        ref={mapRef}
-                        animated={false}
-                        style={{width: '100%', height: '100%'}}
-                        zones={zones}
-                        initialRegion={initialRegion}
-                        onPressPolygon={emptyHandler}
-                        renderFillColor={false}>
-                        {field.value != null && <MapMarker coordinate={locationPointToLatLng(field.value as LocationPoint)} />}
-                      </ZoneMap>
+                      <View>
+                        <ZoneMap
+                          ref={mapRef}
+                          animated={false}
+                          style={{minWidth: '100%', minHeight: '100%'}}
+                          zones={zones}
+                          initialRegion={initialRegion}
+                          onPressPolygon={emptyHandler}
+                          renderFillColor={false}>
+                          {field.value != null && <MapMarker coordinate={locationPointToLatLng(field.value as LocationPoint)} />}
+                        </ZoneMap>
+                      </View>
                     </TouchableWithoutFeedback>
                   )}
                 </Center>
