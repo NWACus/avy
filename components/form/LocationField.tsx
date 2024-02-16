@@ -9,7 +9,7 @@ import {Body, BodySmBlack, BodyXSm, Title3Black, bodySize} from 'components/text
 import {useMapLayer} from 'hooks/useMapLayer';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {Modal, View as RNView, TouchableOpacity, Pressable} from 'react-native';
+import {Modal, Pressable, View as RNView, TouchableOpacity} from 'react-native';
 import MapView, {LatLng, MapMarker, Region} from 'react-native-maps';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
