@@ -99,7 +99,6 @@
     "expo-image-picker": "~14.7.1",
     "expo-linking": "~6.2.2",
     "expo-localization": "~14.8.3",
-    "expo-location": "~16.5.2",
     "expo-mail-composer": "~12.7.1",
     "expo-network": "~5.8.0",
     "expo-splash-screen": "~0.26.4",
