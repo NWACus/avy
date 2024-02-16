@@ -9,7 +9,7 @@ import {Body, BodySmBlack, BodyXSm, Title3Black, bodySize} from 'components/text
 import {useMapLayer} from 'hooks/useMapLayer';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {Modal, View as RNView, TouchableOpacity, TouchableWithoutFeedback} from 'react-native';
+import {Modal, View as RNView, TouchableOpacity, Pressable} from 'react-native';
 import MapView, {LatLng, MapMarker, Region} from 'react-native-maps';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
@@ -120,20 +120,18 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                 <Center width="100%" height="100%">
                   {incompleteQueryState(mapLayerResult) && <QueryState results={[mapLayerResult]} />}
                   {mapReady && (
-                    <TouchableWithoutFeedback onPress={onPress}>
-                      <View>
-                        <ZoneMap
-                          ref={mapRef}
-                          animated={false}
-                          style={{minWidth: '100%', minHeight: '100%'}}
-                          zones={zones}
-                          initialRegion={initialRegion}
-                          onPressPolygon={emptyHandler}
-                          renderFillColor={false}>
-                          {field.value != null && <MapMarker coordinate={locationPointToLatLng(field.value as LocationPoint)} />}
-                        </ZoneMap>
-                      </View>
-                    </TouchableWithoutFeedback>
+                    <Pressable onPress={onPress}>
+                      <ZoneMap
+                        ref={mapRef}
+                        animated={false}
+                        style={{minWidth: '100%', minHeight: '100%'}}
+                        zones={zones}
+                        initialRegion={initialRegion}
+                        onPressPolygon={emptyHandler}
+                        renderFillColor={false}>
+                        {field.value != null && <MapMarker coordinate={locationPointToLatLng(field.value as LocationPoint)} />}
+                      </ZoneMap>
+                    </Pressable>
                   )}
                 </Center>
               </VStack>
