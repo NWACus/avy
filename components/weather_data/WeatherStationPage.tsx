@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {NWACStationList} from 'components/weather_data/NWACWeatherStationList';
 import {WeatherStationList} from 'components/weather_data/WeatherStationList';
@@ -7,7 +8,7 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {useToggle} from 'hooks/useToggle';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import {usePostHog} from 'posthog-react-native';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {RequestedTimeString} from 'utils/date';
@@ -22,9 +23,13 @@ export const WeatherStationPage: React.FC<Props> = ({center_id, requestedTime}) 
   const metadata = avalancheCenterMetadataResult.data;
   const postHog = usePostHog();
 
-  postHog?.screen('weatherTab', {
-    center: center_id,
-  });
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('weatherTab', {
+      center: center_id,
+    });
+  }, [postHog, center_id]);
+  useFocusEffect(recordAnalytics);
+
   if (incompleteQueryState(avalancheCenterMetadataResult) || !metadata) {
     return <QueryState results={[avalancheCenterMetadataResult]} />;
   }

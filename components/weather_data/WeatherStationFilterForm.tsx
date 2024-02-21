@@ -4,6 +4,7 @@ import {AntDesign} from '@expo/vector-icons';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {useBackHandler} from '@react-native-community/hooks';
+import {useFocusEffect} from '@react-navigation/native';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {HStack, VStack} from 'components/core';
@@ -165,7 +166,10 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
   }, [formContext, currentFilterConfig]);
   const postHog = usePostHog();
 
-  postHog?.screen('weatherStationsFilter');
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('weatherStationsFilter');
+  }, [postHog]);
+  useFocusEffect(recordAnalytics);
 
   const closeWithoutSaving = useCallback(() => {
     formContext.reset(initialFilterConfig);

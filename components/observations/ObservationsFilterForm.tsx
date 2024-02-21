@@ -6,6 +6,7 @@ import {AntDesign} from '@expo/vector-icons';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {useBackHandler} from '@react-native-community/hooks';
+import {useFocusEffect} from '@react-navigation/native';
 import {Button} from 'components/content/Button';
 import {Center, HStack, VStack, View} from 'components/core';
 import {CheckboxSelectField} from 'components/form/CheckboxSelectField';
@@ -259,7 +260,10 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
 
   const postHog = usePostHog();
 
-  postHog?.screen('observationsFilter');
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('observationsFilter');
+  }, [postHog]);
+  useFocusEffect(recordAnalytics);
 
   const onResetHandler = useCallback(() => formContext.reset(initialFilterConfig), [formContext, initialFilterConfig]);
 

@@ -111,14 +111,19 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
     }, [forecast]),
   );
 
+  const recordAnalytics = useCallback(() => {
+    if (zoneName) {
+      postHog?.screen('avalancheForecastTab', {
+        center: center_id,
+        zone: zoneName,
+      });
+    }
+  }, [postHog, center_id, zoneName]);
+  useFocusEffect(recordAnalytics);
+
   if (incompleteQueryState(forecastResult, warningResult) || !forecast || !warning) {
     return <QueryState results={[forecastResult, warningResult]} />;
   }
-
-  postHog?.screen('avalancheForecastTab', {
-    center: center_id,
-    zone: zoneName,
-  });
 
   const publishedTime = forecast.published_time ? toDate(forecast.published_time) : new Date();
 

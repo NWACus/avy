@@ -1,4 +1,4 @@
-import {CompositeNavigationProp, useNavigation} from '@react-navigation/native';
+import {CompositeNavigationProp, useFocusEffect, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import * as Sentry from '@sentry/react-native';
 import {ActionList} from 'components/content/ActionList';
@@ -86,10 +86,13 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
 
   const postHog = usePostHog();
 
-  postHog?.screen('weatherForecastTab', {
-    center: center_id,
-    zone: zone.name,
-  });
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('weatherForecastTab', {
+      center: center_id,
+      zone: zone.name,
+    });
+  }, [postHog, center_id, zone.name]);
+  useFocusEffect(recordAnalytics);
 
   if (incompleteQueryState(avalancheCenterMetadataResult, avalancheForecastResult) || !metadata || !avalancheForecast) {
     return <QueryState results={[avalancheCenterMetadataResult, avalancheForecastResult]} />;

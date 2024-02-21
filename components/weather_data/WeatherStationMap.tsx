@@ -5,7 +5,7 @@ import centroid from '@turf/centroid';
 import turfClustersDBScan from '@turf/clusters-dbscan';
 import {FeatureCollection, Point, Position, Properties, Units, featureCollection} from '@turf/helpers';
 
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {View as RNView, StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
 import {default as AnimatedMapView, LatLng, MAP_TYPES, MapMarker, default as MapView, Region} from 'react-native-maps';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -77,9 +77,12 @@ export const WeatherStationMap: React.FunctionComponent<{
   const avalancheCenterMapRegion: Region = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
   const postHog = usePostHog();
 
-  postHog?.screen('weatherStationsMap', {
-    center: center_id,
-  });
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('weatherStationsMap', {
+      center: center_id,
+    });
+  }, [postHog, center_id]);
+  useFocusEffect(recordAnalytics);
 
   const topElements = React.useRef<RNView>(null);
 

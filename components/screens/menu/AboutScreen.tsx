@@ -10,6 +10,7 @@ import * as WebBrowser from 'expo-web-browser';
 
 import {Ionicons} from '@expo/vector-icons';
 
+import {useFocusEffect} from '@react-navigation/native';
 import {ActionList} from 'components/content/ActionList';
 import {Center, HStack, View, VStack} from 'components/core';
 import {getVersionInfoFull} from 'components/screens/menu/Version';
@@ -33,7 +34,10 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
 
   const postHog = usePostHog();
 
-  postHog?.screen('about');
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('about');
+  }, [postHog]);
+  useFocusEffect(recordAnalytics);
 
   return (
     <View style={StyleSheet.absoluteFillObject}>

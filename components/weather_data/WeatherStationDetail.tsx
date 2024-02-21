@@ -3,6 +3,7 @@ import {ScrollView} from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
 
+import {useFocusEffect} from '@react-navigation/native';
 import {ButtonBar} from 'components/content/ButtonBar';
 import {DataGrid} from 'components/content/DataGrid';
 import {InfoTooltip} from 'components/content/InfoTooltip';
@@ -42,10 +43,13 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
   const timeseries = timeseriesResult.data;
   const postHog = usePostHog();
 
-  postHog?.screen('weatherStation', {
-    center: center_id,
-    stationId: stationId,
-  });
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('weatherStation', {
+      center: center_id,
+      stationId: stationId,
+    });
+  }, [postHog, center_id, stationId]);
+  useFocusEffect(recordAnalytics);
 
   if (incompleteQueryState(avalancheCenterMetadataResult, timeseriesResult) || !metadata || !timeseries) {
     return <QueryState results={[avalancheCenterMetadataResult, timeseriesResult]} />;

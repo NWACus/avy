@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {ScrollView} from 'react-native';
 
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {compareDesc, format} from 'date-fns';
 import {uniq} from 'lodash';
 import {useFeatureFlag, usePostHog} from 'posthog-react-native';
@@ -321,9 +321,12 @@ export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, station
   const timeseries = timeseriesResult.data;
   const postHog = usePostHog();
 
-  postHog?.screen('weatherStations', {
-    center: center_id,
-  });
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('weatherStations', {
+      center: center_id,
+    });
+  }, [postHog, center_id]);
+  useFocusEffect(recordAnalytics);
 
   React.useEffect(() => {
     navigation.setOptions({title: zoneName});
