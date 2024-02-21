@@ -1,6 +1,6 @@
 import React, {useCallback, useRef, useState} from 'react';
 
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
 import AnimatedMapView, {PoiClickEvent, Region} from 'react-native-maps';
 
@@ -49,9 +49,12 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   const postHog = usePostHog();
 
-  postHog?.screen('avalancheForecastMap', {
-    center: center,
-  });
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('avalancheForecastMap', {
+      center: center,
+    });
+  }, [postHog, center]);
+  useFocusEffect(recordAnalytics);
 
   const navigation = useNavigation<HomeStackNavigationProps & TabNavigationProps>();
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {ScrollView} from 'react-native';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -37,7 +37,10 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
   );
   const postHog = usePostHog();
 
-  postHog?.screen('centerSelector');
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('centerSelector');
+  }, [postHog]);
+  useFocusEffect(recordAnalytics);
 
   if (incompleteQueryState(capabilitiesResult, ...metadataResults) || !capabilities) {
     return <QueryState results={[capabilitiesResult, ...metadataResults]} />;

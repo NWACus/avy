@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {Image, ScrollView, StyleSheet} from 'react-native';
 
 import {MaterialCommunityIcons} from '@expo/vector-icons';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {colorFor} from 'components/AvalancheDangerTriangle';
@@ -208,10 +208,13 @@ export const ObservationCard: React.FunctionComponent<{
   const emptyHandler = useCallback(() => undefined, []);
   const postHog = usePostHog();
 
-  postHog?.screen('observation', {
-    center: observation.center_id,
-    id: observation.id,
-  });
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('observation', {
+      center: observation.center_id,
+      id: observation.id,
+    });
+  }, [postHog, observation.center_id, observation.id]);
+  useFocusEffect(recordAnalytics);
 
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>

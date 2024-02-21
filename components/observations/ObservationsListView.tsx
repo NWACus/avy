@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {FontAwesome, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
@@ -75,10 +75,13 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   const postHog = usePostHog();
 
-  postHog?.screen('observations', {
-    center: center_id,
-    zone: additionalFilters && additionalFilters.zones && additionalFilters.zones.length > 0 ? additionalFilters.zones[0] : 'global',
-  });
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('observations', {
+      center: center_id,
+      zone: additionalFilters && additionalFilters.zones && additionalFilters.zones.length > 0 ? additionalFilters.zones[0] : 'global',
+    });
+  }, [postHog, additionalFilters, center_id]);
+  useFocusEffect(recordAnalytics);
 
   // Filter inputs changed via render props should overwrite our current state
   useEffect(() => {

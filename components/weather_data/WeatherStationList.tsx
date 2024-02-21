@@ -1,4 +1,5 @@
 import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
+import {useFocusEffect} from '@react-navigation/native';
 import {NotFound} from 'components/content/QueryState';
 import {Divider, HStack, VStack, View} from 'components/core';
 import {FilterPillButton} from 'components/observations/ObservationsListView';
@@ -32,9 +33,12 @@ export const WeatherStationList: React.FunctionComponent<{
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
   const postHog = usePostHog();
 
-  postHog?.screen('weatherStations', {
-    center: center_id,
-  });
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('weatherStations', {
+      center: center_id,
+    });
+  }, [postHog, center_id]);
+  useFocusEffect(recordAnalytics);
 
   // when the initial filter inputs change, we should honor those
   React.useEffect(() => {

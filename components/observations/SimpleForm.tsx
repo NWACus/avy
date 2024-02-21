@@ -1,7 +1,7 @@
 import {AntDesign, MaterialIcons} from '@expo/vector-icons';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useBackHandler} from '@react-native-community/hooks';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import {useMutation} from '@tanstack/react-query';
 import {AxiosError} from 'axios';
@@ -74,9 +74,12 @@ export const SimpleForm: React.FC<{
 
   const postHog = usePostHog();
 
-  postHog?.screen('observationForm', {
-    center: center_id,
-  });
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('observationForm', {
+      center: center_id,
+    });
+  }, [postHog, center_id]);
+  useFocusEffect(recordAnalytics);
 
   useEffect(() => {
     if (formContext && !metadata?.widget_config.observation_viewer?.require_approval) {

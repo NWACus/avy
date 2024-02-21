@@ -7,7 +7,7 @@ import {AvalancheCenterSelector} from 'components/AvalancheCenterSelector';
 
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 
-import {RouteProp, useNavigation} from '@react-navigation/native';
+import {RouteProp, useFocusEffect, useNavigation} from '@react-navigation/native';
 import {MenuStackNavigationProps, MenuStackParamList, TabNavigatorParamList} from 'routes';
 
 import {View, VStack} from 'components/core';
@@ -103,7 +103,10 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
 
   const postHog = usePostHog();
 
-  postHog?.screen('menu');
+  const recordAnalytics = useCallback(() => {
+    postHog?.screen('menu');
+  }, [postHog]);
+  useFocusEffect(recordAnalytics);
 
   const MenuScreen = function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
     const sendMailHandler = useCallback(
