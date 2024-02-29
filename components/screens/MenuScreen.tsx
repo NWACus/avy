@@ -12,7 +12,6 @@ import {MenuStackNavigationProps, MenuStackParamList, TabNavigatorParamList} fro
 
 import {View, VStack} from 'components/core';
 
-import * as Updates from 'expo-updates';
 import * as WebBrowser from 'expo-web-browser';
 
 import {QueryCache} from '@tanstack/react-query';
@@ -25,16 +24,7 @@ import {FeatureFlagsDebuggerScreen} from 'components/FeatureFlagsDebugger';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
 import {AboutScreen} from 'components/screens/menu/AboutScreen';
-import {
-  AvalancheComponentPreview,
-  ButtonStylePreview,
-  ExpoConfigScreen,
-  OutcomeScreen,
-  SecretMenu,
-  TextStylePreview,
-  TimeMachine,
-  ToastPreview,
-} from 'components/screens/menu/SecretMenu';
+import {AvalancheComponentPreview, ButtonStylePreview, ExpoConfigScreen, OutcomeScreen, TextStylePreview, TimeMachine, ToastPreview} from 'components/screens/menu/SecretMenu';
 import {getVersionInfoFull} from 'components/screens/menu/Version';
 import {NWACObservationScreen, ObservationScreen} from 'components/screens/ObservationsScreen';
 import {Body, BodyBlack, Title3Black} from 'components/text';
@@ -171,7 +161,6 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                   }))}
                 />
               )}
-              {Updates.channel !== 'release' && <SecretMenu staging={staging} setStaging={setStaging} />}
             </VStack>
           </ScrollView>
         </SafeAreaView>
