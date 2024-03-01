@@ -28,13 +28,13 @@ import {AboutScreen} from 'components/screens/menu/AboutScreen';
 import {
   AvalancheComponentPreview,
   ButtonStylePreview,
+  DeveloperMenu,
   ExpoConfigScreen,
   OutcomeScreen,
-  SecretMenu,
   TextStylePreview,
   TimeMachine,
   ToastPreview,
-} from 'components/screens/menu/SecretMenu';
+} from 'components/screens/menu/DeveloperMenu';
 import {getVersionInfoFull} from 'components/screens/menu/Version';
 import {NWACObservationScreen, ObservationScreen} from 'components/screens/ObservationsScreen';
 import {Body, BodyBlack, Title3Black} from 'components/text';
@@ -171,7 +171,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
                   }))}
                 />
               )}
-              {Updates.channel !== 'release' && <SecretMenu staging={staging} setStaging={setStaging} />}
+              {Updates.channel !== 'release' && <DeveloperMenu staging={staging} setStaging={setStaging} />}
             </VStack>
           </ScrollView>
         </SafeAreaView>
