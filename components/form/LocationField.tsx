@@ -36,13 +36,24 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   const mapLayer = mapLayerResult.data;
   const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
   const [mapReady, setMapReady] = useState<boolean>(false);
+  const [cleared, setCleared] = useState<boolean>(null);
   const mapRef = useRef<MapView>(null);
 
-  const toggleModal = useCallback(() => {
+  const toggleModalMain = useCallback(() => {
     setModalVisible(!modalVisible);
   }, [modalVisible, setModalVisible]);
 
-  const value: LocationPoint | undefined = field.value as LocationPoint | undefined;
+  const toggleModal = useCallback(() => {
+    setModalVisible(!modalVisible);
+     setCleared(false)
+  }, [modalVisible, setModalVisible]);
+
+  const value: LocationPoint | undefined = !cleared ? field.value as LocationPoint | undefined : undefined;
+
+  const toggleModalandClearLocation = useCallback(() => {
+    setCleared(true)
+    setModalVisible(!modalVisible);
+  }, [modalVisible, setModalVisible]);
 
   useEffect(() => {
     if (mapLayer && !mapReady) {
@@ -72,6 +83,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   const onPress = useCallback(
     (event: GestureReponderEvent) => {
       void (async () => {
+        setCleared(false)
         const point = {x: event.nativeEvent.locationX, y: event.nativeEvent.locationY};
         const coordinate = await mapRef.current?.coordinateForPoint(point);
         if (coordinate) {
@@ -86,7 +98,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   return (
     <VStack width="100%" space={4} ref={ref}>
       <BodySmBlack>{label}</BodySmBlack>
-      <TouchableOpacity onPress={toggleModal} disabled={disabled}>
+      <TouchableOpacity onPress={toggleModalMain} disabled={disabled}>
         <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
           <View p={8}>
             <Body>{value ? `${value.lat}, ${value.lng}` : 'Select a location'}</Body>
@@ -100,13 +112,22 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
       {error && <BodyXSm color={colorLookup('error.900')}>{error.message}</BodyXSm>}
 
       {modalVisible && (
-        <Modal visible={modalVisible} onRequestClose={toggleModal} animationType="slide">
+        <Modal visible={modalVisible} onRequestClose={toggleModalandClearLocation} animationType="slide">
           <SafeAreaProvider>
             <SafeAreaView style={{width: '100%', height: '100%'}}>
               <VStack width="100%" height="100%">
-                <HStack justifyContent="space-between" alignItems="center" pb={8} px={16}>
-                  <View width={48} />
+                <HStack justifyContent="space-between" alignItems="center" pb={8} px={20}>
+                  <View width={80} />
                   <Title3Black>Pick a location</Title3Black>
+                  <AntDesign.Button
+                    size={24}
+                    color={colorLookup('text')}
+                    name="check"
+                    backgroundColor="white"
+                    iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
+                    style={{textAlign: 'center'}}
+                    onPress={toggleModal}
+                  />
                   <AntDesign.Button
                     size={24}
                     color={colorLookup('text')}
@@ -114,7 +135,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                     backgroundColor="white"
                     iconStyle={{marginLeft: 0, marginRight: 0, marginTop: 1}}
                     style={{textAlign: 'center'}}
-                    onPress={toggleModal}
+                    onPress={toggleModalandClearLocation}
                   />
                 </HStack>
                 <Center width="100%" height="100%">
@@ -129,7 +150,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                         initialRegion={initialRegion}
                         onPressPolygon={emptyHandler}
                         renderFillColor={false}>
-                        {field.value != null && <MapMarker coordinate={locationPointToLatLng(field.value as LocationPoint)} />}
+                        {field.value != null && !cleared && <MapMarker coordinate={locationPointToLatLng(field.value as LocationPoint)} />}
                       </ZoneMap>
                     </Pressable>
                   )}
