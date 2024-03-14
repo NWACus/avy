@@ -174,7 +174,12 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       forecast &&
         forecast.forecast_zone?.forEach(({id}) => {
           if (zonesById[id]) {
-            if (forecast.expires_time && isAfter(requestedTimeToUTCDate(requestedTime), toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}))) {
+            if (
+              forecast.expires_time &&
+              zonesById[id].end_date &&
+              isAfter(requestedTimeToUTCDate(requestedTime), toDate(new Date(forecast.expires_time), {timeZone: 'UTC'})) &&
+              isAfter(toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}), toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}))
+            ) {
               zonesById[id].danger_level = DangerLevel.GeneralInformation;
             } else if (forecast.product_type === ProductType.Forecast) {
               const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);
