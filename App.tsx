@@ -323,6 +323,7 @@ const BaseApp: React.FunctionComponent<{
       mixpanel.identify(preferences.mixpanelUserId);
       mixpanel.track('App starting');
       setMixpanelUserIdentified(true);
+      Sentry.setUser({analytics_id: preferences.mixpanelUserId});
     }
   }, [preferences.mixpanelUserId, mixpanelUserIdentified]);
 
