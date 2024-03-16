@@ -2,7 +2,7 @@ jest.mock('components/observations/uploader/uploadImage');
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
-import {AxiosError} from 'axios';
+import {AxiosError, AxiosHeaders} from 'axios';
 
 import {ObservationFormData} from 'components/observations/ObservationFormData';
 import {ObservationUploader, backoffTimeMs, isRetryableError} from 'components/observations/uploader/ObservationsUploader';
@@ -46,6 +46,7 @@ const createAxiosError = (status: number): AxiosError =>
     'ESOMETHING',
     {
       url: 'http://localhost:3000',
+      headers: new AxiosHeaders({test: 'whatever'}),
     },
     {
       path: '/foo',
@@ -54,6 +55,7 @@ const createAxiosError = (status: number): AxiosError =>
       status,
       config: {
         url: 'http://localhost:3000',
+        headers: new AxiosHeaders({test: 'whatever'}),
       },
       headers: {},
       data: {},
@@ -68,6 +70,7 @@ describe('isRetryableError', () => {
       'ERR_NETWORK',
       {
         url: 'http://localhost:3000',
+        headers: new AxiosHeaders({test: 'whatever'}),
       },
       {
         path: '/foo',
@@ -76,6 +79,7 @@ describe('isRetryableError', () => {
         status: 400,
         config: {
           url: 'http://localhost:3000',
+          headers: new AxiosHeaders({test: 'whatever'}),
         },
         headers: {},
         data: {},
