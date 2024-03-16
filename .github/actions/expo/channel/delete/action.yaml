@@ -23,7 +23,7 @@ runs:
       id: eas-update
       shell: bash
       run: |
-        if APP_VARIANT="${inputs.channel}" eas channel:view ${{ inputs.channel }}  --non-interactive --limit 1; then
-          APP_VARIANT="${inputs.channel}" eas channel:delete --non-interactive ${{ inputs.channel }}
-          APP_VARIANT="${inputs.channel}" eas branch:delete --non-interactive ${{ inputs.channel }}
+        if APP_VARIANT="${{ inputs.channel }}" eas channel:view ${{ inputs.channel }}  --non-interactive --limit 1; then
+          APP_VARIANT="${{ inputs.channel }}" eas channel:delete --non-interactive ${{ inputs.channel }}
+          APP_VARIANT="${{ inputs.channel }}" eas branch:delete --non-interactive ${{ inputs.channel }}
         fi
