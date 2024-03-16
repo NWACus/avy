@@ -285,14 +285,14 @@ export const avalancheDangerForecastSchema = z.object({
 export type AvalancheDangerForecast = z.infer<typeof avalancheDangerForecastSchema>;
 
 export const nullMediaSchema = z.object({
-  type: z.null().transform(_ => z.literal('null')),
+  type: z.null(),
   url: z.null(),
   caption: z.literal(''),
   title: z.literal(''),
 });
 
 export const emptyMediaSchema = z.object({
-  type: z.literal('').transform(_ => z.literal('empty')),
+  type: z.literal(''),
   url: z.literal(''),
   caption: z.literal(''),
 });
@@ -569,7 +569,7 @@ export const weatherSchema = forecastSchema
   })
   .extend({
     product_type: z.literal(ProductType.Weather),
-    weather_data: z.array(rowColumnWeatherDataSchema).or(z.array(inlineWeatherDataSchema)),
+    weather_data: z.array(rowColumnWeatherDataSchema.or(inlineWeatherDataSchema)),
     weather_discussion: z.string().optional().nullable(),
   });
 export type Weather = z.infer<typeof weatherSchema>;
