@@ -156,6 +156,7 @@
     "babel-plugin-formatjs": "^10.5.6",
     "babel-plugin-module-resolver": "^4.1.0",
     "bunyan": "^1.8.15",
+    "eas-cli": "^7.5.0",
     "eslint": "^8.49.0",
     "eslint-plugin-absolute-imports": "^0.0.3",
     "eslint-plugin-import": "^2.26.0",

@@ -16,5 +16,11 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   }
   config.plugins.push('expo-font');
 
+  if (process.env.APP_VARIANT === 'preview') {
+    config.name += ' (Preview)';
+    config.ios!.bundleIdentifier = 'preview.' + config.ios!.bundleIdentifier;
+    config.android!.package = 'preview.' + config.android!.package;
+  }
+
   return config;
 };

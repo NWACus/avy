@@ -45,6 +45,7 @@ runs:
       # Setting NODE_OPTIONS to increase the memory limit for the build command
       run: |
         output="$(\
+          APP_VARIANT="${inputs.channel}"\
           NODE_OPTIONS=--max_old_space_size=4096 \
           EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) \
           EXPO_PUBLIC_SENTRY_DSN=${{ inputs.sentry_dsn }} \
