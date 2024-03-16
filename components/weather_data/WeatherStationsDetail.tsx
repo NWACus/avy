@@ -2,7 +2,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {ScrollView} from 'react-native';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {compareDesc, format} from 'date-fns';
+import {compareDesc} from 'date-fns';
 import {uniq} from 'lodash';
 import {useFeatureFlag, usePostHog} from 'posthog-react-native';
 
@@ -16,7 +16,7 @@ import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, StationNote, WeatherStationSource, WeatherStationTimeseries} from 'types/nationalAvalancheCenter';
-import {parseRequestedTimeString, RequestedTimeString, utcDateToLocalDateString} from 'utils/date';
+import {formatInTimeZone, parseRequestedTimeString, RequestedTimeString, utcDateToLocalDateString} from 'utils/date';
 
 interface Props {
   center_id: AvalancheCenterID;
@@ -26,7 +26,7 @@ interface Props {
   requestedTime: RequestedTimeString;
 }
 
-export const formatDateTime = (input: string) => format(new Date(input), 'MM/dd HH:mm');
+export const formatDateTime = (timezone: string) => (input: string) => formatInTimeZone(new Date(input), timezone, 'MM/dd HH:mm');
 
 const preferredFieldOrder: Record<string, number> = {
   date_time: 0,
@@ -247,7 +247,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
           units: shortUnits(timeSeries.UNITS[column.field]),
           elevation: column.elevation?.toString() || '',
         }))}
-        rowHeaderData={times.map(time => formatDateTime(time))}
+        rowHeaderData={times.map(time => formatDateTime('America/Los_Angeles')(time))}
         columnWidths={[70, ...tableColumns.map(({field}) => (Math.max(shortFieldMap[field].length, shortUnits(timeSeries.UNITS[field]).length) > 4 ? 50 : 40))]}
         rowHeights={[60, ...times.map(() => 30)]}
         renderCell={renderCell}
@@ -261,7 +261,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     <ScrollView style={{width: '100%', height: '100%'}}>
       <ScrollView horizontal style={{width: '100%', height: '100%'}}>
         <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
-          <Column borderRightWidth={1} name={shortFieldMap['date_time']} units={'PST'} elevation={' '} data={times.map(time => formatDateTime(time))} />
+          <Column borderRightWidth={1} name={shortFieldMap['date_time']} units={'PST'} elevation={' '} data={times.map(time => formatDateTime('America/Los_Angeles')(time))} />
           {tableColumns.map(({field, elevation, dataByTime}, columnIndex) => (
             <Column
               key={columnIndex}
@@ -384,8 +384,6 @@ export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, station
           paddingTop={6}
         />
         {timeseries.STATION.length === 0 ? <Body>No data found.</Body> : <TimeSeriesTable timeSeries={timeseries} />}
-        {/* TODO(skuznets): For some reason, the table is running off the bottom of the view, and I just don't have time to keep debugging this.
-             Adding the placeholder here does the trick. :dizzy_face: */}
         <View height={16} />
       </VStack>
     </VStack>
