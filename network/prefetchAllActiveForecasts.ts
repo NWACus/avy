@@ -21,6 +21,7 @@ import TimeseriesQuery from 'hooks/useWeatherStationTimeseries';
 import {
   AllAvalancheCenterCapabilities,
   AvalancheCenter,
+  AvalancheCenterCapabilities,
   AvalancheCenterID,
   AvalancheForecastZoneStatus,
   ForecastResult,
@@ -58,11 +59,13 @@ export const prefetchAllActiveForecasts = async (
     void preloadAvalancheCenterLogo(queryClient, logger, id);
   });
 
+  const centerCapabilities: AvalancheCenterCapabilities | undefined = capabilities?.centers.find(center => (center.id as AvalancheCenterID) === center_id);
+
   await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, logger);
   const metadata = queryClient.getQueryData<AvalancheCenter>(AvalancheCenterMetadataQuery.queryKey(nationalAvalancheCenterHost, center_id));
 
   if (metadata?.widget_config?.danger_map) {
-    void AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, logger);
+    void AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, requestedTime, logger);
   }
 
   const endDate: Date = currentDateTime;
@@ -71,12 +74,12 @@ export const prefetchAllActiveForecasts = async (
     // This call will prefetch the 50 most recent
     void NWACObservationsQuery.prefetch(queryClient, nwacHost, center_id, endDate, logger);
   }
-  if (metadata?.widget_config?.danger_map) {
+  if (centerCapabilities?.platforms.obs) {
     // NAC fetches in 2 week chunks working backwards from endDate
     void NACObservationsQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, endDate, logger);
   }
 
-  if (metadata?.widget_config?.stations?.token) {
+  if (centerCapabilities?.platforms.stations && metadata?.widget_config?.stations?.token) {
     await WeatherStationsQuery.prefetch(queryClient, snowboundHost, center_id, metadata?.widget_config?.stations?.token, logger);
     const weatherStations = queryClient.getQueryData<WeatherStationCollection>(WeatherStationsQuery.queryKey(snowboundHost, center_id));
     const stationIds: Record<string, WeatherStationSource> = weatherStations
@@ -85,7 +88,7 @@ export const prefetchAllActiveForecasts = async (
     void TimeseriesQuery.prefetch(queryClient, snowboundHost, metadata?.widget_config?.stations?.token, logger, stationIds, requestedTime, {days: 1});
   }
 
-  if (metadata?.widget_config?.forecast) {
+  if (centerCapabilities?.platforms.forecasts && metadata?.widget_config?.forecast) {
     metadata?.zones
       .filter(zone => zone.status === AvalancheForecastZoneStatus.Active)
       .forEach(zone => {

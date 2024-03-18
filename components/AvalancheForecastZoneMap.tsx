@@ -38,7 +38,7 @@ export interface MapProps {
 
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, requestedTime}: MapProps) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const mapLayerResult = useMapLayer(center);
+  const mapLayerResult = useMapLayer(center, requestedTime);
   const mapLayer = mapLayerResult.data;
   const metadataResult = useAvalancheCenterMetadata(center);
   const metadata = metadataResult.data;

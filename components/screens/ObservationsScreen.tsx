@@ -33,8 +33,8 @@ const ObservationsPortalScreen = ({route}: NativeStackScreenProps<ObservationsSt
 };
 
 const ObservationSubmitScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observationSubmit'>) => {
-  const {center_id} = route.params;
-  return <SimpleForm center_id={center_id} />;
+  const {center_id, requestedTime} = route.params;
+  return <SimpleForm center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />;
 };
 
 const ObservationsListScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observationsList'>) => {

@@ -35,7 +35,7 @@ import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, ImageMediaItem, InstabilityDistribution, MediaType, userFacingCenterId} from 'types/nationalAvalancheCenter';
-import {startOfSeasonLocalDate} from 'utils/date';
+import {RequestedTime, startOfSeasonLocalDate} from 'utils/date';
 
 const ImageListOverlay: React.FC<{index: number; onPress: (index: number) => void}> = ({index, onPress}) => {
   const onPressHandler = useCallback(() => {
@@ -58,8 +58,9 @@ const ImageListOverlay: React.FC<{index: number; onPress: (index: number) => voi
 
 export const SimpleForm: React.FC<{
   center_id: AvalancheCenterID;
+  requestedTime: RequestedTime;
   onClose?: () => void;
-}> = ({center_id, onClose}) => {
+}> = ({center_id, requestedTime, onClose}) => {
   const metadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = metadataResult.data;
   const navigation = useNavigation<ObservationsStackNavigationProps>();
@@ -458,7 +459,14 @@ export const SimpleForm: React.FC<{
                         }}
                         disabled={disableFormControls}
                       />
-                      <LocationField name="location_point" label="Latitude/Longitude" center={center_id} ref={getFieldRef('location_point')} disabled={disableFormControls} />
+                      <LocationField
+                        name="location_point"
+                        label="Latitude/Longitude"
+                        center={center_id}
+                        ref={getFieldRef('location_point')}
+                        disabled={disableFormControls}
+                        requestedTime={requestedTime}
+                      />
                     </VStack>
                   </Card>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Signs of instability</Title3Semibold>}>

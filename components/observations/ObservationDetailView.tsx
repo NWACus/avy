@@ -50,14 +50,14 @@ import {
   SnowAvailableForTransport,
   WindLoading,
 } from 'types/nationalAvalancheCenter';
-import {pacificDateToLocalShortDateString, utcDateToLocalShortDateString, utcDateToLocalTimeString} from 'utils/date';
+import {pacificDateToLocalShortDateString, parseRequestedTimeString, utcDateToLocalShortDateString, utcDateToLocalTimeString} from 'utils/date';
 
 export const NWACObservationDetailView: React.FunctionComponent<{
   id: string;
 }> = ({id}) => {
   const observationResult = useNWACObservation(parseInt(id));
   const observation = observationResult.data;
-  const mapResult = useMapLayer(observation?.center_id);
+  const mapResult = useMapLayer(observation?.center_id, observation?.created_at ? parseRequestedTimeString(observation?.created_at) : undefined);
   const mapLayer = mapResult.data;
 
   if (incompleteQueryState(observationResult, mapResult) || !observation || !mapLayer) {
@@ -72,7 +72,10 @@ export const ObservationDetailView: React.FunctionComponent<{
 }> = ({id}) => {
   const observationResult = useNACObservation(id);
   const observation = observationResult.data;
-  const mapResult = useMapLayer(observation?.center_id?.toUpperCase() as AvalancheCenterID);
+  const mapResult = useMapLayer(
+    observation?.center_id?.toUpperCase() as AvalancheCenterID,
+    observation?.created_at ? parseRequestedTimeString(observation?.created_at) : undefined,
+  );
   const mapLayer = mapResult.data;
 
   if (incompleteQueryState(observationResult, mapResult) || !observation || !mapLayer) {
