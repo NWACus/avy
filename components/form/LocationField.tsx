@@ -14,25 +14,27 @@ import MapView, {LatLng, MapMarker, Region} from 'react-native-maps';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {RequestedTime} from 'utils/date';
 
 interface LocationFieldProps {
   name: KeysMatching<ObservationFormData, LocationPoint>;
   label: string;
   center: AvalancheCenterID;
   disabled?: boolean;
+  requestedTime: RequestedTime;
 }
 
 const latLngToLocationPoint = (latLng: LatLng) => ({lat: latLng.latitude, lng: latLng.longitude});
 const locationPointToLatLng = (locationPoint: LocationPoint) => ({latitude: locationPoint.lat, longitude: locationPoint.lng});
 
-export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center, disabled}, ref) => {
+export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center, disabled, requestedTime}, ref) => {
   const {
     field,
     fieldState: {error},
   } = useController<ObservationFormData>({name: name});
   const [modalVisible, setModalVisible] = useState(false);
 
-  const mapLayerResult = useMapLayer(center);
+  const mapLayerResult = useMapLayer(center, requestedTime);
   const mapLayer = mapLayerResult.data;
   const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
   const [mapReady, setMapReady] = useState<boolean>(false);

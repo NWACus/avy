@@ -19,7 +19,10 @@ export const ObservationsPortal: React.FC<{
     () => navigation.navigate('observationsList', {center_id, requestedTime: formatRequestedTime(requestedTime)}),
     [center_id, navigation, requestedTime],
   );
-  const onSubmit = useCallback(() => navigation.navigate('observationSubmit', {center_id}), [center_id, navigation]);
+  const onSubmit = useCallback(
+    () => navigation.navigate('observationSubmit', {center_id: center_id, requestedTime: formatRequestedTime(requestedTime)}),
+    [center_id, navigation, requestedTime],
+  );
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {

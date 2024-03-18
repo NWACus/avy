@@ -38,7 +38,7 @@ import {
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
-import {RequestedTime, pacificDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
+import {RequestedTime, formatRequestedTime, pacificDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
 
 interface ObservationsListViewItem {
   id: ObservationFragment['id'];
@@ -70,7 +70,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(requestedTime, additionalFilters), [requestedTime, additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
-  const mapResult = useMapLayer(center_id);
+  const mapResult = useMapLayer(center_id, requestedTime);
   const mapLayer = mapResult.data;
 
   const postHog = usePostHog();
@@ -220,8 +220,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   );
 
   const submit = useCallback(() => {
-    navigation.navigate('observationSubmit', {center_id});
-  }, [navigation, center_id]);
+    navigation.navigate('observationSubmit', {center_id: center_id, requestedTime: formatRequestedTime(requestedTime)});
+  }, [navigation, center_id, requestedTime]);
 
   const [showSubmitButtonText, setShowSubmitButtonText] = useState(true);
   const onScroll = useCallback(

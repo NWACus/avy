@@ -84,6 +84,7 @@ export type ObservationsStackParamList = {
   };
   observationSubmit: {
     center_id: AvalancheCenterID;
+    requestedTime: RequestedTimeString;
   };
   observationsList: {
     center_id: AvalancheCenterID;

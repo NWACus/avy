@@ -11,7 +11,7 @@ import {usePostHog} from 'posthog-react-native';
 import React, {useCallback} from 'react';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
-import {RequestedTimeString} from 'utils/date';
+import {parseRequestedTimeString, RequestedTimeString} from 'utils/date';
 
 interface Props {
   center_id: AvalancheCenterID;
@@ -51,7 +51,7 @@ export const WeatherStations: React.FunctionComponent<{
   requestedTime: RequestedTimeString;
 }> = ({center_id, token, requestedTime}) => {
   const [list, {toggle: toggleList}] = useToggle(false);
-  const mapLayerResult = useMapLayer(center_id);
+  const mapLayerResult = useMapLayer(center_id, parseRequestedTimeString(requestedTime));
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata(center_id, token);
   const weatherStations = weatherStationsResult.data;
