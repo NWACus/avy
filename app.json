@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "Avy",
+    "scheme" : "avy",
     "slug": "avalanche-forecast",
     "owner": "nwac",
     "version": "1.0.6",

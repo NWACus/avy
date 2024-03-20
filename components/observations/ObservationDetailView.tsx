@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {Image, ScrollView, StyleSheet} from 'react-native';
 
 import {MaterialCommunityIcons} from '@expo/vector-icons';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {colorFor} from 'components/AvalancheDangerTriangle';
@@ -215,6 +215,14 @@ export const ObservationCard: React.FunctionComponent<{
     });
   }, [postHog, observation.center_id, observation.id]);
   useFocusEffect(recordAnalytics);
+
+// route.path will have the link we would put into the share button here
+const route = useRoute(); 
+console.log(route);
+// need to add a back button since currently a single obs from a link gets open without one 
+// (logo and zone name load as expected even though the link doesnt give that to it) and 
+// therefore there is no way to navigate back to your obs screen list
+// the back button should just link you to your current centers obs list
 
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
