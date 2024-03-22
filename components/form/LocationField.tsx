@@ -45,13 +45,13 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
 
   const toggleModal = useCallback(() => {
     setModalVisible(!modalVisible);
-     setCleared(false)
+    setCleared(false);
   }, [modalVisible, setModalVisible]);
 
-  const value: LocationPoint | undefined = !cleared ? field.value as LocationPoint | undefined : undefined;
+  const value: LocationPoint | undefined = !cleared ? (field.value as LocationPoint | undefined) : undefined;
 
   const toggleModalandClearLocation = useCallback(() => {
-    setCleared(true)
+    setCleared(true);
     setModalVisible(!modalVisible);
   }, [modalVisible, setModalVisible]);
 
@@ -83,7 +83,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   const onPress = useCallback(
     (event: GestureReponderEvent) => {
       void (async () => {
-        setCleared(false)
+        setCleared(false);
         const point = {x: event.nativeEvent.locationX, y: event.nativeEvent.locationY};
         const coordinate = await mapRef.current?.coordinateForPoint(point);
         if (coordinate) {
