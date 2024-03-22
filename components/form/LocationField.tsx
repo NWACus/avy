@@ -36,7 +36,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   const mapLayer = mapLayerResult.data;
   const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
   const [mapReady, setMapReady] = useState<boolean>(false);
-  const [cleared, setCleared] = useState<boolean>(null);
+  const [cleared, setCleared] = useState<boolean>(false);
   const mapRef = useRef<MapView>(null);
 
   const toggleModalMain = useCallback(() => {
