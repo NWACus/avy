@@ -84,6 +84,7 @@ export type ObservationsStackParamList = {
   };
   observationSubmit: {
     center_id: AvalancheCenterID;
+    set_image_caption?: [uri: string, caption: string];
   };
   observationsList: {
     center_id: AvalancheCenterID;
@@ -94,6 +95,10 @@ export type ObservationsStackParamList = {
   };
   nwacObservation: {
     id: string;
+  };
+  observationEditImage: {
+    image: string;
+    caption?: string;
   };
 };
 export type ObservationsStackNavigationProps = NativeStackNavigationProp<ObservationsStackParamList>;

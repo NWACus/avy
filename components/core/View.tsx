@@ -38,6 +38,9 @@ interface ViewStyleProps {
   flexGrow?: RNViewStyle['flexGrow'];
   flexShrink?: RNViewStyle['flexShrink'];
   flexWrap?: RNViewStyle['flexWrap'];
+  gap?: RNViewStyle['gap'];
+  columnGap?: RNViewStyle['columnGap'];
+  rowGap?: RNViewStyle['rowGap'];
   justifyContent?: RNViewStyle['justifyContent'];
 
   aspectRatio?: RNViewStyle['aspectRatio'];
@@ -123,6 +126,9 @@ const viewStyleProps: Record<ViewStyleProp | ViewAliasProp, ViewStyleProp | View
   flexShrink: 'flexShrink',
   flexWrap: 'flexWrap',
   justifyContent: 'justifyContent',
+  gap: 'gap',
+  rowGap: 'rowGap',
+  columnGap: 'columnGap',
 
   aspectRatio: 'aspectRatio',
   width: 'width',
@@ -237,6 +243,9 @@ const dimensionalProps: ViewStyleProp[] = [
   'right',
   'top',
   'width',
+  'gap',
+  'columnGap',
+  'rowGap',
 ];
 
 const validateProp = (prop: ViewStyleProp, value: unknown): void => {

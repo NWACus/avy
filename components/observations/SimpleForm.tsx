@@ -26,7 +26,7 @@ import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField} from 'components/form/TextField';
-import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
+import {ImageAndCaption, ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskStatus} from 'components/observations/uploader/Task';
 import {Body, BodyBlack, BodySemibold, BodySm, Title3Semibold} from 'components/text';
@@ -39,12 +39,30 @@ import {colorLookup} from 'theme';
 import {AvalancheCenterID, ImageMediaItem, InstabilityDistribution, MediaType, userFacingCenterId} from 'types/nationalAvalancheCenter';
 import {startOfSeasonLocalDate} from 'utils/date';
 
-const ImageListOverlay: React.FC<{index: number; onPress: (index: number) => void}> = ({index, onPress}) => {
-  const onPressHandler = useCallback(() => {
-    onPress(index);
-  }, [index, onPress]);
+const ImageListOverlay: React.FC<{
+  index: number;
+  onEdit: (index: number) => void;
+  onRemove: (index: number) => void;
+}> = ({index, onRemove, onEdit}) => {
+  const onRemoveHandler = useCallback(() => {
+    onRemove(index);
+  }, [index, onRemove]);
+
+  const onEditHandler = useCallback(() => {
+    onEdit(index);
+  }, [index, onEdit]);
+
   return (
-    <View position="absolute" top={8} right={8}>
+    <View position="absolute" display="flex" flexDirection="row" top={8} right={8} columnGap={4}>
+      <AntDesign.Button
+        size={16}
+        name="edit"
+        color="white"
+        backgroundColor="rgba(0, 0, 0, 0.3)"
+        iconStyle={{marginRight: 0}}
+        style={{textAlign: 'center'}}
+        onPress={onEditHandler}
+      />
       <AntDesign.Button
         size={16}
         name="close"
@@ -52,7 +70,7 @@ const ImageListOverlay: React.FC<{index: number; onPress: (index: number) => voi
         backgroundColor="rgba(0, 0, 0, 0.3)"
         iconStyle={{marginRight: 0}}
         style={{textAlign: 'center'}}
-        onPress={onPressHandler}
+        onPress={onRemoveHandler}
       />
     </View>
   );
@@ -64,8 +82,9 @@ const useKeyboardVerticalOffset = () => {
 
 export const SimpleForm: React.FC<{
   center_id: AvalancheCenterID;
+  setImageCaption?: [uri: string, caption: string];
   onClose?: () => void;
-}> = ({center_id, onClose}) => {
+}> = ({center_id, onClose, setImageCaption}) => {
   const metadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = metadataResult.data;
   const navigation = useNavigation<ObservationsStackNavigationProps>();
@@ -110,21 +129,22 @@ export const SimpleForm: React.FC<{
   }, [cracking, formContext]);
 
   const fieldRefs = useMemo(
-    () => [
-      {field: 'name', ref: React.createRef<RNView>()},
-      {field: 'email', ref: React.createRef<RNView>()},
-      {field: 'phone', ref: React.createRef<RNView>()},
-      {field: 'activity', ref: React.createRef<RNView>()},
-      {field: 'location_name', ref: React.createRef<RNView>()},
-      {field: 'location_point', ref: React.createRef<RNView>()},
-      {field: 'instability.cracking_description', ref: React.createRef<RNView>()},
-      {field: 'instability.collapsing_description', ref: React.createRef<RNView>()},
-      {field: 'avalanches_summary', ref: React.createRef<RNView>()},
-      {field: 'observation_summary', ref: React.createRef<RNView>()},
-    ],
+    () =>
+      [
+        {field: 'name', ref: React.createRef<RNView>()},
+        {field: 'email', ref: React.createRef<RNView>()},
+        {field: 'phone', ref: React.createRef<RNView>()},
+        {field: 'activity', ref: React.createRef<RNView>()},
+        {field: 'location_name', ref: React.createRef<RNView>()},
+        {field: 'location_point', ref: React.createRef<RNView>()},
+        {field: 'instability.cracking_description', ref: React.createRef<RNView>()},
+        {field: 'instability.collapsing_description', ref: React.createRef<RNView>()},
+        {field: 'avalanches_summary', ref: React.createRef<RNView>()},
+        {field: 'observation_summary', ref: React.createRef<RNView>()},
+      ] as const,
     [],
   );
-  const getFieldRef = useCallback((field: string) => fieldRefs.find(f => f.field === field)?.ref, [fieldRefs]);
+  const getFieldRef = useCallback((field: (typeof fieldRefs)[number]['field']) => fieldRefs.find(f => f.field === field)?.ref, [fieldRefs]);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
@@ -134,7 +154,7 @@ export const SimpleForm: React.FC<{
   const missingImagePermissions = imagePermissions !== null && !imagePermissions.granted && !imagePermissions.canAskAgain;
 
   const maxImageCount = 8;
-  const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [images, setImages] = useState<ImageAndCaption[]>([]);
   const pickImage = useCallback(() => {
     void (async () => {
       try {
@@ -149,7 +169,7 @@ export const SimpleForm: React.FC<{
         });
 
         if (!result.canceled) {
-          const newImages = images.concat(result.assets).slice(0, maxImageCount);
+          const newImages = images.concat(result.assets.map(image => ({image}))).slice(0, maxImageCount);
           setImages(newImages);
         }
       } catch (error) {
@@ -175,7 +195,37 @@ export const SimpleForm: React.FC<{
     },
     [images, setImages],
   );
-  const renderOverlay = useCallback((index: number) => <ImageListOverlay index={index} onPress={removeImage} />, [removeImage]);
+
+  const editImage = useCallback(
+    (index: number) => {
+      const image = images[index];
+      if (image == null) {
+        return;
+      }
+      navigation.navigate('observationEditImage', {
+        image: image.image.uri,
+        caption: image.caption,
+      });
+    },
+    [navigation, images],
+  );
+
+  useEffect(() => {
+    if (setImageCaption != null) {
+      const [uri, caption] = setImageCaption;
+      setImages(current =>
+        current.map(image => {
+          if (image.image.uri === uri) {
+            return {image: image.image, caption};
+          }
+          return image;
+        }),
+      );
+    }
+  }, [setImageCaption]);
+
+  const renderOverlay = useCallback((index: number) => <ImageListOverlay index={index} onRemove={removeImage} onEdit={editImage} />, [removeImage, editImage]);
+
   const renderAddImageButton = useCallback(
     ({textColor}: {textColor: ColorValue}) => (
       <HStack alignItems="center" space={4}>
@@ -340,7 +390,7 @@ export const SimpleForm: React.FC<{
       <View width="100%" height="100%" bg="#F6F8FC">
         {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there, or top edge since StackHeader is sitting there */}
         <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}} keyboardVerticalOffset={keyboardVerticalOffset}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={keyboardVerticalOffset} style={{flex: 1, height: '100%'}}>
             <VStack style={{height: '100%', width: '100%'}} alignItems="stretch" bg="#F6F8FC">
               <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}} ref={scrollViewRef}>
                 <VStack width="100%" justifyContent="flex-start" alignItems="stretch" pt={8} pb={8}>
@@ -606,8 +656,14 @@ export const SimpleForm: React.FC<{
                         <ImageList
                           imageWidth={(4 * 140) / 3}
                           imageHeight={140}
-                          media={images.map((i): ImageMediaItem => ({url: {original: i.uri, large: '', medium: '', thumbnail: ''}, type: MediaType.Image, caption: ''}))}
-                          displayCaptions={false}
+                          media={images.map(
+                            ({image, caption}): ImageMediaItem => ({
+                              url: {original: image.uri, large: '', medium: '', thumbnail: ''},
+                              type: MediaType.Image,
+                              caption: caption ?? null,
+                            }),
+                          )}
+                          displayCaptions={true}
                           imageSize="original"
                           renderOverlay={renderOverlay}
                         />
