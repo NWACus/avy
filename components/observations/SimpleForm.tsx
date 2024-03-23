@@ -272,7 +272,7 @@ export const SimpleForm: React.FC<{
         <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}} keyboardVerticalOffset={keyboardVerticalOffset}>
             <VStack style={{height: '100%', width: '100%'}} alignItems="stretch" bg="#F6F8FC">
-              <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}} ref={scrollViewRef}>
+              <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}} keyboardShouldPersistTaps="handled" ref={scrollViewRef}>
                 <VStack width="100%" justifyContent="flex-start" alignItems="stretch" pt={8} pb={8}>
                   <View px={16} pb={formFieldSpacing}>
                     <Body>Help keep the {userFacingCenterId(center_id)} community informed by submitting your observation.</Body>

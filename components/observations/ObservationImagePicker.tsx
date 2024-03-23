@@ -2,14 +2,15 @@ import {AntDesign, MaterialIcons} from '@expo/vector-icons';
 import * as Sentry from '@sentry/react-native';
 
 import * as ImagePicker from 'expo-image-picker';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {ColorValue} from 'react-native';
+import {ColorValue, Modal} from 'react-native';
 
 import {Button} from 'components/content/Button';
 import {ImageList} from 'components/content/carousel/ImageList';
 import {HStack, VStack} from 'components/core';
-import {ObservationFormData} from 'components/observations/ObservationFormData';
+import {ImageAndCaption, ObservationFormData} from 'components/observations/ObservationFormData';
+import {ObservationImageEditView} from 'components/observations/ObservationImageEditView';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {Body, BodyBlack, BodySm} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -17,16 +18,67 @@ import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 import {ImageMediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
-const ImageListOverlay: React.FC<{
+const ImageCaptionField = ({image, onUpdateImage, onDismiss}: {image: ImageAndCaption | null; onUpdateImage: (image: ImageAndCaption) => void; onDismiss: () => void}) => {
+  const onSetCaption = useCallback(
+    (caption: string) => {
+      if (image == null) {
+        return;
+      }
+      onUpdateImage({
+        image: image.image,
+        caption,
+      });
+      onDismiss();
+    },
+    [image, onUpdateImage, onDismiss],
+  );
+
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (image != null) {
+      setVisible(true);
+    }
+  }, [image]);
+
+  const handleDismiss = useCallback(() => {
+    onDismiss();
+    setVisible(false);
+  }, [onDismiss]);
+
+  return (
+    <Modal visible={visible} animationType="none" transparent presentationStyle="overFullScreen" onRequestClose={onDismiss}>
+      <ObservationImageEditView onDismiss={handleDismiss} onViewDismissed={handleDismiss} onSetCaption={onSetCaption} initialCaption={image?.caption} />
+    </Modal>
+  );
+};
+
+interface ImageListOverlayProps {
   index: number;
+  onEdit: (index: number) => void;
   onRemove: (index: number) => void;
-}> = ({index, onRemove}) => {
+}
+
+const ImageListOverlay: React.FC<ImageListOverlayProps> = ({index, onRemove, onEdit}: ImageListOverlayProps) => {
   const onRemoveHandler = useCallback(() => {
     onRemove(index);
   }, [index, onRemove]);
 
+  const onEditHandler = useCallback(() => {
+    onEdit(index);
+  }, [index, onEdit]);
+
   return (
     <HStack position="absolute" top={8} right={8} space={4}>
+      <AntDesign.Button
+        size={16}
+        name="edit"
+        color="white"
+        backgroundColor="rgba(0, 0, 0, 0.3)"
+        iconStyle={{marginRight: 0}}
+        style={{textAlign: 'center'}}
+        onPress={onEditHandler}
+      />
       <AntDesign.Button
         size={16}
         name="close"
@@ -45,6 +97,20 @@ export const ObservationImagePicker = ({maxImageCount, disable}: {maxImageCount:
   const images = field.value;
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
+  const [editingImage, setEditingImage] = useState<ImageAndCaption | null>(null);
+
+  const onEditImage = useCallback(
+    (index: number) => {
+      const image = images?.[index] ?? null;
+      setEditingImage(image);
+    },
+    [images],
+  );
+
+  const onDismiss = useCallback(() => {
+    setEditingImage(null);
+  }, []);
+
   const [imagePermissions] = ImagePicker.useMediaLibraryPermissions();
   const missingImagePermissions = imagePermissions !== null && !imagePermissions.granted && !imagePermissions.canAskAgain;
 
@@ -55,7 +121,7 @@ export const ObservationImagePicker = ({maxImageCount, disable}: {maxImageCount:
     [images, field],
   );
 
-  const renderOverlay = useCallback((index: number) => <ImageListOverlay index={index} onRemove={removeImage} />, [removeImage]);
+  const renderOverlay = useCallback((index: number) => <ImageListOverlay index={index} onRemove={removeImage} onEdit={onEditImage} />, [removeImage, onEditImage]);
 
   const renderAddImageButton = useCallback(
     ({textColor}: {textColor: ColorValue}) => (
@@ -104,6 +170,20 @@ export const ObservationImagePicker = ({maxImageCount, disable}: {maxImageCount:
   const imageCount = images?.length ?? 0;
   const isDisabled = imageCount === maxImageCount || disable || missingImagePermissions;
 
+  const onUpdateImageCaption = useCallback(
+    (image: ImageAndCaption) => {
+      field.onChange(
+        images?.map(existingImage => {
+          if (existingImage.image === image.image) {
+            return {image: existingImage.image, caption: image.caption};
+          }
+          return existingImage;
+        }),
+      );
+    },
+    [images, field],
+  );
+
   return (
     <>
       <Body>You can add up to {maxImageCount} images.</Body>
@@ -129,6 +209,7 @@ export const ObservationImagePicker = ({maxImageCount, disable}: {maxImageCount:
         <Button buttonStyle="normal" onPress={pickImage} disabled={isDisabled} renderChildren={renderAddImageButton} />
         {missingImagePermissions && <BodySm color={colorLookup('error.900')}>We need permission to access your photos to upload images. Please check your system settings.</BodySm>}
       </VStack>
+      <ImageCaptionField image={editingImage} onUpdateImage={onUpdateImageCaption} onDismiss={onDismiss} />
     </>
   );
 };
