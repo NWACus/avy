@@ -42,6 +42,7 @@ export const COLORS: Record<string, ColorValue> = {
   disabled: rgbaToHexString('rgba(0, 0, 0, 0.25)'),
   'border.base': rgbaToHexString('rgba(0, 0, 0, 0.15)'),
   'border.split': rgbaToHexString('rgba(0, 0, 0, 0.06)'),
+  'border.active': rgbaToHexString('rgba(24, 144, 255, 1)'),
   'background.base': rgbaToHexString('rgba(0, 0, 0, 0.04)'),
   'background.color-light': rgbaToHexString('rgba(0, 0, 0, 0.02)'),
 
