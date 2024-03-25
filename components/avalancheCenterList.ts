@@ -12,7 +12,7 @@ const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: s
     {center: 'SNFAC', description: 'Avalanche forecasts for South Central Idaho.'},
   ];
 
-  if (Updates.channel !== 'preview') {
+  if (Updates.channel !== 'release') {
     centers.push(
       {center: 'BTAC', description: 'Avalanche forecasts for Western Wyoming and Eastern Idaho.'},
       {center: 'SAC', description: 'Avalanche forecasts for the Lake Tahoe region in California.'},
