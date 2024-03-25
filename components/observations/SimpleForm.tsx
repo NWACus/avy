@@ -1,16 +1,18 @@
 import {AntDesign, MaterialIcons} from '@expo/vector-icons';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useBackHandler} from '@react-native-community/hooks';
+import {useHeaderHeight} from '@react-navigation/elements';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import {useMutation} from '@tanstack/react-query';
 import {AxiosError} from 'axios';
+
 import * as ImagePicker from 'expo-image-picker';
 import _ from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FieldErrors, FormProvider, useForm, useWatch} from 'react-hook-form';
 import {ColorValue, KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import {Button} from 'components/content/Button';
@@ -56,6 +58,10 @@ const ImageListOverlay: React.FC<{index: number; onPress: (index: number) => voi
   );
 };
 
+const useKeyboardVerticalOffset = () => {
+  return useHeaderHeight() + useSafeAreaInsets().top;
+};
+
 export const SimpleForm: React.FC<{
   center_id: AvalancheCenterID;
   onClose?: () => void;
@@ -71,6 +77,8 @@ export const SimpleForm: React.FC<{
     shouldFocusError: false,
     shouldUnregister: true,
   });
+
+  const keyboardVerticalOffset = useKeyboardVerticalOffset();
 
   const postHog = usePostHog();
 
@@ -332,7 +340,7 @@ export const SimpleForm: React.FC<{
       <View width="100%" height="100%" bg="#F6F8FC">
         {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there, or top edge since StackHeader is sitting there */}
         <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}} keyboardVerticalOffset={keyboardVerticalOffset}>
             <VStack style={{height: '100%', width: '100%'}} alignItems="stretch" bg="#F6F8FC">
               <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}} ref={scrollViewRef}>
                 <VStack width="100%" justifyContent="flex-start" alignItems="stretch" pt={8} pb={8}>
