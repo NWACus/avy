@@ -110,21 +110,21 @@ export const SimpleForm: React.FC<{
   }, [cracking, formContext]);
 
   const fieldRefs = useMemo(
-    () => [
-      {field: 'name', ref: React.createRef<RNView>()},
-      {field: 'email', ref: React.createRef<RNView>()},
-      {field: 'phone', ref: React.createRef<RNView>()},
-      {field: 'activity', ref: React.createRef<RNView>()},
-      {field: 'location_name', ref: React.createRef<RNView>()},
-      {field: 'location_point', ref: React.createRef<RNView>()},
-      {field: 'instability.cracking_description', ref: React.createRef<RNView>()},
-      {field: 'instability.collapsing_description', ref: React.createRef<RNView>()},
-      {field: 'avalanches_summary', ref: React.createRef<RNView>()},
-      {field: 'observation_summary', ref: React.createRef<RNView>()},
-    ],
+    () =>
+      ({
+        name: React.createRef<RNView>(),
+        email: React.createRef<RNView>(),
+        phone: React.createRef<RNView>(),
+        activity: React.createRef<RNView>(),
+        location_name: React.createRef<RNView>(),
+        location_point: React.createRef<RNView>(),
+        'instability.cracking_description': React.createRef<RNView>(),
+        'instability.collapsing_description': React.createRef<RNView>(),
+        avalanches_summary: React.createRef<RNView>(),
+        observation_summary: React.createRef<RNView>(),
+      } as const),
     [],
   );
-  const getFieldRef = useCallback((field: string) => fieldRefs.find(f => f.field === field)?.ref, [fieldRefs]);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
@@ -264,7 +264,7 @@ export const SimpleForm: React.FC<{
     (errors: FieldErrors<Partial<ObservationFormData>>) => {
       logger.error({errors: errors, formValues: formContext.getValues()}, 'submit error');
       // scroll to the first field with an error
-      fieldRefs.some(({ref, field}) => {
+      Object.entries(fieldRefs).some(([field, ref]) => {
         // field can be a nested path like `instability.collapsing_description`, so we use _.get to get the value
         if (_.get(errors, field) && scrollViewRef.current) {
           const handle = findNodeHandle(scrollViewRef.current);
@@ -373,13 +373,7 @@ export const SimpleForm: React.FC<{
                   </Card>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>General information</Title3Semibold>}>
                     <VStack space={formFieldSpacing} mt={8}>
-                      <TextField
-                        name="name"
-                        label="Name"
-                        textInputProps={{placeholder: 'Jane Doe', textContentType: 'name'}}
-                        ref={getFieldRef('name')}
-                        disabled={disableFormControls}
-                      />
+                      <TextField name="name" label="Name" textInputProps={{placeholder: 'Jane Doe', textContentType: 'name'}} ref={fieldRefs.name} disabled={disableFormControls} />
                       <SwitchField
                         name="show_name"
                         label="Show name to public?"
@@ -393,7 +387,7 @@ export const SimpleForm: React.FC<{
                         name="email"
                         label="Email address"
                         comment="(never shared with the public)"
-                        ref={getFieldRef('email')}
+                        ref={fieldRefs.email}
                         textInputProps={{
                           placeholder: 'you@domain.com',
                           textContentType: 'emailAddress',
@@ -408,7 +402,7 @@ export const SimpleForm: React.FC<{
                         label="Phone number"
                         comment="(optional, never shared with the public)"
                         textTransform={phoneNumberTextTransform}
-                        ref={getFieldRef('phone')}
+                        ref={fieldRefs.phone}
                         textInputProps={{
                           placeholder: '(012) 345-6789',
                           textContentType: 'telephoneNumber',
@@ -423,7 +417,7 @@ export const SimpleForm: React.FC<{
                         name="activity"
                         label="Activity"
                         prompt="What were you doing?"
-                        ref={getFieldRef('activity')}
+                        ref={fieldRefs.activity}
                         items={[
                           {
                             label: 'Skiing/Snowboarding',
@@ -459,14 +453,14 @@ export const SimpleForm: React.FC<{
                       <TextField
                         name="location_name"
                         label="Location"
-                        ref={getFieldRef('location_name')}
+                        ref={fieldRefs.location_name}
                         textInputProps={{
                           placeholder: 'Please describe your observation location using common geographical place names (drainages, peak names, etc).',
                           multiline: true,
                         }}
                         disabled={disableFormControls}
                       />
-                      <LocationField name="location_point" label="Latitude/Longitude" center={center_id} ref={getFieldRef('location_point')} disabled={disableFormControls} />
+                      <LocationField name="location_point" label="Latitude/Longitude" center={center_id} ref={fieldRefs.location_point} disabled={disableFormControls} />
                     </VStack>
                   </Card>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Signs of instability</Title3Semibold>}>
@@ -531,7 +525,7 @@ export const SimpleForm: React.FC<{
                           ]}
                           prompt=" "
                           disabled={disableFormControls}
-                          ref={getFieldRef('instability.cracking_description')}
+                          ref={fieldRefs['instability.cracking_description']}
                         />
                       </Conditional>
                       <SwitchField
@@ -554,7 +548,7 @@ export const SimpleForm: React.FC<{
                           ]}
                           prompt=" "
                           disabled={disableFormControls}
-                          ref={getFieldRef('instability.collapsing_description')}
+                          ref={fieldRefs['instability.collapsing_description']}
                         />
                       </Conditional>
                     </VStack>
@@ -565,7 +559,7 @@ export const SimpleForm: React.FC<{
                         <TextField
                           name="avalanches_summary"
                           label="Observed avalanches"
-                          ref={getFieldRef('avalanches_summary')}
+                          ref={fieldRefs.avalanches_summary}
                           textInputProps={{
                             placeholder: `• Location, aspect, and elevation
 • How recently did it occur?
@@ -585,7 +579,7 @@ export const SimpleForm: React.FC<{
                       <TextField
                         name="observation_summary"
                         label="What did you observe?"
-                        ref={getFieldRef('observation_summary')}
+                        ref={fieldRefs.observation_summary}
                         textInputProps={{
                           placeholder: `• Signs of instability?
 • Amount of new snow/total snow?
