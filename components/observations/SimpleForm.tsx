@@ -26,7 +26,7 @@ import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField} from 'components/form/TextField';
-import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
+import {ImageAndCaption, ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskStatus} from 'components/observations/uploader/Task';
 import {Body, BodyBlack, BodySemibold, BodySm, Title3Semibold} from 'components/text';
@@ -134,7 +134,7 @@ export const SimpleForm: React.FC<{
   const missingImagePermissions = imagePermissions !== null && !imagePermissions.granted && !imagePermissions.canAskAgain;
 
   const maxImageCount = 8;
-  const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [images, setImages] = useState<ImageAndCaption[]>([]);
   const pickImage = useCallback(() => {
     void (async () => {
       try {
@@ -149,7 +149,7 @@ export const SimpleForm: React.FC<{
         });
 
         if (!result.canceled) {
-          const newImages = images.concat(result.assets).slice(0, maxImageCount);
+          const newImages = images.concat(result.assets.map(image => ({image}))).slice(0, maxImageCount);
           setImages(newImages);
         }
       } catch (error) {
@@ -600,7 +600,7 @@ export const SimpleForm: React.FC<{
                         <ImageList
                           imageWidth={(4 * 140) / 3}
                           imageHeight={140}
-                          media={images.map((i): ImageMediaItem => ({url: {original: i.uri, large: '', medium: '', thumbnail: ''}, type: MediaType.Image, caption: ''}))}
+                          media={images.map(({image: i}): ImageMediaItem => ({url: {original: i.uri, large: '', medium: '', thumbnail: ''}, type: MediaType.Image, caption: ''}))}
                           displayCaptions={false}
                           imageSize="original"
                           renderOverlay={renderOverlay}
