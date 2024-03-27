@@ -19,6 +19,7 @@ export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigat
       initialRouteName="observationsList"
       screenOptions={{
         header: props => <NavigationHeader center_id={center_id} {...props} />,
+        orientation: 'portrait',
       }}>
       <ObservationsStack.Screen name="observationsPortal" component={ObservationsPortalScreen} initialParams={{center_id, requestedTime}} options={{headerShown: false}} />
       <ObservationsStack.Screen name="observationSubmit" component={ObservationSubmitScreen} options={{title: 'Submit an Observation'}} />
