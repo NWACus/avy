@@ -55,7 +55,7 @@ export const TextField = React.forwardRef<RNView, TextFieldProps>(({name, label,
 
   const handleFocusField = useCallback(() => {
     textFieldRef.current?.focus();
-  }, [textFieldRef]);
+  }, []);
 
   return (
     <VStack width="100%" space={4} {...props} ref={ref}>
