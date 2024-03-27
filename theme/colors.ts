@@ -116,6 +116,9 @@ export const COLORS: Record<string, ColorValue> = {
   'muted.700': '#404040',
   'light.100': '#f5f5f4',
   'light.300': '#d6d3d1',
+
+  //
+  'sheet.overlay': '#000C',
 } as const;
 
 export const colorLookup = (color: ColorValue): ColorValue => (typeof color === 'string' && COLORS[color] ? COLORS[color] : color);
