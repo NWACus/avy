@@ -53,7 +53,7 @@ const ImageListOverlay: React.FC<{
   }, [index, onEdit]);
 
   return (
-    <View position="absolute" display="flex" flexDirection="row" top={8} right={8} columnGap={4}>
+    <HStack position="absolute" top={8} right={8} space={4}>
       <AntDesign.Button
         size={16}
         name="edit"
@@ -72,7 +72,7 @@ const ImageListOverlay: React.FC<{
         style={{textAlign: 'center'}}
         onPress={onRemoveHandler}
       />
-    </View>
+    </HStack>
   );
 };
 
