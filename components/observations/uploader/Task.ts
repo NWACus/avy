@@ -28,6 +28,7 @@ const taskQueueEntrySchema = z.discriminatedUnion('type', [
       }),
       name: z.string(),
       title: z.string(),
+      caption: z.string().optional(),
       center_id: avalancheCenterIDSchema,
       photoUsage: z.nativeEnum(MediaUsage),
     }),

@@ -135,6 +135,11 @@ export const simpleObservationFormSchema = z
     return z.NEVER;
   });
 
+export interface ImageAndCaption {
+  image: ImagePickerAsset;
+  caption?: string;
+}
+
 export interface ObservationFormData extends z.infer<typeof simpleObservationFormSchema> {
-  images: ImagePickerAsset[];
+  images: ImageAndCaption[];
 }
