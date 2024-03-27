@@ -14,6 +14,7 @@ interface TextFieldProps extends ViewProps {
   textTransform?: (text: string) => string;
   textInputProps?: Omit<TextInputProps, 'style'>;
   disabled?: boolean;
+  hideLabel?: boolean;
 }
 
 const textInputDefaultStyle = {
@@ -22,7 +23,7 @@ const textInputDefaultStyle = {
   fontFamily: 'Lato_400Regular',
 };
 
-export const TextField = React.forwardRef<RNView, TextFieldProps>(({name, label, comment, textTransform, textInputProps = {}, disabled, ...props}, ref) => {
+export const TextField = React.forwardRef<RNView, TextFieldProps>(({name, label, comment, textTransform, textInputProps = {}, disabled, hideLabel = false, ...props}, ref) => {
   const {field, fieldState} = useController({name});
 
   const onChangeText = useCallback(
@@ -58,10 +59,12 @@ export const TextField = React.forwardRef<RNView, TextFieldProps>(({name, label,
 
   return (
     <VStack width="100%" space={4} {...props} ref={ref}>
-      <HStack space={4}>
-        <BodySmBlack>{label}</BodySmBlack>
-        {comment && <BodySm>{comment}</BodySm>}
-      </HStack>
+      {!hideLabel && (
+        <HStack space={4}>
+          <BodySmBlack>{label}</BodySmBlack>
+          {comment && <BodySm>{comment}</BodySm>}
+        </HStack>
+      )}
       <Pressable style={styles.pressContainer} onPress={handleFocusField}>
         <View
           p={8}
