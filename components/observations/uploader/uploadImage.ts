@@ -21,6 +21,7 @@ interface UploadImageOptions {
   name: string;
   title: string;
   photoUsage: MediaUsage;
+  caption?: string;
 }
 
 const loadImageData = async ({uri, width, height}: PickedImage): Promise<{imageDataBase64: string; mimeType: string; filename: string}> => {
@@ -67,7 +68,7 @@ export const captureDateFromExif = (exif?: PickedImage['exif']): string | null =
   return null;
 };
 
-export const uploadImage = async (taskId: string, {apiPrefix, image, name, center_id, photoUsage, title}: UploadImageOptions): Promise<MediaItem> => {
+export const uploadImage = async (taskId: string, {apiPrefix, image, name, center_id, photoUsage, title, caption}: UploadImageOptions): Promise<MediaItem> => {
   const {imageDataBase64, filename, mimeType} = await loadImageData(image);
 
   const payload = {
@@ -81,6 +82,7 @@ export const uploadImage = async (taskId: string, {apiPrefix, image, name, cente
     source: 'public',
     title,
     date_taken: captureDateFromExif(image.exif),
+    caption,
     // TODO would be nice to tag images that came from this app, but haven't figured that out yet
   };
 

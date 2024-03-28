@@ -170,7 +170,7 @@ export class ObservationUploader {
       // but returns string otherwise. hence the use of `as string`.
       const observationTaskId = uuid.v4() as string;
 
-      observationFormData.images?.forEach(image => {
+      observationFormData.images?.forEach(({image, caption}) => {
         tasks.push({
           id: uuid.v4() as string,
           parentId: observationTaskId,
@@ -190,6 +190,7 @@ export class ObservationUploader {
                   }
                 : undefined,
             },
+            caption,
             name: name ?? '',
             title: `Public Observation: ${observationFormData.location_name}`,
             center_id: center_id,
