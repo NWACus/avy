@@ -1,62 +1,40 @@
-import {AntDesign, MaterialIcons} from '@expo/vector-icons';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useBackHandler} from '@react-native-community/hooks';
 import {useHeaderHeight} from '@react-navigation/elements';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import * as Sentry from '@sentry/react-native';
 import {useMutation} from '@tanstack/react-query';
 import {AxiosError} from 'axios';
 
-import * as ImagePicker from 'expo-image-picker';
 import _ from 'lodash';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {FieldErrors, FieldPath, FormProvider, useForm, useWatch} from 'react-hook-form';
-import {ColorValue, KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
+import {KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
-import {ImageList} from 'components/content/carousel/ImageList';
-import {HStack, VStack, View} from 'components/core';
+import {VStack, View} from 'components/core';
 import {Conditional} from 'components/form/Conditional';
 import {DateField} from 'components/form/DateField';
 import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
-import {ImageAndCaption, ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
+import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
+import {ObservationImagePicker} from 'components/observations/ObservationImagePicker';
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskStatus} from 'components/observations/uploader/Task';
-import {Body, BodyBlack, BodySemibold, BodySm, Title3Semibold} from 'components/text';
+import {Body, BodySemibold, Title3Semibold} from 'components/text';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, ImageMediaItem, InstabilityDistribution, MediaType, userFacingCenterId} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, InstabilityDistribution, userFacingCenterId} from 'types/nationalAvalancheCenter';
 import {startOfSeasonLocalDate} from 'utils/date';
-
-const ImageListOverlay: React.FC<{index: number; onPress: (index: number) => void}> = ({index, onPress}) => {
-  const onPressHandler = useCallback(() => {
-    onPress(index);
-  }, [index, onPress]);
-  return (
-    <View position="absolute" top={8} right={8}>
-      <AntDesign.Button
-        size={16}
-        name="close"
-        color="white"
-        backgroundColor="rgba(0, 0, 0, 0.3)"
-        iconStyle={{marginRight: 0}}
-        style={{textAlign: 'center'}}
-        onPress={onPressHandler}
-      />
-    </View>
-  );
-};
 
 /**
  * ObservationTextField can only have a name prop that is a key of a string value.
@@ -136,61 +114,7 @@ export const SimpleForm: React.FC<{
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const today = new Date();
 
-  const [imagePermissions] = ImagePicker.useMediaLibraryPermissions();
-  const missingImagePermissions = imagePermissions !== null && !imagePermissions.granted && !imagePermissions.canAskAgain;
-
   const maxImageCount = 8;
-  const [images, setImages] = useState<ImageAndCaption[]>([]);
-  const pickImage = useCallback(() => {
-    void (async () => {
-      try {
-        // No permissions request is necessary for launching the image library
-        const result = await ImagePicker.launchImageLibraryAsync({
-          allowsMultipleSelection: true,
-          exif: true,
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
-          quality: 0.9,
-          selectionLimit: maxImageCount - images.length,
-        });
-
-        if (!result.canceled) {
-          const newImages = images.concat(result.assets.map(image => ({image}))).slice(0, maxImageCount);
-          setImages(newImages);
-        }
-      } catch (error) {
-        logger.error('ImagePicker error', {error});
-        Sentry.captureMessage(`ImagePicker encountered an error: ${JSON.stringify(error)}`);
-        // Are we offline? Things might be ok if they go online again.
-        const {networkStatus} = getUploader().getState();
-        Toast.show({
-          type: 'error',
-          text1:
-            networkStatus === 'offline'
-              ? `An unexpected error occurred when loading your images. Try again when you’re back online.`
-              : `An unexpected error occurred when loading your images.`,
-          position: 'bottom',
-        });
-      }
-    })();
-  }, [images, logger]);
-
-  const removeImage = useCallback(
-    (index: number) => {
-      setImages(images.filter((_v, i) => i !== index));
-    },
-    [images, setImages],
-  );
-  const renderOverlay = useCallback((index: number) => <ImageListOverlay index={index} onPress={removeImage} />, [removeImage]);
-  const renderAddImageButton = useCallback(
-    ({textColor}: {textColor: ColorValue}) => (
-      <HStack alignItems="center" space={4}>
-        <MaterialIcons name="add" size={24} color={textColor} style={{marginTop: 1}} />
-        <BodyBlack color={textColor}>Add images</BodyBlack>
-      </HStack>
-    ),
-    [],
-  );
 
   const mutation = useMutation<void, AxiosError, ObservationFormData>({
     mutationFn: async (observationFormData: ObservationFormData) => {
@@ -260,10 +184,10 @@ export const SimpleForm: React.FC<{
         mutation.reset();
         return;
       }
-      data.images = images;
+
       mutation.mutate(data);
     },
-    [images, mutation],
+    [mutation],
   );
 
   const onSubmitErrorHandler = useCallback(
@@ -343,7 +267,7 @@ export const SimpleForm: React.FC<{
 
   return (
     <FormProvider {...formContext}>
-      <View width="100%" height="100%" bg="#F6F8FC">
+      <View width="100%" height="100%" bg="F6F8FC">
         {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there, or top edge since StackHeader is sitting there */}
         <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}} keyboardVerticalOffset={keyboardVerticalOffset}>
@@ -601,28 +525,7 @@ export const SimpleForm: React.FC<{
                   </Card>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Photos</Title3Semibold>}>
                     <VStack space={formFieldSpacing} mt={8}>
-                      <Body>You can add up to {maxImageCount} images.</Body>
-                      {images.length > 0 && (
-                        <ImageList
-                          imageWidth={(4 * 140) / 3}
-                          imageHeight={140}
-                          media={images.map(({image: i}): ImageMediaItem => ({url: {original: i.uri, large: '', medium: '', thumbnail: ''}, type: MediaType.Image, caption: ''}))}
-                          displayCaptions={false}
-                          imageSize="original"
-                          renderOverlay={renderOverlay}
-                        />
-                      )}
-                      <VStack space={4}>
-                        <Button
-                          buttonStyle="normal"
-                          onPress={pickImage}
-                          disabled={images.length === maxImageCount || disableFormControls || missingImagePermissions}
-                          renderChildren={renderAddImageButton}
-                        />
-                        {missingImagePermissions && (
-                          <BodySm color={colorLookup('error.900')}>We need permission to access your photos to upload images. Please check your system settings.</BodySm>
-                        )}
-                      </VStack>
+                      <ObservationImagePicker maxImageCount={maxImageCount} disable={disableFormControls} />
                     </VStack>
                   </Card>
 

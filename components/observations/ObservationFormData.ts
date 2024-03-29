@@ -52,6 +52,44 @@ const locationPointSchema = z.object(
 );
 export type LocationPoint = z.infer<typeof locationPointSchema>;
 
+// This matches the type for ImagePicker.ImagePickerAsset
+// it adds the expected exif key/value pairs used by image upload
+const imageAssetSchema = z
+  .object({
+    uri: z.string(),
+    assetId: z.string().nullable(),
+    width: z.number(),
+    height: z.number(),
+    type: z.union([z.literal('image'), z.literal('video')]),
+    fileName: z.string().nullable(),
+    fileSize: z.number(),
+    exif: z
+      .intersection(
+        z
+          .object({
+            // this is how it's defined in expo-image-picker
+            Orientation: z.union([z.string(), z.number()]),
+            DateTimeOriginal: z.string(),
+          })
+          .partial(),
+        z.record(z.string(), z.any()),
+      )
+      .nullable(),
+    base64: z.string().nullable(),
+    duration: z.number().nullable(),
+    mimeType: z.string(),
+  })
+  .partial({
+    assetId: true,
+    type: true,
+    fileName: true,
+    fileSize: true,
+    exif: true,
+    base64: true,
+    duration: true,
+    mimeType: true,
+  });
+
 // For the form, we have specific rules that we require for any new observations
 // we create, thus we don't reuse the existing observationSchema
 export const simpleObservationFormSchema = z
@@ -82,7 +120,18 @@ export const simpleObservationFormSchema = z
     private: z.boolean(),
     // Using `coerce` allows us to transparently round-trip a Date object to JSON and back
     start_date: z.coerce.date({required_error: required}),
+    images: z.array(
+      z
+        .object({
+          image: imageAssetSchema,
+          caption: z.string(),
+        })
+        .partial({
+          caption: true,
+        }),
+    ),
   })
+  .partial({images: true})
   .superRefine((arg, ctx) => {
     // Some more complex validations to apply here
 
@@ -140,6 +189,6 @@ export interface ImageAndCaption {
   caption?: string;
 }
 
-export interface ObservationFormData extends z.infer<typeof simpleObservationFormSchema> {
-  images: ImageAndCaption[];
-}
+export interface ImagePickerAssetSchema extends z.infer<typeof imageAssetSchema> {}
+
+export interface ObservationFormData extends z.infer<typeof simpleObservationFormSchema> {}
