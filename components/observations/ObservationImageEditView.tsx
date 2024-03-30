@@ -137,22 +137,8 @@ export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismi
   }, []);
 
   useEffect(() => {
+    setDismissing(false);
     const keyboardSubscriptions = [
-      Keyboard.addListener('keyboardWillShow', () => {
-        setDismissing(false);
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-          Animated.spring(dragAnimationRef.current, {
-            toValue: 0,
-            useNativeDriver: false,
-          }),
-        ]).start();
-      }),
-
       Keyboard.addListener('keyboardWillHide', () => {
         setDismissing(true);
         Animated.parallel([
@@ -171,9 +157,41 @@ export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismi
       }),
 
       Keyboard.addListener('keyboardDidHide', () => {
-        onDismiss();
+        setDismissing(current => {
+          if (current === true) {
+            onDismiss();
+            return current;
+          }
+          Animated.parallel([
+            Animated.timing(fadeAnim, {
+              toValue: 0,
+              duration: 100,
+              useNativeDriver: true,
+            }),
+            Animated.spring(dragAnimationRef.current, {
+              toValue: finalHeight.current,
+              useNativeDriver: false,
+            }),
+          ]).start(() => {
+            onDismiss();
+          });
+
+          return true;
+        });
       }),
     ];
+
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.spring(dragAnimationRef.current, {
+        toValue: 0,
+        useNativeDriver: false,
+      }),
+    ]).start();
 
     return () => {
       for (const subscription of keyboardSubscriptions) {

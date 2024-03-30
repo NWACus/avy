@@ -66,6 +66,7 @@ const _TextField = <TFieldValues extends FieldValues, TFieldName extends FieldPa
   }, []);
 
   const textFieldRef = useRef<TextInput>(null);
+
   const [isFocused, setFocused] = useState(() => textFieldRef?.current?.isFocused ?? false);
 
   useLayoutEffect(() => {
