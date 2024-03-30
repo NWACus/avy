@@ -25,7 +25,7 @@ import {DateField} from 'components/form/DateField';
 import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
-import {TextField} from 'components/form/TextField';
+import {TextField, TextFieldComponent} from 'components/form/TextField';
 import {ImageAndCaption, ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskStatus} from 'components/observations/uploader/Task';
@@ -57,6 +57,11 @@ const ImageListOverlay: React.FC<{index: number; onPress: (index: number) => voi
     </View>
   );
 };
+
+/**
+ * ObservationTextField can only have a name prop that is a key of a string value.
+ */
+const ObservationTextField = TextField as TextFieldComponent<ObservationFormData>;
 
 const useKeyboardVerticalOffset = () => {
   return useHeaderHeight() + useSafeAreaInsets().top;
@@ -383,7 +388,7 @@ export const SimpleForm: React.FC<{
                         ]}
                         disabled={disableFormControls}
                       />
-                      <TextField
+                      <ObservationTextField
                         name="email"
                         label="Email address"
                         comment="(never shared with the public)"
@@ -397,7 +402,7 @@ export const SimpleForm: React.FC<{
                         }}
                         disabled={disableFormControls}
                       />
-                      <TextField
+                      <ObservationTextField
                         name="phone"
                         label="Phone number"
                         comment="(optional, never shared with the public)"
@@ -450,7 +455,7 @@ export const SimpleForm: React.FC<{
                         ]}
                         disabled={disableFormControls}
                       />
-                      <TextField
+                      <ObservationTextField
                         name="location_name"
                         label="Location"
                         ref={fieldRefs.location_name}
@@ -556,7 +561,7 @@ export const SimpleForm: React.FC<{
                   <Conditional name="instability.avalanches_observed" value={true}>
                     <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Avalanches</Title3Semibold>}>
                       <VStack space={formFieldSpacing} mt={8}>
-                        <TextField
+                        <ObservationTextField
                           name="avalanches_summary"
                           label="Observed avalanches"
                           ref={fieldRefs.avalanches_summary}
@@ -576,7 +581,7 @@ export const SimpleForm: React.FC<{
                   </Conditional>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Field Notes</Title3Semibold>}>
                     <VStack space={formFieldSpacing} mt={8}>
-                      <TextField
+                      <ObservationTextField
                         name="observation_summary"
                         label="What did you observe?"
                         ref={fieldRefs.observation_summary}
