@@ -1,4 +1,5 @@
 import axios from 'axios';
+import {ImagePickerAssetSchema} from 'components/observations/ObservationFormData';
 import {format, parse} from 'date-fns';
 import {Action, SaveFormat, manipulateAsync} from 'expo-image-manipulator';
 
@@ -8,11 +9,7 @@ interface PickedImage {
   uri: string;
   width: number;
   height: number;
-  exif?: {
-    // this is how it's defined in expo-image-picker
-    Orientation?: string | number;
-    DateTimeOriginal?: string;
-  };
+  exif?: ImagePickerAssetSchema['exif'];
 }
 interface UploadImageOptions {
   apiPrefix: string;
