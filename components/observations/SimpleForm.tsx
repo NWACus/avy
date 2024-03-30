@@ -12,7 +12,7 @@ import _ from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FieldErrors, FieldPath, FormProvider, useForm, useWatch} from 'react-hook-form';
 import {ColorValue, KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
-import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import {Button} from 'components/content/Button';
@@ -64,7 +64,7 @@ const ImageListOverlay: React.FC<{index: number; onPress: (index: number) => voi
 const ObservationTextField = TextField as TextFieldComponent<ObservationFormData>;
 
 const useKeyboardVerticalOffset = () => {
-  return useHeaderHeight() + useSafeAreaInsets().top;
+  return useHeaderHeight();
 };
 
 export const SimpleForm: React.FC<{
