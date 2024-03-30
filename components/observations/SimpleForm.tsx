@@ -10,7 +10,7 @@ import {AxiosError} from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import _ from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FieldErrors, FormProvider, useForm, useWatch} from 'react-hook-form';
+import {FieldErrors, FieldPath, FormProvider, useForm, useWatch} from 'react-hook-form';
 import {ColorValue, KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 
@@ -122,9 +122,10 @@ export const SimpleForm: React.FC<{
         'instability.collapsing_description': React.createRef<RNView>(),
         avalanches_summary: React.createRef<RNView>(),
         observation_summary: React.createRef<RNView>(),
-      } as const),
+      } satisfies Partial<Record<FieldPath<ObservationFormData>, React.Ref<unknown>>>),
     [],
   );
+
   const scrollViewRef = useRef<ScrollView>(null);
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
