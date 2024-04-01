@@ -18,7 +18,12 @@ import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 import {ImageMediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
-const ImageCaptionField = ({image, onUpdateImage, onDismiss}: {image: ImageAndCaption | null; onUpdateImage: (image: ImageAndCaption) => void; onDismiss: () => void}) => {
+const ImageCaptionField: React.FC<{
+  image: ImageAndCaption | null;
+  onUpdateImage: (image: ImageAndCaption) => void;
+  onDismiss: () => void;
+  onModalDisplayed: (isDisplayed: boolean) => void;
+}> = ({image, onUpdateImage, onDismiss, onModalDisplayed}) => {
   const onSetCaption = useCallback(
     (caption: string) => {
       if (image == null) {
@@ -45,6 +50,10 @@ const ImageCaptionField = ({image, onUpdateImage, onDismiss}: {image: ImageAndCa
     onDismiss();
     setVisible(false);
   }, [onDismiss]);
+
+  useEffect(() => {
+    onModalDisplayed(visible);
+  }, [visible, onModalDisplayed]);
 
   return (
     <Modal visible={visible} animationType="none" transparent presentationStyle="overFullScreen" onRequestClose={onDismiss}>
@@ -92,7 +101,11 @@ const ImageListOverlay: React.FC<ImageListOverlayProps> = ({index, onRemove, onE
   );
 };
 
-export const ObservationImagePicker = ({maxImageCount, disable}: {maxImageCount: number; disable: boolean}) => {
+export const ObservationImagePicker: React.FC<{
+  maxImageCount: number;
+  disable: boolean;
+  onModalDisplayed: (isOpen: boolean) => void;
+}> = ({maxImageCount, disable, onModalDisplayed}) => {
   const {field} = useController<ObservationFormData, 'images'>({name: 'images', defaultValue: []});
   const images = field.value;
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
@@ -209,7 +222,7 @@ export const ObservationImagePicker = ({maxImageCount, disable}: {maxImageCount:
         <Button buttonStyle="normal" onPress={pickImage} disabled={isDisabled} renderChildren={renderAddImageButton} />
         {missingImagePermissions && <BodySm color={colorLookup('error.900')}>We need permission to access your photos to upload images. Please check your system settings.</BodySm>}
       </VStack>
-      <ImageCaptionField image={editingImage} onUpdateImage={onUpdateImageCaption} onDismiss={onDismiss} />
+      <ImageCaptionField image={editingImage} onUpdateImage={onUpdateImageCaption} onDismiss={onDismiss} onModalDisplayed={onModalDisplayed} />
     </>
   );
 };

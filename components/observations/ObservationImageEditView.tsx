@@ -2,9 +2,10 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {Button} from 'components/content/Button';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
 import {BodySemibold} from 'components/text';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useEditViewState} from 'hooks/useEditViewState';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {FormProvider, useForm} from 'react-hook-form';
-import {Animated, Keyboard, KeyboardAvoidingView, LayoutChangeEvent, PanResponder, Platform, Pressable, StyleSheet, View} from 'react-native';
+import {Animated, Keyboard, KeyboardAvoidingView, LayoutChangeEvent, PanResponder, Platform, Pressable, StyleSheet, TextInput, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {z} from 'zod';
 
@@ -39,7 +40,10 @@ const AUTO_DISMISS_VELOCITY = 3;
 
 export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismiss, initialCaption, autoDismiss = true}) => {
   const ref = useRef<View>(null);
-  const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value for opacity: 0
+  const fadeAnim = useRef(new Animated.Value(0)); // Initial value for opacity: 0
+
+  const textInputRef = useRef<TextInput | null>(null);
+  const [state, _dispatch, actions] = useEditViewState();
 
   // There is only one value, but using <TextField /> requires the use of a <FormProvider />
   const formContext = useForm<CaptionFormData>({
@@ -50,72 +54,88 @@ export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismi
     shouldUnregister: true,
   });
 
-  const dragAnimationRef = useRef(new Animated.Value(INITIAL_HEIGHT, {useNativeDriver: false}));
-  const basisAnimationRef = useRef(Animated.add<number>(INITIAL_HEIGHT, Animated.multiply<number>(-1, dragAnimationRef.current)));
+  // Animated value that corresponds to the height of the non-form area
+  const dragRef = useRef(new Animated.Value(INITIAL_HEIGHT, {useNativeDriver: false}));
+  const basisAnimationRef = useRef(Animated.add<number>(INITIAL_HEIGHT, Animated.multiply<number>(-1, dragRef.current)));
+  // Create an animated based on the view boundary. If the view is dragged to high or
+  // to low it won't go past min or max values.
+  const clampedAnimation = useMemo(() => {
+    const {min, max} = state.viewBoundary;
+    return Animated.diffClamp(basisAnimationRef.current, min, max);
+  }, [state.viewBoundary]);
+
+  useEffect(() => {
+    if (state.mode === 'dismissed') {
+      actions.reset();
+      onDismiss();
+    }
+  }, [onDismiss, state.mode, actions]);
 
   const edges = useSafeAreaInsets();
 
-  const [isDismissing, setDismissing] = useState(false);
-  const [minMaxHeight, setMinMaxHeight] = useState({min: 0, max: 0});
+  useEffect(() => {
+    if (state.mode === 'dismissRequested') {
+      actions.setViewBoundary({min: -edges.bottom});
+    }
+  }, [state.mode, actions, edges.bottom]);
 
-  /**
-   * When the keyboard is presented of dismissed, onLayout will fire with the containing view
-   * that determines the maximum height the draggable view can be.
-   */
+  // When the view is layed out calculate the max boundary size we'll animate
+  // all the way
   const finalHeight = useRef(INITIAL_HEIGHT);
 
   const onLayout = useCallback(
     (event: LayoutChangeEvent) => {
-      if (isDismissing) {
-        setMinMaxHeight(current => ({min: 0, max: current.max}));
+      // If the layout is resized while the view is dismissing (e.g. the keyboard is going away)
+      // just set them minimum view size to 0 because we want it to animate all the way out
+      if (state.mode === 'dismissing') {
+        actions.setViewBoundary({min: -edges.bottom});
         return;
       }
+
+      // Calculate the max height base on the safe area
       const height = event.nativeEvent.layout.height;
       finalHeight.current = height;
       const maxHeight = height - edges.top;
-      setMinMaxHeight({min: 24, max: maxHeight});
+      actions.setViewBoundary({max: maxHeight});
     },
-    [edges.top, isDismissing],
+    [edges.top, state.mode, actions, edges.bottom],
   );
 
-  const clampedAnimation = useMemo(() => {
-    const {min, max} = minMaxHeight;
-    return Animated.diffClamp(basisAnimationRef.current, min, max);
-  }, [minMaxHeight]);
-
-  const dismissedRef = useRef(false);
-  const onDragDismiss = useCallback((velocity?: number) => {
-    if (dismissedRef.current) return;
+  // Called when the panResponder completes, if it's dragged far enough or fast enough
+  // it will request the view to be dismissed
+  const onDragDismiss = (velocity?: number) => {
     if (velocity != null && velocity > AUTO_DISMISS_VELOCITY) {
-      Keyboard.dismiss();
+      actions.dismissRequest();
+      return;
     }
     ref.current?.measure((_x, _y, _w, h) => {
       if (h < AUTO_DISMISS_DRAGGING_HEIGHT) {
-        dismissedRef.current = true;
-        Keyboard.dismiss();
+        actions.dismissRequest();
       }
     });
-  }, []);
+  };
 
+  // listen to dragging gestures and set the dragRef value to move the inter view
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: () => true,
       onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: Animated.event([null, {dy: dragAnimationRef.current}], {useNativeDriver: false}),
+      onPanResponderMove: Animated.event([null, {dy: dragRef.current}], {useNativeDriver: false}),
       onPanResponderRelease: (_, gestureState) => {
         onDragDismiss(gestureState.vy);
-        Animated.decay(dragAnimationRef.current, {
+        Animated.decay(dragRef.current, {
           velocity: gestureState.vy,
           deceleration: 0.98,
           useNativeDriver: false,
         }).start(() => {
-          dragAnimationRef.current.extractOffset();
+          dragRef.current.extractOffset();
           onDragDismiss();
         });
       },
     }),
   ).current;
 
+  // validate the form and dismiss if autoDismiss is true which is the default
   const onSubmitPress = useCallback(() => {
     void (async () => {
       await formContext.trigger();
@@ -126,89 +146,146 @@ export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismi
 
       await submit();
 
-      if (autoDismiss) {
-        Keyboard.dismiss();
+      if (autoDismiss && state.mode !== 'dismissing') {
+        actions.dismissRequest();
       }
     })();
-  }, [formContext, onSetCaption, autoDismiss]);
+  }, [formContext, onSetCaption, autoDismiss, actions, state.mode]);
 
   const onPressOverlay = useCallback(() => {
-    Keyboard.dismiss();
-  }, []);
+    actions.dismissRequest();
+  }, [actions]);
+
+  const transitionAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
 
   useEffect(() => {
-    setDismissing(false);
-    const keyboardSubscriptions = [
-      Keyboard.addListener('keyboardWillHide', () => {
-        setDismissing(true);
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 100,
-            useNativeDriver: true,
-          }),
-          Animated.spring(dragAnimationRef.current, {
-            toValue: finalHeight.current,
-            useNativeDriver: false,
-          }),
-        ]).start(() => {
-          onDismiss();
-        });
+    if (state.mode !== 'dismissRequested') {
+      return;
+    }
+    actions.dismiss();
+
+    transitionAnimationRef.current?.stop();
+    textInputRef.current?.blur();
+    transitionAnimationRef.current = Animated.parallel([
+      Animated.timing(fadeAnim.current, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
       }),
-
-      Keyboard.addListener('keyboardDidHide', () => {
-        setDismissing(current => {
-          if (current === true) {
-            onDismiss();
-            return current;
-          }
-          Animated.parallel([
-            Animated.timing(fadeAnim, {
-              toValue: 0,
-              duration: 100,
-              useNativeDriver: true,
-            }),
-            Animated.spring(dragAnimationRef.current, {
-              toValue: finalHeight.current,
-              useNativeDriver: false,
-            }),
-          ]).start(() => {
-            onDismiss();
-          });
-
-          return true;
-        });
+      Animated.spring(dragRef.current, {
+        toValue: finalHeight.current,
+        bounciness: 0,
+        useNativeDriver: false,
       }),
-    ];
+    ]);
 
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
+    transitionAnimationRef.current.start(() => {
+      actions.dismissCompleted();
+    });
+  }, [state.mode, actions]);
+
+  // Storing the mutated timestamp in a ref so the keyboard listeners aren't
+  // invalidated
+  const mutatedRef = useRef(Date.now());
+  useEffect(() => {
+    mutatedRef.current = state.mutatedAt ?? mutatedRef.current;
+  }, [state.mutatedAt]);
+
+  // If the input is blurred and keyboardWillHide is fired, close the view
+  // only iOS emits keyboardWillHide
+  useEffect(() => {
+    const sub = Keyboard.addListener('keyboardWillHide', () => {
+      const delta = Date.now() - (mutatedRef.current ?? Number.MAX_SAFE_INTEGER);
+
+      // HACK: on iOS, if a hardware keyboard is attached, we're seeing this event
+      // fired immediately upon presenting the view, so we're noop-ing here
+      if (state.mode === 'presentRequested' && delta < 100) {
+        return;
+      }
+
+      if (state.mode !== 'dismissing') {
+        actions.dismissRequest();
+      }
+    });
+
+    return () => sub.remove();
+  }, [state.mode, state.previousMode, actions]);
+
+  // Auto presenting if in resting state we're just going to open.
+  useEffect(() => {
+    if (state.mode === 'resting') {
+      actions.presentRequest();
+    }
+  }, [actions, state.mode]);
+
+  useEffect(() => {
+    if (state.mode !== 'presentRequested') {
+      return;
+    }
+
+    actions.present();
+
+    transitionAnimationRef.current?.stop();
+
+    let timeoutId: NodeJS.Timeout | undefined;
+
+    transitionAnimationRef.current = Animated.parallel([
+      Animated.timing(fadeAnim.current, {
         toValue: 1,
         duration: 200,
         useNativeDriver: true,
       }),
-      Animated.spring(dragAnimationRef.current, {
+      Animated.spring(dragRef.current, {
         toValue: 0,
+        bounciness: 0,
         useNativeDriver: false,
       }),
-    ]).start();
+    ]);
+
+    transitionAnimationRef.current?.start(() => {
+      actions.presentCompleted();
+    });
 
     return () => {
-      for (const subscription of keyboardSubscriptions) {
-        subscription.remove();
-      }
+      if (timeoutId != null) clearTimeout(timeoutId);
     };
-  }, [fadeAnim, onDismiss]);
+  }, [state.mode, actions]);
+
+  useEffect(() => {
+    const sub = Keyboard.addListener('keyboardDidHide', () => {
+      const delta = Date.now() - mutatedRef.current;
+
+      if (state.mode === 'presentRequested' && delta < 100) {
+        return;
+      }
+
+      if (state.mode !== 'dismissing') {
+        actions.dismissRequest();
+      }
+    });
+
+    return () => sub.remove();
+  }, [state.mode, actions]);
+
+  const onHeaderLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      if (state.mode === 'dismissing') {
+        return;
+      }
+      actions.setViewBoundary({min: event.nativeEvent.layout.height});
+    },
+    [actions, state.mode],
+  );
 
   return (
     <KeyboardAvoidingView behavior={BEHAVIOR} style={[styles.flexV, styles.container]}>
-      <Animated.View style={[styles.overlay, {opacity: fadeAnim}]} />
+      <Animated.View style={[styles.overlay, {opacity: fadeAnim.current}]} />
 
       <View onLayout={onLayout} style={[styles.flexV, {height: '100%'}]}>
         <FormProvider {...formContext}>
           <Pressable style={styles.dismissArea} onPress={onPressOverlay} />
           <Animated.View collapsable={false} ref={ref} style={[styles.flexV, styles.form, {flexBasis: clampedAnimation}]}>
-            <View style={styles.formHeader} {...panResponder.panHandlers}>
+            <View onLayout={onHeaderLayout} style={styles.formHeader} {...panResponder.panHandlers}>
               <BodySemibold>Photo Description</BodySemibold>
               <View style={styles.grip}>
                 <View style={styles.handle} />
@@ -220,10 +297,13 @@ export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismi
                 style={styles.textField}
                 label="Caption"
                 hideLabel
+                textInputRef={textInputRef}
                 textInputProps={{
                   placeholder: 'Write a short image description…',
                   multiline: true,
-                  autoFocus: true,
+                  // On Android, the autoFocus doesn't seem to work when the view is being animated
+                  // or perhaps presented within a modal.
+                  autoFocus: Platform.OS !== 'android',
                 }}
               />
               <Button mx={0} mt={8} buttonStyle="primary" onPress={onSubmitPress}>
@@ -241,6 +321,13 @@ export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismi
 };
 
 const styles = StyleSheet.create({
+  scrollView: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 0,
+  },
   /**
    * Using these styles is the equivalent of using VStack
    */
