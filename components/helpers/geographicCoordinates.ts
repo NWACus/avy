@@ -1,4 +1,4 @@
-import {geoContains} from 'd3-geo';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import {LatLng, Region} from 'react-native-maps';
 import {MapLayerFeature, Position} from 'types/nationalAvalancheCenter';
 
@@ -76,5 +76,5 @@ export const pointInBounds = ({latitude, longitude}: LatLng, {topLeft, bottomRig
   latitude >= bottomRight.latitude && latitude <= topLeft.latitude && longitude <= bottomRight.latitude && longitude >= topLeft.longitude;
 
 export const pointInFeature = ({latitude, longitude}: LatLng, feature: MapLayerFeature): boolean => {
-  return geoContains(feature.geometry, [longitude, latitude]);
+  return (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') && booleanPointInPolygon([longitude, latitude], feature.geometry);
 };
