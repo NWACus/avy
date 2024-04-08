@@ -35,7 +35,7 @@ const captionForm = z.object({
 const BEHAVIOR = Platform.OS === 'ios' ? 'padding' : undefined;
 
 const INITIAL_HEIGHT = 320;
-const AUTO_DISMISS_DRAGGING_HEIGHT = 40;
+const AUTO_DISMISS_DRAGGING_HEIGHT = 120;
 const AUTO_DISMISS_VELOCITY = 3;
 
 export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismiss, initialCaption, autoDismiss = true}) => {
