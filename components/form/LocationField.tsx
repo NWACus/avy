@@ -36,22 +36,16 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   const mapLayer = mapLayerResult.data;
   const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
   const [mapReady, setMapReady] = useState<boolean>(false);
-  const [cleared, setCleared] = useState<boolean>(false);
   const mapRef = useRef<MapView>(null);
-
-  const toggleModalMain = useCallback(() => {
-    setModalVisible(!modalVisible);
-  }, [modalVisible, setModalVisible]);
 
   const toggleModal = useCallback(() => {
     setModalVisible(!modalVisible);
-    setCleared(false);
   }, [modalVisible, setModalVisible]);
 
-  const value: LocationPoint | undefined = !cleared ? (field.value as LocationPoint | undefined) : undefined;
+  const value: LocationPoint | undefined = field.value as LocationPoint | undefined;
 
   const toggleModalandClearLocation = useCallback(() => {
-    setCleared(true);
+    field.onChange(null);
     setModalVisible(!modalVisible);
   }, [modalVisible, setModalVisible]);
 
@@ -83,7 +77,6 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   const onPress = useCallback(
     (event: GestureReponderEvent) => {
       void (async () => {
-        setCleared(false);
         const point = {x: event.nativeEvent.locationX, y: event.nativeEvent.locationY};
         const coordinate = await mapRef.current?.coordinateForPoint(point);
         if (coordinate) {
@@ -98,7 +91,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   return (
     <VStack width="100%" space={4} ref={ref}>
       <BodySmBlack>{label}</BodySmBlack>
-      <TouchableOpacity onPress={toggleModalMain} disabled={disabled}>
+      <TouchableOpacity onPress={toggleModal} disabled={disabled}>
         <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
           <View p={8}>
             <Body>{value ? `${value.lat}, ${value.lng}` : 'Select a location'}</Body>
@@ -150,7 +143,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                         initialRegion={initialRegion}
                         onPressPolygon={emptyHandler}
                         renderFillColor={false}>
-                        {field.value != null && !cleared && <MapMarker coordinate={locationPointToLatLng(field.value as LocationPoint)} />}
+                        {field.value != null && <MapMarker coordinate={locationPointToLatLng(field.value as LocationPoint)} />}
                       </ZoneMap>
                     </Pressable>
                   )}
