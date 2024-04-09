@@ -47,7 +47,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   const toggleModalandClearLocation = useCallback(() => {
     field.onChange(null);
     setModalVisible(!modalVisible);
-  }, [modalVisible, setModalVisible]);
+  }, [modalVisible, setModalVisible, field]);
 
   useEffect(() => {
     if (mapLayer && !mapReady) {
