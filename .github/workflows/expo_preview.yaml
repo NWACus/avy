@@ -16,9 +16,9 @@ jobs:
     steps:
       - name: 🏗 Checkout
         uses: actions/checkout@v4
-
-      - name: Checkout Pull Request
-        run: hub pr checkout ${{ github.event.issue.number }}
+        with:
+           ref: ${{ github.event.pull_request.head.ref }}
+           repository: ${{ github.event.pull_request.head.repo.full_name }}
 
       - name: Publish EAS update
         uses: ./.github/actions/expo/update
