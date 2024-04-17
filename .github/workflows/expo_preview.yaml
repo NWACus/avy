@@ -17,8 +17,8 @@ jobs:
       - name: 🏗 Checkout
         uses: actions/checkout@v4
         with:
-           ref: ${{ github.event.pull_request.head.ref }}
-           repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
 
       - name: Publish EAS update
         uses: ./.github/actions/expo/update
