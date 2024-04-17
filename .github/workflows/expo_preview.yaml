@@ -59,7 +59,7 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number
             })
-            return response.data.head.sha
+            return response.data.merge_commit_sha
 
       - name: Set latest commit status as ${{ job.status }}
         uses: myrotvorets/set-commit-status-action@master
