@@ -17,8 +17,8 @@ jobs:
       - name: 🏗 Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          # Checkout the repo on the pull
+          ref: refs/pull/${{ github.event.issue.number }}/head
 
       - name: Publish EAS update
         uses: ./.github/actions/expo/update
@@ -48,10 +48,23 @@ jobs:
               body: body
             })
 
+      - name: Lookup Branch
+        uses: actions/github-script@v3
+        id: pr-branch
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const response = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            })
+            return response.data.head.ref
+
       - name: Set latest commit status as ${{ job.status }}
         uses: myrotvorets/set-commit-status-action@master
         if: always()
         with:
-          sha: ${{ github.event.issue.pull_request.head.sha }}
+          sha: ${{ steps.pr-branch.outputs.result }}
           token: ${{ secrets.GITHUB_TOKEN }}
           status: ${{ job.status }}
