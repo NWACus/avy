@@ -217,7 +217,7 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
             <HTML source={{html: forecast.hazard_discussion}} />
           </CollapsibleCard>
         )}
-        {imageItems && (
+        {imageItems && imageItems.length > 0 && (
           <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>} noDivider>
             <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={imageItems} displayCaptions={false} />
           </Card>
