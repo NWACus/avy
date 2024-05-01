@@ -2,8 +2,8 @@ import * as Application from 'expo-application';
 import * as Network from 'expo-network';
 import * as Updates from 'expo-updates';
 
-import ExpoMixpanelAnalytics from '@bothrs/expo-mixpanel-analytics';
 import {addEventListener, NetInfoState} from '@react-native-community/netinfo';
+import {Mixpanel} from 'mixpanel-react-native';
 import publicIP from 'react-native-public-ip';
 
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
@@ -12,7 +12,7 @@ import {logger as globalLogger} from 'logger';
 const logger = globalLogger.child({module: 'mixpanel'});
 
 class MixpanelWrapper {
-  private _mixpanel: ExpoMixpanelAnalytics | null;
+  private _mixpanel: Mixpanel | null;
   private _pending: Array<() => void> = [];
   private _online = false;
   // string: we went online and we have an address.
@@ -23,7 +23,9 @@ class MixpanelWrapper {
   constructor() {
     if (process.env.EXPO_PUBLIC_MIXPANEL_TOKEN && (process.env.NODE_ENV !== 'development' || process.env.EXPO_PUBLIC_MIXPANEL_IN_DEVELOPMENT === 'true')) {
       logger.info('Initializing mixpanel');
-      this._mixpanel = new ExpoMixpanelAnalytics(process.env.EXPO_PUBLIC_MIXPANEL_TOKEN);
+      const trackAutomaticEvents = false;
+      this._mixpanel = new Mixpanel(process.env.EXPO_PUBLIC_MIXPANEL_TOKEN, trackAutomaticEvents);
+      void this._mixpanel.init();
     } else {
       if (!process.env.EXPO_PUBLIC_MIXPANEL_TOKEN) {
         logger.warn('Skipping mixpanel initialization, no token configured');
@@ -57,10 +59,10 @@ class MixpanelWrapper {
     });
   }
 
-  identify(userId?: string): void {
+  identify(userId: string): void {
     this._enqueue(() => {
       logger.debug('identify', {userId});
-      this._mixpanel?.identify(userId);
+      void this._mixpanel?.identify(userId);
     });
   }
 
@@ -116,7 +118,7 @@ class MixpanelWrapper {
   }
 
   _registerCommonProps(): void {
-    this._mixpanel?.register({
+    this._mixpanel?.registerSuperProperties({
       update_group_id: getUpdateGroupId(),
       application_version: Application.nativeApplicationVersion || 'n/a',
       application_build: Application.nativeBuildVersion || 'n/a',
