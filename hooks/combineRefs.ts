@@ -10,8 +10,8 @@ const notNull = <T>(value: T | null | undefined): value is T => value != null;
  */
 export const combineRefs = <T>(refs: [React.Ref<T>, ...(React.Ref<T> | null | undefined)[]]): React.Ref<T> => {
   const [ref, ...rest] = refs;
-  const nonNull = rest.filter(notNull);
-  if (nonNull.length === 0) {
+  const nonNullRefs = rest.filter(notNull);
+  if (nonNullRefs.length === 0) {
     return ref;
   }
 
