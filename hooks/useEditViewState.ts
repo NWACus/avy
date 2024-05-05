@@ -1,4 +1,4 @@
-import {ActionGenerators, applyActions, basicActions, createActionReducer, logAction, setStateTimestamp, updateStateValue} from 'hooks/reducerHelpers';
+import {ActionGenerators, applyActions, basicActions, createActionReducer, setStateTimestamp, updateStateValue} from 'hooks/reducerHelpers';
 import {logger} from 'logger';
 import {useMemo, useReducer} from 'react';
 
@@ -72,35 +72,33 @@ const setMode = (mode: ViewMode, option: {fromMode?: ViewMode | ViewMode[]} = {}
   };
 };
 
-const reducer = logAction(
-  setStateTimestamp(
-    'mutatedAt',
-    createActionReducer<EditViewState, EditViewAction>({
-      /**
-       * The view modes somewhat represent a state machine that transitions from one mode into the next
-       */
-      init: setMode('resting'),
-      presentRequest: setMode('presentRequested', {fromMode: 'resting'}),
-      present: setMode('presenting', {fromMode: 'presentRequested'}),
-      presentCompleted: setMode('presented', {fromMode: 'presenting'}),
-      dismissRequest: setMode('dismissRequested', {fromMode: 'presented'}),
-      dismiss: setMode('dismissing', {fromMode: 'dismissRequested'}),
-      dismissCompleted: setMode('dismissed', {fromMode: 'dismissing'}),
+const reducer = setStateTimestamp(
+  'mutatedAt',
+  createActionReducer<EditViewState, EditViewAction>({
+    /**
+     * The view modes somewhat represent a state machine that transitions from one mode into the next
+     */
+    init: setMode('resting'),
+    presentRequest: setMode('presentRequested', {fromMode: 'resting'}),
+    present: setMode('presenting', {fromMode: 'presentRequested'}),
+    presentCompleted: setMode('presented', {fromMode: 'presenting'}),
+    dismissRequest: setMode('dismissRequested', {fromMode: 'presented'}),
+    dismiss: setMode('dismissing', {fromMode: 'dismissRequested'}),
+    dismissCompleted: setMode('dismissed', {fromMode: 'dismissing'}),
 
-      /**
-       * Update the boundary to the min and/or max provided.
-       */
-      setBoundary: updateStateValue('viewBoundary', (viewBoundary, {minMax: {min, max}}) => {
-        const next = {min: min ?? viewBoundary.min, max: max ?? viewBoundary.max};
+    /**
+     * Update the boundary to the min and/or max provided.
+     */
+    setBoundary: updateStateValue('viewBoundary', (viewBoundary, {minMax: {min, max}}) => {
+      const next = {min: Math.ceil(min ?? viewBoundary.min), max: Math.floor(max ?? viewBoundary.max)};
 
-        if (next.min === viewBoundary.min && next.max === viewBoundary.max) {
-          return viewBoundary;
-        }
+      if (next.min === viewBoundary.min && next.max === viewBoundary.max) {
+        return viewBoundary;
+      }
 
-        return next;
-      }),
+      return next;
     }),
-  ),
+  }),
 );
 
 export const useEditViewState = () => {

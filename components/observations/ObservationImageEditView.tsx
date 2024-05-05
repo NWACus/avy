@@ -35,7 +35,9 @@ const captionForm = z.object({
 const BEHAVIOR = Platform.OS === 'ios' ? 'padding' : undefined;
 
 const INITIAL_HEIGHT = 320;
-const AUTO_DISMISS_DRAGGING_HEIGHT = 120;
+const MAX_FORM_HEIGHT = 400;
+const AUTO_DISMISS_DRAGGING_COMPLETE_HEIGHT = 320;
+const AUTO_DISMISS_DRAGGING_HEIGHT = 200;
 const AUTO_DISMISS_VELOCITY = 3;
 
 export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismiss, initialCaption, autoDismiss = true}) => {
@@ -56,12 +58,14 @@ export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismi
 
   // Animated value that corresponds to the height of the non-form area
   const dragRef = useRef(new Animated.Value(INITIAL_HEIGHT, {useNativeDriver: false}));
-  const basisAnimationRef = useRef(Animated.add<number>(INITIAL_HEIGHT, Animated.multiply<number>(-1, dragRef.current)));
+  const heightAnimationRef = useRef(Animated.add<number>(INITIAL_HEIGHT, Animated.multiply<number>(-1, dragRef.current)));
+
+  const positionRef = useRef(new Animated.Value(0, {useNativeDriver: false}));
+
   // Create an animated based on the view boundary. If the view is dragged to high or
   // to low it won't go past min or max values.
   const clampedAnimation = useMemo(() => {
-    const {min, max} = state.viewBoundary;
-    return Animated.diffClamp(basisAnimationRef.current, min, max);
+    return Animated.diffClamp(heightAnimationRef.current, state.viewBoundary.min, Math.min(state.viewBoundary.max, MAX_FORM_HEIGHT));
   }, [state.viewBoundary]);
 
   useEffect(() => {
@@ -109,23 +113,38 @@ export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismi
       return;
     }
     ref.current?.measure((_x, _y, _w, h) => {
-      if (h < AUTO_DISMISS_DRAGGING_HEIGHT) {
+      if (h < AUTO_DISMISS_DRAGGING_COMPLETE_HEIGHT) {
         actions.dismissRequest();
       }
     });
   };
 
+  const handlePanResponderMove = Animated.event([null, {dy: dragRef.current}], {useNativeDriver: false});
   // listen to dragging gestures and set the dragRef value to move the inter view
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: () => true,
       onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: Animated.event([null, {dy: dragRef.current}], {useNativeDriver: false}),
+      onPanResponderStart: () => {
+        dragRef.current.stopAnimation();
+      },
+      onPanResponderMove: (event, gestureState) => {
+        handlePanResponderMove(event, gestureState);
+        ref.current?.measure((_x, _y, _w, h) => {
+          if (h < AUTO_DISMISS_DRAGGING_HEIGHT) {
+            dragRef.current.stopAnimation(() => {
+              dragRef.current.extractOffset();
+            });
+            actions.dismissRequest();
+          }
+        });
+      },
       onPanResponderRelease: (_, gestureState) => {
         onDragDismiss(gestureState.vy);
+        dragRef.current.extractOffset();
         Animated.decay(dragRef.current, {
           velocity: gestureState.vy,
-          deceleration: 0.98,
+          deceleration: 0.99,
           useNativeDriver: false,
         }).start(() => {
           dragRef.current.extractOffset();
@@ -172,7 +191,7 @@ export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismi
         duration: 400,
         useNativeDriver: true,
       }),
-      Animated.spring(dragRef.current, {
+      Animated.spring(positionRef.current, {
         toValue: finalHeight.current,
         bounciness: 0,
         useNativeDriver: false,
@@ -284,7 +303,7 @@ export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismi
       <View onLayout={onLayout} style={[styles.flexV, {height: '100%'}]}>
         <FormProvider {...formContext}>
           <Pressable style={styles.dismissArea} onPress={onPressOverlay} />
-          <Animated.View collapsable={false} ref={ref} style={[styles.flexV, styles.form, {flexBasis: clampedAnimation}]}>
+          <Animated.View collapsable={false} ref={ref} style={[styles.flexV, styles.form, {height: clampedAnimation, transform: [{translateY: positionRef.current}]}]}>
             <View onLayout={onHeaderLayout} style={styles.formHeader} {...panResponder.panHandlers}>
               <BodySemibold>Photo Description</BodySemibold>
               <View style={styles.grip}>
@@ -341,7 +360,11 @@ const styles = StyleSheet.create({
    * the view.
    */
   dismissArea: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'transparent',
   },
   /**
@@ -367,10 +390,13 @@ const styles = StyleSheet.create({
    * Contains the view header and the form controls
    */
   form: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    left: 0,
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    flexBasis: 300,
   },
   textField: {
     flex: 1,

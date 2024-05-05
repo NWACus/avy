@@ -89,22 +89,6 @@ export const setStateTimestamp = <State, Action, K extends KeysMatching<State, n
   };
 };
 
-export const logAction = <State, Action>(reducer: Reducer<State, Action>): Reducer<State, Action> => {
-  if (!__DEV__) {
-    return reducer;
-  }
-
-  return (state, action) => {
-    /* eslint-disable no-console */
-    console.log(' >> ACTION', action);
-    console.log(' >> ', state);
-    const nextState = reducer(state, action);
-    console.log(' << ', nextState);
-    return nextState;
-    /* eslint-enable no-console */
-  };
-};
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Dispatchers = Record<string, (...args: any[]) => any>;
 
