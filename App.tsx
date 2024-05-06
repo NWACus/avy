@@ -139,12 +139,14 @@ void SplashScreen.preventAutoHideAsync().catch((error: Error) => {
   logger.debug('SplashScreen.preventAutoHideAsync threw error, ignoring', {error});
 });
 
+let routingInstrumentation: Sentry.ReactNavigationInstrumentation | undefined = undefined;
 if (Sentry?.init) {
   const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
   // Only initialize Sentry if we can find the correct env setup
   if (!dsn) {
     logger.warn('Sentry integration not configured, check your environment');
   } else {
+    routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
     Sentry.init({
       dsn,
       // Set the dist value to the app binary and build. This should not vary often.
@@ -152,6 +154,7 @@ if (Sentry?.init) {
       dist: `${Application.nativeApplicationVersion || '0.0.0'}.${Application.nativeBuildVersion || '0'}`,
       release: process.env.EXPO_PUBLIC_GIT_REVISION,
       enableWatchdogTerminationTracking: true,
+      integrations: [new Sentry.ReactNativeTracing({enableUserInteractionTracing: true, routingInstrumentation})],
       beforeSend: async (event, hint) => {
         const {exists} = await FileSystem.getInfoAsync(logFilePath);
         if (exists) {
@@ -322,6 +325,7 @@ const BaseApp: React.FunctionComponent<{
       mixpanel.identify(preferences.mixpanelUserId);
       mixpanel.track('App starting');
       setMixpanelUserIdentified(true);
+      Sentry.setUser({analytics_id: preferences.mixpanelUserId});
     }
   }, [preferences.mixpanelUserId, mixpanelUserIdentified]);
 
@@ -363,6 +367,9 @@ const BaseApp: React.FunctionComponent<{
 
   const navigationRef = useNavigationContainerRef();
   const trackNavigationChange = useCallback(() => {
+    if (routingInstrumentation && navigationRef) {
+      routingInstrumentation.registerNavigationContainer(navigationRef);
+    }
     const route = navigationRef.current?.getCurrentRoute();
     if (route) {
       const params = (route.params || {}) as Readonly<Record<string, unknown>>;
@@ -533,4 +540,4 @@ const BaseApp: React.FunctionComponent<{
   );
 };
 
-export default App;
+export default Sentry.wrap(App);

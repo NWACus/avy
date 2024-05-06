@@ -147,7 +147,10 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
-        <Card borderRadius={0} borderColor="white" header={<Title3Black>Avalanche Forecast</Title3Black>}>
+        <Card
+          borderRadius={0}
+          borderColor="white"
+          header={<Title3Black>{forecast.product_type === ProductType.Forecast ? 'Avalanche Forecast' : 'General Avalanche Information'}</Title3Black>}>
           <HStack justifyContent="space-evenly" space={8}>
             <VStack space={8} style={{flex: 1}}>
               <AllCapsSmBlack>Issued</AllCapsSmBlack>
@@ -184,21 +187,27 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
             <HTML source={{html: forecast.bottom_line}} />
           </Card>
         )}
-        <Card borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Avalanche Danger" content={helpStrings.avalancheDanger} />}>
-          <AvalancheDangerTable date={addDays(publishedTime, forecastOffset)} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
-        </Card>
-        <CollapsibleCard
-          identifier={'outlookDangerTable'}
-          startsCollapsed
-          borderRadius={0}
-          borderColor="white"
-          header={<BodySmBlack>{utcDateToLocalDateString(addDays(publishedTime, forecastOffset + 1))}</BodySmBlack>}
-          noDivider={true}>
-          <AvalancheDangerTable forecast={outlookDanger} size={'outlook'} />
-        </CollapsibleCard>
-        <Card borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Danger Scale" content={helpStrings.dangerScale} />} noDivider={true}>
-          <InlineDangerScale />
-        </Card>
+        {forecast.product_type === ProductType.Forecast && (
+          <Card borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Avalanche Danger" content={helpStrings.avalancheDanger} />}>
+            <AvalancheDangerTable date={addDays(publishedTime, forecastOffset)} forecast={currentDanger} elevation_band_names={elevationBandNames} size={'main'} />
+          </Card>
+        )}
+        {forecast.product_type === ProductType.Forecast && (
+          <CollapsibleCard
+            identifier={'outlookDangerTable'}
+            startsCollapsed
+            borderRadius={0}
+            borderColor="white"
+            header={<BodySmBlack>{utcDateToLocalDateString(addDays(publishedTime, forecastOffset + 1))}</BodySmBlack>}
+            noDivider={true}>
+            <AvalancheDangerTable forecast={outlookDanger} size={'outlook'} />
+          </CollapsibleCard>
+        )}
+        {forecast.product_type === ProductType.Forecast && (
+          <Card borderRadius={0} borderColor="white" header={<HeaderWithTooltip title="Danger Scale" content={helpStrings.dangerScale} />} noDivider={true}>
+            <InlineDangerScale />
+          </Card>
+        )}
         {forecast.product_type === ProductType.Forecast &&
           forecast.forecast_avalanche_problems &&
           forecast.forecast_avalanche_problems.map((problem, index) => (
@@ -213,11 +222,16 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
             </CollapsibleCard>
           ))}
         {forecast.hazard_discussion && (
-          <CollapsibleCard identifier={'hazardDiscussion'} startsCollapsed borderRadius={0} borderColor="white" header={<BodyBlack>Forecast Discussion</BodyBlack>}>
+          <CollapsibleCard
+            identifier={'hazardDiscussion'}
+            startsCollapsed={forecast.product_type === ProductType.Forecast}
+            borderRadius={0}
+            borderColor="white"
+            header={<BodyBlack>Forecast Discussion</BodyBlack>}>
             <HTML source={{html: forecast.hazard_discussion}} />
           </CollapsibleCard>
         )}
-        {imageItems && (
+        {imageItems && imageItems.length > 0 && (
           <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>} noDivider>
             <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={imageItems} displayCaptions={false} />
           </Card>

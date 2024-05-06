@@ -174,7 +174,12 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       forecast &&
         forecast.forecast_zone?.forEach(({id}) => {
           if (zonesById[id]) {
-            if (forecast.expires_time && isAfter(requestedTimeToUTCDate(requestedTime), toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}))) {
+            if (
+              forecast.expires_time &&
+              zonesById[id].end_date &&
+              isAfter(requestedTimeToUTCDate(requestedTime), toDate(new Date(forecast.expires_time), {timeZone: 'UTC'})) &&
+              isAfter(toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}), toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}))
+            ) {
               zonesById[id].danger_level = DangerLevel.GeneralInformation;
             } else if (forecast.product_type === ProductType.Forecast) {
               const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);
@@ -193,9 +198,18 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       if (!warning) {
         return;
       }
-      const mapViewZoneData = zonesById[warning.zone_id];
-      if (mapViewZoneData && warning.data.expires_time) {
-        mapViewZoneData.hasWarning = true;
+      // the warnings endpoint can return warnings, watches and special bulletins; we only want to make the map flash
+      // when there's an active warning for the zone
+      if (
+        'product_type' in warning.data &&
+        warning.data.product_type === ProductType.Warning &&
+        'expires_time' in warning.data &&
+        isAfter(toDate(new Date(warning.data.expires_time), {timeZone: 'UTC'}), requestedTimeToUTCDate(requestedTime))
+      ) {
+        const mapViewZoneData = zonesById[warning.zone_id];
+        if (mapViewZoneData) {
+          mapViewZoneData.hasWarning = true;
+        }
       }
     });
   const zones = Object.keys(zonesById).map(k => zonesById[k]);

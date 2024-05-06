@@ -1,3 +1,4 @@
+import * as Updates from 'expo-updates';
 import {AvalancheCenter, AvalancheCenterID, avalancheCenterIDSchema} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheCenterListData {
@@ -5,10 +6,24 @@ export interface AvalancheCenterListData {
   description?: string;
 }
 
-const supportedAvalancheCenters: {center: AvalancheCenterID; description: string}[] = [
-  {center: 'NWAC', description: 'Avalanche forecasts for Washington and Northern Oregon.'},
-  {center: 'SNFAC', description: 'Avalanche forecasts for South Central Idaho.'},
-];
+const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: string}[] => {
+  const centers: {center: AvalancheCenterID; description: string}[] = [
+    {center: 'NWAC', description: 'Avalanche forecasts for Washington and Northern Oregon.'},
+    {center: 'SNFAC', description: 'Avalanche forecasts for South Central Idaho.'},
+  ];
+
+  if (Updates.channel !== 'release') {
+    centers.push(
+      {center: 'BTAC', description: 'Avalanche forecasts for Western Wyoming and Eastern Idaho.'},
+      {center: 'SAC', description: 'Avalanche forecasts for the Lake Tahoe region in California.'},
+      {center: 'MSAC', description: 'Avalanche forecasts for the Mount Shasta region in California.'},
+      {center: 'CBAC', description: 'Avalanche forecasts for Southwestern Colorado.'},
+      {center: 'FAC', description: 'Avalanche forecasts for Northwestern Montana.'},
+    );
+  }
+
+  return centers;
+};
 
 export enum AvalancheCenters {
   SupportedCenters,
@@ -28,15 +43,16 @@ export const filterToKnownCenters = (ids: string[]): AvalancheCenterID[] => {
 };
 
 export const filterToSupportedCenters = (ids: AvalancheCenterID[]): AvalancheCenterID[] => {
-  const supportedCenters: AvalancheCenterID[] = supportedAvalancheCenters.map(c => c.center);
+  const supportedCenters: AvalancheCenterID[] = supportedAvalancheCenters().map(c => c.center);
   return ids.filter(id => supportedCenters.includes(id));
 };
 
 export const avalancheCenterList = (metadata: AvalancheCenter[]): AvalancheCenterListData[] => {
+  const centers = supportedAvalancheCenters();
   return metadata
     .map(center => ({
       center: center,
-      description: supportedAvalancheCenters.find(supported => supported.center === center.id)?.description,
+      description: centers.find(supported => supported.center === center.id)?.description,
     }))
     .sort((a, b) => {
       // Centers with descriptions are "blessed" and should sort above the rest
@@ -49,9 +65,7 @@ export const avalancheCenterList = (metadata: AvalancheCenter[]): AvalancheCente
         return a.center.name.localeCompare(b.center.name);
       } else {
         // Supported centers are sorted according to their order in supportedAvalancheCenters
-        return (
-          supportedAvalancheCenters.findIndex(supported => supported.center === a.center.id) - supportedAvalancheCenters.findIndex(supported => supported.center === b.center.id)
-        );
+        return centers.findIndex(supported => supported.center === a.center.id) - centers.findIndex(supported => supported.center === b.center.id);
       }
     });
 };

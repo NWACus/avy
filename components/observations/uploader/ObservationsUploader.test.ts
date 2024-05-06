@@ -2,7 +2,7 @@ jest.mock('components/observations/uploader/uploadImage');
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
-import {AxiosError} from 'axios';
+import {AxiosError, AxiosHeaders} from 'axios';
 
 import {ObservationFormData} from 'components/observations/ObservationFormData';
 import {ObservationUploader, backoffTimeMs, isRetryableError} from 'components/observations/uploader/ObservationsUploader';
@@ -46,6 +46,7 @@ const createAxiosError = (status: number): AxiosError =>
     'ESOMETHING',
     {
       url: 'http://localhost:3000',
+      headers: new AxiosHeaders({test: 'whatever'}),
     },
     {
       path: '/foo',
@@ -54,6 +55,7 @@ const createAxiosError = (status: number): AxiosError =>
       status,
       config: {
         url: 'http://localhost:3000',
+        headers: new AxiosHeaders({test: 'whatever'}),
       },
       headers: {},
       data: {},
@@ -68,6 +70,7 @@ describe('isRetryableError', () => {
       'ERR_NETWORK',
       {
         url: 'http://localhost:3000',
+        headers: new AxiosHeaders({test: 'whatever'}),
       },
       {
         path: '/foo',
@@ -76,6 +79,7 @@ describe('isRetryableError', () => {
         status: 400,
         config: {
           url: 'http://localhost:3000',
+          headers: new AxiosHeaders({test: 'whatever'}),
         },
         headers: {},
         data: {},
@@ -496,18 +500,20 @@ const fakeObservation: {apiPrefix: string; center_id: AvalancheCenterID; observa
     start_date: new Date('2023-10-17T14:38:32.620Z'),
     images: [
       {
-        exif: {
-          Orientation: 1,
+        image: {
+          exif: {
+            Orientation: 1,
+          },
+          type: 'image',
+          uri: 'file:///Users/brians/Library/Developer/CoreSimulator/Devices/692B5769-C7E6-4D20-BB9C-35F41B41C4C5/data/Containers/Data/Application/AA88255A-3EBC-4341-8093-D88F025E02BC/Library/Caches/ExponentExperienceData/%2540nwac%252Favalanche-forecast/ImagePicker/00052D11-AFAF-4AC2-BC5D-140FB5CB2F63.jpg',
+          duration: null,
+          fileName: 'IMG_0002.jpg',
+          width: 4288,
+          base64: null,
+          fileSize: 6246725,
+          height: 2848,
+          assetId: 'B84E8479-475C-4727-A4A4-B77AA9980897/L0/001',
         },
-        type: 'image',
-        uri: 'file:///Users/brians/Library/Developer/CoreSimulator/Devices/692B5769-C7E6-4D20-BB9C-35F41B41C4C5/data/Containers/Data/Application/AA88255A-3EBC-4341-8093-D88F025E02BC/Library/Caches/ExponentExperienceData/%2540nwac%252Favalanche-forecast/ImagePicker/00052D11-AFAF-4AC2-BC5D-140FB5CB2F63.jpg',
-        duration: null,
-        fileName: 'IMG_0002.jpg',
-        width: 4288,
-        base64: null,
-        fileSize: 6246725,
-        height: 2848,
-        assetId: 'B84E8479-475C-4727-A4A4-B77AA9980897/L0/001',
       },
     ],
   },

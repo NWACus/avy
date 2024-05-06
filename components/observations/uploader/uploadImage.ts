@@ -1,4 +1,5 @@
 import axios from 'axios';
+import {ImagePickerAssetSchema} from 'components/observations/ObservationFormData';
 import {format, parse} from 'date-fns';
 import {Action, SaveFormat, manipulateAsync} from 'expo-image-manipulator';
 
@@ -8,11 +9,7 @@ interface PickedImage {
   uri: string;
   width: number;
   height: number;
-  exif?: {
-    // this is how it's defined in expo-image-picker
-    Orientation?: string | number;
-    DateTimeOriginal?: string;
-  };
+  exif?: ImagePickerAssetSchema['exif'];
 }
 interface UploadImageOptions {
   apiPrefix: string;
@@ -21,6 +18,7 @@ interface UploadImageOptions {
   name: string;
   title: string;
   photoUsage: MediaUsage;
+  caption?: string;
 }
 
 const loadImageData = async ({uri, width, height}: PickedImage): Promise<{imageDataBase64: string; mimeType: string; filename: string}> => {
@@ -67,7 +65,7 @@ export const captureDateFromExif = (exif?: PickedImage['exif']): string | null =
   return null;
 };
 
-export const uploadImage = async (taskId: string, {apiPrefix, image, name, center_id, photoUsage, title}: UploadImageOptions): Promise<MediaItem> => {
+export const uploadImage = async (taskId: string, {apiPrefix, image, name, center_id, photoUsage, title, caption}: UploadImageOptions): Promise<MediaItem> => {
   const {imageDataBase64, filename, mimeType} = await loadImageData(image);
 
   const payload = {
@@ -81,6 +79,7 @@ export const uploadImage = async (taskId: string, {apiPrefix, image, name, cente
     source: 'public',
     title,
     date_taken: captureDateFromExif(image.exif),
+    caption,
     // TODO would be nice to tag images that came from this app, but haven't figured that out yet
   };
 

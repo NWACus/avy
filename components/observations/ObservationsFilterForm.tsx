@@ -7,6 +7,7 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {useBackHandler} from '@react-native-community/hooks';
 import {useFocusEffect} from '@react-navigation/native';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import {Button} from 'components/content/Button';
 import {Center, HStack, VStack, View} from 'components/core';
 import {CheckboxSelectField} from 'components/form/CheckboxSelectField';
@@ -14,7 +15,6 @@ import {Conditional} from 'components/form/Conditional';
 import {DateField} from 'components/form/DateField';
 import {SwitchField} from 'components/form/SwitchField';
 import {Body, BodyBlack, BodySemibold, BodySmBlack, Title3Semibold, bodySize} from 'components/text';
-import {geoContains} from 'd3-geo';
 import {endOfDay, isAfter, isBefore, parseISO} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
@@ -466,7 +466,9 @@ export const matchesZone = (mapLayer: MapLayer, lat: number | null | undefined, 
   if (!lat || !long) {
     return 'Unknown Zone';
   }
-  const matchingFeatures = mapLayer.features.filter(feature => geoContains(feature.geometry, [long, lat])).map(feature => feature.properties.name);
+  const matchingFeatures = mapLayer.features
+    .filter(feature => (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') && booleanPointInPolygon([long, lat], feature.geometry))
+    .map(feature => feature.properties.name);
   if (matchingFeatures.length === 0) {
     return 'Unknown Zone';
   } else if (matchingFeatures.length > 1) {

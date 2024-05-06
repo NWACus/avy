@@ -127,8 +127,6 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
           paddingTop={6}
         />
         {useNewTable ? <NewWeatherDataTable columns={columns} timeseries={timeseries} /> : <WeatherDataTable columns={columns} timeseries={timeseries} />}
-        {/* TODO(skuznets): For some reason, the table is running off the bottom of the view, and I just don't have time to keep debugging this.
-             Adding the placeholder here does the trick. :dizzy_face: */}
         <View height={16} />
       </VStack>
     </VStack>
@@ -228,7 +226,7 @@ export const formatData = (variable: Variable, data: (number | string | null)[])
   let formatter: (i: string | number | null) => string | null;
   switch (variable.variable) {
     case 'date_time':
-      formatter = (i: string | number | null) => (i ? formatDateTime(String(i)) : null);
+      formatter = (i: string | number | null) => (i ? formatDateTime(variable.english_unit)(String(i)) : null);
       break;
     case 'wind_direction':
       formatter = (i: string | number | null) => windDirection(Number(i));
@@ -253,7 +251,7 @@ export const orderStationVariables = (stationVariables: Variable[], timezone: st
     } else if (item === 'date_time') {
       out.push({
         default_unit: formatInTimeZone(new Date(), timezone, 'z'),
-        english_unit: '',
+        english_unit: timezone,
         long_name: '',
         metric_unit: '',
         rounding: 0,

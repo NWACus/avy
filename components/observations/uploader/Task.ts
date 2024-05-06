@@ -24,10 +24,12 @@ const taskQueueEntrySchema = z.discriminatedUnion('type', [
             Orientation: z.number().or(z.string()).optional(),
             DateTimeOriginal: z.string().optional(),
           })
-          .optional(),
+          .optional()
+          .nullable(),
       }),
       name: z.string(),
       title: z.string(),
+      caption: z.string().optional(),
       center_id: avalancheCenterIDSchema,
       photoUsage: z.nativeEnum(MediaUsage),
     }),

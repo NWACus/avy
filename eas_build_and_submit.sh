@@ -38,5 +38,5 @@ jq  < eas.json.tmpl > eas.json \
   '.submit.release.ios={appleId:$IOS_USER_ID,appleTeamId:$IOS_TEAM_ID,ascAppId:$IOS_APP_ID} | .submit.preview.ios=.submit.release.ios'
 
 set -o xtrace
-eas build --non-interactive --platform "${PLATFORM}" --profile "${PROFILE}" --auto-submit
+APP_VARIANT="${PROFILE}" eas build --non-interactive --platform "${PLATFORM}" --profile "${PROFILE}" --auto-submit
 set +o xtrace

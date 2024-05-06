@@ -1,59 +1,48 @@
-import {AntDesign, MaterialIcons} from '@expo/vector-icons';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useBackHandler} from '@react-native-community/hooks';
+import {useHeaderHeight} from '@react-navigation/elements';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import * as Sentry from '@sentry/react-native';
 import {useMutation} from '@tanstack/react-query';
 import {AxiosError} from 'axios';
-import * as ImagePicker from 'expo-image-picker';
+
 import _ from 'lodash';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FieldErrors, FormProvider, useForm, useWatch} from 'react-hook-form';
-import {ColorValue, KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {FieldErrors, FieldPath, FormProvider, useForm, useWatch} from 'react-hook-form';
+import {KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {ClientContext, ClientProps} from 'clientContext';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
-import {ImageList} from 'components/content/carousel/ImageList';
-import {HStack, VStack, View} from 'components/core';
+import {VStack, View} from 'components/core';
 import {Conditional} from 'components/form/Conditional';
 import {DateField} from 'components/form/DateField';
 import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
-import {TextField} from 'components/form/TextField';
+import {TextField, TextFieldComponent} from 'components/form/TextField';
 import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
+import {ObservationImagePicker} from 'components/observations/ObservationImagePicker';
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskStatus} from 'components/observations/uploader/Task';
-import {Body, BodyBlack, BodySemibold, BodySm, Title3Semibold} from 'components/text';
+import {Body, BodySemibold, Title3Semibold} from 'components/text';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, ImageMediaItem, InstabilityDistribution, MediaType, userFacingCenterId} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, InstabilityDistribution, userFacingCenterId} from 'types/nationalAvalancheCenter';
 import {startOfSeasonLocalDate} from 'utils/date';
 
-const ImageListOverlay: React.FC<{index: number; onPress: (index: number) => void}> = ({index, onPress}) => {
-  const onPressHandler = useCallback(() => {
-    onPress(index);
-  }, [index, onPress]);
-  return (
-    <View position="absolute" top={8} right={8}>
-      <AntDesign.Button
-        size={16}
-        name="close"
-        color="white"
-        backgroundColor="rgba(0, 0, 0, 0.3)"
-        iconStyle={{marginRight: 0}}
-        style={{textAlign: 'center'}}
-        onPress={onPressHandler}
-      />
-    </View>
-  );
+/**
+ * ObservationTextField can only have a name prop that is a key of a string value.
+ */
+const ObservationTextField = TextField as TextFieldComponent<ObservationFormData>;
+
+const useKeyboardVerticalOffset = () => {
+  return useHeaderHeight();
 };
 
 export const SimpleForm: React.FC<{
@@ -71,6 +60,8 @@ export const SimpleForm: React.FC<{
     shouldFocusError: false,
     shouldUnregister: true,
   });
+
+  const keyboardVerticalOffset = useKeyboardVerticalOffset();
 
   const postHog = usePostHog();
 
@@ -102,81 +93,28 @@ export const SimpleForm: React.FC<{
   }, [cracking, formContext]);
 
   const fieldRefs = useMemo(
-    () => [
-      {field: 'name', ref: React.createRef<RNView>()},
-      {field: 'email', ref: React.createRef<RNView>()},
-      {field: 'phone', ref: React.createRef<RNView>()},
-      {field: 'activity', ref: React.createRef<RNView>()},
-      {field: 'location_name', ref: React.createRef<RNView>()},
-      {field: 'location_point', ref: React.createRef<RNView>()},
-      {field: 'instability.cracking_description', ref: React.createRef<RNView>()},
-      {field: 'instability.collapsing_description', ref: React.createRef<RNView>()},
-      {field: 'avalanches_summary', ref: React.createRef<RNView>()},
-      {field: 'observation_summary', ref: React.createRef<RNView>()},
-    ],
+    () =>
+      ({
+        name: React.createRef<RNView>(),
+        email: React.createRef<RNView>(),
+        phone: React.createRef<RNView>(),
+        activity: React.createRef<RNView>(),
+        location_name: React.createRef<RNView>(),
+        location_point: React.createRef<RNView>(),
+        'instability.cracking_description': React.createRef<RNView>(),
+        'instability.collapsing_description': React.createRef<RNView>(),
+        avalanches_summary: React.createRef<RNView>(),
+        observation_summary: React.createRef<RNView>(),
+      } satisfies Partial<Record<FieldPath<ObservationFormData>, React.Ref<unknown>>>),
     [],
   );
-  const getFieldRef = useCallback((field: string) => fieldRefs.find(f => f.field === field)?.ref, [fieldRefs]);
+
   const scrollViewRef = useRef<ScrollView>(null);
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const today = new Date();
 
-  const [imagePermissions] = ImagePicker.useMediaLibraryPermissions();
-  const missingImagePermissions = imagePermissions !== null && !imagePermissions.granted && !imagePermissions.canAskAgain;
-
   const maxImageCount = 8;
-  const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
-  const pickImage = useCallback(() => {
-    void (async () => {
-      try {
-        // No permissions request is necessary for launching the image library
-        const result = await ImagePicker.launchImageLibraryAsync({
-          allowsMultipleSelection: true,
-          exif: true,
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
-          quality: 0.9,
-          selectionLimit: maxImageCount - images.length,
-        });
-
-        if (!result.canceled) {
-          const newImages = images.concat(result.assets).slice(0, maxImageCount);
-          setImages(newImages);
-        }
-      } catch (error) {
-        logger.error('ImagePicker error', {error});
-        Sentry.captureMessage(`ImagePicker encountered an error: ${JSON.stringify(error)}`);
-        // Are we offline? Things might be ok if they go online again.
-        const {networkStatus} = getUploader().getState();
-        Toast.show({
-          type: 'error',
-          text1:
-            networkStatus === 'offline'
-              ? `An unexpected error occurred when loading your images. Try again when you’re back online.`
-              : `An unexpected error occurred when loading your images.`,
-          position: 'bottom',
-        });
-      }
-    })();
-  }, [images, logger]);
-
-  const removeImage = useCallback(
-    (index: number) => {
-      setImages(images.filter((_v, i) => i !== index));
-    },
-    [images, setImages],
-  );
-  const renderOverlay = useCallback((index: number) => <ImageListOverlay index={index} onPress={removeImage} />, [removeImage]);
-  const renderAddImageButton = useCallback(
-    ({textColor}: {textColor: ColorValue}) => (
-      <HStack alignItems="center" space={4}>
-        <MaterialIcons name="add" size={24} color={textColor} style={{marginTop: 1}} />
-        <BodyBlack color={textColor}>Add images</BodyBlack>
-      </HStack>
-    ),
-    [],
-  );
 
   const mutation = useMutation<void, AxiosError, ObservationFormData>({
     mutationFn: async (observationFormData: ObservationFormData) => {
@@ -246,17 +184,17 @@ export const SimpleForm: React.FC<{
         mutation.reset();
         return;
       }
-      data.images = images;
+
       mutation.mutate(data);
     },
-    [images, mutation],
+    [mutation],
   );
 
   const onSubmitErrorHandler = useCallback(
     (errors: FieldErrors<Partial<ObservationFormData>>) => {
       logger.error({errors: errors, formValues: formContext.getValues()}, 'submit error');
       // scroll to the first field with an error
-      fieldRefs.some(({ref, field}) => {
+      Object.entries(fieldRefs).some(([field, ref]) => {
         // field can be a nested path like `instability.collapsing_description`, so we use _.get to get the value
         if (_.get(errors, field) && scrollViewRef.current) {
           const handle = findNodeHandle(scrollViewRef.current);
@@ -329,10 +267,10 @@ export const SimpleForm: React.FC<{
 
   return (
     <FormProvider {...formContext}>
-      <View width="100%" height="100%" bg="#F6F8FC">
+      <View width="100%" height="100%" bg="F6F8FC">
         {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there, or top edge since StackHeader is sitting there */}
         <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}} keyboardVerticalOffset={keyboardVerticalOffset}>
             <VStack style={{height: '100%', width: '100%'}} alignItems="stretch" bg="#F6F8FC">
               <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}} ref={scrollViewRef}>
                 <VStack width="100%" justifyContent="flex-start" alignItems="stretch" pt={8} pb={8}>
@@ -365,13 +303,7 @@ export const SimpleForm: React.FC<{
                   </Card>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>General information</Title3Semibold>}>
                     <VStack space={formFieldSpacing} mt={8}>
-                      <TextField
-                        name="name"
-                        label="Name"
-                        textInputProps={{placeholder: 'Jane Doe', textContentType: 'name'}}
-                        ref={getFieldRef('name')}
-                        disabled={disableFormControls}
-                      />
+                      <TextField name="name" label="Name" textInputProps={{placeholder: 'Jane Doe', textContentType: 'name'}} ref={fieldRefs.name} disabled={disableFormControls} />
                       <SwitchField
                         name="show_name"
                         label="Show name to public?"
@@ -381,11 +313,11 @@ export const SimpleForm: React.FC<{
                         ]}
                         disabled={disableFormControls}
                       />
-                      <TextField
+                      <ObservationTextField
                         name="email"
                         label="Email address"
                         comment="(never shared with the public)"
-                        ref={getFieldRef('email')}
+                        ref={fieldRefs.email}
                         textInputProps={{
                           placeholder: 'you@domain.com',
                           textContentType: 'emailAddress',
@@ -395,12 +327,12 @@ export const SimpleForm: React.FC<{
                         }}
                         disabled={disableFormControls}
                       />
-                      <TextField
+                      <ObservationTextField
                         name="phone"
                         label="Phone number"
                         comment="(optional, never shared with the public)"
                         textTransform={phoneNumberTextTransform}
-                        ref={getFieldRef('phone')}
+                        ref={fieldRefs.phone}
                         textInputProps={{
                           placeholder: '(012) 345-6789',
                           textContentType: 'telephoneNumber',
@@ -415,7 +347,7 @@ export const SimpleForm: React.FC<{
                         name="activity"
                         label="Activity"
                         prompt="What were you doing?"
-                        ref={getFieldRef('activity')}
+                        ref={fieldRefs.activity}
                         items={[
                           {
                             label: 'Skiing/Snowboarding',
@@ -448,17 +380,17 @@ export const SimpleForm: React.FC<{
                         ]}
                         disabled={disableFormControls}
                       />
-                      <TextField
+                      <ObservationTextField
                         name="location_name"
                         label="Location"
-                        ref={getFieldRef('location_name')}
+                        ref={fieldRefs.location_name}
                         textInputProps={{
                           placeholder: 'Please describe your observation location using common geographical place names (drainages, peak names, etc).',
                           multiline: true,
                         }}
                         disabled={disableFormControls}
                       />
-                      <LocationField name="location_point" label="Latitude/Longitude" center={center_id} ref={getFieldRef('location_point')} disabled={disableFormControls} />
+                      <LocationField name="location_point" label="Latitude/Longitude" center={center_id} ref={fieldRefs.location_point} disabled={disableFormControls} />
                     </VStack>
                   </Card>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Signs of instability</Title3Semibold>}>
@@ -523,7 +455,7 @@ export const SimpleForm: React.FC<{
                           ]}
                           prompt=" "
                           disabled={disableFormControls}
-                          ref={getFieldRef('instability.cracking_description')}
+                          ref={fieldRefs['instability.cracking_description']}
                         />
                       </Conditional>
                       <SwitchField
@@ -546,7 +478,7 @@ export const SimpleForm: React.FC<{
                           ]}
                           prompt=" "
                           disabled={disableFormControls}
-                          ref={getFieldRef('instability.collapsing_description')}
+                          ref={fieldRefs['instability.collapsing_description']}
                         />
                       </Conditional>
                     </VStack>
@@ -554,10 +486,10 @@ export const SimpleForm: React.FC<{
                   <Conditional name="instability.avalanches_observed" value={true}>
                     <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Avalanches</Title3Semibold>}>
                       <VStack space={formFieldSpacing} mt={8}>
-                        <TextField
+                        <ObservationTextField
                           name="avalanches_summary"
                           label="Observed avalanches"
-                          ref={getFieldRef('avalanches_summary')}
+                          ref={fieldRefs.avalanches_summary}
                           textInputProps={{
                             placeholder: `• Location, aspect, and elevation
 • How recently did it occur?
@@ -574,10 +506,10 @@ export const SimpleForm: React.FC<{
                   </Conditional>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Field Notes</Title3Semibold>}>
                     <VStack space={formFieldSpacing} mt={8}>
-                      <TextField
+                      <ObservationTextField
                         name="observation_summary"
                         label="What did you observe?"
-                        ref={getFieldRef('observation_summary')}
+                        ref={fieldRefs.observation_summary}
                         textInputProps={{
                           placeholder: `• Signs of instability?
 • Amount of new snow/total snow?
@@ -593,28 +525,7 @@ export const SimpleForm: React.FC<{
                   </Card>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Photos</Title3Semibold>}>
                     <VStack space={formFieldSpacing} mt={8}>
-                      <Body>You can add up to {maxImageCount} images.</Body>
-                      {images.length > 0 && (
-                        <ImageList
-                          imageWidth={(4 * 140) / 3}
-                          imageHeight={140}
-                          media={images.map((i): ImageMediaItem => ({url: {original: i.uri, large: '', medium: '', thumbnail: ''}, type: MediaType.Image, caption: ''}))}
-                          displayCaptions={false}
-                          imageSize="original"
-                          renderOverlay={renderOverlay}
-                        />
-                      )}
-                      <VStack space={4}>
-                        <Button
-                          buttonStyle="normal"
-                          onPress={pickImage}
-                          disabled={images.length === maxImageCount || disableFormControls || missingImagePermissions}
-                          renderChildren={renderAddImageButton}
-                        />
-                        {missingImagePermissions && (
-                          <BodySm color={colorLookup('error.900')}>We need permission to access your photos to upload images. Please check your system settings.</BodySm>
-                        )}
-                      </VStack>
+                      <ObservationImagePicker maxImageCount={maxImageCount} disable={disableFormControls} />
                     </VStack>
                   </Card>
 
