@@ -15,7 +15,7 @@ import {ClientContext, ClientProps} from 'clientContext';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
-import {VStack, View} from 'components/core';
+import {HStack, VStack, View} from 'components/core';
 import {Conditional} from 'components/form/Conditional';
 import {DateField} from 'components/form/DateField';
 import {LocationField} from 'components/form/LocationField';
@@ -23,7 +23,7 @@ import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
 import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
-import {ObservationImagePicker} from 'components/observations/ObservationImagePicker';
+import {ObservationAddImageButton, ObservationImagePicker} from 'components/observations/ObservationImagePicker';
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskStatus} from 'components/observations/uploader/Task';
 import {Body, BodySemibold, Title3Semibold} from 'components/text';
@@ -533,7 +533,15 @@ export const SimpleForm: React.FC<{
                       />
                     </VStack>
                   </Card>
-                  <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Photos</Title3Semibold>}>
+                  <Card
+                    borderRadius={0}
+                    borderColor="white"
+                    header={
+                      <HStack justifyContent="space-between">
+                        <Title3Semibold>Photos</Title3Semibold>
+                        <ObservationAddImageButton maxImageCount={maxImageCount} disable={disableFormControls} space={2} py={2} pl={4} pr={8} />
+                      </HStack>
+                    }>
                     <VStack space={formFieldSpacing} mt={8}>
                       <ObservationImagePicker maxImageCount={maxImageCount} disable={disableFormControls} onModalDisplayed={setModalDisplayed} />
                     </VStack>
