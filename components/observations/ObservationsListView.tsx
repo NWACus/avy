@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {FontAwesome, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
-import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
@@ -75,10 +75,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const mapLayer = mapResult.data;
 
   const postHog = usePostHog();
-
-    console.log("obs link " + Linking.useURL());
-    const route = useRoute(); 
-    console.log(route);
 
   const recordAnalytics = useCallback(() => {
     postHog?.screen('observations', {

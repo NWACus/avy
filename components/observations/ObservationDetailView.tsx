@@ -219,7 +219,6 @@ export const ObservationCard: React.FunctionComponent<{
 
 // route.path will have the link we would put into the share button here
 const route = useRoute(); 
-console.log(route);
 
 // currently the back button will leave to the list of obs of your current default center
 // even if someone shares an observation with you from a different center
