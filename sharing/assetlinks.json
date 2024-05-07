@@ -5,11 +5,9 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "{package_name}",
-      "sha256_cert_fingerprints": [
-        // Supports multiple fingerprints for different apps and keys
-        "{sha256_cert_fingerprints}"
-      ]
+      "package_name": "preview.us.nwac.forecast",
+      "sha256_cert_fingerprints":
+        ["64:52:52:8A:2E:16:20:65:81:12:2B:6B:1A:A2:C2:91:36:AF:E5:A1:0A:97:C5:20:85:01:3D:8A:52:10:FB:33"]
     }
   }
 ]

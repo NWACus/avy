@@ -477,12 +477,12 @@ const BaseApp: React.FunctionComponent<{
   }
 
   const linking = {
-    prefixes: [prefix],
+    prefixes: [prefix, "https://NWAC.us/observations/#/view/"],
     config: {
       screens: {
         Observations: {
           screens: {
-            observation: 'observation/:id',  
+            observation: 'observations/:id',  
           },
         }, 
       },
