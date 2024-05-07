@@ -39,7 +39,6 @@ import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
 import {RequestedTime, pacificDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
-import * as Linking from 'expo-linking';
 
 interface ObservationsListViewItem {
   id: ObservationFragment['id'];
