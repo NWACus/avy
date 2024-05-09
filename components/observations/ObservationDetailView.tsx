@@ -1,8 +1,9 @@
+import {AntDesign, Entypo} from '@expo/vector-icons';
 import React, {useCallback} from 'react';
-import {Image, ScrollView, StyleSheet} from 'react-native';
+import {Button , Image, ScrollView, Share, StyleSheet, Text} from 'react-native';
 
 import {MaterialCommunityIcons} from '@expo/vector-icons';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {colorFor} from 'components/AvalancheDangerTriangle';
@@ -216,34 +217,83 @@ export const ObservationCard: React.FunctionComponent<{
   }, [postHog, observation.center_id, observation.id]);
   useFocusEffect(recordAnalytics);
 
+// route.path will have the link we would put into the share button here
+const route = useRoute(); 
+
+// currently the back button will leave to the list of obs of your current default center
+// even if someone shares an observation with you from a different center
+// the header will still show the current center logo (that likely needs to change as design actually said to replace that with the share icon)
+// to open in expo: *check url and port, and correct obs ID that exists
+// example: npx uri-scheme open exp://192.168.1.8:8082/--/observation/866b81db-52b3-4f94-890c-0cae8f162097 --android
+const url = 'https://' + observation.center_id + '.us/observations/#/view/' + route.name + 's/' + route.params.id
+  const onShare = async () => {
+    try {
+      const result = await Share.share({
+        message:
+          (url )
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
       <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
         <VStack space={8} backgroundColor="white" style={{height: '100%', width: '100%'}}>
           <ScrollView style={{height: '100%', width: '100%'}}>
             <VStack space={8} backgroundColor={colorLookup('primary.background')}>
-              <View bg="white" py={8} px={16}>
-                <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
-                  <VStack space={8} style={{flex: 1}}>
-                    <AllCapsSmBlack>Observed</AllCapsSmBlack>
-                    <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                      {pacificDateToLocalShortDateString(observation.start_date)}
-                    </AllCapsSm>
-                  </VStack>
-                  <VStack space={8} style={{flex: 1}}>
-                    <AllCapsSmBlack>Submitted</AllCapsSmBlack>
-                    <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                      {utcDateToLocalShortDateString(observation.created_at)}
-                    </AllCapsSm>
-                  </VStack>
-                  <VStack space={8} style={{flex: 1}}>
-                    <AllCapsSmBlack>Author</AllCapsSmBlack>
-                    <AllCapsSm style={{textTransform: 'none'}} color="text.secondary" unescapeHTMLEntities>
-                      {observation.name || 'Unknown'}
-                    </AllCapsSm>
-                  </VStack>
-                </HStack>
-              </View>
+              <Card borderRadius={0} borderColor="white" header={
+                <VStack space={8} width="100%">
+                  <BodySemibold>
+                    {zone_name} Observation
+                      <Entypo 
+                      size={22}
+                      color={colorLookup('text')}
+                      name="share-alternative"
+                      backgroundColor="white"
+                      iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
+                      style={{alignSelf: 'flex-end'}}
+                      onPress={onShare}
+                    />
+                  </BodySemibold>
+                  <BodySemibold>
+                  {observation.center_id}
+                  </BodySemibold>
+                </VStack>
+              }>
+                <View bg="white" py={8} px={16}>
+                  <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
+                    <VStack space={8} style={{flex: 1}}>
+                      <AllCapsSmBlack>Observed</AllCapsSmBlack>
+                      <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                        {pacificDateToLocalShortDateString(observation.start_date)}
+                      </AllCapsSm>
+                    </VStack>
+                    <VStack space={8} style={{flex: 1}}>
+                      <AllCapsSmBlack>Submitted</AllCapsSmBlack>
+                      <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                        {utcDateToLocalShortDateString(observation.created_at)}
+                      </AllCapsSm>
+                    </VStack>
+                    <VStack space={8} style={{flex: 1}}>
+                      <AllCapsSmBlack>Author</AllCapsSmBlack>
+                      <AllCapsSm style={{textTransform: 'none'}} color="text.secondary" unescapeHTMLEntities>
+                        {observation.name || 'Unknown'}
+                      </AllCapsSm>
+                    </VStack>
+                  </HStack>
+                </View>
+              </Card>
               <Card borderRadius={0} borderColor="white" header={<BodyBlack>Summary</BodyBlack>}>
                 <VStack space={8} width="100%">
                   {observation.location_point.lat && observation.location_point.lng && !isPlaceholder(observation.location_point.lat, observation.location_point.lng) && (

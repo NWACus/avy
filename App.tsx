@@ -74,8 +74,10 @@ import {filterLoggedData} from 'logging/filterLoggedData';
 import mixpanel from 'mixpanel';
 import PostHog, {PostHogProvider} from 'posthog-react-native';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
+import * as Linking from 'expo-linking';
 
 logger.info('App starting.');
+const prefix = Linking.createURL('/');
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   logger.info('enabling android layout animations');
@@ -474,12 +476,25 @@ const BaseApp: React.FunctionComponent<{
     );
   }
 
+  const linking = {
+    prefixes: [prefix, "https://nwac.us/observations/#/view/"],
+    config: {
+      screens: {
+        Observations: {
+          screens: {
+            observation: 'observations/:id',  
+          },
+        }, 
+      },
+    },
+  };
+
   return (
     <>
       <TamaguiWrapper>
         <HTMLRendererConfig>
           <SafeAreaProvider>
-            <NavigationContainer ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
+            <NavigationContainer linking={linking} ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
               <PostHogProvider client={postHog}>
                 <FeatureFlagsProvider>
                   <KillSwitchMonitor>
