@@ -67,6 +67,7 @@ import {Center, VStack} from 'components/core';
 import {KillSwitchMonitor} from 'components/KillSwitchMonitor';
 import {TamaguiWrapper} from 'components/TamaguiWrapper';
 import {Body, BodyBlack, Title3Black} from 'components/text';
+import * as Linking from 'expo-linking';
 import * as Updates from 'expo-updates';
 import {FeatureFlagsProvider} from 'FeatureFlags';
 import {useToggle} from 'hooks/useToggle';
@@ -74,7 +75,6 @@ import {filterLoggedData} from 'logging/filterLoggedData';
 import mixpanel from 'mixpanel';
 import PostHog, {PostHogProvider} from 'posthog-react-native';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
-import * as Linking from 'expo-linking';
 
 logger.info('App starting.');
 const prefix = Linking.createURL('/');
@@ -477,14 +477,14 @@ const BaseApp: React.FunctionComponent<{
   }
 
   const linking = {
-    prefixes: [prefix, "https://nwac.us/observations/#/view/"],
+    prefixes: [prefix, 'https://nwac.us/observations/#/view/'],
     config: {
       screens: {
         Observations: {
           screens: {
-            observation: 'observations/:id',  
+            observation: 'observations/:id',
           },
-        }, 
+        },
       },
     },
   };
