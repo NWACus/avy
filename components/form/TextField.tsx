@@ -1,5 +1,6 @@
 import {HStack, View, ViewProps, VStack} from 'components/core';
 import {BodySm, BodySmBlack, BodyXSm} from 'components/text';
+import {combineRefs} from 'hooks/combineRefs';
 import React, {Ref, useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {FieldPathByValue, FieldValues, useController} from 'react-hook-form';
 import {Pressable, View as RNView, StyleSheet, TextInput, TextInputProps} from 'react-native';
@@ -23,6 +24,7 @@ interface TextFieldProps<TFieldValues extends FieldValues, TFieldName extends Fi
   textInputProps?: Omit<TextInputProps, 'style'>;
   disabled?: boolean;
   hideLabel?: boolean;
+  textInputRef?: React.Ref<TextInput>;
 }
 
 const textInputDefaultStyle = {
@@ -40,7 +42,7 @@ type StringFieldValue = string | null | undefined;
  * To be used with forwardRef to create a generic component.
  */
 const _TextField = <TFieldValues extends FieldValues, TFieldName extends FieldPathByValue<TFieldValues, StringFieldValue>>(
-  {name, label, comment, textTransform, textInputProps = {}, disabled, hideLabel = false, ...props}: TextFieldProps<TFieldValues, TFieldName>,
+  {name, label, comment, textTransform, textInputProps = {}, disabled, textInputRef, hideLabel = false, ...props}: TextFieldProps<TFieldValues, TFieldName>,
   ref: Ref<RNView>,
 ) => {
   const {field, fieldState} = useController<TFieldValues, TFieldName>({name});
@@ -66,6 +68,8 @@ const _TextField = <TFieldValues extends FieldValues, TFieldName extends FieldPa
   }, []);
 
   const textFieldRef = useRef<TextInput>(null);
+  const inputRef = combineRefs([textFieldRef, textInputRef]);
+
   const [isFocused, setFocused] = useState(() => textFieldRef?.current?.isFocused ?? false);
 
   useLayoutEffect(() => {
@@ -95,7 +99,7 @@ const _TextField = <TFieldValues extends FieldValues, TFieldName extends FieldPa
           borderColor={isFocused ? colorLookup('border.active') : colorLookup('border.base')}
           borderRadius={4}>
           <TextInput
-            ref={textFieldRef}
+            ref={inputRef}
             onBlur={onBlur}
             onFocus={onFocus}
             onChangeText={onChangeText}

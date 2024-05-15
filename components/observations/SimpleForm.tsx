@@ -6,7 +6,7 @@ import {useMutation} from '@tanstack/react-query';
 import {AxiosError} from 'axios';
 
 import _ from 'lodash';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FieldErrors, FieldPath, FormProvider, useForm, useWatch} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -15,7 +15,7 @@ import {ClientContext, ClientProps} from 'clientContext';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
-import {VStack, View} from 'components/core';
+import {HStack, VStack, View} from 'components/core';
 import {Conditional} from 'components/form/Conditional';
 import {DateField} from 'components/form/DateField';
 import {LocationField} from 'components/form/LocationField';
@@ -23,7 +23,7 @@ import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
 import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
-import {ObservationImagePicker} from 'components/observations/ObservationImagePicker';
+import {ObservationAddImageButton, ObservationImagePicker} from 'components/observations/ObservationImagePicker';
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskStatus} from 'components/observations/uploader/Task';
 import {Body, BodySemibold, Title3Semibold} from 'components/text';
@@ -237,6 +237,8 @@ export const SimpleForm: React.FC<{
     return true;
   });
 
+  const [isModalDisplayed, setModalDisplayed] = useState(false);
+
   const formFieldSpacing = 16;
   const disableFormControls = mutation.isLoading || mutation.isSuccess;
 
@@ -270,9 +272,17 @@ export const SimpleForm: React.FC<{
       <View width="100%" height="100%" bg="F6F8FC">
         {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there, or top edge since StackHeader is sitting there */}
         <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}} keyboardVerticalOffset={keyboardVerticalOffset}>
+          <KeyboardAvoidingView
+            enabled={!isModalDisplayed}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{flex: 1, height: '100%'}}
+            keyboardVerticalOffset={keyboardVerticalOffset}>
             <VStack style={{height: '100%', width: '100%'}} alignItems="stretch" bg="#F6F8FC">
-              <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}} ref={scrollViewRef}>
+              <ScrollView
+                scrollsToTop={!isModalDisplayed}
+                style={{height: '100%', width: '100%', backgroundColor: 'white'}}
+                keyboardShouldPersistTaps="handled"
+                ref={scrollViewRef}>
                 <VStack width="100%" justifyContent="flex-start" alignItems="stretch" pt={8} pb={8}>
                   <View px={16} pb={formFieldSpacing}>
                     <Body>Help keep the {userFacingCenterId(center_id)} community informed by submitting your observation.</Body>
@@ -523,9 +533,17 @@ export const SimpleForm: React.FC<{
                       />
                     </VStack>
                   </Card>
-                  <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Photos</Title3Semibold>}>
+                  <Card
+                    borderRadius={0}
+                    borderColor="white"
+                    header={
+                      <HStack justifyContent="space-between">
+                        <Title3Semibold>Photos</Title3Semibold>
+                        <ObservationAddImageButton maxImageCount={maxImageCount} disable={disableFormControls} space={2} py={2} pl={4} pr={8} />
+                      </HStack>
+                    }>
                     <VStack space={formFieldSpacing} mt={8}>
-                      <ObservationImagePicker maxImageCount={maxImageCount} disable={disableFormControls} />
+                      <ObservationImagePicker maxImageCount={maxImageCount} disable={disableFormControls} onModalDisplayed={setModalDisplayed} />
                     </VStack>
                   </Card>
 
