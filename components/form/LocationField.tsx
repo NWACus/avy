@@ -1,5 +1,4 @@
 import {AntDesign, FontAwesome} from '@expo/vector-icons';
-import {GestureReponderEvent} from '@tamagui/web';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {MapViewZone, ZoneMap, defaultMapRegionForGeometries, defaultMapRegionForZones} from 'components/content/ZoneMap';
 import {Center, HStack, VStack, View} from 'components/core';
@@ -9,7 +8,7 @@ import {Body, BodySmBlack, BodyXSm, Title3Black, bodySize} from 'components/text
 import {useMapLayer} from 'hooks/useMapLayer';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {Modal, Pressable, View as RNView, TouchableOpacity} from 'react-native';
+import {GestureResponderEvent, Modal, Pressable, View as RNView, TouchableOpacity} from 'react-native';
 import MapView, {LatLng, MapMarker, Region} from 'react-native-maps';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
@@ -70,7 +69,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
     })) ?? [];
 
   const onPress = useCallback(
-    (event: GestureReponderEvent) => {
+    (event: GestureResponderEvent) => {
       void (async () => {
         const point = {x: event.nativeEvent.locationX, y: event.nativeEvent.locationY};
         const coordinate = await mapRef.current?.coordinateForPoint(point);
