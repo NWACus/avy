@@ -44,6 +44,11 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
 
   const value: LocationPoint | undefined = field.value as LocationPoint | undefined;
 
+  const toggleModalandClearLocation = useCallback(() => {
+    field.onChange(null);
+    setModalVisible(!modalVisible);
+  }, [modalVisible, setModalVisible, field]);
+
   useEffect(() => {
     if (mapLayer && !mapReady) {
       const location: LocationPoint = value || {lat: 0, lng: 0};
@@ -100,13 +105,22 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
       {error && <BodyXSm color={colorLookup('error.900')}>{error.message}</BodyXSm>}
 
       {modalVisible && (
-        <Modal visible={modalVisible} onRequestClose={toggleModal} animationType="slide">
+        <Modal visible={modalVisible} onRequestClose={toggleModalandClearLocation} animationType="slide">
           <SafeAreaProvider>
             <SafeAreaView style={{width: '100%', height: '100%'}}>
               <VStack width="100%" height="100%">
-                <HStack justifyContent="space-between" alignItems="center" pb={8} px={16}>
-                  <View width={48} />
+                <HStack justifyContent="space-between" alignItems="center" pb={8} px={20}>
+                  <View width={80} />
                   <Title3Black>Pick a location</Title3Black>
+                  <AntDesign.Button
+                    size={24}
+                    color={colorLookup('text')}
+                    name="check"
+                    backgroundColor="white"
+                    iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
+                    style={{textAlign: 'center'}}
+                    onPress={toggleModal}
+                  />
                   <AntDesign.Button
                     size={24}
                     color={colorLookup('text')}
@@ -114,7 +128,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                     backgroundColor="white"
                     iconStyle={{marginLeft: 0, marginRight: 0, marginTop: 1}}
                     style={{textAlign: 'center'}}
-                    onPress={toggleModal}
+                    onPress={toggleModalandClearLocation}
                   />
                 </HStack>
                 <Center width="100%" height="100%">
