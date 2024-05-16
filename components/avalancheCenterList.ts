@@ -19,6 +19,7 @@ const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: s
       {center: 'MSAC', description: 'Avalanche forecasts for the Mount Shasta region in California.'},
       {center: 'CBAC', description: 'Avalanche forecasts for Southwestern Colorado.'},
       {center: 'FAC', description: 'Avalanche forecasts for Northwestern Montana.'},
+      {center: 'MWAC', description: 'Avalanche forecasts for Mount Washington.'},
     );
   }
 
