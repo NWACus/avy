@@ -124,7 +124,7 @@
     "react-native-web": "~0.19.10",
     "tinycolor2": "^1.5.2",
     "use-async-effect": "^2.2.7",
-    "zod": "^3.22.4"
+    "zod": "3.22.4"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
@@ -164,7 +164,6 @@
     "react-test-renderer": "^18.2.0",
     "timezone-mock": "^1.3.6",
     "ts-node": "^10.9.2",
-    "ts-to-zod": "^3.1.2",
     "typescript": "~5.3.3"
   },
   "private": true
