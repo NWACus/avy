@@ -1287,6 +1287,7 @@ export type WeatherStationSource = (typeof WeatherStationSource)[keyof typeof We
 export const NWACWeatherStationStatus = {
   Active: 'active',
   Inactive: 'inactive',
+  Static: 'static',
 } as const;
 export type NWACWeatherStationStatus = (typeof NWACWeatherStationStatus)[keyof typeof NWACWeatherStationStatus];
 
