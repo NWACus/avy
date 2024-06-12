@@ -73,6 +73,7 @@ import {filterLoggedData} from 'logging/filterLoggedData';
 import mixpanel from 'mixpanel';
 import PostHog, {PostHogProvider} from 'posthog-react-native';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
+import {ZodError} from 'zod';
 
 logger.info('App starting.');
 
@@ -197,7 +198,7 @@ const queryClient: QueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       cacheTime: 1000 * 60 * 60 * 24, // 24 hours
-      retry: (failureCount, error): boolean => !(error instanceof NotFoundError), // 404s are terminal
+      retry: (failureCount, error): boolean => failureCount <= 3 && !(error instanceof NotFoundError) && !(error instanceof ZodError), // 404s and Zod errors are terminal
     },
   },
 });
