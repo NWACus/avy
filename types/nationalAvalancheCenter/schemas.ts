@@ -1386,10 +1386,6 @@ export type WeatherStationProperties = z.infer<typeof weatherStationPropertiesSc
 export const variableSchema = z.object({
   variable: z.string(),
   long_name: z.string(),
-  default_unit: z.string(),
-  english_unit: z.string(),
-  metric_unit: z.string(),
-  rounding: z.number(),
 });
 export type Variable = z.infer<typeof variableSchema>;
 export const variablesSchema = z.array(variableSchema);

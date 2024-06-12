@@ -147,6 +147,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
         }
       }
       tableColumns.push(precip_accum);
+      timeSeries.UNITS['precip_accum'] = 'inches';
     }
 
     // With the columns we have, what should the preferred ordering be?
@@ -158,7 +159,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
       // or wait - do we only want wind values at the highest elevation
       return preferredFieldOrder[a.field] - preferredFieldOrder[b.field] || (a.elevation && b.elevation ? b.elevation - a.elevation : -1);
     });
-  }, [tableColumns, times]);
+  }, [tableColumns, times, timeSeries.UNITS]);
 
   // DataGrid expects data in row-major order, so we need to transpose our data
   const data: string[][] = useMemo(() => {

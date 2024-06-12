@@ -83,7 +83,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
     return compareDesc(new Date(a['date_time'] || ''), new Date(b['date_time'] || ''));
   });
 
-  const variables = orderStationVariables(timeseries.VARIABLES, timeseries.STATION[0].timezone);
+  const variables = orderStationVariables(timeseries.VARIABLES);
   const allColumns: columnData[] = variables.map(v => ({variable: v, data: []}));
   for (const observation of observations) {
     for (const column of allColumns) {
@@ -212,22 +212,19 @@ export const formatVariable = (variable: Variable): string => {
   }
 };
 export const formatUnits = (variable: Variable, units: Record<string, string>): string => {
-  const unit: string = variable.default_unit;
+  let unit = '';
+  if (variable.variable in units) {
+    unit = units[variable.variable];
+  }
   if (unit in unitShortNames) {
     return unitShortNames[unit];
   }
-  if (!unit && variable.variable in units) {
-    return units[variable.variable];
-  }
-  return unit || '';
+  return unit;
 };
 
 export const formatData = (variable: Variable, data: (number | string | null)[]): string[] => {
   let formatter: (i: string | number | null) => string | null;
   switch (variable.variable) {
-    case 'date_time':
-      formatter = (i: string | number | null) => (i ? formatDateTime(variable.english_unit)(String(i)) : null);
-      break;
     case 'wind_direction':
       formatter = (i: string | number | null) => windDirection(Number(i));
       break;
@@ -239,10 +236,14 @@ export const formatData = (variable: Variable, data: (number | string | null)[])
   return data.map(i => formatter(i)).map(i => (i === null ? '-' : i));
 };
 
+export const formatTime = (data: (number | string | null)[], timezone: string): string[] => {
+  return data.map(i => (i ? formatDateTime(timezone)(String(i)) : null)).map(i => (i === null ? '-' : i));
+};
+
 // orderStationVariables takes a list of variables exposed by a station and re-orders them, first listing
 // the known variables in the order we expect, then following with unknown variables in the oder provided
 // by the station API itself.
-export const orderStationVariables = (stationVariables: Variable[], timezone: string): Variable[] => {
+export const orderStationVariables = (stationVariables: Variable[]): Variable[] => {
   const out: Variable[] = [];
   for (const item of variableOrder) {
     const found = stationVariables.find(v => v.variable === item);
@@ -250,11 +251,7 @@ export const orderStationVariables = (stationVariables: Variable[], timezone: st
       out.push(found);
     } else if (item === 'date_time') {
       out.push({
-        default_unit: formatInTimeZone(new Date(), timezone, 'z'),
-        english_unit: timezone,
         long_name: '',
-        metric_unit: '',
-        rounding: 0,
         variable: 'date_time',
       });
     }
@@ -357,7 +354,7 @@ function NewWeatherDataTable({columns: columnsWithTime, timeseries}: {columns: c
     <DataGrid
       data={data}
       columnHeaderData={columnHeaderData}
-      rowHeaderData={formatData(times.variable, times.data)}
+      rowHeaderData={formatTime(times.data, formatInTimeZone(new Date(), timeseries.STATION[0].timezone, 'z'))}
       columnWidths={[70, ...columnHeaderData.map(({name, units}) => (Math.max(name.length, units.length) > 4 ? 50 : 40))]}
       rowHeights={[40, ...times.data.map(() => 30)]}
       renderCell={renderCell}
