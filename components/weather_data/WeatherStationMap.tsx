@@ -6,6 +6,7 @@ import turfClustersDBScan from '@turf/clusters-dbscan';
 import {FeatureCollection, Point, Position, Properties, Units, featureCollection} from '@turf/helpers';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import Constants, {AppOwnership} from 'expo-constants';
 import {View as RNView, StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
 import {default as AnimatedMapView, LatLng, MAP_TYPES, MapMarker, default as MapView, Region} from 'react-native-maps';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -230,6 +231,8 @@ export const WeatherStationMap: React.FunctionComponent<{
     }, 50);
   }, [controller]);
 
+  const isRunningInExpoGo = Constants.appOwnership === AppOwnership.Expo;
+
   return (
     <>
       <MapView.Animated
@@ -237,7 +240,7 @@ export const WeatherStationMap: React.FunctionComponent<{
         style={StyleSheet.absoluteFillObject}
         onLayout={setReady}
         onPress={onPressMapView}
-        provider={'google'}
+        provider={isRunningInExpoGo ? undefined : 'google'}
         mapType={MAP_TYPES.TERRAIN}
         zoomEnabled={true}
         scrollEnabled={true}
