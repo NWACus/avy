@@ -1343,7 +1343,7 @@ export const mesowestWeatherStationPropertiesSchema = z.object({
     id: z.string(),
     state: z.string().nullable(),
     units: z.record(z.string(), z.string()),
-    status: z.nativeEnum(WeatherStationStatus),
+    status: z.nativeEnum(WeatherStationStatus).nullable(),
     mnet_id: z.string(),
     elev_dem: z.string().nullable(),
     restricted: z.boolean(),
