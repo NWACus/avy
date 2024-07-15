@@ -333,7 +333,7 @@ export const ObservationCard: React.FunctionComponent<{
                 </VStack>
               </Card>
               {images(observation.media).length > 0 && (
-                <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>} noDivider>
+                <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>}>
                   <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={images(observation.media)} displayCaptions={false} />
                 </Card>
               )}
