@@ -41,7 +41,7 @@ export const NavigationHeader: React.FunctionComponent<
         <TextComponent textAlign="center" style={{flex: 1, borderColor: 'transparent', borderWidth: 1}}>
           {title}
         </TextComponent>
-        <AvalancheCenterLogo style={{height: 32, width: 32, resizeMode: 'contain', flex: 0, flexGrow: 0}} avalancheCenterId={center_id} />
+        <AvalancheCenterLogo style={{height: 32, width: 32, resizeMode: 'cover', flex: 0, flexGrow: 0}} avalancheCenterId={center_id} />
       </HStack>
     </View>
   );
