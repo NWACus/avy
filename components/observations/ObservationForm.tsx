@@ -45,7 +45,7 @@ const useKeyboardVerticalOffset = () => {
   return useHeaderHeight();
 };
 
-export const SimpleForm: React.FC<{
+export const ObservationForm: React.FC<{
   center_id: AvalancheCenterID;
   onClose?: () => void;
 }> = ({center_id, onClose}) => {
