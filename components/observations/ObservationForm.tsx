@@ -539,21 +539,27 @@ export const ObservationForm: React.FC<{
                     header={
                       <HStack justifyContent="space-between">
                         <Title3Semibold>Photos</Title3Semibold>
-                        <ObservationAddImageButton maxImageCount={maxImageCount} disable={disableFormControls} space={2} py={2} pl={4} pr={8} />
+                        <ObservationAddImageButton maxImageCount={maxImageCount} disable={disableFormControls} space={4} py={4} pl={4} pr={8} />
                       </HStack>
                     }>
                     <VStack space={formFieldSpacing} mt={8}>
-                      <ObservationImagePicker maxImageCount={maxImageCount} disable={disableFormControls} onModalDisplayed={setModalDisplayed} />
+                      <ObservationImagePicker maxImageCount={maxImageCount} onModalDisplayed={setModalDisplayed} />
                     </VStack>
                   </Card>
 
                   <Button mx={16} mt={8} buttonStyle="primary" disabled={mutation.isSuccess || mutation.isLoading} busy={mutation.isLoading} onPress={onSubmitPress}>
                     <BodySemibold>{mutation.isLoading ? 'Uploading observation' : 'Submit your observation'}</BodySemibold>
                   </Button>
-                  <VStack mx={16} mt={16} mb={32}>
-                    {mutation.isSuccess && <Body>Thanks for your observation!</Body>}
-                    {mutation.isError && <Body color={colorLookup('error.900')}>There was an error submitting your observation.</Body>}
-                  </VStack>
+                  {mutation.isSuccess && (
+                    <VStack mx={16} mt={16} mb={32}>
+                      <Body>Thanks for your observation!</Body>
+                    </VStack>
+                  )}
+                  {mutation.isError && (
+                    <VStack mx={16} mt={16} mb={32}>
+                      <Body color={colorLookup('error.900')}>There was an error submitting your observation.</Body>
+                    </VStack>
+                  )}
                 </VStack>
               </ScrollView>
             </VStack>

@@ -133,9 +133,8 @@ export const ObservationAddImageButton: React.FC<ObservationAddImageButtonProps>
 
 export const ObservationImagePicker: React.FC<{
   maxImageCount: number;
-  disable: boolean;
   onModalDisplayed: (isOpen: boolean) => void;
-}> = ({maxImageCount, disable, onModalDisplayed}) => {
+}> = ({maxImageCount, onModalDisplayed}) => {
   const {field} = useController<ObservationFormData, 'images'>({name: 'images', defaultValue: []});
   const images = field.value;
 
@@ -182,7 +181,6 @@ export const ObservationImagePicker: React.FC<{
 
   return (
     <>
-      <Body>You can add up to {maxImageCount} images.</Body>
       <HStack flexWrap="wrap">
         {images?.map(({image, caption}, i) => {
           return (
@@ -231,10 +229,12 @@ export const ObservationImagePicker: React.FC<{
           );
         })}
       </HStack>
-      <VStack space={4}>
-        <ObservationAddImageButton disable={disable} maxImageCount={maxImageCount} />
-        {missingImagePermissions && <BodySm color={colorLookup('error.900')}>We need permission to access your photos to upload images. Please check your system settings.</BodySm>}
-      </VStack>
+      {missingImagePermissions && (
+        <VStack space={4}>
+          <BodySm color={colorLookup('error.900')}>We need permission to access your photos to upload images. Please check your system settings.</BodySm>
+        </VStack>
+      )}
+      {images?.length === 0 && <Body>You can add up to {maxImageCount} images.</Body>}
       <ImageCaptionField image={editingImage} onUpdateImage={onUpdateImageCaption} onDismiss={onDismiss} onModalDisplayed={onModalDisplayed} />
     </>
   );
