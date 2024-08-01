@@ -31,7 +31,8 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": "NO",
         "NSPhotoLibraryUsageDescription": "The app is requesting access to the photo library to enable submission of avalanche observations that can include photos and/or video to provide context of an avalanche that was observed."
-      }
+      },
+      "associatedDomains": ["applinks:nwac.us"]
     },
     "android": {
       "package": "us.nwac.forecast",
@@ -43,7 +44,21 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#152E57"
       },
-      "permissions": ["READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
+      "permissions": ["READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "*.nwac.us",
+              "pathPrefix": "/observations/*"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "plugins": [
       "expo-localization",
