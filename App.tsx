@@ -65,7 +65,6 @@ import * as messages from 'compiled-lang/en.json';
 import {Button} from 'components/content/Button';
 import {Center, VStack} from 'components/core';
 import {KillSwitchMonitor} from 'components/KillSwitchMonitor';
-import {TamaguiWrapper} from 'components/TamaguiWrapper';
 import {Body, BodyBlack, Title3Black} from 'components/text';
 import * as Updates from 'expo-updates';
 import {FeatureFlagsProvider} from 'FeatureFlags';
@@ -75,6 +74,8 @@ import mixpanel from 'mixpanel';
 import PostHog, {PostHogProvider} from 'posthog-react-native';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
 import * as Linking from 'expo-linking';
+import {ZodError} from 'zod';
+
 
 logger.info('App starting.');
 const prefix = Linking.createURL('/');
@@ -200,7 +201,7 @@ const queryClient: QueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       cacheTime: 1000 * 60 * 60 * 24, // 24 hours
-      retry: (failureCount, error): boolean => !(error instanceof NotFoundError), // 404s are terminal
+      retry: (failureCount, error): boolean => failureCount <= 3 && !(error instanceof NotFoundError) && !(error instanceof ZodError), // 404s and Zod errors are terminal
     },
   },
 });
@@ -491,50 +492,48 @@ const BaseApp: React.FunctionComponent<{
 
   return (
     <>
-      <TamaguiWrapper>
-        <HTMLRendererConfig>
-          <SafeAreaProvider>
-            <NavigationContainer linking={linking} ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
-              <PostHogProvider client={postHog}>
-                <FeatureFlagsProvider>
-                  <KillSwitchMonitor>
-                    <SelectProvider>
-                      <StatusBar barStyle="dark-content" backgroundColor="white" />
-                      <View style={StyleSheet.absoluteFill}>
-                        <TabNavigator.Navigator initialRouteName="Home" screenOptions={tabNavigatorScreenOptions}>
-                          <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
-                            {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
-                          </TabNavigator.Screen>
-                          <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
-                            {state =>
-                              ObservationsTabScreen(
-                                merge(state, {
-                                  route: {
-                                    params: {
-                                      center_id: avalancheCenterId,
-                                      requestedTime: formatRequestedTime(requestedTime),
-                                    },
+      <HTMLRendererConfig>
+        <SafeAreaProvider>
+          <NavigationContainer linking={linking} ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
+            <PostHogProvider client={postHog}>
+              <FeatureFlagsProvider>
+                <KillSwitchMonitor>
+                  <SelectProvider>
+                    <StatusBar barStyle="dark-content" backgroundColor="white" />
+                    <View style={StyleSheet.absoluteFill}>
+                      <TabNavigator.Navigator initialRouteName="Home" screenOptions={tabNavigatorScreenOptions}>
+                        <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
+                          {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                        </TabNavigator.Screen>
+                        <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
+                          {state =>
+                            ObservationsTabScreen(
+                              merge(state, {
+                                route: {
+                                  params: {
+                                    center_id: avalancheCenterId,
+                                    requestedTime: formatRequestedTime(requestedTime),
                                   },
-                                }),
-                              )
-                            }
-                          </TabNavigator.Screen>
-                          <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
-                            {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
-                          </TabNavigator.Screen>
-                          <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}} options={{title: 'More'}}>
-                            {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-                          </TabNavigator.Screen>
-                        </TabNavigator.Navigator>
-                      </View>
-                    </SelectProvider>
-                  </KillSwitchMonitor>
-                </FeatureFlagsProvider>
-              </PostHogProvider>
-            </NavigationContainer>
-          </SafeAreaProvider>
-        </HTMLRendererConfig>
-      </TamaguiWrapper>
+                                },
+                              }),
+                            )
+                          }
+                        </TabNavigator.Screen>
+                        <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
+                          {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                        </TabNavigator.Screen>
+                        <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}} options={{title: 'More'}}>
+                          {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                        </TabNavigator.Screen>
+                      </TabNavigator.Navigator>
+                    </View>
+                  </SelectProvider>
+                </KillSwitchMonitor>
+              </FeatureFlagsProvider>
+            </PostHogProvider>
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </HTMLRendererConfig>
       <Toast config={toastConfig} bottomOffset={88} visibilityTime={2000} />
     </>
   );

@@ -47,24 +47,3 @@ jobs:
               repo: context.repo.repo,
               body: body
             })
-
-      - name: Lookup Branch
-        uses: actions/github-script@v3
-        id: pr-branch
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const response = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number
-            })
-            return response.data.merge_commit_sha
-
-      - name: Set latest commit status as ${{ job.status }}
-        uses: myrotvorets/set-commit-status-action@master
-        if: always()
-        with:
-          sha: ${{ steps.pr-branch.outputs.result }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          status: ${{ job.status }}

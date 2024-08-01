@@ -6,6 +6,7 @@ import turfClustersDBScan from '@turf/clusters-dbscan';
 import {FeatureCollection, Point, Position, Properties, Units, featureCollection} from '@turf/helpers';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import Constants, {AppOwnership} from 'expo-constants';
 import {View as RNView, StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
 import {default as AnimatedMapView, LatLng, MAP_TYPES, MapMarker, default as MapView, Region} from 'react-native-maps';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -18,7 +19,8 @@ import {Center, HStack, VStack, View} from 'components/core';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
 import {AvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZonePolygon';
 import {BodySm, BodySmSemibold, BodyXSm, Title3Black} from 'components/text';
-import {formatData, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
+import {formatData, formatTime, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
+import {formatInTimeZone} from 'date-fns-tz';
 import {useToggle} from 'hooks/useToggle';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
@@ -229,6 +231,8 @@ export const WeatherStationMap: React.FunctionComponent<{
     }, 50);
   }, [controller]);
 
+  const isRunningInExpoGo = Constants.appOwnership === AppOwnership.Expo;
+
   return (
     <>
       <MapView.Animated
@@ -236,7 +240,7 @@ export const WeatherStationMap: React.FunctionComponent<{
         style={StyleSheet.absoluteFillObject}
         onLayout={setReady}
         onPress={onPressMapView}
-        provider={'google'}
+        provider={isRunningInExpoGo ? undefined : 'google'}
         mapType={MAP_TYPES.TERRAIN}
         zoomEnabled={true}
         scrollEnabled={true}
@@ -372,7 +376,7 @@ export const WeatherStationCard: React.FunctionComponent<{
     const latestObservationDateString = weatherStationCardDateString(station.properties.data['date_time']);
     const latestObservation: Record<string, string | number | null> | undefined = station.properties.data;
 
-    const orderedVariables = latestObservation && orderStationVariables(variables, station.properties.timezone);
+    const orderedVariables = latestObservation && orderStationVariables(variables);
     const rows: rowData[] | undefined = orderedVariables?.map(v => {
       let data = null;
       if (latestObservation && v.variable in latestObservation) {
@@ -436,7 +440,9 @@ export const WeatherStationCard: React.FunctionComponent<{
                       px={8}>
                       <BodySm>{variable.long_name}</BodySm>
                       <HStack space={2}>
-                        <BodySm>{formatData(variable, [data])[0]}</BodySm>
+                        <BodySm>
+                          {variable.variable == 'date_time' ? formatTime([data], formatInTimeZone(new Date(), station.properties.timezone, 'z')) : formatData(variable, [data])[0]}
+                        </BodySm>
                         <BodySm>{formatUnits(variable, units)}</BodySm>
                       </HStack>
                     </HStack>

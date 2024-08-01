@@ -1,5 +1,6 @@
 import React from 'react';
 
+import Constants, {AppOwnership} from 'expo-constants';
 import MapView, {MAP_TYPES, MapViewProps, PoiClickEvent, Region} from 'react-native-maps';
 
 import {RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
@@ -50,9 +51,10 @@ interface ZoneMapProps extends MapViewProps {
 export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones, selectedZoneId, onPressPolygon, renderFillColor = true, children, ...props}, ref) => {
   const [ready, {on: setReady}] = useToggle(false);
   const MapComponent = animated ? MapView.Animated : MapView;
+  const isRunningInExpoGo = Constants.appOwnership === AppOwnership.Expo;
 
   return (
-    <MapComponent ref={ref} onLayout={setReady} provider={'google'} mapType={MAP_TYPES.TERRAIN} {...props}>
+    <MapComponent ref={ref} onLayout={setReady} provider={isRunningInExpoGo ? undefined : 'google'} mapType={MAP_TYPES.TERRAIN} {...props}>
       {ready &&
         zones?.map(zone => (
           <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={selectedZoneId === zone.zone_id} renderFillColor={renderFillColor} onPress={onPressPolygon} />
