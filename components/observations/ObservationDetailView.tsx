@@ -28,7 +28,6 @@ import {
   AvalancheBedSurface,
   AvalancheCause,
   AvalancheCenterID,
-  AvalancheDateUncertainty,
   AvalancheTrigger,
   AvalancheType,
   CloudCover,
@@ -37,7 +36,6 @@ import {
   FormatAvalancheAspect,
   FormatAvalancheBedSurface,
   FormatAvalancheCause,
-  FormatAvalancheDateUncertainty,
   FormatAvalancheTrigger,
   FormatAvalancheType,
   FormatCloudCover,
@@ -50,7 +48,7 @@ import {
   SnowAvailableForTransport,
   WindLoading,
 } from 'types/nationalAvalancheCenter';
-import {pacificDateToLocalShortDateString, utcDateToLocalShortDateString, utcDateToLocalTimeString} from 'utils/date';
+import {pacificDateToLocalShortDateString, utcDateToLocalShortDateString} from 'utils/date';
 
 export const NWACObservationDetailView: React.FunctionComponent<{
   id: string;
@@ -348,10 +346,7 @@ export const ObservationCard: React.FunctionComponent<{
                       <VStack space={8} style={{flex: 1}} key={`avalanche-${index}`}>
                         <BodyBlack>{`#${index + 1}${item.location ? `: ${item.location}` : ''}`}</BodyBlack>
                         {item.comments && <HTML source={{html: item.comments}} />}
-                        <TableRow
-                          label={`Date${item.dateAccuracy ? ` (${FormatAvalancheDateUncertainty(item.dateAccuracy as AvalancheDateUncertainty)})` : ''}`}
-                          value={`${utcDateToLocalTimeString(item.date)}`}
-                        />
+                        <TableRow label={`Date (${item.date_known ? 'Exact' : 'Estimated'})`} value={`${pacificDateToLocalShortDateString(item.date)}`} />
                         {item.dSize && item.rSize && <TableRow label={'Size'} value={`D${item.dSize}-R${item.rSize}`} />}
                         {item.trigger && item.cause && (
                           <TableRow

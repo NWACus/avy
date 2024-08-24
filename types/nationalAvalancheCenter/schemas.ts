@@ -826,18 +826,6 @@ export type WindLoading = (typeof WindLoading)[keyof typeof WindLoading];
 export const FormatWindLoading = (value: WindLoading): string => {
   return reverseLookup(WindLoading, value);
 };
-export const AvalancheDateUncertainty = {
-  Exact: '0',
-  '+/- 1 day': '1',
-  '+/- 3 days': '3',
-  '+/- 1 week': '7',
-  '+/- 1 month': '30',
-  Estimated: 'estimated',
-} as const;
-export type AvalancheDateUncertainty = (typeof AvalancheDateUncertainty)[keyof typeof AvalancheDateUncertainty];
-export const FormatAvalancheDateUncertainty = (value: AvalancheDateUncertainty): string => {
-  return reverseLookup(AvalancheDateUncertainty, value);
-};
 export const AvalancheAspect = {
   N: 'N',
   NE: 'NE',
@@ -1021,7 +1009,9 @@ export const observationSchema = z.object({
     .array(
       z.object({
         date: z.string().nullable().optional(/* only because of NWAC */),
-        dateAccuracy: z.nativeEnum(AvalancheDateUncertainty).or(z.string().length(0)).optional(),
+        date_known: z.boolean().nullable().optional(/* only because of NWAC */),
+        time: z.string().nullable().optional(/* only because of NWAC */),
+        time_known: z.boolean().nullable().optional(/* only because of NWAC */),
         location: z.string().nullable().optional(/* only because of NWAC */),
         number: z.number().nullable().optional(/* only because of NWAC */),
         avalancheType: z.nativeEnum(AvalancheType).or(z.string().length(0)).optional(),
