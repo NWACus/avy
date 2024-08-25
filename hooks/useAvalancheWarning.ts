@@ -7,7 +7,7 @@ import * as Sentry from '@sentry/react-native';
 import {QueryClient, useQuery, UseQueryResult} from '@tanstack/react-query';
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
-import {formatDistanceToNowStrict} from 'date-fns';
+import {add, formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, warningResultSchema, WarningResultWithZone} from 'types/nationalAvalancheCenter';
@@ -89,7 +89,7 @@ const fetchAvalancheWarning = async (
     zone_id: String(zone_id),
   };
   if (requested_time !== 'latest') {
-    params['published_time'] = apiDateString(requested_time); // the API accepts a _date_ and appends 19:00 to it for a time...
+    params['published_time'] = apiDateString(add(requested_time, {days: 1})); // the API accepts a _date_ and appends 19:00 to it for a time...
   }
   const what = 'avalanche warning';
   const thisLogger = logger.child({url: url, params: params, what: what});

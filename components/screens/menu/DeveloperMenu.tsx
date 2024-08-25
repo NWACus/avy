@@ -63,12 +63,12 @@ import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 import {RequestedTime, requestedTimeToUTCDate, toISOStringUTC} from 'utils/date';
 
-interface SecretMenuProps {
+interface DeveloperMenuProps {
   staging: boolean;
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const SecretMenu: React.FC<SecretMenuProps> = ({staging, setStaging}) => {
+export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
   const navigation = useNavigation<MenuStackNavigationProps>();
   const queryCache = useQueryClient().getQueryCache();
   const toggleStaging = React.useCallback(() => {
@@ -80,11 +80,11 @@ export const SecretMenu: React.FC<SecretMenuProps> = ({staging, setStaging}) => 
   const [updateGroupId] = useState(getUpdateGroupId());
   return (
     <CollapsibleCard
-      identifier={'secretMenu'}
-      startsCollapsed={preferences.secretMenuCollapsed}
-      collapsedStateChanged={collapsed => setPreferences({secretMenuCollapsed: collapsed})}
+      identifier={'developerMenu'}
+      startsCollapsed={preferences.developerMenuCollapsed}
+      collapsedStateChanged={collapsed => setPreferences({developerMenuCollapsed: collapsed})}
       borderColor="white"
-      header={<BodyBlack>Secret Menu 🤫</BodyBlack>}>
+      header={<BodyBlack>Developer Menu</BodyBlack>}>
       <VStack space={4}>
         <Card borderRadius={0} borderColor="white" header={<BodyBlack>Debug Settings</BodyBlack>}>
           <VStack space={12}>
@@ -264,7 +264,17 @@ export const SecretMenu: React.FC<SecretMenuProps> = ({staging, setStaging}) => 
               action: () => {
                 navigation.navigate('avalancheCenter', {
                   center_id: 'NWAC',
-                  requestedTime: toISOStringUTC(new Date('2023-02-20T5:21:00-0800')),
+                  requestedTime: toISOStringUTC(new Date('2024-02-27T15:21:00-0800')),
+                });
+              },
+            },
+            {
+              label: 'View map layer with active watch',
+              data: null,
+              action: () => {
+                navigation.navigate('avalancheCenter', {
+                  center_id: 'CBAC',
+                  requestedTime: toISOStringUTC(new Date('2023-03-21T5:21:00-0800')),
                 });
               },
             },

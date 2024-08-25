@@ -25,6 +25,8 @@ eas secret:push --env-file=.env
 
 ## Logging
 
+The log level for our logger is set with `$LOG_LEVEL`, the default is `'info'` but it needs to be `'debug'` for the below network bits.
+
 Runtime logging can be enabled in development mode by running `npx expo start` with the following environment variables set:
 
 `$LOG_NETWORK`:

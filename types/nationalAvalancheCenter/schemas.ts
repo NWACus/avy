@@ -285,14 +285,14 @@ export const avalancheDangerForecastSchema = z.object({
 export type AvalancheDangerForecast = z.infer<typeof avalancheDangerForecastSchema>;
 
 export const nullMediaSchema = z.object({
-  type: z.null().transform(_ => z.literal('null')),
+  type: z.null(),
   url: z.null(),
   caption: z.literal(''),
   title: z.literal(''),
 });
 
 export const emptyMediaSchema = z.object({
-  type: z.literal('').transform(_ => z.literal('empty')),
+  type: z.literal(''),
   url: z.literal(''),
   caption: z.literal(''),
 });
@@ -569,7 +569,7 @@ export const weatherSchema = forecastSchema
   })
   .extend({
     product_type: z.literal(ProductType.Weather),
-    weather_data: z.array(rowColumnWeatherDataSchema).or(z.array(inlineWeatherDataSchema)),
+    weather_data: z.array(rowColumnWeatherDataSchema.or(inlineWeatherDataSchema)),
     weather_discussion: z.string().optional().nullable(),
   });
 export type Weather = z.infer<typeof weatherSchema>;
@@ -1287,6 +1287,7 @@ export type WeatherStationSource = (typeof WeatherStationSource)[keyof typeof We
 export const NWACWeatherStationStatus = {
   Active: 'active',
   Inactive: 'inactive',
+  Static: 'static',
 } as const;
 export type NWACWeatherStationStatus = (typeof NWACWeatherStationStatus)[keyof typeof NWACWeatherStationStatus];
 
@@ -1342,7 +1343,7 @@ export const mesowestWeatherStationPropertiesSchema = z.object({
     id: z.string(),
     state: z.string().nullable(),
     units: z.record(z.string(), z.string()),
-    status: z.nativeEnum(WeatherStationStatus),
+    status: z.nativeEnum(WeatherStationStatus).nullable(),
     mnet_id: z.string(),
     elev_dem: z.string().nullable(),
     restricted: z.boolean(),
@@ -1385,10 +1386,6 @@ export type WeatherStationProperties = z.infer<typeof weatherStationPropertiesSc
 export const variableSchema = z.object({
   variable: z.string(),
   long_name: z.string(),
-  default_unit: z.string(),
-  english_unit: z.string(),
-  metric_unit: z.string(),
-  rounding: z.number(),
 });
 export type Variable = z.infer<typeof variableSchema>;
 export const variablesSchema = z.array(variableSchema);

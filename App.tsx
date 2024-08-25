@@ -65,7 +65,6 @@ import * as messages from 'compiled-lang/en.json';
 import {Button} from 'components/content/Button';
 import {Center, VStack} from 'components/core';
 import {KillSwitchMonitor} from 'components/KillSwitchMonitor';
-import {TamaguiWrapper} from 'components/TamaguiWrapper';
 import {Body, BodyBlack, Title3Black} from 'components/text';
 import * as Updates from 'expo-updates';
 import {FeatureFlagsProvider} from 'FeatureFlags';
@@ -74,6 +73,7 @@ import {filterLoggedData} from 'logging/filterLoggedData';
 import mixpanel from 'mixpanel';
 import PostHog, {PostHogProvider} from 'posthog-react-native';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
+import {ZodError} from 'zod';
 
 logger.info('App starting.');
 
@@ -137,12 +137,14 @@ void SplashScreen.preventAutoHideAsync().catch((error: Error) => {
   logger.debug('SplashScreen.preventAutoHideAsync threw error, ignoring', {error});
 });
 
+let routingInstrumentation: Sentry.ReactNavigationInstrumentation | undefined = undefined;
 if (Sentry?.init) {
   const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
   // Only initialize Sentry if we can find the correct env setup
   if (!dsn) {
     logger.warn('Sentry integration not configured, check your environment');
   } else {
+    routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
     Sentry.init({
       dsn,
       // Set the dist value to the app binary and build. This should not vary often.
@@ -150,6 +152,7 @@ if (Sentry?.init) {
       dist: `${Application.nativeApplicationVersion || '0.0.0'}.${Application.nativeBuildVersion || '0'}`,
       release: process.env.EXPO_PUBLIC_GIT_REVISION,
       enableWatchdogTerminationTracking: true,
+      integrations: [new Sentry.ReactNativeTracing({enableUserInteractionTracing: true, routingInstrumentation})],
       beforeSend: async (event, hint) => {
         const {exists} = await FileSystem.getInfoAsync(logFilePath);
         if (exists) {
@@ -195,7 +198,7 @@ const queryClient: QueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       cacheTime: 1000 * 60 * 60 * 24, // 24 hours
-      retry: (failureCount, error): boolean => !(error instanceof NotFoundError), // 404s are terminal
+      retry: (failureCount, error): boolean => failureCount <= 3 && !(error instanceof NotFoundError) && !(error instanceof ZodError), // 404s and Zod errors are terminal
     },
   },
 });
@@ -320,6 +323,7 @@ const BaseApp: React.FunctionComponent<{
       mixpanel.identify(preferences.mixpanelUserId);
       mixpanel.track('App starting');
       setMixpanelUserIdentified(true);
+      Sentry.setUser({analytics_id: preferences.mixpanelUserId});
     }
   }, [preferences.mixpanelUserId, mixpanelUserIdentified]);
 
@@ -361,6 +365,9 @@ const BaseApp: React.FunctionComponent<{
 
   const navigationRef = useNavigationContainerRef();
   const trackNavigationChange = useCallback(() => {
+    if (routingInstrumentation && navigationRef) {
+      routingInstrumentation.registerNavigationContainer(navigationRef);
+    }
     const route = navigationRef.current?.getCurrentRoute();
     if (route) {
       const params = (route.params || {}) as Readonly<Record<string, unknown>>;
@@ -469,53 +476,51 @@ const BaseApp: React.FunctionComponent<{
 
   return (
     <>
-      <TamaguiWrapper>
-        <HTMLRendererConfig>
-          <SafeAreaProvider>
-            <NavigationContainer ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
-              <PostHogProvider client={postHog}>
-                <FeatureFlagsProvider>
-                  <KillSwitchMonitor>
-                    <SelectProvider>
-                      <StatusBar barStyle="dark-content" backgroundColor="white" />
-                      <View style={StyleSheet.absoluteFill}>
-                        <TabNavigator.Navigator initialRouteName="Home" screenOptions={tabNavigatorScreenOptions}>
-                          <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
-                            {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
-                          </TabNavigator.Screen>
-                          <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
-                            {state =>
-                              ObservationsTabScreen(
-                                merge(state, {
-                                  route: {
-                                    params: {
-                                      center_id: avalancheCenterId,
-                                      requestedTime: formatRequestedTime(requestedTime),
-                                    },
+      <HTMLRendererConfig>
+        <SafeAreaProvider>
+          <NavigationContainer ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
+            <PostHogProvider client={postHog}>
+              <FeatureFlagsProvider>
+                <KillSwitchMonitor>
+                  <SelectProvider>
+                    <StatusBar barStyle="dark-content" backgroundColor="white" />
+                    <View style={StyleSheet.absoluteFill}>
+                      <TabNavigator.Navigator initialRouteName="Home" screenOptions={tabNavigatorScreenOptions}>
+                        <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
+                          {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                        </TabNavigator.Screen>
+                        <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
+                          {state =>
+                            ObservationsTabScreen(
+                              merge(state, {
+                                route: {
+                                  params: {
+                                    center_id: avalancheCenterId,
+                                    requestedTime: formatRequestedTime(requestedTime),
                                   },
-                                }),
-                              )
-                            }
-                          </TabNavigator.Screen>
-                          <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
-                            {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
-                          </TabNavigator.Screen>
-                          <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}} options={{title: 'More'}}>
-                            {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-                          </TabNavigator.Screen>
-                        </TabNavigator.Navigator>
-                      </View>
-                    </SelectProvider>
-                  </KillSwitchMonitor>
-                </FeatureFlagsProvider>
-              </PostHogProvider>
-            </NavigationContainer>
-          </SafeAreaProvider>
-        </HTMLRendererConfig>
-      </TamaguiWrapper>
+                                },
+                              }),
+                            )
+                          }
+                        </TabNavigator.Screen>
+                        <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
+                          {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                        </TabNavigator.Screen>
+                        <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}} options={{title: 'More'}}>
+                          {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                        </TabNavigator.Screen>
+                      </TabNavigator.Navigator>
+                    </View>
+                  </SelectProvider>
+                </KillSwitchMonitor>
+              </FeatureFlagsProvider>
+            </PostHogProvider>
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </HTMLRendererConfig>
       <Toast config={toastConfig} bottomOffset={88} visibilityTime={2000} />
     </>
   );
 };
 
-export default App;
+export default Sentry.wrap(App);

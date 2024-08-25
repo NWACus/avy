@@ -14,23 +14,11 @@ jobs:
     # Heavily lifted from https://github.com/zirkelc/github-actions-workflows
     if: github.event.issue.pull_request && contains(github.event.comment.body, '/preview')
     steps:
-      # Issue comment workflows run on main branch, so we need to manually
-      # switch to the PR branch
-      - name: Get branch of PR
-        uses: xt0rted/pull-request-comment-branch@v1
-        id: comment-branch
-
-      - name: Set latest commit status as pending
-        uses: myrotvorets/set-commit-status-action@master
+      - name: 🏗 Checkout
+        uses: actions/checkout@v4
         with:
-          sha: ${{ steps.comment-branch.outputs.head_sha }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          status: pending
-
-      - name: 🏗 Setup repo on correct branch ${{ steps.comment-branch.outputs.head_ref }}
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ steps.comment-branch.outputs.head_ref }}
+          # Checkout the repo on the pull
+          ref: refs/pull/${{ github.event.issue.number }}/head
 
       - name: Publish EAS update
         uses: ./.github/actions/expo/update
@@ -59,11 +47,3 @@ jobs:
               repo: context.repo.repo,
               body: body
             })
-
-      - name: Set latest commit status as ${{ job.status }}
-        uses: myrotvorets/set-commit-status-action@master
-        if: always()
-        with:
-          sha: ${{ steps.comment-branch.outputs.head_sha }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          status: ${{ job.status }}

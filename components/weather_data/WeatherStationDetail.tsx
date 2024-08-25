@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {ScrollView} from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
 
@@ -10,11 +9,11 @@ import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {Center, Divider, HStack, View, VStack} from 'components/core';
 import {BodyBlack, bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
-import {Column, formatDateTime} from 'components/weather_data/WeatherStationsDetail';
+import {formatDateTime} from 'components/weather_data/WeatherStationsDetail';
 import {compareDesc} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
-import {useFeatureFlag, usePostHog} from 'posthog-react-native';
+import {usePostHog} from 'posthog-react-native';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, StationNote, Variable, WeatherStationSource, WeatherStationTimeseries} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
@@ -32,7 +31,6 @@ interface columnData {
   data: (number | string | null)[];
 }
 export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, source, requestedTime}) => {
-  const useNewTable = !!useFeatureFlag(`new-weather-table`) || process.env.EXPO_PUBLIC_NEW_WEATHER_TABLE === 'true';
   const [days, setDays] = useState(1);
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = avalancheCenterMetadataResult.data;
@@ -83,7 +81,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
     return compareDesc(new Date(a['date_time'] || ''), new Date(b['date_time'] || ''));
   });
 
-  const variables = orderStationVariables(timeseries.VARIABLES, timeseries.STATION[0].timezone);
+  const variables = orderStationVariables(timeseries.VARIABLES);
   const allColumns: columnData[] = variables.map(v => ({variable: v, data: []}));
   for (const observation of observations) {
     for (const column of allColumns) {
@@ -126,9 +124,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
           size="small"
           paddingTop={6}
         />
-        {useNewTable ? <NewWeatherDataTable columns={columns} timeseries={timeseries} /> : <WeatherDataTable columns={columns} timeseries={timeseries} />}
-        {/* TODO(skuznets): For some reason, the table is running off the bottom of the view, and I just don't have time to keep debugging this.
-             Adding the placeholder here does the trick. :dizzy_face: */}
+        <WeatherDataTable columns={columns} timeseries={timeseries} />
         <View height={16} />
       </VStack>
     </VStack>
@@ -214,22 +210,19 @@ export const formatVariable = (variable: Variable): string => {
   }
 };
 export const formatUnits = (variable: Variable, units: Record<string, string>): string => {
-  const unit: string = variable.default_unit;
+  let unit = '';
+  if (variable.variable in units) {
+    unit = units[variable.variable];
+  }
   if (unit in unitShortNames) {
     return unitShortNames[unit];
   }
-  if (!unit && variable.variable in units) {
-    return units[variable.variable];
-  }
-  return unit || '';
+  return unit;
 };
 
 export const formatData = (variable: Variable, data: (number | string | null)[]): string[] => {
   let formatter: (i: string | number | null) => string | null;
   switch (variable.variable) {
-    case 'date_time':
-      formatter = (i: string | number | null) => (i ? formatDateTime(String(i)) : null);
-      break;
     case 'wind_direction':
       formatter = (i: string | number | null) => windDirection(Number(i));
       break;
@@ -241,10 +234,14 @@ export const formatData = (variable: Variable, data: (number | string | null)[])
   return data.map(i => formatter(i)).map(i => (i === null ? '-' : i));
 };
 
+export const formatTime = (data: (number | string | null)[], timezone: string): string[] => {
+  return data.map(i => (i ? formatDateTime(timezone)(String(i)) : null)).map(i => (i === null ? '-' : i));
+};
+
 // orderStationVariables takes a list of variables exposed by a station and re-orders them, first listing
 // the known variables in the order we expect, then following with unknown variables in the oder provided
 // by the station API itself.
-export const orderStationVariables = (stationVariables: Variable[], timezone: string): Variable[] => {
+export const orderStationVariables = (stationVariables: Variable[]): Variable[] => {
   const out: Variable[] = [];
   for (const item of variableOrder) {
     const found = stationVariables.find(v => v.variable === item);
@@ -252,11 +249,7 @@ export const orderStationVariables = (stationVariables: Variable[], timezone: st
       out.push(found);
     } else if (item === 'date_time') {
       out.push({
-        default_unit: formatInTimeZone(new Date(), timezone, 'z'),
-        english_unit: '',
         long_name: '',
-        metric_unit: '',
-        rounding: 0,
         variable: 'date_time',
       });
     }
@@ -273,7 +266,7 @@ export const orderStationVariables = (stationVariables: Variable[], timezone: st
 const columnPadding = 3;
 const rowPadding = 2;
 
-function NewWeatherDataTable({columns: columnsWithTime, timeseries}: {columns: columnData[]; timeseries: WeatherStationTimeseries}) {
+function WeatherDataTable({columns: columnsWithTime, timeseries}: {columns: columnData[]; timeseries: WeatherStationTimeseries}) {
   // DataGrid expects data in row-major order, so we need to transpose our data
   const [times, ...columns] = columnsWithTime;
   const data: string[][] = useMemo(() => {
@@ -359,7 +352,7 @@ function NewWeatherDataTable({columns: columnsWithTime, timeseries}: {columns: c
     <DataGrid
       data={data}
       columnHeaderData={columnHeaderData}
-      rowHeaderData={formatData(times.variable, times.data)}
+      rowHeaderData={formatTime(times.data, formatInTimeZone(new Date(), timeseries.STATION[0].timezone, 'z'))}
       columnWidths={[70, ...columnHeaderData.map(({name, units}) => (Math.max(name.length, units.length) > 4 ? 50 : 40))]}
       rowHeights={[40, ...times.data.map(() => 30)]}
       renderCell={renderCell}
@@ -367,26 +360,6 @@ function NewWeatherDataTable({columns: columnsWithTime, timeseries}: {columns: c
       renderColumnHeader={renderColumnHeader}
       renderCornerHeader={renderCornerHeader}
     />
-  );
-}
-
-function WeatherDataTable({columns, timeseries}: {columns: columnData[]; timeseries: WeatherStationTimeseries}) {
-  return (
-    <ScrollView style={{width: '100%', height: '100%'}}>
-      <ScrollView horizontal style={{width: '100%', height: '100%'}}>
-        <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
-          {columns.map(({variable, data}, columnIndex) => (
-            <Column
-              key={columnIndex}
-              borderRightWidth={columnIndex == 0 ? 1 : 0}
-              name={formatVariable(variable)}
-              units={formatUnits(variable, timeseries.UNITS)}
-              data={formatData(variable, data)}
-            />
-          ))}
-        </HStack>
-      </ScrollView>
-    </ScrollView>
   );
 }
 
