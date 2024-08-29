@@ -125,21 +125,23 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
               </AllCapsSm>
             </VStack>
           </HStack>
-          {weatherForecast.weather_data && (
-            <VStack alignItems="stretch" pt={4}>
-              {weatherForecast.weather_data.map(
-                (item, i) =>
-                  zone.name === item.zone_name && ('periods' in item ? <InlineWeatherForecast key={i} forecast={item} /> : <RowColumnWeatherForecast key={i} forecast={item} />),
-              )}
-            </VStack>
-          )}
-          {weatherForecast.weather_discussion && (
-            <VStack space={2} py={12} borderBottomWidth={1} borderColor={colorLookup('light.300')}>
-              <BodyBlack>Weather Discussion</BodyBlack>
-              <HTML source={{html: weatherForecast.weather_discussion}} />
-            </VStack>
-          )}
         </Card>
+        {weatherForecast.weather_data &&
+          weatherForecast.weather_data.map(
+            (item, i) =>
+              zone.name === item.zone_name && ('periods' in item ? <InlineWeatherForecast key={i} forecast={item} /> : <RowColumnWeatherForecast key={i} forecast={item} />),
+          )}
+        {weatherForecast.weather_discussion && (
+          <CollapsibleCard
+            identifier={'weatherSynopsis'}
+            marginTop={1}
+            borderRadius={0}
+            borderColor="white"
+            header={<BodyBlack>Weather Discussion</BodyBlack>}
+            startsCollapsed={false}>
+            <HTML source={{html: weatherForecast.weather_discussion}} />
+          </CollapsibleCard>
+        )}
         {/*// TODO: weather stations*/}
       </VStack>
     </ScrollView>
@@ -507,37 +509,46 @@ const RowColumnWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeat
 
 const ForecastPeriod: React.FunctionComponent<{periods: period[]}> = ({periods}) => {
   return (
-    <VStack alignItems="stretch" pt={4}>
+    <>
       {periods.map((period, index) => (
-        <VStack space={2} key={index} py={12} borderBottomWidth={1} borderColor={index !== periods.length - 1 ? colorLookup('light.300') : 'white'}>
-          <HStack flex={1} space={4} flexWrap={'wrap'}>
-            <BodyBlack>{period.meta.heading}</BodyBlack>
-            {period.meta.subheading && <Body>{period.meta.subheading}</Body>}
-          </HStack>
-          <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} mt={12}>
-            {period.data.map(
-              (item, periodIndex) =>
-                periodIndex % 2 === 0 && (
-                  <HStack
-                    key={`${index}-${periodIndex}`}
-                    justifyContent="space-between"
-                    alignItems="stretch"
-                    borderBottomWidth={periodIndex < period.data.length - 2 ? 1 : 0}
-                    borderColor={colorLookup('light.300')}>
-                    <VStack flexBasis={0.5} flex={1} m={12}>
-                      <ForecastValue forecastItem={item} />
-                    </VStack>
-                    <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
-                    <VStack flexBasis={0.5} flex={1} m={12}>
-                      {periodIndex + 1 < period.data.length && <ForecastValue forecastItem={period.data[periodIndex + 1]} />}
-                    </VStack>
-                  </HStack>
-                ),
-            )}
-          </View>
-        </VStack>
+        <Card
+          borderRadius={0}
+          borderColor="white"
+          noDivider
+          key={index}
+          header={
+            <VStack space={2} key={index}>
+              <BodyBlack>{period.meta.heading}</BodyBlack>
+              {period.meta.subheading && <Body>{period.meta.subheading}</Body>}
+            </VStack>
+          }
+          noInternalSpace>
+          <VStack space={2} key={index} py={12}>
+            <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} mt={12}>
+              {period.data.map(
+                (item, periodIndex) =>
+                  periodIndex % 2 === 0 && (
+                    <HStack
+                      key={`${index}-${periodIndex}`}
+                      justifyContent="space-between"
+                      alignItems="stretch"
+                      borderBottomWidth={periodIndex < period.data.length - 2 ? 1 : 0}
+                      borderColor={colorLookup('light.300')}>
+                      <VStack flexBasis={0.5} flex={1} m={12}>
+                        <ForecastValue forecastItem={item} />
+                      </VStack>
+                      <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
+                      <VStack flexBasis={0.5} flex={1} m={12}>
+                        {periodIndex + 1 < period.data.length && <ForecastValue forecastItem={period.data[periodIndex + 1]} />}
+                      </VStack>
+                    </HStack>
+                  ),
+              )}
+            </View>
+          </VStack>
+        </Card>
       ))}
-    </VStack>
+    </>
   );
 };
 
