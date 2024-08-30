@@ -19,6 +19,7 @@ import {AvalancheTab} from 'components/forecast/AvalancheTab';
 import {ObservationsTab} from 'components/forecast/ObservationsTab';
 import {SynopsisTab} from 'components/forecast/SynopsisTab';
 import {WeatherTab} from 'components/forecast/WeatherTab';
+import {Body} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {HomeStackNavigationProps} from 'routes';
 import {NotFoundError} from 'types/requests';
@@ -89,7 +90,13 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
           </TouchableOpacity>
         </View>
         <View flex={1} mr={8}>
-          <Dropdown items={zones} selectedItem={zone.name} onSelectionChange={onZoneChange} bg="white" height={48} />
+          {zones.length > 1 ? (
+            <Dropdown items={zones} selectedItem={zone.name} onSelectionChange={onZoneChange} bg="white" height={48} />
+          ) : (
+            <HStack justifyContent="space-around" alignItems="center" height={48}>
+              <Body>{zones[0]}</Body>
+            </HStack>
+          )}
         </View>
       </HStack>
       <TabControl backgroundColor="white">
