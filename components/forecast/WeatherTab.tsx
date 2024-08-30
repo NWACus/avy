@@ -29,6 +29,7 @@ import {
   InlineWeatherData,
   ProductType,
   RowColumnWeatherData,
+  Weather,
   WeatherDataLabel,
   WeatherDatum,
   WeatherPeriodLabel,
@@ -66,6 +67,35 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
     return <NACWeatherTab zone={zone} center_id={center_id} requestedTime={requestedTime} forecast_zone_id={forecast_zone_id} />;
   }
 };
+
+function adaptSierraWeatherForecast(input: Weather): Weather {
+  for (let i = 0; i < input.weather_data.length; i++) {
+    const datum = input.weather_data[i];
+    if ('columns' in datum) {
+      const weatherIndex = datum.rows?.findIndex(value => value.heading === 'Weather');
+      if (
+        // we have an index and such a row exists
+        weatherIndex !== undefined &&
+        datum.data &&
+        weatherIndex <= datum.data.length &&
+        datum.data[weatherIndex] &&
+        // we have the same number of weather forecasts as periods
+        datum.columns &&
+        datum.columns.length === 1 &&
+        datum.data[weatherIndex].length === datum.columns[0].length
+      ) {
+        for (let j = 0; j < datum.columns[0].length; j++) {
+          datum.columns[0][j].subheading = datum.data[weatherIndex][j].value + '\n\n' + datum.columns[0][j].subheading;
+        }
+        datum.data.splice(weatherIndex, 1);
+        datum.rows?.splice(weatherIndex, 1);
+        datum.columns[0].splice(weatherIndex, 1);
+      }
+    }
+    input.weather_data[i] = datum;
+  }
+  return input;
+}
 
 export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requestedTime, forecast_zone_id}) => {
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
@@ -106,6 +136,8 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
     return <QueryState results={[weatherForecastResult]} />;
   }
 
+  const adaptedWeatherForecast = center_id === 'SAC' ? adaptSierraWeatherForecast(weatherForecast) : weatherForecast;
+
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
@@ -114,24 +146,24 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
             <VStack space={8} style={{flex: 1}}>
               <AllCapsSmBlack>Issued</AllCapsSmBlack>
               <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                {utcDateToLocalTimeString(weatherForecast.published_time)}
+                {utcDateToLocalTimeString(adaptedWeatherForecast.published_time)}
               </AllCapsSm>
             </VStack>
             <VStack space={8} style={{flex: 1}}>
               <AllCapsSmBlack>Author</AllCapsSmBlack>
               <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                {weatherForecast.author || 'Unknown'}
+                {adaptedWeatherForecast.author || 'Unknown'}
                 {'\n'}
               </AllCapsSm>
             </VStack>
           </HStack>
         </Card>
-        {weatherForecast.weather_data &&
-          weatherForecast.weather_data.map(
+        {adaptedWeatherForecast.weather_data &&
+          adaptedWeatherForecast.weather_data.map(
             (item, i) =>
               zone.name === item.zone_name && ('periods' in item ? <InlineWeatherForecast key={i} forecast={item} /> : <RowColumnWeatherForecast key={i} forecast={item} />),
           )}
-        {weatherForecast.weather_discussion && (
+        {adaptedWeatherForecast.weather_discussion && (
           <CollapsibleCard
             identifier={'weatherSynopsis'}
             marginTop={1}
@@ -139,7 +171,7 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
             borderColor="white"
             header={<BodyBlack>Weather Discussion</BodyBlack>}
             startsCollapsed={false}>
-            <HTML source={{html: weatherForecast.weather_discussion}} />
+            <HTML source={{html: adaptedWeatherForecast.weather_discussion}} />
           </CollapsibleCard>
         )}
         {/*// TODO: weather stations*/}
@@ -465,7 +497,7 @@ const InlineWeatherForecast: React.FunctionComponent<{forecast: InlineWeatherDat
 };
 
 const RowColumnWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeatherData}> = ({forecast}) => {
-  if (!forecast.columns || forecast.columns.length < 1 || forecast.columns[0].length < 1) {
+  if (!forecast.columns || forecast.columns.length < 1 || !forecast.columns[0] || forecast.columns[0].length < 1) {
     return <InternalError inline />;
   }
   if (!forecast.data || !forecast.rows || forecast.data.length !== forecast.rows.length) {
