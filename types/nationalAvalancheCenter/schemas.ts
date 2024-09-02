@@ -514,6 +514,7 @@ export const weatherDataLabelSchema = z.object({
   help: z.string().nullable().optional(), // inline HTML here
   options: z.array(z.string()).nullable(),
   unit: z.string().nullable(),
+  style: z.string().nullable().optional(),
 });
 export type WeatherDataLabel = z.infer<typeof weatherDataLabelSchema>;
 
