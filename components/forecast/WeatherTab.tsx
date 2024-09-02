@@ -158,12 +158,13 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
             </VStack>
           </HStack>
         </Card>
-        {adaptedWeatherForecast.weather_data &&
-          adaptedWeatherForecast.weather_data.map(
+        {weatherForecast.weather_data &&
+          weatherForecast.weather_data.map(
             (item, i) =>
-              zone.name === item.zone_name && ('periods' in item ? <InlineWeatherForecast key={i} forecast={item} /> : <RowColumnWeatherForecast key={i} forecast={item} />),
+              zone.name === item.zone_name &&
+              ('periods' in item ? <InlineWeatherForecast key={i} forecast={item} /> : <RowColumnWeatherForecast key={i} forecast={item} center_id={center_id} />),
           )}
-        {adaptedWeatherForecast.weather_discussion && (
+        {weatherForecast.weather_discussion && (
           <CollapsibleCard
             identifier={'weatherSynopsis'}
             marginTop={1}
@@ -171,7 +172,7 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
             borderColor="white"
             header={<BodyBlack>Weather Discussion</BodyBlack>}
             startsCollapsed={false}>
-            <HTML source={{html: adaptedWeatherForecast.weather_discussion}} />
+            <HTML source={{html: weatherForecast.weather_discussion}} />
           </CollapsibleCard>
         )}
         {/*// TODO: weather stations*/}
@@ -442,6 +443,11 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
 
 interface period {
   meta: WeatherPeriodLabel;
+  data: labeledData[];
+}
+
+interface labeledData {
+  label?: string;
   data: datum[];
 }
 
@@ -490,18 +496,33 @@ const InlineWeatherForecast: React.FunctionComponent<{forecast: InlineWeatherDat
         heading: forecast.periods[i],
         width: 0,
       },
-      data: data,
+      data: [{data: data}],
     });
   }
   return <ForecastPeriod periods={periods} />;
 };
 
-const RowColumnWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeatherData}> = ({forecast}) => {
-  if (!forecast.columns || forecast.columns.length < 1 || !forecast.columns[0] || forecast.columns[0].length < 1) {
+const RowColumnWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeatherData; center_id: AvalancheCenterID}> = ({forecast, center_id}) => {
+  if (center_id === 'BTAC') {
+    return <BTACWeatherForecast forecast={forecast} />;
+  }
+
+  let periods: period[] = [];
+  try {
+    periods = periodsForForecast(forecast);
+  } catch {
     return <InternalError inline />;
   }
+
+  return <ForecastPeriod periods={periods} />;
+};
+
+const periodsForForecast = (forecast: RowColumnWeatherData, label?: string): period[] => {
+  if (!forecast.columns || forecast.columns.length < 1 || !forecast.columns[0] || forecast.columns[0].length < 1) {
+    throw new Error('invalid assumptions');
+  }
   if (!forecast.data || !forecast.rows || forecast.data.length !== forecast.rows.length) {
-    return <InternalError inline />;
+    throw new Error('invalid assumptions');
   }
 
   const periods: period[] = [];
@@ -531,12 +552,12 @@ const RowColumnWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeat
     if (data.length > 0) {
       periods.push({
         meta: column,
-        data: data,
+        data: [{label: label, data: data}],
       });
     }
   }
 
-  return <ForecastPeriod periods={periods} />;
+  return periods;
 };
 
 const ForecastPeriod: React.FunctionComponent<{periods: period[]}> = ({periods}) => {
@@ -555,29 +576,32 @@ const ForecastPeriod: React.FunctionComponent<{periods: period[]}> = ({periods})
             </VStack>
           }
           noInternalSpace>
-          <VStack space={2} key={index} py={12}>
-            <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} mt={12}>
-              {period.data.map(
-                (item, periodIndex) =>
-                  periodIndex % 2 === 0 && (
-                    <HStack
-                      key={`${index}-${periodIndex}`}
-                      justifyContent="space-between"
-                      alignItems="stretch"
-                      borderBottomWidth={periodIndex < period.data.length - 2 ? 1 : 0}
-                      borderColor={colorLookup('light.300')}>
-                      <VStack flexBasis={0.5} flex={1} m={12}>
-                        <ForecastValue forecastItem={item} />
-                      </VStack>
-                      <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
-                      <VStack flexBasis={0.5} flex={1} m={12}>
-                        {periodIndex + 1 < period.data.length && <ForecastValue forecastItem={period.data[periodIndex + 1]} />}
-                      </VStack>
-                    </HStack>
-                  ),
-              )}
-            </View>
-          </VStack>
+          {period.data.map((data, dataIndex) => (
+            <VStack space={2} key={`${index}-${dataIndex}`} py={12}>
+              {data.label && <Body>{data.label}</Body>}
+              <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} mt={12}>
+                {data.data.map(
+                  (item, periodIndex) =>
+                    periodIndex % 2 === 0 && (
+                      <HStack
+                        key={`${index}-${dataIndex}-${periodIndex}`}
+                        justifyContent="space-between"
+                        alignItems="stretch"
+                        borderBottomWidth={periodIndex < data.data.length - 2 ? 1 : 0}
+                        borderColor={colorLookup('light.300')}>
+                        <VStack flexBasis={0.5} flex={1} m={12}>
+                          <ForecastValue forecastItem={item} />
+                        </VStack>
+                        <View width={1} height="100%" bg={colorLookup('light.300')} flex={0} />
+                        <VStack flexBasis={0.5} flex={1} m={12}>
+                          {periodIndex + 1 < data.data.length && <ForecastValue forecastItem={data.data[periodIndex + 1]} />}
+                        </VStack>
+                      </HStack>
+                    ),
+                )}
+              </View>
+            </VStack>
+          ))}
         </Card>
       ))}
     </>
@@ -593,6 +617,114 @@ const ForecastValue: React.FunctionComponent<{forecastItem: datum}> = ({forecast
           {item.value ? `${item.prefix ? item.prefix + ' ' : ''}${item.value}${forecastItem.label.unit ? ' ' + forecastItem.label.unit : ''}` : '-'}
         </BodySm>
       ))}
+    </>
+  );
+};
+
+export const BTACWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeatherData}> = ({forecast}) => {
+  // n.b. we can't factor this check into a separate method as tsc is not smart enough to do type narrowing then
+  if (!forecast.columns || forecast.columns.length < 1 || !forecast.columns[0] || forecast.columns[0].length < 1) {
+    return <InternalError inline />;
+  }
+  if (!forecast.data || !forecast.rows || forecast.data.length !== forecast.rows.length) {
+    return <InternalError inline />;
+  }
+
+  // determine the location
+  if (!forecast.rows || forecast.rows.length === 0 || !forecast.rows[0].style || !forecast.rows[0].style.includes('background-color')) {
+    return <InternalError inline />;
+  }
+  const location = forecast.rows[0].heading;
+
+  const weatherSynopsisRow = forecast.rows.findIndex(value => value.heading === 'Weather Synopsis');
+  const sweRow = forecast.rows.findIndex(value => value.heading === 'Snowfall/Snow Water Equivalent');
+  const snowRow = forecast.rows.findIndex(value => value.heading === 'Seasonal Snow');
+
+  if (weatherSynopsisRow === undefined || sweRow === undefined || snowRow === undefined || !(weatherSynopsisRow < sweRow) || !(sweRow < snowRow)) {
+    return <InternalError inline />;
+  }
+
+  // collect the weather forecast data
+  const weatherForecast: RowColumnWeatherData = {
+    columns: forecast.columns,
+    rows: forecast.rows.slice(1, weatherSynopsisRow),
+    data: forecast.data.slice(1, weatherSynopsisRow),
+    zone_id: forecast.zone_id,
+    zone_name: forecast.zone_name,
+  };
+  const weatherPeriods = periodsForForecast(weatherForecast, `Weather at ${location}`);
+
+  // collect the SWE data
+  const sweForecast: RowColumnWeatherData = {
+    columns: forecast.columns,
+    rows: forecast.rows.slice(sweRow + 1, snowRow),
+    data: forecast.data.slice(sweRow + 1, snowRow),
+    zone_id: forecast.zone_id,
+    zone_name: forecast.zone_name,
+  };
+  const swePeriods = periodsForForecast(sweForecast, `${forecast.rows[sweRow].heading}`);
+
+  // aggregate the periods
+  const periods: period[] = [];
+  for (const p of weatherPeriods) {
+    const collection: labeledData[] = [];
+
+    const weather = weatherPeriods.find(i => i.meta.heading === p.meta.heading);
+    if (weather) {
+      collection.push(...weather.data);
+    }
+
+    const swe = swePeriods.find(i => i.meta.heading === p.meta.heading);
+    if (swe) {
+      collection.push(...swe.data);
+    }
+    periods.push({
+      meta: p.meta,
+      data: collection,
+    });
+  }
+
+  // collect seasonal snow
+  const snowData: labeledData[] = [];
+  for (const [index, item] of forecast.data[snowRow].entries()) {
+    if (item.value) {
+      const values: datum[] = [];
+      for (let i = snowRow + 1; i < forecast.data.length; i++) {
+        if (index >= forecast.data[i].length) {
+          return <InternalError inline />;
+        }
+        values.push({
+          label: forecast.rows[i],
+          items: [forecast.data[i][index]],
+        });
+      }
+      snowData.push({
+        label: item.value,
+        data: values,
+      });
+    }
+  }
+  const snow: period = {
+    meta: {
+      heading: forecast.rows[snowRow].heading,
+      width: 0,
+    },
+    data: snowData,
+  };
+
+  return (
+    <>
+      <CollapsibleCard
+        identifier={'btacWeatherSynopsis'}
+        marginTop={1}
+        borderRadius={0}
+        borderColor="white"
+        header={<BodyBlack>Weather Discussion</BodyBlack>}
+        startsCollapsed={false}>
+        <Body>{forecast.data[weatherSynopsisRow][0].value}</Body>
+      </CollapsibleCard>
+      <ForecastPeriod periods={periods} />
+      <ForecastPeriod periods={[snow]} />
     </>
   );
 };
