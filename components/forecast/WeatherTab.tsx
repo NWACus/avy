@@ -158,13 +158,13 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
             </VStack>
           </HStack>
         </Card>
-        {weatherForecast.weather_data &&
-          weatherForecast.weather_data.map(
+        {adaptedWeatherForecast.weather_data &&
+          adaptedWeatherForecast.weather_data.map(
             (item, i) =>
               zone.name === item.zone_name &&
               ('periods' in item ? <InlineWeatherForecast key={i} forecast={item} /> : <RowColumnWeatherForecast key={i} forecast={item} center_id={center_id} />),
           )}
-        {weatherForecast.weather_discussion && (
+        {adaptedWeatherForecast.weather_discussion && (
           <CollapsibleCard
             identifier={'weatherSynopsis'}
             marginTop={1}
@@ -172,7 +172,7 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
             borderColor="white"
             header={<BodyBlack>Weather Discussion</BodyBlack>}
             startsCollapsed={false}>
-            <HTML source={{html: weatherForecast.weather_discussion}} />
+            <HTML source={{html: adaptedWeatherForecast.weather_discussion}} />
           </CollapsibleCard>
         )}
         {/*// TODO: weather stations*/}
