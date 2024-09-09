@@ -39,4 +39,26 @@ export const settingsMenuItems: Record<string, {title: string; url: string}[]> =
       url: 'https://friends.sawtoothavalanche.com/news-events/',
     },
   ],
+  BTAC: [
+    {
+      title: 'About SAC',
+      url: 'https://bridgertetonavalanchecenter.org/staff/',
+    },
+    {
+      title: 'Avalanche Education',
+      url: 'https://bridgertetonavalanchecenter.org/events/category/education/',
+    },
+    {
+      title: 'Weather Resources',
+      url: 'https://bridgertetonavalanchecenter.org/weather-resources/',
+    },
+    {
+      title: 'Donate',
+      url: 'https://secure.everyaction.com/ECWEcLTS_E2Y7Cxg1Y_68w2',
+    },
+    {
+      title: 'News & Events',
+      url: 'https://bridgertetonavalanchecenter.org/news/',
+    },
+  ],
 };
