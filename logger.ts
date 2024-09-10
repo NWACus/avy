@@ -26,7 +26,7 @@ const defaultLogLevel = process.env.NODE_ENV === 'test' ? 'WARN' : 'INFO';
 const streams: StreamOptions[] = [];
 
 // In development mode, log to the console
-if (Updates.channel === 'development') {
+if (Updates.channel === '') {
   streams.push({
     level: (Constants.expoConfig?.extra?.log_level as string) ?? defaultLogLevel,
     stream: new ConsoleFormattedStream(),
