@@ -1,4 +1,4 @@
-export const settingsMenuItems: Record<string, {title: string; url: string}[]> = {
+export const settingsMenuItems: Record<string, { title: string; url: string }[]> = {
   NWAC: [
     {
       title: 'About NWAC',
