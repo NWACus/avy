@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import { z } from 'zod';
 export const avalancheCenterIDSchema = z.enum([
   'BAC', // Bridgeport: CA
   'BTAC', // Bridger-Teton: ID, WY
@@ -24,6 +24,15 @@ export type AvalancheCenterID = z.infer<typeof avalancheCenterIDSchema>;
 export function userFacingCenterId(input: AvalancheCenterID): string {
   return input === 'SNFAC' ? 'SAC' : input;
 }
+
+export const AvalancheCenterWebsiteSchema =
+  { 'NWAC': 'https://nwac.us' } as const
+  ;
+
+export type AvalancheCenterWebsiteSchema = (typeof AvalancheCenterWebsiteSchema)[keyof typeof AvalancheCenterWebsiteSchema];
+export const FormatCenterWebsite = (centerId: string): string => {
+  return AvalancheCenterWebsiteSchema[centerId];
+};
 
 export enum DangerLevel {
   GeneralInformation = -1,
@@ -634,7 +643,7 @@ export const forecastFragmentSchema = forecastSchema
     avalanche_center: z.object({
       name: z.string(),
     }),
-    forecast_zone: z.array(avalancheForecastZoneSummarySchema.omit({state: true})),
+    forecast_zone: z.array(avalancheForecastZoneSummarySchema.omit({ state: true })),
   });
 export type ForecastFragment = z.infer<typeof forecastFragmentSchema>;
 
@@ -650,7 +659,7 @@ export const summaryFragmentSchema = summarySchema
     avalanche_center: z.object({
       name: z.string(),
     }),
-    forecast_zone: z.array(avalancheForecastZoneSummarySchema.omit({state: true})),
+    forecast_zone: z.array(avalancheForecastZoneSummarySchema.omit({ state: true })),
   });
 export type SummaryFragment = z.infer<typeof summaryFragmentSchema>;
 
@@ -669,7 +678,7 @@ export const synopsisFragmentSchema = synopsisSchema
     avalanche_center: z.object({
       name: z.string(),
     }),
-    forecast_zone: z.array(avalancheForecastZoneSummarySchema.omit({state: true})),
+    forecast_zone: z.array(avalancheForecastZoneSummarySchema.omit({ state: true })),
   });
 export type SynopsisFragment = z.infer<typeof synopsisFragmentSchema>;
 
@@ -683,7 +692,7 @@ export const weatherFragmentSchema = weatherSchema
     avalanche_center: z.object({
       name: z.string(),
     }),
-    forecast_zone: z.array(avalancheForecastZoneSummarySchema.omit({state: true})),
+    forecast_zone: z.array(avalancheForecastZoneSummarySchema.omit({ state: true })),
   });
 export type WeatherFragment = z.infer<typeof weatherFragmentSchema>;
 
@@ -1395,9 +1404,9 @@ export type WeatherStationCollection = z.infer<typeof weatherStationCollectionSc
 
 export const weatherStationObservationSchema = z.array(z.record(z.string(), z.string().or(z.number()).nullable()));
 export const weatherStationTimeseriesEntrySchema = z.discriminatedUnion('source', [
-  nwacWeatherStationPropertiesSchema.omit({data: true}).extend({observations: weatherStationObservationSchema}),
-  mesowestWeatherStationPropertiesSchema.extend({observations: weatherStationObservationSchema}),
-  snotelWeatherStationPropertiesSchema.extend({observations: weatherStationObservationSchema}),
+  nwacWeatherStationPropertiesSchema.omit({ data: true }).extend({ observations: weatherStationObservationSchema }),
+  mesowestWeatherStationPropertiesSchema.extend({ observations: weatherStationObservationSchema }),
+  snotelWeatherStationPropertiesSchema.extend({ observations: weatherStationObservationSchema }),
 ]);
 export type WeatherStationTimeseriesEntry = z.infer<typeof weatherStationTimeseriesEntrySchema>;
 export const weatherStationTimeseriesSchema = z.object({

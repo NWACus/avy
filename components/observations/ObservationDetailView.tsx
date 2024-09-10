@@ -1,34 +1,35 @@
-import {AntDesign, Entypo} from '@expo/vector-icons';
-import React, {useCallback} from 'react';
-import {Button , Image, ScrollView, Share, StyleSheet, Text} from 'react-native';
+import { AntDesign, Entypo } from '@expo/vector-icons';
+import React, { useCallback } from 'react';
+import { Button, Image, ScrollView, Share, StyleSheet, Text } from 'react-native';
 
-import {MaterialCommunityIcons} from '@expo/vector-icons';
-import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {colorFor} from 'components/AvalancheDangerTriangle';
-import {Card, CardProps} from 'components/content/Card';
-import {QueryState, incompleteQueryState} from 'components/content/QueryState';
-import {ZoneMap} from 'components/content/ZoneMap';
-import {Carousel, images} from 'components/content/carousel';
-import {HStack, VStack, View} from 'components/core';
-import {NACIcon} from 'components/icons/nac-icons';
-import {matchesZone} from 'components/observations/ObservationsFilterForm';
-import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize} from 'components/text';
-import {HTML} from 'components/text/HTML';
-import {useMapLayer} from 'hooks/useMapLayer';
-import {useNACObservation} from 'hooks/useNACObservation';
-import {useNWACObservation} from 'hooks/useNWACObservation';
-import {usePostHog} from 'posthog-react-native';
-import {LatLng, Marker} from 'react-native-maps';
-import {ObservationsStackNavigationProps} from 'routes';
-import {colorLookup} from 'theme';
+import { colorFor } from 'components/AvalancheDangerTriangle';
+import { Card, CardProps } from 'components/content/Card';
+import { QueryState, incompleteQueryState } from 'components/content/QueryState';
+import { ZoneMap } from 'components/content/ZoneMap';
+import { Carousel, images } from 'components/content/carousel';
+import { HStack, VStack, View } from 'components/core';
+import { NACIcon } from 'components/icons/nac-icons';
+import { matchesZone } from 'components/observations/ObservationsFilterForm';
+import { AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize } from 'components/text';
+import { HTML } from 'components/text/HTML';
+import { useMapLayer } from 'hooks/useMapLayer';
+import { useNACObservation } from 'hooks/useNACObservation';
+import { useNWACObservation } from 'hooks/useNWACObservation';
+import { usePostHog } from 'posthog-react-native';
+import { LatLng, Marker } from 'react-native-maps';
+import { ObservationsStackNavigationProps } from 'routes';
+import { colorLookup } from 'theme';
 import {
   Activity,
   AvalancheAspect,
   AvalancheBedSurface,
   AvalancheCause,
   AvalancheCenterID,
+  AvalancheCenterWebsiteSchema,
   AvalancheTrigger,
   AvalancheType,
   CloudCover,
@@ -39,6 +40,7 @@ import {
   FormatAvalancheCause,
   FormatAvalancheTrigger,
   FormatAvalancheType,
+  FormatCenterWebsite,
   FormatCloudCover,
   FormatInstabilityDistribution,
   FormatSnowAvailableForTransport,
@@ -49,11 +51,11 @@ import {
   SnowAvailableForTransport,
   WindLoading,
 } from 'types/nationalAvalancheCenter';
-import {pacificDateToLocalShortDateString, utcDateToLocalShortDateString} from 'utils/date';
+import { pacificDateToLocalShortDateString, utcDateToLocalShortDateString } from 'utils/date';
 
 export const NWACObservationDetailView: React.FunctionComponent<{
   id: string;
-}> = ({id}) => {
+}> = ({ id }) => {
   const observationResult = useNWACObservation(parseInt(id));
   const observation = observationResult.data;
   const mapResult = useMapLayer(observation?.center_id);
@@ -68,7 +70,7 @@ export const NWACObservationDetailView: React.FunctionComponent<{
 
 export const ObservationDetailView: React.FunctionComponent<{
   id: string;
-}> = ({id}) => {
+}> = ({ id }) => {
   const observationResult = useNACObservation(id);
   const observation = observationResult.data;
   const mapResult = useMapLayer(observation?.center_id?.toUpperCase() as AvalancheCenterID);
@@ -84,7 +86,7 @@ export const ObservationDetailView: React.FunctionComponent<{
 const dataTableFlex = [1, 1];
 const dataTableSpace = 16;
 
-export const TableRow = ({label, value}: {label: string; value: string}) => (
+export const TableRow = ({ label, value }: { label: string; value: string }) => (
   <HStack justifyContent="space-between" alignItems="center" width="100%" space={dataTableSpace}>
     <View flex={dataTableFlex[0]}>
       <BodySemibold>{label}</BodySemibold>
@@ -95,7 +97,7 @@ export const TableRow = ({label, value}: {label: string; value: string}) => (
   </HStack>
 );
 
-export const WeatherCard = ({observation, ...props}: {observation: Observation} & CardProps) => {
+export const WeatherCard = ({ observation, ...props }: { observation: Observation } & CardProps) => {
   // observation.advanced_fields.weather might be missing, or might be an object that's filled with empty strings -
   // in either of those cases, we don't have weather data to render.
   const hasWeatherEntries = Object.entries(observation.advanced_fields?.weather || {}).some(([_k, v]) => Boolean(v));
@@ -108,7 +110,7 @@ export const WeatherCard = ({observation, ...props}: {observation: Observation} 
     <Card borderRadius={0} borderColor="white" header={<BodyBlack>Weather</BodyBlack>} {...props}>
       <VStack space={8} width="100%">
         {/* Using Boolean() here so that we don't end up rendering empty strings inline */}
-        {observation.advanced_fields?.weather_summary && <HTML source={{html: observation.advanced_fields?.weather_summary}} />}
+        {observation.advanced_fields?.weather_summary && <HTML source={{ html: observation.advanced_fields?.weather_summary }} />}
         {observation.advanced_fields?.weather?.cloud_cover && (
           <TableRow label={'Cloud Cover'} value={FormatCloudCover(observation.advanced_fields?.weather?.cloud_cover as CloudCover)} />
         )}
@@ -137,7 +139,7 @@ export const WeatherCard = ({observation, ...props}: {observation: Observation} 
 // We can use that point to determine the zone that the observation was in, but do not want to show the point
 // to users, as it will not match where the observation was actually submitted.
 const placeholders: LatLng[] = [
-  {latitude: 47.4769558629764, longitude: -120.80902913139369},
+  { latitude: 47.4769558629764, longitude: -120.80902913139369 },
   {
     latitude: 48.508873866573,
     longitude: -120.6576884996371,
@@ -195,13 +197,13 @@ export const withUnits = (value: string | number | null | undefined, units: stri
 export const ObservationCard: React.FunctionComponent<{
   observation: Observation;
   mapLayer: MapLayer;
-}> = ({observation, mapLayer}) => {
+}> = ({ observation, mapLayer }) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
-  const {avalanches_observed, avalanches_triggered, avalanches_caught} = observation.instability;
+  const { avalanches_observed, avalanches_triggered, avalanches_caught } = observation.instability;
   const zone_name = observation.location_point?.lat && observation.location_point?.lng && matchesZone(mapLayer, observation.location_point?.lat, observation.location_point?.lng);
   React.useEffect(() => {
     if (zone_name) {
-      navigation.setOptions({title: `${zone_name} Observation`});
+      navigation.setOptions({ title: `${zone_name} Observation` });
     }
   }, [navigation, zone_name]);
   const emptyHandler = useCallback(() => undefined, []);
@@ -215,20 +217,21 @@ export const ObservationCard: React.FunctionComponent<{
   }, [postHog, observation.center_id, observation.id]);
   useFocusEffect(recordAnalytics);
 
-// route.path will have the link we would put into the share button here
-const route = useRoute(); 
+  // route.path will have the link we would put into the share button here
+  const route = useRoute();
 
-// currently the back button will leave to the list of obs of your current default center
-// even if someone shares an observation with you from a different center
-// the header will still show the current center logo (that likely needs to change as design actually said to replace that with the share icon)
-// to open in expo: *check url and port, and correct obs ID that exists
-// example: npx uri-scheme open exp://192.168.1.8:8082/--/observation/866b81db-52b3-4f94-890c-0cae8f162097 --android
-const url = 'https://' + observation.center_id + '.us/observations/#/view/' + route.name + 's/' + route.params.id
+  // currently the back button will leave to the list of obs of your current default center
+  // even if someone shares an observation with you from a different center
+  // the header will still show the current center logo (that likely needs to change as design actually said to replace that with the share icon)
+  // to open in expo: *check url and port, and correct obs ID that exists
+  // example: npx uri-scheme open exp://192.168.1.8:8082/--/observation/866b81db-52b3-4f94-890c-0cae8f162097 --android
+  console.log(observation.center_id)
+  const url = FormatCenterWebsite(observation.center_id as AvalancheCenterWebsiteSchema) + '/observations/#/view/observations/' + route.params.id
   const onShare = async () => {
     try {
       const result = await Share.share({
         message:
-          (url )
+          (url)
       });
       if (result.action === Share.sharedAction) {
         if (result.activityType) {
@@ -245,58 +248,49 @@ const url = 'https://' + observation.center_id + '.us/observations/#/view/' + ro
   };
 
   return (
-    <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
-      <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
-        <VStack space={8} backgroundColor="white" style={{height: '100%', width: '100%'}}>
-          <ScrollView style={{height: '100%', width: '100%'}}>
+    <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'white' }}>
+      <SafeAreaView edges={['left', 'right']} style={{ height: '100%', width: '100%' }}>
+        <VStack space={8} backgroundColor="white" style={{ height: '100%', width: '100%' }}>
+          <ScrollView style={{ height: '100%', width: '100%' }}>
             <VStack space={8} backgroundColor={colorLookup('primary.background')}>
-              <Card borderRadius={0} borderColor="white" header={
-                <VStack space={8} width="100%">
-                  <BodySemibold>
-                    {zone_name} Observation
-                      <Entypo 
+              <View bg="white" py={8} px={16}>
+                <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
+                  <VStack space={8} style={{ flex: 1 }}>
+                    <AllCapsSmBlack>Observed</AllCapsSmBlack>
+                    <AllCapsSm style={{ textTransform: 'none' }} color="text.secondary">
+                      {pacificDateToLocalShortDateString(observation.start_date)}
+                    </AllCapsSm>
+                  </VStack>
+                  <VStack space={8} style={{ flex: 1 }}>
+                    <AllCapsSmBlack>Submitted</AllCapsSmBlack>
+                    <AllCapsSm style={{ textTransform: 'none' }} color="text.secondary">
+                      {utcDateToLocalShortDateString(observation.created_at)}
+                    </AllCapsSm>
+                  </VStack>
+                  <VStack space={8} style={{ flex: 1 }}>
+                    <AllCapsSmBlack>Author</AllCapsSmBlack>
+                    <AllCapsSm style={{ textTransform: 'none' }} color="text.secondary" unescapeHTMLEntities>
+                      {observation.name || 'Unknown'}
+                    </AllCapsSm>
+                  </VStack>
+                  <VStack space={5} style={{ flex: 0 }}>
+                    <Entypo
                       size={22}
                       color={colorLookup('text')}
                       name="share-alternative"
                       backgroundColor="white"
-                      iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
-                      style={{alignSelf: 'flex-end'}}
+                      iconStyle={{ marginLeft: 20, marginRight: 0, marginTop: 1 }}
+                      style={{ alignSelf: 'flex-end' }}
                       onPress={onShare}
                     />
-                  </BodySemibold>
-                  <BodySemibold>
-                  {observation.center_id}
-                  </BodySemibold>
-                </VStack>
-              }>
-                <View bg="white" py={8} px={16}>
-                  <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
-                    <VStack space={8} style={{flex: 1}}>
-                      <AllCapsSmBlack>Observed</AllCapsSmBlack>
-                      <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                        {pacificDateToLocalShortDateString(observation.start_date)}
-                      </AllCapsSm>
-                    </VStack>
-                    <VStack space={8} style={{flex: 1}}>
-                      <AllCapsSmBlack>Submitted</AllCapsSmBlack>
-                      <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                        {utcDateToLocalShortDateString(observation.created_at)}
-                      </AllCapsSm>
-                    </VStack>
-                    <VStack space={8} style={{flex: 1}}>
-                      <AllCapsSmBlack>Author</AllCapsSmBlack>
-                      <AllCapsSm style={{textTransform: 'none'}} color="text.secondary" unescapeHTMLEntities>
-                        {observation.name || 'Unknown'}
-                      </AllCapsSm>
-                    </VStack>
-                  </HStack>
-                </View>
-              </Card>
+                  </VStack>
+                </HStack>
+              </View>
               <Card borderRadius={0} borderColor="white" header={<BodyBlack>Summary</BodyBlack>}>
                 <VStack space={8} width="100%">
                   {observation.location_point.lat && observation.location_point.lng && !isPlaceholder(observation.location_point.lat, observation.location_point.lng) && (
                     <ZoneMap
-                      style={{width: '100%', height: 200}}
+                      style={{ width: '100%', height: 200 }}
                       animated={false}
                       zones={[]}
                       onPressPolygon={emptyHandler}
@@ -315,16 +309,16 @@ const url = 'https://' + observation.center_id + '.us/observations/#/view/' + ro
                           latitude: observation.location_point.lat,
                           longitude: observation.location_point.lng,
                         }}
-                        anchor={{x: 0.5, y: 1}}>
+                        anchor={{ x: 0.5, y: 1 }}>
                         {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
-                        <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40}} />
+                        <Image source={require('assets/map-marker.png')} style={{ width: 40, height: 40 }} />
                       </Marker>
                     </ZoneMap>
                   )}
                   {observation.location_name && <TableRow label="Location" value={observation.location_name} />}
                   <TableRow label="Route" value={observation.route || 'Not specified'} />
                   <TableRow label="Activity" value={activityDisplayName(observation.activity)} />
-                  {observation.observation_summary && <HTML source={{html: observation.observation_summary}} />}
+                  {observation.observation_summary && <HTML source={{ html: observation.observation_summary }} />}
                   <View pt={8}>
                     <BodySemibold>Signs of Instability</BodySemibold>
                   </View>
@@ -375,7 +369,7 @@ const url = 'https://' + observation.center_id + '.us/observations/#/view/' + ro
                   {observation.instability_summary && (
                     <VStack pt={8} space={8} width="100%">
                       <BodySemibold>Instability Comments</BodySemibold>
-                      <HTML source={{html: observation.instability_summary}} />
+                      <HTML source={{ html: observation.instability_summary }} />
                     </VStack>
                   )}
                 </VStack>
@@ -388,14 +382,14 @@ const url = 'https://' + observation.center_id + '.us/observations/#/view/' + ro
               {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanches_summary) && (
                 <Card borderRadius={0} borderColor="white" header={<BodyBlack>Avalanches</BodyBlack>}>
                   <VStack space={8} width="100%">
-                    {observation.avalanches_summary && <HTML source={{html: observation.avalanches_summary}} />}
+                    {observation.avalanches_summary && <HTML source={{ html: observation.avalanches_summary }} />}
                   </VStack>
                   {observation.avalanches &&
                     observation.avalanches.length > 0 &&
                     observation.avalanches.map((item, index) => (
-                      <VStack space={8} style={{flex: 1}} key={`avalanche-${index}`}>
+                      <VStack space={8} style={{ flex: 1 }} key={`avalanche-${index}`}>
                         <BodyBlack>{`#${index + 1}${item.location ? `: ${item.location}` : ''}`}</BodyBlack>
-                        {item.comments && <HTML source={{html: item.comments}} />}
+                        {item.comments && <HTML source={{ html: item.comments }} />}
                         <TableRow label={`Date (${item.date_known ? 'Exact' : 'Estimated'})`} value={`${pacificDateToLocalShortDateString(item.date)}`} />
                         {item.d_size && <TableRow label={'Size'} value={`D${item.d_size}${item.r_size ? '-R' + item.r_size : ''}`} />}
                         {item.trigger && (
@@ -433,7 +427,7 @@ const url = 'https://' + observation.center_id + '.us/observations/#/view/' + ro
                   observation.advanced_fields.snowpack_summary) && (
                   <Card borderRadius={0} borderColor="white" header={<BodyBlack>Snowpack</BodyBlack>}>
                     <VStack space={8} width="100%">
-                      {observation.advanced_fields.snowpack_summary && <HTML source={{html: observation.advanced_fields.snowpack_summary}} />}
+                      {observation.advanced_fields.snowpack_summary && <HTML source={{ html: observation.advanced_fields.snowpack_summary }} />}
                       {images(observation.advanced_fields.snowpack_media) && (
                         <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={images(observation.advanced_fields.snowpack_media)} displayCaptions={false} />
                       )}
