@@ -41,7 +41,7 @@ export const settingsMenuItems: Record<string, {title: string; url: string}[]> =
   ],
   BTAC: [
     {
-      title: 'About SAC',
+      title: 'About BTAC',
       url: 'https://bridgertetonavalanchecenter.org/staff/',
     },
     {
