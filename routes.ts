@@ -1,14 +1,14 @@
-import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { NavigatorScreenParams } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AvalancheCenterID, WeatherStationSource } from 'types/nationalAvalancheCenter';
-import { RequestedTimeString } from 'utils/date';
+import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
+import {NavigatorScreenParams} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {AvalancheCenterID, WeatherStationSource} from 'types/nationalAvalancheCenter';
+import {RequestedTimeString} from 'utils/date';
 
 export type TabNavigatorParamList = {
-  Home: NavigatorScreenParams<HomeStackParamList> & { center_id: AvalancheCenterID; requestedTime: RequestedTimeString };
-  'Weather Data': NavigatorScreenParams<WeatherStackParamList> & { center_id: AvalancheCenterID; requestedTime: RequestedTimeString };
-  Observations: NavigatorScreenParams<ObservationsStackParamList> & { center_id: AvalancheCenterID; requestedTime: RequestedTimeString };
-  Menu: NavigatorScreenParams<MenuStackParamList> & { center_id: AvalancheCenterID; requestedTime: RequestedTimeString };
+  Home: NavigatorScreenParams<HomeStackParamList> & {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
+  'Weather Data': NavigatorScreenParams<WeatherStackParamList> & {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
+  Observations: NavigatorScreenParams<ObservationsStackParamList> & {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
+  Menu: NavigatorScreenParams<MenuStackParamList> & {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
 };
 export type TabNavigationProps = BottomTabNavigationProp<TabNavigatorParamList>;
 
