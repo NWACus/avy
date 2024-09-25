@@ -43,7 +43,6 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
       onMoveShouldSetPanResponder: () => true,
       onPanResponderRelease: (event, gestureState) => {
         if (gestureState.dx != 0 && gestureState.dy != 0) {
-          console.log('Gesture ignored because the user moved the map');
           return;
         }
 
