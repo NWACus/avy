@@ -4,7 +4,7 @@ import React from 'react';
 import {NavigationHeader} from 'components/content/NavigationHeader';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
-import {NWACObservationScreen, ObservationScreen} from 'components/screens/ObservationsScreen';
+import {NWACObservationScreen, ObservationScreen, ObservationSubmitScreen} from 'components/screens/ObservationsScreen';
 import {StationDetailScreen, StationsDetailScreen} from 'components/screens/WeatherScreen';
 import {HomeStackParamList, TabNavigatorParamList} from 'routes';
 
@@ -42,6 +42,13 @@ export const HomeTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamL
         component={NWACObservationScreen}
         options={{
           title: 'Observation',
+        }}
+      />
+      <AvalancheCenterStack.Screen
+        name="observationSubmit"
+        component={ObservationSubmitScreen}
+        options={{
+          title: 'Submit an Observation',
         }}
       />
     </AvalancheCenterStack.Navigator>
