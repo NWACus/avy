@@ -37,16 +37,29 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   const [mapReady, setMapReady] = useState<boolean>(false);
   const mapRef = useRef<MapView>(null);
 
-  const toggleModal = useCallback(() => {
-    setModalVisible(!modalVisible);
-  }, [modalVisible, setModalVisible]);
+  const [observationLocation, setObservationLocation] = useState<LocationPoint | null>(field.value as LocationPoint);
+
+  const onOpenModal = useCallback(() => {
+    setModalVisible(true);
+  }, [setModalVisible]);
+
+  const onCloseModal = useCallback(() => {
+    setObservationLocation(field.value as LocationPoint);
+    setModalVisible(false);
+  }, [field, setModalVisible, setObservationLocation]);
+
+  const onSave = useCallback(() => {
+    field.onChange(observationLocation);
+    setModalVisible(false);
+  }, [modalVisible, setModalVisible, field]);
+
+  const onClearLocation = useCallback(() => {
+    field.onChange(null);
+    // There's something weird where the value is set to null but passing field.value as LocationPoint to this setter doesn't work as intended
+    setObservationLocation(null);
+  }, [field, setObservationLocation, observationLocation]);
 
   const value: LocationPoint | undefined = field.value as LocationPoint | undefined;
-
-  const toggleModalandClearLocation = useCallback(() => {
-    field.onChange(null);
-    setModalVisible(!modalVisible);
-  }, [modalVisible, setModalVisible, field]);
 
   useEffect(() => {
     if (mapLayer && !mapReady) {
@@ -79,18 +92,18 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
         const point = {x: event.nativeEvent.locationX, y: event.nativeEvent.locationY};
         const coordinate = await mapRef.current?.coordinateForPoint(point);
         if (coordinate) {
-          field.onChange(latLngToLocationPoint(coordinate));
+          setObservationLocation(latLngToLocationPoint(coordinate));
         }
       })();
     },
-    [field],
+    [setObservationLocation],
   );
   const emptyHandler = useCallback(() => undefined, []);
 
   return (
     <VStack width="100%" space={4} ref={ref}>
       <BodySmBlack>{label}</BodySmBlack>
-      <TouchableOpacity onPress={toggleModal} disabled={disabled}>
+      <TouchableOpacity onPress={onOpenModal} disabled={disabled}>
         <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
           <View p={8}>
             <Body>{value ? `${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : 'Select a location'}</Body>
@@ -102,9 +115,13 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
       </TouchableOpacity>
       {/* TODO: animate the appearance/disappearance of the error string */}
       {error && <BodyXSm color={colorLookup('error.900')}>{error.message}</BodyXSm>}
-
+      {field.value != null && (
+        <TouchableOpacity onPress={onClearLocation} disabled={disabled}>
+          <Body color={colorLookup('warning.700')}>Clear Location</Body>
+        </TouchableOpacity>
+      )}
       {modalVisible && (
-        <Modal visible={modalVisible} onRequestClose={toggleModalandClearLocation} animationType="slide">
+        <Modal visible={modalVisible} onRequestClose={onCloseModal} animationType="slide">
           <SafeAreaProvider>
             <SafeAreaView style={{width: '100%', height: '100%'}}>
               <VStack width="100%" height="100%">
@@ -118,7 +135,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                     backgroundColor="white"
                     iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
                     style={{textAlign: 'center'}}
-                    onPress={toggleModal}
+                    onPress={onSave}
                   />
                   <AntDesign.Button
                     size={24}
@@ -127,7 +144,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                     backgroundColor="white"
                     iconStyle={{marginLeft: 0, marginRight: 0, marginTop: 1}}
                     style={{textAlign: 'center'}}
-                    onPress={toggleModalandClearLocation}
+                    onPress={onCloseModal}
                   />
                 </HStack>
                 <Center width="100%" height="100%">
@@ -142,7 +159,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                         initialRegion={initialRegion}
                         onPressPolygon={emptyHandler}
                         renderFillColor={false}>
-                        {field.value != null && <MapMarker coordinate={locationPointToLatLng(field.value as LocationPoint)} />}
+                        {observationLocation != null && <MapMarker coordinate={locationPointToLatLng(observationLocation)} />}
                       </ZoneMap>
                     </Pressable>
                   )}
