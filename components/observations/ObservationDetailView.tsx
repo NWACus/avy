@@ -28,7 +28,6 @@ import {
   AvalancheBedSurface,
   AvalancheCause,
   AvalancheCenterID,
-  AvalancheDateUncertainty,
   AvalancheTrigger,
   AvalancheType,
   CloudCover,
@@ -37,7 +36,6 @@ import {
   FormatAvalancheAspect,
   FormatAvalancheBedSurface,
   FormatAvalancheCause,
-  FormatAvalancheDateUncertainty,
   FormatAvalancheTrigger,
   FormatAvalancheType,
   FormatCloudCover,
@@ -50,7 +48,7 @@ import {
   SnowAvailableForTransport,
   WindLoading,
 } from 'types/nationalAvalancheCenter';
-import {pacificDateToLocalShortDateString, utcDateToLocalShortDateString, utcDateToLocalTimeString} from 'utils/date';
+import {pacificDateToLocalShortDateString, utcDateToLocalShortDateString} from 'utils/date';
 
 export const NWACObservationDetailView: React.FunctionComponent<{
   id: string;
@@ -348,26 +346,26 @@ export const ObservationCard: React.FunctionComponent<{
                       <VStack space={8} style={{flex: 1}} key={`avalanche-${index}`}>
                         <BodyBlack>{`#${index + 1}${item.location ? `: ${item.location}` : ''}`}</BodyBlack>
                         {item.comments && <HTML source={{html: item.comments}} />}
-                        <TableRow
-                          label={`Date${item.dateAccuracy ? ` (${FormatAvalancheDateUncertainty(item.dateAccuracy as AvalancheDateUncertainty)})` : ''}`}
-                          value={`${utcDateToLocalTimeString(item.date)}`}
-                        />
-                        {item.dSize && item.rSize && <TableRow label={'Size'} value={`D${item.dSize}-R${item.rSize}`} />}
-                        {item.trigger && item.cause && (
+                        <TableRow label={`Date (${item.date_known ? 'Exact' : 'Estimated'})`} value={`${pacificDateToLocalShortDateString(item.date)}`} />
+                        {item.d_size && <TableRow label={'Size'} value={`D${item.d_size}${item.r_size ? '-R' + item.r_size : ''}`} />}
+                        {item.trigger && (
                           <TableRow
                             label={'Trigger'}
-                            value={`${FormatAvalancheTrigger(item.trigger as AvalancheTrigger)} - ${FormatAvalancheCause(item.cause as AvalancheCause)}`}
+                            value={`${FormatAvalancheTrigger(item.trigger as AvalancheTrigger)}${item.cause ? ' - ' + FormatAvalancheCause(item.cause as AvalancheCause) : ''}`}
                           />
                         )}
                         <TableRow
                           label={'Start Zone'}
-                          value={`${FormatAvalancheAspect(item.aspect as AvalancheAspect)}${item.slopeAngle ? `, ${item.slopeAngle}°` : ''} at ${withUnits(item.elevation, 'ft')}`}
+                          value={`${FormatAvalancheAspect(item.aspect as AvalancheAspect)}${item.slope_angle ? `, ${item.slope_angle}°` : ''} at ${withUnits(
+                            item.elevation,
+                            'ft',
+                          )}`}
                         />
-                        {item.verticalFall && <TableRow label={'Vertical Fall'} value={`${withUnits(item.verticalFall, 'ft')}`} />}
-                        {item.avgCrownDepth && <TableRow label={'Crown Thickness'} value={`${withUnits(item.avgCrownDepth, 'cm')}`} />}
+                        {item.vertical_fall && <TableRow label={'Vertical Fall'} value={`${withUnits(item.vertical_fall, 'ft')}`} />}
+                        {item.avg_crown_depth && <TableRow label={'Crown Thickness'} value={`${withUnits(item.avg_crown_depth, 'cm')}`} />}
                         {item.width && <TableRow label={'Width'} value={`${withUnits(item.width, 'ft')}`} />}
-                        {item.avalancheType && <TableRow label={'Type'} value={FormatAvalancheType(item.avalancheType as AvalancheType)} />}
-                        {item.verticalFall && <TableRow label={'Bed Surface'} value={FormatAvalancheBedSurface(item.bedSfc as AvalancheBedSurface)} />}
+                        {item.avalanche_type && <TableRow label={'Type'} value={FormatAvalancheType(item.avalanche_type as AvalancheType)} />}
+                        {item.bed_sfc && <TableRow label={'Bed Surface'} value={FormatAvalancheBedSurface(item.bed_sfc as AvalancheBedSurface)} />}
                         {images(item.media) && (
                           <VStack pt={8} space={8} width="100%">
                             <BodySemibold>Media</BodySemibold>

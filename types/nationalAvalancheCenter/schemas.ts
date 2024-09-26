@@ -514,6 +514,7 @@ export const weatherDataLabelSchema = z.object({
   help: z.string().nullable().optional(), // inline HTML here
   options: z.array(z.string()).nullable(),
   unit: z.string().nullable(),
+  style: z.string().nullable().optional(),
 });
 export type WeatherDataLabel = z.infer<typeof weatherDataLabelSchema>;
 
@@ -826,18 +827,6 @@ export type WindLoading = (typeof WindLoading)[keyof typeof WindLoading];
 export const FormatWindLoading = (value: WindLoading): string => {
   return reverseLookup(WindLoading, value);
 };
-export const AvalancheDateUncertainty = {
-  Exact: '0',
-  '+/- 1 day': '1',
-  '+/- 3 days': '3',
-  '+/- 1 week': '7',
-  '+/- 1 month': '30',
-  Estimated: 'estimated',
-} as const;
-export type AvalancheDateUncertainty = (typeof AvalancheDateUncertainty)[keyof typeof AvalancheDateUncertainty];
-export const FormatAvalancheDateUncertainty = (value: AvalancheDateUncertainty): string => {
-  return reverseLookup(AvalancheDateUncertainty, value);
-};
 export const AvalancheAspect = {
   N: 'N',
   NE: 'NE',
@@ -1021,24 +1010,26 @@ export const observationSchema = z.object({
     .array(
       z.object({
         date: z.string().nullable().optional(/* only because of NWAC */),
-        dateAccuracy: z.nativeEnum(AvalancheDateUncertainty).or(z.string().length(0)).optional(),
+        date_known: z.boolean().nullable().optional(/* only because of NWAC */),
+        time: z.string().nullable().optional(/* only because of NWAC */),
+        time_known: z.boolean().nullable().optional(/* only because of NWAC */),
         location: z.string().nullable().optional(/* only because of NWAC */),
         number: z.number().nullable().optional(/* only because of NWAC */),
-        avalancheType: z.nativeEnum(AvalancheType).or(z.string().length(0)).optional(),
+        avalanche_type: z.nativeEnum(AvalancheType).or(z.string().length(0)).nullable().optional(),
         cause: z.nativeEnum(AvalancheCause).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
         terminus: z.nativeEnum(AvalancheTerminus).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
         trigger: z.nativeEnum(AvalancheTrigger).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
-        avgCrownDepth: z.number().optional(),
-        dSize: z.string().optional().optional(/* only because of NWAC */),
-        rSize: z.string().optional(),
-        bedSfc: z.nativeEnum(AvalancheBedSurface).or(z.string().length(0)).optional(),
+        avg_crown_depth: z.number().nullable().optional(),
+        d_size: z.string().nullable().optional(/* only because of NWAC */),
+        r_size: z.string().nullable().optional(/* only because of NWAC */),
+        bed_sfc: z.nativeEnum(AvalancheBedSurface).or(z.string().length(0)).nullable().optional(),
         elevation: z.number().or(z.string()).nullable().optional(/* only because of NWAC */),
-        verticalFall: z.number().or(z.string()).optional(),
+        vertical_fall: z.number().or(z.string()).nullable().optional(),
         width: z.number().nullable().optional(/* only because of NWAC */),
-        slopeAngle: z.number().optional(),
+        slope_angle: z.number().nullable().optional(),
         aspect: z.nativeEnum(AvalancheAspect).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
-        weakLayerType: z.string().optional(), // TODO: this is clearly an enum somewhere, it's not anywhere I can see..
-        weakLayerDate: z.string().optional(),
+        weak_layer_type: z.string().nullable().optional(), // TODO: this is clearly an enum somewhere, it's not anywhere I can see..
+        weak_layer_date: z.string().nullable().optional(),
         comments: z.string().nullable().optional(/* only because of NWAC */),
         media: z.array(mediaItemSchema).optional(/* only because of NWAC */),
       }),
