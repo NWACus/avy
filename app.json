@@ -3,7 +3,7 @@
     "name": "Avy",
     "slug": "avalanche-forecast",
     "owner": "nwac",
-    "version": "1.0.9",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -31,19 +31,36 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": "NO",
         "NSPhotoLibraryUsageDescription": "The app is requesting access to the photo library to enable submission of avalanche observations that can include photos and/or video to provide context of an avalanche that was observed."
-      }
+      },
+      "associatedDomains": ["applinks:nwac.us"]
     },
     "android": {
       "package": "us.nwac.forecast",
       "config": {
-        "googleMaps": {"apiKey": "LOADED_FROM_ENVIRONMENT"}
+        "googleMaps": {
+          "apiKey": "LOADED_FROM_ENVIRONMENT"
+        }
       },
       "icon": "./assets/icon.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#152E57"
       },
-      "permissions": ["READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
+      "permissions": ["READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "*.nwac.us",
+              "pathPrefix": "/observations/*"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "plugins": [
       "expo-localization",

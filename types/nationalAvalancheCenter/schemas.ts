@@ -25,6 +25,13 @@ export function userFacingCenterId(input: AvalancheCenterID): string {
   return input === 'SNFAC' ? 'SAC' : input;
 }
 
+export const AvalancheCenterWebsiteSchema = {NWAC: 'https://nwac.us'} as const;
+
+export type AvalancheCenterWebsiteSchema = (typeof AvalancheCenterWebsiteSchema)[keyof typeof AvalancheCenterWebsiteSchema];
+export const FormatCenterWebsite = (centerId: string): string => {
+  return AvalancheCenterWebsiteSchema[centerId];
+};
+
 export enum DangerLevel {
   GeneralInformation = -1,
   None,
