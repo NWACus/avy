@@ -68,7 +68,7 @@ export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requeste
   }
 };
 
-function adaptSierraWeatherForecast(input: Weather): Weather {
+export function adaptSierraWeatherForecast(input: Weather): Weather {
   for (let i = 0; i < input.weather_data.length; i++) {
     const datum = input.weather_data[i];
     if ('columns' in datum) {
@@ -85,11 +85,14 @@ function adaptSierraWeatherForecast(input: Weather): Weather {
         datum.data[weatherIndex].length === datum.columns[0].length
       ) {
         for (let j = 0; j < datum.columns[0].length; j++) {
-          datum.columns[0][j].subheading = datum.data[weatherIndex][j].value + '\n\n' + datum.columns[0][j].subheading;
+          const previousHeading = datum.columns[0][j].subheading;
+          datum.columns[0][j].subheading = datum.data[weatherIndex][j].value || '';
+          if (previousHeading !== '') {
+            datum.columns[0][j].subheading = datum.columns[0][j].subheading + '\n\n' + previousHeading;
+          }
         }
         datum.data.splice(weatherIndex, 1);
         datum.rows?.splice(weatherIndex, 1);
-        datum.columns[0].splice(weatherIndex, 1);
       }
     }
     input.weather_data[i] = datum;
