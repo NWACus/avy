@@ -60,7 +60,8 @@ export const settingsMenuItems: Record<string, {title: string; url: string}[]> =
       title: 'News & Events',
       url: 'https://bridgertetonavalanchecenter.org/news/',
     },
-      CBAC: [
+  ],
+  CBAC: [
     {
       title: 'About CBAC',
       url: 'https://cbavalanchecenter.org/about-us/',
