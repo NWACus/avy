@@ -71,7 +71,7 @@ export const settingsMenuItems: Record<string, {title: string; url: string}[]> =
       url: 'https://www.onxmaps.com/built-with-onx/embed/1j_ML2YN5V8',
     },
     {
-      title: 'Donate',
+      title: 'Donate/Join',
       url: 'https://cbavalanchecenter.org/membership/',
     },
     {
