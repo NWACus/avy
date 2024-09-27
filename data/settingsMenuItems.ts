@@ -61,4 +61,22 @@ export const settingsMenuItems: Record<string, {title: string; url: string}[]> =
       url: 'https://bridgertetonavalanchecenter.org/news/',
     },
   ],
+  CBAC: [
+    {
+      title: 'About CBAC',
+      url: 'https://cbavalanchecenter.org/about-us/',
+    },
+    {
+      title: 'Avalanche Terrain Map',
+      url: 'https://www.onxmaps.com/built-with-onx/embed/1j_ML2YN5V8',
+    },
+    {
+      title: 'Donate/Join',
+      url: 'https://cbavalanchecenter.org/membership/',
+    },
+    {
+      title: 'News and Events',
+      url: 'https://cbavalanchecenter.org/category/backcountry-notes/',
+    },
+  ],
 };
