@@ -493,7 +493,7 @@ const BaseApp: React.FunctionComponent<{
     <>
       <HTMLRendererConfig>
         <SafeAreaProvider>
-          <NavigationContainer ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
+          <NavigationContainer linking={linking} ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
             <PostHogProvider client={postHog}>
               <FeatureFlagsProvider>
                 <KillSwitchMonitor>
