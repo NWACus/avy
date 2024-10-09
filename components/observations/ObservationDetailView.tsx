@@ -1,10 +1,9 @@
 import {Entypo} from '@expo/vector-icons';
 import React, {useCallback} from 'react';
-import {Image, ScrollView, Share, StyleSheet} from 'react-native';
+import {Button, Image, ScrollView, Share, StyleSheet} from 'react-native';
 
 import {MaterialCommunityIcons} from '@expo/vector-icons';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {colorFor} from 'components/AvalancheDangerTriangle';
@@ -20,9 +19,10 @@ import {HTML} from 'components/text/HTML';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservation} from 'hooks/useNACObservation';
 import {useNWACObservation} from 'hooks/useNWACObservation';
+import {logger} from 'logger';
 import {usePostHog} from 'posthog-react-native';
 import {LatLng, Marker} from 'react-native-maps';
-import {ObservationsStackNavigationProps, ObservationsStackParamList} from 'routes';
+import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
   Activity,
@@ -218,18 +218,12 @@ export const ObservationCard: React.FunctionComponent<{
   }, [postHog, observation.center_id, observation.id]);
   useFocusEffect(recordAnalytics);
 
-  // route.path will have the link we would put into the share button here
-  const obs_id = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observation'>) => {
-    const {id} = route.params;
-    return id;
-  };
-
   // currently the back button will leave to the list of obs of your current default center
   // even if someone shares an observation with you from a different center
   // the header will still show the current center logo (that likely needs to change as design actually said to replace that with the share icon)
   // to open in expo: *check url and port, and correct obs ID that exists
   // example: npx uri-scheme open exp://192.168.1.8:8082/--/observation/866b81db-52b3-4f94-890c-0cae8f162097 --android
-  const url = FormatCenterWebsite(observation.center_id as AvalancheCenterWebsiteSchema) + '/observations/#/view/observations/' + obs_id;
+  const url = FormatCenterWebsite(observation.center_id as AvalancheCenterWebsiteSchema) + '/observations/#/view/observations/' + observation.id;
   const onShare = async () => {
     try {
       const result = await Share.share({
@@ -244,7 +238,15 @@ export const ObservationCard: React.FunctionComponent<{
       } else if (result.action === Share.dismissedAction) {
         // dismissed
       }
-    } catch (error) {}
+    } catch (error) {
+      logger.error({error}, 'share button not working');
+    }
+
+    return (
+      <View style={{marginTop: 50}}>
+        <Button onPress={onShare} title="Share" />
+      </View>
+    );
   };
 
   return (
