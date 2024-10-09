@@ -66,7 +66,7 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
         <HStack space={4} px={32}>
           <VStack py={8} space={4}>
             <BodyXSm>
-              Avy version (test) {Application.nativeApplicationVersion} ({Application.nativeBuildVersion}) | {(process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a').slice(0, 7)}
+              Avy version {Application.nativeApplicationVersion} ({Application.nativeBuildVersion}) | {(process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a').slice(0, 7)}
             </BodyXSm>
             {updateGroupId && (
               <BodyXSm>
