@@ -1,6 +1,6 @@
 import { Entypo } from '@expo/vector-icons';
 import React, { useCallback } from 'react';
-import { Button, Image, ScrollView, Share, StyleSheet } from 'react-native';
+import { Image, ScrollView, Share, StyleSheet } from 'react-native';
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -224,19 +224,29 @@ export const ObservationCard: React.FunctionComponent<{
   // to open in expo: *check url and port, and correct obs ID that exists
   // example: npx uri-scheme open exp://192.168.1.8:8082/--/observation/866b81db-52b3-4f94-890c-0cae8f162097 --android
   const url = FormatCenterWebsite(observation.center_id as AvalancheCenterWebsiteSchema) + '/observations/#/view/observations/' + observation.id;
-  const onShare = () => {
-    try {
-      const result = Share.share({
-        message: url,
-      });
-    } catch (error) {
-      logger.error({ error }, 'share button not working');
-    }
+  const ShareButton = () => {
+    const onShare = async () => {
+      try {
+        await Share.share({
+          message: url,
+        });
+      } catch (error) {
+        logger.error({ error }, 'share button not working');
+      }
+    };
 
     return (
-      <View style={{ marginTop: 50 }}>
-        <Button onPress={onShare} title="Share" />
-      </View>
+      <Entypo
+        size={22}
+        color={colorLookup('text')}
+        name="share-alternative"
+        backgroundColor="white"
+        iconStyle={{ marginLeft: 20, marginRight: 0, marginTop: 1 }}
+        style={{ alignSelf: 'flex-end' }}
+        onPress={useCallback(() => {
+          onShare().catch(() => logger.error('share failed'));
+        }, [])}
+      />
     );
   };
 
@@ -267,15 +277,7 @@ export const ObservationCard: React.FunctionComponent<{
                     </AllCapsSm>
                   </VStack>
                   <VStack space={5} style={{ flex: 0 }}>
-                    <Entypo
-                      size={22}
-                      color={colorLookup('text')}
-                      name="share-alternative"
-                      backgroundColor="white"
-                      iconStyle={{ marginLeft: 20, marginRight: 0, marginTop: 1 }}
-                      style={{ alignSelf: 'flex-end' }}
-                      onPress={onShare}
-                    />
+                    {ShareButton()}
                   </VStack>
                 </HStack>
               </View>
