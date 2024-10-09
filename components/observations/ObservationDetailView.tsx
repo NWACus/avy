@@ -1,4 +1,4 @@
-import {AntDesign} from '@expo/vector-icons';
+import {Entypo} from '@expo/vector-icons';
 import React, {useCallback} from 'react';
 import {Image, ScrollView, Share, StyleSheet} from 'react-native';
 
@@ -236,10 +236,10 @@ export const ObservationCard: React.FunctionComponent<{
     };
 
     return (
-      <AntDesign
-        name="sharealt"
+      <Entypo
         size={22}
         color={colorLookup('text')}
+        name="share-alternative"
         backgroundColor="white"
         iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
         style={{alignSelf: 'flex-end'}}
