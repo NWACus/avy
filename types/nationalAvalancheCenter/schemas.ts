@@ -25,11 +25,11 @@ export function userFacingCenterId(input: AvalancheCenterID): string {
   return input === 'SNFAC' ? 'SAC' : input;
 }
 
-export const AvalancheCenterWebsiteSchema = {NWAC: 'https://nwac.us'} as const;
+export const AvalancheCenterWebsiteSchema = {'https://nwac.us': 'NWAC'} as const;
 
 export type AvalancheCenterWebsiteSchema = (typeof AvalancheCenterWebsiteSchema)[keyof typeof AvalancheCenterWebsiteSchema];
-export const FormatCenterWebsite = (centerId: string): string => {
-  return AvalancheCenterWebsiteSchema[centerId];
+export const FormatCenterWebsite = (value: AvalancheCenterWebsiteSchema): string => {
+  return reverseLookup(AvalancheCenterWebsiteSchema, value);
 };
 
 export enum DangerLevel {

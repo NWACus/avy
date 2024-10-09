@@ -225,7 +225,6 @@ export const ObservationCard: React.FunctionComponent<{
   // the header will still show the current center logo (that likely needs to change as design actually said to replace that with the share icon)
   // to open in expo: *check url and port, and correct obs ID that exists
   // example: npx uri-scheme open exp://192.168.1.8:8082/--/observation/866b81db-52b3-4f94-890c-0cae8f162097 --android
-  console.log(observation.center_id);
   const url = FormatCenterWebsite(observation.center_id as AvalancheCenterWebsiteSchema) + '/observations/#/view/observations/' + route.params.id;
   const onShare = async () => {
     try {
@@ -241,9 +240,7 @@ export const ObservationCard: React.FunctionComponent<{
       } else if (result.action === Share.dismissedAction) {
         // dismissed
       }
-    } catch (error) {
-      alert(error.message);
-    }
+    } catch (error) {}
   };
 
   return (
