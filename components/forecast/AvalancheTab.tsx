@@ -324,5 +324,5 @@ const assetsForType = (productType: ProductType.Warning | ProductType.Watch | Pr
       };
   }
   const invalid: never = productType;
-  throw new Error(`Unknown avalanche center: ${JSON.stringify(invalid)}`);
+  throw new Error(`Unknown product type: ${JSON.stringify(invalid)}`);
 };
