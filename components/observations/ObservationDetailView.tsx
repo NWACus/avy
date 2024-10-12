@@ -30,7 +30,7 @@ import {
   AvalancheBedSurface,
   AvalancheCause,
   AvalancheCenterID,
-  AvalancheCenterWebsiteSchema,
+  AvalancheCenterWebsites,
   AvalancheTrigger,
   AvalancheType,
   CloudCover,
@@ -41,7 +41,6 @@ import {
   FormatAvalancheCause,
   FormatAvalancheTrigger,
   FormatAvalancheType,
-  FormatCenterWebsite,
   FormatCloudCover,
   FormatInstabilityDistribution,
   FormatSnowAvailableForTransport,
@@ -223,8 +222,8 @@ export const ObservationCard: React.FunctionComponent<{
   // the header will still show the current center logo (that likely needs to change as design actually said to replace that with the share icon)
   // to open in expo: *check url and port, and correct obs ID that exists
   // example: npx uri-scheme open exp://192.168.1.8:8082/--/observation/866b81db-52b3-4f94-890c-0cae8f162097 --android
-  const url = FormatCenterWebsite(observation.center_id as AvalancheCenterWebsiteSchema) + '/observations/#/view/observations/' + observation.id;
-  const ShareButton = () => {
+  const url = AvalancheCenterWebsites[observation.center_id] + 'observations/#/view/observations/' + observation.id;
+  const ShareButton: React.FunctionComponent = () => {
     const onShare = async () => {
       try {
         await Share.share({
@@ -277,7 +276,7 @@ export const ObservationCard: React.FunctionComponent<{
                     </AllCapsSm>
                   </VStack>
                   <VStack space={5} style={{flex: 0}}>
-                    {ShareButton()}
+                    {observation.center_id in AvalancheCenterWebsites && <ShareButton />}
                   </VStack>
                 </HStack>
               </View>

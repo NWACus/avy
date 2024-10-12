@@ -50,7 +50,7 @@ import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
 import Toast, {ToastConfigParams} from 'react-native-toast-message';
 import {TabNavigatorParamList} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, AvalancheCenterWebsiteSchema, FormatCenterWebsite} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
 require('date-time-format-timezone');
 
 import axios, {AxiosRequestConfig} from 'axios';
@@ -477,7 +477,7 @@ const BaseApp: React.FunctionComponent<{
   }
 
   const linking = {
-    prefixes: [prefix, FormatCenterWebsite(avalancheCenterId as AvalancheCenterWebsiteSchema) + '/observations/#/view/'],
+    prefixes: [prefix, AvalancheCenterWebsites[avalancheCenterId] + '/observations/#/view/'],
     config: {
       screens: {
         Observations: {
