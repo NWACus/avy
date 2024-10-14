@@ -477,7 +477,7 @@ const BaseApp: React.FunctionComponent<{
   }
 
   const linking = {
-    prefixes: [prefix, AvalancheCenterWebsites[avalancheCenterId] + '/observations/#/view/'],
+    prefixes: [prefix, AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
     config: {
       screens: {
         Observations: {
