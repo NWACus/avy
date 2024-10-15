@@ -3,9 +3,11 @@ export const avalancheCenterIDSchema = z.enum([
   'BAC', // Bridgeport: CA
   'BTAC', // Bridger-Teton: ID, WY
   'CBAC', // Crested Butte: CO
+  'CNFAIC', // Chugach National Forest: AK
   'COAA', // Central Oregon: OR
   'ESAC', // Eastern Sierra: CA
   'FAC', // Flathead: MT
+  'HPAC', // Hatcher Pass: AK
   'IPAC', // Idaho Panhandle: ID, MT
   'KPAC', // Kachina: AZ
   'MSAC', // Mount Shasta: CA

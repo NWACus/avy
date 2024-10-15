@@ -49,6 +49,9 @@ export type HomeStackParamList = {
   nwacObservation: {
     id: string;
   };
+  observationSubmit: {
+    center_id: AvalancheCenterID;
+  };
 };
 export type HomeStackNavigationProps = NativeStackNavigationProp<HomeStackParamList>;
 

@@ -8,7 +8,7 @@ import {Body, BodySmBlack, BodyXSm, Title3Black, bodySize} from 'components/text
 import {useMapLayer} from 'hooks/useMapLayer';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {GestureResponderEvent, Modal, Pressable, View as RNView, TouchableOpacity} from 'react-native';
+import {Modal, PanResponder, View as RNView, TouchableOpacity} from 'react-native';
 import MapView, {LatLng, MapMarker, Region} from 'react-native-maps';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
@@ -36,6 +36,26 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
   const [mapReady, setMapReady] = useState<boolean>(false);
   const mapRef = useRef<MapView>(null);
+
+  const mapPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderRelease: (event, gestureState) => {
+        if (gestureState.dx != 0 && gestureState.dy != 0) {
+          return;
+        }
+
+        void (async () => {
+          const point = {x: event.nativeEvent.locationX, y: event.nativeEvent.locationY};
+          const coordinate = await mapRef.current?.coordinateForPoint(point);
+          if (coordinate) {
+            field.onChange(latLngToLocationPoint(coordinate));
+          }
+        })();
+      },
+    }),
+  ).current;
 
   const toggleModal = useCallback(() => {
     setModalVisible(!modalVisible);
@@ -73,35 +93,25 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
       fillOpacity: feature.properties.fillOpacity,
     })) ?? [];
 
-  const onPress = useCallback(
-    (event: GestureResponderEvent) => {
-      void (async () => {
-        const point = {x: event.nativeEvent.locationX, y: event.nativeEvent.locationY};
-        const coordinate = await mapRef.current?.coordinateForPoint(point);
-        if (coordinate) {
-          field.onChange(latLngToLocationPoint(coordinate));
-        }
-      })();
-    },
-    [field],
-  );
   const emptyHandler = useCallback(() => undefined, []);
 
   return (
-    <VStack width="100%" space={4} ref={ref}>
-      <BodySmBlack>{label}</BodySmBlack>
-      <TouchableOpacity onPress={toggleModal} disabled={disabled}>
-        <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
-          <View p={8}>
-            <Body>{value ? `${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : 'Select a location'}</Body>
-          </View>
-          <Center px={8} borderLeftWidth={2} borderColor={colorLookup('border.base')}>
-            <FontAwesome name="map-marker" color={colorLookup('text')} size={bodySize} />
-          </Center>
-        </HStack>
-      </TouchableOpacity>
-      {/* TODO: animate the appearance/disappearance of the error string */}
-      {error && <BodyXSm color={colorLookup('error.900')}>{error.message}</BodyXSm>}
+    <>
+      <VStack width="100%" space={4} ref={ref}>
+        <BodySmBlack>{label}</BodySmBlack>
+        <TouchableOpacity onPress={toggleModal} disabled={disabled}>
+          <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
+            <View p={8}>
+              <Body>{value ? `${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : 'Select a location'}</Body>
+            </View>
+            <Center px={8} borderLeftWidth={2} borderColor={colorLookup('border.base')}>
+              <FontAwesome name="map-marker" color={colorLookup('text')} size={bodySize} />
+            </Center>
+          </HStack>
+        </TouchableOpacity>
+        {/* TODO: animate the appearance/disappearance of the error string */}
+        {error && <BodyXSm color={colorLookup('error.900')}>{error.message}</BodyXSm>}
+      </VStack>
 
       {modalVisible && (
         <Modal visible={modalVisible} onRequestClose={toggleModalandClearLocation} animationType="slide">
@@ -133,7 +143,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                 <Center width="100%" height="100%">
                   {incompleteQueryState(mapLayerResult) && <QueryState results={[mapLayerResult]} />}
                   {mapReady && (
-                    <Pressable onPress={onPress}>
+                    <View {...mapPanResponder.panHandlers}>
                       <ZoneMap
                         ref={mapRef}
                         animated={false}
@@ -144,7 +154,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
                         renderFillColor={false}>
                         {field.value != null && <MapMarker coordinate={locationPointToLatLng(field.value as LocationPoint)} />}
                       </ZoneMap>
-                    </Pressable>
+                    </View>
                   )}
                 </Center>
               </VStack>
@@ -152,7 +162,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
           </SafeAreaProvider>
         </Modal>
       )}
-    </VStack>
+    </>
   );
 });
 LocationField.displayName = 'LocationField';

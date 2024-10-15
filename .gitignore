@@ -21,3 +21,5 @@ android
 # Jetbrains IDE files
 .idea
 
+# Ignore changes to the package-lock
+package-lock.json
