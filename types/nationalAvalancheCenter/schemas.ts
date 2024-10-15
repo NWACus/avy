@@ -27,6 +27,28 @@ export function userFacingCenterId(input: AvalancheCenterID): string {
   return input === 'SNFAC' ? 'SAC' : input;
 }
 
+export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
+  ['NWAC']: 'https://nwac.us/',
+  ['BAC']: 'https://bridgeportavalanchecenter.org/',
+  ['BTAC']: 'https://bridgertetonavalanchecenter.org/',
+  ['CBAC']: 'https://cbavalanchecenter.org/',
+  ['CNFAIC']: 'https://www.cnfaic.org/',
+  ['COAA']: 'https://www.coavalanche.org/',
+  ['ESAC']: 'https://www.esavalanche.org/',
+  ['FAC']: 'https://www.flatheadavalanche.org/',
+  ['HPAC']: 'https://hpavalanche.org/',
+  ['IPAC']: 'https://www.idahopanhandleavalanche.org/',
+  ['KPAC']: 'https://kachinapeaks.org/',
+  ['MSAC']: 'https://www.shastaavalanche.org/',
+  ['MWAC']: 'https://www.mountwashingtonavalanchecenter.org/',
+  ['PAC']: 'https://payetteavalanche.org/',
+  ['SAC']: 'https://www.sierraavalanchecenter.org/',
+  ['SNFAC']: 'https://www.sawtoothavalanche.com/',
+  ['TAC']: 'https://taosavalanchecenter.org/',
+  ['WAC']: 'https://wallowaavalanchecenter.org/',
+  ['WCMAC']: 'https://missoulaavalanche.org/',
+};
+
 export enum DangerLevel {
   GeneralInformation = -1,
   None,

@@ -50,7 +50,7 @@ import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
 import Toast, {ToastConfigParams} from 'react-native-toast-message';
 import {TabNavigatorParamList} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
 require('date-time-format-timezone');
 
 import axios, {AxiosRequestConfig} from 'axios';
@@ -66,6 +66,7 @@ import {Button} from 'components/content/Button';
 import {Center, VStack} from 'components/core';
 import {KillSwitchMonitor} from 'components/KillSwitchMonitor';
 import {Body, BodyBlack, Title3Black} from 'components/text';
+import * as Linking from 'expo-linking';
 import * as Updates from 'expo-updates';
 import {FeatureFlagsProvider} from 'FeatureFlags';
 import {useToggle} from 'hooks/useToggle';
@@ -76,6 +77,7 @@ import {startupUpdateCheck, UpdateStatus} from 'Updates';
 import {ZodError} from 'zod';
 
 logger.info('App starting.');
+const prefix = Linking.createURL('/');
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   logger.info('enabling android layout animations');
@@ -474,11 +476,24 @@ const BaseApp: React.FunctionComponent<{
     );
   }
 
+  const linking = {
+    prefixes: [prefix, AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
+    config: {
+      screens: {
+        Observations: {
+          screens: {
+            observation: 'observations/:id',
+          },
+        },
+      },
+    },
+  };
+
   return (
     <>
       <HTMLRendererConfig>
         <SafeAreaProvider>
-          <NavigationContainer ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
+          <NavigationContainer linking={linking} ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
             <PostHogProvider client={postHog}>
               <FeatureFlagsProvider>
                 <KillSwitchMonitor>
