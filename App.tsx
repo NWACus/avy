@@ -66,7 +66,6 @@ import {Button} from 'components/content/Button';
 import {Center, VStack} from 'components/core';
 import {KillSwitchMonitor} from 'components/KillSwitchMonitor';
 import {Body, BodyBlack, Title3Black} from 'components/text';
-import * as Linking from 'expo-linking';
 import * as Updates from 'expo-updates';
 import {FeatureFlagsProvider} from 'FeatureFlags';
 import {useToggle} from 'hooks/useToggle';
@@ -77,7 +76,6 @@ import {startupUpdateCheck, UpdateStatus} from 'Updates';
 import {ZodError} from 'zod';
 
 logger.info('App starting.');
-const prefix = Linking.createURL('/');
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   logger.info('enabling android layout animations');
@@ -477,7 +475,7 @@ const BaseApp: React.FunctionComponent<{
   }
 
   const linking = {
-    prefixes: [prefix, AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
+    prefixes: [AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
     config: {
       screens: {
         Observations: {
