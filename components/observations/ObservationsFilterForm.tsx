@@ -9,35 +9,32 @@ import {useBackHandler} from '@react-native-community/hooks';
 import {useFocusEffect} from '@react-navigation/native';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import {Button} from 'components/content/Button';
-import {Center, HStack, VStack, View} from 'components/core';
+import {HStack, VStack, View} from 'components/core';
 import {CheckboxSelectField} from 'components/form/CheckboxSelectField';
-import {Conditional} from 'components/form/Conditional';
 import {DateField} from 'components/form/DateField';
 import {SwitchField} from 'components/form/SwitchField';
-import {Body, BodyBlack, BodySemibold, BodySmBlack, Title3Semibold, bodySize} from 'components/text';
+import {BodyBlack, BodySemibold, BodySmBlack, Title3Semibold} from 'components/text';
 import {endOfDay, isAfter, isBefore, parseISO} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
-import {FieldErrors, FormProvider, useController, useForm, useFormContext} from 'react-hook-form';
+import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, SafeAreaView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {colorLookup} from 'theme';
 import {MapLayer, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
-import {RequestedTime, endOfSeasonLocalDate, requestedTimeToUTCDate, startOfSeasonLocalDate} from 'utils/date';
+import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 import {z} from 'zod';
 
 const avalancheInstabilitySchema = z.enum(['observed', 'triggered', 'caught']);
 type avalancheInstability = z.infer<typeof avalancheInstabilitySchema>;
 
-const dateValueSchema = z.enum(['current_season', 'custom']);
-type DateValue = z.infer<typeof dateValueSchema>;
-
 const observationFilterConfigSchema = z.object({
   zones: z.array(z.string()),
-  dates: z.object({
-    value: dateValueSchema,
-    from: z.date(),
-    to: z.date(),
-  }),
+  dates: z
+    .object({
+      from: z.date(),
+      to: z.date(),
+    })
+    .nullable(),
   observerTypes: z.array(z.nativeEnum(PartnerType)),
   avalanches: z.array(avalancheInstabilitySchema),
   cracking: z.boolean(),
@@ -48,43 +45,26 @@ export type ObservationFilterConfig = z.infer<typeof observationFilterConfigSche
 
 type FilterFunction = (observation: ObservationFragment) => boolean;
 
-const DATE_LABELS: Record<DateValue, string> = {
-  current_season: 'Current season',
-  custom: 'Custom range',
-};
-
-const currentSeasonDates = (requestedTime: RequestedTime): {from: Date; to: Date} => {
-  const endDate = endOfSeasonLocalDate(requestedTime);
-  const startDate = startOfSeasonLocalDate(requestedTime);
-  return {from: startDate, to: endDate};
-};
-
-export const createDefaultFilterConfig = (requestedTime: RequestedTime, defaults: Partial<ObservationFilterConfig> | undefined): ObservationFilterConfig => {
+export const createDefaultFilterConfig = (defaults: Partial<ObservationFilterConfig> | undefined): ObservationFilterConfig => {
   return {
     zones: [],
     observerTypes: [],
     avalanches: [],
     cracking: false,
     collapsing: false,
-    dates: {
-      value: 'current_season',
-      ...currentSeasonDates(requestedTime),
-    },
+    dates: null,
     ...defaults,
   };
 };
 
 export const dateLabelForFilterConfig = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>): string => {
-  const value = dates?.value || 'current_season';
-  switch (value) {
-    case 'current_season':
-      return DATE_LABELS[value];
-    case 'custom':
-      if (!dates?.from || !dates?.to) {
-        throw new Error('custom date range requires from and to dates');
-      }
-      return `${dates.from.toDateString()} - ${dates.to.toDateString()}`;
+  if (!dates) {
+    return '';
   }
+  if (!dates?.from || !dates?.to) {
+    throw new Error('custom date range requires from and to dates');
+  }
+  return `${dates.from.toDateString()} - ${dates.to.toDateString()}`;
 };
 
 const matchesDates = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>): FilterFunction => {
@@ -126,11 +106,14 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
   }
 
   const filterFuncs: FilterListItem[] = [];
-  filterFuncs.push({
-    type: 'date',
-    filter: matchesDates(config.dates),
-    label: dateLabelForFilterConfig(config.dates),
-  });
+  if (config.dates) {
+    filterFuncs.push({
+      type: 'date',
+      filter: matchesDates(config.dates),
+      label: dateLabelForFilterConfig(config.dates),
+      removeFilter: (config: ObservationFilterConfig) => ({...config, dates: null}),
+    });
+  }
 
   if (config.zones.length > 0) {
     filterFuncs.push({
@@ -188,43 +171,6 @@ interface ObservationsFilterFormProps {
   setVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-interface DateToggleFieldProps {
-  name: string;
-  dateRange: {min: Date; max: Date};
-  disabled?: boolean;
-}
-export const DateToggleField = ({name, dateRange, disabled}: DateToggleFieldProps) => {
-  const {setValue} = useFormContext();
-  const {field} = useController({name});
-
-  const value = (field.value || 'current_season') as DateValue;
-
-  const onToggle = React.useCallback(() => {
-    const nextValue = value === 'current_season' ? 'custom' : 'current_season';
-    setValue(name, nextValue, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
-    if (nextValue === 'custom') {
-      setValue('dates.from', dateRange.min, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
-      setValue('dates.to', dateRange.max, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
-    }
-  }, [setValue, name, value, dateRange]);
-
-  return (
-    <TouchableOpacity disabled={disabled} onPress={onToggle}>
-      <VStack width="100%" flex={1} flexGrow={1} bg={'white'}>
-        <HStack width="100%" height={40} justifyContent="space-between" alignItems="center" space={8}>
-          <View>
-            <Body>{DATE_LABELS[value]}</Body>
-          </View>
-          <Center px={8}>
-            <AntDesign name={value === 'current_season' ? 'down' : 'close'} size={bodySize} style={{marginRight: -8}} />
-          </Center>
-        </HStack>
-      </VStack>
-    </TouchableOpacity>
-  );
-};
-DateToggleField.displayName = 'DateToggleField';
-
 const formFieldSpacing = 16;
 
 export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterFormProps> = ({
@@ -269,24 +215,16 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
 
   const onSubmitHandler = useCallback(
     (data: ObservationFilterConfig) => {
-      if (data.dates.value === 'current_season') {
-        // When the user selects `current_season`, the date fields might be set to a previous custom range.
-        // Make sure they're overridden with the season dates.
-        data.dates = {
-          value: 'current_season',
-          ...currentSeasonDates(requestedTime),
-        };
-      } else {
+      if (data.dates !== null) {
         // When the user specfies a date range, make sure it runs until midnight of the last day
         data.dates = {
-          value: 'custom',
           from: data.dates.from,
           to: endOfDay(data.dates.to),
         };
       }
       setFilterConfig(data);
     },
-    [setFilterConfig, requestedTime],
+    [setFilterConfig],
   );
 
   const fieldRefs = React.useRef<{ref: RNView; field: keyof ObservationFilterConfig}[]>([]);
@@ -332,7 +270,6 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   );
 
   const minMaxDates = {
-    min: startOfSeasonLocalDate(requestedTime),
     max: requestedTimeToUTCDate(requestedTime),
   };
 
@@ -357,27 +294,18 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     <BodyBlack>Date</BodyBlack>
                   </View>
                   <VStack space={8} px={16} bg="white">
-                    <DateToggleField name="dates.value" dateRange={minMaxDates} />
-                    <Conditional name="dates.value" value={'custom'}>
-                      <View bg="white">
-                        <BodySmBlack>From</BodySmBlack>
-                      </View>
-                    </Conditional>
-                    <Conditional name="dates.value" value={'custom'}>
-                      <View bg="white">
-                        <DateField name="dates.from" minimumDate={minMaxDates.min} maximumDate={minMaxDates.max} />
-                      </View>
-                    </Conditional>
-                    <Conditional name="dates.value" value={'custom'}>
-                      <View bg="white">
-                        <BodySmBlack>To</BodySmBlack>
-                      </View>
-                    </Conditional>
-                    <Conditional name="dates.value" value={'custom'}>
-                      <View bg="white" pb={formFieldSpacing}>
-                        <DateField name="dates.to" minimumDate={minMaxDates.min} maximumDate={minMaxDates.max} />
-                      </View>
-                    </Conditional>
+                    <View bg="white">
+                      <BodySmBlack>From</BodySmBlack>
+                    </View>
+                    <View bg="white">
+                      <DateField name="dates.from" maximumDate={minMaxDates.max} />
+                    </View>
+                    <View bg="white">
+                      <BodySmBlack>To</BodySmBlack>
+                    </View>
+                    <View bg="white" pb={formFieldSpacing}>
+                      <DateField name="dates.to" maximumDate={minMaxDates.max} />
+                    </View>
                   </VStack>
                   {mapLayer && (
                     <View px={16} pt={16}>

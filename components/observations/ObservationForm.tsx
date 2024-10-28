@@ -34,7 +34,6 @@ import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, InstabilityDistribution, userFacingCenterId} from 'types/nationalAvalancheCenter';
-import {startOfSeasonLocalDate} from 'utils/date';
 
 /**
  * ObservationTextField can only have a name prop that is a key of a string value.
@@ -352,7 +351,7 @@ export const ObservationForm: React.FC<{
                         }}
                         disabled={disableFormControls}
                       />
-                      <DateField name="start_date" label="Observation date" minimumDate={startOfSeasonLocalDate(today)} maximumDate={today} disabled={disableFormControls} />
+                      <DateField name="start_date" label="Observation date" maximumDate={today} disabled={disableFormControls} />
                       <SelectField
                         name="activity"
                         label="Activity"
