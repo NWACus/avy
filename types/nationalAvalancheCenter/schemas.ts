@@ -31,21 +31,21 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
   ['NWAC']: 'https://nwac.us/',
   ['BAC']: 'https://bridgeportavalanchecenter.org/',
   ['BTAC']: 'https://bridgertetonavalanchecenter.org/',
-  ['CBAC']: 'https://cbavalanchecenter.org/',
-  ['CNFAIC']: 'https://www.cnfaic.org/',
+  ['CBAC']: 'https://cbavalanchecenter.org/view-', // special link for obs sharing https://cbavalanchecenter.org/view-observations/#/view/observations/ddc9783a-a321-45cd-b656-88b066e5868d
+  ['CNFAIC']: 'https://www.cnfaic.org/', // just wont work, , not using AFP https://www.cnfaic.org/observations/tincan-383/
   ['COAA']: 'https://www.coavalanche.org/',
   ['ESAC']: 'https://www.esavalanche.org/',
-  ['FAC']: 'https://www.flatheadavalanche.org/',
-  ['HPAC']: 'https://hpavalanche.org/',
+  ['FAC']: 'https://www.flatheadavalanche.org/observations/view-', // uber special https://www.flatheadavalanche.org/observations/view-observations/#/view/observations/3014f31b-ab2e-40f0-8d2e-6b5576fb2830
+  ['HPAC']: 'https://hpavalanche.org/', // also special, not using AFP - cant even find a link to one obs? https://hpavalanche.org/observations/all-observations/
   ['IPAC']: 'https://www.idahopanhandleavalanche.org/',
   ['KPAC']: 'https://kachinapeaks.org/',
-  ['MSAC']: 'https://www.shastaavalanche.org/',
+  ['MSAC']: 'https://www.shastaavalanche.org/node/7867/#/view/', // also super special, will need to adjust https://www.shastaavalanche.org/node/7867/#/view/observations/71d356ff-b194-490f-82cb-3a7351fb0eb6
   ['MWAC']: 'https://www.mountwashingtonavalanchecenter.org/',
   ['PAC']: 'https://payetteavalanche.org/',
   ['SAC']: 'https://www.sierraavalanchecenter.org/',
   ['SNFAC']: 'https://www.sawtoothavalanche.com/',
-  ['TAC']: 'https://taosavalanchecenter.org/',
-  ['WAC']: 'https://wallowaavalanchecenter.org/',
+  ['TAC']: 'https://taosavalanchecenter.org/', // just wont work, not using AFP https://taosavalanchecenter.org/public-obs/20240621_lake-fork-ne-face/
+  ['WAC']: 'https://wallowaavalanchecenter.org/', // special https://wallowaavalanchecenter.org/observations-list/#/view/observations/8e233605-1da8-47b9-9c29-2f7d7a1ca36e
   ['WCMAC']: 'https://missoulaavalanche.org/',
 };
 

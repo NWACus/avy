@@ -217,11 +217,8 @@ export const ObservationCard: React.FunctionComponent<{
   }, [postHog, observation.center_id, observation.id]);
   useFocusEffect(recordAnalytics);
 
-  // currently the back button will leave to the list of obs of your current default center
-  // even if someone shares an observation with you from a different center
-  // the header will still show the current center logo (that likely needs to change as design actually said to replace that with the share icon)
   // to open in expo: *check url and port, and correct obs ID that exists
-  // example: npx uri-scheme open exp://192.168.1.8:8082/--/observation/866b81db-52b3-4f94-890c-0cae8f162097 --android
+  // example: npx uri-scheme open exp://192.168.1.8:8082/--/observations/866b81db-52b3-4f94-890c-0cae8f162097 --android
   const url = AvalancheCenterWebsites[observation.center_id] + 'observations/#/view/observations/' + observation.id;
   const ShareButton: React.FunctionComponent = () => {
     const onShare = async () => {

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   Lato_100Thin,
@@ -13,13 +13,13 @@ import {
   Lato_900Black_Italic,
   useFonts,
 } from '@expo-google-fonts/lato';
-import {Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
-import {SelectProvider} from '@mobile-reality/react-native-select-pro';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {NavigationContainer, RouteProp, useNavigationContainerRef} from '@react-navigation/native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { SelectProvider } from '@mobile-reality/react-native-select-pro';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { getStateFromPath, NavigationContainer, RouteProp, useNavigationContainerRef } from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
-import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, UIManager, View} from 'react-native';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
+import { ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, UIManager, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import * as Sentry from '@sentry/react-native';
 import * as Application from 'expo-application';
@@ -27,53 +27,54 @@ import * as BackgroundFetch from 'expo-background-fetch';
 import Constants from 'expo-constants';
 import * as TaskManager from 'expo-task-manager';
 
-import {merge} from 'lodash';
+import { merge } from 'lodash';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {createAsyncStoragePersister} from '@tanstack/query-async-storage-persister';
-import {focusManager, QueryCache, QueryClient, useQueryClient} from '@tanstack/react-query';
-import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
+import { focusManager, QueryCache, QueryClient, useQueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 
-import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
-import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
-import {HomeTabScreen} from 'components/screens/HomeScreen';
-import {MenuStackScreen} from 'components/screens/MenuScreen';
-import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
-import {WeatherScreen} from 'components/screens/WeatherScreen';
-import {HTMLRendererConfig} from 'components/text/HTML';
-import ImageCache, {queryKeyPrefix} from 'hooks/useCachedImageURI';
-import {useOnlineManager} from 'hooks/useOnlineManager';
-import {IntlProvider} from 'intl';
-import {logFilePath, logger} from 'logger';
-import {LoggerContext, LoggerProps} from 'loggerContext';
-import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
-import Toast, {ToastConfigParams} from 'react-native-toast-message';
-import {TabNavigatorParamList} from 'routes';
-import {colorLookup} from 'theme';
-import {AvalancheCenterID, AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
+import { ClientContext, ClientProps, productionHosts, stagingHosts } from 'clientContext';
+import { ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast } from 'components/content/Toast';
+import { HomeTabScreen } from 'components/screens/HomeScreen';
+import { MenuStackScreen } from 'components/screens/MenuScreen';
+import { ObservationsTabScreen } from 'components/screens/ObservationsScreen';
+import { WeatherScreen } from 'components/screens/WeatherScreen';
+import { HTMLRendererConfig } from 'components/text/HTML';
+import ImageCache, { queryKeyPrefix } from 'hooks/useCachedImageURI';
+import { useOnlineManager } from 'hooks/useOnlineManager';
+import { IntlProvider } from 'intl';
+import { logFilePath, logger } from 'logger';
+import { LoggerContext, LoggerProps } from 'loggerContext';
+import { prefetchAllActiveForecasts } from 'network/prefetchAllActiveForecasts';
+import Toast, { ToastConfigParams } from 'react-native-toast-message';
+import { TabNavigatorParamList } from 'routes';
+import { colorLookup } from 'theme';
+import { AvalancheCenterID, AvalancheCenterWebsites } from 'types/nationalAvalancheCenter';
 require('date-time-format-timezone');
 
-import axios, {AxiosRequestConfig} from 'axios';
-import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
+import axios, { AxiosRequestConfig } from 'axios';
+import { QUERY_CACHE_ASYNC_STORAGE_KEY } from 'data/asyncStorageKeys';
 import * as FileSystem from 'expo-file-system';
-import {PreferencesProvider, usePreferences} from 'Preferences';
-import {NotFoundError} from 'types/requests';
-import {formatRequestedTime, RequestedTime} from 'utils/date';
+import { PreferencesProvider, usePreferences } from 'Preferences';
+import { NotFoundError } from 'types/requests';
+import { formatRequestedTime, RequestedTime } from 'utils/date';
 
-import {TRACE} from 'browser-bunyan';
+import { TRACE } from 'browser-bunyan';
 import * as messages from 'compiled-lang/en.json';
-import {Button} from 'components/content/Button';
-import {Center, VStack} from 'components/core';
-import {KillSwitchMonitor} from 'components/KillSwitchMonitor';
-import {Body, BodyBlack, Title3Black} from 'components/text';
+import { Button } from 'components/content/Button';
+import { Center, VStack } from 'components/core';
+import { KillSwitchMonitor } from 'components/KillSwitchMonitor';
+import { Body, BodyBlack, Title3Black } from 'components/text';
+import * as Linking from 'expo-linking';
 import * as Updates from 'expo-updates';
-import {FeatureFlagsProvider} from 'FeatureFlags';
-import {useToggle} from 'hooks/useToggle';
-import {filterLoggedData} from 'logging/filterLoggedData';
+import { FeatureFlagsProvider } from 'FeatureFlags';
+import { useToggle } from 'hooks/useToggle';
+import { filterLoggedData } from 'logging/filterLoggedData';
 import mixpanel from 'mixpanel';
-import PostHog, {PostHogProvider} from 'posthog-react-native';
-import {startupUpdateCheck, UpdateStatus} from 'Updates';
-import {ZodError} from 'zod';
+import PostHog, { PostHogProvider } from 'posthog-react-native';
+import { startupUpdateCheck, UpdateStatus } from 'Updates';
+import { ZodError } from 'zod';
 
 logger.info('App starting.');
 
@@ -82,17 +83,17 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const encodeParams = (params: {[s: string]: string}) => {
+const encodeParams = (params: { [s: string]: string }) => {
   return Object.entries(params)
     .map(kv => kv.map(encodeURIComponent).join('='))
     .join('&');
 };
 
-const formatURI = (request: AxiosRequestConfig, options: {includePostData?: boolean; verbose?: boolean} = {}): string => {
+const formatURI = (request: AxiosRequestConfig, options: { includePostData?: boolean; verbose?: boolean } = {}): string => {
   const method = request.method ?? 'GET';
   let msg = `${method.toUpperCase()} ${request.url ?? 'url'}`;
-  if (request.params && Object.keys(request.params as {[s: string]: string}).length !== 0) {
-    msg += `?${encodeParams(options.verbose ? (request.params as {[s: string]: string}) : (filterLoggedData(request.params) as {[s: string]: string}))}`;
+  if (request.params && Object.keys(request.params as { [s: string]: string }).length !== 0) {
+    msg += `?${encodeParams(options.verbose ? (request.params as { [s: string]: string }) : (filterLoggedData(request.params) as { [s: string]: string }))}`;
   }
   if (request.data && options.includePostData) {
     msg += ` data: ${JSON.stringify(options.verbose ? request.data : filterLoggedData(request.data))}`;
@@ -100,14 +101,13 @@ const formatURI = (request: AxiosRequestConfig, options: {includePostData?: bool
   return msg;
 };
 
-axios.defaults.headers.common['User-Agent'] = `avy/${Application.nativeApplicationVersion || '0.0.0'}.${Application.nativeBuildVersion || '0'}+${
-  Updates.channel || 'development'
-}-${process.env.EXPO_PUBLIC_GIT_REVISION || 'git-revision'}`;
+axios.defaults.headers.common['User-Agent'] = `avy/${Application.nativeApplicationVersion || '0.0.0'}.${Application.nativeBuildVersion || '0'}+${Updates.channel || 'development'
+  }-${process.env.EXPO_PUBLIC_GIT_REVISION || 'git-revision'}`;
 
 axios.interceptors.request.use(request => {
   const msg = 'sending request';
   const level = logger.level();
-  const thisLogger = logger.child({uri: formatURI(request, {includePostData: level <= TRACE, verbose: level <= TRACE})});
+  const thisLogger = logger.child({ uri: formatURI(request, { includePostData: level <= TRACE, verbose: level <= TRACE }) });
   thisLogger.debug(msg);
   if (request.data && level <= TRACE) {
     thisLogger.trace(
@@ -123,10 +123,10 @@ axios.interceptors.request.use(request => {
 axios.interceptors.response.use(response => {
   const msg = 'received request response';
   const level = logger.level();
-  const thisLogger = logger.child({uri: formatURI(response.config, {includePostData: level <= TRACE}), status: response.status});
+  const thisLogger = logger.child({ uri: formatURI(response.config, { includePostData: level <= TRACE }), status: response.status });
   thisLogger.debug(msg);
   if (response.data && level <= TRACE) {
-    thisLogger.trace({data: JSON.stringify(filterLoggedData(response.data))}, msg);
+    thisLogger.trace({ data: JSON.stringify(filterLoggedData(response.data)) }, msg);
   }
   return response;
 });
@@ -134,7 +134,7 @@ axios.interceptors.response.use(response => {
 // The SplashScreen stays up until we've loaded all of our fonts and other assets
 void SplashScreen.preventAutoHideAsync().catch((error: Error) => {
   // We really don't care about these errors, they're common and not actionable
-  logger.debug('SplashScreen.preventAutoHideAsync threw error, ignoring', {error});
+  logger.debug('SplashScreen.preventAutoHideAsync threw error, ignoring', { error });
 });
 
 let routingInstrumentation: Sentry.ReactNavigationInstrumentation | undefined = undefined;
@@ -152,12 +152,12 @@ if (Sentry?.init) {
       dist: `${Application.nativeApplicationVersion || '0.0.0'}.${Application.nativeBuildVersion || '0'}`,
       release: process.env.EXPO_PUBLIC_GIT_REVISION,
       enableWatchdogTerminationTracking: true,
-      integrations: [new Sentry.ReactNativeTracing({enableUserInteractionTracing: true, routingInstrumentation})],
+      integrations: [new Sentry.ReactNativeTracing({ enableUserInteractionTracing: true, routingInstrumentation })],
       beforeSend: async (event, hint) => {
-        const {exists} = await FileSystem.getInfoAsync(logFilePath);
+        const { exists } = await FileSystem.getInfoAsync(logFilePath);
         if (exists) {
           const data = await FileSystem.readAsStringAsync(logFilePath);
-          hint.attachments = [{filename: 'log.json', data, contentType: 'application/json'}];
+          hint.attachments = [{ filename: 'log.json', data, contentType: 'application/json' }];
         }
         event.tags = {
           ...(event.tags ?? {}),
@@ -188,8 +188,8 @@ queryCache.subscribe(event => {
   }
 
   const data = event.query.state.data as string;
-  logger.debug({source: values['uri'], destination: data}, 'cleaning up remote image');
-  void FileSystem.deleteAsync(data, {idempotent: true});
+  logger.debug({ source: values['uri'], destination: data }, 'cleaning up remote image');
+  void FileSystem.deleteAsync(data, { idempotent: true });
   // TODO: handle errors?
 });
 
@@ -210,7 +210,7 @@ TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, () => {
     try {
       await ImageCache.reconcile(queryClient, queryClient.getQueryCache(), logger);
     } catch (e) {
-      logger.error({error: e}, 'error reconciling image cache');
+      logger.error({ error: e }, 'error reconciling image cache');
     }
   })();
   return BackgroundFetch.BackgroundFetchResult.NewData;
@@ -247,18 +247,18 @@ let postHog: PostHog | undefined = undefined;
 
 const postHogAsync: Promise<PostHog | undefined> = process.env.EXPO_PUBLIC_POSTHOG_API_KEY
   ? PostHog.initAsync(process.env.EXPO_PUBLIC_POSTHOG_API_KEY, {
-      host: 'https://app.posthog.com',
-    })
+    host: 'https://app.posthog.com',
+  })
   : new Promise<undefined>(resolve => {
-      resolve(undefined);
-    });
+    resolve(undefined);
+  });
 
 postHogAsync
   .then(client => {
     postHog = client;
   })
   .catch((error: unknown) => {
-    logger.error({error: error}, 'error initializing posthog');
+    logger.error({ error: error }, 'error initializing posthog');
   });
 
 const App = () => {
@@ -266,9 +266,9 @@ const App = () => {
     useOnlineManager();
 
     return (
-      <LoggerContext.Provider value={{logger: logger}}>
+      <LoggerContext.Provider value={{ logger: logger }}>
         {/* we clear the query cache every time a new build is published */}
-        <PersistQueryClientProvider client={queryClient} persistOptions={{persister: asyncStoragePersister, buster: process.env.EXPO_PUBLIC_GIT_REVISION || ''}}>
+        <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister, buster: process.env.EXPO_PUBLIC_GIT_REVISION || '' }}>
           <IntlProvider locale="en" defaultLocale="en" messages={messages}>
             <AppWithClientContext />
           </IntlProvider>
@@ -306,13 +306,13 @@ const AppWithClientContext = () => {
 const BaseApp: React.FunctionComponent<{
   staging: boolean;
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
-}> = ({staging, setStaging}) => {
-  const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const {preferences, setPreferences} = usePreferences();
+}> = ({ staging, setStaging }) => {
+  const { logger } = React.useContext<LoggerProps>(LoggerContext);
+  const { preferences, setPreferences } = usePreferences();
   const avalancheCenterId = preferences.center;
   const setAvalancheCenterId = useCallback(
     (avalancheCenterId: AvalancheCenterID) => {
-      setPreferences({center: avalancheCenterId});
+      setPreferences({ center: avalancheCenterId });
     },
     [setPreferences],
   );
@@ -323,11 +323,11 @@ const BaseApp: React.FunctionComponent<{
       mixpanel.identify(preferences.mixpanelUserId);
       mixpanel.track('App starting');
       setMixpanelUserIdentified(true);
-      Sentry.setUser({analytics_id: preferences.mixpanelUserId});
+      Sentry.setUser({ analytics_id: preferences.mixpanelUserId });
     }
   }, [preferences.mixpanelUserId, mixpanelUserIdentified]);
 
-  const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
+  const { nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime } = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
   useEffect(() => {
     void (async () => {
@@ -337,7 +337,7 @@ const BaseApp: React.FunctionComponent<{
         try {
           await prefetchAllActiveForecasts(queryClient, avalancheCenterId, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, logger);
         } catch (e) {
-          logger.error({error: e}, 'error prefetching data');
+          logger.error({ error: e }, 'error prefetching data');
         }
       }
     })();
@@ -360,7 +360,7 @@ const BaseApp: React.FunctionComponent<{
   });
 
   if (error) {
-    logger.error({error: error}, 'error loading fonts');
+    logger.error({ error: error }, 'error loading fonts');
   }
 
   const navigationRef = useNavigationContainerRef();
@@ -371,8 +371,8 @@ const BaseApp: React.FunctionComponent<{
     const route = navigationRef.current?.getCurrentRoute();
     if (route) {
       const params = (route.params || {}) as Readonly<Record<string, unknown>>;
-      const {center_id, ...otherParams} = params;
-      mixpanel.track('Screen viewed', {screen_name: route.name, center_id: center_id || 'unknown', params: otherParams});
+      const { center_id, ...otherParams } = params;
+      mixpanel.track('Screen viewed', { screen_name: route.name, center_id: center_id || 'unknown', params: otherParams });
     }
   }, [navigationRef]);
 
@@ -389,7 +389,7 @@ const BaseApp: React.FunctionComponent<{
               await SplashScreen.hideAsync();
             } catch (error) {
               // We really don't care about these errors, they're common and not actionable
-              logger.debug({error}, 'Error from SplashScreen.hideAsync, ignoring');
+              logger.debug({ error }, 'Error from SplashScreen.hideAsync, ignoring');
             }
           })(),
         500,
@@ -403,16 +403,16 @@ const BaseApp: React.FunctionComponent<{
     startupUpdateCheck()
       .then(setUpdateStatus)
       .catch((error: Error) => {
-        logger.error({error}, 'Unexpected error checking for updates');
+        logger.error({ error }, 'Unexpected error checking for updates');
         // No need to keep blocking the app from loading
         setUpdateStatus('ready');
       });
   }, [setUpdateStatus, logger]);
 
   const tabNavigatorScreenOptions = useCallback(
-    ({route: {name}}: {route: RouteProp<TabNavigatorParamList, keyof TabNavigatorParamList>}) => ({
+    ({ route: { name } }: { route: RouteProp<TabNavigatorParamList, keyof TabNavigatorParamList> }) => ({
       headerShown: false,
-      tabBarIcon: ({color, size}: {focused: boolean; color: string; size: number}) => {
+      tabBarIcon: ({ color, size }: { focused: boolean; color: string; size: number }) => {
         if (name === 'Home') {
           return <MaterialCommunityIcons name="map-outline" size={size} color={color} />;
         } else if (name === 'Observations') {
@@ -430,7 +430,7 @@ const BaseApp: React.FunctionComponent<{
     [],
   );
 
-  const [startupPaused, {off: unpauseStartup}] = useToggle(process.env.EXPO_PUBLIC_PAUSE_ON_STARTUP === 'true');
+  const [startupPaused, { off: unpauseStartup }] = useToggle(process.env.EXPO_PUBLIC_PAUSE_ON_STARTUP === 'true');
 
   if (!fontsLoaded || updateStatus !== 'ready') {
     // Here, we render a view that looks exactly like the splash screen but now has an activity indicator
@@ -452,8 +452,8 @@ const BaseApp: React.FunctionComponent<{
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           source={require('./assets/splash.png')}
         />
-        <Center style={{position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
-          <ActivityIndicator size="large" style={{marginTop: 200}} />
+        <Center style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
+          <ActivityIndicator size="large" style={{ marginTop: 200 }} />
         </Center>
       </View>
     );
@@ -474,6 +474,14 @@ const BaseApp: React.FunctionComponent<{
     );
   }
 
+  const flip = (data: Record<AvalancheCenterID, string>) => Object.fromEntries(Object.entries(data).map(([key, value]) => [value, key]));
+
+  // get the universal link the app was open with, if one exists
+  let initialUrl: string | null = null;
+  Linking.getInitialURL().then(url => {
+    initialUrl = url;
+  });
+
   const linking = {
     prefixes: [AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
     config: {
@@ -484,6 +492,16 @@ const BaseApp: React.FunctionComponent<{
           },
         },
       },
+    },
+    getStateFromPath: (path: string, opts: any) => {
+      // give a breadcrumb that the app was open from a shared link - find center based on prefix
+      const AvalancheCenterWebsitesFlipped = flip(AvalancheCenterWebsites);
+      if (initialUrl !== null && !initialUrl?.includes('exp')) {
+        return getStateFromPath(path + '?share=true&share_center=' + AvalancheCenterWebsitesFlipped[initialUrl], opts);
+      } else {
+        // if initial url is null, no center logo is known
+        return getStateFromPath(path + '?share=true', opts);
+      }
     },
   };
 
@@ -499,10 +517,10 @@ const BaseApp: React.FunctionComponent<{
                     <StatusBar barStyle="dark-content" backgroundColor="white" />
                     <View style={StyleSheet.absoluteFill}>
                       <TabNavigator.Navigator initialRouteName="Home" screenOptions={tabNavigatorScreenOptions}>
-                        <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
-                          {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                        <TabNavigator.Screen name="Home" initialParams={{ center_id: avalancheCenterId }} options={{ title: 'Zones' }}>
+                          {state => HomeTabScreen(merge(state, { route: { params: { center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime) } } }))}
                         </TabNavigator.Screen>
-                        <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
+                        <TabNavigator.Screen name="Observations" initialParams={{ center_id: avalancheCenterId }}>
                           {state =>
                             ObservationsTabScreen(
                               merge(state, {
@@ -516,10 +534,10 @@ const BaseApp: React.FunctionComponent<{
                             )
                           }
                         </TabNavigator.Screen>
-                        <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
-                          {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                        <TabNavigator.Screen name="Weather Data" initialParams={{ center_id: avalancheCenterId }}>
+                          {state => WeatherScreen(merge(state, { route: { params: { center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime) } } }))}
                         </TabNavigator.Screen>
-                        <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}} options={{title: 'More'}}>
+                        <TabNavigator.Screen name="Menu" initialParams={{ center_id: avalancheCenterId }} options={{ title: 'More' }}>
                           {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
                         </TabNavigator.Screen>
                       </TabNavigator.Navigator>
