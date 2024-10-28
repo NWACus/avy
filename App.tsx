@@ -16,7 +16,7 @@ import {
 import {Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
 import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {getStateFromPath, NavigationContainer, RouteProp, useNavigationContainerRef} from '@react-navigation/native';
+import {getStateFromPath, NavigationContainer, PathConfigMap, RouteProp, useNavigationContainerRef} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
 import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, UIManager, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -479,12 +479,15 @@ const BaseApp: React.FunctionComponent<{
 
   // get the universal link the app was open with, if one exists
   let initialUrl: string | null = null;
-  Linking.getInitialURL().then(url => {
-    initialUrl = url;
-  });
+  Linking.getInitialURL()
+    .then(url => {
+      initialUrl = url;
+    })
+    .catch(() => logger.error('Getting initialUrl failed'));
 
+  const prefix = Linking.createURL('/');
   const linking = {
-    prefixes: [AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
+    prefixes: [prefix, AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
     config: {
       screens: {
         Observations: {
@@ -494,7 +497,7 @@ const BaseApp: React.FunctionComponent<{
         },
       },
     },
-    getStateFromPath: (path: string, opts: any) => {
+    getStateFromPath: (path: string, opts: {initialRouteName?: string; screens: PathConfigMap<object>} | undefined) => {
       // give a breadcrumb that the app was open from a shared link - find center based on prefix
       const AvalancheCenterWebsitesFlipped = flip(AvalancheCenterWebsites);
       if (initialUrl !== null && !initialUrl?.includes('exp')) {

@@ -15,19 +15,21 @@ export const NavigationHeader: React.FunctionComponent<
     large?: boolean;
   }
 > = ({navigation, route, options, back, center_id, large}) => {
-  var share: boolean = false;
-  var shareCenterId: AvalancheCenterID = center_id;
-  var firstOpen: boolean = false;
+  let share: boolean = false;
+  let shareCenterId: AvalancheCenterID = center_id;
+  let firstOpen: boolean = false;
+  const shareParams: {share: boolean; share_center: AvalancheCenterID} = route?.params as {share: boolean; share_center: AvalancheCenterID};
 
-  if (route?.params?.share === 'true') {
+  if (shareParams.share) {
     share = true;
     // if back is false, means the obs screens have not been open yet
     if (!back) {
       firstOpen = true;
-      // set back to true since we want a shared obs to have a back button
-      back = true;
+      // set back to not be null since we want a shared obs to have a back button
+      back = {title: 'Observations'};
     }
-    shareCenterId = route?.params?.share_center !== undefined ? route?.params?.share_center : center_id;
+
+    shareCenterId = shareParams.share_center !== undefined ? shareParams.share_center : center_id;
   }
 
   const title = getHeaderTitle(options, route.name);
@@ -39,7 +41,7 @@ export const NavigationHeader: React.FunctionComponent<
     }
 
     navigation.goBack();
-  }, [navigation, route]);
+  }, [navigation, share]);
 
   // if app is open for the first time, say from a link that was shared that can open in the app, reset navigation to go back to home (map screen)
   const reset = useCallback(
