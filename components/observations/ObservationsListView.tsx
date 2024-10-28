@@ -67,7 +67,7 @@ interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFr
 export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, additionalFilters}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const endDate = requestedTimeToUTCDate(requestedTime);
-  const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(requestedTime, additionalFilters), [requestedTime, additionalFilters]);
+  const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
   const mapResult = useMapLayer(center_id);
@@ -158,8 +158,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     })();
   }, [observationsResult]);
 
-  const {from: filterStartDate} = filterConfig.dates;
-  const moreDataAvailable = observationsResult.hasNextPage && (observations.length === 0 || new Date(observations[observations.length - 1].startDate) > filterStartDate);
+  const moreDataAvailable = observationsResult.hasNextPage;
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
@@ -251,11 +250,11 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
           <Body>
             <FormattedMessage
-              description="How many observations were found"
+              description="How many observations were found."
               defaultMessage="{count, plural,
-  =0 {No matching observations in this time period}
-  one {One matching observation in this time period}
-  other {# matching observations in this time period}}"
+  =0 {No observations match the filters.}
+  one {One observation matches the filters.}
+  other {# observations match the filters.}}"
               values={{
                 count: observationsSection.data.length,
               }}
