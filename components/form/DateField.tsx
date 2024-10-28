@@ -11,7 +11,7 @@ import {utcDateToLocalDateString} from 'utils/date';
 interface DateFieldProps extends ViewProps {
   name: string;
   label?: string;
-  minimumDate: Date;
+  minimumDate?: Date;
   maximumDate: Date;
   disabled?: boolean;
 }
@@ -43,7 +43,6 @@ export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, m
     }
   }, [datePickerVisible, setDatePickerVisible, onDateSelected, value, minimumDate, maximumDate]);
 
-  // TODO: maximum/minimum date
   return (
     <VStack width="100%" space={4} {...props}>
       {label && <BodySmBlack>{label}</BodySmBlack>}

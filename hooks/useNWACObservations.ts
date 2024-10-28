@@ -11,7 +11,7 @@ import {formatDistanceToNowStrict, sub} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, ObservationFragment, nwacObservationsListSchema} from 'types/nationalAvalancheCenter';
-import {RequestedTime, formatRequestedTime, parseRequestedTimeString, requestedTimeToUTCDate, startOfSeasonLocalDate, toDateTimeInterfaceATOM} from 'utils/date';
+import {RequestedTime, formatRequestedTime, parseRequestedTimeString, requestedTimeToUTCDate, toDateTimeInterfaceATOM} from 'utils/date';
 import {ZodError} from 'zod';
 
 const PAGE_SIZE: Duration = {weeks: 2};
@@ -27,14 +27,13 @@ export const useNWACObservations = (center_id: AvalancheCenterID, endDate: Reque
   }, [thisLogger, endDate, options.enabled]);
 
   // For NWAC, we fetch in 2 week pages, until we get results that are older than the requested end date minus the lookback window
-  const lookbackWindowStart: Date = startOfSeasonLocalDate(endDate);
   const fetchNWACObservationsPage = async (props: {pageParam?: unknown}): Promise<ObservationsQueryWithMeta> => {
     // On the first page, pageParam comes in as null - *not* undefined
     // Subsequent pages come in as strings that are set by us in getNextPageParam
     const pageParam = typeof props.pageParam === 'string' ? props.pageParam : formatRequestedTime(endDate);
     const nextPageEndDate: Date = requestedTimeToUTCDate(parseRequestedTimeString(pageParam));
     const nextPageStartDate = sub(nextPageEndDate, PAGE_SIZE);
-    thisLogger.debug({nextPageStartDate, nextPageEndDate, lookbackWindowStart, endDate: requestedTimeToUTCDate(endDate)}, 'fetching NWAC page');
+    thisLogger.debug({nextPageStartDate, nextPageEndDate, endDate: requestedTimeToUTCDate(endDate)}, 'fetching NWAC page');
     return fetchNWACObservations(nwacHost, center_id, nextPageStartDate, nextPageEndDate, thisLogger);
   };
 
@@ -43,12 +42,7 @@ export const useNWACObservations = (center_id: AvalancheCenterID, endDate: Reque
     queryFn: fetchNWACObservationsPage,
     getNextPageParam: (lastPage: ObservationsQueryWithMeta) => {
       thisLogger.trace('nwac getNextPageParam', lastPage.startDate);
-      if (new Date(lastPage.startDate) > lookbackWindowStart) {
-        return lastPage.startDate;
-      } else {
-        thisLogger.trace('nwac getNextPageParam', 'no more data available in window!', lastPage.startDate, lookbackWindowStart, endDate);
-        return undefined;
-      }
+      return lastPage.startDate;
     },
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
     enabled: options.enabled,

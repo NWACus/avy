@@ -1,14 +1,5 @@
-import {toDate} from 'date-fns-tz';
 import * as TimezoneMock from 'timezone-mock';
-import {
-  apiDateString,
-  nominalForecastDateString,
-  nominalNWACWeatherForecastDate,
-  normalizeTimeZone,
-  startOfSeasonLocalDate,
-  utcDateToLocalDateString,
-  utcDateToLocalTimeString,
-} from 'utils/date';
+import {apiDateString, nominalForecastDateString, nominalNWACWeatherForecastDate, normalizeTimeZone, utcDateToLocalDateString, utcDateToLocalTimeString} from 'utils/date';
 
 describe('Dates', () => {
   describe('apiDateString', () => {
@@ -112,24 +103,6 @@ describe('Dates', () => {
     });
     it('returns the current day afternoon when requesting after the expiry time using UTC', () => {
       expect(nominalNWACWeatherForecastDate(new Date('2023-01-25T03:44:27-00:00'))).toBe('2023-01-24 afternoon');
-    });
-  });
-
-  describe('startOfSeasonLocalDate', () => {
-    const localDate = (dateString: string): Date => {
-      return toDate(dateString, {timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone});
-    };
-    it('returns September 1 of the current year when date is after september 1', () => {
-      expect(startOfSeasonLocalDate(localDate('2023-10-01'))).toEqual(localDate('2023-09-01'));
-    });
-    it('returns September 1 of the previous year when date is before august 31', () => {
-      expect(startOfSeasonLocalDate(localDate('2023-01-01'))).toEqual(localDate('2022-09-01'));
-    });
-    it('returns September 1 of the previous year when date is august 31', () => {
-      expect(startOfSeasonLocalDate(localDate('2023-08-31'))).toEqual(localDate('2022-09-01'));
-    });
-    it('returns September 1 of the current year when date is september 31', () => {
-      expect(startOfSeasonLocalDate(localDate('2023-09-01'))).toEqual(localDate('2023-09-01'));
     });
   });
 

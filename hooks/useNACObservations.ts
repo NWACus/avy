@@ -12,7 +12,7 @@ import {safeFetch} from 'hooks/fetch';
 import {ObservationsDocument} from 'hooks/useObservations';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, ObservationFragment, observationListResultSchema} from 'types/nationalAvalancheCenter';
-import {RequestedTime, apiDateString, formatRequestedTime, parseRequestedTimeString, requestedTimeToUTCDate, startOfSeasonLocalDate} from 'utils/date';
+import {RequestedTime, apiDateString, formatRequestedTime, parseRequestedTimeString, requestedTimeToUTCDate} from 'utils/date';
 import {ZodError} from 'zod';
 
 const PAGE_SIZE: Duration = {weeks: 2};
@@ -27,14 +27,13 @@ export const useNACObservations = (center_id: AvalancheCenterID, endDate: Reques
   }, [thisLogger, endDate, options.enabled]);
 
   // For NAC, we fetch in 2 week pages, until we get results that are older than the requested end date minus the lookback window
-  const lookbackWindowStart: Date = startOfSeasonLocalDate(endDate);
   const fetchNACObservationsPage = async (props: {pageParam?: unknown}): Promise<ObservationsQueryWithMeta> => {
     // On the first page, pageParam comes in as null - *not* undefined
     // Subsequent pages come in as strings that are set by us in getNextPageParam
     const pageParam = typeof props.pageParam === 'string' ? props.pageParam : formatRequestedTime(endDate);
     const pageEndDate: Date = requestedTimeToUTCDate(parseRequestedTimeString(pageParam));
     const pageStartDate = sub(pageEndDate, PAGE_SIZE);
-    thisLogger.debug({pageStartDate, pageEndDate, lookbackWindowStart, endDate: requestedTimeToUTCDate(endDate)}, 'fetching NAC page');
+    thisLogger.debug({pageStartDate, pageEndDate, endDate: requestedTimeToUTCDate(endDate)}, 'fetching NAC page');
     return fetchNACObservations(nationalAvalancheCenterHost, center_id, pageStartDate, pageEndDate, thisLogger);
   };
 
@@ -43,12 +42,7 @@ export const useNACObservations = (center_id: AvalancheCenterID, endDate: Reques
     queryFn: fetchNACObservationsPage,
     getNextPageParam: (lastPage: ObservationsQueryWithMeta) => {
       thisLogger.trace('nac getNextPageParam', lastPage.startDate);
-      if (new Date(lastPage.startDate) > lookbackWindowStart) {
-        return lastPage.startDate;
-      } else {
-        thisLogger.trace('nac getNextPageParam', 'no more pages!', lastPage.startDate, lookbackWindowStart, endDate);
-        return undefined;
-      }
+      return lastPage.startDate;
     },
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
     enabled: options.enabled,

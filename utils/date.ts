@@ -164,24 +164,3 @@ export const parseRequestedTimeString = (requestedTime: RequestedTimeString): Re
 
   return 'latest';
 };
-
-export const startOfSeasonLocalDate = (requestedTime: RequestedTime): Date => {
-  // NWAC defines the season as 9/1 -> 8/31 of the next year. We'll apply this globally for now,
-  // maybe change based on center in the future.
-
-  // Given the requestedTime value, let's jump through some hoops to get the date at midnight local time
-  // Midnight on September 1 in UTC is 6pm on August 31 in Seattle, and we don't want to get 8/31 back from this method - we want to get 9/1.
-  const utcDate: Date = requestedTimeToUTCDate(requestedTime);
-  const localTimeZone = normalizeTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-  const localDateString = formatInTimeZone(utcDate, localTimeZone.ianaName, 'yyyy-MM-dd');
-  // can't do new Date(localDateString) or that'll interpret the date as UTC
-  const date = toDate(localDateString, {timeZone: localTimeZone.ianaName});
-
-  // Months are zero-based, so September is 8
-  return new Date(date.getMonth() >= 8 ? date.getFullYear() : date.getFullYear() - 1, 8, 1, 0, 0, 0, 0);
-};
-
-export const endOfSeasonLocalDate = (requestedTime: RequestedTime): Date => {
-  const startOfSeason = startOfSeasonLocalDate(requestedTime);
-  return new Date(startOfSeason.getFullYear() + 1, 8, 1, 0, 0, 0);
-};
