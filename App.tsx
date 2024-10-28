@@ -485,9 +485,8 @@ const BaseApp: React.FunctionComponent<{
     })
     .catch(() => logger.error('Getting initialUrl failed'));
 
-  const prefix = Linking.createURL('/');
   const linking = {
-    prefixes: [prefix, AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
+    prefixes: [AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
     config: {
       screens: {
         Observations: {
