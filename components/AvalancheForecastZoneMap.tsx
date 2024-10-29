@@ -65,7 +65,6 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     (zone: MapViewZone) => {
       if (selectedZoneId === zone.zone_id) {
         navigation.navigate('forecast', {
-          zoneName: zone.name,
           center_id: zone.center_id,
           forecast_zone_id: zone.zone_id,
           requestedTime: formatRequestedTime(requestedTime),
@@ -284,7 +283,6 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
   const dangerColor = colorFor(dangerLevel);
   const onPress = useCallback(() => {
     navigation.navigate('forecast', {
-      zoneName: zone.name,
       center_id: zone.center_id,
       forecast_zone_id: zone.zone_id,
       requestedTime: formatRequestedTime(date),

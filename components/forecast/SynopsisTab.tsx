@@ -17,15 +17,14 @@ import Toast from 'react-native-toast-message';
 import {HomeStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
-import {RequestedTime, utcDateToLocalTimeString} from 'utils/date';
+import {RequestedTimeString, parseRequestedTimeString, utcDateToLocalTimeString} from 'utils/date';
 
-interface SynopsisTabProps {
+export const SynopsisTab: React.FunctionComponent<{
   center_id: AvalancheCenterID;
-  requestedTime: RequestedTime;
+  requestedTime: RequestedTimeString;
   forecast_zone_id: number;
-}
-
-export const SynopsisTab: React.FunctionComponent<SynopsisTabProps> = ({center_id, forecast_zone_id, requestedTime}) => {
+}> = ({center_id, forecast_zone_id, requestedTime: requestedTimeString}) => {
+  const requestedTime = parseRequestedTimeString(requestedTimeString);
   const centerResult = useAvalancheCenterMetadata(center_id);
   const center = centerResult.data;
   const synopsisResult = useSynopsis(center_id, forecast_zone_id, requestedTime);

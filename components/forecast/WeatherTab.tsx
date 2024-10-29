@@ -26,6 +26,7 @@ import {colorLookup} from 'theme';
 import {
   AvalancheCenterID,
   AvalancheForecastZone,
+  AvalancheForecastZoneStatus,
   InlineWeatherData,
   ProductType,
   RowColumnWeatherData,
@@ -36,7 +37,7 @@ import {
   WeatherStationSource,
 } from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
-import {RequestedTime, formatRequestedTime, pacificDateToDayOfWeekString, utcDateToLocalTimeString} from 'utils/date';
+import {RequestedTime, RequestedTimeString, formatRequestedTime, pacificDateToDayOfWeekString, parseRequestedTimeString, utcDateToLocalTimeString} from 'utils/date';
 
 type ForecastNavigationProp = CompositeNavigationProp<NativeStackNavigationProp<HomeStackParamList, 'forecast'>, TabNavigationProps>;
 
@@ -60,7 +61,29 @@ const SmallHeaderWithTooltip: React.FunctionComponent<{
   </HStack>
 );
 
-export const WeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requestedTime, forecast_zone_id}) => {
+export const WeatherTab: React.FC<{
+  center_id: AvalancheCenterID;
+  requestedTime: RequestedTimeString;
+  forecast_zone_id: number;
+}> = ({center_id, requestedTime: requestedTimeString, forecast_zone_id}) => {
+  const requestedTime = parseRequestedTimeString(requestedTimeString);
+  const centerResult = useAvalancheCenterMetadata(center_id);
+  const center = centerResult.data;
+
+  if (incompleteQueryState(centerResult) || !center) {
+    return <QueryState results={[centerResult]} />;
+  }
+
+  const zone: AvalancheForecastZone | undefined = center.zones.find(item => item.id === forecast_zone_id);
+  if (!zone || zone.status === AvalancheForecastZoneStatus.Disabled) {
+    const message = `Avalanche center ${center_id} had no zone with id ${forecast_zone_id}`;
+    if (!zone) {
+      // If the zone is intentionally disabled, don't log to Sentry
+      Sentry.captureException(new Error(message));
+    }
+    return <NotFound what={[new NotFoundError(message, 'avalanche forecast zone')]} />;
+  }
+
   if (center_id === 'NWAC') {
     return <NWACWeatherTab zone={zone} center_id={center_id} requestedTime={requestedTime} forecast_zone_id={forecast_zone_id} />;
   } else {

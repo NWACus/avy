@@ -6,15 +6,14 @@ import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import React from 'react';
 import {AvalancheCenterID, AvalancheForecastZone, AvalancheForecastZoneStatus} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
-import {RequestedTime} from 'utils/date';
+import {parseRequestedTimeString, RequestedTimeString} from 'utils/date';
 
-interface ObservationsTabProps {
-  forecast_zone_id: number;
+export const ObservationsTab: React.FunctionComponent<{
   center_id: AvalancheCenterID;
-  requestedTime: RequestedTime;
-}
-
-export const ObservationsTab: React.FunctionComponent<ObservationsTabProps> = ({forecast_zone_id, center_id, requestedTime}) => {
+  requestedTime: RequestedTimeString;
+  forecast_zone_id: number;
+}> = ({forecast_zone_id, center_id, requestedTime: requestedTimeString}) => {
+  const requestedTime = parseRequestedTimeString(requestedTimeString);
   const centerResult = useAvalancheCenterMetadata(center_id);
   const center = centerResult.data;
 

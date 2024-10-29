@@ -45,13 +45,7 @@ import {
   Watch,
 } from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
-import {RequestedTime, utcDateToLocalDateString, utcDateToLocalTimeString} from 'utils/date';
-
-interface AvalancheTabProps {
-  center_id: AvalancheCenterID;
-  requestedTime: RequestedTime;
-  forecast_zone_id: number;
-}
+import {RequestedTimeString, parseRequestedTimeString, utcDateToLocalDateString, utcDateToLocalTimeString} from 'utils/date';
 
 const HeaderWithTooltip: React.FunctionComponent<{
   title: string;
@@ -65,7 +59,12 @@ const HeaderWithTooltip: React.FunctionComponent<{
   </HStack>
 );
 
-export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({center_id, forecast_zone_id, requestedTime}) => {
+export const AvalancheTab: React.FunctionComponent<{
+  center_id: AvalancheCenterID;
+  requestedTime: RequestedTimeString;
+  forecast_zone_id: number;
+}> = ({center_id, forecast_zone_id, requestedTime: requestedTimeString}) => {
+  const requestedTime = parseRequestedTimeString(requestedTimeString);
   const centerResult = useAvalancheCenterMetadata(center_id);
   const center = centerResult.data;
   const forecastResult = useAvalancheForecast(center_id, forecast_zone_id, requestedTime, center);

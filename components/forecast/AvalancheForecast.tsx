@@ -2,41 +2,37 @@ import React, {useCallback} from 'react';
 
 import {uniq} from 'lodash';
 
+import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import {TouchableOpacity} from 'react-native';
 
 import {HStack, View, VStack} from 'components/core';
 
-import {Tab, TabControl} from 'components/TabControl';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {AvalancheCenterID, AvalancheForecastZone, AvalancheForecastZoneStatus} from 'types/nationalAvalancheCenter';
 
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {Dropdown} from 'components/content/Dropdown';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
-import {AvalancheTab} from 'components/forecast/AvalancheTab';
-import {ObservationsTab} from 'components/forecast/ObservationsTab';
-import {SynopsisTab} from 'components/forecast/SynopsisTab';
-import {WeatherTab} from 'components/forecast/WeatherTab';
+import {AvalancheTabScreen, ObservationsTabScreen, SynopsisTabScreen, WeatherTabScreen} from 'components/screens/ForecastScreen';
 import {Body} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {HomeStackNavigationProps} from 'routes';
+import {ForecastTabNavigatorParamList, HomeStackNavigationProps} from 'routes';
 import {NotFoundError} from 'types/requests';
-import {formatRequestedTime, RequestedTime} from 'utils/date';
+import {parseRequestedTimeString, RequestedTimeString} from 'utils/date';
 
-export interface AvalancheForecastProps {
-  zoneName: string;
+export const AvalancheForecast: React.FunctionComponent<{
   center_id: AvalancheCenterID;
-  requestedTime: RequestedTime;
+  requestedTime: RequestedTimeString;
   forecast_zone_id: number;
-}
-
-export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> = ({center_id, requestedTime, forecast_zone_id}: AvalancheForecastProps) => {
+}> = ({center_id, requestedTime: requestedTimeString, forecast_zone_id}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const requestedTime = parseRequestedTimeString(requestedTimeString);
   const centerResult = useAvalancheCenterMetadata(center_id);
   const center = centerResult.data;
 
+  const Tab = createMaterialTopTabNavigator<ForecastTabNavigatorParamList>();
   const navigation = useNavigation<HomeStackNavigationProps>();
   const onZoneChange = useCallback(
     (zoneName: string) => {
@@ -51,10 +47,9 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
         // 2) nice-to-have: navigation causes a full reload on this screen - can we just do the equivalent of setState in a browser?
         //    i.e. update the navigation stack, but then manage re-rendering internally. we shouldn't need to re-render the toolbar after making this transition.
         navigation.navigate('forecast', {
-          zoneName: zone.name,
           center_id: center_id,
           forecast_zone_id: zone.id,
-          requestedTime: formatRequestedTime(requestedTime),
+          requestedTime: requestedTimeString,
         });
       }
     },
@@ -99,24 +94,34 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
           )}
         </View>
       </HStack>
-      <TabControl backgroundColor="white">
-        <Tab title="Avalanche">
-          <AvalancheTab center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
-        </Tab>
-        <Tab title="Weather">
-          <WeatherTab zone={zone} center_id={center_id} requestedTime={requestedTime} forecast_zone_id={forecast_zone_id} />
-        </Tab>
-        {center.widget_config.observation_viewer && (
-          <Tab title="Observations">
-            <ObservationsTab center_id={center_id} requestedTime={requestedTime} forecast_zone_id={forecast_zone_id} />
-          </Tab>
-        )}
+      <Tab.Navigator initialRouteName={'avalanche'}>
+        <Tab.Screen
+          name="avalanche"
+          component={AvalancheTabScreen}
+          initialParams={{center_id: center_id, forecast_zone_id: forecast_zone_id, requestedTime: requestedTimeString}}
+          options={{tabBarLabel: 'Avalanche'}}
+        />
+        <Tab.Screen
+          name="weather"
+          component={WeatherTabScreen}
+          initialParams={{center_id: center_id, forecast_zone_id: forecast_zone_id, requestedTime: requestedTimeString}}
+          options={{tabBarLabel: 'Weather'}}
+        />
+        <Tab.Screen
+          name="observations"
+          component={ObservationsTabScreen}
+          initialParams={{center_id: center_id, forecast_zone_id: forecast_zone_id, requestedTime: requestedTimeString}}
+          options={{tabBarLabel: 'Observations'}}
+        />
         {process.env.EXPO_PUBLIC_ENABLE_CONDITIONS_BLOG && center.config.blog && center.config.blog_title && (
-          <Tab title={center.config.blog_title ? center.config.blog_title : 'Blog'}>
-            <SynopsisTab center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
-          </Tab>
+          <Tab.Screen
+            name={'blog'}
+            component={SynopsisTabScreen}
+            initialParams={{center_id: center_id, forecast_zone_id: forecast_zone_id, requestedTime: requestedTimeString}}
+            options={{tabBarLabel: center.config.blog_title ? center.config.blog_title : 'Blog'}}
+          />
         )}
-      </TabControl>
+      </Tab.Navigator>
     </VStack>
   );
 };
