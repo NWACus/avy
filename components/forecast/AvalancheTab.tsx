@@ -4,6 +4,7 @@ import {addDays, formatDistanceToNow, isAfter} from 'date-fns';
 
 import {Feather, FontAwesome} from '@expo/vector-icons';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {AvalancheDangerTable} from 'components/AvalancheDangerTable';
 import {colorFor} from 'components/AvalancheDangerTriangle';
@@ -11,13 +12,14 @@ import {AvalancheProblemCard} from 'components/AvalancheProblemCard';
 import {InlineDangerScale} from 'components/DangerScale';
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {InfoTooltip} from 'components/content/InfoTooltip';
-import {QueryState, incompleteQueryState} from 'components/content/QueryState';
+import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {Carousel, images} from 'components/content/carousel';
 import {HStack, VStack, View} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, BodySm, BodySmBlack, BodySmSemibold, Title3Black, bodySize} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
 import {toDate} from 'date-fns-tz';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {useAvalancheWarning} from 'hooks/useAvalancheWarning';
 import {useRefresh} from 'hooks/useRefresh';
@@ -30,24 +32,23 @@ import {HomeStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {COLORS} from 'theme/colors';
 import {
-  AvalancheCenter,
   AvalancheCenterID,
   AvalancheDangerForecast,
+  AvalancheForecastZone,
+  AvalancheForecastZoneStatus,
   AvalancheForecastZoneSummary,
   DangerLevel,
-  ElevationBandNames,
   ForecastPeriod,
   ProductType,
   Special,
   Warning,
   Watch,
 } from 'types/nationalAvalancheCenter';
+import {NotFoundError} from 'types/requests';
 import {RequestedTime, utcDateToLocalDateString, utcDateToLocalTimeString} from 'utils/date';
 
 interface AvalancheTabProps {
-  elevationBandNames: ElevationBandNames;
   center_id: AvalancheCenterID;
-  center: AvalancheCenter;
   requestedTime: RequestedTime;
   forecast_zone_id: number;
 }
@@ -64,7 +65,9 @@ const HeaderWithTooltip: React.FunctionComponent<{
   </HStack>
 );
 
-export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevationBandNames, center_id, center, forecast_zone_id, requestedTime}) => {
+export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({center_id, forecast_zone_id, requestedTime}) => {
+  const centerResult = useAvalancheCenterMetadata(center_id);
+  const center = centerResult.data;
   const forecastResult = useAvalancheForecast(center_id, forecast_zone_id, requestedTime, center);
   const forecast = forecastResult.data;
   const warningResult = useAvalancheWarning(center_id, forecast_zone_id, requestedTime);
@@ -121,9 +124,24 @@ export const AvalancheTab: React.FunctionComponent<AvalancheTabProps> = ({elevat
   }, [postHog, center_id, zoneName]);
   useFocusEffect(recordAnalytics);
 
-  if (incompleteQueryState(forecastResult, warningResult) || !forecast || !warning) {
-    return <QueryState results={[forecastResult, warningResult]} />;
+  if (incompleteQueryState(centerResult, forecastResult, warningResult) || !center || !forecast || !warning) {
+    return <QueryState results={[centerResult, forecastResult, warningResult]} />;
   }
+
+  const zone: AvalancheForecastZone | undefined = center.zones.find(item => item.id === forecast_zone_id);
+  if (!zone || zone.status === AvalancheForecastZoneStatus.Disabled) {
+    const message = `Avalanche center ${center_id} had no zone with id ${forecast_zone_id}`;
+    if (!zone) {
+      // If the zone is intentionally disabled, don't log to Sentry
+      Sentry.captureException(new Error(message));
+    }
+    return <NotFound what={[new NotFoundError(message, 'avalanche forecast zone')]} />;
+  }
+  const elevationBandNames = zone.config.elevation_band_names ?? {
+    lower: 'Below Treeline',
+    middle: 'Near Treeline',
+    upper: 'Above Treeline',
+  };
 
   const publishedTime = forecast.published_time ? toDate(forecast.published_time) : new Date();
 

@@ -101,31 +101,19 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
       </HStack>
       <TabControl backgroundColor="white">
         <Tab title="Avalanche">
-          <AvalancheTab
-            elevationBandNames={
-              zone.config.elevation_band_names ?? {
-                lower: 'Below Treeline',
-                middle: 'Near Treeline',
-                upper: 'Above Treeline',
-              }
-            }
-            center={center}
-            center_id={center_id}
-            forecast_zone_id={forecast_zone_id}
-            requestedTime={requestedTime}
-          />
+          <AvalancheTab center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
         </Tab>
         <Tab title="Weather">
           <WeatherTab zone={zone} center_id={center_id} requestedTime={requestedTime} forecast_zone_id={forecast_zone_id} />
         </Tab>
         {center.widget_config.observation_viewer && (
           <Tab title="Observations">
-            <ObservationsTab zone_name={zone.name} center_id={center_id} requestedTime={requestedTime} />
+            <ObservationsTab center_id={center_id} requestedTime={requestedTime} forecast_zone_id={forecast_zone_id} />
           </Tab>
         )}
         {process.env.EXPO_PUBLIC_ENABLE_CONDITIONS_BLOG && center.config.blog && center.config.blog_title && (
           <Tab title={center.config.blog_title ? center.config.blog_title : 'Blog'}>
-            <SynopsisTab center={center} center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
+            <SynopsisTab center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
           </Tab>
         )}
       </TabControl>
