@@ -14,7 +14,6 @@ const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: s
     {center: 'SAC', description: 'Avalanche forecasts for the Lake Tahoe region in California.'},
     {center: 'MSAC', description: 'Avalanche forecasts for the Mount Shasta region in California.'},
     {center: 'CBAC', description: 'Avalanche forecasts for Southwestern Colorado.'},
-    {center: 'FAC', description: 'Avalanche forecasts for Northwestern Montana.'},
     {center: 'MWAC', description: 'Avalanche forecasts for Mount Washington.'},
   ];
 
@@ -26,6 +25,7 @@ const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: s
       {center: 'CNFAIC', description: 'Avalanche forecasts for the Chugach National Forest.'},
       {center: 'COAA', description: 'Avalanche forecasts for central Oregon.'},
       {center: 'ESAC', description: 'Avalanche forecasts for the Eastern Sierra region in California.'},
+      {center: 'FAC', description: 'Avalanche forecasts for Northwestern Montana.'},
       // {center: 'HAC', description: 'Avalanche forecasts for the Haines region in Alaska.'}, // failed to parse
       {center: 'HPAC', description: 'Avalanche forecasts for the Hatcher Pass region in Alaska.'},
       {center: 'IPAC', description: 'Avalanche forecasts for the Idaho panhandle.'},
