@@ -17,7 +17,7 @@ export const NavigationHeader: React.FunctionComponent<
 > = ({navigation, route, options, back, center_id, large}) => {
   let share: boolean = false;
   let firstOpen: boolean = false;
-  let shareCenterId: AvalancheCenterID = center_id;
+  var shareCenterId: AvalancheCenterID = center_id;
   const shareParams: {share: boolean; share_url: string} = route?.params as {share: boolean; share_url: string};
 
   if (shareParams.share) {
@@ -74,7 +74,7 @@ export const NavigationHeader: React.FunctionComponent<
           <View width={42} />
         )}
         <TextComponent textAlign="center" style={{flex: 1, borderColor: 'transparent', borderWidth: 1}}>
-          {shareParams.share_url ?? title}
+          {title}
         </TextComponent>
         <AvalancheCenterLogo style={{height: 32, width: 32, resizeMode: 'cover', flex: 0, flexGrow: 0}} avalancheCenterId={share ? shareCenterId : center_id} />
       </HStack>

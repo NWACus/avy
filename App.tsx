@@ -506,7 +506,7 @@ const BaseApp: React.FunctionComponent<{
       if (initialUrl) {
         // this url contains the whole url, like so: https://nwac.us/observations/#/observations/fb5bb19a-2b89-4c9c-91d2-eb673c5ab877
         const url = new URL(initialUrl);
-        return getStateFromPath(path + '?share=true&share_url=' + url.hostname + '/', opts);
+        return getStateFromPath(path + '?share=true&share_url=' + url.origin + '/', opts);
       }
     },
   };
