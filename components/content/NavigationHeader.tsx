@@ -7,7 +7,7 @@ import {Title1Black, Title3Black} from 'components/text';
 import React, {useCallback} from 'react';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
 
 export const NavigationHeader: React.FunctionComponent<
   NativeStackHeaderProps & {
@@ -17,6 +17,7 @@ export const NavigationHeader: React.FunctionComponent<
 > = ({navigation, route, options, back, center_id, large}) => {
   let share: boolean = false;
   let firstOpen: boolean = false;
+  let shareCenterId: AvalancheCenterID = center_id;
   const shareParams: {share: boolean; share_url: string} = route?.params as {share: boolean; share_url: string};
 
   if (shareParams.share) {
@@ -27,6 +28,10 @@ export const NavigationHeader: React.FunctionComponent<
       // set back to not be null since we want a shared obs to have a back button
       back = {title: 'Observations'};
     }
+
+    const flip = (data: Record<AvalancheCenterID, string>) => Object.fromEntries(Object.entries(data).map(([key, value]) => [value, key]));
+    const AvalancheCenterWebsitesFlipped = flip(AvalancheCenterWebsites);
+    shareCenterId = AvalancheCenterWebsitesFlipped[shareParams.share_url] as AvalancheCenterID;
   }
 
   const title = getHeaderTitle(options, route.name);
@@ -71,7 +76,7 @@ export const NavigationHeader: React.FunctionComponent<
         <TextComponent textAlign="center" style={{flex: 1, borderColor: 'transparent', borderWidth: 1}}>
           {shareParams.share_url ?? title}
         </TextComponent>
-        {!share && <AvalancheCenterLogo style={{height: 32, width: 32, resizeMode: 'cover', flex: 0, flexGrow: 0}} avalancheCenterId={center_id} />}
+        <AvalancheCenterLogo style={{height: 32, width: 32, resizeMode: 'cover', flex: 0, flexGrow: 0}} avalancheCenterId={share ? shareCenterId : center_id} />
       </HStack>
     </View>
   );
