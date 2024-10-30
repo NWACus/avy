@@ -491,9 +491,8 @@ const BaseApp: React.FunctionComponent<{
     initialUrl = event.url;
   });
 
-  const prefix = Linking.createURL('/');
   const linking = {
-    prefixes: [prefix, AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
+    prefixes: [AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
     config: {
       screens: {
         Observations: {
