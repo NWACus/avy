@@ -51,6 +51,7 @@ import {
   Observation,
   SnowAvailableForTransport,
   WindLoading,
+  userFacingCenterId,
 } from 'types/nationalAvalancheCenter';
 import {pacificDateToLocalShortDateString, utcDateToLocalShortDateString} from 'utils/date';
 
@@ -307,7 +308,7 @@ export const ObservationCard: React.FunctionComponent<{
                       </Marker>
                     </ZoneMap>
                   )}
-                  <TableRow label="Avalanche Center" value={observation.center_id} />
+                  <TableRow label="Avalanche Center" value={userFacingCenterId(observation.center_id)} />
                   {observation.location_name && <TableRow label="Location" value={observation.location_name} />}
                   <TableRow label="Route" value={observation.route || 'Not specified'} />
                   <TableRow label="Activity" value={activityDisplayName(observation.activity)} />
