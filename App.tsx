@@ -475,18 +475,25 @@ const BaseApp: React.FunctionComponent<{
     );
   }
 
-  const flip = (data: Record<AvalancheCenterID, string>) => Object.fromEntries(Object.entries(data).map(([key, value]) => [value, key]));
-
-  // get the universal link the app was open with, if one exists
   let initialUrl: string | null = null;
+  // get the universal link the app was open with, if one exists
   Linking.getInitialURL()
     .then(url => {
-      initialUrl = url;
+      if (url) {
+        initialUrl = url;
+      }
     })
-    .catch(() => logger.error('Getting initialUrl failed'));
+    .catch(err => {
+      logger.error('An error occurred while getting InitialUrl.', err);
+    });
 
+  Linking.addEventListener('url', event => {
+    initialUrl = event.url;
+  });
+
+  const prefix = Linking.createURL('/');
   const linking = {
-    prefixes: [AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
+    prefixes: [prefix, AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
     config: {
       screens: {
         Observations: {
@@ -497,14 +504,7 @@ const BaseApp: React.FunctionComponent<{
       },
     },
     getStateFromPath: (path: string, opts: {initialRouteName?: string; screens: PathConfigMap<object>} | undefined) => {
-      // give a breadcrumb that the app was open from a shared link - find center based on prefix
-      const AvalancheCenterWebsitesFlipped = flip(AvalancheCenterWebsites);
-      if (initialUrl !== null && !initialUrl?.includes('exp')) {
-        return getStateFromPath(path + '?share=true&share_center=' + AvalancheCenterWebsitesFlipped[initialUrl], opts);
-      } else {
-        // if initial url is null, no center logo is known
-        return getStateFromPath(path + '?share=true', opts);
-      }
+      return getStateFromPath(path + '?share=true&share_url=' + initialUrl, opts);
     },
   };
 

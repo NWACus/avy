@@ -16,9 +16,8 @@ export const NavigationHeader: React.FunctionComponent<
   }
 > = ({navigation, route, options, back, center_id, large}) => {
   let share: boolean = false;
-  let shareCenterId: AvalancheCenterID = center_id;
   let firstOpen: boolean = false;
-  const shareParams: {share: boolean; share_center: AvalancheCenterID} = route?.params as {share: boolean; share_center: AvalancheCenterID};
+  const shareParams: {share: boolean; share_url: string} = route?.params as {share: boolean; share_url: string};
 
   if (shareParams.share) {
     share = true;
@@ -28,8 +27,6 @@ export const NavigationHeader: React.FunctionComponent<
       // set back to not be null since we want a shared obs to have a back button
       back = {title: 'Observations'};
     }
-
-    shareCenterId = shareParams.share_center !== undefined ? shareParams.share_center : center_id;
   }
 
   const title = getHeaderTitle(options, route.name);
@@ -72,9 +69,9 @@ export const NavigationHeader: React.FunctionComponent<
           <View width={42} />
         )}
         <TextComponent textAlign="center" style={{flex: 1, borderColor: 'transparent', borderWidth: 1}}>
-          {title}
+          {shareParams.share_url ?? title}
         </TextComponent>
-        <AvalancheCenterLogo style={{height: 32, width: 32, resizeMode: 'cover', flex: 0, flexGrow: 0}} avalancheCenterId={share ? shareCenterId : center_id} />
+        {!share && <AvalancheCenterLogo style={{height: 32, width: 32, resizeMode: 'cover', flex: 0, flexGrow: 0}} avalancheCenterId={center_id} />}
       </HStack>
     </View>
   );
