@@ -17,7 +17,7 @@ export const NavigationHeader: React.FunctionComponent<
 > = ({navigation, route, options, back, center_id, large}) => {
   let share: boolean = false;
   let firstOpen: boolean = false;
-  var shareCenterId: AvalancheCenterID = center_id;
+  let shareCenterId: AvalancheCenterID = center_id;
   const shareParams: {share: boolean; share_url: string} = route?.params as {share: boolean; share_url: string};
 
   if (shareParams.share) {
