@@ -13,7 +13,7 @@ import {ZoneMap} from 'components/content/ZoneMap';
 import {Carousel, images} from 'components/content/carousel';
 import {HStack, VStack, View} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
-import {GenerateObservationShareLink} from 'components/observations/ObservationUrlMapping';
+import {observationLink} from 'components/linking';
 import {matchesZone} from 'components/observations/ObservationsFilterForm';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize} from 'components/text';
 import {HTML} from 'components/text/HTML';
@@ -31,7 +31,6 @@ import {
   AvalancheBedSurface,
   AvalancheCause,
   AvalancheCenterID,
-  AvalancheCenterWebsites,
   AvalancheTrigger,
   AvalancheType,
   CloudCover,
@@ -221,32 +220,7 @@ export const ObservationCard: React.FunctionComponent<{
 
   // to open in expo: *check url and port, and correct obs ID that exists
   // example: npx uri-scheme open exp://192.168.1.8:8082/--/observations/866b81db-52b3-4f94-890c-0cae8f162097 --android
-  const url = GenerateObservationShareLink(observation.center_id, observation.id ?? '');
-  const ShareButton: React.FunctionComponent = () => {
-    const onShare = async () => {
-      try {
-        await Share.share({
-          message: url,
-        });
-      } catch (error) {
-        logger.error({error}, 'share button not working');
-      }
-    };
-
-    return (
-      <Entypo
-        size={22}
-        color={colorLookup('text')}
-        name="share-alternative"
-        backgroundColor="white"
-        iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
-        style={{alignSelf: 'flex-end'}}
-        onPress={useCallback(() => {
-          onShare().catch(() => logger.error('share failed'));
-        }, [])}
-      />
-    );
-  };
+  const url = observationLink(observation.center_id, observation.id || '' /* id is only null on old NWAC obs */);
 
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
@@ -275,7 +249,7 @@ export const ObservationCard: React.FunctionComponent<{
                     </AllCapsSm>
                   </VStack>
                   <VStack space={5} style={{flex: 0}}>
-                    {observation.center_id in AvalancheCenterWebsites && <ShareButton />}
+                    {url && <ShareButton url={url} />}
                   </VStack>
                 </HStack>
               </View>
@@ -442,4 +416,31 @@ const activityDisplayName = (activity: string[] | undefined): string => {
     return FormatActivity(Activity.Other);
   }
   return FormatActivity(activity[0] as Activity);
+};
+
+const ShareButton: React.FunctionComponent<{url: string}> = ({url}) => {
+  const onShare = useCallback(
+    () => async () => {
+      try {
+        await Share.share({
+          message: url,
+        });
+      } catch (error) {
+        logger.error({error}, 'share failed');
+      }
+    },
+    [url],
+  );
+
+  return (
+    <Entypo
+      size={22}
+      color={colorLookup('text')}
+      name="share-alternative"
+      backgroundColor="white"
+      iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
+      style={{alignSelf: 'flex-end'}}
+      onPress={onShare}
+    />
+  );
 };

@@ -54,8 +54,7 @@
           "data": [
             {
               "scheme": "https",
-              "host": "nwac.us",
-              "pathPrefix": "/observations/*"
+              "host": "nwac.us"
             }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
