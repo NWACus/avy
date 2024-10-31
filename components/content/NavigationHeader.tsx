@@ -7,7 +7,7 @@ import {Title1Black, Title3Black} from 'components/text';
 import React, {useCallback} from 'react';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, AvalancheCenterWebsites, reverseLookup} from 'types/nationalAvalancheCenter';
 
 export const NavigationHeader: React.FunctionComponent<
   NativeStackHeaderProps & {
@@ -29,9 +29,7 @@ export const NavigationHeader: React.FunctionComponent<
       back = {title: 'Observations'};
     }
 
-    const flip = (data: Record<AvalancheCenterID, string>) => Object.fromEntries(Object.entries(data).map(([key, value]) => [value, key]));
-    const AvalancheCenterWebsitesFlipped = flip(AvalancheCenterWebsites);
-    shareCenterId = AvalancheCenterWebsitesFlipped[shareParams.share_url] as AvalancheCenterID;
+    shareCenterId = reverseLookup(AvalancheCenterWebsites, shareParams.share_url) as AvalancheCenterID;
   }
 
   const title = getHeaderTitle(options, route.name);

@@ -1,7 +1,7 @@
 import {AvalancheCenterID, AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
 
 export const GenerateObservationShareLink = (centerId: AvalancheCenterID, observationId: string) => {
-  let url: string | undefined = AvalancheCenterWebsites[centerId];
+  let url: string = AvalancheCenterWebsites[centerId];
 
   if (centerId == 'CBAC') {
     // special link for obs sharing https://cbavalanchecenter.org/view-observations/#/view/observations/ddc9783a-a321-45cd-b656-88b066e5868d
