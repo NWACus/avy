@@ -32,11 +32,11 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
   ['BAC']: 'https://bridgeportavalanchecenter.org/',
   ['BTAC']: 'https://bridgertetonavalanchecenter.org/',
   ['CBAC']: 'https://cbavalanchecenter.org/',
-  ['CNFAIC']: 'https://www.cnfaic.org/', // just wont work, , not using AFP https://www.cnfaic.org/observations/tincan-383/
+  ['CNFAIC']: 'https://www.cnfaic.org/',
   ['COAA']: 'https://www.coavalanche.org/',
   ['ESAC']: 'https://www.esavalanche.org/',
   ['FAC']: 'https://www.flatheadavalanche.org/',
-  ['HPAC']: 'https://hpavalanche.org/', // also special, not using AFP - cant even find a link to one obs? https://hpavalanche.org/observations/all-observations/
+  ['HPAC']: 'https://hpavalanche.org/',
   ['IPAC']: 'https://www.idahopanhandleavalanche.org/',
   ['KPAC']: 'https://kachinapeaks.org/',
   ['MSAC']: 'https://www.shastaavalanche.org/',
@@ -44,7 +44,7 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
   ['PAC']: 'https://payetteavalanche.org/',
   ['SAC']: 'https://www.sierraavalanchecenter.org/',
   ['SNFAC']: 'https://www.sawtoothavalanche.com/',
-  ['TAC']: 'https://taosavalanchecenter.org/', // just wont work, not using AFP https://taosavalanchecenter.org/public-obs/20240621_lake-fork-ne-face/
+  ['TAC']: 'https://taosavalanchecenter.org/',
   ['WAC']: 'https://wallowaavalanchecenter.org/',
   ['WCMAC']: 'https://missoulaavalanche.org/',
 };
