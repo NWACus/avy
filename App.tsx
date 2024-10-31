@@ -16,7 +16,7 @@ import {
 import {Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
 import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {NavigationContainer, RouteProp, useNavigationContainerRef} from '@react-navigation/native';
+import {getStateFromPath, NavigationContainer, PathConfigMap, RouteProp, useNavigationContainerRef} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
 import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, UIManager, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -66,6 +66,7 @@ import {Button} from 'components/content/Button';
 import {Center, VStack} from 'components/core';
 import {KillSwitchMonitor} from 'components/KillSwitchMonitor';
 import {Body, BodyBlack, Title3Black} from 'components/text';
+import * as Linking from 'expo-linking';
 import * as Updates from 'expo-updates';
 import {FeatureFlagsProvider} from 'FeatureFlags';
 import {useToggle} from 'hooks/useToggle';
@@ -474,6 +475,22 @@ const BaseApp: React.FunctionComponent<{
     );
   }
 
+  let initialUrl: string | null = null;
+  // get the universal link the app was open with, if one exists
+  Linking.getInitialURL()
+    .then(url => {
+      if (url) {
+        initialUrl = url;
+      }
+    })
+    .catch(err => {
+      logger.error('An error occurred while getting InitialUrl.', err);
+    });
+
+  Linking.addEventListener('url', event => {
+    initialUrl = event.url;
+  });
+
   const linking = {
     prefixes: [AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
     config: {
@@ -484,6 +501,13 @@ const BaseApp: React.FunctionComponent<{
           },
         },
       },
+    },
+    getStateFromPath: (path: string, opts: {initialRouteName?: string; screens: PathConfigMap<object>} | undefined) => {
+      if (initialUrl) {
+        // this url contains the whole url, like so: https://nwac.us/observations/#/observations/fb5bb19a-2b89-4c9c-91d2-eb673c5ab877
+        const url = new URL(initialUrl);
+        return getStateFromPath(path + '?share=true&share_url=' + url.origin + '/', opts);
+      }
     },
   };
 
