@@ -1,4 +1,5 @@
 import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
+import {MaterialTopTabNavigationProp} from '@react-navigation/material-top-tabs';
 import {NavigatorScreenParams} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {AvalancheCenterID, WeatherStationSource} from 'types/nationalAvalancheCenter';
@@ -33,7 +34,6 @@ export type HomeStackParamList = {
     requestedTime: RequestedTimeString;
   };
   forecast: {
-    zoneName: string;
     center_id: AvalancheCenterID;
     forecast_zone_id: number;
     requestedTime: RequestedTimeString;
@@ -54,6 +54,20 @@ export type HomeStackParamList = {
   };
 };
 export type HomeStackNavigationProps = NativeStackNavigationProp<HomeStackParamList>;
+
+type ForecastPageProps = {
+  center_id: AvalancheCenterID;
+  requestedTime: RequestedTimeString;
+  forecast_zone_id: number;
+};
+
+export type ForecastTabNavigatorParamList = {
+  avalanche: ForecastPageProps;
+  weather: ForecastPageProps;
+  observations: ForecastPageProps;
+  blog: ForecastPageProps;
+};
+export type ForecastTabNavigatorProps = MaterialTopTabNavigationProp<ForecastTabNavigatorParamList>;
 
 export type WeatherStackParamList = {
   stationList: {
@@ -116,7 +130,6 @@ export type MenuStackParamList = {
     requestedTime: RequestedTimeString;
   };
   forecast: {
-    zoneName: string;
     center_id: AvalancheCenterID;
     forecast_zone_id: number;
     requestedTime: RequestedTimeString;

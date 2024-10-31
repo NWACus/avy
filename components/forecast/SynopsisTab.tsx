@@ -4,28 +4,29 @@ import {formatDistanceToNow, isAfter} from 'date-fns';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {Card} from 'components/content/Card';
+import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {Carousel, images} from 'components/content/carousel';
-import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, VStack} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, BodyBlack, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useRefresh} from 'hooks/useRefresh';
 import {useSynopsis} from 'hooks/useSynopsis';
 import {RefreshControl, ScrollView} from 'react-native';
 import Toast from 'react-native-toast-message';
 import {HomeStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenter, AvalancheCenterID} from 'types/nationalAvalancheCenter';
-import {RequestedTime, utcDateToLocalTimeString} from 'utils/date';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {RequestedTimeString, parseRequestedTimeString, utcDateToLocalTimeString} from 'utils/date';
 
-interface SynopsisTabProps {
+export const SynopsisTab: React.FunctionComponent<{
   center_id: AvalancheCenterID;
-  center: AvalancheCenter;
-  requestedTime: RequestedTime;
+  requestedTime: RequestedTimeString;
   forecast_zone_id: number;
-}
-
-export const SynopsisTab: React.FunctionComponent<SynopsisTabProps> = ({center_id, center, forecast_zone_id, requestedTime}) => {
+}> = ({center_id, forecast_zone_id, requestedTime: requestedTimeString}) => {
+  const requestedTime = parseRequestedTimeString(requestedTimeString);
+  const centerResult = useAvalancheCenterMetadata(center_id);
+  const center = centerResult.data;
   const synopsisResult = useSynopsis(center_id, forecast_zone_id, requestedTime);
   const synopsis = synopsisResult.data;
   const {isRefreshing, refresh} = useRefresh(synopsisResult.refetch);
@@ -61,8 +62,8 @@ export const SynopsisTab: React.FunctionComponent<SynopsisTabProps> = ({center_i
     }, [synopsis]),
   );
 
-  if (incompleteQueryState(synopsisResult) || !synopsis) {
-    return <QueryState results={[synopsisResult]} />;
+  if (incompleteQueryState(centerResult, synopsisResult) || !center || !synopsis) {
+    return <QueryState results={[centerResult, synopsisResult]} />;
   }
 
   const imageItems = images(synopsis.media);

@@ -283,7 +283,6 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               data: null,
               action: () => {
                 navigation.navigate('forecast', {
-                  zoneName: 'West Slopes Central',
                   center_id: 'NWAC',
                   forecast_zone_id: 1130,
                   requestedTime: toISOStringUTC(new Date('2023-02-20T5:21:00-0800')),
@@ -295,7 +294,6 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               data: null,
               action: () => {
                 navigation.navigate('forecast', {
-                  zoneName: 'Northwest Mountains',
                   center_id: 'CBAC',
                   forecast_zone_id: 298,
                   requestedTime: toISOStringUTC(new Date('2023-03-21T5:21:00-0800')),
@@ -307,7 +305,6 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               data: null,
               action: () => {
                 navigation.navigate('forecast', {
-                  zoneName: 'Northwest Mountains',
                   center_id: 'CBAC',
                   forecast_zone_id: 298,
                   requestedTime: toISOStringUTC(new Date('2022-02-25T5:21:00-0800')),
@@ -319,7 +316,6 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               data: null,
               action: () => {
                 navigation.navigate('forecast', {
-                  zoneName: 'West Slopes Central',
                   center_id: 'NWAC',
                   forecast_zone_id: 1130,
                   requestedTime: toISOStringUTC(new Date('2022-04-10T5:21:00-0800')),
@@ -332,7 +328,6 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               data: null,
               action: () => {
                 navigation.navigate('forecast', {
-                  zoneName: 'Galena Summit & Eastern Mtns',
                   center_id: 'SNFAC',
                   forecast_zone_id: 714,
                   requestedTime: toISOStringUTC(new Date('2023-04-13T5:21:00-0800')),
@@ -344,7 +339,6 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               data: null,
               action: () => {
                 navigation.navigate('forecast', {
-                  zoneName: 'Tetons',
                   center_id: 'BTAC',
                   forecast_zone_id: 1329,
                   requestedTime: toISOStringUTC(new Date('2023-05-01T21:21:00-0000')),
@@ -356,7 +350,6 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               data: null,
               action: () => {
                 navigation.navigate('forecast', {
-                  zoneName: 'Central Sierra Nevada',
                   center_id: 'SAC',
                   forecast_zone_id: 77,
                   requestedTime: toISOStringUTC(new Date('2023-04-08T14:21:00-0000')),
@@ -368,7 +361,6 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               data: null,
               action: () => {
                 navigation.navigate('forecast', {
-                  zoneName: 'Galena Summit & Eastern Mtns',
                   center_id: 'SNFAC',
                   forecast_zone_id: 714,
                   requestedTime: toISOStringUTC(new Date('2020-04-08T5:21:00-0800')),
@@ -380,7 +372,6 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               data: null,
               action: () => {
                 navigation.navigate('forecast', {
-                  zoneName: 'West Slopes Central',
                   center_id: 'NWAC',
                   forecast_zone_id: 1130,
                   requestedTime: toISOStringUTC(new Date('2023-02-01T5:21:00-0800')),
@@ -392,7 +383,6 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               data: null,
               action: () => {
                 navigation.navigate('forecast', {
-                  zoneName: 'West Slopes Central',
                   center_id: 'NWAC',
                   forecast_zone_id: 1130,
                   requestedTime: toISOStringUTC(new Date('2000-01-01T00:00:00-0800')),

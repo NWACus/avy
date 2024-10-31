@@ -2,41 +2,37 @@ import React, {useCallback} from 'react';
 
 import {uniq} from 'lodash';
 
+import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import {TouchableOpacity} from 'react-native';
 
 import {HStack, View, VStack} from 'components/core';
 
-import {Tab, TabControl} from 'components/TabControl';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {AvalancheCenterID, AvalancheForecastZone, AvalancheForecastZoneStatus} from 'types/nationalAvalancheCenter';
 
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {Dropdown} from 'components/content/Dropdown';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
-import {AvalancheTab} from 'components/forecast/AvalancheTab';
-import {ObservationsTab} from 'components/forecast/ObservationsTab';
-import {SynopsisTab} from 'components/forecast/SynopsisTab';
-import {WeatherTab} from 'components/forecast/WeatherTab';
-import {Body} from 'components/text';
+import {AvalancheTabScreen, ObservationsTabScreen, SynopsisTabScreen, WeatherTabScreen} from 'components/screens/ForecastScreen';
+import {Body, BodySemibold} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {HomeStackNavigationProps} from 'routes';
+import {ForecastTabNavigatorParamList, HomeStackNavigationProps} from 'routes';
+import {colorLookup} from 'theme';
 import {NotFoundError} from 'types/requests';
-import {formatRequestedTime, RequestedTime} from 'utils/date';
+import {RequestedTimeString} from 'utils/date';
 
-export interface AvalancheForecastProps {
-  zoneName: string;
+export const AvalancheForecast: React.FunctionComponent<{
   center_id: AvalancheCenterID;
-  requestedTime: RequestedTime;
+  requestedTime: RequestedTimeString;
   forecast_zone_id: number;
-}
-
-export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> = ({center_id, requestedTime, forecast_zone_id}: AvalancheForecastProps) => {
+}> = ({center_id, requestedTime: requestedTimeString, forecast_zone_id}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const centerResult = useAvalancheCenterMetadata(center_id);
   const center = centerResult.data;
 
+  const Tab = createMaterialTopTabNavigator<ForecastTabNavigatorParamList>();
   const navigation = useNavigation<HomeStackNavigationProps>();
   const onZoneChange = useCallback(
     (zoneName: string) => {
@@ -46,19 +42,20 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
           logger.warn({zone: zoneName}, 'zone change callback called with zone not belonging to the center');
           return;
         }
-        // TODO: consider possible improvements here
-        // 1) nice-to-have: make sure we land on the same sub-tab (Avalanche vs Forecast vs Obs)
-        // 2) nice-to-have: navigation causes a full reload on this screen - can we just do the equivalent of setState in a browser?
-        //    i.e. update the navigation stack, but then manage re-rendering internally. we shouldn't need to re-render the toolbar after making this transition.
-        navigation.navigate('forecast', {
-          zoneName: zone.name,
-          center_id: center_id,
-          forecast_zone_id: zone.id,
-          requestedTime: formatRequestedTime(requestedTime),
-        });
+        setTimeout(
+          // entirely unclear why this needs to be in a setTimeout, but the app crashes without it
+          // https://github.com/react-navigation/react-navigation/issues/11201
+          () =>
+            navigation.replace('forecast', {
+              center_id: center_id,
+              forecast_zone_id: zone.id,
+              requestedTime: requestedTimeString,
+            }),
+          0,
+        );
       }
     },
-    [navigation, center, center_id, requestedTime, logger],
+    [navigation, center, center_id, requestedTimeString, logger],
   );
 
   const onReturnToMapView = useCallback(() => {
@@ -99,36 +96,55 @@ export const AvalancheForecast: React.FunctionComponent<AvalancheForecastProps> 
           )}
         </View>
       </HStack>
-      <TabControl backgroundColor="white">
-        <Tab title="Avalanche">
-          <AvalancheTab
-            elevationBandNames={
-              zone.config.elevation_band_names ?? {
-                lower: 'Below Treeline',
-                middle: 'Near Treeline',
-                upper: 'Above Treeline',
-              }
-            }
-            center={center}
-            center_id={center_id}
-            forecast_zone_id={forecast_zone_id}
-            requestedTime={requestedTime}
-          />
-        </Tab>
-        <Tab title="Weather">
-          <WeatherTab zone={zone} center_id={center_id} requestedTime={requestedTime} forecast_zone_id={forecast_zone_id} />
-        </Tab>
-        {center.widget_config.observation_viewer && (
-          <Tab title="Observations">
-            <ObservationsTab zone_name={zone.name} center_id={center_id} requestedTime={requestedTime} />
-          </Tab>
-        )}
+      <Tab.Navigator
+        initialRouteName={'avalanche'}
+        screenOptions={{
+          tabBarActiveTintColor: colorLookup('primary').toString(),
+          tabBarInactiveTintColor: colorLookup('text').toString(),
+        }}>
+        <Tab.Screen
+          name="avalanche"
+          component={AvalancheTabScreen}
+          initialParams={{center_id: center_id, forecast_zone_id: forecast_zone_id, requestedTime: requestedTimeString}}
+          options={{tabBarLabel: ({focused, color}) => <TabLabel title={'Avalanche'} focused={focused} color={color} />}}
+        />
+        <Tab.Screen
+          name="weather"
+          component={WeatherTabScreen}
+          initialParams={{center_id: center_id, forecast_zone_id: forecast_zone_id, requestedTime: requestedTimeString}}
+          options={{tabBarLabel: ({focused, color}) => <TabLabel title={'Weather'} focused={focused} color={color} />}}
+        />
+        <Tab.Screen
+          name="observations"
+          component={ObservationsTabScreen}
+          initialParams={{center_id: center_id, forecast_zone_id: forecast_zone_id, requestedTime: requestedTimeString}}
+          options={{tabBarLabel: ({focused, color}) => <TabLabel title={'Observations'} focused={focused} color={color} />}}
+        />
         {process.env.EXPO_PUBLIC_ENABLE_CONDITIONS_BLOG && center.config.blog && center.config.blog_title && (
-          <Tab title={center.config.blog_title ? center.config.blog_title : 'Blog'}>
-            <SynopsisTab center={center} center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
-          </Tab>
+          <Tab.Screen
+            name={'blog'}
+            component={SynopsisTabScreen}
+            initialParams={{center_id: center_id, forecast_zone_id: forecast_zone_id, requestedTime: requestedTimeString}}
+            options={{tabBarLabel: ({focused, color}) => <TabLabel title={center.config.blog_title ? center.config.blog_title : 'Blog'} focused={focused} color={color} />}}
+          />
         )}
-      </TabControl>
+      </Tab.Navigator>
     </VStack>
+  );
+};
+
+const TabLabel: React.FC<{title: string; focused: boolean; color: string}> = ({title, focused, color}) => {
+  return (
+    <View>
+      {focused ? (
+        <BodySemibold color={color} textAlign={'center'}>
+          {title}
+        </BodySemibold>
+      ) : (
+        <Body color={color} textAlign={'center'}>
+          {title}
+        </Body>
+      )}
+    </View>
   );
 };
