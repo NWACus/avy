@@ -16,11 +16,12 @@ import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {Dropdown} from 'components/content/Dropdown';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {AvalancheTabScreen, ObservationsTabScreen, SynopsisTabScreen, WeatherTabScreen} from 'components/screens/ForecastScreen';
-import {Body} from 'components/text';
+import {Body, BodySemibold} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {ForecastTabNavigatorParamList, HomeStackNavigationProps} from 'routes';
+import {colorLookup} from 'theme';
 import {NotFoundError} from 'types/requests';
-import {parseRequestedTimeString, RequestedTimeString} from 'utils/date';
+import {RequestedTimeString} from 'utils/date';
 
 export const AvalancheForecast: React.FunctionComponent<{
   center_id: AvalancheCenterID;
@@ -28,7 +29,6 @@ export const AvalancheForecast: React.FunctionComponent<{
   forecast_zone_id: number;
 }> = ({center_id, requestedTime: requestedTimeString, forecast_zone_id}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const requestedTime = parseRequestedTimeString(requestedTimeString);
   const centerResult = useAvalancheCenterMetadata(center_id);
   const center = centerResult.data;
 
@@ -42,18 +42,20 @@ export const AvalancheForecast: React.FunctionComponent<{
           logger.warn({zone: zoneName}, 'zone change callback called with zone not belonging to the center');
           return;
         }
-        // TODO: consider possible improvements here
-        // 1) nice-to-have: make sure we land on the same sub-tab (Avalanche vs Forecast vs Obs)
-        // 2) nice-to-have: navigation causes a full reload on this screen - can we just do the equivalent of setState in a browser?
-        //    i.e. update the navigation stack, but then manage re-rendering internally. we shouldn't need to re-render the toolbar after making this transition.
-        navigation.navigate('forecast', {
-          center_id: center_id,
-          forecast_zone_id: zone.id,
-          requestedTime: requestedTimeString,
-        });
+        setTimeout(
+          // entirely unclear why this needs to be in a setTimeout, but the app crashes without it
+          // https://github.com/react-navigation/react-navigation/issues/11201
+          () =>
+            navigation.replace('forecast', {
+              center_id: center_id,
+              forecast_zone_id: zone.id,
+              requestedTime: requestedTimeString,
+            }),
+          0,
+        );
       }
     },
-    [navigation, center, center_id, requestedTime, logger],
+    [navigation, center, center_id, requestedTimeString, logger],
   );
 
   const onReturnToMapView = useCallback(() => {
@@ -94,34 +96,55 @@ export const AvalancheForecast: React.FunctionComponent<{
           )}
         </View>
       </HStack>
-      <Tab.Navigator initialRouteName={'avalanche'}>
+      <Tab.Navigator
+        initialRouteName={'avalanche'}
+        screenOptions={{
+          tabBarActiveTintColor: colorLookup('primary').toString(),
+          tabBarInactiveTintColor: colorLookup('text').toString(),
+        }}>
         <Tab.Screen
           name="avalanche"
           component={AvalancheTabScreen}
           initialParams={{center_id: center_id, forecast_zone_id: forecast_zone_id, requestedTime: requestedTimeString}}
-          options={{tabBarLabel: 'Avalanche'}}
+          options={{tabBarLabel: ({focused, color}) => <TabLabel title={'Avalanche'} focused={focused} color={color} />}}
         />
         <Tab.Screen
           name="weather"
           component={WeatherTabScreen}
           initialParams={{center_id: center_id, forecast_zone_id: forecast_zone_id, requestedTime: requestedTimeString}}
-          options={{tabBarLabel: 'Weather'}}
+          options={{tabBarLabel: ({focused, color}) => <TabLabel title={'Weather'} focused={focused} color={color} />}}
         />
         <Tab.Screen
           name="observations"
           component={ObservationsTabScreen}
           initialParams={{center_id: center_id, forecast_zone_id: forecast_zone_id, requestedTime: requestedTimeString}}
-          options={{tabBarLabel: 'Observations'}}
+          options={{tabBarLabel: ({focused, color}) => <TabLabel title={'Observations'} focused={focused} color={color} />}}
         />
         {process.env.EXPO_PUBLIC_ENABLE_CONDITIONS_BLOG && center.config.blog && center.config.blog_title && (
           <Tab.Screen
             name={'blog'}
             component={SynopsisTabScreen}
             initialParams={{center_id: center_id, forecast_zone_id: forecast_zone_id, requestedTime: requestedTimeString}}
-            options={{tabBarLabel: center.config.blog_title ? center.config.blog_title : 'Blog'}}
+            options={{tabBarLabel: ({focused, color}) => <TabLabel title={center.config.blog_title ? center.config.blog_title : 'Blog'} focused={focused} color={color} />}}
           />
         )}
       </Tab.Navigator>
     </VStack>
+  );
+};
+
+const TabLabel: React.FC<{title: string; focused: boolean; color: string}> = ({title, focused, color}) => {
+  return (
+    <View>
+      {focused ? (
+        <BodySemibold color={color} textAlign={'center'}>
+          {title}
+        </BodySemibold>
+      ) : (
+        <Body color={color} textAlign={'center'}>
+          {title}
+        </Body>
+      )}
+    </View>
   );
 };
