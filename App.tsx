@@ -496,7 +496,7 @@ const BaseApp: React.FunctionComponent<{
     prefixes: [AvalancheCenterWebsites['NWAC']],
     getStateFromPath: (path: string, opts: {initialRouteName?: string; screens: PathConfigMap<object>} | undefined) => {
       if (initialUrl) {
-        const state = getStateFromUrl(initialUrl);
+        const state = getStateFromUrl(logger, initialUrl);
         if (state) {
           return state;
         }

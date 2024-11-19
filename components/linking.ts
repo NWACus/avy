@@ -1,19 +1,25 @@
 import {NavigationState, PartialState} from '@react-navigation/native';
+import {Logger} from 'browser-bunyan';
 import {TabNavigatorParamList} from 'routes';
 import {AvalancheCenterID, AvalancheCenterWebsites, reverseLookup} from 'types/nationalAvalancheCenter';
 
-export const getStateFromUrl = (rawUrl: string): undefined | PartialState<NavigationState<TabNavigatorParamList>> => {
+export const getStateFromUrl = (logger: Logger, rawUrl: string): undefined | PartialState<NavigationState<TabNavigatorParamList>> => {
+  let thisLogger = logger.child({url: rawUrl});
+  thisLogger.info('handling URL');
   const url = new URL(rawUrl);
   const center: string | undefined = reverseLookup(AvalancheCenterWebsites, url.protocol + '//' + url.hostname + '/');
   if (!center) {
-    throw new Error(`Unknown hostname for URL: ${rawUrl}`);
+    thisLogger.info('unknown hostname');
+    return undefined;
   }
   const avalancheCenter = center as AvalancheCenterID;
   const prefixes = prefixesForCenter(avalancheCenter);
+  thisLogger = thisLogger.child({center: avalancheCenter});
 
   if (prefixes.avalanche) {
     const forecast = forecastState(avalancheCenter, url.pathname, prefixes.avalanche);
     if (forecast) {
+      thisLogger.info('avalanche forecast');
       return forecast;
     }
   }
@@ -21,11 +27,13 @@ export const getStateFromUrl = (rawUrl: string): undefined | PartialState<Naviga
   if (prefixes.weatherStation) {
     const weatherTab = weatherTabState(avalancheCenter, url.pathname, prefixes.weatherStation);
     if (weatherTab) {
+      thisLogger.info('weather data');
       return weatherTab;
     }
 
     const weatherStation = weatherStationState(avalancheCenter, url.pathname, prefixes.weatherStation);
     if (weatherStation) {
+      thisLogger.info('weather station');
       return weatherStation;
     }
   }
@@ -33,11 +41,13 @@ export const getStateFromUrl = (rawUrl: string): undefined | PartialState<Naviga
   if (prefixes.nwacWeatherStation) {
     const weatherTab = nwacWeatherTabState(avalancheCenter, url.pathname, prefixes.nwacWeatherStation);
     if (weatherTab) {
+      thisLogger.info('nwac weather data');
       return weatherTab;
     }
 
     const weatherStation = nwacWeatherStationState(avalancheCenter, url.pathname, prefixes.nwacWeatherStation);
     if (weatherStation) {
+      thisLogger.info('nwac weather station');
       return weatherStation;
     }
   }
@@ -47,6 +57,7 @@ export const getStateFromUrl = (rawUrl: string): undefined | PartialState<Naviga
     // https://nwac.us/observations/#/view/observations
     const observationsTab = observationsTabState(avalancheCenter, url.pathname, prefixes.observations);
     if (observationsTab) {
+      thisLogger.info('observations list');
       return observationsTab;
     }
 
@@ -54,10 +65,19 @@ export const getStateFromUrl = (rawUrl: string): undefined | PartialState<Naviga
     // https://nwac.us/observations/#/observation/e97eb763-61a6-4188-abc0-a115f5660fe4
     const observation = observationState(avalancheCenter, url.pathname, prefixes.observations);
     if (observation) {
+      thisLogger.info('observation');
       return observation;
+    }
+
+    // https://nwac.us/observations/#/form
+    const observationSubmission = observationSubmissionState(avalancheCenter, url.pathname, prefixes.observations);
+    if (observationSubmission) {
+      thisLogger.info('observationSubmission');
+      return observationSubmission;
     }
   }
 
+  thisLogger.info('unknown URL');
   return undefined;
 };
 
@@ -272,8 +292,8 @@ const prefixesForCenter = (avalancheCenter: AvalancheCenterID): prefixes => {
 };
 
 const forecastState = (center_id: AvalancheCenterID, path: string, prefix: string): false | PartialState<NavigationState<TabNavigatorParamList>> => {
-  const forecastMatch = path.match(new RegExp(`^/${prefix}/#/(?<zone>[^/]+)(/(?<tab>[^/]+))?$`));
-  if (forecastMatch && forecastMatch.groups && forecastMatch.groups.zone) {
+  const match = path.match(new RegExp(`^/${prefix}/#/(?<zone>[^/]+)(/(?<tab>[^/]+))?$`));
+  if (match && match.groups && match.groups.zone) {
     const tabMapping: Record<string, string> = {
       '': 'avalanche', // the avalanche tab is implicit on the web
       'weather-forecast': 'weather',
@@ -291,12 +311,12 @@ const forecastState = (center_id: AvalancheCenterID, path: string, prefix: strin
             routes: [
               {
                 name: 'forecast',
-                params: {center_id: center_id, forecast_zone_id: forecastMatch.groups.zone, requestedTime: 'latest'},
+                params: {center_id: center_id, forecast_zone_id: match.groups.zone, requestedTime: 'latest'},
                 state: {
                   routes: [
                     {
-                      name: tabMapping[forecastMatch.groups.tab || ''],
-                      params: {center_id: center_id, forecast_zone_id: forecastMatch.groups.zone, requestedTime: 'latest'},
+                      name: tabMapping[match.groups.tab || ''],
+                      params: {center_id: center_id, forecast_zone_id: match.groups.zone, requestedTime: 'latest'},
                     },
                   ],
                 },
@@ -312,8 +332,8 @@ const forecastState = (center_id: AvalancheCenterID, path: string, prefix: strin
 };
 
 const weatherTabState = (center_id: AvalancheCenterID, path: string, prefix: string): false | PartialState<NavigationState<TabNavigatorParamList>> => {
-  const weatherListMatch = path.match(new RegExp(`^/${prefix}/?#?/?$`));
-  if (weatherListMatch) {
+  const match = path.match(new RegExp(`^/${prefix}/?#?/?$`));
+  if (match) {
     return {
       routes: [
         {
@@ -335,8 +355,8 @@ const weatherTabState = (center_id: AvalancheCenterID, path: string, prefix: str
 };
 
 const weatherStationState = (center_id: AvalancheCenterID, path: string, prefix: string): false | PartialState<NavigationState<TabNavigatorParamList>> => {
-  const weatherStationMatch = path.match(new RegExp(`^/${prefix}/?#?/?(?<station>[^/]+)/?$`));
-  if (weatherStationMatch && weatherStationMatch.groups && weatherStationMatch.groups.station) {
+  const match = path.match(new RegExp(`^/${prefix}/?#?/?(?<station>[^/]+)/?$`));
+  if (match && match.groups && match.groups.station) {
     // TODO: why is source even required?
     return {
       routes: [
@@ -351,7 +371,7 @@ const weatherStationState = (center_id: AvalancheCenterID, path: string, prefix:
               },
               {
                 name: 'stationsDetail',
-                params: {center_id: center_id, stationId: weatherStationMatch.groups.station, source: '?', requestedTime: 'latest'},
+                params: {center_id: center_id, stationId: match.groups.station, source: '?', requestedTime: 'latest'},
               },
             ],
           },
@@ -363,8 +383,8 @@ const weatherStationState = (center_id: AvalancheCenterID, path: string, prefix:
 };
 
 const nwacWeatherTabState = (center_id: AvalancheCenterID, path: string, prefix: string): false | PartialState<NavigationState<TabNavigatorParamList>> => {
-  const weatherListMatch = path.match(new RegExp(`^/${prefix}/?$`));
-  if (weatherListMatch) {
+  const match = path.match(new RegExp(`^/${prefix}/?$`));
+  if (match) {
     return {
       routes: [
         {
@@ -386,8 +406,8 @@ const nwacWeatherTabState = (center_id: AvalancheCenterID, path: string, prefix:
 };
 
 const nwacWeatherStationState = (center_id: AvalancheCenterID, path: string, prefix: string): false | PartialState<NavigationState<TabNavigatorParamList>> => {
-  const weatherStationMatch = path.match(new RegExp(`^/${prefix}/(?<station>[^/]+)/now/?$`));
-  if (weatherStationMatch && weatherStationMatch.groups && weatherStationMatch.groups.station) {
+  const match = path.match(new RegExp(`^/${prefix}/(?<station>[^/]+)/now/?$`));
+  if (match && match.groups && match.groups.station) {
     // TODO: how do we figure out stations list, zone name?
     return {
       routes: [
@@ -402,7 +422,7 @@ const nwacWeatherStationState = (center_id: AvalancheCenterID, path: string, pre
               },
               {
                 name: 'stationsDetail',
-                params: {center_id: center_id, name: weatherStationMatch.groups.station, stations: '?', zoneName: '?', requestedTime: 'latest'},
+                params: {center_id: center_id, name: match.groups.station, stations: '?', zoneName: '?', requestedTime: 'latest'},
               },
             ],
           },
@@ -414,8 +434,8 @@ const nwacWeatherStationState = (center_id: AvalancheCenterID, path: string, pre
 };
 
 const observationsTabState = (center_id: AvalancheCenterID, path: string, prefix: string): false | PartialState<NavigationState<TabNavigatorParamList>> => {
-  const observationsListMatch = path.match(new RegExp(`^/${prefix}(/?#/view/observations)?$`));
-  if (observationsListMatch) {
+  const match = path.match(new RegExp(`^/${prefix}(/?#/view/observations)?$`));
+  if (match) {
     return {
       routes: [
         {
@@ -437,8 +457,8 @@ const observationsTabState = (center_id: AvalancheCenterID, path: string, prefix
 };
 
 const observationState = (center_id: AvalancheCenterID, path: string, prefix: string): false | PartialState<NavigationState<TabNavigatorParamList>> => {
-  const observationMatch = path.match(new RegExp(`^/${prefix}/?#/(view/observations/|observation/)(?<id>[^/]+)$`));
-  if (observationMatch && observationMatch.groups && observationMatch.groups.id) {
+  const match = path.match(new RegExp(`^/${prefix}/?#/(view/observations/|observation/)(?<id>[^/]+)$`));
+  if (match && match.groups && match.groups.id) {
     return {
       routes: [
         {
@@ -452,7 +472,30 @@ const observationState = (center_id: AvalancheCenterID, path: string, prefix: st
               },
               {
                 name: 'observation',
-                params: {id: observationMatch.groups.id},
+                params: {id: match.groups.id},
+              },
+            ],
+          },
+        },
+      ],
+    };
+  }
+  return false;
+};
+
+const observationSubmissionState = (center_id: AvalancheCenterID, path: string, prefix: string): false | PartialState<NavigationState<TabNavigatorParamList>> => {
+  const match = path.match(new RegExp(`^/${prefix}/?#/form/?$`));
+  if (match) {
+    return {
+      routes: [
+        {
+          name: 'Observations',
+          params: {center_id: center_id, requestedTime: 'latest'},
+          state: {
+            routes: [
+              {
+                name: 'observationSubmit',
+                params: {center_id: center_id},
               },
             ],
           },
