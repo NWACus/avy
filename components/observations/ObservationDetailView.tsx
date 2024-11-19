@@ -1,6 +1,6 @@
 import {Entypo} from '@expo/vector-icons';
 import React, {useCallback} from 'react';
-import {Image, ScrollView, Share, StyleSheet} from 'react-native';
+import {Image, Platform, ScrollView, Share, StyleSheet} from 'react-native';
 
 import {MaterialCommunityIcons} from '@expo/vector-icons';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
@@ -237,7 +237,7 @@ export const ObservationCard: React.FunctionComponent<{
       <Entypo
         size={22}
         color={colorLookup('text')}
-        name="share-alternative"
+        name={Platform.OS == 'ios' ? 'share-alternative' : 'share'}
         backgroundColor="white"
         iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
         style={{alignSelf: 'flex-end'}}
