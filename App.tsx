@@ -65,6 +65,7 @@ import * as messages from 'compiled-lang/en.json';
 import {Button} from 'components/content/Button';
 import {Center, VStack} from 'components/core';
 import {KillSwitchMonitor} from 'components/KillSwitchMonitor';
+import {getStateFromUrl} from 'components/linking';
 import {Body, BodyBlack, Title3Black} from 'components/text';
 import * as Linking from 'expo-linking';
 import * as Updates from 'expo-updates';
@@ -492,21 +493,14 @@ const BaseApp: React.FunctionComponent<{
   });
 
   const linking = {
-    prefixes: [AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
-    config: {
-      screens: {
-        Observations: {
-          screens: {
-            observation: 'observations/:id',
-          },
-        },
-      },
-    },
+    prefixes: [AvalancheCenterWebsites['NWAC']],
     getStateFromPath: (path: string, opts: {initialRouteName?: string; screens: PathConfigMap<object>} | undefined) => {
       if (initialUrl) {
-        // this url contains the whole url, like so: https://nwac.us/observations/#/observations/fb5bb19a-2b89-4c9c-91d2-eb673c5ab877
-        const url = new URL(initialUrl);
-        return getStateFromPath(path + '?share=true&share_url=' + url.origin + '/', opts);
+        const state = getStateFromUrl(logger, initialUrl);
+        if (state) {
+          return state;
+        }
+        return getStateFromPath(path, opts);
       }
     },
   };
