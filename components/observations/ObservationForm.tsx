@@ -27,6 +27,7 @@ import {ObservationAddImageButton, ObservationImagePicker} from 'components/obse
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskStatus} from 'components/observations/uploader/Task';
 import {Body, BodySemibold, Title3Semibold} from 'components/text';
+import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
@@ -50,6 +51,8 @@ export const ObservationForm: React.FC<{
 }> = ({center_id, onClose}) => {
   const metadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = metadataResult.data;
+  const capabilitiesResult = useAvalancheCenterCapabilities();
+  const capabilities = capabilitiesResult.data;
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const formContext = useForm<ObservationFormData>({
@@ -258,10 +261,10 @@ export const ObservationForm: React.FC<{
     }
   }, []);
 
-  if (incompleteQueryState(metadataResult) || !metadata) {
+  if (incompleteQueryState(metadataResult, capabilitiesResult) || !metadata || !capabilities) {
     return (
       <SafeAreaView edges={['top', 'left', 'right']}>
-        <QueryState results={[metadataResult]} />;
+        <QueryState results={[metadataResult, capabilitiesResult]} />;
       </SafeAreaView>
     );
   }
@@ -284,7 +287,7 @@ export const ObservationForm: React.FC<{
                 ref={scrollViewRef}>
                 <VStack width="100%" justifyContent="flex-start" alignItems="stretch" pt={8} pb={8}>
                   <View px={16} pb={formFieldSpacing}>
-                    <Body>Help keep the {userFacingCenterId(center_id)} community informed by submitting your observation.</Body>
+                    <Body>Help keep the {userFacingCenterId(center_id, capabilities)} community informed by submitting your observation.</Body>
                   </View>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Privacy</Title3Semibold>}>
                     <VStack space={formFieldSpacing} mt={8}>

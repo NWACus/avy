@@ -58,7 +58,7 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
       <AvalancheCenterList
         selectedCenter={currentCenterId}
         setSelectedCenter={setAvalancheCenterWrapper}
-        data={avalancheCenterList(metadata)}
+        data={avalancheCenterList(metadata, capabilities)}
         width="100%"
         height="100%"
         bg="white"

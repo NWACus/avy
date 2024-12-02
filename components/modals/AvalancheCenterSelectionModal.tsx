@@ -5,7 +5,7 @@ import Topo from 'assets/illustrations/topo.svg';
 import {avalancheCenterList, AvalancheCenters} from 'components/avalancheCenterList';
 import {AvalancheCenterList} from 'components/content/AvalancheCenterList';
 import {Button} from 'components/content/Button';
-import {incompleteQueryState} from 'components/content/QueryState';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {Center, Divider, View, VStack} from 'components/core';
 import {Body, BodyBlack, Title3Black} from 'components/text';
 import {useAllAvalancheCenterMetadata} from 'hooks/useAllAvalancheCenterMetadata';
@@ -40,6 +40,10 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
   }
   const safeAreaInsets = useSafeAreaInsets();
 
+  if (incompleteQueryState(capabilitiesResult, ...metadataResults) || !capabilities) {
+    return <QueryState results={[capabilitiesResult, ...metadataResults]} />;
+  }
+
   return (
     <Modal transparent visible={visible && !loading} animationType="slide" onRequestClose={closeHandler}>
       <SafeAreaProvider>
@@ -61,7 +65,7 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
                   <Body textAlign="center">You can change this anytime in settings.</Body>
                 </Center>
                 <ScrollView>
-                  <AvalancheCenterList selectedCenter={selectedCenter} setSelectedCenter={setSelectedCenter} data={avalancheCenterList(metadata)} />
+                  <AvalancheCenterList selectedCenter={selectedCenter} setSelectedCenter={setSelectedCenter} data={avalancheCenterList(metadata, capabilities)} />
                 </ScrollView>
               </VStack>
               <Divider />

@@ -1,9 +1,10 @@
 import * as Updates from 'expo-updates';
-import {AvalancheCenter, AvalancheCenterID, avalancheCenterIDSchema} from 'types/nationalAvalancheCenter';
+import {AllAvalancheCenterCapabilities, AvalancheCenter, AvalancheCenterID, avalancheCenterIDSchema, userFacingCenterId} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheCenterListData {
   center: AvalancheCenter;
   description?: string;
+  display_id: string;
 }
 
 const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: string}[] => {
@@ -63,12 +64,13 @@ export const filterToSupportedCenters = (ids: AvalancheCenterID[]): AvalancheCen
   return ids.filter(id => supportedCenters.includes(id));
 };
 
-export const avalancheCenterList = (metadata: AvalancheCenter[]): AvalancheCenterListData[] => {
+export const avalancheCenterList = (metadata: AvalancheCenter[], capabilities: AllAvalancheCenterCapabilities): AvalancheCenterListData[] => {
   const centers = supportedAvalancheCenters();
   return metadata
     .map(center => ({
       center: center,
       description: centers.find(supported => supported.center === center.id)?.description,
+      display_id: userFacingCenterId(center.id as AvalancheCenterID, capabilities),
     }))
     .sort((a, b) => {
       // Centers with descriptions are "blessed" and should sort above the rest
