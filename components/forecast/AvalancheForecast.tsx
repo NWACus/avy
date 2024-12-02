@@ -134,6 +134,10 @@ export const AvalancheForecast: React.FunctionComponent<{
 };
 
 const TabLabel: React.FC<{title: string; focused: boolean; color: string}> = ({title, focused, color}) => {
+  // the tab view library has a long-standing bug where they don't re-render tabs during focus,
+  // so we resort to always rendering the focused (larger) text in order to ensure it does not
+  // get cut off, ref:
+  // https://github.com/satya164/react-native-tab-view/issues/992
   return (
     <View>
       {focused ? (
@@ -145,6 +149,11 @@ const TabLabel: React.FC<{title: string; focused: boolean; color: string}> = ({t
           {title}
         </Body>
       )}
+      <View style={{height: 0}}>
+        <BodySemibold color={'transparent'} textAlign={'center'}>
+          {title}
+        </BodySemibold>
+      </View>
     </View>
   );
 };
