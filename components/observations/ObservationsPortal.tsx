@@ -1,8 +1,10 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Topo from 'assets/illustrations/topo.svg';
 import {Button} from 'components/content/Button';
+import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {VStack, View} from 'components/core';
 import {Body, BodyBlack, Title3Black} from 'components/text';
+import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {usePostHog} from 'posthog-react-native';
 import React, {useCallback} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -29,6 +31,13 @@ export const ObservationsPortal: React.FC<{
   }, [postHog, center_id]);
   useFocusEffect(recordAnalytics);
 
+  const capabilitiesResult = useAvalancheCenterCapabilities();
+  const capabilities = capabilitiesResult.data;
+
+  if (incompleteQueryState(capabilitiesResult) || !capabilities) {
+    return <QueryState results={[capabilitiesResult]} />;
+  }
+
   return (
     <View width="100%" height="100%" bg="#F6F8FC">
       {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
@@ -37,7 +46,7 @@ export const ObservationsPortal: React.FC<{
         <Topo width={887.0152587890625} height={456.3430480957031} style={{position: 'absolute', left: -306.15625, bottom: -60}} />
         <VStack height="100%" width="100%" justifyContent="center" alignItems="stretch" space={16} px={32} pb={200}>
           <Title3Black textAlign="center">You haven&apos;t submitted any observations in the App yet</Title3Black>
-          <Body textAlign="center">Help keep the {userFacingCenterId(center_id)} community informed by submitting your observation.</Body>
+          <Body textAlign="center">Help keep the {userFacingCenterId(center_id, capabilities)} community informed by submitting your observation.</Body>
           <Button buttonStyle="primary" onPress={onSubmit}>
             <BodyBlack>Submit an observation</BodyBlack>
           </Button>

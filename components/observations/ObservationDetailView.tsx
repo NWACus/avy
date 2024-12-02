@@ -17,6 +17,7 @@ import {GenerateObservationShareLink} from 'components/observations/ObservationU
 import {matchesZone} from 'components/observations/ObservationsFilterForm';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize} from 'components/text';
 import {HTML} from 'components/text/HTML';
+import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservation} from 'hooks/useNACObservation';
 import {useNWACObservation} from 'hooks/useNWACObservation';
@@ -27,6 +28,7 @@ import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
   Activity,
+  AllAvalancheCenterCapabilities,
   AvalancheAspect,
   AvalancheBedSurface,
   AvalancheCause,
@@ -62,12 +64,14 @@ export const NWACObservationDetailView: React.FunctionComponent<{
   const observation = observationResult.data;
   const mapResult = useMapLayer(observation?.center_id);
   const mapLayer = mapResult.data;
+  const capabilitiesResult = useAvalancheCenterCapabilities();
+  const capabilities = capabilitiesResult.data;
 
-  if (incompleteQueryState(observationResult, mapResult) || !observation || !mapLayer) {
-    return <QueryState results={[observationResult, mapResult]} />;
+  if (incompleteQueryState(observationResult, mapResult, capabilitiesResult) || !observation || !mapLayer || !capabilities) {
+    return <QueryState results={[observationResult, mapResult, capabilitiesResult]} />;
   }
 
-  return <ObservationCard observation={observation} mapLayer={mapLayer} />;
+  return <ObservationCard observation={observation} mapLayer={mapLayer} capabilities={capabilities} />;
 };
 
 export const ObservationDetailView: React.FunctionComponent<{
@@ -77,12 +81,14 @@ export const ObservationDetailView: React.FunctionComponent<{
   const observation = observationResult.data;
   const mapResult = useMapLayer(observation?.center_id?.toUpperCase() as AvalancheCenterID);
   const mapLayer = mapResult.data;
+  const capabilitiesResult = useAvalancheCenterCapabilities();
+  const capabilities = capabilitiesResult.data;
 
-  if (incompleteQueryState(observationResult, mapResult) || !observation || !mapLayer) {
-    return <QueryState results={[observationResult, mapResult]} />;
+  if (incompleteQueryState(observationResult, mapResult, capabilitiesResult) || !observation || !mapLayer || !capabilities || !capabilities) {
+    return <QueryState results={[observationResult, mapResult, capabilitiesResult]} />;
   }
 
-  return <ObservationCard observation={observation} mapLayer={mapLayer} />;
+  return <ObservationCard observation={observation} mapLayer={mapLayer} capabilities={capabilities} />;
 };
 
 const dataTableFlex = [1, 1];
@@ -199,7 +205,8 @@ export const withUnits = (value: string | number | null | undefined, units: stri
 export const ObservationCard: React.FunctionComponent<{
   observation: Observation;
   mapLayer: MapLayer;
-}> = ({observation, mapLayer}) => {
+  capabilities: AllAvalancheCenterCapabilities;
+}> = ({observation, mapLayer, capabilities}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const {avalanches_observed, avalanches_triggered, avalanches_caught} = observation.instability;
   const zone_name = observation.location_point?.lat && observation.location_point?.lng && matchesZone(mapLayer, observation.location_point?.lat, observation.location_point?.lng);
@@ -308,7 +315,7 @@ export const ObservationCard: React.FunctionComponent<{
                       </Marker>
                     </ZoneMap>
                   )}
-                  <TableRow label="Avalanche Center" value={userFacingCenterId(observation.center_id)} />
+                  <TableRow label="Avalanche Center" value={userFacingCenterId(observation.center_id, capabilities)} />
                   {observation.location_name && <TableRow label="Location" value={observation.location_name} />}
                   <TableRow label="Route" value={observation.route || 'Not specified'} />
                   <TableRow label="Activity" value={activityDisplayName(observation.activity)} />

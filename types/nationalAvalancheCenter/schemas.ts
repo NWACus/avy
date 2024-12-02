@@ -23,8 +23,9 @@ export const avalancheCenterIDSchema = z.enum([
 
 export type AvalancheCenterID = z.infer<typeof avalancheCenterIDSchema>;
 
-export function userFacingCenterId(input: AvalancheCenterID): string {
-  return input === 'SNFAC' ? 'SAC' : input;
+export function userFacingCenterId(input: AvalancheCenterID, capabilities: AllAvalancheCenterCapabilities): string {
+  const capability = capabilities.centers.find(center => center.id === input);
+  return capability !== undefined ? capability.display_id : input;
 }
 
 export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
@@ -1442,6 +1443,7 @@ export type AvalancheCenterPlatforms = z.infer<typeof avalancheCenterPlatformsSc
 
 export const avalancheCenterCapabilitiesSchema = z.object({
   id: z.string(),
+  display_id: z.string(),
   platforms: avalancheCenterPlatformsSchema,
 });
 export type AvalancheCenterCapabilities = z.infer<typeof avalancheCenterCapabilitiesSchema>;

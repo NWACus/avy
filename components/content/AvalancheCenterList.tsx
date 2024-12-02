@@ -6,7 +6,7 @@ import {HStack, VStack, VStackProps} from 'components/core';
 import {Body, BodySemibold} from 'components/text';
 import {TouchableOpacity} from 'react-native';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, userFacingCenterId} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 interface AvalancheCenterListItemProps {
   data: AvalancheCenterListData;
@@ -32,7 +32,7 @@ const AvalancheCenterListItem: React.FC<AvalancheCenterListItemProps> = ({data, 
         <AvalancheCenterLogo style={{height: 32, width: 32, resizeMode: 'contain', flex: 0, flexGrow: 0, marginTop: 4}} avalancheCenterId={center_id} />
         <VStack space={2} flexShrink={1} flexGrow={1}>
           <BodySemibold>
-            {data.center.name} ({userFacingCenterId(center_id)})
+            {data.center.name} ({data.display_id})
           </BodySemibold>
           <Body>{data.description}</Body>
         </VStack>

@@ -21,6 +21,7 @@ import {AvalancheCenters} from 'components/avalancheCenterList';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
+import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {FeatureFlagsDebuggerScreen} from 'components/FeatureFlagsDebugger';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
@@ -39,6 +40,7 @@ import {getVersionInfoFull} from 'components/screens/menu/Version';
 import {NWACObservationScreen, ObservationScreen} from 'components/screens/ObservationsScreen';
 import {Body, BodyBlack, Title3Black} from 'components/text';
 import {settingsMenuItems} from 'data/settingsMenuItems';
+import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -95,6 +97,8 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
   const navigation = useNavigation<MenuStackNavigationProps>();
   const {data} = useAvalancheCenterMetadata(avalancheCenterId);
   const menuItems = settingsMenuItems[avalancheCenterId];
+  const capabilitiesResult = useAvalancheCenterCapabilities();
+  const capabilities = capabilitiesResult.data;
 
   const {
     preferences: {mixpanelUserId},
@@ -120,6 +124,10 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
       [],
     );
 
+    if (incompleteQueryState(capabilitiesResult) || !capabilities) {
+      return <QueryState results={[capabilitiesResult]} />;
+    }
+
     return (
       <View style={{...StyleSheet.absoluteFillObject}} bg="white">
         {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
@@ -128,7 +136,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
             <VStack width="100%" height="100%" justifyContent="flex-start" alignItems="stretch" bg={colorLookup('primary.background')} space={10}>
               <Card borderRadius={0} borderColor="white" header={<Title3Black>More</Title3Black>} noDivider>
                 <Body>
-                  {data?.name && `${data.name} `}({userFacingCenterId(avalancheCenterId)})
+                  {data?.name && `${data.name} `}({userFacingCenterId(avalancheCenterId, capabilities)})
                 </Body>
               </Card>
               <View py={12} px={32}>
