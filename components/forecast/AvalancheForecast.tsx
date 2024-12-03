@@ -101,6 +101,7 @@ export const AvalancheForecast: React.FunctionComponent<{
         screenOptions={{
           tabBarActiveTintColor: colorLookup('primary').toString(),
           tabBarInactiveTintColor: colorLookup('text').toString(),
+          tabBarItemStyle: {alignItems: 'stretch'},
         }}>
         <Tab.Screen
           name="avalanche"
