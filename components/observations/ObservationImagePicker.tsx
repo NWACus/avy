@@ -79,7 +79,7 @@ export const useObservationPickImages = ({maxImageCount, disable}: {maxImageCoun
         const result = await ImagePicker.launchImageLibraryAsync({
           allowsMultipleSelection: true,
           exif: true,
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ['images', 'videos', 'livePhotos'],
           preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
           quality: 0.9,
           selectionLimit: maxImageCount - (images?.length ?? 0),

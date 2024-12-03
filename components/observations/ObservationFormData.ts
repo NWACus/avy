@@ -60,7 +60,7 @@ const imageAssetSchema = z
     assetId: z.string().nullable(),
     width: z.number(),
     height: z.number(),
-    type: z.union([z.literal('image'), z.literal('video')]),
+    type: z.union([z.literal('image'), z.literal('video'), z.literal('livePhoto'), z.literal('pairedVideo')]),
     fileName: z.string().nullable(),
     fileSize: z.number(),
     exif: z

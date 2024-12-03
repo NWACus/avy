@@ -58,7 +58,7 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
         defaultPreferences,
         {
           // Generate a new UUID if one doesn't exist, but overwrite with stored prefs if that's set
-          mixpanelUserId: uuid.v4() as string,
+          mixpanelUserId: uuid.v4(),
         },
         storedPreferences,
       ),
