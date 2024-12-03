@@ -25,7 +25,7 @@ import {ClientContext} from 'clientContext';
 import {AvalancheProblemSizeLine} from 'components/AvalancheProblemSizeLine';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
-import {Card, CollapsibleCard} from 'components/content/Card';
+import {Card} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
@@ -76,15 +76,10 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
 
     logger.info({environment: staging ? 'production' : 'staging'}, 'switching environment');
   }, [staging, setStaging]);
-  const {preferences, setPreferences, clearPreferences} = usePreferences();
+  const {preferences, clearPreferences} = usePreferences();
   const [updateGroupId] = useState(getUpdateGroupId());
   return (
-    <CollapsibleCard
-      identifier={'developerMenu'}
-      startsCollapsed={preferences.developerMenuCollapsed}
-      collapsedStateChanged={collapsed => setPreferences({developerMenuCollapsed: collapsed})}
-      borderColor="white"
-      header={<BodyBlack>Developer Menu</BodyBlack>}>
+    <Card borderColor="white" header={<BodyBlack>Developer Menu</BodyBlack>}>
       <VStack space={4}>
         <Card borderRadius={0} borderColor="white" header={<BodyBlack>Debug Settings</BodyBlack>}>
           <VStack space={12}>
@@ -523,7 +518,7 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
           ]}
         />
       </VStack>
-    </CollapsibleCard>
+    </Card>
   );
 };
 

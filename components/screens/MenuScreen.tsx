@@ -93,26 +93,25 @@ export const MenuStackScreen = (
 };
 
 export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheCenterID, staging: boolean, setStaging: React.Dispatch<React.SetStateAction<boolean>>) => {
-  const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const navigation = useNavigation<MenuStackNavigationProps>();
-  const {data} = useAvalancheCenterMetadata(avalancheCenterId);
-  const menuItems = settingsMenuItems[avalancheCenterId];
-  const capabilitiesResult = useAvalancheCenterCapabilities();
-  const capabilities = capabilitiesResult.data;
-
-  const {
-    preferences: {mixpanelUserId},
-  } = usePreferences();
-  const [updateGroupId] = getUpdateGroupId();
-
-  const postHog = usePostHog();
-
-  const recordAnalytics = useCallback(() => {
-    postHog?.screen('menu');
-  }, [postHog]);
-  useFocusEffect(recordAnalytics);
-
   const MenuScreen = function (_: NativeStackScreenProps<MenuStackParamList, 'menu'>) {
+    const {logger} = React.useContext<LoggerProps>(LoggerContext);
+    const navigation = useNavigation<MenuStackNavigationProps>();
+    const {data} = useAvalancheCenterMetadata(avalancheCenterId);
+    const menuItems = settingsMenuItems[avalancheCenterId];
+    const capabilitiesResult = useAvalancheCenterCapabilities();
+    const capabilities = capabilitiesResult.data;
+
+    const {
+      preferences: {mixpanelUserId},
+    } = usePreferences();
+    const [updateGroupId] = getUpdateGroupId();
+
+    const postHog = usePostHog();
+
+    const recordAnalytics = useCallback(() => {
+      postHog?.screen('menu');
+    }, [postHog]);
+    useFocusEffect(recordAnalytics);
     const sendMailHandler = useCallback(
       () =>
         void sendMail({
@@ -121,7 +120,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
           footer: `Please do not delete, info below helps with debugging.\n\n ${getVersionInfoFull(mixpanelUserId, updateGroupId)}`,
           logger,
         }),
-      [],
+      [logger, mixpanelUserId, updateGroupId],
     );
 
     if (incompleteQueryState(capabilitiesResult) || !capabilities) {
