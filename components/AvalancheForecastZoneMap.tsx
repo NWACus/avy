@@ -2,7 +2,7 @@ import React, {useCallback, useRef, useState} from 'react';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
-import AnimatedMapView, {PoiClickEvent, Region} from 'react-native-maps';
+import AnimatedMapView, {ClickEvent, PoiClickEvent, Region} from 'react-native-maps';
 
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
@@ -58,9 +58,21 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   const navigation = useNavigation<HomeStackNavigationProps & TabNavigationProps>();
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
-  const onPressMapView = useCallback(() => {
-    setSelectedZoneId(null);
-  }, []);
+  const onPressMapView = useCallback(
+    (event: ClickEvent) => {
+      // we seem to now get this event even if we're *also* getting a polygon press
+      // event, so we simply ignore the map press if it's inside a region
+      if (mapLayer && mapLayer.features) {
+        for (const feature of mapLayer.features) {
+          if (pointInFeature(event.nativeEvent.coordinate, feature)) {
+            return;
+          }
+        }
+      }
+      setSelectedZoneId(null);
+    },
+    [mapLayer],
+  );
   const onPressPolygon = useCallback(
     (zone: MapViewZone) => {
       if (selectedZoneId === zone.zone_id) {
@@ -73,7 +85,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         setSelectedZoneId(zone.zone_id);
       }
     },
-    [navigation, selectedZoneId, requestedTime],
+    [navigation, selectedZoneId, requestedTime, setSelectedZoneId],
   );
   // On the Android version of the Google Map layer, when a user taps on a map label (a place name, etc),
   // we get a POI click event; we don't get to see the specific point that they tapped on, only the centroid

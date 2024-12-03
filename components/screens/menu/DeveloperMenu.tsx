@@ -198,7 +198,7 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
           <VStack space={4}>
             <Body>Config</Body>
             {(() => {
-              const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
+              const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN as string;
               return (
                 <BodySm fontFamily={Platform.select({ios: 'Courier New', android: 'monospace'})} color={colorLookup(dsn ? 'text' : 'red')}>
                   SENTRY_DSN: {dsn ? `${dsn.slice(0, 15)}...` : 'not supplied'}

@@ -60,6 +60,7 @@ import {PreferencesProvider, usePreferences} from 'Preferences';
 import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
+import {Integration} from '@sentry/types';
 import {TRACE} from 'browser-bunyan';
 import * as messages from 'compiled-lang/en.json';
 import {Button} from 'components/content/Button';
@@ -89,11 +90,23 @@ const encodeParams = (params: {[s: string]: string}) => {
     .join('&');
 };
 
-const formatURI = (request: AxiosRequestConfig, options: {includePostData?: boolean; verbose?: boolean} = {}): string => {
+const formatURI = (
+  request: AxiosRequestConfig,
+  options: {
+    includePostData?: boolean;
+    verbose?: boolean;
+  } = {},
+): string => {
   const method = request.method ?? 'GET';
   let msg = `${method.toUpperCase()} ${request.url ?? 'url'}`;
   if (request.params && Object.keys(request.params as {[s: string]: string}).length !== 0) {
-    msg += `?${encodeParams(options.verbose ? (request.params as {[s: string]: string}) : (filterLoggedData(request.params) as {[s: string]: string}))}`;
+    msg += `?${encodeParams(
+      options.verbose
+        ? (request.params as {
+            [s: string]: string;
+          })
+        : (filterLoggedData(request.params) as {[s: string]: string}),
+    )}`;
   }
   if (request.data && options.includePostData) {
     msg += ` data: ${JSON.stringify(options.verbose ? request.data : filterLoggedData(request.data))}`;
@@ -108,7 +121,12 @@ axios.defaults.headers.common['User-Agent'] = `avy/${Application.nativeApplicati
 axios.interceptors.request.use(request => {
   const msg = 'sending request';
   const level = logger.level();
-  const thisLogger = logger.child({uri: formatURI(request, {includePostData: level <= TRACE, verbose: level <= TRACE})});
+  const thisLogger = logger.child({
+    uri: formatURI(request, {
+      includePostData: level <= TRACE,
+      verbose: level <= TRACE,
+    }),
+  });
   thisLogger.debug(msg);
   if (request.data && level <= TRACE) {
     thisLogger.trace(
@@ -124,7 +142,10 @@ axios.interceptors.request.use(request => {
 axios.interceptors.response.use(response => {
   const msg = 'received request response';
   const level = logger.level();
-  const thisLogger = logger.child({uri: formatURI(response.config, {includePostData: level <= TRACE}), status: response.status});
+  const thisLogger = logger.child({
+    uri: formatURI(response.config, {includePostData: level <= TRACE}),
+    status: response.status,
+  });
   thisLogger.debug(msg);
   if (response.data && level <= TRACE) {
     thisLogger.trace({data: JSON.stringify(filterLoggedData(response.data))}, msg);
@@ -138,22 +159,22 @@ void SplashScreen.preventAutoHideAsync().catch((error: Error) => {
   logger.debug('SplashScreen.preventAutoHideAsync threw error, ignoring', {error});
 });
 
-let routingInstrumentation: Sentry.ReactNavigationInstrumentation | undefined = undefined;
+let routingInstrumentation: (Integration & {registerNavigationContainer: (navigationContainerRef: unknown) => void}) | undefined = undefined;
 if (Sentry?.init) {
-  const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
+  const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN as string;
   // Only initialize Sentry if we can find the correct env setup
   if (!dsn) {
     logger.warn('Sentry integration not configured, check your environment');
   } else {
-    routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
+    routingInstrumentation = Sentry.reactNavigationIntegration();
     Sentry.init({
       dsn,
       // Set the dist value to the app binary and build. This should not vary often.
       // Example: 1.0.0.54
       dist: `${Application.nativeApplicationVersion || '0.0.0'}.${Application.nativeBuildVersion || '0'}`,
-      release: process.env.EXPO_PUBLIC_GIT_REVISION,
+      release: process.env.EXPO_PUBLIC_GIT_REVISION as string,
       enableWatchdogTerminationTracking: true,
-      integrations: [new Sentry.ReactNativeTracing({enableUserInteractionTracing: true, routingInstrumentation})],
+      integrations: [routingInstrumentation],
       beforeSend: async (event, hint) => {
         const {exists} = await FileSystem.getInfoAsync(logFilePath);
         if (exists) {
@@ -162,7 +183,7 @@ if (Sentry?.init) {
         }
         event.tags = {
           ...(event.tags ?? {}),
-          git_revision: process.env.EXPO_PUBLIC_GIT_REVISION,
+          git_revision: process.env.EXPO_PUBLIC_GIT_REVISION as string,
         };
         return event;
       },
@@ -206,14 +227,12 @@ const queryClient: QueryClient = new QueryClient({
 
 // on startup and periodically, reconcile the react-query link cache with the filesystem
 const BACKGROUND_CACHE_RECONCILIATION_TASK = 'background-cache-reconciliation';
-TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, () => {
-  void (async () => {
-    try {
-      await ImageCache.reconcile(queryClient, queryClient.getQueryCache(), logger);
-    } catch (e) {
-      logger.error({error: e}, 'error reconciling image cache');
-    }
-  })();
+TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, async () => {
+  try {
+    await ImageCache.reconcile(queryClient, queryClient.getQueryCache(), logger);
+  } catch (e) {
+    logger.error({error: e}, 'error reconciling image cache');
+  }
   return BackgroundFetch.BackgroundFetchResult.NewData;
 });
 void BackgroundFetch.registerTaskAsync(BACKGROUND_CACHE_RECONCILIATION_TASK, {
@@ -247,7 +266,7 @@ const toastConfig = {
 let postHog: PostHog | undefined = undefined;
 
 const postHogAsync: Promise<PostHog | undefined> = process.env.EXPO_PUBLIC_POSTHOG_API_KEY
-  ? PostHog.initAsync(process.env.EXPO_PUBLIC_POSTHOG_API_KEY, {
+  ? PostHog.initAsync(process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string, {
       host: 'https://app.posthog.com',
     })
   : new Promise<undefined>(resolve => {
@@ -269,7 +288,7 @@ const App = () => {
     return (
       <LoggerContext.Provider value={{logger: logger}}>
         {/* we clear the query cache every time a new build is published */}
-        <PersistQueryClientProvider client={queryClient} persistOptions={{persister: asyncStoragePersister, buster: process.env.EXPO_PUBLIC_GIT_REVISION || ''}}>
+        <PersistQueryClientProvider client={queryClient} persistOptions={{persister: asyncStoragePersister, buster: (process.env.EXPO_PUBLIC_GIT_REVISION as string) || ''}}>
           <IntlProvider locale="en" defaultLocale="en" messages={messages}>
             <AppWithClientContext />
           </IntlProvider>
@@ -284,7 +303,7 @@ const App = () => {
 
 const AppWithClientContext = () => {
   const [staging, setStaging] = React.useState(false);
-  const [requestedTime, setRequestedTime] = React.useState<RequestedTime>(process.env.EXPO_PUBLIC_DATE ? new Date(process.env.EXPO_PUBLIC_DATE) : 'latest');
+  const [requestedTime, setRequestedTime] = React.useState<RequestedTime>(process.env.EXPO_PUBLIC_DATE ? new Date(process.env.EXPO_PUBLIC_DATE as string) : 'latest');
 
   const contextValue = useMemo<ClientProps>(
     () => ({

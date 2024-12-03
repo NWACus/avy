@@ -62,7 +62,7 @@ export const FeatureFlagsProvider: React.FC<FeatureFlagsProviderProps> = ({child
         // We additionally capture it as a number here, so that we can use < and > in feature flag rules.
         buildNumber: Number.parseInt(Application.nativeBuildVersion || '0'),
         updateGroupId: getUpdateGroupId(),
-        updateBuildTime: process.env.EXPO_PUBLIC_GIT_REVISION,
+        updateBuildTime: process.env.EXPO_PUBLIC_GIT_REVISION as string,
         channel: Updates.channel || 'development',
       });
     }

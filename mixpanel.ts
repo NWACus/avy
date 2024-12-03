@@ -24,7 +24,7 @@ class MixpanelWrapper {
     if (process.env.EXPO_PUBLIC_MIXPANEL_TOKEN && (process.env.NODE_ENV !== 'development' || process.env.EXPO_PUBLIC_MIXPANEL_IN_DEVELOPMENT === 'true')) {
       logger.info('Initializing mixpanel');
       const trackAutomaticEvents = false;
-      this._mixpanel = new Mixpanel(process.env.EXPO_PUBLIC_MIXPANEL_TOKEN, trackAutomaticEvents);
+      this._mixpanel = new Mixpanel(process.env.EXPO_PUBLIC_MIXPANEL_TOKEN as string, trackAutomaticEvents);
       void this._mixpanel.init();
     } else {
       if (!process.env.EXPO_PUBLIC_MIXPANEL_TOKEN) {
@@ -122,7 +122,7 @@ class MixpanelWrapper {
       update_group_id: getUpdateGroupId(),
       application_version: Application.nativeApplicationVersion || 'n/a',
       application_build: Application.nativeBuildVersion || 'n/a',
-      git_revision: process.env.EXPO_PUBLIC_GIT_REVISION || 'n/a',
+      git_revision: (process.env.EXPO_PUBLIC_GIT_REVISION as string) || 'n/a',
       channel: Updates.channel || 'development',
     });
   }

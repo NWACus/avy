@@ -168,11 +168,11 @@ export class ObservationUploader {
 
       // uuid.v4 has a goofy implementation that only returns a byte array if you pass a byte array in,
       // but returns string otherwise. hence the use of `as string`.
-      const observationTaskId = uuid.v4() as string;
+      const observationTaskId = uuid.v4();
 
       observationFormData.images?.forEach(({image, caption}) => {
         tasks.push({
-          id: uuid.v4() as string,
+          id: uuid.v4(),
           parentId: observationTaskId,
           attemptCount: 0,
           type: 'image',
