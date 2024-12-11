@@ -79,4 +79,22 @@ export const settingsMenuItems: Record<string, {title: string; url: string}[]> =
       url: 'https://cbavalanchecenter.org/category/backcountry-notes/',
     },
   ],
+  SAC: [
+    {
+      title: 'About SAC',
+      url: 'https://www.sierraavalanchecenter.org/about',
+    },
+    {
+      title: 'Education',
+      url: 'https://www.sierraavalanchecenter.org/education',
+    },
+    {
+      title: 'Donate',
+      url: 'https://www.sierraavalanchecenter.org/donate',
+    },
+    {
+      title: 'Events',
+      url: 'https://www.sierraavalanchecenter.org/events',
+    },
+  ],
 };
