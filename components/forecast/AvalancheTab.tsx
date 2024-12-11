@@ -230,8 +230,8 @@ export const AvalancheTab: React.FunctionComponent<{
           forecast.forecast_avalanche_problems.map((problem, index) => (
             <CollapsibleCard
               identifier={'avalancheProblem'}
+              startsCollapsed={false}
               key={`avalanche-problem-${index}-card`}
-              startsCollapsed
               borderRadius={0}
               borderColor="white"
               header={<HeaderWithTooltip title={`Problem #${index + 1}: ${problem.name}`} content={helpStrings.avalancheProblem} />}>
@@ -239,12 +239,7 @@ export const AvalancheTab: React.FunctionComponent<{
             </CollapsibleCard>
           ))}
         {forecast.hazard_discussion && (
-          <CollapsibleCard
-            identifier={'hazardDiscussion'}
-            startsCollapsed={forecast.product_type === ProductType.Forecast}
-            borderRadius={0}
-            borderColor="white"
-            header={<BodyBlack>Forecast Discussion</BodyBlack>}>
+          <CollapsibleCard identifier={'hazardDiscussion'} startsCollapsed={false} borderRadius={0} borderColor="white" header={<BodyBlack>Forecast Discussion</BodyBlack>}>
             <HTML source={{html: forecast.hazard_discussion}} />
           </CollapsibleCard>
         )}
