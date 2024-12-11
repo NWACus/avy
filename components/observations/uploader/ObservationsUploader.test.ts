@@ -494,6 +494,7 @@ const fakeObservation: {apiPrefix: string; center_id: AvalancheCenterID; observa
     status: 'published',
     name: 'Brian',
     phone: '(012) 345 - 6789',
+    observer_type: 'public',
     observation_summary: 'This is a test observation.',
     photoUsage: MediaUsage.Credit,
     private: false,
