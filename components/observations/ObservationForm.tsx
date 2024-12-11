@@ -311,6 +311,18 @@ export const ObservationForm: React.FC<{
                         ]}
                         disabled={disableFormControls}
                       />
+                      <SelectField name="observer_type" label="Observer Type" radio items={[{value: 'public', label: 'Public'}]} disabled={true} invisible={true} />
+                      <SelectField
+                        name="status"
+                        label="Observation status"
+                        radio
+                        items={[
+                          {value: 'draft', label: 'Request review'},
+                          {value: 'published', label: 'Publish immediately'},
+                        ]}
+                        disabled={true}
+                        invisible={true}
+                      />
                     </VStack>
                   </Card>
                   <Card borderRadius={0} borderColor="white" header={<Title3Semibold>General information</Title3Semibold>}>

@@ -20,6 +20,7 @@ interface SelectFieldProps {
   prompt?: string;
   radio?: boolean; // If true, will default to selecting first item and always enforce selection
   disabled?: boolean;
+  invisible?: boolean;
 }
 
 const borderColor = colorLookup('border.base');
@@ -70,7 +71,7 @@ const selectStyles: SelectStyles = {
   },
 };
 
-export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, label, items, prompt, radio, disabled}, ref) => {
+export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, label, items, prompt, radio, disabled, invisible}, ref) => {
   const {setValue} = useFormContext();
   const {field, fieldState} = useController({name});
   const menuItems =
@@ -108,7 +109,7 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
   );
 
   return (
-    <VStack width="100%" space={4} ref={ref}>
+    <VStack width="100%" space={4} ref={ref} style={invisible && {display: 'none'}}>
       <BodySmBlack>{label}</BodySmBlack>
       <Select
         key={JSON.stringify(defaultOption)} // force a re-render when the default changes
