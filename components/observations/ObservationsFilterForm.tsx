@@ -34,6 +34,12 @@ const observationFilterConfigSchema = z.object({
       from: z.date(),
       to: z.date(),
     })
+    .or(
+      z.object({
+        from: z.null(),
+        to: z.null(),
+      }),
+    )
     .nullable(),
   observerTypes: z.array(z.nativeEnum(PartnerType)),
   avalanches: z.array(avalancheInstabilitySchema),
@@ -68,7 +74,7 @@ export const dateLabelForFilterConfig = (dates: z.infer<typeof observationFilter
 };
 
 const matchesDates = (dates: z.infer<typeof observationFilterConfigSchema.shape.dates>): FilterFunction => {
-  if (!dates) {
+  if (!dates || !dates?.from || !dates?.to) {
     return () => true;
   }
   const {from: startDate, to: endDate} = dates;
@@ -106,7 +112,7 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
   }
 
   const filterFuncs: FilterListItem[] = [];
-  if (config.dates) {
+  if (config.dates && config.dates.from && config.dates.to) {
     filterFuncs.push({
       type: 'date',
       filter: matchesDates(config.dates),
@@ -216,11 +222,15 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   const onSubmitHandler = useCallback(
     (data: ObservationFilterConfig) => {
       if (data.dates !== null) {
-        // When the user specfies a date range, make sure it runs until midnight of the last day
-        data.dates = {
-          from: data.dates.from,
-          to: endOfDay(data.dates.to),
-        };
+        if (data.dates.from && data.dates.to) {
+          // When the user specifies a date range, make sure it runs until midnight of the last day
+          data.dates = {
+            from: data.dates.from,
+            to: endOfDay(data.dates.to),
+          };
+        } else {
+          data.dates = null;
+        }
       }
       setFilterConfig(data);
     },
