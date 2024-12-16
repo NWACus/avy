@@ -63,24 +63,14 @@ export interface CollapsibleCardProps extends CardProps {
   identifier: string;
   noDivider?: boolean;
   startsCollapsed: boolean;
-  collapsedStateChanged?: (collapsed: boolean) => void;
 }
 
-export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({
-  identifier,
-  startsCollapsed,
-  collapsedStateChanged,
-  header,
-  children,
-  noDivider,
-  ...props
-}) => {
+export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({identifier, startsCollapsed, header, children, noDivider, ...props}) => {
   const [isCollapsed, setIsCollapsed] = useState(startsCollapsed);
   const textColor = colorLookup('text');
   const pressHandler = useCallback(() => {
     setIsCollapsed(!isCollapsed);
-    collapsedStateChanged?.(!isCollapsed);
-  }, [isCollapsed, collapsedStateChanged]);
+  }, [isCollapsed]);
   const postHog = usePostHog();
   useEffect(() => {
     postHog?.capture('card', {identifier: identifier, isCollapsed: isCollapsed});
