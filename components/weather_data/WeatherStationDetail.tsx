@@ -124,7 +124,11 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
           size="small"
           paddingTop={6}
         />
-        <WeatherDataTable columns={columns} timeseries={timeseries} />
+        {columns.length > 0 ? (
+          <WeatherDataTable columns={columns} timeseries={timeseries} />
+        ) : (
+          <NotFound terminal={true} what={[new NotFoundError('', 'any telemetry data for this station and time range')]} />
+        )}
         <View height={16} />
       </VStack>
     </VStack>
