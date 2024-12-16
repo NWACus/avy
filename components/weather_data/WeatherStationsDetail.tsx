@@ -1,10 +1,9 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {ScrollView} from 'react-native';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {compareDesc} from 'date-fns';
 import {uniq} from 'lodash';
-import {useFeatureFlag, usePostHog} from 'posthog-react-native';
+import {usePostHog} from 'posthog-react-native';
 
 import {ButtonBar} from 'components/content/ButtonBar';
 import {DataGrid} from 'components/content/DataGrid';
@@ -237,80 +236,27 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     [],
   );
 
-  const useNewTable = !!useFeatureFlag(`new-weather-table`) || process.env.EXPO_PUBLIC_NEW_WEATHER_TABLE === 'true';
-
-  if (useNewTable) {
-    return (
-      <DataGrid
-        data={data}
-        columnHeaderData={tableColumns.map(column => ({
-          name: shortFieldMap[column.field],
-          units: shortUnits(timeSeries.UNITS[column.field]),
-          elevation: column.elevation?.toString() || '',
-        }))}
-        rowHeaderData={times.map(time => formatDateTime('America/Los_Angeles')(time))}
-        columnWidths={[70, ...tableColumns.map(({field}) => (Math.max(shortFieldMap[field].length, shortUnits(timeSeries.UNITS[field]).length) > 4 ? 50 : 40))]}
-        rowHeights={[60, ...times.map(() => 30)]}
-        renderCell={renderCell}
-        renderRowHeader={renderRowHeader}
-        renderColumnHeader={renderColumnHeader}
-        renderCornerHeader={renderCornerHeader}
-      />
-    );
-  }
   return (
-    <ScrollView style={{width: '100%', height: '100%'}}>
-      <ScrollView horizontal style={{width: '100%', height: '100%'}}>
-        <HStack py={8} justifyContent="space-between" alignItems="center" bg="white">
-          <Column borderRightWidth={1} name={shortFieldMap['date_time']} units={'PST'} elevation={' '} data={times.map(time => formatDateTime('America/Los_Angeles')(time))} />
-          {tableColumns.map(({field, elevation, dataByTime}, columnIndex) => (
-            <Column
-              key={columnIndex}
-              borderRightWidth={0}
-              name={shortFieldMap[field]}
-              units={shortUnits(timeSeries.UNITS[field])}
-              elevation={elevation ? elevation.toString() : ''}
-              data={times.map(time => (dataByTime[time] !== null ? String(dataByTime[time]) : '-'))}
-            />
-          ))}
-        </HStack>
-      </ScrollView>
-    </ScrollView>
+    <DataGrid
+      data={data}
+      columnHeaderData={tableColumns.map(column => ({
+        name: shortFieldMap[column.field],
+        units: shortUnits(timeSeries.UNITS[column.field]),
+        elevation: column.elevation?.toString() || '',
+      }))}
+      rowHeaderData={times.map(time => formatDateTime('America/Los_Angeles')(time))}
+      columnWidths={[70, ...tableColumns.map(({field}) => (Math.max(shortFieldMap[field].length, shortUnits(timeSeries.UNITS[field]).length) > 4 ? 50 : 40))]}
+      rowHeights={[60, ...times.map(() => 30)]}
+      renderCell={renderCell}
+      renderRowHeader={renderRowHeader}
+      renderColumnHeader={renderColumnHeader}
+      renderCornerHeader={renderCornerHeader}
+    />
   );
 };
 
 const columnPadding = 3;
 const rowPadding = 2;
-
-export const Column: React.FunctionComponent<{borderRightWidth: number; name: string; units: string; elevation?: string; data: string[]}> = ({
-  borderRightWidth,
-  name,
-  units,
-  elevation,
-  data,
-}) => {
-  return (
-    <VStack justifyContent="flex-start" alignItems="stretch">
-      <VStack alignItems="center" justifyContent="flex-start" flex={1} py={rowPadding} px={columnPadding} bg="blue2">
-        <BodyXSmBlack color="white">{name}</BodyXSmBlack>
-        <BodyXSmBlack color="white">{units}</BodyXSmBlack>
-        {elevation && <BodyXSmBlack color="white">{elevation}</BodyXSmBlack>}
-      </VStack>
-      {data.map((value, index) => (
-        <Center
-          flex={1}
-          key={index}
-          bg={colorLookup(index % 2 ? 'light.100' : 'light.300')}
-          py={rowPadding}
-          px={columnPadding}
-          borderRightWidth={borderRightWidth}
-          borderColor={colorLookup('text.tertiary')}>
-          <BodyXSm>{value}</BodyXSm>
-        </Center>
-      ))}
-    </VStack>
-  );
-};
 
 export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, stations, zoneName, requestedTime}) => {
   const [days, setDays] = useState(1);
