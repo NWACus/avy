@@ -29,7 +29,7 @@ const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: s
       // {center: 'HAC', description: 'Avalanche forecasts for the Haines region in Alaska.'}, // failed to parse
       {center: 'HPAC', description: 'Avalanche forecasts for the Hatcher Pass region in Alaska.'},
       {center: 'IPAC', description: 'Avalanche forecasts for the Idaho panhandle.'},
-      {center: 'KPAC', description: 'Avalanche forecasts for the Kachina region in Alaska.'},
+      {center: 'KPAC', description: 'Avalanche forecasts for the Kachina region in Arizona.'},
       {center: 'PAC', description: 'Avalanche forecasts for the Payette region in Idaho.'},
       {center: 'TAC', description: 'Avalanche forecasts for the Taos Valley in New Mexico.'},
       // {center: 'VAC', description: 'Avalanche forecasts for the Valdez region of Alaska.'}, // failed to parse
