@@ -23,7 +23,6 @@ const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: s
   if (Updates.channel !== 'release') {
     centers.push(
       // {center: 'AAIC', description: 'Avalanche forecasts for Alaska.'}, // failed to parse
-      {center: 'CBAC', description: 'Avalanche forecasts for the Crested Butte area in Colorado.'},
       {center: 'CNFAIC', description: 'Avalanche forecasts for the Chugach National Forest.'},
       {center: 'COAA', description: 'Avalanche forecasts for central Oregon.'},
       {center: 'ESAC', description: 'Avalanche forecasts for the Eastern Sierra region in California.'},
