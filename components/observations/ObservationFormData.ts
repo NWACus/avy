@@ -40,7 +40,6 @@ export const defaultObservationFormData = (initialValues: Partial<ObservationFor
     initialValues,
   );
 const required = 'This field is required.';
-const tooLong = 'This value is too long.';
 
 const locationPointSchema = z.object(
   {
@@ -105,9 +104,9 @@ export const simpleObservationFormSchema = z
       collapsing: z.boolean(),
       collapsing_description: z.nativeEnum(InstabilityDistribution).optional(),
     }),
-    location_name: z.string({required_error: required}).max(256, tooLong),
+    location_name: z.string({required_error: required}),
     location_point: locationPointSchema,
-    name: z.string({required_error: required}).max(50, tooLong),
+    name: z.string({required_error: required}),
     status: z.enum(['draft', 'published']),
     phone: z
       .string()
@@ -115,7 +114,7 @@ export const simpleObservationFormSchema = z
       .optional(),
     show_name: z.boolean().optional(),
     observer_type: z.literal(PartnerType.Public),
-    observation_summary: z.string({required_error: required}).max(1024, tooLong),
+    observation_summary: z.string({required_error: required}),
     photoUsage: z.nativeEnum(MediaUsage, {required_error: required}),
     private: z.boolean(),
     // Using `coerce` allows us to transparently round-trip a Date object to JSON and back
@@ -142,12 +141,6 @@ export const simpleObservationFormSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: required,
-          path: ['avalanches_summary'],
-        });
-      } else if (avalanches_summary.length > 1024) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: tooLong,
           path: ['avalanches_summary'],
         });
       }
