@@ -173,7 +173,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     );
   }
 
-  // default to the values in the map layer, but update it with the forecasts and wranings we've fetched
+  // default to the values in the map layer, but update it with the forecasts and warnings we've fetched
   const zonesById: Record<string, MapViewZone> = mapLayer.features.reduce((accum: Record<string, MapViewZone>, feature: MapLayerFeature) => {
     accum[feature.id] = mapViewZoneFor(center, feature);
     return accum;
