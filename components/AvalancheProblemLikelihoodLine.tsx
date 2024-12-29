@@ -18,6 +18,7 @@ export const likelihoodText = (input: AvalancheProblemLikelihood): string => {
 const likelihoodToRange = (likelihood: AvalancheProblemLikelihood): SeverityNumberLineRange => {
   const index =
     {
+      [AvalancheProblemLikelihood.Certain]: 0,
       [AvalancheProblemLikelihood.AlmostCertain]: 0,
       [AvalancheProblemLikelihood.VeryLikely]: 1,
       [AvalancheProblemLikelihood.Likely]: 2,
@@ -31,7 +32,7 @@ export const AvalancheProblemLikelihoodLine: React.FunctionComponent<AvalanchePr
   return (
     <SeverityNumberLine
       labels={[
-        likelihoodText(AvalancheProblemLikelihood.AlmostCertain),
+        likelihoodText(AvalancheProblemLikelihood.Certain),
         likelihoodText(AvalancheProblemLikelihood.VeryLikely),
         likelihoodText(AvalancheProblemLikelihood.Likely),
         likelihoodText(AvalancheProblemLikelihood.Possible),

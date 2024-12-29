@@ -106,6 +106,7 @@ export enum AvalancheProblemLikelihood {
   Likely = 'likely',
   VeryLikely = 'very likely',
   AlmostCertain = 'almost certain',
+  Certain = 'certain',
 }
 
 export enum AvalancheProblemLocation {
