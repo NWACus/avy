@@ -185,21 +185,36 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       forecast &&
         forecast.forecast_zone?.forEach(({id}) => {
           if (zonesById[id]) {
+            // the map layer will expose old forecasts with their danger level as appropriate, but the map expects to show a card
+            // that doesn't divulge the old forecast's rating, travel advice or publication/expiry times, so we clear things out
             if (
+              !zonesById[id].end_date ||
+              (zonesById[id].end_date &&
+                isAfter(requestedTimeToUTCDate(requestedTime), toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}))) /* requesting after expiry */
+            ) {
+              zonesById[id].danger_level = DangerLevel.None;
+              zonesById[id].end_date = null;
+              zonesById[id].start_date = null;
+            }
+            // product-specific queries can give us results that are expired or older than the map layer, in which case we don't
+            // want to use them
+            if (
+              forecast.product_type === ProductType.Forecast &&
               forecast.expires_time &&
               zonesById[id].end_date &&
-              isAfter(requestedTimeToUTCDate(requestedTime), toDate(new Date(forecast.expires_time), {timeZone: 'UTC'})) &&
-              isAfter(toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}), toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}))
+              (isAfter(toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}), requestedTimeToUTCDate(requestedTime)) /* product is not expired */ ||
+                isAfter(
+                  toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}),
+                  toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}),
+                )) /* product newer than map layer */
             ) {
-              zonesById[id].danger_level = DangerLevel.GeneralInformation;
-            } else if (forecast.product_type === ProductType.Forecast) {
               const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);
               if (currentDanger) {
                 zonesById[id].danger_level = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
+                zonesById[id].start_date = forecast.published_time;
+                zonesById[id].end_date = forecast.expires_time;
               }
             }
-            zonesById[id].start_date = forecast.published_time;
-            zonesById[id].end_date = forecast.expires_time;
           }
         });
     });
@@ -311,15 +326,25 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
             <DangerLevelTitle dangerLevel={dangerLevel} />
           </HStack>
           <Title3Black>{zone.name}</Title3Black>
-          <VStack py={8}>
-            <Text>
-              <BodySm>Published: </BodySm>
-              <BodySm>{utcDateToLocalTimeString(zone.start_date)}</BodySm>
-              {'\n'}
-              <BodySm>Expires: </BodySm>
-              <BodySm>{utcDateToLocalTimeString(zone.end_date)}</BodySm>
-            </Text>
-          </VStack>
+          {(zone.start_date || zone.start_date) && (
+            <VStack py={8}>
+              <Text>
+                {zone.start_date && (
+                  <>
+                    <BodySm>Published: </BodySm>
+                    <BodySm>{utcDateToLocalTimeString(zone.start_date)}</BodySm>
+                    {'\n'}
+                  </>
+                )}
+                {zone.end_date && (
+                  <>
+                    <BodySm>Expires: </BodySm>
+                    <BodySm>{utcDateToLocalTimeString(zone.end_date)}</BodySm>
+                  </>
+                )}
+              </Text>
+            </VStack>
+          )}
           <Text>
             <BodySm>Travel advice: </BodySm>
             <TravelAdvice dangerLevel={dangerLevel} HeadingText={BodySm} BodyText={BodySm} />
