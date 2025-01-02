@@ -21,8 +21,9 @@ export const colorFor = (danger: DangerLevel | null | undefined): Color => {
       return Color('rgb(255, 242, 0)');
     case DangerLevel.Low:
       return Color('rgb(80, 184, 72)');
-    case DangerLevel.None:
     case DangerLevel.GeneralInformation:
+      return Color('rgb(110, 164, 219)');
+    case DangerLevel.None:
     default:
       return Color('rgb(147, 149, 152)');
   }
