@@ -15,7 +15,6 @@ export async function uploadObservation(id: string, data: ObservationTaskData): 
     // Date has to be a plain-old YYYY-MM-DD string. This format is the same format used by
     // `apiDateString`, but that function also converts to UTC, which we don't want to do here (#584)
     start_date: format(formData.start_date, 'yyyy-MM-dd'),
-    status: 'published',
   };
   try {
     const {data: responseData} = await axios.post<Observation>(url, payload, {
