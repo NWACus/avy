@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react';
-import {Animated, NativeSyntheticEvent} from 'react-native';
-import {LatLng, Point, Polygon} from 'react-native-maps';
+import {Animated} from 'react-native';
+import {Geojson, GeojsonProps, LatLng} from 'react-native-maps';
 
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {MapViewZone} from 'components/content/ZoneMap';
@@ -35,7 +35,7 @@ export interface AvalancheForecastZonePolygonProps {
   onPress?: (zone: MapViewZone) => void;
 }
 
-const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
+const AnimatedGeojson = Animated.createAnimatedComponent(Geojson);
 
 export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({
   zone,
@@ -59,20 +59,18 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
     }
   }, [animationProgress, useAnimation]);
 
-  const polygonProps = {
-    coordinates: toLatLngList(zone.geometry),
+  const polygonProps: GeojsonProps = {
+    geojson: {
+      type: 'FeatureCollection',
+      features: [zone.feature],
+    },
     strokeColor: selected ? highlight.toString() : outline.toString(),
     strokeWidth: selected ? 4 : 2,
     tappable: onPress !== undefined,
     zIndex: selected ? 1 : 0,
-    onPress: (event: PolygonPressEvent) => {
+    onPress: (_event: Parameters<Required<GeojsonProps>['onPress']>[0]) => {
       if (onPress) {
         onPress(zone);
-
-        // By calling stopPropagation, we prevent this event from getting passed to the MapView's onPress handler,
-        // which would then clear the selection
-        // https://github.com/react-native-maps/react-native-maps/issues/1132
-        event.stopPropagation();
       }
     },
   };
@@ -89,31 +87,10 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
         colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
       ],
     });
-    return <AnimatedPolygon fillColor={fillColor} {...polygonProps} />;
+    return <AnimatedGeojson fillColor={fillColor} {...polygonProps} />;
   } else {
     const fillOpacity = renderFillColor ? zone.fillOpacity : 0;
     const fillColor = colorFor(zone.danger_level).alpha(fillOpacity).string();
-    return <Polygon fillColor={fillColor} {...polygonProps} />;
+    return <Geojson fillColor={fillColor} {...polygonProps} />;
   }
 };
-
-// need to update to react-native-maps 1.6 to get rid of this
-type PolygonPressEvent = NativeSyntheticEvent<{
-  action: 'polygon-press';
-
-  /**
-   * @platform iOS: Google Maps
-   */
-  id?: string;
-
-  /**
-   * @platform iOS: Apple Maps
-   * @platform Android
-   */
-  coordinate?: LatLng;
-
-  /**
-   * @platform Android
-   */
-  position?: Point;
-}>;

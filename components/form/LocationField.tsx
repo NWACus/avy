@@ -22,7 +22,10 @@ interface LocationFieldProps {
 }
 
 const latLngToLocationPoint = (latLng: LatLng) => ({lat: latLng.latitude, lng: latLng.longitude});
-const locationPointToLatLng = (locationPoint: LocationPoint) => ({latitude: locationPoint.lat, longitude: locationPoint.lng});
+const locationPointToLatLng = (locationPoint: LocationPoint) => ({
+  latitude: locationPoint.lat,
+  longitude: locationPoint.lng,
+});
 
 export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center, disabled}, ref) => {
   const {
@@ -82,16 +85,18 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   }, [mapLayer, setInitialRegion, value, mapReady, setMapReady]);
 
   const zones: MapViewZone[] =
-    mapLayer?.features.map(feature => ({
-      zone_id: feature.id,
-      name: feature.properties.name,
-      center_id: center,
-      geometry: feature.geometry,
-      hasWarning: feature.properties.warning?.product !== null,
-      start_date: feature.properties.start_date,
-      end_date: feature.properties.end_date,
-      fillOpacity: feature.properties.fillOpacity,
-    })) ?? [];
+    mapLayer?.features.map(
+      (feature): MapViewZone => ({
+        zone_id: feature.id,
+        name: feature.properties.name,
+        center_id: center,
+        feature: feature,
+        hasWarning: feature.properties.warning?.product !== null,
+        start_date: feature.properties.start_date,
+        end_date: feature.properties.end_date,
+        fillOpacity: feature.properties.fillOpacity,
+      }),
+    ) ?? [];
 
   const emptyHandler = useCallback(() => undefined, []);
 

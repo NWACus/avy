@@ -16,7 +16,7 @@ const defaultAvalancheCenterMapRegionBounds: RegionBounds = {
 export const mapViewZoneFor = (center: AvalancheCenterID, feature: MapLayerFeature): MapViewZone => {
   return {
     zone_id: feature.id,
-    geometry: feature.geometry,
+    feature: feature,
     hasWarning: feature.properties.warning.product !== null,
     center_id: center,
     name: feature.properties.name,
@@ -34,7 +34,7 @@ export type MapViewZone = {
   danger_level?: DangerLevel;
   start_date: string | null;
   end_date: string | null;
-  geometry?: Geometry;
+  feature: MapLayerFeature;
   fillOpacity: number;
   hasWarning: boolean;
 };
@@ -66,7 +66,7 @@ export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones
 ZoneMap.displayName = 'ZoneMap';
 
 export function defaultMapRegionForZones(zones: MapViewZone[]) {
-  return defaultMapRegionForGeometries(zones.map(zone => zone.geometry));
+  return defaultMapRegionForGeometries(zones.map(zone => zone.feature.geometry));
 }
 
 export function defaultMapRegionForGeometries(geometries: (Geometry | undefined)[] | undefined) {
