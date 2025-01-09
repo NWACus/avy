@@ -80,9 +80,11 @@ export const WeatherStationMap: React.FunctionComponent<{
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('weatherStationsMap', {
-      center: center_id,
-    });
+    if (postHog && center_id) {
+      postHog.screen('weatherStationsMap', {
+        center: center_id,
+      });
+    }
   }, [postHog, center_id]);
   useFocusEffect(recordAnalytics);
 

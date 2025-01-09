@@ -24,9 +24,11 @@ export const WeatherStationPage: React.FC<Props> = ({center_id, requestedTime}) 
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('weatherTab', {
-      center: center_id,
-    });
+    if (postHog && center_id) {
+      postHog.screen('weatherTab', {
+        center: center_id,
+      });
+    }
   }, [postHog, center_id]);
   useFocusEffect(recordAnalytics);
 

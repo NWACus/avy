@@ -83,7 +83,11 @@ const shortUnitsMap: Record<string, string> = {
 const shortUnits = (units: string): string => shortUnitsMap[units] || units;
 
 const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({timeSeries}) => {
-  type Column = {elevation: number | undefined | null; field: string; dataByTime: Record<string, number | string | null>};
+  type Column = {
+    elevation: number | undefined | null;
+    field: string;
+    dataByTime: Record<string, number | string | null>;
+  };
   const tableColumns: Column[] = useMemo(() => {
     const columns: Column[] = [];
     for (const station of timeSeries.STATION) {
@@ -269,10 +273,13 @@ export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, station
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('weatherStations', {
-      center: center_id,
-    });
-  }, [postHog, center_id]);
+    if (postHog && center_id && name) {
+      postHog.screen('weatherStations', {
+        center: center_id,
+        name: name,
+      });
+    }
+  }, [postHog, center_id, name]);
   useFocusEffect(recordAnalytics);
 
   React.useEffect(() => {

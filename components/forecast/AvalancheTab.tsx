@@ -114,8 +114,8 @@ export const AvalancheTab: React.FunctionComponent<{
   );
 
   const recordAnalytics = useCallback(() => {
-    if (zoneName) {
-      postHog?.screen('avalancheForecastTab', {
+    if (postHog && center_id && zoneName) {
+      postHog.screen('avalancheForecastTab', {
         center: center_id,
         zone: zoneName,
       });

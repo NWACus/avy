@@ -59,6 +59,7 @@ interface ObservationFragmentWithPageIndex extends ObservationFragment {
 }
 
 type SourceType = 'nac' | 'nwac';
+
 interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFragmentWithPageIndex {
   zone: string;
   source: SourceType;
@@ -76,10 +77,12 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('observations', {
-      center: center_id,
-      zone: additionalFilters && additionalFilters.zones && additionalFilters.zones.length > 0 ? additionalFilters.zones[0] : 'global',
-    });
+    if (postHog && center_id) {
+      postHog.screen('observations', {
+        center: center_id,
+        zone: additionalFilters && additionalFilters.zones && additionalFilters.zones.length > 0 ? additionalFilters.zones[0] : 'global',
+      });
+    }
   }, [postHog, additionalFilters, center_id]);
   useFocusEffect(recordAnalytics);
 
@@ -103,7 +106,13 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const observationsResult = displayNWACObservations ? nwacObservationsResult : nacObservationsResult;
 
   const flatObservationList: ObservationFragmentWithPageIndex[] = useMemo(
-    () => (observationsResult.data?.pages ?? []).flatMap((page, index) => page.data.map(o => ({...o, pageIndex: index}))),
+    () =>
+      (observationsResult.data?.pages ?? []).flatMap((page, index) =>
+        page.data.map(o => ({
+          ...o,
+          pageIndex: index,
+        })),
+      ),
     [observationsResult],
   );
   const observations: ObservationFragmentWithPageIndexAndZoneAndSource[] = useMemo(
@@ -405,7 +414,10 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 };
 
 const colorsFor = (partnerType: PartnerType) => {
-  return {primary: colorLookup(`observer.${partnerType}.primary`).toString(), secondary: colorLookup(`observer.${partnerType}.secondary`).toString()};
+  return {
+    primary: colorLookup(`observer.${partnerType}.primary`).toString(),
+    secondary: colorLookup(`observer.${partnerType}.secondary`).toString(),
+  };
 };
 
 export interface FilterPillButtonProps {
@@ -416,6 +428,7 @@ export interface FilterPillButtonProps {
   textColor: ColorValue;
   backgroundColor: ColorValue;
 }
+
 export const FilterPillButton: React.FC<FilterPillButtonProps> = ({label, headIcon, tailIcon, onPress, textColor, backgroundColor}) => (
   <TouchableOpacity onPress={onPress}>
     <HStack

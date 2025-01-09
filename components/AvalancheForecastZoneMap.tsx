@@ -50,9 +50,11 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('avalancheForecastMap', {
-      center: center,
-    });
+    if (postHog && center) {
+      postHog.screen('avalancheForecastMap', {
+        center: center,
+      });
+    }
   }, [postHog, center]);
   useFocusEffect(recordAnalytics);
 

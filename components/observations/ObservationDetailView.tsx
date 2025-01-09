@@ -219,10 +219,12 @@ export const ObservationCard: React.FunctionComponent<{
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('observation', {
-      center: observation.center_id,
-      id: observation.id,
-    });
+    if (postHog && observation.center_id && observation.id) {
+      postHog.screen('observation', {
+        center: observation.center_id,
+        id: observation.id,
+      });
+    }
   }, [postHog, observation.center_id, observation.id]);
   useFocusEffect(recordAnalytics);
 
