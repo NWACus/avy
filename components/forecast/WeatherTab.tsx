@@ -143,10 +143,12 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('weatherForecastTab', {
-      center: center_id,
-      zone: zone.name,
-    });
+    if (postHog && center_id && zone.name) {
+      postHog.screen('weatherForecastTab', {
+        center: center_id,
+        zone: zone.name,
+      });
+    }
   }, [postHog, center_id, zone.name]);
   useFocusEffect(recordAnalytics);
 
@@ -528,7 +530,10 @@ const InlineWeatherForecast: React.FunctionComponent<{forecast: InlineWeatherDat
   return <ForecastPeriod periods={periods} />;
 };
 
-const RowColumnWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeatherData; center_id: AvalancheCenterID}> = ({forecast, center_id}) => {
+const RowColumnWeatherForecast: React.FunctionComponent<{
+  forecast: RowColumnWeatherData;
+  center_id: AvalancheCenterID;
+}> = ({forecast, center_id}) => {
   if (center_id === 'BTAC') {
     return <BTACWeatherForecast forecast={forecast} />;
   }

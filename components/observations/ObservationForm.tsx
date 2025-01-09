@@ -68,9 +68,11 @@ export const ObservationForm: React.FC<{
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('observationForm', {
-      center: center_id,
-    });
+    if (postHog && center_id) {
+      postHog.screen('observationForm', {
+        center: center_id,
+      });
+    }
   }, [postHog, center_id]);
   useFocusEffect(recordAnalytics);
 
@@ -121,7 +123,11 @@ export const ObservationForm: React.FC<{
   const mutation = useMutation<void, AxiosError, ObservationFormData>({
     mutationFn: async (observationFormData: ObservationFormData) => {
       logger.info({formValues: observationFormData}, 'submitting observation');
-      const observationId = await getUploader().submitObservation({center_id, apiPrefix: nationalAvalancheCenterHost, observationFormData});
+      const observationId = await getUploader().submitObservation({
+        center_id,
+        apiPrefix: nationalAvalancheCenterHost,
+        observationFormData,
+      });
       const promise: Promise<void> = new Promise((resolve, reject) => {
         let lastObsStatus: TaskStatus | null = null;
         const listener = (uploaderState: UploaderState) => {

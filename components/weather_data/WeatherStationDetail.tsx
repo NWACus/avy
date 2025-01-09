@@ -30,6 +30,7 @@ interface columnData {
   variable: Variable;
   data: (number | string | null)[];
 }
+
 export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, source, requestedTime}) => {
   const [days, setDays] = useState(1);
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
@@ -42,10 +43,12 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('weatherStation', {
-      center: center_id,
-      stationId: stationId,
-    });
+    if (postHog && center_id && stationId) {
+      postHog.screen('weatherStation', {
+        center: center_id,
+        stationId: stationId,
+      });
+    }
   }, [postHog, center_id, stationId]);
   useFocusEffect(recordAnalytics);
 
