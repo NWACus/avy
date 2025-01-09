@@ -73,8 +73,11 @@ export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<Collapsi
   }, [isCollapsed]);
   const postHog = usePostHog();
   useEffect(() => {
-    postHog?.capture('card', {identifier: identifier, isCollapsed: isCollapsed});
-  }, [identifier, postHog, isCollapsed]);
+    if (postHog && identifier && isCollapsed !== startsCollapsed) {
+      // capture the even when the user decided to interact with the card, don't send something without interaction
+      postHog.capture('card', {identifier: identifier, isCollapsed: isCollapsed});
+    }
+  }, [identifier, postHog, isCollapsed, startsCollapsed]);
 
   return (
     <Card
