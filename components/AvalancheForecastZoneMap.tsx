@@ -62,7 +62,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     (event: ClickEvent) => {
       // we seem to now get this event even if we're *also* getting a polygon press
       // event, so we simply ignore the map press if it's inside a region
-      if (mapLayer && mapLayer.features) {
+      if (event.nativeEvent.coordinate && mapLayer && mapLayer.features) {
         for (const feature of mapLayer.features) {
           if (pointInFeature(event.nativeEvent.coordinate, feature)) {
             return;
@@ -94,7 +94,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   // and open the forecast zone for that point. When POI labels span multiple zones, that doesn't work perfectly.
   const onPressPOI = useCallback(
     (event: PoiClickEvent) => {
-      const matchingZones = mapLayer?.features.filter(feature => pointInFeature(event.nativeEvent.coordinate, feature));
+      const matchingZones = event.nativeEvent.coordinate ? mapLayer?.features.filter(feature => pointInFeature(event.nativeEvent.coordinate, feature)) : [];
       if (matchingZones && matchingZones.length > 0) {
         onPressPolygon(mapViewZoneFor(center, matchingZones[0]));
       }
