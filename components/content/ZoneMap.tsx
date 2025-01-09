@@ -71,7 +71,7 @@ export function defaultMapRegionForZones(zones: MapViewZone[]) {
 
 export function defaultMapRegionForGeometries(geometries: (Geometry | undefined)[] | undefined) {
   const avalancheCenterMapRegionBounds: RegionBounds = geometries
-    ? geometries.reduce((accumulator, currentValue) => updateBoundsToContain(accumulator, toLatLngList(currentValue)), defaultAvalancheCenterMapRegionBounds)
+    ? geometries.reduce((accumulator, currentValue) => updateBoundsToContain(accumulator, toLatLngList(currentValue).flat()), defaultAvalancheCenterMapRegionBounds)
     : defaultAvalancheCenterMapRegionBounds;
   const avalancheCenterMapRegion: Region = regionFromBounds(avalancheCenterMapRegionBounds);
   // give the polygons a little buffer in the region so we don't render them at the outskirts of the screen
