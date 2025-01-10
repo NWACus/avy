@@ -1,4 +1,6 @@
-export const settingsMenuItems: Record<string, {title: string; url: string}[]> = {
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+
+export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: string}[]> = {
   NWAC: [
     {
       title: 'About NWAC',
@@ -97,7 +99,7 @@ export const settingsMenuItems: Record<string, {title: string; url: string}[]> =
       url: 'https://www.sierraavalanchecenter.org/events',
     },
   ],
-  COAC: [
+  COAA: [
     {
       title: 'About COAC',
       url: 'https://www.coavalanche.org/about/',
@@ -111,4 +113,17 @@ export const settingsMenuItems: Record<string, {title: string; url: string}[]> =
       url: 'https://www.coavalanche.org/events/',
     },
   ],
+  BAC: [],
+  CNFAIC: [],
+  ESAC: [],
+  FAC: [],
+  HPAC: [],
+  IPAC: [],
+  KPAC: [],
+  MSAC: [],
+  MWAC: [],
+  PAC: [],
+  TAC: [],
+  WAC: [],
+  WCMAC: [],
 };
