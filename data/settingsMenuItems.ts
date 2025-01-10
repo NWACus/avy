@@ -97,4 +97,18 @@ export const settingsMenuItems: Record<string, {title: string; url: string}[]> =
       url: 'https://www.sierraavalanchecenter.org/events',
     },
   ],
+  COAC: [
+    {
+      title: 'About COAC',
+      url: 'https://www.coavalanche.org/about/',
+    },
+    {
+      title: 'Become a Member',
+      url: 'https://shop.coavalanche.org/products/coac-membership?variant=46786314207474',
+    },
+    {
+      title: 'Events',
+      url: 'https://www.coavalanche.org/events/',
+    },
+  ],
 };
