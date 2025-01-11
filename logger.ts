@@ -21,7 +21,7 @@ if (process.env.EXPO_PUBLIC_DISABLE_LOGBOX) {
   LogBox?.ignoreAllLogs(true);
 }
 
-const defaultLogLevel = process.env.NODE_ENV === 'test' ? 'WARN' : 'INFO';
+const defaultLogLevel = process.env.NODE_ENV !== 'test' ? 'WARN' : 'INFO';
 
 const streams: StreamOptions[] = [];
 
@@ -34,7 +34,7 @@ if (Updates.channel === '') {
 }
 
 // Always log to file, except for when we're in test
-if (process.env.NODE_ENV === 'test') {
+if (process.env.NODE_ENV !== 'test') {
   streams.push({
     level: 'INFO',
     stream: new FileStream(logFilePath),
