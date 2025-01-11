@@ -1383,9 +1383,9 @@ export const snotelWeatherStationPropertiesSchema = z.object({
     actionid: z.string().nullable().optional(),
     enddate: z.string(),
     begindate: z.string(),
-    fipscountycd: z.string(),
-    fipscountrycd: z.string(),
-    fipsstatenumber: z.string(),
+    fipscountycd: z.string().nullable().optional(),
+    fipscountrycd: z.string().nullable().optional(),
+    fipsstatenumber: z.string().nullable().optional(),
   }),
 });
 

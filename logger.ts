@@ -18,7 +18,7 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 if (process.env.EXPO_PUBLIC_DISABLE_LOGBOX) {
-  LogBox.ignoreAllLogs(true);
+  LogBox?.ignoreAllLogs(true);
 }
 
 const defaultLogLevel = process.env.NODE_ENV === 'test' ? 'WARN' : 'INFO';
