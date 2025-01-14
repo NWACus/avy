@@ -1337,12 +1337,6 @@ export const nwacWeatherStationPropertiesSchema = z.object({
   longitude: z.number(),
   elevation: z.number(),
   timezone: z.string(),
-  meta: z.object({
-    state: z.string().nullable().optional(),
-    datalogger_num_id: z.number().or(z.string()).optional(),
-    datalogger_char_id: z.string().optional(),
-    weather_station_partner: z.string().optional(),
-  }),
   station_note: z.array(stationNoteSchema),
   data: z.record(z.string(), z.string().or(z.number()).or(z.null())),
 });
@@ -1356,15 +1350,6 @@ export const mesowestWeatherStationPropertiesSchema = z.object({
   longitude: z.number(),
   elevation: z.number(),
   timezone: z.string(),
-  meta: z.object({
-    id: z.string(),
-    state: z.string().nullable(),
-    units: z.record(z.string(), z.string()),
-    status: z.nativeEnum(WeatherStationStatus).nullable(),
-    mnet_id: z.string(),
-    elev_dem: z.string().nullable(),
-    restricted: z.boolean(),
-  }),
 });
 
 export const snotelWeatherStationPropertiesSchema = z.object({
@@ -1376,17 +1361,6 @@ export const snotelWeatherStationPropertiesSchema = z.object({
   longitude: z.number(),
   elevation: z.number(),
   timezone: z.string(),
-  meta: z.object({
-    huc: z.string(),
-    state: z.string().nullable(),
-    shefid: z.string().nullable(),
-    actionid: z.string().nullable().optional(),
-    enddate: z.string(),
-    begindate: z.string(),
-    fipscountycd: z.string().nullable().optional(),
-    fipscountrycd: z.string().nullable().optional(),
-    fipsstatenumber: z.string().nullable().optional(),
-  }),
 });
 
 export const weatherStationPropertiesSchema = z.discriminatedUnion('source', [
