@@ -536,7 +536,7 @@ const RowColumnWeatherForecast: React.FunctionComponent<{
   forecast: RowColumnWeatherData;
   center_id: AvalancheCenterID;
 }> = ({forecast, center_id}) => {
-  if (center_id === 'BTAC') {
+  if (center_id === 'BTAC' && forecast.zone_id !== 'snake_river_range') {
     return <BTACWeatherForecast forecast={forecast} />;
   }
 
