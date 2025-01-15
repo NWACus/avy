@@ -18,6 +18,7 @@ import {useRefresh} from 'hooks/useRefresh';
 import {useWeatherForecast} from 'hooks/useWeatherForecast';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import {isArray} from 'lodash';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
@@ -487,6 +488,7 @@ interface datum {
 const InlineWeatherForecast: React.FunctionComponent<{forecast: InlineWeatherData}> = ({forecast}) => {
   for (const datum of forecast.data) {
     if (datum.values.length != forecast.periods.length) {
+      Sentry.captureException(`zone ${forecast.zone_name}: found ${forecast.periods.length} forecast periods but only ${datum.values.length} datums, cannot display forecast`);
       return <InternalError inline />;
     }
   }
@@ -534,14 +536,15 @@ const RowColumnWeatherForecast: React.FunctionComponent<{
   forecast: RowColumnWeatherData;
   center_id: AvalancheCenterID;
 }> = ({forecast, center_id}) => {
-  if (center_id === 'BTAC') {
+  if (center_id === 'BTAC' && forecast.zone_id !== 'snake_river_range') {
     return <BTACWeatherForecast forecast={forecast} />;
   }
 
   let periods: period[] = [];
   try {
     periods = periodsForForecast(forecast);
-  } catch {
+  } catch (e) {
+    Sentry.captureException(e, {tags: {center_id: center_id, zone_id: forecast.zone_id}});
     return <InternalError inline />;
   }
 
@@ -550,10 +553,13 @@ const RowColumnWeatherForecast: React.FunctionComponent<{
 
 const periodsForForecast = (forecast: RowColumnWeatherData, label?: string): period[] => {
   if (!forecast.columns || forecast.columns.length < 1 || !forecast.columns[0] || forecast.columns[0].length < 1) {
-    throw new Error('invalid assumptions');
+    const columns = forecast.columns ? forecast.columns.length : 0;
+    throw new Error(
+      `invalid assumptions: have ${columns} columns, first column has ${columns && forecast.columns && forecast.columns[0] ? forecast.columns[0].length : 0} entries`,
+    );
   }
   if (!forecast.data || !forecast.rows || forecast.data.length !== forecast.rows.length) {
-    throw new Error('invalid assumptions');
+    throw new Error(`invalid assumptions: have ${forecast.data ? forecast.data.length : 0} periods, ${forecast.rows ? forecast.rows.length : 0} rows`);
   }
 
   const periods: period[] = [];
@@ -653,16 +659,39 @@ const ForecastValue: React.FunctionComponent<{forecastItem: datum}> = ({forecast
 };
 
 export const BTACWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeatherData}> = ({forecast}) => {
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
   // n.b. we can't factor this check into a separate method as tsc is not smart enough to do type narrowing then
   if (!forecast.columns || forecast.columns.length < 1 || !forecast.columns[0] || forecast.columns[0].length < 1) {
+    const columns = forecast.columns ? forecast.columns.length : 0;
+    const error = `invalid assumptions: have ${columns} columns, first column has ${columns && forecast.columns && forecast.columns[0] ? forecast.columns[0].length : 0} entries`;
+    logger.error(error);
+    Sentry.captureException(error, {tags: {center_id: 'BTAC', zone_id: forecast.zone_id}});
     return <InternalError inline />;
   }
   if (!forecast.data || !forecast.rows || forecast.data.length !== forecast.rows.length) {
+    const error = `invalid assumptions: have ${forecast.data ? forecast.data.length : 0} periods, ${forecast.rows ? forecast.rows.length : 0} rows`;
+    logger.error(error);
+    Sentry.captureException(error, {
+      tags: {
+        center_id: 'BTAC',
+        zone_id: forecast.zone_id,
+      },
+    });
     return <InternalError inline />;
   }
 
   // determine the location
   if (!forecast.rows || forecast.rows.length === 0 || !forecast.rows[0].style || !forecast.rows[0].style.includes('background-color')) {
+    const row = forecast.rows && forecast.rows.length >= 0 ? forecast.rows[0] : {};
+    const style = row && 'style' in row ? row.style : '';
+    const error = `invalid assumptions: first forecast row style doesn't contain background color, got row ${JSON.stringify(row)}, style ${style as string}`;
+    logger.error(error);
+    Sentry.captureException(error, {
+      tags: {
+        center_id: 'BTAC',
+        zone_id: forecast.zone_id,
+      },
+    });
     return <InternalError inline />;
   }
   const location = forecast.rows[0].heading;
@@ -672,6 +701,14 @@ export const BTACWeatherForecast: React.FunctionComponent<{forecast: RowColumnWe
   const snowRow = forecast.rows.findIndex(value => value.heading === 'Seasonal Snow');
 
   if (weatherSynopsisRow === undefined || sweRow === undefined || snowRow === undefined || !(weatherSynopsisRow < sweRow) || !(sweRow < snowRow)) {
+    const error = `invalid assumptions: rows out of order, expected weatherSynopsis < swe < snow, got weatherSynopsis: ${weatherSynopsisRow}, swe: ${sweRow}, snow: ${snowRow}`;
+    logger.error(error);
+    Sentry.captureException(error, {
+      tags: {
+        center_id: 'BTAC',
+        zone_id: forecast.zone_id,
+      },
+    });
     return <InternalError inline />;
   }
 
