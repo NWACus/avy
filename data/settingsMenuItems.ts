@@ -102,15 +102,15 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
   COAA: [
     {
       title: 'About COAC',
-      url: 'https://www.coavalanche.org/about/',
+      url: 'https://www.coavalanche.org/about/?utm_source=avy-app&utm_medium=app&utm_campaign=about',
     },
     {
       title: 'Become a Member',
-      url: 'https://shop.coavalanche.org/products/coac-membership?variant=46786314207474',
+      url: 'https://shop.coavalanche.org/products/coac-membership?utm_source=avy-app&utm_medium=app&utm_campaign=membership',
     },
     {
       title: 'Events',
-      url: 'https://www.coavalanche.org/events/',
+      url: 'https://www.coavalanche.org/events/?utm_source=avy-app&utm_medium=app&utm_campaign=events',
     },
   ],
   BAC: [],
