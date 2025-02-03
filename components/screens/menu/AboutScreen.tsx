@@ -48,9 +48,9 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
           </Center>
           <View px={32}>
             <Body>
-              The Northwest Avalanche Center developed the Avy app to support wintertime mountain recreation with streamlined avalanche and weather information from avalanche
-              centers across the U.S. In winter 2023/24, the app offers access to the Northwest Avalanche Center and the Sawtooth Avalanche Center with planned expansion in
-              subsequent years.
+              The Avy app was built by the Northwest Avalanche Center (NWAC) to support wintertime mountain recreation with streamlined avalanche and weather information from
+              avalanche centers across the U.S. Avy is still managed by NWAC and is currently available to any center using the forecast platform provided by the National Avalanche
+              Center.
             </Body>
           </View>
 
