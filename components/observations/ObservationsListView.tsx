@@ -15,12 +15,15 @@ import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConf
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
 import {compareDesc, parseISO} from 'date-fns';
+import {useAlternateObservationZones} from 'hooks/useAlternateObservationZones';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
 import {usePostHog} from 'posthog-react-native';
+
 import {
   ActivityIndicator,
   ColorValue,
@@ -71,9 +74,15 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
-  const mapResult = useMapLayer(center_id);
-  const mapLayer = mapResult.data;
+  const {data: metaData} = useAvalancheCenterMetadata(center_id);
+  const alternateZonesUrl = metaData?.widget_config?.observation_viewer?.alternate_zones;
+  const {data: alternateZones} = useAlternateObservationZones(alternateZonesUrl);
 
+  const mapResult = useMapLayer(center_id);
+  let mapLayer = mapResult.data;
+  if (alternateZones) {
+    mapLayer.features = [...mapLayer.features, ...alternateZones];
+  }
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
@@ -115,6 +124,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       ),
     [observationsResult],
   );
+
   const observations: ObservationFragmentWithPageIndexAndZoneAndSource[] = useMemo(
     () =>
       flatObservationList
