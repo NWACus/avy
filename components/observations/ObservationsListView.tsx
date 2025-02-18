@@ -79,9 +79,14 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const {data: alternateZones} = useAlternateObservationZones(alternateZonesUrl);
 
   const mapResult = useMapLayer(center_id);
-  let mapLayer = mapResult.data;
+  const mapLayer = mapResult.data;
   if (alternateZones) {
-    mapLayer.features = [...mapLayer.features, ...alternateZones];
+    // TODO: Add types
+    // TODO: In the case of BTAC and MWAC, the list of Alternate Zones is long enough to push the next filter section off the screen,
+    // We could filter out zones that do not have any observations, or we could make the part of the list collapsible web filter widget
+    // Doe
+    const zonesNotInMapLayer = alternateZones.filter(zone => !mapLayer.features.some(feature => feature.properties.name === zone.properties.name));
+    mapLayer.features = [...mapLayer.features, ...zonesNotInMapLayer];
   }
   const postHog = usePostHog();
 
