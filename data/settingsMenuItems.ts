@@ -12,7 +12,7 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
     },
     {
       title: 'Become A Member',
-      url: 'https://nwac.us/membership/',
+      url: 'https://give.nwac.us/give/497748//#!/donation/checkout?c_src=avy',
     },
     {
       title: 'Volunteer With NWAC',
