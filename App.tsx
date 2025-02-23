@@ -535,7 +535,13 @@ const BaseApp: React.FunctionComponent<{
       <HTMLRendererConfig>
         <SafeAreaProvider>
           <NavigationContainer linking={linking} ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
-            <PostHogProvider client={postHog}>
+            <PostHogProvider
+              client={postHog}
+              autocapture={{
+                captureScreens: false, // we need to translate screen parameters to human-readable info, which requires HTTP request data, so we can't use the built-in screen capture with route property mapping feature
+                captureTouches: true,
+                captureLifecycleEvents: true,
+              }}>
               <FeatureFlagsProvider>
                 <KillSwitchMonitor>
                   <SelectProvider>
