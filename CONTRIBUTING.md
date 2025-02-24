@@ -12,6 +12,8 @@ If you found an issue you'd like to work on but need more context, it is best to
 
 You can request to be added to our [volunteer slack channel](https://test.com/need-to-add-link) where you can ask questions, sign up to help with larger issues with a more specific timeline and talk with other volunteers who are helping out with Avy. 
 
+Lastly, please fill out the form linked at the [bottom of this page] (https://nwac.us/technology-volunteer-outreach/) so we know who you are and what you're interested in!
+
 # Developer Environment
 
 This project uses the Expo framework; follow their excellent [installation guide](https://docs.expo.dev/get-started/installation/) to get a development environment set up. 
@@ -62,7 +64,3 @@ Runtime logging can be enabled in development mode by running `npx expo start` w
 # NAC Staging Access
 
 This is not required to do development on the app, however if you are going to working with someting that involves the NAC API, for example Observation submission, it would be important to have access to this. Before requesting for NAC staging access, check with someone at NWAC that it makes sense for you to do so.
-
-Register for a new account at http://centers.avalanche.org/ under the NWAC center.
-
-Then, that dashboard will allow for full write and read access to the staging dataset for the NWAC center.
