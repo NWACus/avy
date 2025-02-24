@@ -12,7 +12,7 @@ If you found an issue you'd like to work on but need more context, it is best to
 
 You can request to be added to our [volunteer slack channel](https://test.com/need-to-add-link) where you can ask questions, sign up to help with larger issues with a more specific timeline and talk with other volunteers who are helping out with Avy. 
 
-Lastly, please fill out the form linked at the [bottom of this page] (https://nwac.us/technology-volunteer-outreach/) so we know who you are and what you're interested in!
+Lastly, please fill out the form linked at the [bottom of this page](https://nwac.us/technology-volunteer-outreach/) so we know who you are and what you're interested in!
 
 # Developer Environment
 
