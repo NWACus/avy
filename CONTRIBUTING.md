@@ -10,7 +10,7 @@ Things to look at and get engaged on:
 
 If you found an issue you'd like to work on but need more context, it is best to ask questions directly in the issue. The repo issues are monitored by volunteers and NWAC staff who would be able to help provide more details when needed.
 
-You can request to be added to our [volunteer slack channel](https://join.slack.com/t/nwactechcommittee/shared_invite/zt-30e7qf7xj-7MP7CntTMxTVJ6yusDVsBw) where you can ask questions, sign up to help with larger issues with a more specific timeline and talk with other volunteers who are helping out with Avy. 
+You can request to be added to our [volunteer Slack channel](https://join.slack.com/t/nwactechcommittee/shared_invite/zt-30e7qf7xj-7MP7CntTMxTVJ6yusDVsBw) where you can ask questions, sign up to help with larger issues with a more specific timeline and talk with other volunteers who are helping out with Avy. 
 
 Lastly, please fill out the form linked at the [bottom of this page](https://nwac.us/technology-volunteer-outreach/) so we know who you are and what you're interested in!
 
