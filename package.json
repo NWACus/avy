@@ -127,6 +127,7 @@
     "react-native-web": "~0.19.10",
     "tinycolor2": "^1.5.2",
     "use-async-effect": "^2.2.7",
+    "xml-js": "^1.6.11",
     "zod": "3.22.4"
   },
   "devDependencies": {
