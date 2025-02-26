@@ -40,7 +40,7 @@ import {
 } from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, DangerLevel, MapLayerFeature, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
 import {RequestedTime, pacificDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
 
 interface ObservationsListViewItem {
@@ -75,19 +75,27 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
   const {data: metaData} = useAvalancheCenterMetadata(center_id);
-  const alternateZonesUrl = metaData?.widget_config?.observation_viewer?.alternate_zones;
-  const {data: alternateZones} = useAlternateObservationZones(alternateZonesUrl);
+  const alternateZonesUrl = metaData?.widget_config?.observation_viewer?.alternate_zones || '';
+  const {data: alternateZones} = useAlternateObservationZones(alternateZonesUrl, {
+    enabled: !!alternateZonesUrl,
+  });
 
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
-  if (alternateZones) {
-    // TODO: Add types
-    // TODO: In the case of BTAC and MWAC, the list of Alternate Zones is long enough to push the next filter section off the screen,
-    // We could filter out zones that do not have any observations, or we could make the part of the list collapsible web filter widget
-    // Doe
-    const zonesNotInMapLayer = alternateZones.filter(zone => !mapLayer.features.some(feature => feature.properties.name === zone.properties.name));
-    mapLayer.features = [...mapLayer.features, ...zonesNotInMapLayer];
-  }
+
+  const mergedMapLayer = useMemo(() => {
+    if (alternateZones && mapLayer) {
+      const zonesNotInMapLayer: MapLayerFeature[] = (alternateZones as unknown as MapLayerFeature[]).filter(
+        (zone: MapLayerFeature) => !mapLayer.features.some((feature: MapLayerFeature) => feature.properties.name === zone.properties.name),
+      );
+      return {
+        ...mapLayer,
+        features: [...mapLayer.features, ...zonesNotInMapLayer],
+      };
+    }
+    return mapLayer;
+  }, [alternateZones, mapLayer]);
+
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
@@ -151,10 +159,22 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         // calculate the zone and cache it now
         .map(observation => ({
           ...observation,
-          zone: mapLayer ? matchesZone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng) : '',
+          zone: mergedMapLayer ? matchesZone(mergedMapLayer, observation.locationPoint.lat, observation.locationPoint.lng) : '',
         })),
-    [flatObservationList, mapLayer, displayNWACObservations],
+    [flatObservationList, mergedMapLayer, displayNWACObservations],
   );
+
+  const filteredMapLayer = useMemo(() => {
+    if (mergedMapLayer) {
+      const observedZones = new Set(observations.map(obs => obs.zone));
+      return {
+        ...mergedMapLayer,
+        features: mergedMapLayer.features.filter(feature => observedZones.has(feature.properties.name)),
+      };
+    }
+    return mergedMapLayer;
+  }, [mergedMapLayer, observations]);
+
   const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
   const refreshWrapper = useCallback(() => void refresh(), [refresh]);
 
@@ -186,7 +206,10 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
-  const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters) : []), [mapLayer, filterConfig, additionalFilters]);
+  const resolvedFilters = useMemo(
+    () => (filteredMapLayer ? filtersForConfig(filteredMapLayer, filterConfig, additionalFilters) : []),
+    [filteredMapLayer, filterConfig, additionalFilters],
+  );
 
   interface Section {
     title: string;
@@ -313,7 +336,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [filterConfig, setFilterConfig],
   );
 
-  if (incompleteQueryState(observationsResult, mapResult) || !mapLayer) {
+  if (incompleteQueryState(observationsResult, mapResult) || !filteredMapLayer) {
     return (
       <Center width="100%" height="100%">
         <QueryState results={[observationsResult, mapResult]} />
@@ -329,7 +352,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       <Modal visible={filterModalVisible}>
         <ObservationsFilterForm
           requestedTime={requestedTime}
-          mapLayer={mapLayer}
+          mapLayer={filteredMapLayer}
           initialFilterConfig={originalFilterConfig}
           currentFilterConfig={filterConfig}
           setFilterConfig={setFilterConfig}
