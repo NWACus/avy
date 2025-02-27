@@ -18,7 +18,7 @@ Lastly, please fill out the form linked at the [bottom of this page](https://nwa
 
 This project uses the Expo framework; follow their excellent [installation guide](https://docs.expo.dev/get-started/installation/) to get a development environment set up. 
 
-If you plan to build the app to run outside of expo go or will need to particiapte in the app publishing process, you'll need to [sign up for an account](https://expo.dev/signup) and get invited to the [project](https://expo.dev/accounts/steve.kuznetsov/projects/avalanche-forecast). If you do not need to do either of those things, you will not need access to the project to proceed with development. 
+If you plan to build a development build of the app using EAS instead of running in the Expo Go sandbox, you'll need to [sign up for an account](https://expo.dev/signup) and get invited to the [project](https://expo.dev/accounts/steve.kuznetsov/projects/avalanche-forecast). If you do not need to do either of those things, you will not need access to the project to proceed with development. 
 
 We use the following global packages:
 
