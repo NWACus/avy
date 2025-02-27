@@ -60,7 +60,3 @@ Runtime logging can be enabled in development mode by running `npx expo start` w
 - `'all'`: all of the above will be logged
 
 `$LOG_NETWORK_MATCHING`: the value of this variable will be used to filter what is logged, using simple sub-string matches on the formatted URL with query parameters (e.g. `url.includes(log_network_matching)`).
-
-# NAC Staging Access
-
-This is not required to do development on the app, however if you are going to working with someting that involves the NAC API, for example Observation submission, it would be important to have access to this. Before requesting for NAC staging access, check with someone at NWAC that it makes sense for you to do so.
