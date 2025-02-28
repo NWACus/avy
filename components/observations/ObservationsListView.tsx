@@ -70,7 +70,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
-  const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
+  const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal}] = useToggle(false);
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
@@ -311,7 +311,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   return (
     <VStack width="100%" height="100%" space={0}>
-      <Modal visible={filterModalVisible}>
+      <Modal visible={filterModalVisible} onRequestClose={hideFilterModal}>
         <ObservationsFilterForm
           requestedTime={requestedTime}
           mapLayer={mapLayer}

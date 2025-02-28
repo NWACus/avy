@@ -57,7 +57,7 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
           </HStack>
         </View>
       </TouchableOpacity>
-      <Modal visible={dropdownVisible} transparent animationType="none">
+      <Modal visible={dropdownVisible} transparent animationType="none" onRequestClose={hideDropdown}>
         <TouchableWithoutFeedback disabled={!dropdownVisible} onPress={hideDropdown}>
           <View style={{...StyleSheet.absoluteFillObject}}>
             <VStack

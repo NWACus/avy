@@ -30,7 +30,7 @@ export const WeatherStationList: React.FunctionComponent<{
   const parsedTime = parseRequestedTimeString(requestedTime);
   const currentTime = requestedTimeToUTCDate(parsedTime);
   const [filterConfig, setFilterConfig] = React.useState<WeatherStationFilterConfig>({...initialFilterConfig});
-  const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
+  const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal}] = useToggle(false);
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
@@ -86,7 +86,7 @@ export const WeatherStationList: React.FunctionComponent<{
   return (
     <>
       <VStack width="100%" height="100%" space={0}>
-        <Modal visible={filterModalVisible}>
+        <Modal visible={filterModalVisible} onRequestClose={hideFilterModal}>
           <WeatherStationFilterForm
             mapLayer={mapLayer}
             initialFilterConfig={{...initialFilterConfig}}
