@@ -30,7 +30,9 @@ Currently the team primarily uses expo go when debugging/testing issues inside a
 
 ## Local Secrets
 
-For development, you will need a number of environment variables set to secret values. The canonical approach is to store them in a `.env` file at the root of the repository. Make sure to provide the following values:
+For development with Expo Go, you should be able to run the app with an empty `.env` file in the root of the repository. 
+
+If working outside of Expo Go, you will need a number of environment variables set to secret values. You would populate them in a `.env` file at the root of the repository. Make sure to include the following values:
 
 - `ANDROID_GOOGLE_MAPS_API_KEY`
 - `IOS_GOOGLE_MAPS_API_KEY`
