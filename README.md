@@ -4,4 +4,4 @@ A React Native application for viewing avalanche forecasts and associated media 
 
 # Interested in getting involved?
 
-Check out our [contributing page](CONTRIBUTING.md) for more details. 
+Check out our [contributing page](CONTRIBUTING.md) for more details.
