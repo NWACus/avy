@@ -27,7 +27,7 @@ We use the following global packages:
 npm install -g npm@8.19.3 yarn@1.22.10
 ```
 
-Currently the team primarily uses expo go when debugging/testing issues inside an Android emulator. We have a test app set on both Anroid and Apple up for changes that cannot be tested inside the expo go enviorment.
+Currently the team primarily uses the Expo Go sandbox when debugging/testing issues, either inside an Android emulator or with actual hardware connected via USB to the development machine. We have a preview app published on both the Android Play Store and Apple App Store for staging changes that cannot be tested inside the sandbox.
 
 ## Local Secrets
 
