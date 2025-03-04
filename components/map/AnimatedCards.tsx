@@ -326,7 +326,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
   const {width} = useWindowDimensions();
 
   const [previouslySelectedItemId, setPreviouslySelectedItemId] = useState<U | null>(null);
-  const [programaticallyScrolling, setProgramaticallyScrolling] = useState<boolean>(false);
+  const [programmaticallyScrolling, setProgrammaticallyScrolling] = useState<boolean>(false);
   const [userScrolling, {on: userScrollingOn, off: userScrollingOff}] = useToggle(false);
 
   const offsets = items?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
@@ -381,27 +381,27 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
           break;
         }
       }
-      if (programaticallyScrolling) {
-        // when we're scrolling through the list programatically, the true state of the selection is
-        // the intended scroll target, not whichever card happens to be shown at the moment
+      if (programmaticallyScrolling) {
+        // when we're scrolling through the list programmatically, the true state of the selection
+        // is the intended scroll target, not whichever card happens to be shown at the moment
         const intendedIndex = items.findIndex(i => getItemId(i) === selectedItemId);
         if (intendedIndex === index) {
           // when the programmatic scroll reaches the intended index, we can call this programmatic
           // scroll event finished
-          setProgramaticallyScrolling(false);
+          setProgrammaticallyScrolling(false);
         }
       } else if (userScrolling) {
         // if the *user* is scrolling this drawer, though, the true state of our selection is up to them
         setSelectedItemId(getItemId(items[index]));
       }
     },
-    [getItemId, items, offsets, programaticallyScrolling, selectedItemId, setSelectedItemId, userScrolling, width],
+    [getItemId, items, offsets, programmaticallyScrolling, selectedItemId, setSelectedItemId, userScrolling, width],
   );
 
   if (selectedItemId !== previouslySelectedItemId) {
     if (selectedItemId && flatListRef.current) {
       const index = items.findIndex(i => getItemId(i) === selectedItemId);
-      setProgramaticallyScrolling(true);
+      setProgrammaticallyScrolling(true);
       flatListRef.current.scrollToIndex({index, animated: true, viewPosition: 0.5});
     }
     setPreviouslySelectedItemId(selectedItemId);
