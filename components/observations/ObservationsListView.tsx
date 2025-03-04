@@ -74,18 +74,16 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal}] = useToggle(false);
-  const {data: metaData} = useAvalancheCenterMetadata(center_id);
-  const alternateZonesUrl = metaData?.widget_config?.observation_viewer?.alternate_zones || '';
-  const {data: alternateZones} = useAlternateObservationZones(alternateZonesUrl, {
-    enabled: !!alternateZonesUrl,
-  });
+  const avalancheZoneMetadata = useAvalancheCenterMetadata(center_id);
+  const alternateZonesUrl: string = (avalancheZoneMetadata.data?.widget_config?.observation_viewer?.alternate_zones as string) || '';
+  const alternateObservationZones = useAlternateObservationZones(alternateZonesUrl);
 
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
   const mergedMapLayer = useMemo(() => {
-    if (alternateZones && mapLayer) {
-      const zonesNotInMapLayer: MapLayerFeature[] = (alternateZones as unknown as MapLayerFeature[]).filter(
+    if (alternateObservationZones && mapLayer) {
+      const zonesNotInMapLayer: MapLayerFeature[] = (alternateObservationZones as unknown as MapLayerFeature[]).filter(
         (zone: MapLayerFeature) => !mapLayer.features.some((feature: MapLayerFeature) => feature.properties.name === zone.properties.name),
       );
       return {
@@ -94,7 +92,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       };
     }
     return mapLayer;
-  }, [alternateZones, mapLayer]);
+  }, [alternateObservationZones, mapLayer]);
 
   const postHog = usePostHog();
 
@@ -164,17 +162,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [flatObservationList, mergedMapLayer, displayNWACObservations],
   );
 
-  const filteredMapLayer = useMemo(() => {
-    if (mergedMapLayer) {
-      const observedZones = new Set(observations.map(obs => obs.zone));
-      return {
-        ...mergedMapLayer,
-        features: mergedMapLayer.features.filter(feature => observedZones.has(feature.properties.name)),
-      };
-    }
-    return mergedMapLayer;
-  }, [mergedMapLayer, observations]);
-
   const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
   const refreshWrapper = useCallback(() => void refresh(), [refresh]);
 
@@ -207,8 +194,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
   const resolvedFilters = useMemo(
-    () => (filteredMapLayer ? filtersForConfig(filteredMapLayer, filterConfig, additionalFilters) : []),
-    [filteredMapLayer, filterConfig, additionalFilters],
+    () => (mergedMapLayer ? filtersForConfig(mergedMapLayer, filterConfig, additionalFilters) : []),
+    [mergedMapLayer, filterConfig, additionalFilters],
   );
 
   interface Section {
@@ -336,7 +323,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [filterConfig, setFilterConfig],
   );
 
-  if (incompleteQueryState(observationsResult, mapResult) || !filteredMapLayer) {
+  if (incompleteQueryState(observationsResult, mapResult, alternateObservationZones, avalancheZoneMetadata) || !mapLayer) {
     return (
       <Center width="100%" height="100%">
         <QueryState results={[observationsResult, mapResult]} />
@@ -352,7 +339,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       <Modal visible={filterModalVisible}>
         <ObservationsFilterForm
           requestedTime={requestedTime}
-          mapLayer={filteredMapLayer}
+          mapLayer={mergedMapLayer}
           initialFilterConfig={originalFilterConfig}
           currentFilterConfig={filterConfig}
           setFilterConfig={setFilterConfig}
