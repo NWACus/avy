@@ -298,8 +298,8 @@ export const ObservationCard: React.FunctionComponent<{
                       onPressPolygon={emptyHandler}
                       pitchEnabled={false}
                       rotateEnabled={false}
-                      scrollEnabled={false}
-                      zoomEnabled={false}
+                      scrollEnabled={true}
+                      zoomEnabled={true}
                       initialRegion={{
                         latitude: observation.location_point.lat,
                         longitude: observation.location_point.lng,
