@@ -131,7 +131,7 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
                         to: 'developer+app-logs@nwac.us',
                         subject: 'NWAC app log files',
                         body: `\n\n---\n\nRun \`yarn bunyan ${logFilePath.split('/').slice(-1)[0]}\` to view.\nRun \`yarn bunyan --help\` for additional options.`,
-                        footer: getVersionInfoFull(preferences.mixpanelUserId, updateGroupId),
+                        footer: getVersionInfoFull(preferences.userId, updateGroupId),
                         attachments: [logFilePath],
                         logger,
                       }))

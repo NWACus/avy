@@ -100,7 +100,6 @@
     "html-entities": "^2.4.0",
     "lodash": "^4.17.21",
     "metro-react-native-babel-preset": "^0.77.0",
-    "mixpanel-react-native": "^3.0.2",
     "polylabel": "^1.1.0",
     "posthog-react-native": "^2.8.1",
     "react": "18.3.1",
