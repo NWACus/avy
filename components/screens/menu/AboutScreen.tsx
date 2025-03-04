@@ -22,15 +22,15 @@ import {MenuStackParamList} from 'routes';
 
 export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
   const {
-    preferences: {mixpanelUserId},
+    preferences: {userId},
   } = usePreferences();
   const [updateGroupId] = useState(getUpdateGroupId());
   const openUrl = useCallback(({data}: {data: string}) => void WebBrowser.openBrowserAsync(data), []);
   const copyVersionInfoToClipboard = useCallback(() => {
     void (async () => {
-      await Clipboard.setStringAsync(getVersionInfoFull(mixpanelUserId, updateGroupId));
+      await Clipboard.setStringAsync(getVersionInfoFull(userId, updateGroupId));
     })();
-  }, [mixpanelUserId, updateGroupId]);
+  }, [userId, updateGroupId]);
 
   const postHog = usePostHog();
 
@@ -73,7 +73,7 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
                 Update: {updateGroupId} ({Updates.channel || 'development'})
               </BodyXSm>
             )}
-            {mixpanelUserId && <BodyXSm>User ID: {mixpanelUserId}</BodyXSm>}
+            {userId && <BodyXSm>User ID: {userId}</BodyXSm>}
           </VStack>
           <Ionicons.Button name="copy-outline" size={12} color="black" style={{backgroundColor: 'white'}} iconStyle={{marginRight: 0}} onPress={copyVersionInfoToClipboard} />
         </HStack>

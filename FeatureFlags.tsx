@@ -67,9 +67,9 @@ export const FeatureFlagsProvider: React.FC<FeatureFlagsProviderProps> = ({child
       });
     }
   }, [postHog]);
-  // We use the mixpanel user id (a unique UUID generated for each install of the app) as the posthog distinct id as well.
+  // We use the user id (a unique UUID generated for each install of the app) as the posthog distinct id.
   const {
-    preferences: {mixpanelUserId: distinctUserId},
+    preferences: {userId: distinctUserId},
   } = usePreferences();
   const [userIdentified, setUserIdentified] = useState(false);
   useEffect(() => {

@@ -16,7 +16,7 @@ const preferencesSchema = z.object({
   center: avalancheCenterIDSchema.default('NWAC'),
   hasSeenCenterPicker: z.boolean().default(false),
   developerMenuCollapsed: z.boolean().default(true),
-  mixpanelUserId: z.string().uuid().optional(),
+  userId: z.string().uuid().optional(),
 });
 
 export type Preferences = z.infer<typeof preferencesSchema>;
@@ -58,7 +58,7 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
         defaultPreferences,
         {
           // Generate a new UUID if one doesn't exist, but overwrite with stored prefs if that's set
-          mixpanelUserId: uuid.v4(),
+          userId: uuid.v4(),
         },
         storedPreferences,
       ),
@@ -74,8 +74,8 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
   };
 
   const clearPreferences = () => {
-    // Clear everything _except_ the mixpanelUserId. It might not be set yet, but if it is we don't want to lose it.
-    setPreferences({...defaultPreferences, mixpanelUserId: preferences.mixpanelUserId});
+    // Clear everything _except_ the userId. It might not be set yet, but if it is we don't want to lose it.
+    setPreferences({...defaultPreferences, userId: preferences.userId});
   };
 
   return <PreferencesContext.Provider value={{preferences, setPreferences: setPartialPreferences, clearPreferences}}>{children}</PreferencesContext.Provider>;

@@ -102,7 +102,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
     const capabilities = capabilitiesResult.data;
 
     const {
-      preferences: {mixpanelUserId},
+      preferences: {userId},
     } = usePreferences();
     const [updateGroupId] = getUpdateGroupId();
 
@@ -117,10 +117,10 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
         void sendMail({
           to: 'developer+app-feedback@nwac.us',
           subject: 'NWAC app feedback',
-          footer: `Please do not delete, info below helps with debugging.\n\n ${getVersionInfoFull(mixpanelUserId, updateGroupId)}`,
+          footer: `Please do not delete, info below helps with debugging.\n\n ${getVersionInfoFull(userId, updateGroupId)}`,
           logger,
         }),
-      [logger, mixpanelUserId, updateGroupId],
+      [logger, userId, updateGroupId],
     );
 
     if (incompleteQueryState(capabilitiesResult) || !capabilities) {
