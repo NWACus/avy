@@ -32,8 +32,7 @@ async function main() {
     process.exit(1);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  const dir = process.argv[2] as string;
+  const dir = process.argv[2];
   let metadata = 0;
   let mapLayer = 0;
   let fragments = 0;
