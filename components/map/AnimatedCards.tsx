@@ -364,8 +364,8 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
 
   const renderItemAdapter = useCallback(({item}: {item: ItemRenderData<T, U>}) => renderItem(item), [renderItem]);
 
-  // handleScroll updates the highlighted zone on the map when a user scrolls. Called by the
-  // onMomentumScrollEnd event of the FlatList component.
+  // handleScroll updates the highlighted zone on the map when a user scrolls. Called about once per
+  // frame by the onScroll event of the FlatList component while scrolling.
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       logger.debug('handleScroll started');
@@ -373,11 +373,10 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
         return;
       }
 
-      // Programmatically scrolling still triggers the onMomentumScrollEnd event but nothing more
-      // needs to be done.
+      // When programmatically scrolling the map has already been updated so there is no need to do
+      // anything.
       if (programmaticallyScrolling) {
         logger.debug('handleScroll exiting because programmaticallyScrolling');
-        setProgrammaticallyScrolling(false);
         return;
       }
 
@@ -396,14 +395,32 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
       }
 
       // Set the selected item to that which the user scrolls to so that the highlighted zone on the
-      // map correctly updates
-      logger.debug('handleScroll setting selected item ID');
+      // map correctly updates.
       const itemId = getItemId(items[index]);
-      setSelectedItemId(itemId);
-      // Set the previously selected item ID as well to avoid an unnecessary programmatic scroll
-      setPreviouslySelectedItemId(itemId);
+      if (itemId !== selectedItemId) {
+        logger.debug('handleScroll setting selected item ID');
+        setSelectedItemId(itemId);
+        // Set the previously selected item ID as well to avoid a programmatic scroll
+        setPreviouslySelectedItemId(itemId);
+      }
     },
-    [logger, getItemId, items, offsets, programmaticallyScrolling, setProgrammaticallyScrolling, setSelectedItemId, setPreviouslySelectedItemId, width],
+    [logger, getItemId, items, offsets, programmaticallyScrolling, selectedItemId, setSelectedItemId, setPreviouslySelectedItemId, width],
+  );
+
+  // onMomentumScrollEnd is called at the very end of a scroll for both user scrolls and
+  // programmatic scrolls. Its primary function is to turn off the programmaticallyScrolling flag,
+  // in the case of a user scroll it also makes one final call to handleScroll to ensure the map
+  // highlighting is up to date.
+  const onMomentumScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (programmaticallyScrolling) {
+        logger.debug('onMomentumScrollEnd turning off programmatic scroll');
+        setProgrammaticallyScrolling(false);
+        return;
+      }
+      handleScroll(event);
+    },
+    [programmaticallyScrolling, handleScroll],
   );
 
   // The selected item changes when a user selects a zone on the map, programmatically scroll to the
@@ -454,7 +471,8 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
         horizontal
         style={{width: '100%'}}
         showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={handleScroll}
+        onScroll={handleScroll}
+        onMomentumScrollEnd={onMomentumScrollEnd}
         {...panResponder.panHandlers}
         {...flatListProps}
         data={items.map(
