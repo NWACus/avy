@@ -420,7 +420,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
       }
       handleScroll(event);
     },
-    [programmaticallyScrolling, handleScroll],
+    [programmaticallyScrolling, logger, handleScroll],
   );
 
   // The selected item changes when a user selects a zone on the map, programmatically scroll to the
