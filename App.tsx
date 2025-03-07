@@ -268,6 +268,12 @@ let postHog: PostHog | undefined = undefined;
 const postHogAsync: Promise<PostHog | undefined> = process.env.EXPO_PUBLIC_POSTHOG_API_KEY
   ? PostHog.initAsync(process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string, {
       host: 'https://app.posthog.com',
+      bootstrap: {
+        featureFlags: {
+          'down-for-maintenance': false,
+          'update-required': false,
+        },
+      },
     })
   : new Promise<undefined>(resolve => {
       resolve(undefined);
