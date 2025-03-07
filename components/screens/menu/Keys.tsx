@@ -8,7 +8,6 @@ import {useToggle} from 'hooks/useToggle';
 const keys = [
   {name: 'EXPO_PUBLIC_SENTRY_DSN', value: process.env.EXPO_PUBLIC_SENTRY_DSN as string},
   {name: 'EXPO_PUBLIC_POSTHOG_API_KEY', value: process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string},
-  {name: 'EXPO_PUBLIC_MIXPANEL_TOKEN', value: process.env.EXPO_PUBLIC_MIXPANEL_TOKEN as string},
 ];
 
 export const Keys: React.FC = () => {

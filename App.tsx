@@ -72,7 +72,6 @@ import * as Updates from 'expo-updates';
 import {FeatureFlagsProvider} from 'FeatureFlags';
 import {useToggle} from 'hooks/useToggle';
 import {filterLoggedData} from 'logging/filterLoggedData';
-import mixpanel from 'mixpanel';
 import PostHog, {PostHogProvider} from 'posthog-react-native';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
 import {ZodError} from 'zod';
@@ -343,16 +342,6 @@ const BaseApp: React.FunctionComponent<{
     [setPreferences],
   );
 
-  const [mixpanelUserIdentified, setMixpanelUserIdentified] = useState(false);
-  useEffect(() => {
-    if (preferences.mixpanelUserId && !mixpanelUserIdentified) {
-      mixpanel.identify(preferences.mixpanelUserId);
-      mixpanel.track('App starting');
-      setMixpanelUserIdentified(true);
-      Sentry.setUser({analytics_id: preferences.mixpanelUserId});
-    }
-  }, [preferences.mixpanelUserId, mixpanelUserIdentified]);
-
   const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
   useEffect(() => {
@@ -393,12 +382,6 @@ const BaseApp: React.FunctionComponent<{
   const trackNavigationChange = useCallback(() => {
     if (routingInstrumentation && navigationRef) {
       routingInstrumentation.registerNavigationContainer(navigationRef);
-    }
-    const route = navigationRef.current?.getCurrentRoute();
-    if (route) {
-      const params = (route.params || {}) as Readonly<Record<string, unknown>>;
-      const {center_id, ...otherParams} = params;
-      mixpanel.track('Screen viewed', {screen_name: route.name, center_id: center_id || 'unknown', params: otherParams});
     }
   }, [navigationRef]);
 
