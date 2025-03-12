@@ -133,7 +133,7 @@ export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheC
         <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
           <ScrollView style={{width: '100%', height: '100%'}}>
             <VStack width="100%" height="100%" justifyContent="flex-start" alignItems="stretch" bg={colorLookup('primary.background')} space={10}>
-              <Card borderRadius={0} borderColor="white" header={<Title3Black>More</Title3Black>} noDivider>
+              <Card borderRadius={0} borderColor="white" header={<Title3Black>More (linking preview build) 3</Title3Black>} noDivider>
                 <Body>
                   {data?.name && `${data.name} `}({userFacingCenterId(avalancheCenterId, capabilities)})
                 </Body>
