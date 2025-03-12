@@ -51,6 +51,7 @@ import Toast, {ToastConfigParams} from 'react-native-toast-message';
 import {TabNavigatorParamList} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
+
 require('date-time-format-timezone');
 
 import axios, {AxiosRequestConfig} from 'axios';
@@ -73,7 +74,7 @@ import {FeatureFlagsProvider} from 'FeatureFlags';
 import {useToggle} from 'hooks/useToggle';
 import {filterLoggedData} from 'logging/filterLoggedData';
 import mixpanel from 'mixpanel';
-import PostHog, {PostHogProvider} from 'posthog-react-native';
+import {PostHogProvider} from 'posthog-react-native';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
 import {ZodError} from 'zod';
 
@@ -159,7 +160,11 @@ void SplashScreen.preventAutoHideAsync().catch((error: Error) => {
   logger.debug('SplashScreen.preventAutoHideAsync threw error, ignoring', {error});
 });
 
-let routingInstrumentation: (Integration & {registerNavigationContainer: (navigationContainerRef: unknown) => void}) | undefined = undefined;
+let routingInstrumentation:
+  | (Integration & {
+      registerNavigationContainer: (navigationContainerRef: unknown) => void;
+    })
+  | undefined = undefined;
 if (Sentry?.init) {
   const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN as string;
   // Only initialize Sentry if we can find the correct env setup
@@ -263,30 +268,6 @@ const toastConfig = {
   warning: (props: ToastConfigParams<string>) => <WarningToast content={props.text1 ?? 'Warning'} {...props} />,
 };
 
-let postHog: PostHog | undefined = undefined;
-
-const postHogAsync: Promise<PostHog | undefined> = process.env.EXPO_PUBLIC_POSTHOG_API_KEY
-  ? PostHog.initAsync(process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string, {
-      host: 'https://app.posthog.com',
-      bootstrap: {
-        featureFlags: {
-          'down-for-maintenance': false,
-          'update-required': false,
-        },
-      },
-    })
-  : new Promise<undefined>(resolve => {
-      resolve(undefined);
-    });
-
-postHogAsync
-  .then(client => {
-    postHog = client;
-  })
-  .catch((error: unknown) => {
-    logger.error({error: error}, 'error initializing posthog');
-  });
-
 const App = () => {
   try {
     useOnlineManager();
@@ -294,7 +275,12 @@ const App = () => {
     return (
       <LoggerContext.Provider value={{logger: logger}}>
         {/* we clear the query cache every time a new build is published */}
-        <PersistQueryClientProvider client={queryClient} persistOptions={{persister: asyncStoragePersister, buster: (process.env.EXPO_PUBLIC_GIT_REVISION as string) || ''}}>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{
+            persister: asyncStoragePersister,
+            buster: (process.env.EXPO_PUBLIC_GIT_REVISION as string) || '',
+          }}>
           <IntlProvider locale="en" defaultLocale="en" messages={messages}>
             <AppWithClientContext />
           </IntlProvider>
@@ -398,7 +384,11 @@ const BaseApp: React.FunctionComponent<{
     if (route) {
       const params = (route.params || {}) as Readonly<Record<string, unknown>>;
       const {center_id, ...otherParams} = params;
-      mixpanel.track('Screen viewed', {screen_name: route.name, center_id: center_id || 'unknown', params: otherParams});
+      mixpanel.track('Screen viewed', {
+        screen_name: route.name,
+        center_id: center_id || 'unknown',
+        params: otherParams,
+      });
     }
   }, [navigationRef]);
 
@@ -527,7 +517,15 @@ const BaseApp: React.FunctionComponent<{
         },
       },
     },
-    getStateFromPath: (path: string, opts: {initialRouteName?: string; screens: PathConfigMap<object>} | undefined) => {
+    getStateFromPath: (
+      path: string,
+      opts:
+        | {
+            initialRouteName?: string;
+            screens: PathConfigMap<object>;
+          }
+        | undefined,
+    ) => {
       if (initialUrl) {
         // this url contains the whole url, like so: https://nwac.us/observations/#/observations/fb5bb19a-2b89-4c9c-91d2-eb673c5ab877
         const url = new URL(initialUrl);
@@ -542,7 +540,15 @@ const BaseApp: React.FunctionComponent<{
         <SafeAreaProvider>
           <NavigationContainer linking={linking} ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
             <PostHogProvider
-              client={postHog}
+              apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string}
+              options={{
+                bootstrap: {
+                  featureFlags: {
+                    'down-for-maintenance': false,
+                    'update-required': false,
+                  },
+                },
+              }}
               autocapture={{
                 captureScreens: false, // we need to translate screen parameters to human-readable info, which requires HTTP request data, so we can't use the built-in screen capture with route property mapping feature
                 captureLifecycleEvents: true,
@@ -554,7 +560,18 @@ const BaseApp: React.FunctionComponent<{
                     <View style={StyleSheet.absoluteFill}>
                       <TabNavigator.Navigator initialRouteName="Home" screenOptions={tabNavigatorScreenOptions}>
                         <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
-                          {state => HomeTabScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                          {state =>
+                            HomeTabScreen(
+                              merge(state, {
+                                route: {
+                                  params: {
+                                    center_id: avalancheCenterId,
+                                    requestedTime: formatRequestedTime(requestedTime),
+                                  },
+                                },
+                              }),
+                            )
+                          }
                         </TabNavigator.Screen>
                         <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
                           {state =>
@@ -571,7 +588,18 @@ const BaseApp: React.FunctionComponent<{
                           }
                         </TabNavigator.Screen>
                         <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
-                          {state => WeatherScreen(merge(state, {route: {params: {center_id: avalancheCenterId, requestedTime: formatRequestedTime(requestedTime)}}}))}
+                          {state =>
+                            WeatherScreen(
+                              merge(state, {
+                                route: {
+                                  params: {
+                                    center_id: avalancheCenterId,
+                                    requestedTime: formatRequestedTime(requestedTime),
+                                  },
+                                },
+                              }),
+                            )
+                          }
                         </TabNavigator.Screen>
                         <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}} options={{title: 'More'}}>
                           {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
