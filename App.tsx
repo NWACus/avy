@@ -448,7 +448,7 @@ const BaseApp: React.FunctionComponent<{
 
   const [startupPaused, {off: unpauseStartup}] = useToggle(process.env.EXPO_PUBLIC_PAUSE_ON_STARTUP === 'true');
 
-  if (!fontsLoaded || updateStatus !== 'ready') {
+  if (!fontsLoaded || updateStatus !== 'ready' || preferences.mixpanelUserId == '') {
     // Here, we render a view that looks exactly like the splash screen but now has an activity indicator
     return (
       <View
@@ -543,6 +543,8 @@ const BaseApp: React.FunctionComponent<{
               apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string}
               options={{
                 bootstrap: {
+                  distinctId: preferences.mixpanelUserId,
+                  isIdentifiedId: true,
                   featureFlags: {
                     'down-for-maintenance': false,
                     'update-required': false,
