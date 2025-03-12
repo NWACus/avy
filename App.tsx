@@ -509,7 +509,6 @@ const BaseApp: React.FunctionComponent<{
   const linking = {
     prefixes: [
       // Prefixes are removed from URL before parsing
-      Linking.createURL('/'), // Handle 'exp://127.0.0.1:8081/--/observations' type links for Expo Go testing
       AvalancheCenterWebsites['NWAC'],
     ],
     filter: (url: string) => url.includes('/observations/'), // Only handle observation links (other links will go to browser)
