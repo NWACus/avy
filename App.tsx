@@ -511,12 +511,13 @@ const BaseApp: React.FunctionComponent<{
       // Prefixes are removed from URL before parsing
       AvalancheCenterWebsites['NWAC'],
     ],
-    filter: (url: string) => url.includes('/observations/'), // Only handle observation links (other links will go to browser)
+    filter: (url: string) => url.includes('/observations/'), // Only handle observation links
     config: {
       screens: {
         Observations: {
           path: 'observations/#/view/observations',
           screens: {
+            observationsList: '',
             observation: ':id',
           },
         },
