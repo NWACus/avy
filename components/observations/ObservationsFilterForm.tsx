@@ -329,7 +329,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                       items={
                         initialFilterConfig.zones.length > 0
                           ? initialFilterConfig.zones.map(z => ({label: z, value: z}))
-                          : [...mapLayer.features.map(feature => ({label: feature.properties.name, value: feature.properties.name}))]
+                          : mapLayer.features.map(feature => ({label: feature.properties.name, value: feature.properties.name}))
                       }
                       disabled={initialFilterConfig.zones.length > 0}
                       px={16}

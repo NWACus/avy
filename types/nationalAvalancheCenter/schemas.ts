@@ -1427,3 +1427,77 @@ export const allAvalancheCenterCapabilitiesSchema = z.object({
   centers: z.array(avalancheCenterCapabilitiesSchema),
 });
 export type AllAvalancheCenterCapabilities = z.infer<typeof allAvalancheCenterCapabilitiesSchema>;
+
+const KMLPointSchema = z.object({
+  coordinates: z.string(),
+});
+
+export type KMLPoint = z.infer<typeof KMLPointSchema>;
+
+const KMLPlacemarkSchema = z.object({
+  name: z.object({
+    _text: z.string(),
+  }),
+  description: z.string().optional(),
+  Point: KMLPointSchema.optional(),
+  LineString: z
+    .object({
+      coordinates: z.string(),
+    })
+    .optional(),
+  Polygon: z
+    .object({
+      outerBoundaryIs: z.object({
+        LinearRing: z.object({
+          coordinates: z.object({
+            _text: z.string(),
+          }),
+        }),
+      }),
+    })
+    .optional(),
+  MultiGeometry: z
+    .object({
+      Polygon: z.object({
+        outerBoundaryIs: z.object({
+          LinearRing: z.object({
+            coordinates: z.object({
+              _text: z.string(),
+            }),
+          }),
+        }),
+      }),
+    })
+    .optional(),
+});
+
+export type KMLPlacemark = z.infer<typeof KMLPlacemarkSchema>;
+
+const KMLDocumentSchema = z.object({
+  name: z.string(),
+  Folder: z.object({
+    Placemark: z.array(KMLPlacemarkSchema),
+  }),
+});
+
+export type KMLDocument = z.infer<typeof KMLDocumentSchema>;
+
+const KMLDataSchema = z.object({
+  kml: z.object({
+    Document: KMLDocumentSchema,
+  }),
+});
+
+export type KMLData = z.infer<typeof KMLDataSchema>;
+
+const AlternateObservationZonesSchema = z.object({
+  geometry: z.object({
+    type: z.literal('Polygon'),
+    coordinates: z.array(z.array(z.number())),
+  }),
+  properties: z.object({
+    name: z.string(),
+  }),
+});
+
+export type AlternateObservationZones = z.infer<typeof AlternateObservationZonesSchema>;

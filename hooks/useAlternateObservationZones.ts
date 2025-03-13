@@ -1,85 +1,27 @@
 import {UseQueryResult, useQuery} from '@tanstack/react-query';
-import {polygon} from '@turf/helpers';
 import axios, {AxiosError} from 'axios';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {useContext} from 'react';
+import {AlternateObservationZones, KMLData} from 'types/nationalAvalancheCenter';
 import {xml2json} from 'xml-js';
-interface KMLPoint {
-  coordinates: string;
-}
 
-interface KMLPlacemark {
-  name: {
-    _text: string;
-  };
-  description?: string;
-  Point?: KMLPoint;
-  LineString?: {
-    coordinates: string;
-  };
-  Polygon?: {
-    outerBoundaryIs: {
-      LinearRing: {
-        coordinates: {
-          _text: string;
-        };
-      };
-    };
-  };
-  MultiGeometry?: {
-    Polygon?: {
-      outerBoundaryIs: {
-        LinearRing: {
-          coordinates: {
-            _text: string;
-          };
-        };
-      };
-    };
-  };
-}
-
-interface KMLDocument {
-  name: string;
-  Folder: {
-    Placemark: KMLPlacemark[];
-  };
-}
-
-interface KMLData {
-  kml: {
-    Document: KMLDocument;
-  };
-}
-
-interface AlternateObservationZones {
-  geometry: GeoJSON.Polygon;
-  properties: {
-    name: string;
-  };
-}
-
-interface UseAlternateObservationZonesOptions {
-  enabled?: boolean;
-}
-
-export const useAlternateObservationZones = (url?: string, options?: UseAlternateObservationZonesOptions): UseQueryResult<AlternateObservationZones[] | null, AxiosError> => {
+export const useAlternateObservationZones = (url?: string): UseQueryResult<AlternateObservationZones[] | null, AxiosError> => {
   const {logger} = useContext<LoggerProps>(LoggerContext);
   const key = ['alternateObservationZone-', url];
   const thisLogger = logger.child({query: key});
 
   return useQuery<AlternateObservationZones[] | null, AxiosError>({
     queryKey: key,
-    queryFn: (): Promise<AlternateObservationZones[] | null> => fetchAlternateObservationZones(url!, thisLogger),
-    enabled: !!url && options?.enabled,
+    queryFn: (): Promise<AlternateObservationZones[] | null> => fetchAlternateObservationZones(thisLogger, url),
+    enabled: !!url,
     cacheTime: 60, // TODO: Change cache to one day after testing
     staleTime: 60,
     initialData: null,
   });
 };
 
-export const fetchAlternateObservationZones = async (url: string, logger: LoggerProps['logger']): Promise<AlternateObservationZones[] | null> => {
+export const fetchAlternateObservationZones = async (logger: LoggerProps['logger'], url?: string): Promise<AlternateObservationZones[] | null> => {
   if (!url) {
     return null;
   }
@@ -99,8 +41,8 @@ export const fetchAlternateObservationZones = async (url: string, logger: Logger
   }
 
   const alternateZones: AlternateObservationZones[] = kmlData.kml.Document.Folder.Placemark.map(placemark => {
-    let coordinates: [number, number][] = [];
-    const parseCoordinates = (coordinateString: string): [number, number][] => {
+    let coordinates: number[][] = [];
+    const parseCoordinates = (coordinateString: string): number[][] => {
       const coordinateStringArray = coordinateString.trim().split(/\s+/);
       return coordinateStringArray.map(coord => {
         const [longitude, latitude] = coord.split(',');
@@ -113,9 +55,14 @@ export const fetchAlternateObservationZones = async (url: string, logger: Logger
     } else if (placemark.MultiGeometry?.Polygon) {
       coordinates = parseCoordinates(placemark.MultiGeometry.Polygon.outerBoundaryIs.LinearRing.coordinates._text);
     }
-    const feature: AlternateObservationZones = polygon([coordinates]);
-    feature.properties = {
-      name: placemark.name._text,
+    const feature: AlternateObservationZones = {
+      geometry: {
+        type: 'Polygon',
+        coordinates: coordinates,
+      },
+      properties: {
+        name: placemark.name._text,
+      },
     };
     return feature;
   });

@@ -83,7 +83,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   const mergedMapLayer = useMemo(() => {
     if (alternateObservationZones && mapLayer) {
-      const zonesNotInMapLayer: MapLayerFeature[] = (alternateObservationZones as unknown as MapLayerFeature[]).filter(
+      const zonesNotInMapLayer: MapLayerFeature[] = (alternateObservationZones as MapLayerFeature).filter(
         (zone: MapLayerFeature) => !mapLayer.features.some((feature: MapLayerFeature) => feature.properties.name === zone.properties.name),
       );
       return {
