@@ -533,11 +533,19 @@ const BaseApp: React.FunctionComponent<{
           }
         | undefined,
     ) => {
+      // Replace alternate observations path
+      let newPath = path.replace('observations/#/observation', 'observations/#/view/observations');
+
+      // Setup share URL for back controls
       if (initialUrl) {
         // this url contains the whole url, like so: https://nwac.us/observations/#/observations/fb5bb19a-2b89-4c9c-91d2-eb673c5ab877
-        const url = new URL(initialUrl);
-        return getStateFromPath(path + '?share=true&share_url=' + url.origin + '/', opts);
+        const origin = new URL(initialUrl).origin;
+        if (origin !== 'null') {
+          newPath += '?share=true&share_url=' + origin + '/';
+        }
       }
+
+      return getStateFromPath(newPath, opts);
     },
   };
 
