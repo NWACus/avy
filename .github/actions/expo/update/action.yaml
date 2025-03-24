@@ -29,10 +29,6 @@ inputs:
     required: true
     type: string
     description: 'The PostHog API key'
-  mixpanel_token:
-    required: true
-    type: string
-    description: 'The Mixpanel token'
 
 runs:
   using: 'composite'
@@ -54,7 +50,6 @@ runs:
           EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) \
           EXPO_PUBLIC_SENTRY_DSN=${{ inputs.sentry_dsn }} \
           EXPO_PUBLIC_POSTHOG_API_KEY=${{ inputs.posthog_api_key }} \
-          EXPO_PUBLIC_MIXPANEL_TOKEN=${{ inputs.mixpanel_token }} \
           eas update \
             --branch=${{ inputs.channel }} \
             --message="${{ inputs.message }}" \
