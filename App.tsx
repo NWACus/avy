@@ -508,12 +508,18 @@ const BaseApp: React.FunctionComponent<{
   });
 
   const linking = {
-    prefixes: [AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
+    prefixes: [
+      // Prefixes are removed from URL before parsing
+      AvalancheCenterWebsites['NWAC'],
+    ],
+    filter: (url: string) => url.includes('/observations/'), // Only handle observation links
     config: {
       screens: {
         Observations: {
+          path: 'observations/#/view/observations',
           screens: {
-            observation: 'observations/:id',
+            observationsList: '',
+            observation: ':id',
           },
         },
       },
@@ -527,11 +533,19 @@ const BaseApp: React.FunctionComponent<{
           }
         | undefined,
     ) => {
+      // Replace alternate observations path
+      let newPath = path.replace('observations/#/observation', 'observations/#/view/observations');
+
+      // Setup share URL for back controls
       if (initialUrl) {
         // this url contains the whole url, like so: https://nwac.us/observations/#/observations/fb5bb19a-2b89-4c9c-91d2-eb673c5ab877
-        const url = new URL(initialUrl);
-        return getStateFromPath(path + '?share=true&share_url=' + url.origin + '/', opts);
+        const origin = new URL(initialUrl).origin;
+        if (origin !== 'null') {
+          newPath += '?share=true&share_url=' + origin + '/';
+        }
       }
+
+      return getStateFromPath(newPath, opts);
     },
   };
 
