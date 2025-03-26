@@ -1,5 +1,7 @@
+import Constants from 'expo-constants';
+import * as Linking from 'expo-linking';
 import React, {useCallback} from 'react';
-import {Modal} from 'react-native';
+import {Modal, Platform} from 'react-native';
 
 import {usePostHog} from 'posthog-react-native';
 
@@ -21,6 +23,21 @@ export const KillSwitchMonitor: React.FC<KillSwitchMonitorProps> = ({children}) 
   const updateRequired = !!useOneFeatureFlag(`update-required`);
 
   const reloadFeatureFlags = useCallback(() => void posthog?.reloadFeatureFlagsAsync(), [posthog]);
+
+  let storeUrl: string | undefined = undefined;
+  if (Platform.OS === 'android' && Constants.expoConfig?.android?.playStoreUrl) {
+    storeUrl = Constants.expoConfig?.android?.playStoreUrl;
+  } else if (Platform.OS === 'ios' && Constants.expoConfig?.ios?.appStoreUrl) {
+    storeUrl = Constants.expoConfig?.ios?.appStoreUrl;
+  }
+
+  const openStore = useCallback(() => {
+    void (async () => {
+      if (storeUrl) {
+        await Linking.openURL(storeUrl);
+      }
+    })();
+  }, [storeUrl]);
 
   return (
     <>
@@ -49,11 +66,11 @@ export const KillSwitchMonitor: React.FC<KillSwitchMonitorProps> = ({children}) 
             illustrationBottomMargin={-32}
             illustrationLeftMargin={-16}
           />
-          {/* TODO: uncomment when we have a real app store link for each platform
-          <Button width={'100%'} buttonStyle="primary" onPress={() => Linking.openURL("itms-apps://itunes.apple.com/app/<app id here>")}>
-            <BodyBlack>Take me there!</BodyBlack>
-          </Button>
-          */}
+          {storeUrl && (
+            <Button width={'100%'} buttonStyle="primary" onPress={openStore}>
+              <BodyBlack>Take me there!</BodyBlack>
+            </Button>
+          )}
         </VStack>
       </Modal>
       {children}
