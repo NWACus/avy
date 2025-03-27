@@ -29,6 +29,14 @@ inputs:
     required: true
     type: string
     description: 'The PostHog API key'
+  notification_webhook:
+    required: true
+    type: string
+    description: 'URL for the notification webhook server'
+  hmac_token:
+    required: true
+    type: string
+    description: 'Token used to send checksum to webhook server'
 
 runs:
   using: 'composite'
@@ -57,6 +65,17 @@ runs:
             --json)"
         echo "ios_id=$( jq --raw-output '.[] | select(.platform == "ios" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
         echo "android_id=$( jq --raw-output '.[] | select(.platform == "android" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
+        echo "${output}"
+        # we need to send the app ID to the webhook, but it's not shown by default in the output of eas update
+        appId="$( eas project:info | grep 'ID' | awk '{print $2}' )"
+        payload="$( jq --arg appId "${appId}" '.[].appId="$appId"' <<<"${output}" )"
+        echo "update=$( base64 --wrap=0 <<<"${payload}" )" >> "${GITHUB_OUTPUT}"
+
+    - name: 🔔 Send Slack Notification
+      shell: bash
+      run: |
+        payload="$( base64 --decode <<<"${{ steps.eas-update.outputs.update }}" )"
+        curl -H "signature: sha1=$( openssl sha1 -hex -mac HMAC -macopt "key:${{ inputs.hmac_token }}" <<<"${payload}" | awk '{print $2}' ) -X POST '${{ inputs.notification_webhook }}/update' -d '${payload}'
 
     - name: Find existing preview comment (if any)
       uses: peter-evans/find-comment@v2
