@@ -30,6 +30,8 @@ jobs:
           expo_token: ${{ secrets.EXPO_TOKEN }}
           sentry_dsn: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
           posthog_api_key: ${{ secrets.EXPO_PUBLIC_POSTHOG_API_KEY }}
+          notification_webhook: '${{ secrets.NOTIFICATION_WEBHOOK }}'
+          hmac_token: '${{ secrets.HMAC_TOKEN }}'
 
       - name: Add workflow result as comment on PR
         uses: actions/github-script@v6
