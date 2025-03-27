@@ -65,7 +65,6 @@ runs:
             --json)"
         echo "ios_id=$( jq --raw-output '.[] | select(.platform == "ios" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
         echo "android_id=$( jq --raw-output '.[] | select(.platform == "android" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
-        echo "${output}"
         # we need to send the app ID to the webhook, but it's not shown by default in the output of eas update
         appId="$( eas project:info | grep 'ID' | awk '{print $2}' )"
         payload="$( jq --arg appId "${appId}" '.[].appId=$appId' <<<"${output}" )"
@@ -75,8 +74,9 @@ runs:
       shell: bash
       run: |
         payload="$( base64 --decode <<<"${{ steps.eas-update.outputs.update }}" )"
-        digest="$( openssl sha1 -hex -mac HMAC -macopt "key:${{ inputs.hmac_token }}" <<<"${payload}" | awk '{print $2}' )"
-        curl -H "signature: sha1=${digest}" -X POST '${{ inputs.notification_webhook }}/update' -d "${payload}"
+        echo -n "${payload}" > payload.txt
+        digest="$( openssl sha1 -hex -mac HMAC -macopt "key:${{ inputs.hmac_token }}" <payload.txt | awk '{print $2}' )"
+        curl -H "signature: sha1=${digest}" -X POST '${{ inputs.notification_webhook }}/update' --data-binary @payload.txt
 
     - name: Find existing preview comment (if any)
       uses: peter-evans/find-comment@v2
