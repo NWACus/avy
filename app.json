@@ -3,7 +3,7 @@
     "name": "Avy",
     "slug": "avalanche-forecast",
     "owner": "nwac",
-    "version": "1.0.12",
+    "version": "1.0.13",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
