@@ -2,8 +2,8 @@ import {AntDesign} from '@expo/vector-icons';
 import {Logger} from 'browser-bunyan';
 import {HStack, View} from 'components/core';
 import {add, isAfter} from 'date-fns';
-import {useToggle} from 'hooks/useToggle';
 import _ from 'lodash';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import md5 from 'md5';
 import React, {RefObject, useCallback, useRef, useState} from 'react';
 import {
@@ -323,11 +323,12 @@ export interface AnimatedCardsProps<T, U> {
 
 export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
   const {center_id, date, items, getItemId, selectedItemId, setSelectedItemId, controller, renderItem, buttonOnPress} = props;
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+
   const {width} = useWindowDimensions();
 
   const [previouslySelectedItemId, setPreviouslySelectedItemId] = useState<U | null>(null);
-  const [programaticallyScrolling, setProgramaticallyScrolling] = useState<boolean>(false);
-  const [userScrolling, {on: userScrollingOn, off: userScrollingOff}] = useToggle(false);
+  const [programmaticallyScrolling, setProgrammaticallyScrolling] = useState<boolean>(false);
 
   const offsets = items?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
   const flatListProps = {
@@ -363,11 +364,22 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
 
   const renderItemAdapter = useCallback(({item}: {item: ItemRenderData<T, U>}) => renderItem(item), [renderItem]);
 
+  // handleScroll updates the highlighted zone on the map when a user scrolls. Called about once per
+  // frame by the onScroll event of the FlatList component while scrolling.
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      logger.debug('handleScroll started');
       if (!offsets || offsets.length === 0) {
         return;
       }
+
+      // When programmatically scrolling the map has already been updated so there is no need to do
+      // anything.
+      if (programmaticallyScrolling) {
+        logger.debug('handleScroll exiting because programmaticallyScrolling');
+        return;
+      }
+
       // we want to figure out what card the user scrolled to - so, we can figure out which card
       // offset the center of the screen is at; by moving through the list backwards we can simply
       // exit when we find an offset that's before the center of the screen (we know since we got
@@ -381,27 +393,43 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
           break;
         }
       }
-      if (programaticallyScrolling) {
-        // when we're scrolling through the list programatically, the true state of the selection is
-        // the intended scroll target, not whichever card happens to be shown at the moment
-        const intendedIndex = items.findIndex(i => getItemId(i) === selectedItemId);
-        if (intendedIndex === index) {
-          // when the programmatic scroll reaches the intended index, we can call this programmatic
-          // scroll event finished
-          setProgramaticallyScrolling(false);
-        }
-      } else if (userScrolling) {
-        // if the *user* is scrolling this drawer, though, the true state of our selection is up to them
-        setSelectedItemId(getItemId(items[index]));
+
+      // Set the selected item to that which the user scrolls to so that the highlighted zone on the
+      // map correctly updates.
+      const itemId = getItemId(items[index]);
+      if (itemId !== selectedItemId) {
+        logger.debug('handleScroll setting selected item ID');
+        setSelectedItemId(itemId);
+        // Set the previously selected item ID as well to avoid a programmatic scroll
+        setPreviouslySelectedItemId(itemId);
       }
     },
-    [getItemId, items, offsets, programaticallyScrolling, selectedItemId, setSelectedItemId, userScrolling, width],
+    [logger, getItemId, items, offsets, programmaticallyScrolling, selectedItemId, setSelectedItemId, setPreviouslySelectedItemId, width],
   );
 
+  // onMomentumScrollEnd is called at the very end of a scroll for both user scrolls and
+  // programmatic scrolls. Its primary function is to turn off the programmaticallyScrolling flag,
+  // in the case of a user scroll it also makes one final call to handleScroll to ensure the map
+  // highlighting is up to date.
+  const onMomentumScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (programmaticallyScrolling) {
+        logger.debug('onMomentumScrollEnd turning off programmatic scroll');
+        setProgrammaticallyScrolling(false);
+        return;
+      }
+      handleScroll(event);
+    },
+    [programmaticallyScrolling, logger, handleScroll],
+  );
+
+  // The selected item changes when a user selects a zone on the map, programmatically scroll to the
+  // appropriate card.
   if (selectedItemId !== previouslySelectedItemId) {
     if (selectedItemId && flatListRef.current) {
+      logger.debug('Programmatically scrolling');
       const index = items.findIndex(i => getItemId(i) === selectedItemId);
-      setProgramaticallyScrolling(true);
+      setProgrammaticallyScrolling(true);
       flatListRef.current.scrollToIndex({index, animated: true, viewPosition: 0.5});
     }
     setPreviouslySelectedItemId(selectedItemId);
@@ -444,11 +472,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
         style={{width: '100%'}}
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
-        scrollEventThrottle={200}
-        onMomentumScrollBegin={userScrollingOn}
-        onMomentumScrollEnd={userScrollingOff}
-        onScrollBeginDrag={userScrollingOn}
-        onScrollEndDrag={userScrollingOff}
+        onMomentumScrollEnd={onMomentumScrollEnd}
         {...panResponder.panHandlers}
         {...flatListProps}
         data={items.map(

@@ -7,7 +7,6 @@ on:
       - main
     paths-ignore:
       - 'docs/**'
-      - '**/*.md'
       - '.github/ISSUE_TEMPLATE/*'
 
 defaults:
