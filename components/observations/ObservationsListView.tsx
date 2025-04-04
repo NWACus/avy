@@ -40,7 +40,7 @@ import {
 } from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, DangerLevel, MapLayerFeature, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
+import {AlternateObservationZones, AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
 import {RequestedTime, pacificDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
 
 interface ObservationsListViewItem {
@@ -76,15 +76,15 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal}] = useToggle(false);
   const avalancheZoneMetadata = useAvalancheCenterMetadata(center_id);
   const alternateZonesUrl: string = (avalancheZoneMetadata.data?.widget_config?.observation_viewer?.alternate_zones as string) || '';
-  const alternateObservationZones = useAlternateObservationZones(alternateZonesUrl);
+  const {data: alternateObservationZones} = useAlternateObservationZones(alternateZonesUrl);
 
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
 
   const mergedMapLayer = useMemo(() => {
     if (alternateObservationZones && mapLayer) {
-      const zonesNotInMapLayer: MapLayerFeature[] = (alternateObservationZones as MapLayerFeature).filter(
-        (zone: MapLayerFeature) => !mapLayer.features.some((feature: MapLayerFeature) => feature.properties.name === zone.properties.name),
+      const zonesNotInMapLayer: AlternateObservationZones = alternateObservationZones.filter(
+        (zone: AlternateObservationZones) => !mapLayer.features.some((feature: AlternateObservationZones) => feature.properties.name === zone.properties.name),
       );
       return {
         ...mapLayer,
