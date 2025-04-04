@@ -323,6 +323,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     </View>
                   )}
                   {mapLayer && (
+                    // TODO: Render in two groups with respective labels: <Center_ID> Forecast Zones & Other Regions
                     <CheckboxSelectField
                       name="zones"
                       items={

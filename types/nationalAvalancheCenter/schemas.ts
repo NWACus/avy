@@ -1427,3 +1427,81 @@ export const allAvalancheCenterCapabilitiesSchema = z.object({
   centers: z.array(avalancheCenterCapabilitiesSchema),
 });
 export type AllAvalancheCenterCapabilities = z.infer<typeof allAvalancheCenterCapabilitiesSchema>;
+// Define a schema for KMLPoint
+export const KMLPointSchema = z.object({
+  coordinates: z.string(),
+});
+export type KMLPoint = z.infer<typeof KMLPointSchema>;
+
+// Define a schema for KMLPlacemark
+export const KMLPlacemarkSchema = z.object({
+  name: z.object({_text: z.string()}),
+  description: z.string().optional(),
+  Point: KMLPointSchema.optional(),
+  LineString: z.object({coordinates: z.string()}).optional(),
+  Polygon: z
+    .object({
+      outerBoundaryIs: z.object({
+        LinearRing: z.object({
+          coordinates: z.object({_text: z.string()}),
+        }),
+      }),
+    })
+    .optional(),
+  MultiGeometry: z
+    .object({
+      Polygon: z.object({
+        outerBoundaryIs: z.object({
+          LinearRing: z.object({
+            coordinates: z.object({_text: z.string()}),
+          }),
+        }),
+      }),
+    })
+    .optional(),
+});
+export type KMLPlacemark = z.infer<typeof KMLPlacemarkSchema>;
+
+// Define a schema for KMLDocument
+export const KMLDocumentSchema = z.object({
+  name: z.string(),
+  Folder: z.object({
+    Placemark: z.array(KMLPlacemarkSchema),
+  }),
+});
+export type KMLDocument = z.infer<typeof KMLDocumentSchema>;
+
+// Define a schema for KMLData
+export const KMLDataSchema = z.object({
+  kml: z.object({
+    Document: KMLDocumentSchema,
+  }),
+});
+export type KMLData = z.infer<typeof KMLDataSchema>;
+
+const AlternateObservationZonesSchema = z.union([
+  featureSchema(
+    z.object({
+      properties: z.object({
+        name: z.string(), // Ensure `name` is a required string in `properties`
+      }),
+      geometry: z.union([polygonSchema, multiPolygonSchema]),
+      coordinates: z.array(z.array(z.number())),
+    }),
+    z.string().optional(),
+  ),
+  featureCollectionSchema(
+    featureSchema(
+      z.object({
+        properties: z.object({
+          name: z.string(), // Ensure `name` is a required string in `properties`
+        }),
+        geometry: z.union([polygonSchema, multiPolygonSchema]),
+        coordinates: z.array(z.array(z.number())),
+      }),
+      z.string(),
+    ),
+  ),
+]);
+
+export type AlternateObservationZones = z.infer<typeof AlternateObservationZonesSchema>;
