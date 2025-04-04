@@ -4,7 +4,7 @@ import {Logger} from 'browser-bunyan';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {useContext} from 'react';
-import {AlternateObservationZones, KMLData} from 'types/nationalAvalancheCenter';
+import {AlternateObservationZones, KMLData, KMLPlacemark} from 'types/nationalAvalancheCenter';
 import {xml2json} from 'xml-js';
 
 export const useAlternateObservationZones = (url: string): UseQueryResult<AlternateObservationZones, AxiosError> => {
@@ -43,32 +43,29 @@ export const fetchAlternateObservationZones = async (logger: LoggerProps['logger
   const thisLogger = logger.child({url: url});
   thisLogger.debug('Fetching alternate observation zones');
   const response = await safeFetch(() => axios.get<string>(url), thisLogger, 'alternate observation zones');
+  try {
+    const alternateZones = parseKmlData(response);
+    thisLogger.debug('Fetched alternate observation zones');
+    return alternateZones;
+  } catch (error) {
+    thisLogger.error({error: error}, 'Error parsing KML data');
+    throw new Error('Error parsing KML data');
+  }
+};
+
+function queryKey(url: string) {
+  return ['alternateZoneKML-', url];
+}
+
+export function parseKmlData(response: string): AlternateObservationZones {
   const kmlDataJson = xml2json(response, {compact: true, spaces: 2});
-  if (!response) {
-    thisLogger.error('No response received from safeFetch');
-  }
-
   const kmlData = JSON.parse(kmlDataJson) as KMLData;
-  if (!kmlData || !kmlData.kml || !kmlData.kml.Document || !kmlData.kml.Document.Folder || !kmlData.kml.Document.Folder.Placemark) {
-    thisLogger.error('Invalid KML data structure');
-  }
-
-  const alternateZones: AlternateObservationZones = kmlData.kml.Document.Folder.Placemark.map(placemark => {
+  const placemarks = kmlData.kml.Document.Folder.Placemark;
+  const alternateZones: AlternateObservationZones = (Array.isArray(placemarks) ? placemarks : [placemarks]).map(placemark => {
     let coordinates: number[][] = [];
-    const parseCoordinates = (coordinateString: string): number[][] => {
-      const coordinateStringArray = coordinateString.trim().split(/\s+/);
-      return coordinateStringArray.map(coord => {
-        const [longitude, latitude] = coord.split(',');
-        return [parseFloat(longitude), parseFloat(latitude)];
-      });
-    };
-    if (placemark.Polygon) {
-      const coordinatesValue = placemark.Polygon.outerBoundaryIs.LinearRing.coordinates._text;
-      coordinates = parseCoordinates(coordinatesValue);
-    } else if (placemark.MultiGeometry) {
-      const coordinatesValue = placemark.MultiGeometry.Polygon.outerBoundaryIs.LinearRing.coordinates._text;
-      coordinates = parseCoordinates(coordinatesValue);
-    }
+
+    const coordinateString = getCoordinateString(placemark);
+    coordinates = parseCoordinates(coordinateString);
     const feature: AlternateObservationZones = {
       type: 'Feature',
       geometry: {
@@ -76,14 +73,32 @@ export const fetchAlternateObservationZones = async (logger: LoggerProps['logger
         coordinates: Array.isArray(coordinates[0][0]) ? coordinates : [coordinates],
       },
       properties: {
-        name: placemark.name._text,
+        name: placemark.name?._text || 'Unnamed Zone',
       },
     };
     return feature;
   });
   return alternateZones;
-};
+}
 
-function queryKey(url: string) {
-  return ['alternateZoneKML', url];
+export function getCoordinateString(placemark: KMLPlacemark): string {
+  let coordinateString;
+  if (placemark.Polygon) {
+    coordinateString = placemark.Polygon.outerBoundaryIs.LinearRing.coordinates;
+  } else if (placemark.MultiGeometry) {
+    coordinateString = placemark.MultiGeometry.Polygon.outerBoundaryIs.LinearRing.coordinates;
+  }
+  // xml2Json makes coordinates an object with the coordinates in property _text
+  return typeof coordinateString === 'string' ? coordinateString : coordinateString._text;
+}
+
+export function parseCoordinates(coordinateString: string): number[][] {
+  if (!coordinateString || !coordinateString.trim()) {
+    return [];
+  }
+  const coordinateStringArray = coordinateString.trim().split(/\s+/);
+  return coordinateStringArray.map(coord => {
+    const [longitude, latitude] = coord.split(',');
+    return [parseFloat(longitude), parseFloat(latitude)];
+  });
 }
