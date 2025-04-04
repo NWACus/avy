@@ -1427,31 +1427,57 @@ export const allAvalancheCenterCapabilitiesSchema = z.object({
   centers: z.array(avalancheCenterCapabilitiesSchema),
 });
 export type AllAvalancheCenterCapabilities = z.infer<typeof allAvalancheCenterCapabilitiesSchema>;
-export interface KMLPoint {
-  coordinates: String;
-}
+// Define a schema for KMLPoint
+export const KMLPointSchema = z.object({
+  coordinates: z.string(),
+});
+export type KMLPoint = z.infer<typeof KMLPointSchema>;
 
-export interface KMLPlacemark {
-  name: {_text: string};
-  description?: string;
-  Point?: KMLPoint;
-  LineString?: {coordinates: string};
-  Polygon?: {outerBoundaryIs: {LinearRing: {coordinates: {_text: string}}}};
-  MultiGeometry?: {Polygon: {outerBoundaryIs: {LinearRing: {coordinates: {_text: string}}}}};
-}
+// Define a schema for KMLPlacemark
+export const KMLPlacemarkSchema = z.object({
+  name: z.object({_text: z.string()}),
+  description: z.string().optional(),
+  Point: KMLPointSchema.optional(),
+  LineString: z.object({coordinates: z.string()}).optional(),
+  Polygon: z
+    .object({
+      outerBoundaryIs: z.object({
+        LinearRing: z.object({
+          coordinates: z.object({_text: z.string()}),
+        }),
+      }),
+    })
+    .optional(),
+  MultiGeometry: z
+    .object({
+      Polygon: z.object({
+        outerBoundaryIs: z.object({
+          LinearRing: z.object({
+            coordinates: z.object({_text: z.string()}),
+          }),
+        }),
+      }),
+    })
+    .optional(),
+});
+export type KMLPlacemark = z.infer<typeof KMLPlacemarkSchema>;
 
-export interface KMLDocument {
-  name: string;
-  Folder: {
-    Placemark: KMLPlacemark[];
-  };
-}
+// Define a schema for KMLDocument
+export const KMLDocumentSchema = z.object({
+  name: z.string(),
+  Folder: z.object({
+    Placemark: z.array(KMLPlacemarkSchema),
+  }),
+});
+export type KMLDocument = z.infer<typeof KMLDocumentSchema>;
 
-export interface KMLData {
-  kml: {
-    Document: KMLDocument;
-  };
-}
+// Define a schema for KMLData
+export const KMLDataSchema = z.object({
+  kml: z.object({
+    Document: KMLDocumentSchema,
+  }),
+});
+export type KMLData = z.infer<typeof KMLDataSchema>;
 
 const AlternateObservationZonesSchema = z.union([
   featureSchema(
