@@ -1,5 +1,6 @@
-import {UseQueryResult, useQuery} from '@tanstack/react-query';
+import {QueryClient, UseQueryResult, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
+import {Logger} from 'browser-bunyan';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {useContext} from 'react';
@@ -18,6 +19,23 @@ export const useAlternateObservationZones = (url: string): UseQueryResult<Altern
     cacheTime: 60, // TODO: Change cache to one day after testing
     staleTime: 60,
     initialData: [],
+  });
+};
+
+export const prefetchAlternateObservationZones = async (queryClient: QueryClient, url: string, logger: Logger) => {
+  const key = queryKey(url);
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('prefetching alternate observation zones');
+
+  await queryClient.prefetchQuery({
+    queryKey: key,
+    queryFn: async (): Promise<AlternateObservationZones> => {
+      thisLogger.trace(`prefetching`);
+      const result = fetchAlternateObservationZones(thisLogger, url);
+      return result;
+    },
+    cacheTime: 60, // TODO: Change cache to one day after testing
+    staleTime: 60,
   });
 };
 
