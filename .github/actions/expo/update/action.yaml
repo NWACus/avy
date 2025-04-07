@@ -76,7 +76,7 @@ runs:
         payload="$( base64 --decode <<<"${{ steps.eas-update.outputs.update }}" )"
         echo -n "${payload}" > payload.txt
         digest="$( openssl sha1 -hex -mac HMAC -macopt "key:${{ inputs.hmac_token }}" <payload.txt | awk '{print $2}' )"
-        curl -v -H "signature: sha1=${digest}" -X POST '${{ inputs.notification_webhook }}/update' --data-binary @payload.txt
+        curl -v -H "signature: sha1=${digest}" -X POST --location '${{ inputs.notification_webhook }}/update' --data-binary @payload.txt
 
     - name: Find existing preview comment (if any)
       uses: peter-evans/find-comment@v2
