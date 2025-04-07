@@ -1,6 +1,5 @@
-import {Entypo} from '@expo/vector-icons';
 import React, {useCallback} from 'react';
-import {Image, Platform, ScrollView, Share, StyleSheet} from 'react-native';
+import {Image, ScrollView, StyleSheet} from 'react-native';
 
 import {MaterialCommunityIcons} from '@expo/vector-icons';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
@@ -13,7 +12,6 @@ import {ZoneMap} from 'components/content/ZoneMap';
 import {Carousel, images} from 'components/content/carousel';
 import {HStack, VStack, View} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
-import {GenerateObservationShareLink} from 'components/observations/ObservationUrlMapping';
 import {matchesZone} from 'components/observations/ObservationsFilterForm';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize} from 'components/text';
 import {HTML} from 'components/text/HTML';
@@ -21,7 +19,6 @@ import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabiliti
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservation} from 'hooks/useNACObservation';
 import {useNWACObservation} from 'hooks/useNWACObservation';
-import {logger} from 'logger';
 import {usePostHog} from 'posthog-react-native';
 import {LatLng, Marker} from 'react-native-maps';
 import {ObservationsStackNavigationProps} from 'routes';
@@ -33,7 +30,6 @@ import {
   AvalancheBedSurface,
   AvalancheCause,
   AvalancheCenterID,
-  AvalancheCenterWebsites,
   AvalancheTrigger,
   AvalancheType,
   CloudCover,
@@ -228,35 +224,6 @@ export const ObservationCard: React.FunctionComponent<{
   }, [postHog, observation.center_id, observation.id]);
   useFocusEffect(recordAnalytics);
 
-  // to open in expo: *check url and port, and correct obs ID that exists
-  // example: npx uri-scheme open exp://192.168.1.8:8082/--/observations/866b81db-52b3-4f94-890c-0cae8f162097 --android
-  const url = GenerateObservationShareLink(observation.center_id, observation.id ?? '');
-  const ShareButton: React.FunctionComponent = () => {
-    const onShare = async () => {
-      try {
-        await Share.share({
-          message: url,
-        });
-      } catch (error) {
-        logger.error({error}, 'share button not working');
-      }
-    };
-
-    return (
-      <Entypo
-        size={22}
-        color={colorLookup('text')}
-        name={Platform.OS == 'ios' ? 'share-alternative' : 'share'}
-        backgroundColor="white"
-        iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
-        style={{alignSelf: 'flex-end'}}
-        onPress={useCallback(() => {
-          onShare().catch(() => logger.error('share failed'));
-        }, [])}
-      />
-    );
-  };
-
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
       <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
@@ -282,9 +249,6 @@ export const ObservationCard: React.FunctionComponent<{
                     <AllCapsSm style={{textTransform: 'none'}} color="text.secondary" unescapeHTMLEntities>
                       {observation.name || 'Unknown'}
                     </AllCapsSm>
-                  </VStack>
-                  <VStack space={5} style={{flex: 0}}>
-                    {observation.center_id in AvalancheCenterWebsites && <ShareButton />}
                   </VStack>
                 </HStack>
               </View>
