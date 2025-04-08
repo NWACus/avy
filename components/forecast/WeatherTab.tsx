@@ -232,6 +232,18 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
     }
   }, [metadata, weatherStations, mapLayer]);
 
+  const postHog = usePostHog();
+
+  const recordAnalytics = useCallback(() => {
+    if (postHog && center_id && zone.name) {
+      postHog.screen('weatherForecastTab', {
+        center: center_id,
+        zone: zone.name,
+      });
+    }
+  }, [postHog, center_id, zone.name]);
+  useFocusEffect(recordAnalytics);
+
   // In the UI, we show weather station groups, which may contain 1 or more weather stations.
   // Example: Alpental Ski Area shows 3 weather stations.
   const actionListData = useMemo(
