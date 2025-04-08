@@ -1,10 +1,12 @@
-import {AntDesign} from '@expo/vector-icons';
+import {AntDesign, Entypo} from '@expo/vector-icons';
 import {getHeaderTitle} from '@react-navigation/elements';
 import {NativeStackHeaderProps} from '@react-navigation/native-stack/lib/typescript/src/types';
-import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {HStack, View} from 'components/core';
+import {GenerateObservationShareLink} from 'components/observations/ObservationUrlMapping';
 import {Title1Black, Title3Black} from 'components/text';
+import {logger} from 'logger';
 import React, {useCallback} from 'react';
+import {Platform, Share} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheCenterWebsites, reverseLookup} from 'types/nationalAvalancheCenter';
@@ -53,6 +55,26 @@ export const NavigationHeader: React.FunctionComponent<
     [navigation],
   );
 
+  let shareUrl: string | null = null;
+  if (route.name === 'observation' || route.name === 'nwacObservation') {
+    const params = route.params;
+    if (params && 'id' in params) {
+      const observationId = params.id as string;
+      shareUrl = GenerateObservationShareLink(shareCenterId, observationId);
+      logger.info(`Share URL: ${shareUrl}`);
+    }
+  }
+
+  const onShareButtonPress = useCallback(() => {
+    if (!shareUrl) {
+      return;
+    }
+
+    Share.share({
+      message: shareUrl,
+    }).catch((error: object) => logger.error(error, 'share button failed'));
+  }, [shareUrl]);
+
   return (
     // On phones with notches, the insets.top value will be non-zero and we don't need additional padding on top.
     // On phones without notches, the insets.top value will be 0 and we don't want the header to be flush with the top of the screen.
@@ -69,12 +91,28 @@ export const NavigationHeader: React.FunctionComponent<
             onPress={firstOpen ? reset : goBack}
           />
         ) : (
-          <View width={42} />
+          // Add an empty component to take up space and maintain consistent spacing when the button
+          // is not shown.
+          <View width={24} />
         )}
         <TextComponent textAlign="center" style={{flex: 1, borderColor: 'transparent', borderWidth: 1}}>
           {title}
         </TextComponent>
-        <AvalancheCenterLogo style={{height: 32, width: 32, resizeMode: 'cover', flex: 0, flexGrow: 0}} avalancheCenterId={share ? shareCenterId : center_id} />
+        {shareUrl ? (
+          <Entypo.Button
+            size={24}
+            color={colorLookup('text')}
+            name={Platform.OS == 'ios' ? 'share-alternative' : 'share'}
+            backgroundColor="white"
+            iconStyle={{marginLeft: 0, marginRight: 0}}
+            style={{textAlign: 'center', borderColor: 'transparent', borderWidth: 1}}
+            onPress={onShareButtonPress}
+          />
+        ) : (
+          // Add an empty component to take up space and maintain consistent spacing when the button
+          // is not shown.
+          <View width={24} />
+        )}
       </HStack>
     </View>
   );

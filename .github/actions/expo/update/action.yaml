@@ -29,10 +29,14 @@ inputs:
     required: true
     type: string
     description: 'The PostHog API key'
-  mixpanel_token:
+  notification_webhook:
     required: true
     type: string
-    description: 'The Mixpanel token'
+    description: 'URL for the notification webhook server'
+  hmac_token:
+    required: true
+    type: string
+    description: 'Token used to send checksum to webhook server'
 
 runs:
   using: 'composite'
@@ -54,7 +58,6 @@ runs:
           EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) \
           EXPO_PUBLIC_SENTRY_DSN=${{ inputs.sentry_dsn }} \
           EXPO_PUBLIC_POSTHOG_API_KEY=${{ inputs.posthog_api_key }} \
-          EXPO_PUBLIC_MIXPANEL_TOKEN=${{ inputs.mixpanel_token }} \
           eas update \
             --branch=${{ inputs.channel }} \
             --message="${{ inputs.message }}" \
@@ -62,6 +65,18 @@ runs:
             --json)"
         echo "ios_id=$( jq --raw-output '.[] | select(.platform == "ios" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
         echo "android_id=$( jq --raw-output '.[] | select(.platform == "android" ) | .id ' <<<"${output}" )" >> "${GITHUB_OUTPUT}"
+        # we need to send the app ID to the webhook, but it's not shown by default in the output of eas update
+        appId="$( eas project:info | grep 'ID' | awk '{print $2}' )"
+        payload="$( jq --arg appId "${appId}" '.[].appId=$appId' <<<"${output}" )"
+        echo "update=$( base64 --wrap=0 <<<"${payload}" )" >> "${GITHUB_OUTPUT}"
+
+    - name: 🔔 Send Slack Notification
+      shell: bash
+      run: |
+        payload="$( base64 --decode <<<"${{ steps.eas-update.outputs.update }}" )"
+        echo -n "${payload}" > payload.txt
+        digest="$( openssl sha1 -hex -mac HMAC -macopt "key:${{ inputs.hmac_token }}" <payload.txt | awk '{print $2}' )"
+        curl -v -H "signature: sha1=${digest}" -X POST --location '${{ inputs.notification_webhook }}/update' --data-binary @payload.txt
 
     - name: Find existing preview comment (if any)
       uses: peter-evans/find-comment@v2

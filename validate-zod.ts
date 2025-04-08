@@ -26,17 +26,13 @@ async function* walk(dir: string): AsyncGenerator<string> {
 }
 
 async function main() {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   if (process.argv.length !== 3) {
     console.error(`Missing data directory argument!`);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     console.error(`Usage: ${process.argv[0]} ${process.argv[1]} <data-dir>`);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     process.exit(1);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  const dir = process.argv[2] as string;
+  const dir = process.argv[2];
   let metadata = 0;
   let mapLayer = 0;
   let fragments = 0;
@@ -80,7 +76,6 @@ async function main() {
     console.log(`parsed ${String(weatherStationTimeseries)} weather station timeseries`);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   process.on('exit', exitHandler.bind(null));
 
   // TODO: use Chris' new capabilities API when it's ready to find the centers which support the map, forecasts & warnings

@@ -24,4 +24,5 @@ jobs:
           expo_token: ${{ secrets.EXPO_TOKEN }}
           sentry_dsn: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
           posthog_api_key: ${{ secrets.EXPO_PUBLIC_POSTHOG_API_KEY }}
-          mixpanel_token: ${{ secrets.EXPO_PUBLIC_MIXPANEL_TOKEN }}
+          notification_webhook: '${{ secrets.NOTIFICATION_WEBHOOK }}'
+          hmac_token: '${{ secrets.HMAC_TOKEN }}'

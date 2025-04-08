@@ -73,7 +73,6 @@ import * as Updates from 'expo-updates';
 import {FeatureFlagsProvider} from 'FeatureFlags';
 import {useToggle} from 'hooks/useToggle';
 import {filterLoggedData} from 'logging/filterLoggedData';
-import mixpanel from 'mixpanel';
 import {PostHogProvider} from 'posthog-react-native';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
 import {ZodError} from 'zod';
@@ -330,16 +329,6 @@ const BaseApp: React.FunctionComponent<{
     [setPreferences],
   );
 
-  const [mixpanelUserIdentified, setMixpanelUserIdentified] = useState(false);
-  useEffect(() => {
-    if (preferences.mixpanelUserId && !mixpanelUserIdentified) {
-      mixpanel.identify(preferences.mixpanelUserId);
-      mixpanel.track('App starting');
-      setMixpanelUserIdentified(true);
-      Sentry.setUser({analytics_id: preferences.mixpanelUserId});
-    }
-  }, [preferences.mixpanelUserId, mixpanelUserIdentified]);
-
   const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
   useEffect(() => {
@@ -380,16 +369,6 @@ const BaseApp: React.FunctionComponent<{
   const trackNavigationChange = useCallback(() => {
     if (routingInstrumentation && navigationRef) {
       routingInstrumentation.registerNavigationContainer(navigationRef);
-    }
-    const route = navigationRef.current?.getCurrentRoute();
-    if (route) {
-      const params = (route.params || {}) as Readonly<Record<string, unknown>>;
-      const {center_id, ...otherParams} = params;
-      mixpanel.track('Screen viewed', {
-        screen_name: route.name,
-        center_id: center_id || 'unknown',
-        params: otherParams,
-      });
     }
   }, [navigationRef]);
 
@@ -508,12 +487,18 @@ const BaseApp: React.FunctionComponent<{
   });
 
   const linking = {
-    prefixes: [AvalancheCenterWebsites['NWAC'] + '/observations/#/view/'],
+    prefixes: [
+      // Prefixes are removed from URL before parsing
+      AvalancheCenterWebsites['NWAC'],
+    ],
+    filter: (url: string) => url.includes('/observations/'), // Only handle observation links
     config: {
       screens: {
         Observations: {
+          path: 'observations/#/view/observations',
           screens: {
-            observation: 'observations/:id',
+            observationsList: '',
+            observation: ':id',
           },
         },
       },
@@ -527,11 +512,19 @@ const BaseApp: React.FunctionComponent<{
           }
         | undefined,
     ) => {
+      // Replace alternate observations path
+      let newPath = path.replace('observations/#/observation', 'observations/#/view/observations');
+
+      // Setup share URL for back controls
       if (initialUrl) {
         // this url contains the whole url, like so: https://nwac.us/observations/#/observations/fb5bb19a-2b89-4c9c-91d2-eb673c5ab877
-        const url = new URL(initialUrl);
-        return getStateFromPath(path + '?share=true&share_url=' + url.origin + '/', opts);
+        const origin = new URL(initialUrl).origin;
+        if (origin !== 'null') {
+          newPath += '?share=true&share_url=' + origin + '/';
+        }
       }
+
+      return getStateFromPath(newPath, opts);
     },
   };
 
