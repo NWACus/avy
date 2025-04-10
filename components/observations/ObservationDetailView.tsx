@@ -10,6 +10,7 @@ import {Card, CardProps} from 'components/content/Card';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {ZoneMap} from 'components/content/ZoneMap';
 import {Carousel, images} from 'components/content/carousel';
+import {MediaCoursel} from 'components/content/carousel/carouselV2/MediaCarousel';
 import {HStack, VStack, View} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {matchesZone} from 'components/observations/ObservationsFilterForm';
@@ -341,9 +342,9 @@ export const ObservationCard: React.FunctionComponent<{
                   )}
                 </VStack>
               </Card>
-              {images(observation.media).length > 0 && (
+              {(observation.media ?? []).length > 0 && (
                 <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>}>
-                  <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={images(observation.media)} displayCaptions={false} />
+                  <MediaCoursel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={observation.media ?? []} displayCaptions={false} />
                 </Card>
               )}
               {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanches_summary) && (
