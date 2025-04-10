@@ -4,12 +4,12 @@ import {merge} from 'lodash';
 
 import {ActivityIndicator, Image, ImageStyle, StyleProp, TouchableOpacity} from 'react-native';
 
-import {FontAwesome5} from '@expo/vector-icons';
+import {FontAwesome, FontAwesome5} from '@expo/vector-icons';
 
-import {Center, VStack} from 'components/core';
+import {Center, View, VStack} from 'components/core';
 import {Body} from 'components/text';
 import {useCachedImageURI} from 'hooks/useCachedImageURI';
-import {COLORS, colorLookup} from 'theme/colors';
+import {colorLookup, COLORS} from 'theme/colors';
 
 export type NetworkImageState = 'loading' | 'success' | 'error';
 
@@ -18,6 +18,7 @@ export interface NetworkImageProps {
   width: number;
   height: number;
   index: number;
+  showVideoIndicator?: boolean;
   onStateChange?: (index: number, state: NetworkImageState) => void;
   onPress?: (index: number) => void;
   imageStyle?: StyleProp<ImageStyle>;
@@ -26,7 +27,17 @@ export interface NetworkImageProps {
 
 const defaultImageStyle = {borderRadius: 16, borderColor: colorLookup('light.300'), borderWidth: 1};
 
-export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, onStateChange, index, onPress, imageStyle: imageStyleProp, resizeMode = 'cover'}) => {
+export const NetworkImage: React.FC<NetworkImageProps> = ({
+  uri,
+  width,
+  height,
+  showVideoIndicator,
+  onStateChange,
+  index,
+  onPress,
+  imageStyle: imageStyleProp,
+  resizeMode = 'cover',
+}) => {
   const {status, data: cachedUri} = useCachedImageURI(uri);
 
   React.useEffect(() => {
@@ -53,8 +64,15 @@ export const NetworkImage: React.FC<NetworkImageProps> = ({uri, width, height, o
   let image = <Image source={{uri: cachedUri}} {...croppedThumbnailProps} />;
   if (onPress) {
     image = (
-      <TouchableOpacity activeOpacity={0.8} onPress={onPressHandler} disabled={status !== 'success'}>
-        {image}
+      <TouchableOpacity activeOpacity={0.8} onPress={onPressHandler}>
+        <Center>
+          {image}
+          {showVideoIndicator && (
+            <View style={{zIndex: 1, position: 'absolute'}}>
+              <FontAwesome name="youtube-play" color={'red'} size={48} />
+            </View>
+          )}
+        </Center>
       </TouchableOpacity>
     );
   }
