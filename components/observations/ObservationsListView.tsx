@@ -15,12 +15,15 @@ import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConf
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
 import {compareDesc, parseISO} from 'date-fns';
+import {useAlternateObservationZones} from 'hooks/useAlternateObservationZones';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
 import {usePostHog} from 'posthog-react-native';
+
 import {
   ActivityIndicator,
   ColorValue,
@@ -37,7 +40,17 @@ import {
 } from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
+import {
+  AvalancheCenterID,
+  DangerLevel,
+  MapLayerFeature,
+  MapLayerOrObservationZonesFeature,
+  MediaType,
+  MergedMapLayer,
+  ObservationFragment,
+  ObservationZonesFeature,
+  PartnerType,
+} from 'types/nationalAvalancheCenter';
 import {RequestedTime, pacificDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
 
 interface ObservationsListViewItem {
@@ -71,8 +84,31 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal}] = useToggle(false);
+  const avalancheZoneMetadataResult = useAvalancheCenterMetadata(center_id);
+  const alternateZonesUrl: string = avalancheZoneMetadataResult.data?.widget_config?.observation_viewer?.alternate_zones || '';
+  const alternateObservationZonesResult = useAlternateObservationZones(alternateZonesUrl, center_id);
+
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
+  const observationOnlyZones = alternateObservationZonesResult.data;
+
+  const mergedMapLayer = useMemo((): MergedMapLayer => {
+    if (!mapLayer || !observationOnlyZones || !observationOnlyZones.features || observationOnlyZones.features.length === 0) {
+      return mapLayer as MergedMapLayer;
+    }
+    const zonesNotInMapLayer: ObservationZonesFeature[] = observationOnlyZones.features.filter(
+      (zone: ObservationZonesFeature) => !mapLayer.features.some((mapFeature: MapLayerFeature) => mapFeature.properties.name === zone.properties.name),
+    );
+    if (zonesNotInMapLayer.length > 0) {
+      const combinedFeatures: MapLayerOrObservationZonesFeature[] = [...mapLayer.features, ...zonesNotInMapLayer];
+      return {
+        ...mapLayer,
+        features: combinedFeatures,
+      };
+    } else {
+      return mapLayer as MergedMapLayer;
+    }
+  }, [observationOnlyZones, mapLayer]);
 
   const postHog = usePostHog();
 
@@ -115,6 +151,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       ),
     [observationsResult],
   );
+
   const observations: ObservationFragmentWithPageIndexAndZoneAndSource[] = useMemo(
     () =>
       flatObservationList
@@ -136,10 +173,11 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         // calculate the zone and cache it now
         .map(observation => ({
           ...observation,
-          zone: mapLayer ? matchesZone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng) : '',
+          zone: mergedMapLayer ? matchesZone(mergedMapLayer, observation.locationPoint.lat, observation.locationPoint.lng) : '',
         })),
-    [flatObservationList, mapLayer, displayNWACObservations],
+    [flatObservationList, mergedMapLayer, displayNWACObservations],
   );
+
   const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
   const refreshWrapper = useCallback(() => void refresh(), [refresh]);
 
@@ -171,7 +209,10 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
-  const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters) : []), [mapLayer, filterConfig, additionalFilters]);
+  const resolvedFilters = useMemo(
+    () => (mergedMapLayer ? filtersForConfig(mergedMapLayer, filterConfig, additionalFilters) : []),
+    [mergedMapLayer, filterConfig, additionalFilters],
+  );
 
   interface Section {
     title: string;
@@ -298,7 +339,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [filterConfig, setFilterConfig],
   );
 
-  if (incompleteQueryState(observationsResult, mapResult) || !mapLayer) {
+  const mergedMapLayerExists = !!mergedMapLayer;
+
+  if ((incompleteQueryState(observationsResult, mapResult, avalancheZoneMetadataResult, alternateObservationZonesResult) || !mapLayer, !mergedMapLayerExists)) {
     return (
       <Center width="100%" height="100%">
         <QueryState results={[observationsResult, mapResult]} />
@@ -314,7 +357,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       <Modal visible={filterModalVisible} onRequestClose={hideFilterModal}>
         <ObservationsFilterForm
           requestedTime={requestedTime}
-          mapLayer={mapLayer}
+          mapLayer={mergedMapLayer}
           initialFilterConfig={originalFilterConfig}
           currentFilterConfig={filterConfig}
           setFilterConfig={setFilterConfig}
