@@ -1483,7 +1483,7 @@ export type KMLFeature = z.infer<typeof kmlFeatureSchema>;
 export const kmlFeatureCollectionSchema = featureCollectionSchema(kmlFeatureSchema);
 export type KMLFeatureCollection = z.infer<typeof kmlFeatureCollectionSchema>;
 
-export const observationZonesPropertiesSchema = mapLayerPropertiesSchema.pick({name: true, center_id: true}).partial();
+export const observationZonesPropertiesSchema = mapLayerPropertiesSchema.pick({name: true, center_id: true});
 
 export type ObservationZonesProperties = z.infer<typeof observationZonesPropertiesSchema>;
 export const observationZonesFeatureSchema = featureSchema(observationZonesPropertiesSchema, z.number());

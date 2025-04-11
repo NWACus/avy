@@ -66,7 +66,7 @@ export const fetchAlternateObservationZones = async (logger: Logger, url: string
 };
 
 function queryKey(url: string) {
-  return ['alternateZoneKML-', url];
+  return ['alternateZoneKML', {url: url}];
 }
 
 export function parseKmlData(response: string, logger: Logger): KMLFeatureCollection {

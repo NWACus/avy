@@ -84,8 +84,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal}] = useToggle(false);
-  const avalancheZoneMetadata = useAvalancheCenterMetadata(center_id);
-  const alternateZonesUrl: string = (avalancheZoneMetadata.data?.widget_config?.observation_viewer?.alternate_zones as string) || '';
+  const avalancheZoneMetadataResult = useAvalancheCenterMetadata(center_id);
+  const alternateZonesUrl: string = avalancheZoneMetadataResult.data?.widget_config?.observation_viewer?.alternate_zones || '';
   const alternateObservationZonesResult = useAlternateObservationZones(alternateZonesUrl, center_id);
 
   const mapResult = useMapLayer(center_id);
@@ -341,7 +341,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   const mergedMapLayerExists = !!mergedMapLayer;
 
-  if ((incompleteQueryState(observationsResult, mapResult, avalancheZoneMetadata, alternateObservationZonesResult) || !mapLayer, !mergedMapLayerExists)) {
+  if ((incompleteQueryState(observationsResult, mapResult, avalancheZoneMetadataResult, alternateObservationZonesResult) || !mapLayer, !mergedMapLayerExists)) {
     return (
       <Center width="100%" height="100%">
         <QueryState results={[observationsResult, mapResult]} />
