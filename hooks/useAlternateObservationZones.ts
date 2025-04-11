@@ -58,7 +58,10 @@ export const fetchAlternateObservationZones = async (logger: Logger, url: string
     return observationZones;
   } catch (error) {
     logger.error({error: error}, 'Error parsing KML data');
-    throw new Error('Error parsing KML data');
+    return {
+      type: 'FeatureCollection',
+      features: [],
+    };
   }
 };
 
