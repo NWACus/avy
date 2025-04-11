@@ -20,7 +20,7 @@ import {usePostHog} from 'posthog-react-native';
 import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, SafeAreaView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {colorLookup} from 'theme';
-import {MapLayer, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
+import {MergedMapLayer, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
 import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 import {z} from 'zod';
 
@@ -106,7 +106,7 @@ interface FilterListItem {
   label: string;
   removeFilter?: (config: ObservationFilterConfig) => ObservationFilterConfig;
 }
-export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterConfig, additionalFilters: Partial<ObservationFilterConfig> | undefined): FilterListItem[] => {
+export const filtersForConfig = (mapLayer: MergedMapLayer, config: ObservationFilterConfig, additionalFilters: Partial<ObservationFilterConfig> | undefined): FilterListItem[] => {
   if (!config) {
     return [];
   }
@@ -170,7 +170,7 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
 
 interface ObservationsFilterFormProps {
   requestedTime: RequestedTime;
-  mapLayer: MapLayer;
+  mapLayer: MergedMapLayer;
   initialFilterConfig: ObservationFilterConfig;
   currentFilterConfig: ObservationFilterConfig;
   setFilterConfig: React.Dispatch<React.SetStateAction<ObservationFilterConfig>>;
@@ -401,7 +401,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   );
 };
 
-export const matchesZone = (mapLayer: MapLayer, lat: number | null | undefined, long: number | null | undefined): string => {
+export const matchesZone = (mapLayer: MergedMapLayer, lat: number | null | undefined, long: number | null | undefined): string => {
   if (!lat || !long) {
     return 'Unknown Zone';
   }

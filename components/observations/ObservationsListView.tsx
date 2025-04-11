@@ -40,7 +40,17 @@ import {
 } from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AlternateObservationZones, AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
+import {
+  AvalancheCenterID,
+  DangerLevel,
+  MapLayerFeature,
+  MapLayerOrObservationZonesFeature,
+  MediaType,
+  MergedMapLayer,
+  ObservationFragment,
+  ObservationZonesFeature,
+  PartnerType,
+} from 'types/nationalAvalancheCenter';
 import {RequestedTime, pacificDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
 
 interface ObservationsListViewItem {
@@ -76,23 +86,29 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal}] = useToggle(false);
   const avalancheZoneMetadata = useAvalancheCenterMetadata(center_id);
   const alternateZonesUrl: string = (avalancheZoneMetadata.data?.widget_config?.observation_viewer?.alternate_zones as string) || '';
-  const {data: alternateObservationZones} = useAlternateObservationZones(alternateZonesUrl);
+  const alternateObservationZonesResult = useAlternateObservationZones(alternateZonesUrl, center_id);
 
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
+  const observationOnlyZones = alternateObservationZonesResult.data;
 
-  const mergedMapLayer = useMemo(() => {
-    if (alternateObservationZones && mapLayer) {
-      const zonesNotInMapLayer: AlternateObservationZones = alternateObservationZones.filter(
-        (zone: AlternateObservationZones) => !mapLayer.features.some((feature: AlternateObservationZones) => feature.properties.name === zone.properties.name),
-      );
+  const mergedMapLayer = useMemo((): MergedMapLayer => {
+    if (!mapLayer || !observationOnlyZones || !observationOnlyZones.features || observationOnlyZones.features.length === 0) {
+      return mapLayer as MergedMapLayer;
+    }
+    const zonesNotInMapLayer: ObservationZonesFeature[] = observationOnlyZones.features.filter(
+      (zone: ObservationZonesFeature) => !mapLayer.features.some((mapFeature: MapLayerFeature) => mapFeature.properties.name === zone.properties.name),
+    );
+    if (zonesNotInMapLayer.length > 0) {
+      const combinedFeatures: MapLayerOrObservationZonesFeature[] = [...mapLayer.features, ...zonesNotInMapLayer];
       return {
         ...mapLayer,
-        features: [...mapLayer.features, ...zonesNotInMapLayer],
+        features: combinedFeatures,
       };
+    } else {
+      return mapLayer as MergedMapLayer;
     }
-    return mapLayer;
-  }, [alternateObservationZones, mapLayer]);
+  }, [observationOnlyZones, mapLayer]);
 
   const postHog = usePostHog();
 
@@ -323,7 +339,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [filterConfig, setFilterConfig],
   );
 
-  if (incompleteQueryState(observationsResult, mapResult, alternateObservationZones, avalancheZoneMetadata) || !mapLayer) {
+  const mergedMapLayerExists = !!mergedMapLayer;
+
+  if ((incompleteQueryState(observationsResult, mapResult, avalancheZoneMetadata, alternateObservationZonesResult) || !mapLayer, !mergedMapLayerExists)) {
     return (
       <Center width="100%" height="100%">
         <QueryState results={[observationsResult, mapResult]} />

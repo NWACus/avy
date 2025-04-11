@@ -4,34 +4,43 @@ import {Logger} from 'browser-bunyan';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {useContext} from 'react';
-import {AlternateObservationZones, KMLData, KMLPlacemark} from 'types/nationalAvalancheCenter';
+import {
+  AvalancheCenterID,
+  KMLFeature,
+  KMLFeatureCollection,
+  KMLFileSchema,
+  KMLPlacemark,
+  ObservationZonesFeature,
+  ObservationZonesFeatureCollection,
+  observationZonesPropertiesSchema,
+} from 'types/nationalAvalancheCenter';
 import {xml2json} from 'xml-js';
 
-export const useAlternateObservationZones = (url: string): UseQueryResult<AlternateObservationZones, AxiosError> => {
+export const useAlternateObservationZones = (url: string, center_id: AvalancheCenterID): UseQueryResult<ObservationZonesFeatureCollection, AxiosError> => {
   const {logger} = useContext<LoggerProps>(LoggerContext);
   const key = queryKey(url);
-  const thisLogger = logger.child({query: key});
+  const thisLogger: Logger = logger.child({query: key});
 
-  return useQuery<AlternateObservationZones, AxiosError>({
+  return useQuery<ObservationZonesFeatureCollection, AxiosError>({
     queryKey: key,
-    queryFn: (): Promise<AlternateObservationZones> => fetchAlternateObservationZones(thisLogger, url),
+    queryFn: (): Promise<ObservationZonesFeatureCollection> => fetchAlternateObservationZones(thisLogger, url, center_id),
     enabled: !!url,
     cacheTime: 60, // TODO: Change cache to one day after testing
     staleTime: 60,
-    initialData: [],
+    initialData: {type: 'FeatureCollection', features: []},
   });
 };
 
-export const prefetchAlternateObservationZones = async (queryClient: QueryClient, url: string, logger: Logger) => {
+// Todo: Implement this prefetch
+export const prefetchAlternateObservationZones = async (queryClient: QueryClient, url: string, center_id: AvalancheCenterID, logger: Logger) => {
   const key = queryKey(url);
-  const thisLogger = logger.child({query: key});
-  thisLogger.debug('prefetching alternate observation zones');
+  logger.debug('prefetching alternate observation zones');
 
   await queryClient.prefetchQuery({
     queryKey: key,
-    queryFn: async (): Promise<AlternateObservationZones> => {
-      thisLogger.trace(`prefetching`);
-      const result = fetchAlternateObservationZones(thisLogger, url);
+    queryFn: async (): Promise<ObservationZonesFeatureCollection> => {
+      logger.trace(`prefetching`);
+      const result = fetchAlternateObservationZones(logger, url, center_id);
       return result;
     },
     cacheTime: 60, // TODO: Change cache to one day after testing
@@ -39,16 +48,16 @@ export const prefetchAlternateObservationZones = async (queryClient: QueryClient
   });
 };
 
-export const fetchAlternateObservationZones = async (logger: LoggerProps['logger'], url: string): Promise<AlternateObservationZones> => {
-  const thisLogger = logger.child({url: url});
-  thisLogger.debug('Fetching alternate observation zones');
-  const response = await safeFetch(() => axios.get<string>(url), thisLogger, 'alternate observation zones');
+export const fetchAlternateObservationZones = async (logger: Logger, url: string, center_id: AvalancheCenterID): Promise<ObservationZonesFeatureCollection> => {
+  logger.debug('Fetching alternate observation zones');
+  const response = await safeFetch(() => axios.get<string>(url), logger, 'alternate observation zones');
   try {
-    const alternateZones = parseKmlData(response);
-    thisLogger.debug('Fetched alternate observation zones');
-    return alternateZones;
+    const kmlFeatureCollection = parseKmlData(response, logger);
+    const observationZones = transformKmlFeaturesToObservationZones(kmlFeatureCollection, center_id, logger);
+    logger.debug('Fetched alternate observation zones');
+    return observationZones;
   } catch (error) {
-    thisLogger.error({error: error}, 'Error parsing KML data');
+    logger.error({error: error}, 'Error parsing KML data');
     throw new Error('Error parsing KML data');
   }
 };
@@ -57,39 +66,52 @@ function queryKey(url: string) {
   return ['alternateZoneKML-', url];
 }
 
-export function parseKmlData(response: string): AlternateObservationZones {
-  const kmlDataJson = xml2json(response, {compact: true, spaces: 2});
-  const kmlData = JSON.parse(kmlDataJson) as KMLData;
-  const placemarks = kmlData.kml.Document.Folder.Placemark;
-  const alternateZones: AlternateObservationZones = (Array.isArray(placemarks) ? placemarks : [placemarks]).map(placemark => {
-    let coordinates: number[][] = [];
+export function parseKmlData(response: string, logger: Logger): KMLFeatureCollection {
+  const kmlResponse = xml2json(response, {compact: true, spaces: 2});
+  const kmlFile = KMLFileSchema.safeParse(JSON.parse(kmlResponse));
 
+  if (!kmlFile.success) {
+    logger.error(`Invalid KML file: ${JSON.stringify(kmlFile.error.format())}`);
+    return {
+      type: 'FeatureCollection',
+      features: [],
+    };
+  }
+
+  const kmlData = kmlFile.data;
+
+  const placemarks: KMLPlacemark[] = kmlData.kml.Document.Folder.Placemark;
+  const features: KMLFeature[] = placemarks.map(placemark => {
     const coordinateString = getCoordinateString(placemark);
-    coordinates = parseCoordinates(coordinateString);
-    const feature: AlternateObservationZones = {
+    const coordinates = parseCoordinates(coordinateString);
+    const feature: KMLFeature = {
       type: 'Feature',
       geometry: {
-        type: Array.isArray(coordinates[0][0]) ? 'MultiPolygon' : 'Polygon',
-        coordinates: Array.isArray(coordinates[0][0]) ? coordinates : [coordinates],
+        type: 'Polygon',
+        coordinates: [coordinates],
       },
+      id: Math.floor(Math.random() * 9000000) + 1000000, //Todo: replace with a better id generation method
+
       properties: {
-        name: placemark.name?._text || 'Unnamed Zone',
+        name: placemark.name._text || 'Unknown KML Zone',
       },
     };
     return feature;
   });
-  return alternateZones;
+  const kmlFeatureCollection: KMLFeatureCollection = {
+    type: 'FeatureCollection',
+    features: features,
+  };
+  return kmlFeatureCollection;
 }
 
 export function getCoordinateString(placemark: KMLPlacemark): string {
-  let coordinateString;
   if (placemark.Polygon) {
-    coordinateString = placemark.Polygon.outerBoundaryIs.LinearRing.coordinates;
+    return placemark.Polygon.outerBoundaryIs.LinearRing.coordinates._text;
   } else if (placemark.MultiGeometry) {
-    coordinateString = placemark.MultiGeometry.Polygon.outerBoundaryIs.LinearRing.coordinates;
+    return placemark.MultiGeometry.Polygon.outerBoundaryIs.LinearRing.coordinates._text;
   }
-  // xml2Json makes coordinates an object with the coordinates in property _text
-  return typeof coordinateString === 'string' ? coordinateString : coordinateString._text;
+  return '';
 }
 
 export function parseCoordinates(coordinateString: string): number[][] {
@@ -101,4 +123,39 @@ export function parseCoordinates(coordinateString: string): number[][] {
     const [longitude, latitude] = coord.split(',');
     return [parseFloat(longitude), parseFloat(latitude)];
   });
+}
+
+export function transformKmlFeaturesToObservationZones(kmlCollection: KMLFeatureCollection, center_id: AvalancheCenterID, logger: Logger): ObservationZonesFeatureCollection {
+  function isObservationZoneFeature(feature: ObservationZonesFeature | undefined): feature is ObservationZonesFeature {
+    return feature !== undefined;
+  }
+
+  const transformedFeatures: (ObservationZonesFeature | undefined)[] = kmlCollection.features.map((feature, i) => {
+    const baseProperties = {
+      name: feature.properties.name,
+      center_id: center_id,
+    };
+
+    const propertiesParseResult = observationZonesPropertiesSchema.safeParse(baseProperties);
+    if (!propertiesParseResult.success) {
+      logger.error(`Invalid properties for feature ${i}: ${JSON.stringify(propertiesParseResult.error.format())}`);
+      return undefined;
+    }
+    const fullProperties = propertiesParseResult.data;
+    const numericId = -100000 - i;
+    const transformedFeature: ObservationZonesFeature = {
+      type: 'Feature',
+      geometry: feature.geometry,
+      id: numericId,
+      properties: fullProperties,
+    };
+
+    return transformedFeature;
+  });
+
+  const observationZones = transformedFeatures.filter(isObservationZoneFeature);
+  return {
+    type: 'FeatureCollection',
+    features: observationZones,
+  };
 }
