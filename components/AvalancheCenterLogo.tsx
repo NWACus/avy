@@ -37,7 +37,7 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
 
   const {data: uri} = useCachedImageURI(source[avalancheCenterId].uri);
   if (!uri) {
-    return <ActivityIndicator />;
+    return <ActivityIndicator style={style} />;
   }
 
   const images: Record<AvalancheCenterID, {(s: ImageStyle): ReactElement}> = {
