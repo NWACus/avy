@@ -1,77 +1,84 @@
-import React, { PropsWithChildren, useCallback } from 'react';
+import {MediaContentView} from 'components/content/carousel/carouselV2/MediaViewerModal/MediaContentView';
+import {MediaViewerModalFooter} from 'components/content/carousel/carouselV2/MediaViewerModal/MediaViewerModalFooter';
+import {MediaViewerModalHeader} from 'components/content/carousel/carouselV2/MediaViewerModal/MediaViewerModalHeader';
+import {View} from 'components/core';
+import React, {useCallback, useState} from 'react';
+import {Dimensions, FlatList, Modal, ViewToken} from 'react-native';
+import {colorLookup} from 'theme';
+import {MediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
-import { GestureResponderEvent, ScrollView, TouchableOpacity } from 'react-native';
+const SCREEN = Dimensions.get('screen');
+const SCREEN_WIDTH = SCREEN.width;
 
-import ImageView from 'react-native-image-viewing';
-
-import { AntDesign } from '@expo/vector-icons';
-import { Center, HStack, View, ViewProps } from 'components/core';
-import { BodySm } from 'components/text';
-import { HTML, HTMLRendererConfig } from 'components/text/HTML';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { colorLookup } from 'theme';
-import { ImageMediaItem } from 'types/nationalAvalancheCenter';
-
-export interface ImageViewerModalProps extends ViewProps {
+export interface MediaViewerModalProps {
   visible: boolean;
-  media: ImageMediaItem[];
   startIndex: number;
+  mediaItems: MediaItem[];
   onClose: () => void;
 }
 
-const htmlStyle = { fontSize: 12, textAlign: 'center', color: 'white' } as const;
+const getItemId = (item: MediaItem) => {
+  if (item.type === '' || item.type === null || item.type === MediaType.PDF || item.type === MediaType.Unknown) {
+    return undefined;
+  }
 
-export const RoundButton = ({ onPress, ...props }: { onPress: ((event: GestureResponderEvent) => void) | undefined } & ViewProps) => (
-  <TouchableOpacity onPress={onPress}>
-    <Center height={32} width={32} backgroundColor={colorLookup('modal.background')} borderRadius={16} {...props}>
-      <AntDesign size={24} color="white" name="close" />
-    </Center>
-  </TouchableOpacity>
-);
+  return item.id;
+};
 
-export const ImageViewerModal: React.FunctionComponent<PropsWithChildren<ImageViewerModalProps>> = ({ visible, media, startIndex, onClose, ..._props }) => {
-  const HeaderComponent = useCallback(
-    ({ imageIndex }: { imageIndex: number }) => (
-      <SafeAreaProvider>
-        <SafeAreaView>
-          <HStack width="100%" justifyContent="space-between" alignItems="center" height={64}>
-            <View width={64} height={64} />
-            <Center>
-              <BodySm color="white">
-                {imageIndex + 1} / {media.length}
-              </BodySm>
-            </Center>
-            <RoundButton onPress={onClose} marginRight={16} />
-          </HStack>
-        </SafeAreaView>
-      </SafeAreaProvider>
-    ),
-    [media.length, onClose],
+export const MediaViewerModal: React.FunctionComponent<MediaViewerModalProps> = ({visible, startIndex, mediaItems, onClose}: MediaViewerModalProps) => {
+  const [currentItemIndex, setCurrentItemIndex] = useState(startIndex);
+
+  const renderItem = useCallback(
+    ({item}: {item: MediaItem}) => {
+      const visibleItemId = getItemId(mediaItems[currentItemIndex]);
+      const renderItemId = getItemId(item);
+
+      return <MediaContentView item={item} isVisible={visibleItemId === renderItemId} />;
+    },
+    [mediaItems, currentItemIndex],
   );
-  const FooterComponent = useCallback(
-    ({ imageIndex }: { imageIndex: number }) => (
-      <View flex={1} px={32} pb={16}>
-        <ScrollView bounces={false}>{media[imageIndex].caption && <HTML source={{ html: media[imageIndex].caption ?? '' }} />}</ScrollView>
-      </View>
-    ),
-    [media],
+
+  const getItemLayout = useCallback(
+    (_data: unknown, index: number) => ({
+      length: SCREEN_WIDTH,
+      offset: SCREEN_WIDTH * index,
+      index,
+    }),
+    [],
   );
-  const keyExtractor = useCallback((_imageSrc: unknown, index: number) => index.toString(), []);
+
+  const onViewableItemsChanged = useCallback(
+    ({changed}: {changed: ViewToken<MediaItem>[]}) => {
+      if (changed.length == 0) {
+        return;
+      }
+
+      // Since we're only viewing 1 item at a time, changed only contains 1 item
+      const changedViewableItem = changed[0];
+      if (changedViewableItem.isViewable) {
+        setCurrentItemIndex(changedViewableItem.index ?? 0);
+      }
+    },
+    [setCurrentItemIndex],
+  );
 
   return (
-    // onRequestClose handles the back button on Android - there's also an explicit close button in this modal
-    <HTMLRendererConfig baseStyle={htmlStyle}>
-      <ImageView
-        images={media.map(m => ({ uri: m.url.original }))}
-        keyExtractor={keyExtractor}
-        imageIndex={startIndex}
-        visible={visible}
-        swipeToCloseEnabled
-        backgroundColor={colorLookup('modal.background').toString()}
-        onRequestClose={onClose}
-        HeaderComponent={HeaderComponent}
-        FooterComponent={FooterComponent}
-      />
-    </HTMLRendererConfig>
+    <Modal visible={visible} onRequestClose={onClose} animationType="fade">
+      <View flex={1} style={{backgroundColor: colorLookup('modal.background')}}>
+        <MediaViewerModalHeader index={currentItemIndex} mediaCount={mediaItems.length} onClose={onClose} />
+        <FlatList
+          data={mediaItems}
+          renderItem={renderItem}
+          getItemLayout={getItemLayout}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={{itemVisiblePercentThreshold: 90}}
+          initialScrollIndex={startIndex}
+        />
+        <MediaViewerModalFooter item={mediaItems[currentItemIndex]} />
+      </View>
+    </Modal>
   );
 };

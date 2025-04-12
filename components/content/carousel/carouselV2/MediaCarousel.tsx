@@ -1,32 +1,23 @@
-import React, { PropsWithChildren, useCallback, useState } from 'react';
+import {MediaViewerModal} from 'components/content/carousel/carouselV2/MediaViewerModal/MediaViewerModal';
+import {ThumbnailList} from 'components/content/carousel/carouselV2/ThumbnailList';
+import {View, ViewProps} from 'components/core';
+import React, {PropsWithChildren, useCallback, useState} from 'react';
+import {MediaItem} from 'types/nationalAvalancheCenter';
 
-import { ImageList } from 'components/content/carousel/ImageList';
-import { ImageViewerModal } from 'components/content/carousel/ImageViewerModal';
-import { View, ViewProps } from 'components/core';
-import { HTMLRendererConfig } from 'components/text/HTML';
-import { ImageMediaItem, MediaItem, MediaType } from 'types/nationalAvalancheCenter';
-
-export const images = (media: MediaItem[] | null | undefined): ImageMediaItem[] => {
-  const filtered: ImageMediaItem[] = [];
-  if (!media) {
-    return filtered;
-  }
-  for (const item of media) {
-    if (item.type === MediaType.Image) {
-      filtered.push(item);
-    }
-  }
-  return filtered;
-};
-
-export interface CarouselProps extends ViewProps {
+export interface MediaCarouselProps extends ViewProps {
   thumbnailHeight: number;
   thumbnailAspectRatio?: number;
-  media: ImageMediaItem[];
+  mediaItems: MediaItem[];
   displayCaptions?: boolean;
 }
 
-export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>> = ({ thumbnailHeight, thumbnailAspectRatio = 1.3, media, displayCaptions = true, ...props }) => {
+export const MediaCoursel: React.FunctionComponent<PropsWithChildren<MediaCarouselProps>> = ({
+  thumbnailHeight,
+  thumbnailAspectRatio = 1.3,
+  mediaItems,
+  displayCaptions = true,
+  ...props
+}) => {
   const thumbnailWidth = thumbnailAspectRatio * thumbnailHeight;
 
   const [modalIndex, setModalIndex] = useState<number | null>(null);
@@ -37,14 +28,20 @@ export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>>
     },
     [setModalIndex],
   );
+
   const onClose = useCallback(() => setModalIndex(null), [setModalIndex]);
 
   return (
     <View {...props}>
-      <HTMLRendererConfig baseStyle={{ fontSize: 12, fontFamily: 'Lato_400Regular_Italic', textAlign: 'center' }}>
-        <ImageList imageWidth={thumbnailWidth} imageHeight={thumbnailHeight} media={media} displayCaptions={displayCaptions} onPress={onPress} imageStyle={{ borderRadius: 4 }} />
-      </HTMLRendererConfig>
-      <ImageViewerModal visible={modalIndex !== null} onClose={onClose} media={media} startIndex={modalIndex ?? 0} />
+      <ThumbnailList
+        imageWidth={thumbnailWidth}
+        imageHeight={thumbnailHeight}
+        mediaItems={mediaItems}
+        displayCaptions={displayCaptions}
+        onPress={onPress}
+        imageStyle={{borderRadius: 4}}
+      />
+      <MediaViewerModal visible={modalIndex !== null} startIndex={modalIndex ?? 0} mediaItems={mediaItems} onClose={onClose} />
     </View>
   );
 };
