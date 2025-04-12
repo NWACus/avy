@@ -12,6 +12,7 @@ web-build/
 
 # macOS
 .DS_Store
+ios/
 
 # Local environment variable overrides
 .env
