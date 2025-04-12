@@ -12,28 +12,16 @@ interface ThumbnailListItem {
 }
 
 const thumbnailListItems = (mediaItems: MediaItem[]): ThumbnailListItem[] => {
-  const supportedMedia = mediaItems.filter(item => {
-    // We need to process video types to make sure we're only showing Youtube videos
-    if (item.type === MediaType.Video) {
-      if (typeof item.url === 'string' || 'external_link' in item.url) {
-        return false;
-      }
+  const thumbnailItems: ThumbnailListItem[] = [];
 
-      return true;
+  mediaItems.forEach(item => {
+    const isYouTubeVideo = item.type === MediaType.Video && typeof item.url !== 'string' && !('external_link' in item.url);
+    if (isYouTubeVideo) {
+      thumbnailItems.push(videoToThumbnailListItem(item));
+    } else if (item.type === MediaType.Image) {
+      thumbnailItems.push(imageToThumbnailListItem(item));
     }
-
-    return item.type === MediaType.Image;
   });
-
-  const thumbnailItems = supportedMedia
-    .map(item => {
-      if (item.type === MediaType.Image) {
-        return imageToThumbnailListItem(item);
-      } else if (item.type === MediaType.Video) {
-        return videoToThumbnailListItem(item);
-      }
-    })
-    .filter(item => item !== undefined);
 
   return thumbnailItems;
 };
