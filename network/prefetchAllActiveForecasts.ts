@@ -1,10 +1,11 @@
 import {QueryClient} from '@tanstack/react-query';
 import {Logger} from 'browser-bunyan';
-import {filterToKnownCenters, filterToSupportedCenters} from 'components/avalancheCenterList';
 import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {preloadAvalancheDangerIcons} from 'components/AvalancheDangerIcon';
 import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
+import {filterToKnownCenters, filterToSupportedCenters} from 'components/avalancheCenterList';
 import {images} from 'components/content/carousel';
+import {prefetchAlternateObservationZones} from 'hooks/useAlternateObservationZones';
 import AvalancheCenterCapabilitiesQuery from 'hooks/useAvalancheCenterCapabilities';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
@@ -16,8 +17,8 @@ import NWACObservationsQuery from 'hooks/useNWACObservations';
 import NWACWeatherForecastQuery from 'hooks/useNWACWeatherForecast';
 import SynopsisQuery from 'hooks/useSynopsis';
 import WeatherForecastQuery from 'hooks/useWeatherForecast';
-import WeatherStationsQuery from 'hooks/useWeatherStationsMetadata';
 import TimeseriesQuery from 'hooks/useWeatherStationTimeseries';
+import WeatherStationsQuery from 'hooks/useWeatherStationsMetadata';
 import {
   AllAvalancheCenterCapabilities,
   AvalancheCenter,
@@ -63,6 +64,14 @@ export const prefetchAllActiveForecasts = async (
 
   if (metadata?.widget_config?.danger_map) {
     void AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, logger);
+  }
+
+  const alternateZonesUrl = metadata?.widget_config?.observation_viewer?.alternate_zones;
+  if (alternateZonesUrl) {
+    logger.info({url: alternateZonesUrl}, 'Found alternate observation zones URL, prefetching KML');
+    void prefetchAlternateObservationZones(queryClient, alternateZonesUrl, center_id, logger);
+  } else {
+    logger.debug('No alternate observation zones URL found in metadata');
   }
 
   const endDate: Date = currentDateTime;

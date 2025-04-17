@@ -1,6 +1,7 @@
 import {QueryClient, UseQueryResult, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
 import {Logger} from 'browser-bunyan';
+import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {useContext} from 'react';
@@ -31,20 +32,22 @@ export const useAlternateObservationZones = (url: string, center_id: AvalancheCe
   });
 };
 
-// Todo: Implement this prefetch
 export const prefetchAlternateObservationZones = async (queryClient: QueryClient, url: string, center_id: AvalancheCenterID, logger: Logger) => {
   const key = queryKey(url);
-  logger.debug('prefetching alternate observation zones');
+  const thisLogger = logger.child({query: key});
+  thisLogger.debug('initiating prefetch');
 
   await queryClient.prefetchQuery({
     queryKey: key,
     queryFn: async (): Promise<ObservationZonesFeatureCollection> => {
+      const start = new Date();
       logger.trace(`prefetching`);
-      const result = fetchAlternateObservationZones(logger, url, center_id);
+      const result = await fetchAlternateObservationZones(logger, url, center_id);
+      thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
-    cacheTime: 60, // TODO: Change cache to one day after testing
-    staleTime: 60,
+    cacheTime: Infinity, // hold this in the query cache forever
+    staleTime: 24 * 60 * 60 * 1000, // don't bother prefetching again for a day
   });
 };
 
@@ -65,7 +68,7 @@ export const fetchAlternateObservationZones = async (logger: Logger, url: string
   }
 };
 
-function queryKey(url: string) {
+export function queryKey(url: string) {
   return ['alternateZoneKML', {url: url}];
 }
 
@@ -162,3 +165,8 @@ export function transformKmlFeaturesToObservationZones(kmlCollection: KMLFeature
     features: observationZones,
   };
 }
+
+export default {
+  queryKey,
+  prefetch: prefetchAlternateObservationZones,
+};
