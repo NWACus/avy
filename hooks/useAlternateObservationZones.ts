@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import {QueryClient, UseQueryResult, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
 import {Logger} from 'browser-bunyan';
@@ -26,8 +27,7 @@ export const useAlternateObservationZones = (url: string, center_id: AvalancheCe
     queryKey: key,
     queryFn: (): Promise<ObservationZonesFeatureCollection> => fetchAlternateObservationZones(thisLogger, url, center_id),
     enabled: !!url,
-    cacheTime: 60, // TODO: Change cache to one day after testing
-    staleTime: 60,
+    cacheTime: Infinity,
     initialData: {type: 'FeatureCollection', features: []},
   });
 };
@@ -55,7 +55,7 @@ export const fetchAlternateObservationZones = async (logger: Logger, url: string
   logger.debug('Fetching alternate observation zones');
   const response = await safeFetch(() => axios.get<string>(url), logger, 'alternate observation zones');
   try {
-    const kmlFeatureCollection = parseKmlData(response, logger);
+    const kmlFeatureCollection = parseKmlData(response, logger, url);
     const observationZones = transformKmlFeaturesToObservationZones(kmlFeatureCollection, center_id, logger);
     logger.debug('Fetched alternate observation zones');
     return observationZones;
@@ -72,22 +72,28 @@ export function queryKey(url: string) {
   return ['alternateZoneKML', {url: url}];
 }
 
-export function parseKmlData(response: string, logger: Logger): KMLFeatureCollection {
+export function parseKmlData(response: string, logger: Logger, url: string): KMLFeatureCollection {
   const kmlResponse = xml2json(response, {compact: true, spaces: 2});
-  const kmlFile = KMLFileSchema.safeParse(JSON.parse(kmlResponse));
+  const parseResult = KMLFileSchema.safeParse(JSON.parse(kmlResponse));
 
-  if (!kmlFile.success) {
-    logger.error(`Invalid KML file: ${JSON.stringify(kmlFile.error.format())}`);
+  if (!parseResult.success) {
+    logger.error(`Invalid KML file: ${JSON.stringify(parseResult.error.format())}`);
+    Sentry.captureException(parseResult.error, {
+      tags: {
+        zod_error: true,
+        url,
+      },
+    });
     return {
       type: 'FeatureCollection',
       features: [],
     };
   }
 
-  const kmlData = kmlFile.data;
+  const kmlData = parseResult.data;
 
   const placemarks: KMLPlacemark[] = kmlData.kml.Document.Folder.Placemark;
-  const features: KMLFeature[] = placemarks.map(placemark => {
+  const features: KMLFeature[] = placemarks.map((placemark, index) => {
     const coordinateString = getCoordinateString(placemark);
     const coordinates = parseCoordinates(coordinateString);
     const feature: KMLFeature = {
@@ -96,8 +102,7 @@ export function parseKmlData(response: string, logger: Logger): KMLFeatureCollec
         type: 'Polygon',
         coordinates: [coordinates],
       },
-      id: Math.floor(Math.random() * 9000000) + 1000000, //Todo: replace with a better id generation method
-
+      id: index,
       properties: {
         name: placemark.name._text || 'Unknown KML Zone',
       },

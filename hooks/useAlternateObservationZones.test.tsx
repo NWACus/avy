@@ -1,7 +1,8 @@
 import {Logger} from 'browser-bunyan';
-import {getCoordinateString, parseCoordinates, parseKmlData, transformKmlFeaturesToObservationZones} from 'hooks/useAlternateObservationZones';
+import {getCoordinateString, parseCoordinates, parseKmlData, transformKmlFeaturesToObservationZones} from 'hooks/useAlternateObservationZones';, testUrl);
 import {logger} from 'logger';
 import {KMLFeatureCollection} from 'types/nationalAvalancheCenter';
+const testUrl = 'http://NWAC_Rules.com/test.kml';
 describe('getCoordinateString', () => {
   it('should extract coordinates from a KML Placemark object', () => {
     const placemark = {
@@ -63,7 +64,7 @@ describe('parseCoordinates', () => {
 });
 
 describe('parseKmlData', () => {
-  it('should parse KML data with polygon features and return a FeatureCollection', () => {
+  it('should, testUrl); parse KML data with polygon features and return a FeatureCollection', () => {
     const kmlResponse = `
       <kml xmlns="http://www.opengis.net/kml/2.2">
         <Document>
@@ -95,7 +96,7 @@ describe('parseKmlData', () => {
     const logger = {
       error: jest.fn(),
     };
-    const result = parseKmlData(kmlResponse, logger as unknown as Logger);
+    const result = parseKmlData(kmlResponse, logger as unknown as Logger, testUrl);
     expect(result).toEqual({
       type: 'FeatureCollection',
       features: [
@@ -141,7 +142,7 @@ describe('parseKmlData', () => {
     const logger = {
       error: jest.fn(),
     };
-    const result = parseKmlData(kmlResponse, logger as unknown as Logger);
+    const result = parseKmlData(kmlResponse, logger as unknown as Logger, testUrl);
     expect(result).toEqual({
       type: 'FeatureCollection',
       features: [],
@@ -160,7 +161,7 @@ describe('parseKmlData', () => {
     const logger = {
       error: jest.fn(),
     };
-    const result = parseKmlData(kmlResponse, logger as unknown as Logger);
+    const result = parseKmlData(kmlResponse, logger as unknown as Logger, testUrl);
     expect(result).toEqual({
       type: 'FeatureCollection',
       features: [],
@@ -191,7 +192,7 @@ describe('parseKmlData', () => {
     const logger = {
       error: jest.fn(),
     };
-    const result = parseKmlData(kmlResponse, logger as unknown as Logger);
+    const result = parseKmlData(kmlResponse, logger as unknown as Logger, testUrl);
     expect(result).toEqual({
       type: 'FeatureCollection',
       features: [],
@@ -218,7 +219,7 @@ describe('parseKmlData', () => {
     const logger = {
       error: jest.fn(),
     };
-    const result = parseKmlData(kmlResponse, logger as unknown as Logger);
+    const result = parseKmlData(kmlResponse, logger as unknown as Logger, testUrl);
     expect(result).toEqual({
       type: 'FeatureCollection',
       features: [],

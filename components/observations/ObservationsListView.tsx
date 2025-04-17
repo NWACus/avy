@@ -92,9 +92,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const mapLayer = mapResult.data;
   const observationOnlyZones = alternateObservationZonesResult.data;
 
-  const mergedMapLayer = useMemo((): MergedMapLayer => {
+  const mergedMapLayer = useMemo((): MergedMapLayer | undefined => {
     if (!mapLayer || !observationOnlyZones || !observationOnlyZones.features || observationOnlyZones.features.length === 0) {
-      return mapLayer as MergedMapLayer;
+      return mapLayer;
     }
     const zonesNotInMapLayer: ObservationZonesFeature[] = observationOnlyZones.features.filter(
       (zone: ObservationZonesFeature) => !mapLayer.features.some((mapFeature: MapLayerFeature) => mapFeature.properties.name === zone.properties.name),
