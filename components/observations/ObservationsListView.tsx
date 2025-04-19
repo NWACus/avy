@@ -167,8 +167,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     })();
   }, [observationsResult]);
 
-  const moreDataAvailable = observationsResult.hasNextPage;
-
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
   const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters) : []), [mapLayer, filterConfig, additionalFilters]);
@@ -251,36 +249,30 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [],
   );
   const renderListFooter = useCallback(() => {
-    if (!moreDataAvailable) {
-      if (observationsSection.data.length === 0) {
-        return null;
-      }
-      return (
-        <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
-          <Body>
-            <FormattedMessage
-              description="How many observations were found."
-              defaultMessage="{count, plural,
-  =0 {No observations match the filters.}
-  one {One observation matches the filters.}
-  other {# observations match the filters.}}"
-              values={{
-                count: observationsSection.data.length,
-              }}
-            />
-          </Body>
-        </Center>
-      );
-    } else if (observations.length > 0 && observationsResult.isFetchingNextPage) {
+    if (observationsResult.isFetchingNextPage) {
       return (
         <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
           <ActivityIndicator size={'large'} color={colorLookup('text.secondary')} />
         </Center>
       );
-    } else {
-      return <View height={OBSERVATION_SUMMARY_CARD_HEIGHT} />;
     }
-  }, [moreDataAvailable, observationsSection.data.length, observations.length, observationsResult.isFetchingNextPage]);
+    return (
+      <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
+        <Body>
+          <FormattedMessage
+            description="How many observations were found."
+            defaultMessage="{count, plural,
+  =0 {No observations match the filters.}
+  one {One observation matches the filters.}
+  other {# observations match the filters.}}"
+            values={{
+              count: observationsSection.data.length,
+            }}
+          />
+        </Body>
+      </Center>
+    );
+  }, [observationsSection.data.length, observationsResult.isFetchingNextPage]);
   const renderSectionHeader = useCallback(
     ({section: {title}}: {section: {title: string}}) =>
       hasPendingObservations ? (
@@ -376,7 +368,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         onEndReached={fetchMoreData}
         ListFooterComponent={renderListFooter}
         ListEmptyComponent={
-          moreDataAvailable ? (
+          observationsResult.isFetching ? (
             <Center height={'100%'}>
               <VStack alignItems="center" space={8}>
                 <ActivityIndicator size={'large'} color={colorLookup('text.secondary')} />
