@@ -249,7 +249,14 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
         elevation: column.elevation?.toString() || '',
       }))}
       rowHeaderData={times.map(time => formatDateTime('America/Los_Angeles')(time))}
-      columnWidths={[70, ...tableColumns.map(({field}) => (Math.max(shortFieldMap[field].length, shortUnits(timeSeries.UNITS[field]).length) > 4 ? 50 : 40))]}
+      columnWidths={[
+        70,
+        ...tableColumns.map(({field}) => {
+          const numChars = Math.max(shortFieldMap[field].length, shortUnits(timeSeries.UNITS[field]).length);
+          if (numChars > 4) return numChars * 10;
+          return 40;
+        }),
+      ]}
       rowHeights={[60, ...times.map(() => 30)]}
       renderCell={renderCell}
       renderRowHeader={renderRowHeader}
