@@ -1,47 +1,86 @@
-import React, { PropsWithChildren, ReactElement, useCallback, useState } from 'react';
+import {NetworkImage, NetworkImageProps, NetworkImageState} from 'components/content/carousel/NetworkImage';
+import {View} from 'components/core';
+import React, {PropsWithChildren, useCallback, useMemo, useState} from 'react';
+import {FlatList, FlatListProps} from 'react-native';
+import {ImageMediaItem, MediaItem, MediaType, VideoMediaItem} from 'types/nationalAvalancheCenter';
 
-import { FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent, ScrollView } from 'react-native';
+interface ThumbnailListItem {
+  uri: string;
+  isVideo: boolean;
+  caption: string | null;
+  title: string | null | undefined;
+}
 
-import { NetworkImage, NetworkImageProps, NetworkImageState } from 'components/content/carousel/NetworkImage';
-import { VStack, View } from 'components/core';
-import { HTML } from 'components/text/HTML';
-import { ImageMediaItem, MediaType } from 'types/nationalAvalancheCenter';
+const thumbnailListItems = (mediaItems: MediaItem[]): ThumbnailListItem[] => {
+  const thumbnailItems: ThumbnailListItem[] = [];
 
-export interface ImageListProps extends Omit<FlatListProps<ImageMediaItem>, 'data' | 'renderItem'> {
+  mediaItems.forEach(item => {
+    const isYouTubeVideo = item.type === MediaType.Video && typeof item.url !== 'string' && !('external_link' in item.url);
+    if (isYouTubeVideo) {
+      thumbnailItems.push(videoToThumbnailListItem(item));
+    } else if (item.type === MediaType.Image) {
+      thumbnailItems.push(imageToThumbnailListItem(item));
+    }
+  });
+
+  return thumbnailItems;
+};
+
+const videoToThumbnailListItem = (item: VideoMediaItem): ThumbnailListItem => {
+  if (typeof item.url === 'string' || 'external_link' in item.url) {
+    return {
+      uri: '',
+      isVideo: true,
+      caption: item.caption,
+      title: item.title,
+    };
+  }
+
+  const url = item.url;
+  return {
+    uri: url['thumbnail'],
+    isVideo: true,
+    caption: item.caption,
+    title: item.title,
+  };
+};
+
+const imageToThumbnailListItem = (item: ImageMediaItem): ThumbnailListItem => {
+  return {
+    uri: item.url['thumbnail'],
+    isVideo: false,
+    caption: item.caption,
+    title: item.title,
+  };
+};
+
+export interface ThumbnailListProps extends Omit<FlatListProps<ThumbnailListItem>, 'data' | 'renderItem'> {
   imageHeight: number;
   imageWidth: number;
   space?: number;
-  media: ImageMediaItem[];
-  imageSize?: 'large' | 'medium' | 'original' | 'thumbnail';
+  mediaItems: MediaItem[];
   displayCaptions?: boolean;
   imageStyle?: NetworkImageProps['imageStyle'];
   resizeMode?: NetworkImageProps['resizeMode'];
   onPress?: (index: number) => void;
-  onScrollPositionChanged?: (index: number) => void;
-  renderOverlay?: (index: number) => ReactElement;
 }
 
-export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
+export const ThumbnailList: React.FC<PropsWithChildren<ThumbnailListProps>> = ({
   imageHeight,
   imageWidth,
   space = 16,
-  media,
-  imageSize = 'thumbnail',
+  mediaItems,
   imageStyle,
   resizeMode,
-  displayCaptions = true,
   onPress = () => undefined,
-  onScrollPositionChanged = () => undefined,
-  renderOverlay,
   ...props
 }) => {
   const cellWidth = imageWidth + space;
 
   // Loading state is used to force the FlatList to re-render when the image state changes.
   // Without this, the inputs to FlatList wouldn't change, and so it would never re-render individual list items.
-  const [loadingState, setLoadingState] = useState<NetworkImageState[]>(media.map(() => 'loading'));
+  const [loadingState, setLoadingState] = useState<NetworkImageState[]>(mediaItems.map(() => 'loading'));
 
-  const onPressCallback = useCallback((index: number) => onPress(index), [onPress]);
   const onStateCallback = useCallback(
     (index: number, state: NetworkImageState) => {
       loadingState[index] = state;
@@ -50,43 +89,27 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
     [loadingState, setLoadingState],
   );
 
+  const data = useMemo(() => thumbnailListItems(mediaItems), [mediaItems]);
+
   const renderItem = useCallback(
-    ({ item, index }: { item: ImageMediaItem; index: number }) => (
-      <VStack space={8} width={imageWidth} alignItems="stretch" flex={1}>
+    ({item, index}: {item: ThumbnailListItem; index: number}) => (
+      <View width={imageWidth} justifyContent="center" alignItems="center" flex={1}>
         <NetworkImage
           width={imageWidth}
           height={imageHeight}
-          uri={item.url[imageSize]}
+          uri={item.uri}
           index={index}
-          onPress={onPressCallback}
           imageStyle={imageStyle}
           resizeMode={resizeMode}
+          showVideoIndicator={item.isVideo}
           onStateChange={onStateCallback}
+          onPress={onPress}
         />
-        {displayCaptions && item.caption && (
-          <View flex={1} px={32}>
-            <ScrollView bounces={false}>
-              <HTML source={{ html: item.caption }} />
-            </ScrollView>
-          </View>
-        )}
-        {renderOverlay?.(index)}
-      </VStack>
+      </View>
     ),
-    [imageWidth, imageHeight, imageSize, onPressCallback, imageStyle, resizeMode, onStateCallback, displayCaptions, renderOverlay],
+    [imageWidth, imageHeight, imageStyle, resizeMode, onPress, onStateCallback],
   );
 
-  const onScroll = useCallback(
-    ({
-      nativeEvent: {
-        contentOffset: { x },
-      },
-    }: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const index = Math.round(x / cellWidth);
-      onScrollPositionChanged(index);
-    },
-    [cellWidth, onScrollPositionChanged],
-  );
   const ItemSeparatorComponent = useCallback(() => <View width={space} />, [space]);
   const getItemLayout = useCallback(
     (_data: unknown, index: number) => ({
@@ -100,7 +123,7 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
   return (
     <FlatList
       horizontal
-      data={media.filter(item => item.type === MediaType.Image).filter(item => item.url)}
+      data={data}
       extraData={loadingState}
       renderItem={renderItem}
       ItemSeparatorComponent={ItemSeparatorComponent}
@@ -108,8 +131,6 @@ export const ImageList: React.FC<PropsWithChildren<ImageListProps>> = ({
       centerContent
       snapToInterval={imageWidth + space}
       snapToAlignment="center"
-      onScroll={onScroll}
-      onMomentumScrollEnd={onScroll}
       {...props}
     />
   );
