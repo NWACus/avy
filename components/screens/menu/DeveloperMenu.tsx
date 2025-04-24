@@ -464,6 +464,15 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               },
             },
             {
+              label: '9: with video',
+              data: null,
+              action: () => {
+                navigation.navigate('observation', {
+                  id: '7b1f595d-312a-42f8-adb1-2f1886b7802b',
+                });
+              },
+            },
+            {
               label: 'NWAC pro observation with avalanches',
               data: null,
               action: () => {
