@@ -85,6 +85,7 @@
     "expo-device": "~7.0.2",
     "expo-file-system": "~18.0.11",
     "expo-font": "~13.0.4",
+    "expo-image": "^2.0.7",
     "expo-image-manipulator": "~13.0.6",
     "expo-image-picker": "~16.0.6",
     "expo-linking": "~7.0.5",
@@ -124,6 +125,7 @@
     "react-native-toast-message": "^2.1.6",
     "react-native-uuid": "^2.0.1",
     "react-native-web": "~0.19.10",
+    "react-native-webview": "^13.13.5",
     "tinycolor2": "^1.5.2",
     "use-async-effect": "^2.2.7",
     "zod": "3.22.4"
