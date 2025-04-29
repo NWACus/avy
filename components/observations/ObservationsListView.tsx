@@ -20,6 +20,7 @@ import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {
   ActivityIndicator,
@@ -66,6 +67,7 @@ interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFr
 }
 
 export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, additionalFilters}) => {
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
@@ -143,6 +145,10 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
   const refreshWrapper = useCallback(() => void refresh(), [refresh]);
 
+  // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
+  // an observer type, we only show observations that match both of those at the same time
+  const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters) : []), [mapLayer, filterConfig, additionalFilters]);
+
   const fetchMoreData = useCallback(() => {
     void (async () => {
       const {isFetchingNextPage} = observationsResult;
@@ -151,27 +157,33 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         return;
       }
 
+      // Date limit is set to 6 months in the past, 1.5552e10 is 180 days in milliseconds
+      const dateLimit = Date.now() - 1.5552e10;
+      logger.debug(`fetchMoreData dateLimit: ${new Date(dateLimit).toISOString()}`);
+
       // Fetch until we get to the end of the data, or get at least one item
       while (hasNextPage) {
         const pageResult = await fetchNextPage();
         if (!pageResult.hasNextPage) {
           break;
         }
-        const fetchCount = pageResult.data?.pages[pageResult.data?.pages.length - 1].data?.length ?? 0;
+        const fetchCount = pageResult.data?.pages.at(-1)?.data?.filter(observation => resolvedFilters.every(({filter}) => filter(observation))).length ?? 0;
         if (fetchCount > 0) {
+          logger.debug('fetchMoreData exiting because of fetchCount');
           break;
         }
         hasNextPage = pageResult.hasNextPage;
+
+        const fetchDate = pageResult.data?.pages.at(-1)?.endDate;
+        if (fetchDate && new Date(fetchDate).valueOf() < dateLimit) {
+          logger.debug(`fetchMoreData exiting because of fetchDate: ${fetchDate && new Date(fetchDate).toISOString()}`);
+          break;
+        }
+
         fetchNextPage = pageResult.fetchNextPage;
       }
     })();
-  }, [observationsResult]);
-
-  const moreDataAvailable = observationsResult.hasNextPage;
-
-  // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
-  // an observer type, we only show observations that match both of those at the same time
-  const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters) : []), [mapLayer, filterConfig, additionalFilters]);
+  }, [observationsResult, resolvedFilters, logger]);
 
   interface Section {
     title: string;
@@ -251,36 +263,30 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [],
   );
   const renderListFooter = useCallback(() => {
-    if (!moreDataAvailable) {
-      if (observationsSection.data.length === 0) {
-        return null;
-      }
-      return (
-        <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
-          <Body>
-            <FormattedMessage
-              description="How many observations were found."
-              defaultMessage="{count, plural,
-  =0 {No observations match the filters.}
-  one {One observation matches the filters.}
-  other {# observations match the filters.}}"
-              values={{
-                count: observationsSection.data.length,
-              }}
-            />
-          </Body>
-        </Center>
-      );
-    } else if (observations.length > 0 && observationsResult.isFetchingNextPage) {
+    if (observationsResult.isFetchingNextPage) {
       return (
         <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
           <ActivityIndicator size={'large'} color={colorLookup('text.secondary')} />
         </Center>
       );
-    } else {
-      return <View height={OBSERVATION_SUMMARY_CARD_HEIGHT} />;
     }
-  }, [moreDataAvailable, observationsSection.data.length, observations.length, observationsResult.isFetchingNextPage]);
+    return (
+      <Center height={OBSERVATION_SUMMARY_CARD_HEIGHT} paddingBottom={48}>
+        <Body>
+          <FormattedMessage
+            description="How many observations were found."
+            defaultMessage="{count, plural,
+  =0 {No observations match the filters.}
+  one {One observation matches the filters.}
+  other {# observations match the filters.}}"
+            values={{
+              count: observationsSection.data.length,
+            }}
+          />
+        </Body>
+      </Center>
+    );
+  }, [observationsSection.data.length, observationsResult.isFetchingNextPage]);
   const renderSectionHeader = useCallback(
     ({section: {title}}: {section: {title: string}}) =>
       hasPendingObservations ? (
@@ -376,7 +382,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         onEndReached={fetchMoreData}
         ListFooterComponent={renderListFooter}
         ListEmptyComponent={
-          moreDataAvailable ? (
+          observationsResult.isFetching ? (
             <Center height={'100%'}>
               <VStack alignItems="center" space={8}>
                 <ActivityIndicator size={'large'} color={colorLookup('text.secondary')} />
