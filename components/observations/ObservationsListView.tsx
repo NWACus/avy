@@ -14,7 +14,7 @@ import {NACIcon} from 'components/icons/nac-icons';
 import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
-import {compareDesc, parseISO} from 'date-fns';
+import {compareDesc, formatDuration, isBefore, parseISO, sub} from 'date-fns';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
@@ -149,6 +149,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   // an observer type, we only show observations that match both of those at the same time
   const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters) : []), [mapLayer, filterConfig, additionalFilters]);
 
+  // Set a date limit for how far back to look for observations
+  const [lookBackLimit, setLookBackLimit] = useState<Duration>({years: 1});
+
   const fetchMoreData = useCallback(() => {
     void (async () => {
       const {isFetchingNextPage} = observationsResult;
@@ -157,8 +160,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         return;
       }
 
-      // Date limit is set to 6 months in the past, 1.5552e10 is 180 days in milliseconds
-      const dateLimit = Date.now() - 1.5552e10;
+      const dateLimit = sub(Date.now(), lookBackLimit);
       logger.debug(`fetchMoreData dateLimit: ${new Date(dateLimit).toISOString()}`);
 
       // Fetch until we get to the end of the data, or get at least one item
@@ -175,7 +177,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         hasNextPage = pageResult.hasNextPage;
 
         const fetchDate = pageResult.data?.pages.at(-1)?.endDate;
-        if (fetchDate && new Date(fetchDate).valueOf() < dateLimit) {
+        if (fetchDate && isBefore(new Date(fetchDate), dateLimit)) {
           logger.debug(`fetchMoreData exiting because of fetchDate: ${fetchDate && new Date(fetchDate).toISOString()}`);
           break;
         }
@@ -183,7 +185,16 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         fetchNextPage = pageResult.fetchNextPage;
       }
     })();
-  }, [observationsResult, resolvedFilters, logger]);
+  }, [observationsResult, resolvedFilters, logger, lookBackLimit]);
+
+  const increaseLookBackLimit = useCallback(() => {
+    // Doubles the current lookBackLimit
+    const currentMonths = (lookBackLimit.years ?? 0) * 12 + (lookBackLimit.months ?? 0);
+    const newMonths = currentMonths * 2;
+    setLookBackLimit({years: Math.floor(newMonths / 12), months: newMonths % 12});
+
+    fetchMoreData();
+  }, [lookBackLimit, fetchMoreData]);
 
   interface Section {
     title: string;
@@ -391,7 +402,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             </Center>
           ) : (
             <Center height={'100%'} bg="white">
-              <NotFound inline terminal body="Try adjusting your filters." />
+              <NotFound inline terminal body={`No results found in the last ${formatDuration(lookBackLimit)}.`} />
+              <Button onPress={increaseLookBackLimit}>Increase date range</Button>
             </Center>
           )
         }
