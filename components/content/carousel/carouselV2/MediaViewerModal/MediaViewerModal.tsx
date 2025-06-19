@@ -4,6 +4,7 @@ import {MediaViewerModalHeader} from 'components/content/carousel/carouselV2/Med
 import {View} from 'components/core';
 import React, {useCallback, useState} from 'react';
 import {Dimensions, FlatList, Modal, ViewToken} from 'react-native';
+import {Gesture, GestureDetector, GestureHandlerRootView} from 'react-native-gesture-handler';
 import {colorLookup} from 'theme';
 import {MediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
@@ -28,14 +29,16 @@ const getItemId = (item: MediaItem) => {
 export const MediaViewerModal: React.FunctionComponent<MediaViewerModalProps> = ({visible, startIndex, mediaItems, onClose}: MediaViewerModalProps) => {
   const [currentItemIndex, setCurrentItemIndex] = useState(startIndex);
 
+  const nativeGesture = Gesture.Native();
+
   const renderItem = useCallback(
     ({item}: {item: MediaItem}) => {
       const visibleItemId = getItemId(mediaItems[currentItemIndex]);
       const renderItemId = getItemId(item);
 
-      return <MediaContentView item={item} isVisible={visibleItemId === renderItemId} />;
+      return <MediaContentView item={item} isVisible={visibleItemId === renderItemId} nativeGesture={nativeGesture} />;
     },
-    [mediaItems, currentItemIndex],
+    [mediaItems, currentItemIndex, nativeGesture],
   );
 
   const getItemLayout = useCallback(
@@ -66,17 +69,21 @@ export const MediaViewerModal: React.FunctionComponent<MediaViewerModalProps> = 
     <Modal visible={visible} onRequestClose={onClose} animationType="fade">
       <View flex={1} style={{backgroundColor: colorLookup('modal.background')}}>
         <MediaViewerModalHeader index={currentItemIndex} mediaCount={mediaItems.length} onClose={onClose} />
-        <FlatList
-          data={mediaItems}
-          renderItem={renderItem}
-          getItemLayout={getItemLayout}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={{itemVisiblePercentThreshold: 90}}
-          initialScrollIndex={startIndex}
-        />
+        <GestureHandlerRootView>
+          <GestureDetector gesture={nativeGesture}>
+            <FlatList
+              data={mediaItems}
+              renderItem={renderItem}
+              getItemLayout={getItemLayout}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onViewableItemsChanged={onViewableItemsChanged}
+              viewabilityConfig={{itemVisiblePercentThreshold: 90}}
+              initialScrollIndex={startIndex}
+            />
+          </GestureDetector>
+        </GestureHandlerRootView>
         <MediaViewerModalFooter item={mediaItems[currentItemIndex]} />
       </View>
     </Modal>

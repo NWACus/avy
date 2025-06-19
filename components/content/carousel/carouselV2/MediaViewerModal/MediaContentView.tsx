@@ -5,6 +5,7 @@ import {BodySm} from 'components/text';
 import {usePostHog} from 'posthog-react-native';
 import React, {useEffect} from 'react';
 import {Dimensions} from 'react-native';
+import {NativeGesture} from 'react-native-gesture-handler';
 import {MediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
 const SCREEN = Dimensions.get('screen');
@@ -14,16 +15,17 @@ const SCREEN_HEIGHT = SCREEN.height;
 interface MediaContentProps {
   item: MediaItem;
   isVisible: boolean;
+  nativeGesture: NativeGesture;
 }
 
-export const MediaContentView: React.FunctionComponent<MediaContentProps> = ({item, isVisible}: MediaContentProps) => {
+export const MediaContentView: React.FunctionComponent<MediaContentProps> = ({item, isVisible, nativeGesture}) => {
   const postHog = usePostHog();
 
   let content: React.JSX.Element;
   let isMediaSupported = true;
 
   if (item.type === MediaType.Image) {
-    content = <ImageView item={item} />;
+    content = <ImageView item={item} nativeGesture={nativeGesture} fullScreenWidth={SCREEN_WIDTH} />;
   } else if (item.type === MediaType.Video) {
     content = <WebVideoView item={item} isVisible={isVisible} />;
   } else {
