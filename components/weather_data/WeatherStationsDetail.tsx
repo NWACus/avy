@@ -70,7 +70,10 @@ const shortFieldMap: Record<string, string> = {
   intermittent_snow: 'I/S_Sno',
   net_solar: 'SR',
   solar_radiation: 'SR',
+  battery_voltage: 'Battery',
 };
+
+const shortField = (field: string): string => shortFieldMap[field] || field;
 
 const shortUnitsMap: Record<string, string> = {
   fahrenheit: '°F',
@@ -78,6 +81,7 @@ const shortUnitsMap: Record<string, string> = {
   degrees: 'deg',
   millibar: 'mbar',
   'MJ/m**2': 'MJ/m²',
+  volt: 'V',
 };
 
 const shortUnits = (units: string): string => shortUnitsMap[units] || units;
@@ -244,7 +248,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
     <DataGrid
       data={data}
       columnHeaderData={tableColumns.map(column => ({
-        name: shortFieldMap[column.field],
+        name: shortField(column.field),
         units: shortUnits(timeSeries.UNITS[column.field]),
         elevation: column.elevation?.toString() || '',
       }))}
@@ -252,7 +256,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
       columnWidths={[
         70,
         ...tableColumns.map(({field}) => {
-          const numChars = Math.max(shortFieldMap[field].length, shortUnits(timeSeries.UNITS[field]).length);
+          const numChars = Math.max(shortField(field).length, shortUnits(timeSeries.UNITS[field]).length);
           if (numChars > 4) return numChars * 10;
           return 40;
         }),
