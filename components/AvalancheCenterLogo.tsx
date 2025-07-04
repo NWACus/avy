@@ -2,11 +2,20 @@ import {QueryClient} from '@tanstack/react-query';
 import {Logger} from 'browser-bunyan';
 import ImageCache, {useCachedImageURI} from 'hooks/useCachedImageURI';
 import React, {ReactElement} from 'react';
-import {ActivityIndicator, Image, ImageResolvedAssetSource, ImageStyle} from 'react-native';
+import {ActivityIndicator, DimensionValue, Image, ImageResizeMode, ImageResolvedAssetSource, ImageStyle} from 'react-native';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
+interface AvalancheCenterLogoStyle {
+  resizeMode?: ImageResizeMode | undefined;
+  width?: DimensionValue | undefined;
+  height?: DimensionValue | undefined;
+  marginTop?: DimensionValue | undefined;
+  flex?: number | undefined;
+  flexGrow?: number | undefined;
+}
+
 export interface AvalancheCenterLogoProps {
-  style: ImageStyle;
+  style: AvalancheCenterLogoStyle;
   avalancheCenterId: AvalancheCenterID;
 }
 
@@ -37,7 +46,8 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
 
   const {data: uri} = useCachedImageURI(source[avalancheCenterId].uri);
   if (!uri) {
-    return <ActivityIndicator style={style} />;
+    const {resizeMode: _, ...viewStyle} = style;
+    return <ActivityIndicator style={viewStyle} />;
   }
 
   const images: Record<AvalancheCenterID, {(s: ImageStyle): ReactElement}> = {

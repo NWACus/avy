@@ -9,6 +9,7 @@ import {Center, HStack, View, ViewProps} from 'components/core';
 import {BodySm} from 'components/text';
 import {HTML, HTMLRendererConfig} from 'components/text/HTML';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+import {colorLookup} from 'theme';
 import {ImageMediaItem} from 'types/nationalAvalancheCenter';
 
 export interface ImageViewerModalProps extends ViewProps {
@@ -20,9 +21,9 @@ export interface ImageViewerModalProps extends ViewProps {
 
 const htmlStyle = {fontSize: 12, textAlign: 'center', color: 'white'} as const;
 
-const RoundButton = ({onPress, ...props}: {onPress: ((event: GestureResponderEvent) => void) | undefined} & ViewProps) => (
+export const RoundButton = ({onPress, ...props}: {onPress: ((event: GestureResponderEvent) => void) | undefined} & ViewProps) => (
   <TouchableOpacity onPress={onPress}>
-    <Center height={32} width={32} backgroundColor="#333333" borderRadius={16} {...props}>
+    <Center height={32} width={32} backgroundColor={colorLookup('modal.background')} borderRadius={16} {...props}>
       <AntDesign size={24} color="white" name="close" />
     </Center>
   </TouchableOpacity>
@@ -66,7 +67,7 @@ export const ImageViewerModal: React.FunctionComponent<PropsWithChildren<ImageVi
         imageIndex={startIndex}
         visible={visible}
         swipeToCloseEnabled
-        backgroundColor="#333333"
+        backgroundColor={colorLookup('modal.background').toString()}
         onRequestClose={onClose}
         HeaderComponent={HeaderComponent}
         FooterComponent={FooterComponent}

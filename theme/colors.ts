@@ -105,6 +105,8 @@ export const COLORS: Record<string, ColorValue> = {
   'observer.other.primary': '#EA983F',
   'observer.other.secondary': 'rgba(234, 152, 63, 0.2)',
 
+  'modal.background': '#333333',
+
   // Color aliases from NativeBase
   // TODO: give these semantic names or replace them with named colors above
   'blue.100': '#dbeafe',

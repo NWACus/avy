@@ -259,7 +259,7 @@ const WarningCard: React.FunctionComponent<{warning: Warning | Watch | Special}>
   const {accentColor, title} = assetsForType(warning.product_type);
 
   return (
-    <View mx={16} py={16} borderRadius={10} borderColor={'#333333'} backgroundColor={'#333333'}>
+    <View mx={16} py={16} borderRadius={10} borderColor={colorLookup('modal.background')} backgroundColor={colorLookup('modal.background')}>
       <HStack mx={12} space={16} alignItems={'flex-start'}>
         <View backgroundColor={accentColor} width={8} height={'100%'} borderRadius={12}></View>
         <VStack space={16} flex={1}>
@@ -309,7 +309,7 @@ const WarningCard: React.FunctionComponent<{warning: Warning | Watch | Special}>
         </VStack>
         <TouchableOpacity onPress={toggleCollapsed}>
           <HStack mr={12} justifyContent="space-between" alignItems="center">
-            <FontAwesome name={isCollapsed ? 'angle-down' : 'angle-up'} color={'white'} backgroundColor={'#333333'} size={24} />
+            <FontAwesome name={isCollapsed ? 'angle-down' : 'angle-up'} color={'white'} backgroundColor={colorLookup('modal.background')} size={24} />
           </HStack>
         </TouchableOpacity>
       </HStack>
