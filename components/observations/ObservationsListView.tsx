@@ -1,29 +1,29 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
-import { FormattedMessage } from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
-import { FontAwesome, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { colorFor } from 'components/AvalancheDangerTriangle';
-import { Button } from 'components/content/Button';
-import { Card } from 'components/content/Card';
-import { NotFound, QueryState, incompleteQueryState } from 'components/content/QueryState';
-import { NetworkImage } from 'components/content/carousel/NetworkImage';
-import { Center, Divider, HStack, VStack, View } from 'components/core';
-import { NACIcon } from 'components/icons/nac-icons';
-import { ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone } from 'components/observations/ObservationsFilterForm';
-import { usePendingObservations } from 'components/observations/uploader/usePendingObservations';
-import { Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize } from 'components/text';
-import { compareDesc, formatDuration, isBefore, parseISO, sub } from 'date-fns';
-import { useAlternateObservationZones } from 'hooks/useAlternateObservationZones';
-import { useAvalancheCenterMetadata } from 'hooks/useAvalancheCenterMetadata';
-import { useMapLayer } from 'hooks/useMapLayer';
-import { useNACObservations } from 'hooks/useNACObservations';
-import { useNWACObservations } from 'hooks/useNWACObservations';
-import { useRefresh } from 'hooks/useRefresh';
-import { useToggle } from 'hooks/useToggle';
-import { LoggerContext, LoggerProps } from 'loggerContext';
-import { usePostHog } from 'posthog-react-native';
+import {FontAwesome, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {colorFor} from 'components/AvalancheDangerTriangle';
+import {Button} from 'components/content/Button';
+import {Card} from 'components/content/Card';
+import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
+import {NetworkImage} from 'components/content/carousel/NetworkImage';
+import {Center, Divider, HStack, VStack, View} from 'components/core';
+import {NACIcon} from 'components/icons/nac-icons';
+import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
+import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
+import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
+import {compareDesc, formatDuration, isBefore, parseISO, sub} from 'date-fns';
+import {useAlternateObservationZones} from 'hooks/useAlternateObservationZones';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {useMapLayer} from 'hooks/useMapLayer';
+import {useNACObservations} from 'hooks/useNACObservations';
+import {useNWACObservations} from 'hooks/useNWACObservations';
+import {useRefresh} from 'hooks/useRefresh';
+import {useToggle} from 'hooks/useToggle';
+import {LoggerContext, LoggerProps} from 'loggerContext';
+import {usePostHog} from 'posthog-react-native';
 
 import {
   ActivityIndicator,
@@ -39,8 +39,8 @@ import {
   SectionListRenderItemInfo,
   TouchableOpacity,
 } from 'react-native';
-import { ObservationsStackNavigationProps } from 'routes';
-import { colorLookup } from 'theme';
+import {ObservationsStackNavigationProps} from 'routes';
+import {colorLookup} from 'theme';
 import {
   AvalancheCenterID,
   DangerLevel,
@@ -52,7 +52,7 @@ import {
   ObservationZonesFeature,
   PartnerType,
 } from 'types/nationalAvalancheCenter';
-import { RequestedTime, pacificDateToLocalDateString, requestedTimeToUTCDate } from 'utils/date';
+import {RequestedTime, pacificDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
 
 interface ObservationsListViewItem {
   id: ObservationFragment['id'];
@@ -79,13 +79,13 @@ interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFr
   source: SourceType;
 }
 
-export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({ center_id, requestedTime, additionalFilters }) => {
-  const { logger } = React.useContext<LoggerProps>(LoggerContext);
+export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, additionalFilters}) => {
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
-  const [filterModalVisible, { set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal }] = useToggle(false);
+  const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal}] = useToggle(false);
   const avalancheZoneMetadataResult = useAvalancheCenterMetadata(center_id);
   const alternateZonesUrl: string = avalancheZoneMetadataResult.data?.widget_config?.observation_viewer?.alternate_zones || '';
   const alternateObservationZonesResult = useAlternateObservationZones(alternateZonesUrl, center_id);
@@ -180,7 +180,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [flatObservationList, mergedMapLayer, displayNWACObservations],
   );
 
-  const { isRefreshing, refresh } = useRefresh(observationsResult.refetch);
+  const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
   const refreshWrapper = useCallback(() => void refresh(), [refresh]);
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
@@ -191,12 +191,12 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   );
 
   // Set a date limit for how far back to look for observations
-  const [lookBackLimit, setLookBackLimit] = useState<Duration>({ years: 1 });
+  const [lookBackLimit, setLookBackLimit] = useState<Duration>({years: 1});
 
   const fetchMoreData = useCallback(() => {
     void (async () => {
-      const { isFetchingNextPage } = observationsResult;
-      let { hasNextPage, fetchNextPage } = observationsResult;
+      const {isFetchingNextPage} = observationsResult;
+      let {hasNextPage, fetchNextPage} = observationsResult;
       if (isFetchingNextPage || !hasNextPage) {
         return;
       }
@@ -210,7 +210,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         if (!pageResult.hasNextPage) {
           break;
         }
-        const fetchCount = pageResult.data?.pages.at(-1)?.data?.filter(observation => resolvedFilters.every(({ filter }) => filter(observation))).length ?? 0;
+        const fetchCount = pageResult.data?.pages.at(-1)?.data?.filter(observation => resolvedFilters.every(({filter}) => filter(observation))).length ?? 0;
         if (fetchCount > 0) {
           logger.debug('fetchMoreData exiting because of fetchCount');
           break;
@@ -232,11 +232,10 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     // Doubles the current lookBackLimit
     const currentMonths = (lookBackLimit.years ?? 0) * 12 + (lookBackLimit.months ?? 0);
     const newMonths = currentMonths * 2;
-    setLookBackLimit({ years: Math.floor(newMonths / 12), months: newMonths % 12 });
+    setLookBackLimit({years: Math.floor(newMonths / 12), months: newMonths % 12});
 
     fetchMoreData();
   }, [lookBackLimit, fetchMoreData]);
-
 
   interface Section {
     title: string;
@@ -248,14 +247,14 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     () => ({
       title: 'Pending',
       data: pendingObservations.map(
-        ({ observation }) =>
-        ({
-          id: observation.id,
-          observation: observation,
-          source: 'nac',
-          zone: observation.locationName,
-          pending: true,
-        } as const),
+        ({observation}) =>
+          ({
+            id: observation.id,
+            observation: observation,
+            source: 'nac',
+            zone: observation.locationName,
+            pending: true,
+          } as const),
       ),
     }),
     [pendingObservations],
@@ -265,15 +264,15 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     () => ({
       title: 'Published Results',
       data: observations
-        .filter(observation => resolvedFilters.every(({ filter }) => filter(observation)))
+        .filter(observation => resolvedFilters.every(({filter}) => filter(observation)))
         .map(
           observation =>
-          ({
-            id: observation.id,
-            observation: observation,
-            source: observation.source,
-            zone: observation.zone,
-          } as const),
+            ({
+              id: observation.id,
+              observation: observation,
+              source: observation.source,
+              zone: observation.zone,
+            } as const),
         ),
     }),
     [observations, resolvedFilters],
@@ -286,14 +285,14 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   }, [pendingObservationsSection, observationsSection]);
 
   const renderItem = useCallback(
-    ({ item }: SectionListRenderItemInfo<ObservationsListViewItem, Section>) => (
+    ({item}: SectionListRenderItemInfo<ObservationsListViewItem, Section>) => (
       <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} pending={item.pending} />
     ),
     [],
   );
 
   const submit = useCallback(() => {
-    navigation.navigate('observationSubmit', { center_id });
+    navigation.navigate('observationSubmit', {center_id});
   }, [navigation, center_id]);
 
   const [showSubmitButtonText, setShowSubmitButtonText] = useState(true);
@@ -341,7 +340,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     );
   }, [observationsSection.data.length, observationsResult.isFetchingNextPage]);
   const renderSectionHeader = useCallback(
-    ({ section: { title } }: { section: { title: string } }) =>
+    ({section: {title}}: {section: {title: string}}) =>
       hasPendingObservations ? (
         <View px={16} py={8}>
           <BodySm>{title}</BodySm>
@@ -388,7 +387,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           textColor={colorLookup('primary')}
           backgroundColor={colorLookup('white')}
           onPress={showFilterModal}
-          headIcon={<FontAwesome name="sliders" size={bodyXSmSize} color={colorLookup('primary')} style={{ marginRight: 2 }} />}
+          headIcon={<FontAwesome name="sliders" size={bodyXSmSize} color={colorLookup('primary')} style={{marginRight: 2}} />}
           tailIcon={
             optionalFilterCount > 0 && (
               <Center backgroundColor={colorLookup('primary')} width={14} height={14} borderRadius={7} minWidth={bodyXSmSize}>
@@ -400,16 +399,16 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           }
         />
         <Divider direction="vertical" />
-        <ScrollView horizontal style={{ width: '100%' }} showsHorizontalScrollIndicator={false}>
+        <ScrollView horizontal style={{width: '100%'}} showsHorizontalScrollIndicator={false}>
           <HStack space={8} py={4} pr={16}>
-            {resolvedFilters.map(({ label, removeFilter, type: filterType }) => {
+            {resolvedFilters.map(({label, removeFilter, type: filterType}) => {
               const canBeDeleted = removeFilter !== undefined;
               const textColor = colorLookup('primary');
               const backgroundColor = colorLookup('white');
               const tailIcon = canBeDeleted ? (
-                <MaterialCommunityIcons name="close" size={16} style={{ marginTop: 2, marginHorizontal: 0 }} color={colorLookup('primary')} />
+                <MaterialCommunityIcons name="close" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('primary')} />
               ) : filterType === 'date' ? (
-                <MaterialCommunityIcons name="chevron-down" size={16} style={{ marginTop: 2, marginHorizontal: 0 }} color={colorLookup('primary')} />
+                <MaterialCommunityIcons name="chevron-down" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('primary')} />
               ) : undefined;
               return (
                 <FilterPillButton
@@ -451,8 +450,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             </Center>
           )
         }
-        contentContainerStyle={{ flexGrow: 1 }}
-        style={{ backgroundColor: colorLookup('primary.background'), width: '100%', height: '100%' }}
+        contentContainerStyle={{flexGrow: 1}}
+        style={{backgroundColor: colorLookup('primary.background'), width: '100%', height: '100%'}}
         refreshing={isRefreshing}
         onRefresh={refreshWrapper}
         getItemLayout={getItemLayout}
@@ -491,7 +490,7 @@ export interface FilterPillButtonProps {
   backgroundColor: ColorValue;
 }
 
-export const FilterPillButton: React.FC<FilterPillButtonProps> = ({ label, headIcon, tailIcon, onPress, textColor, backgroundColor }) => (
+export const FilterPillButton: React.FC<FilterPillButtonProps> = ({label, headIcon, tailIcon, onPress, textColor, backgroundColor}) => (
   <TouchableOpacity onPress={onPress}>
     <HStack
       bg={backgroundColor}
@@ -529,7 +528,7 @@ export interface ObservationSummaryCardProps {
 
 const OBSERVATION_SUMMARY_CARD_HEIGHT = 132;
 
-export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(({ source, zone, observation, pending }: ObservationSummaryCardProps) => {
+export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(({source, zone, observation, pending}: ObservationSummaryCardProps) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
   const redFlags = observation.instability.collapsing || observation.instability.cracking;
@@ -564,14 +563,14 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
       borderColor={colorLookup('light.300')}
       borderWidth={1}
       onPress={pending ? undefined : onPress}
-      style={{ opacity: pending ? 0.5 : 1.0 }}
+      style={{opacity: pending ? 0.5 : 1.0}}
       header={
         <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
           <BodySmBlack>{pacificDateToLocalDateString(observation.startDate)}</BodySmBlack>
           <HStack space={8} alignItems="center">
             {redFlags && <MaterialCommunityIcons name="flag" size={bodySize} color={colorFor(DangerLevel.Considerable).string()} />}
             {avalanches && <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />}
-            <Caption1Semibold color={colorsFor(observation.observerType).primary} style={{ textTransform: 'uppercase' }}>
+            <Caption1Semibold color={colorsFor(observation.observerType).primary} style={{textTransform: 'uppercase'}}>
               {observation.observerType}
             </Caption1Semibold>
           </HStack>
@@ -585,7 +584,7 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
           </Body>
         </VStack>
         <View width={52} height={52} flex={0} ml={8}>
-          {thumbnail && <NetworkImage width={52} height={52} uri={thumbnail} imageStyle={{ borderRadius: 4 }} index={0} onPress={undefined} onStateChange={undefined} />}
+          {thumbnail && <NetworkImage width={52} height={52} uri={thumbnail} imageStyle={{borderRadius: 4}} index={0} onPress={undefined} onStateChange={undefined} />}
         </View>
       </HStack>
     </Card>

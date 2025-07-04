@@ -1,16 +1,16 @@
-import { Logger } from 'browser-bunyan';
-import { getCoordinateString, parseCoordinates, parseKmlData, transformKmlFeaturesToObservationZones } from 'hooks/useAlternateObservationZones';
-import { logger } from 'logger';
-import { KMLFeatureCollection } from 'types/nationalAvalancheCenter';
+import {Logger} from 'browser-bunyan';
+import {getCoordinateString, parseCoordinates, parseKmlData, transformKmlFeaturesToObservationZones} from 'hooks/useAlternateObservationZones';
+import {logger} from 'logger';
+import {KMLFeatureCollection} from 'types/nationalAvalancheCenter';
 const testUrl = 'http://NWAC_Rules.com/test.kml';
 describe('getCoordinateString', () => {
   it('should extract coordinates from a KML Placemark object', () => {
     const placemark = {
-      name: { _text: 'Test Placemark' },
+      name: {_text: 'Test Placemark'},
       Polygon: {
         outerBoundaryIs: {
           LinearRing: {
-            coordinates: { _text: '-121.7,47.5,0 -121.68,47.5,0' },
+            coordinates: {_text: '-121.7,47.5,0 -121.68,47.5,0'},
           },
         },
       },
@@ -20,7 +20,7 @@ describe('getCoordinateString', () => {
   });
   it('should extract coordinates from a KML Placemark object with MultiGeometry', () => {
     const placemark = {
-      name: { _text: 'Test Placemark MultiGeometry' },
+      name: {_text: 'Test Placemark MultiGeometry'},
       MultiGeometry: {
         Polygon: {
           outerBoundaryIs: {
@@ -263,7 +263,7 @@ describe('transform KML Features to Observation Zones', () => {
             type: 'Polygon',
           },
           id: -100000,
-          properties: { center_id: 'NWAC', name: 'Test Placemark' },
+          properties: {center_id: 'NWAC', name: 'Test Placemark'},
           type: 'Feature',
         },
       ],
@@ -277,6 +277,6 @@ describe('transform KML Features to Observation Zones', () => {
       features: [],
     };
     const result = transformKmlFeaturesToObservationZones(kmlFeatures, 'NWAC', logger as unknown as Logger);
-    expect(result).toEqual({ features: [], type: 'FeatureCollection' });
+    expect(result).toEqual({features: [], type: 'FeatureCollection'});
   });
 });
