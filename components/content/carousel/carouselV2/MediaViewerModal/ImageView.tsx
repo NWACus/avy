@@ -42,6 +42,14 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
     setPanEnabled(value);
   };
 
+  const resetTransforms = () => {
+    'worklet';
+    scale.value = withTiming(MIN_SCALE);
+    translateX.value = withTiming(RESET_TRANSLATION_VALUE);
+    translateY.value = withTiming(RESET_TRANSLATION_VALUE);
+    runOnJS(setPanOnJS)(false);
+  };
+
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
       startScale.value = scale.value;
@@ -51,10 +59,7 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
     })
     .onEnd(() => {
       if (scale.value < MIN_SCALE) {
-        scale.value = withTiming(MIN_SCALE);
-        translateX.value = withTiming(RESET_TRANSLATION_VALUE);
-        translateY.value = withTiming(RESET_TRANSLATION_VALUE);
-        runOnJS(setPanOnJS)(false);
+        resetTransforms();
         return;
       }
 
@@ -93,10 +98,7 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
     .numberOfTaps(2)
     .onEnd(() => {
       if (scale.value > MIN_SCALE) {
-        scale.value = withTiming(MIN_SCALE);
-        translateX.value = withTiming(RESET_TRANSLATION_VALUE);
-        translateY.value = withTiming(RESET_TRANSLATION_VALUE);
-        runOnJS(setPanOnJS)(false);
+        resetTransforms();
       } else {
         scale.value = withTiming(DOUBLE_TAP_SCALE);
         runOnJS(setPanOnJS)(true);
