@@ -11,7 +11,7 @@ export interface MediaCarouselProps extends ViewProps {
   displayCaptions?: boolean;
 }
 
-export const MediaCoursel: React.FunctionComponent<PropsWithChildren<MediaCarouselProps>> = ({
+export const MediaCarousel: React.FunctionComponent<PropsWithChildren<MediaCarouselProps>> = ({
   thumbnailHeight,
   thumbnailAspectRatio = 1.3,
   mediaItems,
