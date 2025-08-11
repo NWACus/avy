@@ -4,19 +4,53 @@ import axios, {AxiosError} from 'axios';
 import {Logger} from 'browser-bunyan';
 import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {useContext} from 'react';
+import {useContext, useMemo} from 'react';
 import {
   AvalancheCenterID,
   KMLFeature,
   KMLFeatureCollection,
   KMLFileSchema,
   KMLPlacemark,
+  MapLayerFeature,
+  MapLayerOrObservationZonesFeature,
+  MergedMapLayer,
   ObservationZonesFeature,
   ObservationZonesFeatureCollection,
   observationZonesPropertiesSchema,
 } from 'types/nationalAvalancheCenter';
 import {xml2json} from 'xml-js';
+
+export function useMergedMapLayer(center_id: AvalancheCenterID, mapLayer: MergedMapLayer | undefined): MergedMapLayer | undefined {
+  const avalancheZoneMetadataResult = useAvalancheCenterMetadata(center_id);
+  const alternateZonesUrl: string = avalancheZoneMetadataResult.data?.widget_config?.observation_viewer?.alternate_zones || '';
+  const alternateObservationZonesResult = useAlternateObservationZones(alternateZonesUrl, center_id);
+
+  const observationOnlyZones = alternateObservationZonesResult.data;
+
+  const mergedMapLayer = useMemo((): MergedMapLayer | undefined => {
+    if (!mapLayer || !observationOnlyZones?.features?.length) {
+      return mapLayer;
+    }
+
+    const zonesNotInMapLayer: ObservationZonesFeature[] = observationOnlyZones.features.filter(
+      (zone: ObservationZonesFeature) => !(mapLayer.features as MapLayerFeature[]).some((mapFeature: MapLayerFeature) => mapFeature.properties.name === zone.properties.name),
+    );
+
+    if (zonesNotInMapLayer.length > 0) {
+      const combinedFeatures: MapLayerOrObservationZonesFeature[] = [...mapLayer.features, ...zonesNotInMapLayer];
+      return {
+        ...mapLayer,
+        features: combinedFeatures,
+      };
+    }
+
+    return mapLayer;
+  }, [observationOnlyZones, mapLayer]);
+
+  return mergedMapLayer;
+}
 
 export const useAlternateObservationZones = (url: string, center_id: AvalancheCenterID): UseQueryResult<ObservationZonesFeatureCollection, AxiosError> => {
   const {logger} = useContext<LoggerProps>(LoggerContext);

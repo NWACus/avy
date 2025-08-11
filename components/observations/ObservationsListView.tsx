@@ -15,7 +15,7 @@ import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConf
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
 import {compareDesc, formatDuration, isBefore, parseISO, sub} from 'date-fns';
-import {useAlternateObservationZones} from 'hooks/useAlternateObservationZones';
+import {useAlternateObservationZones, useMergedMapLayer} from 'hooks/useAlternateObservationZones';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
@@ -41,17 +41,7 @@ import {
 } from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {
-  AvalancheCenterID,
-  DangerLevel,
-  MapLayerFeature,
-  MapLayerOrObservationZonesFeature,
-  MediaType,
-  MergedMapLayer,
-  ObservationFragment,
-  ObservationZonesFeature,
-  PartnerType,
-} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
 import {RequestedTime, pacificDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
 
 interface ObservationsListViewItem {
@@ -92,25 +82,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
-  const observationOnlyZones = alternateObservationZonesResult.data;
-
-  const mergedMapLayer = useMemo((): MergedMapLayer | undefined => {
-    if (!mapLayer || !observationOnlyZones || !observationOnlyZones.features || observationOnlyZones.features.length === 0) {
-      return mapLayer;
-    }
-    const zonesNotInMapLayer: ObservationZonesFeature[] = observationOnlyZones.features.filter(
-      (zone: ObservationZonesFeature) => !mapLayer.features.some((mapFeature: MapLayerFeature) => mapFeature.properties.name === zone.properties.name),
-    );
-    if (zonesNotInMapLayer.length > 0) {
-      const combinedFeatures: MapLayerOrObservationZonesFeature[] = [...mapLayer.features, ...zonesNotInMapLayer];
-      return {
-        ...mapLayer,
-        features: combinedFeatures,
-      };
-    } else {
-      return mapLayer as MergedMapLayer;
-    }
-  }, [observationOnlyZones, mapLayer]);
+  const mergedMapLayer = useMergedMapLayer(center_id, mapLayer);
 
   const postHog = usePostHog();
 
