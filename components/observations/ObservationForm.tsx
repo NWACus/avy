@@ -164,7 +164,7 @@ export const ObservationForm: React.FC<{
               }
             } else if (upload.status === 'error') {
               logger.debug('observation failed', {observationId});
-              reject();
+              reject(new Error('Observation upload failed'));
               getUploader().unsubscribeFromStateUpdates(listener);
               Toast.show({
                 type: 'error',
@@ -236,7 +236,11 @@ export const ObservationForm: React.FC<{
 
   const onCloseHandler = useCallback(() => {
     formContext.reset();
-    onClose ? onClose() : navigation.goBack();
+    if (onClose) {
+      onClose();
+    } else {
+      navigation.goBack();
+    }
   }, [formContext, navigation, onClose]);
 
   useBackHandler(() => {
