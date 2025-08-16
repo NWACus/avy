@@ -108,7 +108,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
-  const mapView = useRef<AnimatedMapView>(null);
+  const mapView = useRef<AnimatedMapView | null>(null);
   const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapView, logger)).current;
   React.useEffect(() => {
     controller.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
@@ -184,7 +184,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     .map(result => result.data) // get data from the results
     .filter(data => data) // only operate on results that have succeeded
     .forEach(forecast => {
-      forecast &&
+      if (forecast && forecast.forecast_zone) {
         forecast.forecast_zone?.forEach(({id}) => {
           if (zonesById[id]) {
             // the map layer will expose old forecasts with their danger level as appropriate, but the map expects to show a card
@@ -219,6 +219,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
             }
           }
         });
+      }
     });
   warningResults
     .map(result => result.data) // get data from the results
