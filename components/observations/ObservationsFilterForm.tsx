@@ -17,6 +17,7 @@ import {BodyBlack, BodySemibold, BodySmBlack, Title3Semibold} from 'components/t
 import {endOfDay, isAfter, isBefore, parseISO} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
+import type {Resolver} from 'react-hook-form';
 import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, SafeAreaView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {colorLookup} from 'theme';
@@ -190,7 +191,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const formContext = useForm({
     defaultValues: initialFilterConfig,
-    resolver: zodResolver(observationFilterConfigSchema),
+    resolver: zodResolver(observationFilterConfigSchema) as Resolver<ObservationFilterConfig>,
     mode: 'onBlur',
     shouldFocusError: false,
     shouldUnregister: true,

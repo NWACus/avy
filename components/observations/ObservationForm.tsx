@@ -31,6 +31,7 @@ import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabiliti
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
+import type {Resolver} from 'react-hook-form';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
@@ -57,7 +58,7 @@ export const ObservationForm: React.FC<{
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const formContext = useForm<ObservationFormData>({
     defaultValues: defaultObservationFormData(),
-    resolver: zodResolver(simpleObservationFormSchema),
+    resolver: zodResolver(simpleObservationFormSchema) as Resolver<ObservationFormData>,
     mode: 'onBlur',
     shouldFocusError: false,
     shouldUnregister: true,
