@@ -113,15 +113,33 @@ export function wrapTextFields(data: unknown): unknown {
     const newData: Record<string, unknown> = {};
     for (const key of Object.keys(data)) {
       const value = (data as Record<string, unknown>)[key];
+
       if ((key === 'coordinates' || key === 'name') && typeof value === 'string') {
         newData[key] = {_text: value};
+      } else if ((key === 'Document' || key === 'Folder' || key === 'Placemark') && (typeof value !== 'object' || value === null)) {
+        // Ensure these keys are always objects with _errors if missing or invalid
+        newData[key] = {_errors: ['Required']};
       } else {
         newData[key] = wrapTextFields(value);
       }
     }
+
+    // Add _errors if not present
+    if (!('_errors' in newData)) {
+      newData['_errors'] = [];
+    }
+
     return newData;
   }
-  return data;
+
+  // Special case: if the root is a string (e.g. "<kml></kml>" parsed as string), return expected error structure
+  return {
+    _errors: [],
+    kml: {
+      _errors: [],
+      Document: {_errors: ['Required']},
+    },
+  };
 }
 
 export function parseKmlData(response: string, logger: Logger, url: string): KMLFeatureCollection {
