@@ -3,6 +3,7 @@ import {QueryClient, UseQueryResult, useQuery} from '@tanstack/react-query';
 import axios, {AxiosError} from 'axios';
 import {Logger} from 'browser-bunyan';
 import {formatDistanceToNowStrict} from 'date-fns';
+import {XMLParser} from 'fast-xml-parser';
 import {safeFetch} from 'hooks/fetch';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -20,7 +21,6 @@ import {
   ObservationZonesFeatureCollection,
   observationZonesPropertiesSchema,
 } from 'types/nationalAvalancheCenter';
-import {xml2json} from 'xml-js';
 
 export function useMergedMapLayer(center_id: AvalancheCenterID, mapLayer: MergedMapLayer | undefined): MergedMapLayer | undefined {
   const avalancheZoneMetadataResult = useAvalancheCenterMetadata(center_id);
@@ -106,9 +106,28 @@ export function queryKey(url: string) {
   return ['alternateZoneKML', {url: url}];
 }
 
+export function wrapTextFields(data: unknown): unknown {
+  if (Array.isArray(data)) {
+    return data.map(wrapTextFields);
+  } else if (typeof data === 'object' && data !== null) {
+    const newData: Record<string, unknown> = {};
+    for (const key of Object.keys(data)) {
+      const value = (data as Record<string, unknown>)[key];
+      if ((key === 'coordinates' || key === 'name') && typeof value === 'string') {
+        newData[key] = {_text: value};
+      } else {
+        newData[key] = wrapTextFields(value);
+      }
+    }
+    return newData;
+  }
+  return data;
+}
+
 export function parseKmlData(response: string, logger: Logger, url: string): KMLFeatureCollection {
-  const kmlResponse = xml2json(response, {compact: true, spaces: 2});
-  const parseResult = KMLFileSchema.safeParse(JSON.parse(kmlResponse));
+  const parser = new XMLParser();
+  const kmlResponse = wrapTextFields(parser.parse(response));
+  const parseResult = KMLFileSchema.safeParse(kmlResponse);
 
   if (!parseResult.success) {
     logger.error(`Invalid KML file: ${JSON.stringify(parseResult.error.format())}`);
