@@ -1376,7 +1376,7 @@
     node-forge "^1.2.1"
     nullthrows "^1.1.1"
 
-"@expo/config-plugins@~10.1.1", "@expo/config-plugins@~10.1.2":
+"@expo/config-plugins@~10.1.2":
   version "10.1.2"
   resolved "https://registry.yarnpkg.com/@expo/config-plugins/-/config-plugins-10.1.2.tgz#6efa256a3fa2fca116eeb5bef8b22b089e287282"
   integrity sha512-IMYCxBOcnuFStuK0Ay+FzEIBKrwW8OVUMc65+v0+i7YFIIe8aL342l7T4F8lR4oCfhXn7d6M5QPgXvjtc/gAcw==
@@ -2151,10 +2151,10 @@
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
-"@react-native-async-storage/async-storage@^1.23.1":
-  version "1.24.0"
-  resolved "https://registry.yarnpkg.com/@react-native-async-storage/async-storage/-/async-storage-1.24.0.tgz#888efbc62a26f7d9464b32f4d3027b7f2771999b"
-  integrity sha512-W4/vbwUOYOjco0x3toB8QCr7EjIP6nE9G7o8PMguvvjYT5Awg09lyV4enACRx4s++PPulBiBSjL0KTFx2u0Z/g==
+"@react-native-async-storage/async-storage@2.1.2":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@react-native-async-storage/async-storage/-/async-storage-2.1.2.tgz#8aae432adfc20800308e2ef3ce380864f0f9def8"
+  integrity sha512-dvlNq4AlGWC+ehtH12p65+17V0Dx7IecOWl6WanF2ja38O1Dcjjvn7jVzkUHJ5oWkQBlyASurTPlTHgKXyYiow==
   dependencies:
     merge-options "^3.0.4"
 
@@ -9534,12 +9534,12 @@ react-devtools@^5.0.2:
     react-devtools-core "5.3.2"
     update-notifier "^2.1.0"
 
-react-dom@19.1.1:
-  version "19.1.1"
-  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-19.1.1.tgz#2daa9ff7f3ae384aeb30e76d5ee38c046dc89893"
-  integrity sha512-Dlq/5LAZgF0Gaz6yiqZCf6VCcZs1ghAJyrsu84Q/GT0gV+mCxbfmKNoGRKBYMJ8IEdGPqu49YWXD02GCknEDkw==
+react-dom@19.0.0:
+  version "19.0.0"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-19.0.0.tgz#43446f1f01c65a4cd7f7588083e686a6726cfb57"
+  integrity sha512-4GV5sHFG0e/0AD4X+ySy6UJd3jVl1iNsNHdpad0qhABJ11twS3TTBnseqsKurKcsNqCEFeGL3uLpVChpIO3QfQ==
   dependencies:
-    scheduler "^0.26.0"
+    scheduler "^0.25.0"
 
 react-error-boundary@^3.1.0:
   version "3.1.4"
@@ -9589,7 +9589,7 @@ react-is@^18.0.0, react-is@^18.3.1:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-18.3.1.tgz#e83557dc12eae63a99e003a46388b1dcbb44db7e"
   integrity sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==
 
-react-is@^19.0.0, react-is@^19.1.1:
+react-is@^19.0.0:
   version "19.1.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-19.1.1.tgz#038ebe313cf18e1fd1235d51c87360eb87f7c36a"
   integrity sha512-tr41fA15Vn8p4X9ntI+yCyeGSf1TlYaY5vlTZfQmeLBrFo3psOPX6HhTDnFNL9uj3EhP0KAQ80cugCl4b4BERA==
@@ -9839,18 +9839,10 @@ react-test-renderer@19.0.0:
     react-is "^19.0.0"
     scheduler "^0.25.0"
 
-react-test-renderer@^19.1.1:
-  version "19.1.1"
-  resolved "https://registry.yarnpkg.com/react-test-renderer/-/react-test-renderer-19.1.1.tgz#c1e57b7a9c7291e3f52c489022071ac39f55155a"
-  integrity sha512-aGRXI+zcBTtg0diHofc7+Vy97nomBs9WHHFY1Csl3iV0x6xucjNYZZAkiVKGiNYUv23ecOex5jE67t8ZzqYObA==
-  dependencies:
-    react-is "^19.1.1"
-    scheduler "^0.26.0"
-
-react@19.1.1:
-  version "19.1.1"
-  resolved "https://registry.yarnpkg.com/react/-/react-19.1.1.tgz#06d9149ec5e083a67f9a1e39ce97b06a03b644af"
-  integrity sha512-w8nqGImo45dmMIfljjMwOGtbmC/mk4CMYhWIicdSflH91J9TyCyczcPFXJzrZ/ZXcgGRFeP6BU0BEJTw6tZdfQ==
+react@19.0.0:
+  version "19.0.0"
+  resolved "https://registry.yarnpkg.com/react/-/react-19.0.0.tgz#6e1969251b9f108870aa4bff37a0ce9ddfaaabdd"
+  integrity sha512-V8AVnmPIICiWpGfm6GLzCR/W5FXLchHop40W4nXBmdlEceh16rCN8O8LNWm5bh5XUX91fh7KpA+W0TgMKmgTpQ==
 
 recast@^0.21.0:
   version "0.21.5"
@@ -10184,11 +10176,6 @@ scheduler@0.25.0, scheduler@^0.25.0:
   version "0.25.0"
   resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.25.0.tgz#336cd9768e8cceebf52d3c80e3dcf5de23e7e015"
   integrity sha512-xFVuu11jh+xcO7JOAGJNOXld8/TcEHK/4CituBUeUb5hqxJLj9YuemAEuvm9gQ/+pgXYfbQuqAkiYu+u7YEsNA==
-
-scheduler@^0.26.0:
-  version "0.26.0"
-  resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.26.0.tgz#4ce8a8c2a2095f13ea11bf9a445be50c555d6337"
-  integrity sha512-NlHwttCI/l5gCPR3D1nNXtWABUmBwvZpEQiD4IXSbIDq8BzLIK/7Ir5gTFSGZDUu37K5cMNp0hFtzO38sC7gWA==
 
 semver-compare@^1.0.0:
   version "1.0.0"
