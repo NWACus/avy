@@ -3,7 +3,8 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import centroid from '@turf/centroid';
 import turfClustersDBScan from '@turf/clusters-dbscan';
-import {FeatureCollection, Point, Position, Properties, Units, featureCollection} from '@turf/helpers';
+import {Units, featureCollection} from '@turf/helpers';
+import type {FeatureCollection, GeoJsonProperties, Point, Position} from 'geojson';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Constants, {AppOwnership} from 'expo-constants';
@@ -53,7 +54,7 @@ function clustersDBScan(
   },
 ): ClusteredWeatherStationCollection {
   // Turf's types are not genericized for this function, so we have to explicitly cast the result
-  const result = turfClustersDBScan(weatherStations as FeatureCollection<Point, Properties>, maxDistance, options) as ClusteredWeatherStationCollection;
+  const result = turfClustersDBScan(weatherStations as FeatureCollection<Point, GeoJsonProperties>, maxDistance, options) as ClusteredWeatherStationCollection;
 
   // With all features grouped by cluster, calculate the centroid of each cluster and attach it to each feature
   Object.entries(_.groupBy(result.features, f => f.properties.cluster || -1)).forEach(([cluster, features]) => {
@@ -113,7 +114,7 @@ export const WeatherStationMap: React.FunctionComponent<{
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
-  const mapView = useRef<AnimatedMapView>(null);
+  const mapView = useRef<AnimatedMapView | null>(null);
   const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapView, logger)).current;
   React.useEffect(() => {
     controller.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);

@@ -1,6 +1,6 @@
 import {AntDesign, Entypo} from '@expo/vector-icons';
 import {getHeaderTitle} from '@react-navigation/elements';
-import {NativeStackHeaderProps} from '@react-navigation/native-stack/lib/typescript/src/types';
+import {NativeStackHeaderProps} from '@react-navigation/native-stack';
 import {HStack, View} from 'components/core';
 import {GenerateObservationShareLink} from 'components/observations/ObservationUrlMapping';
 import {Title1Black, Title3Black} from 'components/text';
@@ -28,7 +28,7 @@ export const NavigationHeader: React.FunctionComponent<
     if (!back) {
       firstOpen = true;
       // set back to not be null since we want a shared obs to have a back button
-      back = {title: 'Observations'};
+      back = {title: 'Observations', href: undefined};
     }
 
     shareCenterId = reverseLookup(AvalancheCenterWebsites, shareParams.share_url) as AvalancheCenterID;
