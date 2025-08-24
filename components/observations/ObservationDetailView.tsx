@@ -77,11 +77,12 @@ export const ObservationDetailView: React.FunctionComponent<{
 }> = ({id}) => {
   const observationResult = useNACObservation(id);
   const observation = observationResult.data;
-  const mapResult = useMapLayer(observation?.center_id?.toUpperCase() as AvalancheCenterID);
+  const centerId = observation?.center_id?.toUpperCase() as AvalancheCenterID;
+  const mapResult = useMapLayer(centerId);
   const mapLayer = mapResult.data;
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
-  const mergedMapLayer = useMergedMapLayer(observation?.center_id?.toUpperCase() as AvalancheCenterID, mapLayer);
+  const mergedMapLayer = useMergedMapLayer(centerId as AvalancheCenterID, mapLayer);
 
   if (incompleteQueryState(observationResult, mapResult, capabilitiesResult) || !observation || !mergedMapLayer || !capabilities || !capabilities) {
     return <QueryState results={[observationResult, mapResult, capabilitiesResult]} />;

@@ -25,6 +25,7 @@ export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID): UseQue
   return useQuery<AvalancheCenter, AxiosError | ZodError>({
     queryKey: key,
     queryFn: async (): Promise<AvalancheCenter> => fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id, thisLogger),
+    enabled: !!center_id,
     cacheTime: Infinity, // hold on to this cached data forever
   });
 };
