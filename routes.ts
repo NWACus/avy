@@ -45,6 +45,7 @@ export type HomeStackParamList = {
   stationDetail: WeatherStationDetailPageProps;
   observation: {
     id: string;
+    center_id: AvalancheCenterID;
   };
   nwacObservation: {
     id: string;
@@ -108,6 +109,7 @@ export type ObservationsStackParamList = {
   };
   observation: {
     id: string;
+    center_id: AvalancheCenterID;
   };
   nwacObservation: {
     id: string;
@@ -136,6 +138,7 @@ export type MenuStackParamList = {
   };
   observation: {
     id: string;
+    center_id: AvalancheCenterID;
   };
   nwacObservation: {
     id: string;

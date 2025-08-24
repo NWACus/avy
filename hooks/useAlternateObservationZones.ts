@@ -22,7 +22,7 @@ import {
   observationZonesPropertiesSchema,
 } from 'types/nationalAvalancheCenter';
 
-export function useMergedMapLayer(center_id: AvalancheCenterID | undefined, mapLayer: MergedMapLayer | undefined): MergedMapLayer | undefined {
+export function useMergedMapLayer(center_id: AvalancheCenterID, mapLayer: MergedMapLayer | undefined): MergedMapLayer | undefined {
   const avalancheZoneMetadataResult = useAvalancheCenterMetadata(center_id);
   const alternateZonesUrl: string = avalancheZoneMetadataResult.data?.widget_config?.observation_viewer?.alternate_zones || '';
   const alternateObservationZonesResult = useAlternateObservationZones(alternateZonesUrl, center_id);

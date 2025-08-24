@@ -258,9 +258,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   const renderItem = useCallback(
     ({item}: SectionListRenderItemInfo<ObservationsListViewItem, Section>) => (
-      <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} pending={item.pending} />
+      <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} pending={item.pending} centerId={center_id} />
     ),
-    [],
+    [center_id],
   );
 
   const submit = useCallback(() => {
@@ -496,70 +496,74 @@ export interface ObservationSummaryCardProps {
   observation: ObservationFragment;
   zone: string;
   pending?: boolean;
+  centerId: AvalancheCenterID;
 }
 
 const OBSERVATION_SUMMARY_CARD_HEIGHT = 132;
 
-export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(({source, zone, observation, pending}: ObservationSummaryCardProps) => {
-  const navigation = useNavigation<ObservationsStackNavigationProps>();
-  const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
-  const redFlags = observation.instability.collapsing || observation.instability.cracking;
-  const onPress = useCallback(() => {
-    if (source === 'nwac') {
-      navigation.navigate('nwacObservation', {
-        id: observation.id,
-      });
-    } else {
-      navigation.navigate('observation', {
-        id: observation.id,
-      });
-    }
-  }, [navigation, source, observation.id]);
+export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(
+  ({source, zone, observation, pending, centerId}: ObservationSummaryCardProps) => {
+    const navigation = useNavigation<ObservationsStackNavigationProps>();
+    const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
+    const redFlags = observation.instability.collapsing || observation.instability.cracking;
+    const onPress = useCallback(() => {
+      if (source === 'nwac') {
+        navigation.navigate('nwacObservation', {
+          id: observation.id,
+        });
+      } else {
+        navigation.navigate('observation', {
+          id: observation.id,
+          center_id: centerId,
+        });
+      }
+    }, [navigation, source, observation.id, centerId]);
 
-  let thumbnail = '';
-  if (observation.media && observation.media.length > 0) {
-    for (const item of observation.media) {
-      if (item.type === MediaType.Image && item.url?.thumbnail) {
-        thumbnail = item.url?.thumbnail;
-        break;
+    let thumbnail = '';
+    if (observation.media && observation.media.length > 0) {
+      for (const item of observation.media) {
+        if (item.type === MediaType.Image && item.url?.thumbnail) {
+          thumbnail = item.url?.thumbnail;
+          break;
+        }
       }
     }
-  }
 
-  return (
-    <Card
-      mx={8}
-      my={2}
-      py={4}
-      borderRadius={10}
-      borderColor={colorLookup('light.300')}
-      borderWidth={1}
-      onPress={pending ? undefined : onPress}
-      style={{opacity: pending ? 0.5 : 1.0}}
-      header={
-        <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
-          <BodySmBlack>{pacificDateToLocalDateString(observation.startDate)}</BodySmBlack>
-          <HStack space={8} alignItems="center">
-            {redFlags && <MaterialCommunityIcons name="flag" size={bodySize} color={colorFor(DangerLevel.Considerable).string()} />}
-            {avalanches && <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />}
-            <Caption1Semibold color={colorsFor(observation.observerType).primary} style={{textTransform: 'uppercase'}}>
-              {observation.observerType}
-            </Caption1Semibold>
+    return (
+      <Card
+        mx={8}
+        my={2}
+        py={4}
+        borderRadius={10}
+        borderColor={colorLookup('light.300')}
+        borderWidth={1}
+        onPress={pending ? undefined : onPress}
+        style={{opacity: pending ? 0.5 : 1.0}}
+        header={
+          <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
+            <BodySmBlack>{pacificDateToLocalDateString(observation.startDate)}</BodySmBlack>
+            <HStack space={8} alignItems="center">
+              {redFlags && <MaterialCommunityIcons name="flag" size={bodySize} color={colorFor(DangerLevel.Considerable).string()} />}
+              {avalanches && <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />}
+              <Caption1Semibold color={colorsFor(observation.observerType).primary} style={{textTransform: 'uppercase'}}>
+                {observation.observerType}
+              </Caption1Semibold>
+            </HStack>
           </HStack>
+        }>
+        <HStack space={48} justifyContent="space-between" alignItems={'flex-start'}>
+          <VStack space={4} alignItems={'flex-start'} flex={1}>
+            <BodyBlack>{zone}</BodyBlack>
+            <Body color="text.secondary" numberOfLines={1}>
+              {observation.locationName}
+            </Body>
+          </VStack>
+          <View width={52} height={52} flex={0} ml={8}>
+            {thumbnail && <NetworkImage width={52} height={52} uri={thumbnail} imageStyle={{borderRadius: 4}} index={0} onPress={undefined} onStateChange={undefined} />}
+          </View>
         </HStack>
-      }>
-      <HStack space={48} justifyContent="space-between" alignItems={'flex-start'}>
-        <VStack space={4} alignItems={'flex-start'} flex={1}>
-          <BodyBlack>{zone}</BodyBlack>
-          <Body color="text.secondary" numberOfLines={1}>
-            {observation.locationName}
-          </Body>
-        </VStack>
-        <View width={52} height={52} flex={0} ml={8}>
-          {thumbnail && <NetworkImage width={52} height={52} uri={thumbnail} imageStyle={{borderRadius: 4}} index={0} onPress={undefined} onStateChange={undefined} />}
-        </View>
-      </HStack>
-    </Card>
-  );
-});
+      </Card>
+    );
+  },
+);
 ObservationSummaryCard.displayName = 'ObservationSummaryCard';
