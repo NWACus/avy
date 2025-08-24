@@ -1664,7 +1664,7 @@
   dependencies:
     cross-spawn "^7.0.3"
 
-"@expo/vector-icons@^14.0.0", "@expo/vector-icons@^14.0.3":
+"@expo/vector-icons@^14.0.3", "@expo/vector-icons@~14.0.4":
   version "14.0.4"
   resolved "https://registry.yarnpkg.com/@expo/vector-icons/-/vector-icons-14.0.4.tgz#fa9d4351877312badf91a806598b2f0bab16039a"
   integrity sha512-+yKshcbpDfbV4zoXOgHxCwh7lkE9VVTT5T03OUlBsqfze1PLy6Hi4jp1vSb1GVbY6eskvMIivGVc9SKzIv0oEQ==
@@ -5981,9 +5981,9 @@ expo-image-picker@~16.0.6:
     expo-image-loader "~5.0.0"
 
 expo-image@^2.0.7:
-  version "2.0.7"
-  resolved "https://registry.yarnpkg.com/expo-image/-/expo-image-2.0.7.tgz#087ca651e3dcd2e92efdda11a6c9e3ad6fddc127"
-  integrity sha512-kv40OIJOkItwznhdqFmKxTMC5O8GkpyTf8ng7Py4Hy6IBiH59dkeP6vUZQhzPhJOm5v1kZK4XldbskBosqzOug==
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/expo-image/-/expo-image-2.4.0.tgz#02f7fd743387206914cd431a6367f5be53509e3e"
+  integrity sha512-TQ/LvrtJ9JBr+Tf198CAqflxcvdhuj7P24n0LQ1jHaWIVA7Z+zYKbYHnSMPSDMul/y0U46Z5bFLbiZiSidgcNw==
 
 expo-json-utils@~0.14.0:
   version "0.14.0"
@@ -6120,9 +6120,9 @@ expo-web-browser@~14.0.2:
   integrity sha512-Hncv2yojhTpHbP6SGWARBFdl7P6wBHc1O8IKaNsH0a/IEakq887o1eRhLxZ5IwztPQyRDhpqHdgJ+BjWolOnwA==
 
 expo@~52.0.46:
-  version "52.0.46"
-  resolved "https://registry.yarnpkg.com/expo/-/expo-52.0.46.tgz#3869b87b585da67406a8216539d12a16d736f16e"
-  integrity sha512-JG89IVZLp7DWzgeiQb+0N43kWOF1DUm3esBvAS9cPFWZsM9x8nDXgbvtREcycDPA6E+yJsSC+086CigeUY6sVA==
+  version "52.0.47"
+  resolved "https://registry.yarnpkg.com/expo/-/expo-52.0.47.tgz#b2a25bdcbd2059094396750e896946d2e2e61753"
+  integrity sha512-Mkvl7Qi2k+V3FdNRUD+yDj8GqU4IiYulLfl36BmSZs8lh/kCYPhTiyBLiEGPfz7d25QKbPWG727ESozbkbvatw==
   dependencies:
     "@babel/runtime" "^7.20.0"
     "@expo/cli" "0.22.26"
@@ -6130,7 +6130,7 @@ expo@~52.0.46:
     "@expo/config-plugins" "~9.0.17"
     "@expo/fingerprint" "0.11.11"
     "@expo/metro-config" "0.19.12"
-    "@expo/vector-icons" "^14.0.0"
+    "@expo/vector-icons" "~14.0.4"
     babel-preset-expo "~12.0.11"
     expo-asset "~11.0.5"
     expo-constants "~17.0.8"
@@ -6194,6 +6194,13 @@ fast-uri@^3.0.1:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/fast-uri/-/fast-uri-3.0.3.tgz#892a1c91802d5d7860de728f18608a0573142241"
   integrity sha512-aLrHthzCjH5He4Z2H9YZ+v6Ujb9ocRuW6ZzkJQOrTxleEijANq4v1TsaPaVG1PZcuurEzrLcWRyYBYXD5cEiaw==
+
+fast-xml-parser@^5.2.5:
+  version "5.2.5"
+  resolved "https://registry.yarnpkg.com/fast-xml-parser/-/fast-xml-parser-5.2.5.tgz#4809fdfb1310494e341098c25cb1341a01a9144a"
+  integrity sha512-pfX9uG9Ki0yekDHx2SiuRIyFdyAr1kMIMitPvb0YBo8SUfKvia7w7FIyd/l6av85pFYRhZscS75MwMnbvY+hcQ==
+  dependencies:
+    strnum "^2.1.0"
 
 fastq@^1.6.0:
   version "1.17.1"
@@ -10903,6 +10910,11 @@ strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
   integrity sha512-4gB8na07fecVVkOI6Rs4e7T6NOTki5EmL7TUduTs6bu3EdnSycntVJ4re8kgZA+wx9IueI2Y11bfbgwtzuE0KQ==
+
+strnum@^2.1.0:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/strnum/-/strnum-2.1.1.tgz#cf2a6e0cf903728b8b2c4b971b7e36b4e82d46ab"
+  integrity sha512-7ZvoFTiCnGxBtDqJ//Cu6fWtZtc7Y3x+QOirG15wztbdngGSkht27o2pyGWrVy0b4WAy3jbKmnoK6g5VlVNUUw==
 
 structured-headers@^0.4.1:
   version "0.4.1"

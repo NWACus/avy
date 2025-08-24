@@ -21,7 +21,7 @@ export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigat
       <ObservationsStack.Screen name="observationsPortal" component={ObservationsPortalScreen} initialParams={{center_id, requestedTime}} options={{headerShown: false}} />
       <ObservationsStack.Screen name="observationSubmit" component={ObservationSubmitScreen} options={{title: 'Submit an Observation'}} />
       <ObservationsStack.Screen name="observationsList" component={ObservationsListScreen} options={{title: 'Observations'}} initialParams={{center_id, requestedTime}} />
-      <ObservationsStack.Screen name="observation" component={ObservationScreen} options={{title: 'Observation'}} />
+      <ObservationsStack.Screen name="observation" component={ObservationScreen} options={{title: 'Observation'}} initialParams={{center_id}} />
       <ObservationsStack.Screen name="nwacObservation" component={NWACObservationScreen} options={{title: 'Observation'}} />
     </ObservationsStack.Navigator>
   );
@@ -47,10 +47,10 @@ const ObservationsListScreen = ({route}: NativeStackScreenProps<ObservationsStac
 };
 
 export const ObservationScreen = ({route}: NativeStackScreenProps<ObservationsStackParamList, 'observation'>) => {
-  const {id} = route.params;
+  const {id, center_id} = route.params;
   return (
     <View style={styles.fullScreen}>
-      <ObservationDetailView id={id} />
+      <ObservationDetailView id={id} center_id={center_id} />
     </View>
   );
 };

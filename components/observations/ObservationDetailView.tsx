@@ -16,6 +16,7 @@ import {NACIcon} from 'components/icons/nac-icons';
 import {matchesZone} from 'components/observations/ObservationsFilterForm';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize} from 'components/text';
 import {HTML} from 'components/text/HTML';
+import {useMergedMapLayer} from 'hooks/useAlternateObservationZones';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservation} from 'hooks/useNACObservation';
@@ -46,7 +47,7 @@ import {
   FormatSnowAvailableForTransport,
   FormatWindLoading,
   InstabilityDistribution,
-  MapLayer,
+  MergedMapLayer,
   Observation,
   SnowAvailableForTransport,
   WindLoading,
@@ -73,19 +74,22 @@ export const NWACObservationDetailView: React.FunctionComponent<{
 
 export const ObservationDetailView: React.FunctionComponent<{
   id: string;
-}> = ({id}) => {
+  center_id: AvalancheCenterID;
+}> = ({id, center_id}) => {
   const observationResult = useNACObservation(id);
   const observation = observationResult.data;
-  const mapResult = useMapLayer(observation?.center_id?.toUpperCase() as AvalancheCenterID);
+  const obsCenterId = observation?.center_id?.toUpperCase() as AvalancheCenterID;
+  const mapResult = useMapLayer(obsCenterId);
   const mapLayer = mapResult.data;
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
+  const mergedMapLayer = useMergedMapLayer(obsCenterId ?? center_id, mapLayer);
 
-  if (incompleteQueryState(observationResult, mapResult, capabilitiesResult) || !observation || !mapLayer || !capabilities || !capabilities) {
+  if (incompleteQueryState(observationResult, mapResult, capabilitiesResult) || !observation || !mergedMapLayer || !capabilities || !capabilities) {
     return <QueryState results={[observationResult, mapResult, capabilitiesResult]} />;
   }
 
-  return <ObservationCard observation={observation} mapLayer={mapLayer} capabilities={capabilities} />;
+  return <ObservationCard observation={observation} mapLayer={mergedMapLayer} capabilities={capabilities} />;
 };
 
 const dataTableFlex = [1, 1];
@@ -201,7 +205,7 @@ export const withUnits = (value: string | number | null | undefined, units: stri
 
 export const ObservationCard: React.FunctionComponent<{
   observation: Observation;
-  mapLayer: MapLayer;
+  mapLayer: MergedMapLayer;
   capabilities: AllAvalancheCenterCapabilities;
 }> = ({observation, mapLayer, capabilities}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();

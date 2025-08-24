@@ -15,6 +15,8 @@ import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConf
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
 import {compareDesc, formatDuration, isBefore, parseISO, sub} from 'date-fns';
+import {useAlternateObservationZones, useMergedMapLayer} from 'hooks/useAlternateObservationZones';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
@@ -22,6 +24,7 @@ import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
+
 import {
   ActivityIndicator,
   ColorValue,
@@ -73,8 +76,13 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal}] = useToggle(false);
+  const avalancheZoneMetadataResult = useAvalancheCenterMetadata(center_id);
+  const alternateZonesUrl: string = avalancheZoneMetadataResult.data?.widget_config?.observation_viewer?.alternate_zones || '';
+  const alternateObservationZonesResult = useAlternateObservationZones(alternateZonesUrl, center_id);
+
   const mapResult = useMapLayer(center_id);
   const mapLayer = mapResult.data;
+  const mergedMapLayer = useMergedMapLayer(center_id, mapLayer);
 
   const postHog = usePostHog();
 
@@ -117,6 +125,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       ),
     [observationsResult],
   );
+
   const observations: ObservationFragmentWithPageIndexAndZoneAndSource[] = useMemo(
     () =>
       flatObservationList
@@ -138,16 +147,20 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         // calculate the zone and cache it now
         .map(observation => ({
           ...observation,
-          zone: mapLayer ? matchesZone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng) : '',
+          zone: mergedMapLayer ? matchesZone(mergedMapLayer, observation.locationPoint.lat, observation.locationPoint.lng) : '',
         })),
-    [flatObservationList, mapLayer, displayNWACObservations],
+    [flatObservationList, mergedMapLayer, displayNWACObservations],
   );
+
   const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
   const refreshWrapper = useCallback(() => void refresh(), [refresh]);
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
-  const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters) : []), [mapLayer, filterConfig, additionalFilters]);
+  const resolvedFilters = useMemo(
+    () => (mergedMapLayer ? filtersForConfig(mergedMapLayer, filterConfig, additionalFilters) : []),
+    [mergedMapLayer, filterConfig, additionalFilters],
+  );
 
   // Set a date limit for how far back to look for observations
   const [lookBackLimit, setLookBackLimit] = useState<Duration>({years: 1});
@@ -245,9 +258,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   const renderItem = useCallback(
     ({item}: SectionListRenderItemInfo<ObservationsListViewItem, Section>) => (
-      <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} pending={item.pending} />
+      <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} pending={item.pending} centerId={center_id} />
     ),
-    [],
+    [center_id],
   );
 
   const submit = useCallback(() => {
@@ -315,7 +328,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [filterConfig, setFilterConfig],
   );
 
-  if (incompleteQueryState(observationsResult, mapResult) || !mapLayer) {
+  const mergedMapLayerExists = !!mergedMapLayer;
+
+  if ((incompleteQueryState(observationsResult, mapResult, avalancheZoneMetadataResult, alternateObservationZonesResult) || !mapLayer, !mergedMapLayerExists)) {
     return (
       <Center width="100%" height="100%">
         <QueryState results={[observationsResult, mapResult]} />
@@ -331,7 +346,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       <Modal visible={filterModalVisible} onRequestClose={hideFilterModal}>
         <ObservationsFilterForm
           requestedTime={requestedTime}
-          mapLayer={mapLayer}
+          mapLayer={mergedMapLayer}
           initialFilterConfig={originalFilterConfig}
           currentFilterConfig={filterConfig}
           setFilterConfig={setFilterConfig}
@@ -481,70 +496,74 @@ export interface ObservationSummaryCardProps {
   observation: ObservationFragment;
   zone: string;
   pending?: boolean;
+  centerId: AvalancheCenterID;
 }
 
 const OBSERVATION_SUMMARY_CARD_HEIGHT = 132;
 
-export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(({source, zone, observation, pending}: ObservationSummaryCardProps) => {
-  const navigation = useNavigation<ObservationsStackNavigationProps>();
-  const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
-  const redFlags = observation.instability.collapsing || observation.instability.cracking;
-  const onPress = useCallback(() => {
-    if (source === 'nwac') {
-      navigation.navigate('nwacObservation', {
-        id: observation.id,
-      });
-    } else {
-      navigation.navigate('observation', {
-        id: observation.id,
-      });
-    }
-  }, [navigation, source, observation.id]);
+export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(
+  ({source, zone, observation, pending, centerId}: ObservationSummaryCardProps) => {
+    const navigation = useNavigation<ObservationsStackNavigationProps>();
+    const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
+    const redFlags = observation.instability.collapsing || observation.instability.cracking;
+    const onPress = useCallback(() => {
+      if (source === 'nwac') {
+        navigation.navigate('nwacObservation', {
+          id: observation.id,
+        });
+      } else {
+        navigation.navigate('observation', {
+          id: observation.id,
+          center_id: centerId,
+        });
+      }
+    }, [navigation, source, observation.id, centerId]);
 
-  let thumbnail = '';
-  if (observation.media && observation.media.length > 0) {
-    for (const item of observation.media) {
-      if (item.type === MediaType.Image && item.url?.thumbnail) {
-        thumbnail = item.url?.thumbnail;
-        break;
+    let thumbnail = '';
+    if (observation.media && observation.media.length > 0) {
+      for (const item of observation.media) {
+        if (item.type === MediaType.Image && item.url?.thumbnail) {
+          thumbnail = item.url?.thumbnail;
+          break;
+        }
       }
     }
-  }
 
-  return (
-    <Card
-      mx={8}
-      my={2}
-      py={4}
-      borderRadius={10}
-      borderColor={colorLookup('light.300')}
-      borderWidth={1}
-      onPress={pending ? undefined : onPress}
-      style={{opacity: pending ? 0.5 : 1.0}}
-      header={
-        <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
-          <BodySmBlack>{pacificDateToLocalDateString(observation.startDate)}</BodySmBlack>
-          <HStack space={8} alignItems="center">
-            {redFlags && <MaterialCommunityIcons name="flag" size={bodySize} color={colorFor(DangerLevel.Considerable).string()} />}
-            {avalanches && <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />}
-            <Caption1Semibold color={colorsFor(observation.observerType).primary} style={{textTransform: 'uppercase'}}>
-              {observation.observerType}
-            </Caption1Semibold>
+    return (
+      <Card
+        mx={8}
+        my={2}
+        py={4}
+        borderRadius={10}
+        borderColor={colorLookup('light.300')}
+        borderWidth={1}
+        onPress={pending ? undefined : onPress}
+        style={{opacity: pending ? 0.5 : 1.0}}
+        header={
+          <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
+            <BodySmBlack>{pacificDateToLocalDateString(observation.startDate)}</BodySmBlack>
+            <HStack space={8} alignItems="center">
+              {redFlags && <MaterialCommunityIcons name="flag" size={bodySize} color={colorFor(DangerLevel.Considerable).string()} />}
+              {avalanches && <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />}
+              <Caption1Semibold color={colorsFor(observation.observerType).primary} style={{textTransform: 'uppercase'}}>
+                {observation.observerType}
+              </Caption1Semibold>
+            </HStack>
           </HStack>
+        }>
+        <HStack space={48} justifyContent="space-between" alignItems={'flex-start'}>
+          <VStack space={4} alignItems={'flex-start'} flex={1}>
+            <BodyBlack>{zone}</BodyBlack>
+            <Body color="text.secondary" numberOfLines={1}>
+              {observation.locationName}
+            </Body>
+          </VStack>
+          <View width={52} height={52} flex={0} ml={8}>
+            {thumbnail && <NetworkImage width={52} height={52} uri={thumbnail} imageStyle={{borderRadius: 4}} index={0} onPress={undefined} onStateChange={undefined} />}
+          </View>
         </HStack>
-      }>
-      <HStack space={48} justifyContent="space-between" alignItems={'flex-start'}>
-        <VStack space={4} alignItems={'flex-start'} flex={1}>
-          <BodyBlack>{zone}</BodyBlack>
-          <Body color="text.secondary" numberOfLines={1}>
-            {observation.locationName}
-          </Body>
-        </VStack>
-        <View width={52} height={52} flex={0} ml={8}>
-          {thumbnail && <NetworkImage width={52} height={52} uri={thumbnail} imageStyle={{borderRadius: 4}} index={0} onPress={undefined} onStateChange={undefined} />}
-        </View>
-      </HStack>
-    </Card>
-  );
-});
+      </Card>
+    );
+  },
+);
 ObservationSummaryCard.displayName = 'ObservationSummaryCard';

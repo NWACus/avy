@@ -397,6 +397,7 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               action: () => {
                 navigation.navigate('observation', {
                   id: '65450a80-1f57-468b-a51e-8c19789e0fab',
+                  center_id: 'BTAC',
                 });
               },
             },
@@ -406,6 +407,7 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               action: () => {
                 navigation.navigate('observation', {
                   id: '249e927f-aa0e-4e93-90fc-c9a54bc480d8',
+                  center_id: 'BTAC',
                 });
               },
             },
@@ -415,6 +417,7 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               action: () => {
                 navigation.navigate('observation', {
                   id: '441f400b-56ac-498c-8754-f9d407796a82',
+                  center_id: 'BTAC',
                 });
               },
             },
@@ -424,6 +427,7 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               action: () => {
                 navigation.navigate('observation', {
                   id: 'b8d347d1-7597-47be-9247-adc117100a69',
+                  center_id: 'BTAC',
                 });
               },
             },
@@ -433,6 +437,7 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               action: () => {
                 navigation.navigate('observation', {
                   id: '2d2f37b4-f46b-4ef2-967d-b018d41d0f2d',
+                  center_id: 'BTAC',
                 });
               },
             },
@@ -442,6 +447,7 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               action: () => {
                 navigation.navigate('observation', {
                   id: '999d1e0c-154e-43f8-b15f-6585eac4d985',
+                  center_id: 'BTAC',
                 });
               },
             },
@@ -451,6 +457,7 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               action: () => {
                 navigation.navigate('observation', {
                   id: '4b80e7fc-0011-4fdf-8d86-f2534c1d981c',
+                  center_id: 'BTAC',
                 });
               },
             },
@@ -460,6 +467,7 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               action: () => {
                 navigation.navigate('observation', {
                   id: '5910e9e7-fe6e-46de-af08-9df9be9192e2',
+                  center_id: 'BTAC',
                 });
               },
             },
@@ -469,6 +477,7 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               action: () => {
                 navigation.navigate('observation', {
                   id: '7b1f595d-312a-42f8-adb1-2f1886b7802b',
+                  center_id: 'NWAC',
                 });
               },
             },
