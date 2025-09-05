@@ -60,7 +60,7 @@ export const useAlternateObservationZones = (url: string, center_id: AvalancheCe
   return useQuery<ObservationZonesFeatureCollection, AxiosError>({
     queryKey: key,
     queryFn: (): Promise<ObservationZonesFeatureCollection> => fetchAlternateObservationZones(thisLogger, url, center_id),
-    enabled: !!url,
+    enabled: !!url && !!center_id,
     cacheTime: Infinity,
     initialData: {type: 'FeatureCollection', features: []},
   });
