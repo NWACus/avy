@@ -10,7 +10,7 @@ import {Card, CardProps} from 'components/content/Card';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {ZoneMap} from 'components/content/ZoneMap';
 import {Carousel, images} from 'components/content/carousel';
-import {MediaCoursel} from 'components/content/carousel/carouselV2/MediaCarousel';
+import {MediaCarousel} from 'components/content/carousel/carouselV2/MediaCarousel';
 import {HStack, VStack, View} from 'components/core';
 import {NACIcon} from 'components/icons/nac-icons';
 import {matchesZone} from 'components/observations/ObservationsFilterForm';
@@ -279,7 +279,7 @@ export const ObservationCard: React.FunctionComponent<{
                           longitude: observation.location_point.lng,
                         }}
                         anchor={{x: 0.5, y: 1}}>
-                        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
+                        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports */}
                         <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40}} />
                       </Marker>
                     </ZoneMap>
@@ -346,7 +346,7 @@ export const ObservationCard: React.FunctionComponent<{
               </Card>
               {(observation.media ?? []).length > 0 && (
                 <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>}>
-                  <MediaCoursel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={observation.media ?? []} displayCaptions={false} />
+                  <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={observation.media ?? []} displayCaptions={false} />
                 </Card>
               )}
               {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanches_summary) && (
