@@ -1427,3 +1427,71 @@ export const allAvalancheCenterCapabilitiesSchema = z.object({
   centers: z.array(avalancheCenterCapabilitiesSchema),
 });
 export type AllAvalancheCenterCapabilities = z.infer<typeof allAvalancheCenterCapabilitiesSchema>;
+
+export const KMLPointSchema = z.object({
+  coordinates: z.string(),
+});
+export type KMLPoint = z.infer<typeof KMLPointSchema>;
+
+export const KMLPolygonSchema = z.object({
+  outerBoundaryIs: z.object({
+    LinearRing: z.object({
+      coordinates: z.object({_text: z.string()}),
+    }),
+  }),
+});
+export type KMLPolygon = z.infer<typeof KMLPolygonSchema>;
+export const KMLMultiGeometrySchema = z.object({
+  Polygon: KMLPolygonSchema,
+});
+export type KMLMultiGeometry = z.infer<typeof KMLMultiGeometrySchema>;
+export const KMLGeometrySchema = z.union([KMLPolygonSchema, KMLMultiGeometrySchema]);
+export type KMLGeometry = z.infer<typeof KMLGeometrySchema>;
+
+export const KMLPlacemarkSchema = z.object({
+  name: z.object({_text: z.string()}),
+  Point: KMLPointSchema.optional(),
+  LineString: z.object({coordinates: z.string()}).optional(),
+  Polygon: KMLPolygonSchema.optional(),
+  MultiGeometry: KMLMultiGeometrySchema.optional(),
+});
+export type KMLPlacemark = z.infer<typeof KMLPlacemarkSchema>;
+
+export const KMLDocumentSchema = z.object({
+  name: z.object({_text: z.string()}),
+  Folder: z.object({
+    Placemark: z.array(KMLPlacemarkSchema),
+  }),
+});
+export type KMLDocument = z.infer<typeof KMLDocumentSchema>;
+
+export const KMLFileSchema = z.object({
+  kml: z.object({
+    Document: KMLDocumentSchema,
+  }),
+});
+export type KMLFile = z.infer<typeof KMLFileSchema>;
+
+export const kmlFeaturePropertiesSchema = z.object({
+  name: z.string(),
+});
+export type KMLFeatureProperties = z.infer<typeof kmlFeaturePropertiesSchema>;
+export const kmlFeatureSchema = featureSchema(kmlFeaturePropertiesSchema, z.number()).extend({
+  geometry: polygonSchema,
+});
+export type KMLFeature = z.infer<typeof kmlFeatureSchema>;
+export const kmlFeatureCollectionSchema = featureCollectionSchema(kmlFeatureSchema);
+export type KMLFeatureCollection = z.infer<typeof kmlFeatureCollectionSchema>;
+
+export const observationZonesPropertiesSchema = mapLayerPropertiesSchema.pick({name: true, center_id: true});
+
+export type ObservationZonesProperties = z.infer<typeof observationZonesPropertiesSchema>;
+export const observationZonesFeatureSchema = featureSchema(observationZonesPropertiesSchema, z.number());
+export type ObservationZonesFeature = z.infer<typeof observationZonesFeatureSchema>;
+export const ObservationZonesFeatureCollectionSchema = featureCollectionSchema(observationZonesFeatureSchema);
+export type ObservationZonesFeatureCollection = z.infer<typeof ObservationZonesFeatureCollectionSchema>;
+
+export const mapLayerOrObservationZonesFeatureSchema = z.union([mapLayerFeatureSchema, observationZonesFeatureSchema]);
+export type MapLayerOrObservationZonesFeature = z.infer<typeof mapLayerOrObservationZonesFeatureSchema>;
+export const mergedMapLayerSchema = featureCollectionSchema(mapLayerOrObservationZonesFeatureSchema);
+export type MergedMapLayer = z.infer<typeof mergedMapLayerSchema>;
