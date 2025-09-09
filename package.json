@@ -96,6 +96,7 @@
     "expo-system-ui": "~5.0.10",
     "expo-updates": "~0.28.17",
     "expo-web-browser": "~14.2.0",
+    "fast-xml-parser": "^5.2.5",
     "global": "^4.4.0",
     "html-entities": "^2.4.0",
     "lodash": "^4.17.21",
