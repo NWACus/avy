@@ -10,16 +10,36 @@ import {colorLookup} from 'theme';
 
 const systemFonts = [
   ...Constants.systemFonts,
-  'Lato_100Thin',
-  'Lato_100Thin_Italic',
-  'Lato_300Light',
-  'Lato_300Light_Italic',
-  'Lato_400Regular',
-  'Lato_400Regular_Italic',
-  'Lato_700Bold',
-  'Lato_700Bold_Italic',
-  'Lato_900Black',
-  'Lato_900Black_Italic',
+  ...Platform.select({
+    android: [
+      'Lato_100Thin',
+      'Lato_100Thin_Italic',
+      'Lato_300Light',
+      'Lato_300Light_Italic',
+      'Lato_400Regular',
+      'Lato_400Regular_Italic',
+      'Lato_700Bold',
+      'Lato_700Bold_Italic',
+      'Lato_900Black',
+      'Lato_900Black_Italic',
+    ],
+    ios: [
+      'Lato-HairlineItalic',
+      'Lato-Hairline',
+      'Lato-LightItalic',
+      'Lato-Light',
+      'Lato-Italic',
+      'Lato-Regular',
+      'Lato-BoldItalic',
+      'Lato-Bold',
+      'Lato-BlackItalic',
+      'Lato-Black',
+    ],
+    macos: [],
+    web: [],
+    windows: [],
+    native: [],
+  }),
 ];
 
 export interface HTMLRendererConfigProps {
@@ -28,16 +48,25 @@ export interface HTMLRendererConfigProps {
 
 const baseStyleDefaults: MixedStyleDeclaration = {
   fontSize: 16,
-  fontFamily: 'Lato_400Regular',
+  fontFamily: Platform.select({
+    android: 'Lato_400Regular',
+    ios: 'Lato-Regular',
+  }),
   color: colorLookup('text'),
 };
 
 const tagsStylesDefaults = {
   strong: {
-    fontFamily: 'Lato_700Bold',
+    fontFamily: Platform.select({
+      android: 'Lato_700Bold',
+      ios: 'Lato-Bold',
+    }),
   },
   em: {
-    fontFamily: 'Lato_400Regular_Italic',
+    fontFamily: Platform.select({
+      android: 'Lato_400Regular_Italic',
+      ios: 'Lato-Italic',
+    }),
   },
 };
 

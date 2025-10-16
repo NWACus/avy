@@ -11,11 +11,6 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   config.android!.config!.googleMaps!.apiKey = process.env.ANDROID_GOOGLE_MAPS_API_KEY as string;
   config.extra!.log_level = process.env.LOG_LEVEL != null ? (process.env.LOG_LEVEL as string) : 'info';
 
-  if (config.plugins === undefined) {
-    config.plugins = [];
-  }
-  config.plugins.push('expo-font');
-
   if (process.env.APP_VARIANT === 'preview') {
     // The iOS App Store requires that the version we publish has been pre-created in the developer portal.
     // Before an app is published to the store, it's possible to push an infinite amount of builds for that

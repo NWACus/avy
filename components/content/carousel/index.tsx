@@ -4,6 +4,7 @@ import {ImageList} from 'components/content/carousel/ImageList';
 import {ImageViewerModal} from 'components/content/carousel/ImageViewerModal';
 import {View, ViewProps} from 'components/core';
 import {HTMLRendererConfig} from 'components/text/HTML';
+import {Platform} from 'react-native';
 import {ImageMediaItem, MediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
 export const images = (media: MediaItem[] | null | undefined): ImageMediaItem[] => {
@@ -41,7 +42,15 @@ export const Carousel: React.FunctionComponent<PropsWithChildren<CarouselProps>>
 
   return (
     <View {...props}>
-      <HTMLRendererConfig baseStyle={{fontSize: 12, fontFamily: 'Lato_400Regular_Italic', textAlign: 'center'}}>
+      <HTMLRendererConfig
+        baseStyle={{
+          fontSize: 12,
+          fontFamily: Platform.select({
+            android: 'Lato_400Regular_Italic',
+            ios: 'Lato-Italic',
+          }),
+          textAlign: 'center',
+        }}>
         <ImageList imageWidth={thumbnailWidth} imageHeight={thumbnailHeight} media={media} displayCaptions={displayCaptions} onPress={onPress} imageStyle={{borderRadius: 4}} />
       </HTMLRendererConfig>
       <ImageViewerModal visible={modalIndex !== null} onClose={onClose} media={media} startIndex={modalIndex ?? 0} />
