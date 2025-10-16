@@ -3,7 +3,7 @@ import {BodySm, BodySmBlack, BodyXSm} from 'components/text';
 import {combineRefs} from 'hooks/combineRefs';
 import React, {Ref, useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {FieldPathByValue, FieldValues, useController} from 'react-hook-form';
-import {Pressable, View as RNView, StyleSheet, TextInput, TextInputProps} from 'react-native';
+import {Platform, Pressable, View as RNView, StyleSheet, TextInput, TextInputProps} from 'react-native';
 import {colorLookup} from 'theme';
 
 export type KeysMatching<T, V> = {[K in keyof T]-?: T[K] extends V ? K : never}[keyof T];
@@ -30,7 +30,10 @@ interface TextFieldProps<TFieldValues extends FieldValues, TFieldName extends Fi
 const textInputDefaultStyle = {
   color: colorLookup('text'),
   fontSize: 16,
-  fontFamily: 'Lato_400Regular',
+  fontFamily: Platform.select({
+    android: 'Lato_400Regular',
+    ios: 'Lato-Regular',
+  }),
 };
 
 /**

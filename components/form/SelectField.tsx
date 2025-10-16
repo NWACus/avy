@@ -5,7 +5,7 @@ import {VStack} from 'components/core';
 import {BodySmBlack, BodyXSm, bodySize} from 'components/text';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
-import {View as RNView} from 'react-native';
+import {Platform, View as RNView} from 'react-native';
 import {colorLookup} from 'theme';
 
 interface Item {
@@ -34,7 +34,10 @@ const selectStyles: SelectStyles = {
     text: {
       color: colorLookup('text'),
       fontSize: bodySize,
-      fontFamily: 'Lato_400Regular',
+      fontFamily: Platform.select({
+        android: 'Lato_400Regular',
+        ios: 'Lato-Regular',
+      }),
     },
     multiSelectedOption: {
       container: {
@@ -48,7 +51,10 @@ const selectStyles: SelectStyles = {
       text: {
         color: colorLookup('text'),
         fontSize: 12,
-        fontFamily: 'Lato_400Regular',
+        fontFamily: Platform.select({
+          android: 'Lato_400Regular',
+          ios: 'Lato-Regular',
+        }),
         textAlign: 'center',
       },
     },
@@ -57,7 +63,10 @@ const selectStyles: SelectStyles = {
     text: {
       color: colorLookup('text'),
       fontSize: bodySize,
-      fontFamily: 'Lato_400Regular',
+      fontFamily: Platform.select({
+        android: 'Lato_400Regular',
+        ios: 'Lato-Regular',
+      }),
     },
   },
   optionsList: {

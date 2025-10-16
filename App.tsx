@@ -1,18 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
-import {
-  Lato_100Thin,
-  Lato_100Thin_Italic,
-  Lato_300Light,
-  Lato_300Light_Italic,
-  Lato_400Regular,
-  Lato_400Regular_Italic,
-  Lato_700Bold,
-  Lato_700Bold_Italic,
-  Lato_900Black,
-  Lato_900Black_Italic,
-  useFonts,
-} from '@expo-google-fonts/lato';
 import {Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
 import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -153,7 +140,7 @@ axios.interceptors.response.use(response => {
   return response;
 });
 
-// The SplashScreen stays up until we've loaded all of our fonts and other assets
+// The SplashScreen stays up until we've loaded all of our assets
 void SplashScreen.preventAutoHideAsync().catch((error: Error) => {
   // We really don't care about these errors, they're common and not actionable
   logger.debug('SplashScreen.preventAutoHideAsync threw error, ignoring', {error});
@@ -345,26 +332,6 @@ const BaseApp: React.FunctionComponent<{
     })();
   }, [logger, queryClient, avalancheCenterId, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost]);
 
-  const [fontsLoaded, error] = useFonts({
-    Lato_100Thin,
-    Lato_100Thin_Italic,
-    Lato_300Light,
-    Lato_300Light_Italic,
-    Lato_400Regular_Italic,
-    Lato_400Regular,
-    Lato_700Bold,
-    Lato_700Bold_Italic,
-    Lato_900Black,
-    Lato_900Black_Italic,
-    // typing the return of `require()` here does nothing for us
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports
-    NAC_Icons: require('./assets/fonts/nac-icons.ttf'),
-  });
-
-  if (error) {
-    logger.error({error: error}, 'error loading fonts');
-  }
-
   const navigationRef = useNavigationContainerRef();
   const trackNavigationChange = useCallback(() => {
     if (routingInstrumentation && navigationRef) {
@@ -428,7 +395,7 @@ const BaseApp: React.FunctionComponent<{
 
   const [startupPaused, {off: unpauseStartup}] = useToggle(process.env.EXPO_PUBLIC_PAUSE_ON_STARTUP === 'true');
 
-  if (!fontsLoaded || updateStatus !== 'ready' || preferences.mixpanelUserId == '') {
+  if (updateStatus !== 'ready' || preferences.mixpanelUserId == '') {
     // Here, we render a view that looks exactly like the splash screen but now has an activity indicator
     return (
       <View

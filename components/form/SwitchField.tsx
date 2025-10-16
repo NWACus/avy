@@ -3,6 +3,7 @@ import {ViewProps, VStack} from 'components/core';
 import {BodySmBlack} from 'components/text';
 import React, {useCallback} from 'react';
 import {useController} from 'react-hook-form';
+import {Platform} from 'react-native';
 import {colorLookup} from 'theme';
 
 interface Item<T> {
@@ -34,8 +35,22 @@ export function SwitchField<T>({name, label, items, disabled, ...props}: SwitchF
       {label && <BodySmBlack>{label}</BodySmBlack>}
       <SegmentedControl
         tintColor="white"
-        activeFontStyle={{color: colorLookup('text') as string, fontSize: 16, fontFamily: 'Lato_400Regular'}}
-        fontStyle={{color: colorLookup('text') as string, fontSize: 16, fontFamily: 'Lato_400Regular'}}
+        activeFontStyle={{
+          color: colorLookup('text') as string,
+          fontSize: 16,
+          fontFamily: Platform.select({
+            android: 'Lato_400Regular',
+            ios: 'Lato-Regular',
+          }),
+        }}
+        fontStyle={{
+          color: colorLookup('text') as string,
+          fontSize: 16,
+          fontFamily: Platform.select({
+            android: 'Lato_400Regular',
+            ios: 'Lato-Regular',
+          }),
+        }}
         values={items.map(i => i.label)}
         selectedIndex={Math.max(
           items.findIndex(i => i.value === field.value),

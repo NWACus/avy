@@ -87,7 +87,49 @@
           "photosPermission": "The app accesses your photos so you can share your observations with NWAC forecasters."
         }
       ],
-      "expo-font"
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "node_modules/@expo-google-fonts/lato/Lato_100Thin.ttf",
+            "node_modules/@expo-google-fonts/lato/Lato_100Thin_Italic.ttf",
+            "node_modules/@expo-google-fonts/lato/Lato_300Light.ttf",
+            "node_modules/@expo-google-fonts/lato/Lato_300Light_Italic.ttf",
+            "node_modules/@expo-google-fonts/lato/Lato_400Regular_Italic.ttf",
+            "node_modules/@expo-google-fonts/lato/Lato_400Regular.ttf",
+            "node_modules/@expo-google-fonts/lato/Lato_700Bold.ttf",
+            "node_modules/@expo-google-fonts/lato/Lato_700Bold_Italic.ttf",
+            "node_modules/@expo-google-fonts/lato/Lato_900Black.ttf",
+            "node_modules/@expo-google-fonts/lato/Lato_900Black_Italic.ttf"
+          ],
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "NAC Icons",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/nac-icons.ttf",
+                    "weight": 100
+                  }
+                ]
+              }
+            ]
+          },
+          "ios": {
+            "fonts": [
+              {
+                "fontFamily": "NAC Icons",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/nac-icons.ttf",
+                    "weight": 100
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {
