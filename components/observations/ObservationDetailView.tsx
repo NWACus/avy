@@ -12,7 +12,7 @@ import {ZoneMap} from 'components/content/ZoneMap';
 import {Carousel, images} from 'components/content/carousel';
 import {MediaCarousel} from 'components/content/carousel/carouselV2/MediaCarousel';
 import {HStack, VStack, View} from 'components/core';
-import {NACIcon} from 'components/icons/nac-icons';
+import {NACAvalancheIcon} from 'components/icons/nac-icons';
 import {matchesZone} from 'components/observations/ObservationsFilterForm';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize} from 'components/text';
 import {HTML} from 'components/text/HTML';
@@ -292,18 +292,18 @@ export const ObservationCard: React.FunctionComponent<{
                   </View>
                   {/* Avalanche section */}
                   <HStack space={8}>
-                    <NACIcon name="avalanche" size={bodySize} color={avalanches_observed ? colorFor(DangerLevel.High).string() : colorLookup('text')} />
+                    <NACAvalancheIcon size={bodySize} color={avalanches_observed ? colorFor(DangerLevel.High).string() : colorLookup('text')} />
                     <Body>{avalanches_observed ? 'Avalanche(s) Observed' : 'No Avalanche(s) Observed'}</Body>
                   </HStack>
                   {avalanches_triggered && (
                     <HStack space={8}>
-                      <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />
+                      <NACAvalancheIcon size={bodySize} color={colorFor(DangerLevel.High).string()} />
                       <Body>{'Avalanche(s) Triggered'}</Body>
                     </HStack>
                   )}
                   {avalanches_caught && (
                     <HStack space={8}>
-                      <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />
+                      <NACAvalancheIcon size={bodySize} color={colorFor(DangerLevel.High).string()} />
                       <Body>{'Caught In Avalanche'}</Body>
                     </HStack>
                   )}

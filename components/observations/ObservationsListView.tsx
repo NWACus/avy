@@ -10,7 +10,7 @@ import {Card} from 'components/content/Card';
 import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
 import {Center, Divider, HStack, VStack, View} from 'components/core';
-import {NACIcon} from 'components/icons/nac-icons';
+import {NACAvalancheIcon} from 'components/icons/nac-icons';
 import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
@@ -526,7 +526,7 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
           <BodySmBlack>{pacificDateToLocalDateString(observation.startDate)}</BodySmBlack>
           <HStack space={8} alignItems="center">
             {redFlags && <MaterialCommunityIcons name="flag" size={bodySize} color={colorFor(DangerLevel.Considerable).string()} />}
-            {avalanches && <NACIcon name="avalanche" size={bodySize} color={colorFor(DangerLevel.High).string()} />}
+            {avalanches && <NACAvalancheIcon size={bodySize} color={colorFor(DangerLevel.High).string()} />}
             <Caption1Semibold color={colorsFor(observation.observerType).primary} style={{textTransform: 'uppercase'}}>
               {observation.observerType}
             </Caption1Semibold>
