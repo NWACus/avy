@@ -64,6 +64,20 @@ import {PostHogProvider} from 'posthog-react-native';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
 import {ZodError} from 'zod';
 
+import {
+  Lato_100Thin,
+  Lato_100Thin_Italic,
+  Lato_300Light,
+  Lato_300Light_Italic,
+  Lato_400Regular,
+  Lato_400Regular_Italic,
+  Lato_700Bold,
+  Lato_700Bold_Italic,
+  Lato_900Black,
+  Lato_900Black_Italic,
+  useFonts,
+} from '@expo-google-fonts/lato';
+
 logger.info('App starting.');
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -332,6 +346,23 @@ const BaseApp: React.FunctionComponent<{
     })();
   }, [logger, queryClient, avalancheCenterId, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost]);
 
+  const [fontsLoaded, error] = useFonts({
+    Lato_100Thin,
+    Lato_100Thin_Italic,
+    Lato_300Light,
+    Lato_300Light_Italic,
+    Lato_400Regular_Italic,
+    Lato_400Regular,
+    Lato_700Bold,
+    Lato_700Bold_Italic,
+    Lato_900Black,
+    Lato_900Black_Italic,
+  });
+
+  if (error) {
+    logger.error({error: error}, 'error loading fonts');
+  }
+
   const navigationRef = useNavigationContainerRef();
   const trackNavigationChange = useCallback(() => {
     if (routingInstrumentation && navigationRef) {
@@ -395,7 +426,7 @@ const BaseApp: React.FunctionComponent<{
 
   const [startupPaused, {off: unpauseStartup}] = useToggle(process.env.EXPO_PUBLIC_PAUSE_ON_STARTUP === 'true');
 
-  if (updateStatus !== 'ready' || preferences.mixpanelUserId == '') {
+  if (!fontsLoaded || updateStatus !== 'ready' || preferences.mixpanelUserId == '') {
     // Here, we render a view that looks exactly like the splash screen but now has an activity indicator
     return (
       <View
