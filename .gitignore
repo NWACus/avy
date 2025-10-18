@@ -24,5 +24,3 @@ android
 
 # Ignore changes to the package-lock
 package-lock.json
-.yarn/install-state.gz
-.yarnrc.yml

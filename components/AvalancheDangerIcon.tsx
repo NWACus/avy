@@ -12,7 +12,7 @@ export interface AvalancheDangerIconProps {
 }
 
 const icons: Record<DangerLevel, ImageSourcePropType> = {
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
   [DangerLevel.GeneralInformation]: require('../assets/danger-icons/0.png'),
   [DangerLevel.None]: require('../assets/danger-icons/0.png'),
   [DangerLevel.Low]: require('../assets/danger-icons/1.png'),
@@ -23,7 +23,8 @@ const icons: Record<DangerLevel, ImageSourcePropType> = {
 };
 
 const sizes: Record<DangerLevel, ImageResolvedAssetSource> = {
-  /* eslint-disable @typescript-eslint/no-unsafe-argument,  @typescript-eslint/no-require-imports */
+  /* eslint-disable @typescript-eslint/no-var-requires */
+  /* eslint-disable @typescript-eslint/no-unsafe-argument */
   [DangerLevel.GeneralInformation]: Image.resolveAssetSource(require('../assets/danger-icons/0.png')),
   [DangerLevel.None]: Image.resolveAssetSource(require('../assets/danger-icons/0.png')),
   [DangerLevel.Low]: Image.resolveAssetSource(require('../assets/danger-icons/1.png')),
@@ -56,6 +57,7 @@ export const AvalancheDangerIcon: React.FunctionComponent<AvalancheDangerIconPro
 };
 
 export const preloadAvalancheDangerIcons = async (queryClient: QueryClient, logger: Logger) => {
+  /* eslint-disable @typescript-eslint/no-var-requires */
   return Promise.all([
     ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/danger-icons/0.png')).uri),
     ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/danger-icons/1.png')).uri),
