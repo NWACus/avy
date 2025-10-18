@@ -31,7 +31,6 @@ import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabiliti
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
-import type {Resolver} from 'react-hook-form';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
@@ -58,7 +57,7 @@ export const ObservationForm: React.FC<{
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const formContext = useForm<ObservationFormData>({
     defaultValues: defaultObservationFormData(),
-    resolver: zodResolver(simpleObservationFormSchema) as Resolver<ObservationFormData>,
+    resolver: zodResolver(simpleObservationFormSchema),
     mode: 'onBlur',
     shouldFocusError: false,
     shouldUnregister: true,
@@ -165,7 +164,7 @@ export const ObservationForm: React.FC<{
               }
             } else if (upload.status === 'error') {
               logger.debug('observation failed', {observationId});
-              reject(new Error('Observation upload failed'));
+              reject();
               getUploader().unsubscribeFromStateUpdates(listener);
               Toast.show({
                 type: 'error',
@@ -237,11 +236,7 @@ export const ObservationForm: React.FC<{
 
   const onCloseHandler = useCallback(() => {
     formContext.reset();
-    if (onClose) {
-      onClose();
-    } else {
-      navigation.goBack();
-    }
+    onClose ? onClose() : navigation.goBack();
   }, [formContext, navigation, onClose]);
 
   useBackHandler(() => {

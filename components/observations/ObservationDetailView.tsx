@@ -277,7 +277,7 @@ export const ObservationCard: React.FunctionComponent<{
                           longitude: observation.location_point.lng,
                         }}
                         anchor={{x: 0.5, y: 1}}>
-                        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports */}
+                        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
                         <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40}} />
                       </Marker>
                     </ZoneMap>

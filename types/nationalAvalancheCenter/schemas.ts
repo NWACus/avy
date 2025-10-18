@@ -680,8 +680,8 @@ export const summaryFragmentSchema = summarySchema
   });
 export type SummaryFragment = z.infer<typeof summaryFragmentSchema>;
 
-const _forecastOrSummaryFragmentSchema = z.discriminatedUnion('product_type', [forecastFragmentSchema, summaryFragmentSchema]);
-export type ForecastSummaryFragment = z.infer<typeof _forecastOrSummaryFragmentSchema>;
+const forecastOrSummaryFragmentSchema = z.discriminatedUnion('product_type', [forecastFragmentSchema, summaryFragmentSchema]);
+export type ForecastSummaryFragment = z.infer<typeof forecastOrSummaryFragmentSchema>;
 
 export const synopsisFragmentSchema = synopsisSchema
   .omit({

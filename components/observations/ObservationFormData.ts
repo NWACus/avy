@@ -182,6 +182,6 @@ export interface ImageAndCaption {
   caption?: string;
 }
 
-export type ImagePickerAssetSchema = z.infer<typeof imageAssetSchema>;
+export interface ImagePickerAssetSchema extends z.infer<typeof imageAssetSchema> {}
 
-export type ObservationFormData = z.infer<typeof simpleObservationFormSchema>;
+export interface ObservationFormData extends z.infer<typeof simpleObservationFormSchema> {}

@@ -16,22 +16,13 @@ interface CheckboxSelectFieldProps extends ViewProps {
   items: Item[];
   radio?: boolean; // If true, will default to selecting first item and always enforce selection
   disabled?: boolean;
-  labelComponent?: (props: TextWrapperProps) => React.ReactNode;
+  labelComponent?: React.FunctionComponent<TextWrapperProps>;
   labelSpace?: number;
 }
 
 // This component renders a column of checkboxes for the given items
 // It's an alternative to SelectField when you don't want a dropdown
-export function CheckboxSelectField({
-  name,
-  label,
-  items,
-  disabled,
-  labelComponent = BodyXSmBlack as (props: TextWrapperProps) => React.ReactNode,
-  labelSpace = 4,
-  radio,
-  ...props
-}: CheckboxSelectFieldProps) {
+export function CheckboxSelectField({name, label, items, disabled, labelComponent = BodyXSmBlack, labelSpace = 4, radio, ...props}: CheckboxSelectFieldProps) {
   const {setValue} = useFormContext();
   const {field} = useController({name});
   const onChange = useCallback(
