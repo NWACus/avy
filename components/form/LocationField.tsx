@@ -107,7 +107,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
         <TouchableOpacity onPress={toggleModal} disabled={disabled}>
           <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
             <View p={8}>
-              <Body>{value ? `${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : 'Select a location'}</Body>
+              <Body>{value ? `${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : 'Tap to select a location on the map'}</Body>
             </View>
             <Center px={8} borderLeftWidth={2} borderColor={colorLookup('border.base')}>
               <FontAwesome name="map-marker" color={colorLookup('text')} size={bodySize} />
