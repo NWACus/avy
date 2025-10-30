@@ -138,7 +138,7 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
   FAC: [
     {
       title: 'Avalanche Education',
-      url: ' https://www.flatheadavalanche.org/education',
+      url: 'https://www.flatheadavalanche.org/education',
     },
     {
       title: 'FlatheadAvalanche.org',
