@@ -135,10 +135,23 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
       url: 'https://payetteavalanche.org/friends/#whats-new',
     },
   ],
+  FAC: [
+    {
+      title: 'Avalanche Education',
+      url: ' https://www.flatheadavalanche.org/education',
+    },
+    {
+      title: 'FlatheadAvalanche.org',
+      url: 'https://www.flatheadavalanche.org',
+    },
+    {
+      title: 'Support Flathead Avalanche',
+      url: 'https://www.flatheadavalanche.org/support',
+    },
+  ],
   BAC: [],
   CNFAIC: [],
   ESAC: [],
-  FAC: [],
   HPAC: [],
   IPAC: [],
   KPAC: [],
