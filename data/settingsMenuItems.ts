@@ -113,6 +113,28 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
       url: 'https://www.coavalanche.org/events/?utm_source=avy-app&utm_medium=app&utm_campaign=events',
     },
   ],
+  PAC: [
+    {
+      title: 'About PAC',
+      url: 'https://payetteavalanche.org/about',
+    },
+    {
+      title: 'Weather Resources',
+      url: 'https://payetteavalanche.org/weather-tools',
+    },
+    {
+      title: 'Avalanche Education Calendar',
+      url: 'https://payetteavalanche.org/classes-events',
+    },
+    {
+      title: 'Donate',
+      url: 'https://www.paypal.com/donate?hosted_button_id=MS3VKF6EKNRSA',
+    },
+    {
+      title: 'News',
+      url: 'https://payetteavalanche.org/friends/#whats-new',
+    },
+  ],
   BAC: [],
   CNFAIC: [],
   ESAC: [],
@@ -122,7 +144,6 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
   KPAC: [],
   MSAC: [],
   MWAC: [],
-  PAC: [],
   TAC: [],
   WAC: [],
   WCMAC: [],
