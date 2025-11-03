@@ -152,6 +152,7 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
   BAC: [],
   CNFAIC: [],
   ESAC: [],
+  GNFAC: [],
   HPAC: [],
   IPAC: [],
   KPAC: [],
