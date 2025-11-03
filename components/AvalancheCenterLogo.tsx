@@ -31,6 +31,7 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
     ['ESAC']: Image.resolveAssetSource(require('../assets/logos/ESAC.png')),
     ['FAC']: Image.resolveAssetSource(require('../assets/logos/FAC.png')),
     ['HPAC']: Image.resolveAssetSource(require('../assets/logos/HPAC.png')),
+    ['GNFAC']: Image.resolveAssetSource(require('../assets/logos/GNFAC.png')),
     ['IPAC']: Image.resolveAssetSource(require('../assets/logos/IPAC.png')),
     ['KPAC']: Image.resolveAssetSource(require('../assets/logos/KPAC.png')),
     ['MSAC']: Image.resolveAssetSource(require('../assets/logos/MSAC.png')),
@@ -73,6 +74,9 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
       return <Image style={s} source={{uri: uri}} />;
     },
     ['HPAC']: (s: ImageStyle) => {
+      return <Image style={s} source={{uri: uri}} />;
+    },
+    ['GNFAC']: (s: ImageStyle) => {
       return <Image style={s} source={{uri: uri}} />;
     },
     ['IPAC']: (s: ImageStyle) => {
@@ -138,6 +142,8 @@ export const preloadAvalancheCenterLogo = async (queryClient: QueryClient, logge
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/ESAC.png')).uri);
     case 'FAC':
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/FAC.png')).uri);
+    case 'GNFAC':
+      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/GNFAC.png')).uri);
     case 'HPAC':
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/IPAC.png')).uri);
     case 'IPAC':

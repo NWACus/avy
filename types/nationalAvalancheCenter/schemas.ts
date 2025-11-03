@@ -7,6 +7,7 @@ export const avalancheCenterIDSchema = z.enum([
   'COAA', // Central Oregon: OR
   'ESAC', // Eastern Sierra: CA
   'FAC', // Flathead: MT
+  'GNFAC', // Gallatin: MT
   'HPAC', // Hatcher Pass: AK
   'IPAC', // Idaho Panhandle: ID, MT
   'KPAC', // Kachina: AZ
@@ -38,6 +39,7 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
   ['ESAC']: 'https://www.esavalanche.org/',
   ['FAC']: 'https://www.flatheadavalanche.org/',
   ['HPAC']: 'https://hpavalanche.org/',
+  ['GNFAC']: 'https://www.mtavalanche.com/',
   ['IPAC']: 'https://www.idahopanhandleavalanche.org/',
   ['KPAC']: 'https://kachinapeaks.org/',
   ['MSAC']: 'https://www.shastaavalanche.org/',

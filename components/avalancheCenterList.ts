@@ -28,6 +28,7 @@ const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: s
       {center: 'CNFAIC', description: 'Avalanche forecasts for the Chugach National Forest.'},
       {center: 'ESAC', description: 'Avalanche forecasts for the Eastern Sierra region in California.'},
       // {center: 'HAC', description: 'Avalanche forecasts for the Haines region in Alaska.'}, // failed to parse
+      {center: 'GNFAC', description: 'Avalanche forecasts for Southwest Montana.'},
       {center: 'HPAC', description: 'Avalanche forecasts for the Hatcher Pass region in Alaska.'},
       {center: 'IPAC', description: 'Avalanche forecasts for the Idaho panhandle.'},
       {center: 'KPAC', description: 'Avalanche forecasts for the Kachina region in Arizona.'},
