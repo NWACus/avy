@@ -1,9 +1,11 @@
-import {View} from 'components/core';
+import {Center, View} from 'components/core';
 import {BodySm} from 'components/text';
+import Constants from 'expo-constants';
 import {usePostHog} from 'posthog-react-native';
 import React, {useCallback, useEffect, useRef} from 'react';
-import {ActivityIndicator, Dimensions} from 'react-native';
+import {ActivityIndicator, Dimensions, Platform} from 'react-native';
 import WebView from 'react-native-webview';
+import {WebViewSource} from 'react-native-webview/lib/WebViewTypes';
 import {colorLookup} from 'theme';
 import {VideoMediaItem} from 'types/nationalAvalancheCenter';
 
@@ -15,8 +17,37 @@ interface WebVideoViewProps {
   isVisible: boolean;
 }
 
+const getSourceData = (item: VideoMediaItem): WebViewSource | never => {
+  let source = '';
+  if (typeof item.url !== 'string' && 'video_id' in item.url) {
+    source = youtubeLink(item.url.video_id);
+  } else {
+    throw new Error('The item did not contain a video id ');
+  }
+
+  let headers = {};
+  const bundleId = getBundleID();
+  if (bundleId != null) {
+    headers = {Referer: refererValue(bundleId)};
+  } else {
+    throw new Error('There was an error creating the header');
+  }
+
+  return {uri: source, headers: headers};
+};
+
+const getBundleID = () => {
+  if (Platform.OS === 'ios') {
+    return Constants.expoConfig?.ios?.bundleIdentifier;
+  } else if (Platform.OS === 'android') {
+    return Constants.expoConfig?.android?.package;
+  } else {
+    return undefined;
+  }
+};
+
 const youtubeLink = (videoId: string) => `https://youtube.com/embed/${videoId}`;
-const headers = {Referer: 'https://us.nwac.forecast'};
+const refererValue = (bundleID: string) => `https://${bundleID}`;
 
 export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, isVisible}: WebVideoViewProps) => {
   const webRef = useRef<WebView>(null);
@@ -53,11 +84,15 @@ export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, 
     }
   }, [postHog, item.url]);
 
-  let source = '';
-  if (typeof item.url !== 'string' && 'video_id' in item.url) {
-    source = youtubeLink(item.url.video_id);
-  } else {
-    return <BodySm>{'There was an error loading the video'}</BodySm>;
+  let sourceData: WebViewSource;
+  try {
+    sourceData = getSourceData(item);
+  } catch {
+    return (
+      <Center flex={1}>
+        <BodySm color={'white'}>{'There was an error loading the video'}</BodySm>;
+      </Center>
+    );
   }
 
   return (
@@ -65,10 +100,7 @@ export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, 
       ref={webRef}
       bounces={false}
       style={{maxHeight: maxHeight, transform: [{translateY: yOffset}], backgroundColor: colorLookup('modal.background')}}
-      source={{
-        uri: source,
-        headers: headers,
-      }}
+      source={sourceData}
       renderLoading={onRenderLoading}
       startInLoadingState
       allowsInlineMediaPlayback
