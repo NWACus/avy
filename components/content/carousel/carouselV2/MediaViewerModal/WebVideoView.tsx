@@ -16,6 +16,7 @@ interface WebVideoViewProps {
 }
 
 const youtubeLink = (videoId: string) => `https://youtube.com/embed/${videoId}`;
+const headers = {Referer: 'https://us.nwac.forecast'};
 
 export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, isVisible}: WebVideoViewProps) => {
   const webRef = useRef<WebView>(null);
@@ -64,7 +65,10 @@ export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, 
       ref={webRef}
       bounces={false}
       style={{maxHeight: maxHeight, transform: [{translateY: yOffset}], backgroundColor: colorLookup('modal.background')}}
-      source={{uri: source}}
+      source={{
+        uri: source,
+        headers: headers,
+      }}
       renderLoading={onRenderLoading}
       startInLoadingState
       allowsInlineMediaPlayback
