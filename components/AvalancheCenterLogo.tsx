@@ -21,7 +21,7 @@ export interface AvalancheCenterLogoProps {
 
 export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoProps> = ({style, avalancheCenterId}: AvalancheCenterLogoProps) => {
   /* eslint-disable @typescript-eslint/no-unsafe-argument */
-
+  /* eslint-disable @typescript-eslint/no-var-requires */
   const source: Record<AvalancheCenterID, ImageResolvedAssetSource> = {
     ['BAC']: Image.resolveAssetSource(require('../assets/logos/BAC.png')),
     ['BTAC']: Image.resolveAssetSource(require('../assets/logos/BTAC.png')),
@@ -126,6 +126,7 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
 };
 
 export const preloadAvalancheCenterLogo = async (queryClient: QueryClient, logger: Logger, avalancheCenter: AvalancheCenterID) => {
+  /* eslint-disable @typescript-eslint/no-var-requires */
   switch (avalancheCenter) {
     case 'BAC':
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/BAC.png')).uri);
