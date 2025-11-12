@@ -21,6 +21,7 @@ const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: s
     {center: 'PAC', description: 'Avalanche forecasts for the Payette region in Idaho.'},
     {center: 'SNFAC', description: 'Avalanche forecasts for South Central Idaho.'},
     {center: 'SAC', description: 'Avalanche forecasts for the Lake Tahoe region in California.'},
+    {center: 'WAC', description: 'Avalanche forecasts for the Wallowa Range in Oregon.'},
   ];
 
   if (Updates.channel !== 'release') {
@@ -34,7 +35,6 @@ const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: s
       {center: 'KPAC', description: 'Avalanche forecasts for the Kachina region in Arizona.'},
       {center: 'TAC', description: 'Avalanche forecasts for the Taos Valley in New Mexico.'},
       // {center: 'VAC', description: 'Avalanche forecasts for the Valdez region of Alaska.'}, // failed to parse
-      {center: 'WAC', description: 'Avalanche forecasts for the Wallowa Range in Oregon.'},
       {center: 'WCMAC', description: 'Avalanche forecasts for West Central Montana.'},
     );
   }
