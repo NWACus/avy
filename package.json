@@ -19,7 +19,8 @@
     "prettify": "eslint --fix . ; npx prettier --write .",
     "start": "EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) expo start --go",
     "test": "jest",
-    "web": "EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) expo start --web"
+    "web": "EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) expo start --web",
+    "prepare": "husky"
   },
   "dependencies": {
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.0.0-0",
@@ -155,6 +156,7 @@
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-typescript-sort-keys": "^2.3.0",
+    "husky": "^9.1.7",
     "jest": "^29.2.1",
     "jest-expo": "~52.0.6",
     "jest-transform-stub": "^2.0.0",
