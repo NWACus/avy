@@ -21,7 +21,7 @@ const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: s
     {center: 'PAC', description: 'Avalanche forecasts for the Payette region in Idaho.'},
     {center: 'SNFAC', description: 'Avalanche forecasts for South Central Idaho.'},
     {center: 'SAC', description: 'Avalanche forecasts for the Lake Tahoe region in California.'},
-    {center: 'WAC', description: 'Avalanche forecasts for the Wallowa Range in Oregon.'},
+    {center: 'WAC', description: 'Avalanche forecasts for Northeast Oregon.'},
   ];
 
   if (Updates.channel !== 'release') {
