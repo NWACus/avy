@@ -151,7 +151,32 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
   ],
   BAC: [],
   CNFAIC: [],
-  ESAC: [],
+  ESAC: [
+    {
+      title: 'Donate',
+      url: 'https://www.esavalanche.org/donate/',
+    },
+    {
+      title: 'About Us',
+      url: 'https://www.esavalanche.org/about/',
+    },
+    {
+      title: 'How To Use The Forecast',
+      url: 'https://www.esavalanche.org/avalanche-forecast-tutorial/',
+    },
+    {
+      title: 'Upcoming Events',
+      url: 'https://www.esavalanche.org/classes-events/list/',
+    },
+    {
+      title: 'Motorized / OSV Resources',
+      url: 'https://www.esavalanche.org/osv/#/osv',
+    },
+    {
+      title: 'Local Avalanche Course Providers',
+      url: 'https://www.esavalanche.org/local-avalanche-course-providers/',
+    },
+  ],
   GNFAC: [],
   HPAC: [],
   IPAC: [],
@@ -159,6 +184,27 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
   MSAC: [],
   MWAC: [],
   TAC: [],
-  WAC: [],
+  WAC: [
+    {
+      title: 'About WAC',
+      url: 'https://wallowaavalanchecenter.org/about/',
+    },
+    {
+      title: 'Avalanche Education',
+      url: 'https://store.wallowaavalanchecenter.org/product-category/avalanche-courses/',
+    },
+    {
+      title: 'Donate',
+      url: 'https://store.wallowaavalanchecenter.org/make-a-donation/',
+    },
+    {
+      title: 'Classes and Events',
+      url: 'https://wallowaavalanchecenter.org/classes-events/',
+    },
+    {
+      title: 'Become a Member',
+      url: 'https://store.wallowaavalanchecenter.org/product-category/wac-membership/',
+    },
+  ],
   WCMAC: [],
 };

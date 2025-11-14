@@ -1066,15 +1066,7 @@ export const observationSchema = z.object({
     .optional(/* only because of NWAC */),
   advanced_fields: z
     .object({
-      observation_id: z.string().optional(/* only because of NWAC */),
       observed_terrain: z.string().nullable().optional(/* only because of NWAC */),
-      time_in_field: z
-        .object({
-          start: z.string().or(z.number()).nullable(),
-          end: z.string().or(z.number()).nullable(),
-        })
-        .nullable()
-        .optional(/* only because of NWAC */),
       weather: z
         .object({
           air_temp: z.string().nullable().optional(/* only because of NWAC */),
