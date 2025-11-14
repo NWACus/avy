@@ -1,5 +1,5 @@
 import * as Updates from 'expo-updates';
-import {AllAvalancheCenterCapabilities, AvalancheCenter, AvalancheCenterID, avalancheCenterIDSchema, userFacingCenterId} from 'types/nationalAvalancheCenter';
+import { AllAvalancheCenterCapabilities, AvalancheCenter, AvalancheCenterID, avalancheCenterIDSchema, userFacingCenterId } from 'types/nationalAvalancheCenter';
 
 export interface AvalancheCenterListData {
   center: AvalancheCenter;
@@ -7,35 +7,35 @@ export interface AvalancheCenterListData {
   display_id: string;
 }
 
-const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: string}[] => {
-  const centers: {center: AvalancheCenterID; description: string}[] = [
-    {center: 'BTAC', description: 'Avalanche forecasts for Western Wyoming and Eastern Idaho.'},
-    {center: 'BAC', description: 'Avalanche forecasts for the Bridgeport region in California.'},
-    {center: 'CBAC', description: 'Avalanche forecasts for Southwestern Colorado.'},
-    {center: 'COAA', description: 'Avalanche forecasts for central Oregon.'},
-    {center: 'ESAC', description: 'Avalanche forecasts for the Eastern Sierra region in California.'},
-    {center: 'FAC', description: 'Avalanche forecasts for Northwestern Montana.'},
-    {center: 'MSAC', description: 'Avalanche forecasts for the Mount Shasta region in California.'},
-    {center: 'MWAC', description: 'Avalanche forecasts for Mount Washington.'},
-    {center: 'NWAC', description: 'Avalanche forecasts for Washington and Northern Oregon.'},
-    {center: 'PAC', description: 'Avalanche forecasts for the Payette region in Idaho.'},
-    {center: 'SNFAC', description: 'Avalanche forecasts for South Central Idaho.'},
-    {center: 'SAC', description: 'Avalanche forecasts for the Lake Tahoe region in California.'},
-    {center: 'WAC', description: 'Avalanche forecasts for the Wallowa Range in Oregon.'},
+const supportedAvalancheCenters = (): { center: AvalancheCenterID; description: string }[] => {
+  const centers: { center: AvalancheCenterID; description: string }[] = [
+    { center: 'BTAC', description: 'Avalanche forecasts for Western Wyoming and Eastern Idaho.' },
+    { center: 'BAC', description: 'Avalanche forecasts for the Bridgeport region in California.' },
+    { center: 'CBAC', description: 'Avalanche forecasts for Southwestern Colorado.' },
+    { center: 'COAA', description: 'Avalanche forecasts for central Oregon.' },
+    { center: 'ESAC', description: 'Avalanche forecasts for the Eastern Sierra region in California.' },
+    { center: 'FAC', description: 'Avalanche forecasts for Northwestern Montana.' },
+    { center: 'MSAC', description: 'Avalanche forecasts for the Mount Shasta region in California.' },
+    { center: 'MWAC', description: 'Avalanche forecasts for Mount Washington.' },
+    { center: 'NWAC', description: 'Avalanche forecasts for Washington and Northern Oregon.' },
+    { center: 'PAC', description: 'Avalanche forecasts for the Payette region in Idaho.' },
+    { center: 'SNFAC', description: 'Avalanche forecasts for South Central Idaho.' },
+    { center: 'SAC', description: 'Avalanche forecasts for the Lake Tahoe region in California.' },
+    { center: 'WAC', description: 'Avalanche forecasts for Northeast Oregon.' },
   ];
 
   if (Updates.channel !== 'release') {
     centers.push(
       // {center: 'AAIC', description: 'Avalanche forecasts for Alaska.'}, // failed to parse
-      {center: 'CNFAIC', description: 'Avalanche forecasts for the Chugach National Forest.'},
+      { center: 'CNFAIC', description: 'Avalanche forecasts for the Chugach National Forest.' },
       // {center: 'HAC', description: 'Avalanche forecasts for the Haines region in Alaska.'}, // failed to parse
-      {center: 'GNFAC', description: 'Avalanche forecasts for Southwest Montana.'},
-      {center: 'HPAC', description: 'Avalanche forecasts for the Hatcher Pass region in Alaska.'},
-      {center: 'IPAC', description: 'Avalanche forecasts for the Idaho panhandle.'},
-      {center: 'KPAC', description: 'Avalanche forecasts for the Kachina region in Arizona.'},
-      {center: 'TAC', description: 'Avalanche forecasts for the Taos Valley in New Mexico.'},
+      { center: 'GNFAC', description: 'Avalanche forecasts for Southwest Montana.' },
+      { center: 'HPAC', description: 'Avalanche forecasts for the Hatcher Pass region in Alaska.' },
+      { center: 'IPAC', description: 'Avalanche forecasts for the Idaho panhandle.' },
+      { center: 'KPAC', description: 'Avalanche forecasts for the Kachina region in Arizona.' },
+      { center: 'TAC', description: 'Avalanche forecasts for the Taos Valley in New Mexico.' },
       // {center: 'VAC', description: 'Avalanche forecasts for the Valdez region of Alaska.'}, // failed to parse
-      {center: 'WCMAC', description: 'Avalanche forecasts for West Central Montana.'},
+      { center: 'WCMAC', description: 'Avalanche forecasts for West Central Montana.' },
     );
   }
 
