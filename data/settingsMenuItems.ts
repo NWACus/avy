@@ -1,6 +1,6 @@
-import { AvalancheCenterID } from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
-export const settingsMenuItems: Record<AvalancheCenterID, { title: string; url: string }[]> = {
+export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: string}[]> = {
   NWAC: [
     {
       title: 'About NWAC',
