@@ -62,6 +62,7 @@
     "@turf/boolean-point-in-polygon": "^6.5.0",
     "@turf/centroid": "^6.5.0",
     "@turf/clusters-dbscan": "^6.5.0",
+    "@turf/distance": "^7.3.0",
     "@turf/helpers": "^6.5.0",
     "@types/geojson": "^7946.0.10",
     "@types/tinycolor2": "^1.4.3",
