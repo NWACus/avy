@@ -150,7 +150,28 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
     },
   ],
   BAC: [],
-  CNFAIC: [],
+  CNFAIC: [
+    {
+      title: 'Donate',
+      url: 'https://www.cnfaic.org/friends/donate/',
+    },
+    {
+      title: 'About CNFAIC',
+      url: 'https://www.cnfaic.org/resources/about/',
+    },
+    {
+      title: 'News',
+      url: 'https://www.cnfaic.org/resources/news/',
+    },
+    {
+      title: 'Maps',
+      url: 'https://www.cnfaic.org/resources/maps/',
+    },
+    {
+      title: 'Friends of Chugach Avalanche Center',
+      url: 'https://www.cnfaic.org/friends/',
+    },
+  ],
   ESAC: [
     {
       title: 'Donate',
@@ -178,7 +199,32 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
     },
   ],
   GNFAC: [],
-  HPAC: [],
+  HPAC: [
+    {
+      title: 'About HPAC',
+      url: 'https://hpavalanche.org/about/',
+    },
+    {
+      title: 'Donate',
+      url: 'https://hpavalanche.org/donate/',
+    },
+    {
+      title: 'Upcoming Events',
+      url: 'https://hpavalanche.org/about/events/',
+    },
+    {
+      title: 'Scholarships',
+      url: 'https://hpavalanche.org/about/scholarship-fund/',
+    },
+    {
+      title: 'Maps and Resources',
+      url: 'https://hpavalanche.org/about/resources/',
+    },
+    {
+      title: 'Monthly Newsletter',
+      url: 'https://mailchi.mp/hpavalanche/news',
+    },
+  ],
   IPAC: [],
   KPAC: [],
   MSAC: [],
