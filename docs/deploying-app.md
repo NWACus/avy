@@ -69,6 +69,8 @@ Wait for the github action to complete, ensure the new version exists on preview
 
 Once updates have been tested and verified, you will repeat the exact same process done in step 1, but instead you will be working with the "release" branch. 
 
+When publishing a new build version, a new app submission to both stores will be required. This step is manual and needs to be done once the github action completes. You will need to navigate to Apple and Android stores to complete the submission for review, review usually takes about 1-2 days on average. 
+
 ## Logs and Monitoring
 
 We have Sentry sending alerts to Slack for the following two cases:
