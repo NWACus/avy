@@ -10,6 +10,7 @@ import {incompleteQueryState, NotFound, QueryState} from 'components/content/Que
 import {Center, Divider, HStack, View, VStack} from 'components/core';
 import {BodyBlack, bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
 import {formatDateTime} from 'components/weather_data/WeatherStationsDetail';
+import {usePartnerCenterIdForStationFetch} from 'components/weather_data/WeatherUtils';
 import {compareDesc} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
@@ -32,8 +33,9 @@ interface columnData {
 }
 
 export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, source, requestedTime}) => {
+  const partnerCenterId = usePartnerCenterIdForStationFetch(center_id);
   const [days, setDays] = useState(1);
-  const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
+  const avalancheCenterMetadataResult = useAvalancheCenterMetadata(partnerCenterId);
   const metadata = avalancheCenterMetadataResult.data;
   const requestedTimeDate = parseRequestedTimeString(requestedTime);
   const identifier: Record<string, WeatherStationSource> = {};
@@ -57,7 +59,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
   }
 
   if (timeseries.STATION.length !== 1) {
-    const message = `Avalanche center ${center_id} had no weather station with id ${stationId}`;
+    const message = `Avalanche center ${partnerCenterId} had no weather station with id ${stationId}`;
     Sentry.captureException(new Error(message));
     return <NotFound what={[new NotFoundError(message, 'weather station')]} />;
   }
