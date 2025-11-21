@@ -57,7 +57,7 @@ You can log into expo to see errors or more specific in-progress updates for bui
 
 Most commonly, copy changes from main into preview branch first using the following set of commands to ensure preview is pointing to the latest commit we want deployed: 
 
-`git fetch origin; git checkout preview; git reset --hard main; git push`
+`git fetch origin; git checkout preview; git reset --hard origin/main; git push origin preview`
 
 Navigate to github actions inside repo and run "publish-update" for an OTA update and "publish-build" for a new Build version. Select "preview" for branch and then press run workflow. 
 
