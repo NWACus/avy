@@ -3,7 +3,7 @@ import {incompleteQueryState, NotFound, QueryState} from 'components/content/Que
 import {NWACStationList} from 'components/weather_data/NWACWeatherStationList';
 import {WeatherStationList} from 'components/weather_data/WeatherStationList';
 import {WeatherStationMap} from 'components/weather_data/WeatherStationMap';
-import {usePartnerCenterIdForStationFetch} from 'components/weather_data/WeatherUtils';
+import {centerOrPartnerCenter} from 'components/weather_data/WeatherUtils';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayer} from 'hooks/useMapLayer';
 import {useToggle} from 'hooks/useToggle';
@@ -20,8 +20,7 @@ interface Props {
 }
 
 export const WeatherStationPage: React.FC<Props> = ({center_id, requestedTime}) => {
-  const partnerCenterId = usePartnerCenterIdForStationFetch(center_id);
-  const avalancheCenterMetadataResult = useAvalancheCenterMetadata(partnerCenterId);
+  const avalancheCenterMetadataResult = useAvalancheCenterMetadata(centerOrPartnerCenter(center_id));
   const metadata = avalancheCenterMetadataResult.data;
   const postHog = usePostHog();
 
@@ -54,11 +53,10 @@ export const WeatherStations: React.FunctionComponent<{
   token: string;
   requestedTime: RequestedTimeString;
 }> = ({center_id, token, requestedTime}) => {
-  const partnerCenterId = usePartnerCenterIdForStationFetch(center_id);
   const [list, {toggle: toggleList}] = useToggle(false);
   const mapLayerResult = useMapLayer(center_id);
   const mapLayer = mapLayerResult.data;
-  const weatherStationsResult = useWeatherStationsMetadata(partnerCenterId, token);
+  const weatherStationsResult = useWeatherStationsMetadata(centerOrPartnerCenter(center_id), token);
   const weatherStations = weatherStationsResult.data;
 
   if (incompleteQueryState(mapLayerResult, weatherStationsResult) || !mapLayer || !weatherStations) {
