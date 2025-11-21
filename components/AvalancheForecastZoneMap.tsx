@@ -201,6 +201,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
             // product-specific queries can give us results that are expired or older than the map layer, in which case we don't
             // want to use them
             if (
+              (forecast.product_type === ProductType.Forecast || forecast.product_type === ProductType.Summary) &&
               forecast.expires_time &&
               zonesById[id].end_date &&
               (isAfter(toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}), requestedTimeToUTCDate(requestedTime)) /* product is not expired */ ||
