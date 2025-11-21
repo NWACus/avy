@@ -201,7 +201,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
             // product-specific queries can give us results that are expired or older than the map layer, in which case we don't
             // want to use them
             if (
-              forecast.product_type === ProductType.Forecast &&
+              (forecast.product_type === ProductType.Forecast || forecast.product_type === ProductType.Summary) &&
               forecast.expires_time &&
               zonesById[id].end_date &&
               (isAfter(toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}), requestedTimeToUTCDate(requestedTime)) /* product is not expired */ ||
@@ -210,12 +210,16 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
                   toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}),
                 )) /* product newer than map layer */
             ) {
-              const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);
-              if (currentDanger) {
-                zonesById[id].danger_level = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
-                zonesById[id].start_date = forecast.published_time;
-                zonesById[id].end_date = forecast.expires_time;
+              if (forecast.product_type === ProductType.Forecast) {
+                const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);
+                if (currentDanger) {
+                  zonesById[id].danger_level = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
+                }
               }
+
+              // Regardless if the product type is a summary or forecast, we want to use the forecast API timestamp as it has timezone information
+              zonesById[id].start_date = forecast.published_time;
+              zonesById[id].end_date = forecast.expires_time;
             }
           }
         });
