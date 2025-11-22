@@ -3,7 +3,8 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import centroid from '@turf/centroid';
 import turfClustersDBScan from '@turf/clusters-dbscan';
-import {FeatureCollection, Point, Position, Properties, Units, featureCollection} from '@turf/helpers';
+import turfDistance from '@turf/distance';
+import {Coord, FeatureCollection, Point, Position, Properties, Units, featureCollection} from '@turf/helpers';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Constants, {AppOwnership} from 'expo-constants';
@@ -56,7 +57,7 @@ function clustersDBScan(
   const result = turfClustersDBScan(weatherStations as FeatureCollection<Point, Properties>, maxDistance, options) as ClusteredWeatherStationCollection;
 
   // With all features grouped by cluster, calculate the centroid of each cluster and attach it to each feature
-  Object.entries(_.groupBy(result.features, f => f.properties.cluster || -1)).forEach(([cluster, features]) => {
+  Object.entries(_.groupBy(result.features, f => (f.properties.cluster != null ? f.properties.cluster : -1))).forEach(([cluster, features]) => {
     if (cluster !== '-1') {
       const clusterCentroid = centroid(featureCollection(features));
       features.forEach(f => {
@@ -167,9 +168,11 @@ export const WeatherStationMap: React.FunctionComponent<{
             }
             if (a.properties.cluster != null && b.properties.cluster != null) {
               // Different clusters, but both clustered
-              // Sort clusters roughly left to right
-              // It's b - a because longitude is negative in North America
-              return (b.properties.clusterCentroid?.at(0) || 0) - (a.properties.clusterCentroid?.at(0) || 0);
+              // Sort clusters by closest to the avalanche center map region
+              const avalancheCenterLongLat: Coord = [avalancheCenterMapRegion.longitude, avalancheCenterMapRegion.latitude];
+              const aClusterCentroid = a.properties.clusterCentroid ?? [0, 0];
+              const bClusterCentroid = b.properties.clusterCentroid ?? [0, 0];
+              return turfDistance(avalancheCenterLongLat, aClusterCentroid) - turfDistance(avalancheCenterLongLat, bClusterCentroid);
             }
           }
           // ...then top to bottom in strips based on latitude...
@@ -181,7 +184,7 @@ export const WeatherStationMap: React.FunctionComponent<{
           return a.geometry.coordinates[0] - b.geometry.coordinates[0];
         }),
     }),
-    [clusteredStations],
+    [clusteredStations, avalancheCenterMapRegion],
   );
 
   const markers = React.useMemo(
