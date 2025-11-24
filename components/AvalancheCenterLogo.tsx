@@ -169,4 +169,6 @@ export const preloadAvalancheCenterLogo = async (queryClient: QueryClient, logge
     case 'WCMAC':
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
   }
+  const invalid: never = avalancheCenter;
+  throw new Error(`Unable to load logo, unknown avalanche center: ${JSON.stringify(invalid)}`);
 };
