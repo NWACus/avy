@@ -39,7 +39,7 @@ import {
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
-import {RequestedTime, pacificDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
+import {RequestedTime, requestedTimeToUTCDate, utcDateToLocalDateString} from 'utils/date';
 
 interface ObservationsListViewItem {
   id: ObservationFragment['id'];
@@ -523,7 +523,7 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
       style={{opacity: pending ? 0.5 : 1.0}}
       header={
         <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
-          <BodySmBlack>{pacificDateToLocalDateString(observation.startDate)}</BodySmBlack>
+          <BodySmBlack>{utcDateToLocalDateString(observation.startDate)}</BodySmBlack>
           <HStack space={8} alignItems="center">
             {redFlags && <MaterialCommunityIcons name="flag" size={bodySize} color={colorFor(DangerLevel.Considerable).string()} />}
             {avalanches && <NACAvalancheIcon size={bodySize} color={colorFor(DangerLevel.High).string()} />}
