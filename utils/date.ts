@@ -107,22 +107,6 @@ export const utcDateToLocalShortDateString = (date: Date | string | undefined | 
   return format(d, `MMM d, yyyy`);
 };
 
-export const pacificDateToLocalShortDateString = (date: Date | string | undefined | null): string => {
-  if (date == null) {
-    return 'Unknown';
-  }
-  const d = typeof date === 'string' ? toDate(date, {timeZone: 'America/Los_Angeles'}) : date;
-  return format(d, `MMM d, yyyy`);
-};
-
-export const pacificDateToLocalDateString = (date: Date | string | undefined | null): string => {
-  if (date == null) {
-    return 'Unknown';
-  }
-  const d = typeof date === 'string' ? toDate(date, {timeZone: 'America/Los_Angeles'}) : date;
-  return format(d, `EEEE, MMMM d, yyyy`);
-};
-
 export const pacificDateToDayOfWeekString = (date: Date | string | undefined | null): string => {
   if (date == null) {
     return 'Unknown';

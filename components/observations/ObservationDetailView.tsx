@@ -51,7 +51,7 @@ import {
   WindLoading,
   userFacingCenterId,
 } from 'types/nationalAvalancheCenter';
-import {pacificDateToLocalShortDateString, utcDateToLocalShortDateString} from 'utils/date';
+import {utcDateToLocalShortDateString} from 'utils/date';
 
 export const NWACObservationDetailView: React.FunctionComponent<{
   id: string;
@@ -235,7 +235,7 @@ export const ObservationCard: React.FunctionComponent<{
                   <VStack space={8} style={{flex: 1}}>
                     <AllCapsSmBlack>Observed</AllCapsSmBlack>
                     <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                      {pacificDateToLocalShortDateString(observation.start_date)}
+                      {utcDateToLocalShortDateString(observation.start_date)}
                     </AllCapsSm>
                   </VStack>
                   <VStack space={8} style={{flex: 1}}>
@@ -357,7 +357,7 @@ export const ObservationCard: React.FunctionComponent<{
                       <VStack space={8} style={{flex: 1}} key={`avalanche-${index}`}>
                         <BodyBlack>{`#${index + 1}${item.location ? `: ${item.location}` : ''}`}</BodyBlack>
                         {item.comments && <HTML source={{html: item.comments}} />}
-                        <TableRow label={`Date (${item.date_known ? 'Exact' : 'Estimated'})`} value={`${pacificDateToLocalShortDateString(item.date)}`} />
+                        <TableRow label={`Date (${item.date_known ? 'Exact' : 'Estimated'})`} value={`${utcDateToLocalShortDateString(item.date)}`} />
                         {item.d_size && <TableRow label={'Size'} value={`D${item.d_size}${item.r_size ? '-R' + item.r_size : ''}`} />}
                         {item.trigger && (
                           <TableRow
