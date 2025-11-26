@@ -13,7 +13,7 @@ import {InlineDangerScale} from 'components/DangerScale';
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
-import {Carousel, images} from 'components/content/carousel';
+import {MediaCarousel} from 'components/content/carousel/MediaCarousel';
 import {HStack, VStack, View} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, BodySm, BodySmBlack, BodySmSemibold, Title3Black, bodySize} from 'components/text';
 import {HTML} from 'components/text/HTML';
@@ -159,8 +159,6 @@ export const AvalancheTab: React.FunctionComponent<{
     outlookDanger = forecast.danger.find(item => item.valid_day === ForecastPeriod.Tomorrow);
   }
 
-  const imageItems = images(forecast.media);
-
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
@@ -243,9 +241,9 @@ export const AvalancheTab: React.FunctionComponent<{
             <HTML source={{html: forecast.hazard_discussion}} />
           </CollapsibleCard>
         )}
-        {imageItems && imageItems.length > 0 && (
+        {forecast.media && forecast.media.length > 0 && (
           <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>} noDivider>
-            <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={imageItems} displayCaptions={false} />
+            <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={forecast.media} displayCaptions={false} />
           </Card>
         )}
         <View height={16} />

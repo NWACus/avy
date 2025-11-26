@@ -5,13 +5,13 @@ import {AvalancheProblemLikelihoodLine} from 'components/AvalancheProblemLikelih
 import {AvalancheProblemSizeLine} from 'components/AvalancheProblemSizeLine';
 import {AnnotatedDangerRose} from 'components/DangerRose';
 import {Card, CardProps} from 'components/content/Card';
-import {Carousel} from 'components/content/carousel';
+import {MediaCarousel} from 'components/content/carousel/MediaCarousel';
 import {Center, HStack, VStack} from 'components/core';
 import {AllCapsSm, Caption1Semibold, allCapsSmLineHeight} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {LayoutChangeEvent} from 'react-native';
 import {colorLookup} from 'theme';
-import {AvalancheProblem, ElevationBandNames, MediaType} from 'types/nationalAvalancheCenter';
+import {AvalancheProblem, ElevationBandNames} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheProblemCardProps {
   problem: AvalancheProblem;
@@ -76,9 +76,7 @@ export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardP
         />
       </HStack>
       {problem.discussion && <HTML source={{html: problem.discussion}} />}
-      {problem.media && problem.media.type === MediaType.Image && cardWidth > 0 && (
-        <Carousel media={[problem.media]} thumbnailAspectRatio={1.3} thumbnailHeight={cardWidth / 1.3} />
-      )}
+      {problem.media && cardWidth > 0 && <MediaCarousel mediaItems={[problem.media]} thumbnailAspectRatio={1.3} thumbnailHeight={cardWidth / 1.3} />}
     </VStack>
   );
 };

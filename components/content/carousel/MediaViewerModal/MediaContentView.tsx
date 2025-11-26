@@ -1,5 +1,5 @@
-import {ImageView} from 'components/content/carousel/carouselV2/MediaViewerModal/ImageView';
-import {WebVideoView} from 'components/content/carousel/carouselV2/MediaViewerModal/WebVideoView';
+import {ImageView} from 'components/content/carousel/MediaViewerModal/ImageView';
+import {WebVideoView} from 'components/content/carousel/MediaViewerModal/WebVideoView';
 import {View} from 'components/core';
 import {BodySm} from 'components/text';
 import {usePostHog} from 'posthog-react-native';

@@ -1,4 +1,4 @@
-import {RoundButton} from 'components/content/carousel/ImageViewerModal';
+import {RoundButton} from 'components/content/carousel/MediaViewerModal/MediaViewerModal';
 import {Center, HStack, View} from 'components/core';
 import {BodySm} from 'components/text';
 import React from 'react';

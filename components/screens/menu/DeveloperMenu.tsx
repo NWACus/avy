@@ -384,6 +384,17 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
                 });
               },
             },
+            {
+              label: 'View a forecast with videos',
+              data: null,
+              action: () => {
+                navigation.navigate('forecast', {
+                  center_id: 'NWAC',
+                  forecast_zone_id: 1649,
+                  requestedTime: toISOStringUTC(new Date('2025-02-26T5:11:30-0800')),
+                });
+              },
+            },
           ]}
         />
         <ActionList

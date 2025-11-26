@@ -1,8 +1,21 @@
-import {MediaViewerModal} from 'components/content/carousel/carouselV2/MediaViewerModal/MediaViewerModal';
-import {ThumbnailList} from 'components/content/carousel/carouselV2/ThumbnailList';
+import {MediaViewerModal} from 'components/content/carousel/MediaViewerModal/MediaViewerModal';
+import {ThumbnailList} from 'components/content/carousel/ThumbnailList';
 import {View, ViewProps} from 'components/core';
 import React, {PropsWithChildren, useCallback, useState} from 'react';
-import {MediaItem} from 'types/nationalAvalancheCenter';
+import {ImageMediaItem, MediaItem, MediaType} from 'types/nationalAvalancheCenter';
+
+export const images = (media: MediaItem[] | null | undefined): ImageMediaItem[] => {
+  const filtered: ImageMediaItem[] = [];
+  if (!media) {
+    return filtered;
+  }
+  for (const item of media) {
+    if (item.type === MediaType.Image) {
+      filtered.push(item);
+    }
+  }
+  return filtered;
+};
 
 export interface MediaCarouselProps extends ViewProps {
   thumbnailHeight: number;

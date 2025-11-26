@@ -9,8 +9,7 @@ import {colorFor} from 'components/AvalancheDangerTriangle';
 import {Card, CardProps} from 'components/content/Card';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {ZoneMap} from 'components/content/ZoneMap';
-import {Carousel, images} from 'components/content/carousel';
-import {MediaCarousel} from 'components/content/carousel/carouselV2/MediaCarousel';
+import {MediaCarousel} from 'components/content/carousel/MediaCarousel';
 import {HStack, VStack, View} from 'components/core';
 import {NACAvalancheIcon} from 'components/icons/nac-icons';
 import {matchesZone} from 'components/observations/ObservationsFilterForm';
@@ -378,10 +377,10 @@ export const ObservationCard: React.FunctionComponent<{
                         {item.width && <TableRow label={'Width'} value={`${withUnits(item.width, 'ft')}`} />}
                         {item.avalanche_type && <TableRow label={'Type'} value={FormatAvalancheType(item.avalanche_type as AvalancheType)} />}
                         {item.bed_sfc && <TableRow label={'Bed Surface'} value={FormatAvalancheBedSurface(item.bed_sfc as AvalancheBedSurface)} />}
-                        {images(item.media) && (
+                        {item.media && (
                           <VStack pt={8} space={8} width="100%">
                             <BodySemibold>Media</BodySemibold>
-                            <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={images(item.media)} displayCaptions={false} />
+                            <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={item.media} displayCaptions={false} />
                           </VStack>
                         )}
                       </VStack>
@@ -396,8 +395,8 @@ export const ObservationCard: React.FunctionComponent<{
                   <Card borderRadius={0} borderColor="white" header={<BodyBlack>Snowpack</BodyBlack>}>
                     <VStack space={8} width="100%">
                       {observation.advanced_fields.snowpack_summary && <HTML source={{html: observation.advanced_fields.snowpack_summary}} />}
-                      {images(observation.advanced_fields.snowpack_media) && (
-                        <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={images(observation.advanced_fields.snowpack_media)} displayCaptions={false} />
+                      {observation.advanced_fields.snowpack_media && (
+                        <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={observation.advanced_fields.snowpack_media} displayCaptions={false} />
                       )}
                       {observation.advanced_fields.snowpack && <>{/* we don't know what fields could be in this thing ... */}</>}
                     </VStack>
