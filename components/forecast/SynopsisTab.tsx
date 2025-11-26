@@ -5,7 +5,7 @@ import {formatDistanceToNow, isAfter} from 'date-fns';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {Card} from 'components/content/Card';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
-import {Carousel, images} from 'components/content/carousel';
+import {MediaCarousel} from 'components/content/carousel/MediaCarousel';
 import {HStack, VStack} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, BodyBlack, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
@@ -66,8 +66,6 @@ export const SynopsisTab: React.FunctionComponent<{
     return <QueryState results={[centerResult, synopsisResult]} />;
   }
 
-  const imageItems = images(synopsis.media);
-
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
@@ -99,7 +97,7 @@ export const SynopsisTab: React.FunctionComponent<{
         {synopsis.hazard_discussion && (
           <Card borderRadius={0} borderColor="white" header={<BodyBlack>{synopsis.bottom_line}</BodyBlack>}>
             <HTML source={{html: synopsis.hazard_discussion}} />
-            {imageItems && <Carousel thumbnailHeight={160} thumbnailAspectRatio={1.3} media={imageItems} displayCaptions={false} />}
+            {synopsis.media && <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={synopsis.media} displayCaptions={false} />}
           </Card>
         )}
       </VStack>

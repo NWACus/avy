@@ -4,7 +4,7 @@ import {filterToKnownCenters, filterToSupportedCenters} from 'components/avalanc
 import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {preloadAvalancheDangerIcons} from 'components/AvalancheDangerIcon';
 import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
-import {images} from 'components/content/carousel';
+import {images} from 'components/content/carousel/MediaCarousel';
 import AvalancheCenterCapabilitiesQuery from 'hooks/useAvalancheCenterCapabilities';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
