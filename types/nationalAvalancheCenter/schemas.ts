@@ -8,6 +8,7 @@ export const avalancheCenterIDSchema = z.enum([
   'ESAC', // Eastern Sierra: CA
   'FAC', // Flathead: MT
   'GNFAC', // Gallatin: MT
+  'HAC', // Haines: AK
   'HPAC', // Hatcher Pass: AK
   'IPAC', // Idaho Panhandle: ID, MT
   'KPAC', // Kachina: AZ
@@ -18,6 +19,7 @@ export const avalancheCenterIDSchema = z.enum([
   'SAC', // Sierra: CA
   'SNFAC', // Sawtooths: ID
   'TAC', // Taos: NM
+  'VAC', // Valdez: AK
   'WAC', // Wallowas: OR
   'WCMAC', // West Central Montana: MT
 ]);
@@ -39,6 +41,7 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
   ['ESAC']: 'https://www.esavalanche.org/',
   ['FAC']: 'https://www.flatheadavalanche.org/',
   ['HPAC']: 'https://hpavalanche.org/',
+  ['HAC']: 'https://alaskasnow.org/haines',
   ['GNFAC']: 'https://www.mtavalanche.com/',
   ['IPAC']: 'https://www.idahopanhandleavalanche.org/',
   ['KPAC']: 'https://kachinapeaks.org/',
@@ -48,6 +51,7 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
   ['SAC']: 'https://www.sierraavalanchecenter.org/',
   ['SNFAC']: 'https://www.sawtoothavalanche.com/',
   ['TAC']: 'https://taosavalanchecenter.org/',
+  ['VAC']: 'https://alaskasnow.org/valdez/',
   ['WAC']: 'https://wallowaavalanchecenter.org/',
   ['WCMAC']: 'https://missoulaavalanche.org/',
 };
@@ -231,7 +235,7 @@ export const avalancheCenterMetadataSchema = z.object({
   id: z.string(),
   name: z.string(),
   url: z.string(),
-  city: z.string(),
+  city: z.string().nullable(),
   state: z.string(),
 });
 
@@ -725,7 +729,7 @@ export const avalancheCenterSchema = z.object({
   id: z.string(),
   name: z.string(),
   url: z.string(),
-  city: z.string(),
+  city: z.string().nullable(),
   state: z.string(),
   timezone: z.string(),
   email: z.string(),

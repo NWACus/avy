@@ -199,6 +199,7 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
     },
   ],
   GNFAC: [],
+  HAC: [],
   HPAC: [
     {
       title: 'About HPAC',
@@ -230,6 +231,7 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
   MSAC: [],
   MWAC: [],
   TAC: [],
+  VAC: [],
   WAC: [
     {
       title: 'About WAC',
