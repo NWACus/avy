@@ -28,13 +28,13 @@ const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: s
 
   if (Updates.channel !== 'release') {
     centers.push(
-      // {center: 'AAIC', description: 'Avalanche forecasts for Alaska.'}, // failed to parse
-      // {center: 'HAC', description: 'Avalanche forecasts for the Haines region in Alaska.'}, // failed to parse
+      // { center: 'AAIC', description: 'Avalanche forecasts for Alaska.' }, // This is needed to fetch the metadata for AAIC but it is not a selectable center
+      {center: 'HAC', description: 'Avalanche forecasts for the Haines region in Alaska.'},
       {center: 'GNFAC', description: 'Avalanche forecasts for Southwest Montana.'},
       {center: 'IPAC', description: 'Avalanche forecasts for the Idaho panhandle.'},
       {center: 'KPAC', description: 'Avalanche forecasts for the Kachina region in Arizona.'},
       {center: 'TAC', description: 'Avalanche forecasts for the Taos Valley in New Mexico.'},
-      // {center: 'VAC', description: 'Avalanche forecasts for the Valdez region of Alaska.'}, // failed to parse
+      {center: 'VAC', description: 'Avalanche forecasts for the Valdez region of Alaska.'},
       {center: 'WCMAC', description: 'Avalanche forecasts for West Central Montana.'},
     );
   }
