@@ -170,7 +170,7 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
-        <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>}>
+        <Card borderRadius={0} borderColor="white" header={<Title3Black>Mountain Weather</Title3Black>}>
           <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
             <VStack space={8} style={{flex: 1}}>
               <AllCapsSmBlack>Issued</AllCapsSmBlack>
@@ -369,7 +369,7 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
-        <Card borderRadius={0} borderColor="white" header={<Title3Black>Weather Forecast</Title3Black>} noDivider>
+        <Card borderRadius={0} borderColor="white" header={<Title3Black>Mountain Weather</Title3Black>} noDivider>
           <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
             <VStack space={8} style={{flex: 1}}>
               <AllCapsSmBlack>Issued</AllCapsSmBlack>
