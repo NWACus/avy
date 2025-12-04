@@ -388,8 +388,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         onScroll={onScroll}
         onScrollEndDrag={onScroll}
         scrollEventThrottle={160}
-        // when within 5 page lengths of the end, start fetching the next set of data
-        onEndReachedThreshold={5}
+        onEndReachedThreshold={0.5}
         onEndReached={fetchMoreData}
         ListFooterComponent={renderListFooter}
         ListEmptyComponent={
