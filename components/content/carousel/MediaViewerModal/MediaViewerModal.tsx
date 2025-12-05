@@ -1,10 +1,9 @@
-import {AntDesign} from '@expo/vector-icons';
 import {MediaContentView} from 'components/content/carousel/MediaViewerModal/MediaContentView';
 import {MediaViewerModalFooter} from 'components/content/carousel/MediaViewerModal/MediaViewerModalFooter';
 import {MediaViewerModalHeader} from 'components/content/carousel/MediaViewerModal/MediaViewerModalHeader';
-import {Center, View, ViewProps} from 'components/core';
+import {View} from 'components/core';
 import React, {useCallback, useState} from 'react';
-import {Dimensions, FlatList, GestureResponderEvent, Modal, TouchableOpacity, ViewToken} from 'react-native';
+import {Dimensions, FlatList, Modal, ViewToken} from 'react-native';
 import {Gesture, GestureDetector, GestureHandlerRootView} from 'react-native-gesture-handler';
 import {colorLookup} from 'theme';
 import {MediaItem, MediaType} from 'types/nationalAvalancheCenter';
@@ -18,14 +17,6 @@ export interface MediaViewerModalProps {
   mediaItems: MediaItem[];
   onClose: () => void;
 }
-
-export const RoundButton = ({onPress, ...props}: {onPress: ((event: GestureResponderEvent) => void) | undefined} & ViewProps) => (
-  <TouchableOpacity onPress={onPress}>
-    <Center height={32} width={32} backgroundColor={colorLookup('modal.background')} borderRadius={16} {...props}>
-      <AntDesign size={24} color="white" name="close" />
-    </Center>
-  </TouchableOpacity>
-);
 
 const getItemId = (item: MediaItem) => {
   if (item.type === '' || item.type === null || item.type === MediaType.PDF || item.type === MediaType.Unknown) {
