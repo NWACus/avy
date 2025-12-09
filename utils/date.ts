@@ -107,6 +107,28 @@ export const utcDateToLocalShortDateString = (date: Date | string | undefined | 
   return format(d, `MMM d, yyyy`);
 };
 
+// This is used when dealing with observation start dates. These dates are given to us with no time zone or timestamp.
+// By giving it a timezone and setting it to miday, the date can be accurately represented in local time regardless of time zone shifts.
+export const observationStartDateToLocalShortDateString = (date: Date | string | undefined | null): string => {
+  if (date == null) {
+    return 'Unknown';
+  }
+  const d = typeof date === 'string' ? toDate(date, {timeZone: 'America/Los_Angeles'}) : date;
+  d.setHours(12);
+  return format(d, `MMM d, yyyy`);
+};
+
+// This is used when dealing with observation start dates. These dates are given to us with no time zone or timestamp.
+// By giving it a timezone and setting it to miday, the date can be accurately represented in local time regardless of time zone shifts.
+export const observationStartDateToLocalDateString = (date: Date | string | undefined | null): string => {
+  if (date == null) {
+    return 'Unknown';
+  }
+  const d = typeof date === 'string' ? toDate(date, {timeZone: 'America/Los_Angeles'}) : date;
+  d.setHours(12);
+  return format(d, `EEEE, MMMM d, yyyy`);
+};
+
 export const pacificDateToDayOfWeekString = (date: Date | string | undefined | null): string => {
   if (date == null) {
     return 'Unknown';
