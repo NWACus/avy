@@ -17,6 +17,7 @@ const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: s
     {center: 'ESAC', description: 'Avalanche forecasts for the Eastern Sierra region in California.'},
     {center: 'FAC', description: 'Avalanche forecasts for Northwestern Montana.'},
     {center: 'HPAC', description: 'Avalanche forecasts for the Hatcher Pass region in Alaska.'},
+    {center: 'IPAC', description: 'Avalanche forecasts for the Idaho panhandle.'},
     {center: 'MSAC', description: 'Avalanche forecasts for the Mount Shasta region in California.'},
     {center: 'MWAC', description: 'Avalanche forecasts for Mount Washington.'},
     {center: 'NWAC', description: 'Avalanche forecasts for Washington and Northern Oregon.'},
@@ -31,7 +32,6 @@ const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: s
       // { center: 'AAIC', description: 'Avalanche forecasts for Alaska.' }, // This is needed to fetch the metadata for AAIC but it is not a selectable center
       {center: 'HAC', description: 'Avalanche forecasts for the Haines region in Alaska.'},
       {center: 'GNFAC', description: 'Avalanche forecasts for Southwest Montana.'},
-      {center: 'IPAC', description: 'Avalanche forecasts for the Idaho panhandle.'},
       {center: 'KPAC', description: 'Avalanche forecasts for the Kachina region in Arizona.'},
       {center: 'TAC', description: 'Avalanche forecasts for the Taos Valley in New Mexico.'},
       {center: 'VAC', description: 'Avalanche forecasts for the Valdez region of Alaska.'},
