@@ -14,6 +14,7 @@ import {centerOrPartnerCenter} from 'components/weather_data/WeatherUtils';
 import {compareDesc} from 'date-fns';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
+import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, StationNote, Variable, WeatherStationSource, WeatherStationTimeseries} from 'types/nationalAvalancheCenter';
@@ -275,11 +276,12 @@ const columnPadding = 3;
 const rowPadding = 2;
 
 function WeatherDataTable({columns: columnsWithTime, timeseries}: {columns: columnData[]; timeseries: WeatherStationTimeseries}) {
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
   // DataGrid expects data in row-major order, so we need to transpose our data
   const [times, ...columns] = columnsWithTime;
   const data: string[][] = useMemo(() => {
     const columnMajorArray = [...columns.map(column => formatData(column.variable, column.data))];
-    return columnMajorArray[0].map((_, rowIndex) => columnMajorArray.map(column => String(column[rowIndex])));
+    return columnMajorArray.length > 0 ? columnMajorArray[0].map((_, rowIndex) => columnMajorArray.map(column => String(column[rowIndex]))) : [];
   }, [columns]);
 
   // Passed to DataGrid to render an individual cell
@@ -355,6 +357,11 @@ function WeatherDataTable({columns: columnsWithTime, timeseries}: {columns: colu
       })),
     [columns, timeseries.UNITS],
   );
+
+  if (times.data.length === 0 || columns.length === 0) {
+    logger.warn('WeatherDataTable called without correct data');
+    return <NotFound terminal={true} what={[new NotFoundError('', 'any telemetry data for this station and time range')]} />;
+  }
 
   return (
     <DataGrid
