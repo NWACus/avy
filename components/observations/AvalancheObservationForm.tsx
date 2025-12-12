@@ -1,0 +1,224 @@
+import {zodResolver} from '@hookform/resolvers/zod';
+import {useFocusEffect} from '@react-navigation/native';
+
+import React, {useCallback} from 'react';
+import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
+import {Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, TouchableOpacity} from 'react-native';
+import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+
+import {AntDesign} from '@expo/vector-icons';
+import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
+import {Button} from 'components/content/Button';
+import {Divider, HStack, VStack, View} from 'components/core';
+import {DateField} from 'components/form/DateField';
+import {LocationField} from 'components/form/LocationField';
+import {SelectField} from 'components/form/SelectField';
+import {SwitchField} from 'components/form/SwitchField';
+import {TextField, TextFieldComponent} from 'components/form/TextField';
+import {AvalancheObservationFormData, avalancheObservationFormSchema, defaultAvalancheObservationFormData} from 'components/observations/ObservationFormData';
+import {BodySemibold, Title3Semibold} from 'components/text';
+import {LoggerContext, LoggerProps} from 'loggerContext';
+import {usePostHog} from 'posthog-react-native';
+import {AvalancheAspect, AvalancheCenterID, AvalancheTrigger, FormatAvalancheAspect, FormatAvalancheTrigger, reverseLookup} from 'types/nationalAvalancheCenter';
+
+/**
+ * AvalancheObservationTextField can only have a name prop that is a key of a string value.
+ */
+const AvalancheObservationTextField = TextField as TextFieldComponent<AvalancheObservationFormData>;
+
+export const AvalancheObservationForm: React.FC<{
+  visible: boolean;
+  center_id: AvalancheCenterID;
+  onClose: () => void;
+  onSave: (data: AvalancheObservationFormData) => void;
+}> = ({visible, center_id, onClose, onSave}) => {
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const formContext = useForm<AvalancheObservationFormData>({
+    defaultValues: defaultAvalancheObservationFormData(),
+    resolver: zodResolver(avalancheObservationFormSchema),
+    mode: 'onBlur',
+    shouldFocusError: false,
+    shouldUnregister: true,
+  });
+
+  const postHog = usePostHog();
+
+  const recordAnalytics = useCallback(() => {
+    if (postHog && center_id) {
+      postHog.screen('avalancheObservationForm', {
+        center: center_id,
+      });
+    }
+  }, [postHog, center_id]);
+  useFocusEffect(recordAnalytics);
+
+  const today = new Date();
+
+  const onSaveHandler = useCallback(
+    (data: AvalancheObservationFormData) => {
+      onSave(data);
+    },
+    [onSave],
+  );
+
+  const onSaveError = useCallback(
+    (errors: FieldErrors<Partial<AvalancheObservationFormData>>) => {
+      logger.error({errors: errors, formValues: formContext.getValues()}, 'submit error');
+    },
+    [formContext, logger],
+  );
+
+  const onSavePress = useCallback(() => {
+    void (async () => {
+      // Force validation errors to show up on fields that haven't been visited yet
+      formContext.setValue('status', 'published');
+      formContext.setValue('private', false);
+      await formContext.trigger();
+      // Then try to submit the form
+      void formContext.handleSubmit(onSaveHandler, onSaveError)();
+    })();
+  }, [formContext, onSaveHandler, onSaveError]);
+
+  const onCloseHandler = useCallback(() => {
+    if (formContext.formState.isDirty) {
+      Alert.alert('Discard changes?', 'By closing the form, you will lose unsaved avalanche obvservation data. Are you sure you want to discard them?', [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Discard',
+          style: 'destructive',
+          onPress: () => {
+            formContext.reset();
+            onClose();
+          },
+        },
+      ]);
+    } else {
+      formContext.reset();
+      onClose();
+    }
+  }, [onClose, formContext]);
+
+  const formFieldSpacing = 16;
+
+  return (
+    <FormProvider {...formContext}>
+      <Modal visible={visible} animationType="slide" onRequestClose={onCloseHandler}>
+        <SelectModalProvider>
+          <SafeAreaProvider>
+            <SafeAreaView style={{flex: 1}}>
+              <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}}>
+                <ScrollView>
+                  <AvalancheObservationFormHeader onClose={onCloseHandler} />
+                  <VStack>
+                    <VStack space={formFieldSpacing} paddingBottom={32} paddingHorizontal={16}>
+                      <Title3Semibold>Details</Title3Semibold>
+                      <Divider />
+                      <AvalancheObservationTextField
+                        name="location"
+                        label="Location"
+                        textInputProps={{
+                          placeholder: 'Describe the location of the avalanche.',
+                          multiline: true,
+                        }}
+                      />
+                      <LocationField name="location_point" label="Latitude/Longitude" center={center_id} />
+                      <DateField name="date" label="Occurance date" maximumDate={today} />
+                      <SwitchField
+                        name="date_known"
+                        label="Date Accuracy"
+                        items={[
+                          {label: 'Estimated', value: false},
+                          {label: 'Known', value: true},
+                        ]}
+                      />
+
+                      <SelectField
+                        name="trigger"
+                        label="Trigger"
+                        prompt="What caused the avalanche to release?"
+                        minItemsShown={5}
+                        items={Object.values(AvalancheTrigger).map(trigger => ({label: FormatAvalancheTrigger(trigger), value: trigger}))}
+                      />
+
+                      <SelectField
+                        name="aspect"
+                        label="Aspect"
+                        prompt="Primary or average aspect of the slope"
+                        minItemsShown={5}
+                        items={Object.values(AvalancheAspect).map(aspect => ({label: FormatAvalancheAspect(aspect), value: aspect}))}
+                      />
+
+                      <SelectField
+                        name="d_size"
+                        label="Avalanche Size"
+                        prompt="Avalanche Size - Destructive Potential"
+                        minItemsShown={5}
+                        items={Object.values(AvalancheSize).map(size => ({label: FormatAvalancheSize(size), value: size}))}
+                      />
+
+                      <AvalancheObservationTextField
+                        name="elevation"
+                        label="Eelvation (ft)"
+                        textInputProps={{
+                          placeholder: 'Enter the elevation where the avalanche occurred.',
+                          keyboardType: 'number-pad',
+                        }}
+                      />
+
+                      <AvalancheObservationTextField
+                        name="number"
+                        label="Number (ft)"
+                        textInputProps={{
+                          placeholder: 'Use if submitting general information for multipe avalanches',
+                          keyboardType: 'number-pad',
+                        }}
+                      />
+                    </VStack>
+
+                    <Button mx={16} mt={8} buttonStyle="primary" onPress={onSavePress}>
+                      <BodySemibold>{'Save avalanche'}</BodySemibold>
+                    </Button>
+                  </VStack>
+                </ScrollView>
+              </KeyboardAvoidingView>
+            </SafeAreaView>
+          </SafeAreaProvider>
+        </SelectModalProvider>
+      </Modal>
+    </FormProvider>
+  );
+};
+
+const AvalancheObservationFormHeader: React.FC<{
+  onClose: () => void;
+}> = ({onClose}) => {
+  return (
+    <View style={{width: '100%'}}>
+      <HStack flex={1} justifyContent="space-between" height={64} paddingHorizontal={16}>
+        <TouchableOpacity onPress={onClose} style={{flex: 1}}>
+          <AntDesign name="close" size={24} color="black" />
+        </TouchableOpacity>
+        <Title3Semibold style={{flex: 3}}>Avalanche sighting</Title3Semibold>
+      </HStack>
+    </View>
+  );
+};
+
+const AvalancheSize = {
+  'D1 - Relatively harmless to people.': '1',
+  'D1.5': '1.5',
+  'D2 - Could bury, injure, or kill a person.': '2',
+  'D2.5': '2.5',
+  'D3 - Could bury or destroy a car, damage a truck, destroy a wood frame house, or break a few trees.': '3',
+  'D3.5': '3.5',
+  'D4 - Could destroy a railway car, a large truck, several buildings, or substantial amount of forest.': '4',
+  'D4.5': '4.5',
+  'D5 - Could gouge the landscape. Largest snow avalanche known.': '5',
+} as const;
+type AvalancheSize = (typeof AvalancheSize)[keyof typeof AvalancheSize];
+const FormatAvalancheSize = (value: AvalancheSize): string => {
+  return reverseLookup(AvalancheSize, value);
+};

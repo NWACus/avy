@@ -3,7 +3,7 @@ import React, {PropsWithChildren, ReactNode, useCallback, useEffect, useState} f
 import {ColorValue, TouchableOpacity, ViewStyle} from 'react-native';
 import Collapsible from 'react-native-collapsible';
 
-import {FontAwesome} from '@expo/vector-icons';
+import {AntDesign, FontAwesome} from '@expo/vector-icons';
 
 import {Divider, HStack, View, ViewProps, VStack} from 'components/core';
 import {usePostHog} from 'posthog-react-native';
@@ -55,6 +55,67 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({
           </VStack>
         </View>
       </TouchableOpacity>
+    </View>
+  );
+};
+
+export interface EditDeleteCardProps extends ViewProps {
+  header?: ReactNode;
+  onEditPress: () => void;
+  onDeletePress: () => void;
+  borderWidth?: number;
+  borderRadius?: number;
+  borderColor?: ColorValue;
+  noDivider?: boolean;
+  noInternalSpace?: boolean;
+}
+
+export const EditDeleteCard: React.FunctionComponent<PropsWithChildren<EditDeleteCardProps>> = ({
+  header,
+  onEditPress,
+  onDeletePress,
+  borderColor,
+  borderRadius,
+  borderWidth,
+  noDivider,
+  noInternalSpace,
+  children,
+  ...boxProps
+}) => {
+  const onEditHandler = useCallback(() => onEditPress(), [onEditPress]);
+  const onDeleteHandler = useCallback(() => onDeletePress(), [onDeletePress]);
+
+  return (
+    <View {...boxProps}>
+      <View bg="white" borderWidth={borderWidth ?? 2} borderRadius={borderRadius ?? 8} borderColor={borderColor ?? 'light.300'} p={16}>
+        <VStack space={noInternalSpace ? 0 : 8}>
+          <HStack justifyContent="space-between">
+            <>{header}</>
+            <HStack space={4}>
+              <AntDesign.Button
+                size={16}
+                name="edit"
+                color="white"
+                backgroundColor="rgba(0, 0, 0, 0.3)"
+                iconStyle={{marginRight: 0}}
+                style={{textAlign: 'center'}}
+                onPress={onEditHandler}
+              />
+              <AntDesign.Button
+                size={16}
+                name="delete"
+                color="white"
+                backgroundColor="rgba(0, 0, 0, 0.3)"
+                iconStyle={{marginRight: 0}}
+                style={{textAlign: 'center'}}
+                onPress={onDeleteHandler}
+              />
+            </HStack>
+          </HStack>
+          {noDivider || <Divider />}
+          <>{children}</>
+        </VStack>
+      </View>
     </View>
   );
 };

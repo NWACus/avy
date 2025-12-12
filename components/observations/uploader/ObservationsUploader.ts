@@ -166,8 +166,6 @@ export class ObservationUploader {
 
       const tasks: TaskQueueEntry[] = [];
 
-      // uuid.v4 has a goofy implementation that only returns a byte array if you pass a byte array in,
-      // but returns string otherwise. hence the use of `as string`.
       const observationTaskId = uuid.v4();
 
       observationFormData.images?.forEach(({image, caption}) => {

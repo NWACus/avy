@@ -2,7 +2,7 @@ import {ImagePickerAsset} from 'expo-image-picker';
 import {merge} from 'lodash';
 import {z} from 'zod';
 
-import {Activity, InstabilityDistribution, MediaUsage, PartnerType} from 'types/nationalAvalancheCenter';
+import {Activity, AvalancheAspect, AvalancheTrigger, AvalancheType, InstabilityDistribution, MediaUsage, PartnerType} from 'types/nationalAvalancheCenter';
 
 const FAKE_OBSERVATION_DATA: Partial<ObservationFormData> = {
   activity: ['skiing_snowboarding'],
@@ -34,11 +34,25 @@ export const defaultObservationFormData = (initialValues: Partial<ObservationFor
       start_date: new Date(),
       status: 'draft',
       images: [],
+      avalanches: [],
       show_name: false,
     },
     process.env.EXPO_PUBLIC_AUTOFILL_FAKE_OBSERVATION ? FAKE_OBSERVATION_DATA : {},
     initialValues,
   );
+
+export const defaultAvalancheObservationFormData = (): Partial<AvalancheObservationFormData> => ({
+  status: 'published',
+  private: false,
+  date: new Date(),
+  date_known: false,
+  time: '',
+  time_known: false,
+  location: '',
+  comments: '',
+  number: '1',
+});
+
 const required = 'This field is required.';
 
 const locationPointSchema = z.object(
@@ -88,6 +102,24 @@ const imageAssetSchema = z
     mimeType: true,
   });
 
+export const avalancheObservationFormSchema = z.object({
+  status: z.string(),
+  private: z.boolean(),
+  date: z.date({required_error: required}),
+  date_known: z.boolean().nullable().optional(),
+  time: z.string().nullable().optional(),
+  time_known: z.boolean().nullable().optional(),
+  location: z.string(),
+  location_point: locationPointSchema,
+  number: z.string().regex(/^\d+$/, 'Number of avalanches must be a number.'),
+  problem_type: z.nativeEnum(AvalancheType).or(z.string().length(0)).nullable().optional(), // Might need to be renamed to "problem type"
+  trigger: z.nativeEnum(AvalancheTrigger).or(z.string().length(0)),
+  d_size: z.string().regex(/^\d+(?:\.\d{1})?$/, 'Destructive size must be a number.'),
+  elevation: z.string().regex(/^\d+$/, 'Elevation must be a number.'),
+  aspect: z.nativeEnum(AvalancheAspect).or(z.string().length(0)),
+  comments: z.string().nullable().optional(),
+});
+
 // For the form, we have specific rules that we require for any new observations
 // we create, thus we don't reuse the existing observationSchema
 export const simpleObservationFormSchema = z
@@ -104,6 +136,7 @@ export const simpleObservationFormSchema = z
       collapsing: z.boolean(),
       collapsing_description: z.nativeEnum(InstabilityDistribution).optional(),
     }),
+    avalanches: z.array(avalancheObservationFormSchema),
     location_name: z.string({required_error: required}),
     location_point: locationPointSchema,
     name: z.string({required_error: required}),
@@ -185,3 +218,5 @@ export interface ImageAndCaption {
 export interface ImagePickerAssetSchema extends z.infer<typeof imageAssetSchema> {}
 
 export interface ObservationFormData extends z.infer<typeof simpleObservationFormSchema> {}
+
+export interface AvalancheObservationFormData extends z.infer<typeof avalancheObservationFormSchema> {}
