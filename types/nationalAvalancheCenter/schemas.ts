@@ -1007,6 +1007,32 @@ export const instabilitySchema = z.object({
   collapsing_description: z.nativeEnum(InstabilityDistribution).or(z.string().length(0)).nullable().optional(),
 });
 
+export const avalancheObservationSchema = z.object({
+  date: z.string().nullable().optional(/* only because of NWAC */),
+  date_known: z.boolean().nullable().optional(/* only because of NWAC */),
+  time: z.string().nullable().optional(/* only because of NWAC */),
+  time_known: z.boolean().nullable().optional(/* only because of NWAC */),
+  location: z.string().nullable().optional(/* only because of NWAC */),
+  number: z.number().nullable().optional(/* only because of NWAC */),
+  avalanche_type: z.nativeEnum(AvalancheType).or(z.string().length(0)).nullable().optional(),
+  cause: z.nativeEnum(AvalancheCause).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
+  terminus: z.nativeEnum(AvalancheTerminus).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
+  trigger: z.nativeEnum(AvalancheTrigger).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
+  avg_crown_depth: z.number().nullable().optional(),
+  d_size: z.string().nullable().optional(/* only because of NWAC */),
+  r_size: z.string().nullable().optional(/* only because of NWAC */),
+  bed_sfc: z.nativeEnum(AvalancheBedSurface).or(z.string().length(0)).nullable().optional(),
+  elevation: z.number().or(z.string()).nullable().optional(/* only because of NWAC */),
+  vertical_fall: z.number().or(z.string()).nullable().optional(),
+  width: z.number().nullable().optional(/* only because of NWAC */),
+  slope_angle: z.number().nullable().optional(),
+  aspect: z.nativeEnum(AvalancheAspect).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
+  weak_layer_type: z.string().nullable().optional(), // TODO: this is clearly an enum somewhere, it's not anywhere I can see..
+  weak_layer_date: z.string().nullable().optional(),
+  comments: z.string().nullable().optional(/* only because of NWAC */),
+  media: z.array(mediaItemSchema).optional(/* only because of NWAC */),
+});
+
 export const locationSchema = z.object({
   lng: z.number().nullable(/* TODO confirm why there are 2 obs like this, are they flukes? */).optional(/* only for NWAC obs */),
   lat: z.number().nullable(/* TODO confirm why there are 2 obs like this, are they flukes? */).optional(/* only for NWAC obs */),
@@ -1038,36 +1064,7 @@ export const observationSchema = z.object({
   media: z.array(mediaItemSchema).nullable().optional(/* only because of NWAC */),
   avalanches_summary: z.string().nullable().optional(/* only because of NWAC */),
   urls: z.array(z.string()).optional(/* only because of NWAC */),
-  avalanches: z
-    .array(
-      z.object({
-        date: z.string().nullable().optional(/* only because of NWAC */),
-        date_known: z.boolean().nullable().optional(/* only because of NWAC */),
-        time: z.string().nullable().optional(/* only because of NWAC */),
-        time_known: z.boolean().nullable().optional(/* only because of NWAC */),
-        location: z.string().nullable().optional(/* only because of NWAC */),
-        number: z.number().nullable().optional(/* only because of NWAC */),
-        avalanche_type: z.nativeEnum(AvalancheType).or(z.string().length(0)).nullable().optional(),
-        cause: z.nativeEnum(AvalancheCause).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
-        terminus: z.nativeEnum(AvalancheTerminus).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
-        trigger: z.nativeEnum(AvalancheTrigger).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
-        avg_crown_depth: z.number().nullable().optional(),
-        d_size: z.string().nullable().optional(/* only because of NWAC */),
-        r_size: z.string().nullable().optional(/* only because of NWAC */),
-        bed_sfc: z.nativeEnum(AvalancheBedSurface).or(z.string().length(0)).nullable().optional(),
-        elevation: z.number().or(z.string()).nullable().optional(/* only because of NWAC */),
-        vertical_fall: z.number().or(z.string()).nullable().optional(),
-        width: z.number().nullable().optional(/* only because of NWAC */),
-        slope_angle: z.number().nullable().optional(),
-        aspect: z.nativeEnum(AvalancheAspect).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
-        weak_layer_type: z.string().nullable().optional(), // TODO: this is clearly an enum somewhere, it's not anywhere I can see..
-        weak_layer_date: z.string().nullable().optional(),
-        comments: z.string().nullable().optional(/* only because of NWAC */),
-        media: z.array(mediaItemSchema).optional(/* only because of NWAC */),
-      }),
-    )
-    .nullable()
-    .optional(/* only because of NWAC */),
+  avalanches: z.array(avalancheObservationSchema).nullable().optional(/* only because of NWAC */),
   advanced_fields: z
     .object({
       observed_terrain: z.string().nullable().optional(/* only because of NWAC */),

@@ -22,6 +22,7 @@ import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
+import {AvalancheObservationSection} from 'components/observations/AvalancheObservationSection';
 import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
 import {ObservationAddImageButton, ObservationImagePicker} from 'components/observations/ObservationImagePicker';
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
@@ -36,6 +37,8 @@ import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, InstabilityDistribution, userFacingCenterId} from 'types/nationalAvalancheCenter';
 
+import * as Updates from 'expo-updates';
+
 /**
  * ObservationTextField can only have a name prop that is a key of a string value.
  */
@@ -43,6 +46,10 @@ const ObservationTextField = TextField as TextFieldComponent<ObservationFormData
 
 const useKeyboardVerticalOffset = () => {
   return useHeaderHeight();
+};
+
+const isReleaseApp = (): boolean => {
+  return Updates.channel === 'release';
 };
 
 export const ObservationForm: React.FC<{
@@ -81,6 +88,12 @@ export const ObservationForm: React.FC<{
       formContext.setValue('status', 'published');
     }
   }, [formContext, metadata]);
+
+  useEffect(() => {
+    if (isReleaseApp()) {
+      formContext.setValue('avalanches', []);
+    }
+  }, [formContext]);
 
   // When collapsing/cracking are toggled off, make sure the dependent fields are also cleared
   const collapsing = useWatch({control: formContext.control, name: 'instability.collapsing'});
@@ -227,6 +240,9 @@ export const ObservationForm: React.FC<{
 
   const onSubmitPress = useCallback(() => {
     void (async () => {
+      if (!isReleaseApp() && !formContext.getValues('instability.avalanches_observed') && formContext.getValues('avalanches').length > 0) {
+        formContext.setValue('avalanches', []);
+      }
       // Force validation errors to show up on fields that haven't been visited yet
       await formContext.trigger();
       // Then try to submit the form
@@ -516,6 +532,8 @@ export const ObservationForm: React.FC<{
                   <Conditional name="instability.avalanches_observed" value={true}>
                     <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Avalanches</Title3Semibold>}>
                       <VStack space={formFieldSpacing} mt={8}>
+                        {!isReleaseApp() && <AvalancheObservationSection center_id={center_id} disabled={mutation.isSuccess || mutation.isLoading} busy={mutation.isLoading} />}
+
                         <ObservationTextField
                           name="avalanches_summary"
                           label="Observed avalanches"

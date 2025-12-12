@@ -20,7 +20,7 @@ interface ButtonStyle {
   };
 }
 
-type PredefinedButtonStyle = 'normal' | 'primary' | 'destructive';
+type PredefinedButtonStyle = 'normal' | 'primary' | 'secondary' | 'destructive';
 
 const styles = {
   normal: {
@@ -50,6 +50,20 @@ const styles = {
       borderColor: colorLookup('blue2'),
       backgroundColor: colorLookup('blue2'),
       textColor: colorLookup('white'),
+    },
+  },
+  secondary: {
+    borderColor: colorLookup('border.base'),
+    textColor: colorLookup('text.secondary'),
+    disabled: {
+      backgroundColor: colorLookup('disabled'),
+      borderColor: colorLookup('disabled'),
+      textColor: colorLookup('text.secondary'),
+    },
+    pressed: {
+      borderColor: colorLookup('blue2'),
+      backgroundColor: colorLookup('background.color-light'),
+      textColor: colorLookup('blue2'),
     },
   },
   destructive: {

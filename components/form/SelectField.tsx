@@ -21,6 +21,7 @@ interface SelectFieldProps {
   radio?: boolean; // If true, will default to selecting first item and always enforce selection
   disabled?: boolean;
   invisible?: boolean;
+  minItemsShown?: number;
 }
 
 const borderColor = colorLookup('border.base');
@@ -80,7 +81,7 @@ const selectStyles: SelectStyles = {
   },
 };
 
-export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, label, items, prompt, radio, disabled, invisible}, ref) => {
+export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, label, items, prompt, radio, disabled, invisible, minItemsShown}, ref) => {
   const {setValue} = useFormContext();
   const {field, fieldState} = useController({name});
   const menuItems =
@@ -128,7 +129,7 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, la
         onRemove={onRemove}
         styles={_.merge({}, selectStyles, {
           optionsList: {
-            minHeight: Math.min(10, menuItems.length) * 40,
+            minHeight: Math.min(minItemsShown ?? 10, menuItems.length) * 40,
           },
         })}
         // Setting `scrollToSelectedOption` based on https://github.com/MobileReality/react-native-select-pro/issues/230

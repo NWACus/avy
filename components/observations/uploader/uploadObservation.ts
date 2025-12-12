@@ -8,6 +8,7 @@ import {Observation, ObservationSource} from 'types/nationalAvalancheCenter';
 export async function uploadObservation(id: string, data: ObservationTaskData): Promise<Observation> {
   const {formData, extraData} = data;
   const {url, ...params} = extraData;
+  const avalancheFormData = formData.avalanches || [];
   const payload: Partial<Observation> = {
     ...formData,
     ...params,
@@ -15,6 +16,14 @@ export async function uploadObservation(id: string, data: ObservationTaskData): 
     // Date has to be a plain-old YYYY-MM-DD string. This format is the same format used by
     // `apiDateString`, but that function also converts to UTC, which we don't want to do here (#584)
     start_date: format(formData.start_date, 'yyyy-MM-dd'),
+    avalanches: avalancheFormData.map(avalanche => ({
+      ...avalanche,
+      // Similarly, avalanche date has to be a YYYY-MM-DD string
+      date: format(avalanche.date, 'yyyy-MM-dd'),
+      elevation: Number(avalanche.elevation),
+      number: Number(avalanche.number),
+      media: [],
+    })),
   };
   try {
     const {data: responseData} = await axios.post<Observation>(url, payload, {

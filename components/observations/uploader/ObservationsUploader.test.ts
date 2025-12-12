@@ -499,6 +499,7 @@ const fakeObservation: {apiPrefix: string; center_id: AvalancheCenterID; observa
     photoUsage: MediaUsage.Credit,
     private: false,
     start_date: new Date('2023-10-17T14:38:32.620Z'),
+    avalanches: [],
     images: [
       {
         image: {
