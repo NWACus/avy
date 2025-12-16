@@ -4,7 +4,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
 import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
 import {Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, TouchableOpacity} from 'react-native';
-import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {AntDesign} from '@expo/vector-icons';
 import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
@@ -42,6 +42,8 @@ export const AvalancheObservationForm: React.FC<{
     shouldFocusError: false,
     shouldUnregister: true,
   });
+
+  const insets = useSafeAreaInsets();
 
   const postHog = usePostHog();
 
@@ -112,12 +114,12 @@ export const AvalancheObservationForm: React.FC<{
 
   return (
     <FormProvider {...formContext}>
-      <Modal visible={visible} animationType="slide" onRequestClose={onCloseHandler}>
-        <SelectModalProvider>
-          <SafeAreaProvider>
-            <SafeAreaView style={{flex: 1}}>
+      <SafeAreaProvider>
+        <Modal visible={visible} animationType="slide" onRequestClose={onCloseHandler}>
+          <SelectModalProvider>
+            <View flex={1} style={{paddingTop: insets.top}}>
               <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}}>
-                <ScrollView>
+                <ScrollView style={{flex: 1}} contentContainerStyle={{paddingBottom: insets.bottom}}>
                   <AvalancheObservationFormHeader onClose={onCloseHandler} />
                   <VStack>
                     <VStack space={formFieldSpacing} paddingBottom={32} paddingHorizontal={16}>
@@ -205,10 +207,10 @@ export const AvalancheObservationForm: React.FC<{
                   </VStack>
                 </ScrollView>
               </KeyboardAvoidingView>
-            </SafeAreaView>
-          </SafeAreaProvider>
-        </SelectModalProvider>
-      </Modal>
+            </View>
+          </SelectModalProvider>
+        </Modal>
+      </SafeAreaProvider>
     </FormProvider>
   );
 };
