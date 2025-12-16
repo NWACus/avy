@@ -61,8 +61,8 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({
 
 export interface EditDeleteCardProps extends ViewProps {
   header?: ReactNode;
-  onEditPress: () => void;
   onDeletePress: () => void;
+  onEditPress?: () => void;
   borderWidth?: number;
   borderRadius?: number;
   borderColor?: ColorValue;
@@ -82,7 +82,9 @@ export const EditDeleteCard: React.FunctionComponent<PropsWithChildren<EditDelet
   children,
   ...boxProps
 }) => {
-  const onEditHandler = useCallback(() => onEditPress(), [onEditPress]);
+  const onEditHandler = useCallback(() => {
+    onEditPress?.();
+  }, [onEditPress]);
   const onDeleteHandler = useCallback(() => onDeletePress(), [onDeletePress]);
 
   return (
@@ -92,15 +94,18 @@ export const EditDeleteCard: React.FunctionComponent<PropsWithChildren<EditDelet
           <HStack justifyContent="space-between">
             <>{header}</>
             <HStack space={4}>
-              <AntDesign.Button
-                size={16}
-                name="edit"
-                color="white"
-                backgroundColor="rgba(0, 0, 0, 0.3)"
-                iconStyle={{marginRight: 0}}
-                style={{textAlign: 'center'}}
-                onPress={onEditHandler}
-              />
+              {onEditPress && (
+                <AntDesign.Button
+                  size={16}
+                  name="edit"
+                  color="white"
+                  backgroundColor="rgba(0, 0, 0, 0.3)"
+                  iconStyle={{marginRight: 0}}
+                  style={{textAlign: 'center'}}
+                  onPress={onEditHandler}
+                />
+              )}
+
               <AntDesign.Button
                 size={16}
                 name="delete"

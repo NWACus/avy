@@ -33,10 +33,7 @@ export const AvalancheObservationSection: React.FC<{center_id: AvalancheCenterID
     [avalancheObs, field],
   );
 
-  const onEditItem = useCallback((_: number) => {}, []);
-
   const handleDeleteItem = (index: number) => () => onDeleteItem(index);
-  const handleEditItem = (index: number) => () => onEditItem(index);
 
   return (
     <>
@@ -51,7 +48,6 @@ export const AvalancheObservationSection: React.FC<{center_id: AvalancheCenterID
               py={1}
               borderRadius={10}
               onDeletePress={handleDeleteItem(index)}
-              onEditPress={handleEditItem(index)}
               header={<BodySemibold>{avalanche.location}</BodySemibold>}>
               <HStack space={8}>
                 <Body>{avalanche.date.toDateString()}</Body>

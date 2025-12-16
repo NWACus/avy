@@ -11,6 +11,7 @@ const taskQueueEntrySchema = z.discriminatedUnion('type', [
     type: z.literal('image'),
     id: z.string().uuid(),
     parentId: z.string().uuid(),
+    avalancheId: z.number().optional(),
     attemptCount: z.number(),
     status: taskStatus.default('pending'),
     data: z.object({

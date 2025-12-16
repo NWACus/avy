@@ -2,70 +2,26 @@ import {AntDesign, MaterialIcons} from '@expo/vector-icons';
 import * as Sentry from '@sentry/react-native';
 
 import * as ImagePicker from 'expo-image-picker';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {ColorValue, LayoutChangeEvent, Modal, StyleSheet, TouchableHighlight, View} from 'react-native';
+import {ColorValue, StyleSheet, TouchableHighlight, View} from 'react-native';
 
 import {Button} from 'components/content/Button';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
 import {HStack, VStack, ViewProps} from 'components/core';
-import {ImageAndCaption, ObservationFormData} from 'components/observations/ObservationFormData';
-import {ObservationImageEditView} from 'components/observations/ObservationImageEditView';
+import {AvalancheObservationFormData, ImageAndCaption} from 'components/observations/ObservationFormData';
+import {ImageCaptionField, ImageSizingView} from 'components/observations/ObservationImagePicker';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {Body, BodyBlack, BodySm} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 
-export const ImageCaptionField: React.FC<{
-  image: ImageAndCaption | null;
-  onUpdateImage: (image: ImageAndCaption) => void;
-  onDismiss: () => void;
-  onModalDisplayed: (isDisplayed: boolean) => void;
-}> = ({image, onUpdateImage, onDismiss, onModalDisplayed}) => {
-  const onSetCaption = useCallback(
-    (caption: string) => {
-      if (image == null) {
-        return;
-      }
-      onUpdateImage({
-        image: image.image,
-        caption,
-      });
-      onDismiss();
-    },
-    [image, onUpdateImage, onDismiss],
-  );
-
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    if (image != null) {
-      setVisible(true);
-    }
-  }, [image]);
-
-  const handleDismiss = useCallback(() => {
-    onDismiss();
-    setVisible(false);
-  }, [onDismiss]);
-
-  useEffect(() => {
-    onModalDisplayed(visible);
-  }, [visible, onModalDisplayed]);
-
-  return (
-    <Modal visible={visible} animationType="none" transparent presentationStyle="overFullScreen" onRequestClose={onDismiss}>
-      <ObservationImageEditView onDismiss={handleDismiss} onViewDismissed={handleDismiss} onSetCaption={onSetCaption} initialCaption={image?.caption} />
-    </Modal>
-  );
-};
-
-export const useObservationPickImages = ({maxImageCount, disable}: {maxImageCount: number; disable: boolean}) => {
+export const useAvalanchePickImages = ({maxImageCount, disable}: {maxImageCount: number; disable: boolean}) => {
   const [imagePermissions] = ImagePicker.useMediaLibraryPermissions();
   const missingImagePermissions = imagePermissions !== null && !imagePermissions.granted && !imagePermissions.canAskAgain;
 
-  const {field} = useController<ObservationFormData, 'images'>({name: 'images', defaultValue: []});
+  const {field} = useController<AvalancheObservationFormData, 'images'>({name: 'images', defaultValue: []});
   const images = field.value;
   const imageCount = images?.length ?? 0;
 
@@ -109,13 +65,13 @@ export const useObservationPickImages = ({maxImageCount, disable}: {maxImageCoun
   return {onPickImage: pickImage, isDisabled};
 };
 
-interface ObservationAddImageButtonProps extends ViewProps {
+interface AvalancheAddImageButtonProps extends ViewProps {
   maxImageCount: number;
   disable?: boolean;
   space?: number;
 }
 
-export const ObservationAddImageButton: React.FC<ObservationAddImageButtonProps> = ({maxImageCount, disable = false, space = 4, ...props}) => {
+export const AvalancheAddImageButton: React.FC<AvalancheAddImageButtonProps> = ({maxImageCount, disable = false, space = 4, ...props}) => {
   const renderAddImageButton = useCallback(
     ({textColor}: {textColor: ColorValue}) => (
       <HStack alignItems="center" space={space}>
@@ -126,16 +82,16 @@ export const ObservationAddImageButton: React.FC<ObservationAddImageButtonProps>
     [space],
   );
 
-  const {onPickImage, isDisabled} = useObservationPickImages({maxImageCount, disable});
+  const {onPickImage, isDisabled} = useAvalanchePickImages({maxImageCount, disable});
 
   return <Button buttonStyle="normal" onPress={onPickImage} disabled={isDisabled} renderChildren={renderAddImageButton} {...props} />;
 };
 
-export const ObservationImagePicker: React.FC<{
+export const AvalancheImagePicker: React.FC<{
   maxImageCount: number;
   onModalDisplayed: (isOpen: boolean) => void;
 }> = ({maxImageCount, onModalDisplayed}) => {
-  const {field} = useController<ObservationFormData, 'images'>({name: 'images', defaultValue: []});
+  const {field} = useController<AvalancheObservationFormData, 'images'>({name: 'images', defaultValue: []});
   const images = field.value;
 
   const [editingImage, setEditingImage] = useState<ImageAndCaption | null>(null);
@@ -237,36 +193,6 @@ export const ObservationImagePicker: React.FC<{
       {images?.length === 0 && <Body>You can add up to {maxImageCount} images.</Body>}
       <ImageCaptionField image={editingImage} onUpdateImage={onUpdateImageCaption} onDismiss={onDismiss} onModalDisplayed={onModalDisplayed} />
     </>
-  );
-};
-
-type SizingProps = Omit<ViewProps, 'onLayout' | 'children'> & {
-  children: (size: {width: number; height: number}) => React.ReactNode;
-};
-
-export const ImageSizingView: React.FC<SizingProps> = ({children, ...props}) => {
-  const [state, setState] = useState<{width: number; height: number} | null>(null);
-
-  const handleLayout = useCallback((event: LayoutChangeEvent) => {
-    setState(current => {
-      if (event.nativeEvent.layout == null) {
-        return current;
-      }
-      const next = {width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height};
-      if (current == null) {
-        return next;
-      }
-
-      if (next.height === current.height && next.width === current.width) {
-        return current;
-      }
-      return next;
-    });
-  }, []);
-  return (
-    <View onLayout={handleLayout} {...props}>
-      {state != null && children(state)}
-    </View>
   );
 };
 
