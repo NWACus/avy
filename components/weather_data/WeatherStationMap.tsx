@@ -147,38 +147,30 @@ export const WeatherStationMap: React.FunctionComponent<{
   const sortedStations = React.useMemo(
     () => ({
       ...clusteredStations,
-      features: clusteredStations.features
-        .map(f => ({
-          ...f,
-          properties: {
-            ...f.properties,
-            latitudeRow: Math.round(f.geometry.coordinates[1] * 2.0),
-          },
-        }))
-        .sort((a, b) => {
-          // Sort by cluster...
-          const avalancheCenterLongLat: Coord = [avalancheCenterMapRegion.longitude, avalancheCenterMapRegion.latitude];
+      features: clusteredStations.features.sort((a, b) => {
+        // Sort by cluster...
+        const avalancheCenterLongLat: Coord = [avalancheCenterMapRegion.longitude, avalancheCenterMapRegion.latitude];
 
-          if (a.properties.cluster !== b.properties.cluster) {
-            if (a.properties.cluster == null && b.properties.cluster != null) {
-              // Sort clustered values ahead of non clustered values
-              return 1;
-            }
-            if (a.properties.cluster != null && b.properties.cluster == null) {
-              // Sort clustered values ahead of non clustered values
-              return -1;
-            }
-            if (a.properties.cluster != null && b.properties.cluster != null) {
-              // Different clusters, but both clustered
-              // Sort clusters by closest to the avalanche center map region
-              const aClusterCentroid = a.properties.clusterCentroid ?? [0, 0];
-              const bClusterCentroid = b.properties.clusterCentroid ?? [0, 0];
-              return turfDistance(avalancheCenterLongLat, aClusterCentroid) - turfDistance(avalancheCenterLongLat, bClusterCentroid);
-            }
+        if (a.properties.cluster !== b.properties.cluster) {
+          if (a.properties.cluster == null && b.properties.cluster != null) {
+            // Sort clustered values ahead of non clustered values
+            return 1;
           }
-          // ...then left to right based on longitude
-          return turfDistance(avalancheCenterLongLat, a.geometry.coordinates) - turfDistance(avalancheCenterLongLat, b.geometry.coordinates);
-        }),
+          if (a.properties.cluster != null && b.properties.cluster == null) {
+            // Sort clustered values ahead of non clustered values
+            return -1;
+          }
+          if (a.properties.cluster != null && b.properties.cluster != null) {
+            // Different clusters, but both clustered
+            // Sort clusters by closest to the avalanche center map region
+            const aClusterCentroid = a.properties.clusterCentroid ?? [0, 0];
+            const bClusterCentroid = b.properties.clusterCentroid ?? [0, 0];
+            return turfDistance(avalancheCenterLongLat, aClusterCentroid) - turfDistance(avalancheCenterLongLat, bClusterCentroid);
+          }
+        }
+        // ...then left to right based on longitude
+        return turfDistance(avalancheCenterLongLat, a.geometry.coordinates) - turfDistance(avalancheCenterLongLat, b.geometry.coordinates);
+      }),
     }),
     [clusteredStations, avalancheCenterMapRegion],
   );
