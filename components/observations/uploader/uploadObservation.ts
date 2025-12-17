@@ -22,7 +22,6 @@ export async function uploadObservation(id: string, data: ObservationTaskData): 
       date: format(avalanche.date, 'yyyy-MM-dd'),
       elevation: Number(avalanche.elevation),
       number: Number(avalanche.number),
-      media: [],
     })),
   };
   try {

@@ -4,7 +4,7 @@ import {AxiosError} from 'axios';
 import _ from 'lodash';
 import uuid from 'react-native-uuid';
 
-import {ObservationFormData} from 'components/observations/ObservationFormData';
+import {ImagePickerAssetSchema, ObservationFormData} from 'components/observations/ObservationFormData';
 import {
   ImageTaskData,
   ObservationTask,
@@ -169,32 +169,18 @@ export class ObservationUploader {
       const observationTaskId = uuid.v4();
 
       observationFormData.images?.forEach(({image, caption}) => {
-        tasks.push({
-          id: uuid.v4(),
-          parentId: observationTaskId,
-          attemptCount: 0,
-          type: 'image',
-          status: 'pending',
-          data: {
-            apiPrefix: apiPrefix,
-            image: {
-              uri: image.uri,
-              width: image.width,
-              height: image.height,
-              exif: image.exif
-                ? {
-                    Orientation: typeof image.exif.Orientation === 'string' || typeof image.exif.Orientation === 'number' ? image.exif.Orientation : undefined,
-                    DateTimeOriginal: typeof image.exif.DateTimeOriginal === 'string' ? image.exif.DateTimeOriginal : undefined,
-                  }
-                : undefined,
-            },
-            caption,
-            name: name ?? '',
-            title: `Public Observation: ${observationFormData.location_name}`,
-            center_id: center_id,
-            photoUsage: photoUsage ?? MediaUsage.Credit,
-          },
+        this.addImageTask(tasks, image, caption, apiPrefix, center_id, observationFormData.location_name, observationTaskId, photoUsage, name);
+      });
+
+      observationFormData.avalanches.forEach((avalanche, index) => {
+        avalanche.images?.forEach(({image, caption}) => {
+          this.addImageTask(tasks, image, caption, apiPrefix, center_id, avalanche.location, observationTaskId, photoUsage, name, index);
         });
+      });
+
+      // Remove images from the observation form data since they're handled in separate tasks
+      observationFormData.avalanches.forEach((avalanche, _) => {
+        delete avalanche.images;
       });
 
       const url = `${apiPrefix}/obs/v1/public/observation/`;
@@ -226,6 +212,47 @@ export class ObservationUploader {
     }
   }
 
+  private addImageTask = (
+    tasks: TaskQueueEntry[],
+    image: ImagePickerAssetSchema,
+    caption: string | undefined,
+    apiPrefix: string,
+    center_id: AvalancheCenterID,
+    locationName: string,
+    observationTaskId: string,
+    photoUsage: MediaUsage,
+    name: string,
+    avalancheIndex?: number | undefined,
+  ) => {
+    tasks.push({
+      id: uuid.v4(),
+      parentId: observationTaskId,
+      avalancheId: avalancheIndex,
+      attemptCount: 0,
+      type: 'image',
+      status: 'pending',
+      data: {
+        apiPrefix: apiPrefix,
+        image: {
+          uri: image.uri,
+          width: image.width,
+          height: image.height,
+          exif: image.exif
+            ? {
+                Orientation: typeof image.exif.Orientation === 'string' || typeof image.exif.Orientation === 'number' ? image.exif.Orientation : undefined,
+                DateTimeOriginal: typeof image.exif.DateTimeOriginal === 'string' ? image.exif.DateTimeOriginal : undefined,
+              }
+            : undefined,
+        },
+        caption,
+        name: name ?? '',
+        title: `Public Observation: ${locationName}`,
+        center_id: center_id,
+        photoUsage: photoUsage ?? MediaUsage.Credit,
+      },
+    });
+  };
+
   private async processTaskQueue() {
     this.pendingTaskQueueUpdate = null;
     this.logger.debug({queue: this.taskQueue}, 'processTaskQueue');
@@ -246,7 +273,11 @@ export class ObservationUploader {
             if (!parentTask || parentTask.type !== 'observation') {
               this.logger.warn({entry, parentTask, queue: this.taskQueue}, `Unexpected: image task has no parent observation task`);
             } else {
-              parentTask.data.extraData.media.push(mediaItem);
+              if (entry.avalancheId != null && parentTask.data.formData.avalanches.length > entry.avalancheId) {
+                parentTask.data.formData.avalanches[entry.avalancheId].media.push(mediaItem);
+              } else {
+                parentTask.data.extraData.media.push(mediaItem);
+              }
               // this change will be flushed in the `finally` block below
             }
           }

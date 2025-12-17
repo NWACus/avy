@@ -2,7 +2,7 @@ import {ImagePickerAsset} from 'expo-image-picker';
 import {merge} from 'lodash';
 import {z} from 'zod';
 
-import {Activity, AvalancheAspect, AvalancheTrigger, AvalancheType, InstabilityDistribution, MediaUsage, PartnerType} from 'types/nationalAvalancheCenter';
+import {Activity, AvalancheAspect, AvalancheTrigger, AvalancheType, InstabilityDistribution, mediaItemSchema, MediaUsage, PartnerType} from 'types/nationalAvalancheCenter';
 
 const FAKE_OBSERVATION_DATA: Partial<ObservationFormData> = {
   activity: ['skiing_snowboarding'],
@@ -51,6 +51,8 @@ export const defaultAvalancheObservationFormData = (): Partial<AvalancheObservat
   location: '',
   comments: '',
   number: '1',
+  images: [],
+  media: [],
 });
 
 const required = 'This field is required.';
@@ -102,23 +104,36 @@ const imageAssetSchema = z
     mimeType: true,
   });
 
-export const avalancheObservationFormSchema = z.object({
-  status: z.string(),
-  private: z.boolean(),
-  date: z.date({required_error: required}),
-  date_known: z.boolean().nullable().optional(),
-  time: z.string().nullable().optional(),
-  time_known: z.boolean().nullable().optional(),
-  location: z.string(),
-  location_point: locationPointSchema,
-  number: z.string().regex(/^\d+$/, 'Number of avalanches must be a number.'),
-  problem_type: z.nativeEnum(AvalancheType).or(z.string().length(0)).nullable().optional(), // Might need to be renamed to "problem type"
-  trigger: z.nativeEnum(AvalancheTrigger).or(z.string().length(0)),
-  d_size: z.string().regex(/^\d+(?:\.\d{1})?$/, 'Destructive size must be a number.'),
-  elevation: z.string().regex(/^\d+$/, 'Elevation must be a number.'),
-  aspect: z.nativeEnum(AvalancheAspect).or(z.string().length(0)),
-  comments: z.string().nullable().optional(),
-});
+const imageAssetWithCaptionSchema = z
+  .object({
+    image: imageAssetSchema,
+    caption: z.string(),
+  })
+  .partial({
+    caption: true,
+  });
+
+export const avalancheObservationFormSchema = z
+  .object({
+    status: z.string(),
+    private: z.boolean(),
+    date: z.date({required_error: required}),
+    date_known: z.boolean().nullable().optional(),
+    time: z.string().nullable().optional(),
+    time_known: z.boolean().nullable().optional(),
+    location: z.string(),
+    location_point: locationPointSchema,
+    number: z.string().regex(/^\d+$/, 'Number of avalanches must be a whole number.'),
+    problem_type: z.nativeEnum(AvalancheType).or(z.string().length(0)).nullable().optional(), // Might need to be renamed to "problem type"
+    trigger: z.nativeEnum(AvalancheTrigger).or(z.string().length(0)),
+    d_size: z.string().regex(/^\d+(?:\.\d{1})?$/, 'Destructive size must be a number.'),
+    elevation: z.string().regex(/^\d+$/, 'Elevation must be a whole number.'),
+    aspect: z.nativeEnum(AvalancheAspect).or(z.string().length(0)),
+    comments: z.string().nullable().optional(),
+    media: z.array(mediaItemSchema),
+    images: z.array(imageAssetWithCaptionSchema),
+  })
+  .partial({images: true});
 
 // For the form, we have specific rules that we require for any new observations
 // we create, thus we don't reuse the existing observationSchema
@@ -152,16 +167,7 @@ export const simpleObservationFormSchema = z
     private: z.boolean(),
     // Using `coerce` allows us to transparently round-trip a Date object to JSON and back
     start_date: z.coerce.date({required_error: required}),
-    images: z.array(
-      z
-        .object({
-          image: imageAssetSchema,
-          caption: z.string(),
-        })
-        .partial({
-          caption: true,
-        }),
-    ),
+    images: z.array(imageAssetWithCaptionSchema),
   })
   .partial({images: true})
   .superRefine((arg, ctx) => {
@@ -216,6 +222,8 @@ export interface ImageAndCaption {
 }
 
 export interface ImagePickerAssetSchema extends z.infer<typeof imageAssetSchema> {}
+
+export interface ImagePickerAssetWithCaption extends z.infer<typeof imageAssetWithCaptionSchema> {}
 
 export interface ObservationFormData extends z.infer<typeof simpleObservationFormSchema> {}
 

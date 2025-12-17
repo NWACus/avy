@@ -1,20 +1,22 @@
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useFocusEffect} from '@react-navigation/native';
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
 import {Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, TouchableOpacity} from 'react-native';
-import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {AntDesign} from '@expo/vector-icons';
 import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {Button} from 'components/content/Button';
+import {Card} from 'components/content/Card';
 import {Divider, HStack, VStack, View} from 'components/core';
 import {DateField} from 'components/form/DateField';
 import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
+import {AvalancheAddImageButton, AvalancheImagePicker} from 'components/observations/AvalancheImagePicker';
 import {AvalancheObservationFormData, avalancheObservationFormSchema, defaultAvalancheObservationFormData} from 'components/observations/ObservationFormData';
 import {BodySemibold, Title3Semibold} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -40,6 +42,8 @@ export const AvalancheObservationForm: React.FC<{
     shouldFocusError: false,
     shouldUnregister: true,
   });
+
+  const insets = useSafeAreaInsets();
 
   const postHog = usePostHog();
 
@@ -73,6 +77,7 @@ export const AvalancheObservationForm: React.FC<{
       // Force validation errors to show up on fields that haven't been visited yet
       formContext.setValue('status', 'published');
       formContext.setValue('private', false);
+      formContext.setValue('media', []);
       await formContext.trigger();
       // Then try to submit the form
       void formContext.handleSubmit(onSaveHandler, onSaveError)();
@@ -101,16 +106,20 @@ export const AvalancheObservationForm: React.FC<{
     }
   }, [onClose, formContext]);
 
+  const [_, setIsImagePickerDisplayed] = useState(false);
+
   const formFieldSpacing = 16;
+
+  const maxImageCount = 4;
 
   return (
     <FormProvider {...formContext}>
-      <Modal visible={visible} animationType="slide" onRequestClose={onCloseHandler}>
-        <SelectModalProvider>
-          <SafeAreaProvider>
-            <SafeAreaView style={{flex: 1}}>
+      <SafeAreaProvider>
+        <Modal visible={visible} animationType="slide" onRequestClose={onCloseHandler}>
+          <SelectModalProvider>
+            <View flex={1} style={{paddingTop: insets.top}}>
               <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}}>
-                <ScrollView>
+                <ScrollView style={{flex: 1}} contentContainerStyle={{paddingBottom: insets.bottom}}>
                   <AvalancheObservationFormHeader onClose={onCloseHandler} />
                   <VStack>
                     <VStack space={formFieldSpacing} paddingBottom={32} paddingHorizontal={16}>
@@ -161,33 +170,47 @@ export const AvalancheObservationForm: React.FC<{
 
                       <AvalancheObservationTextField
                         name="elevation"
-                        label="Eelvation (ft)"
+                        label="Elevation (ft)"
                         textInputProps={{
-                          placeholder: 'Enter the elevation where the avalanche occurred.',
+                          placeholder: 'Elevation of the top of the crown.',
                           keyboardType: 'number-pad',
+                          returnKeyType: 'done',
                         }}
                       />
 
                       <AvalancheObservationTextField
                         name="number"
-                        label="Number (ft)"
+                        label="Number"
                         textInputProps={{
                           placeholder: 'Use if submitting general information for multipe avalanches',
                           keyboardType: 'number-pad',
+                          returnKeyType: 'done',
                         }}
                       />
                     </VStack>
-
+                    <Card
+                      borderRadius={0}
+                      borderColor="white"
+                      header={
+                        <HStack justifyContent="space-between">
+                          <Title3Semibold>Photos</Title3Semibold>
+                          <AvalancheAddImageButton maxImageCount={maxImageCount} space={4} py={4} pl={4} pr={8} />
+                        </HStack>
+                      }>
+                      <VStack space={formFieldSpacing} mt={8}>
+                        <AvalancheImagePicker maxImageCount={maxImageCount} onModalDisplayed={setIsImagePickerDisplayed} />
+                      </VStack>
+                    </Card>
                     <Button mx={16} mt={8} buttonStyle="primary" onPress={onSavePress}>
                       <BodySemibold>{'Save avalanche'}</BodySemibold>
                     </Button>
                   </VStack>
                 </ScrollView>
               </KeyboardAvoidingView>
-            </SafeAreaView>
-          </SafeAreaProvider>
-        </SelectModalProvider>
-      </Modal>
+            </View>
+          </SelectModalProvider>
+        </Modal>
+      </SafeAreaProvider>
     </FormProvider>
   );
 };
