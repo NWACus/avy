@@ -119,7 +119,7 @@ export const AvalancheObservationForm: React.FC<{
           <SelectModalProvider>
             <View flex={1} style={{paddingTop: insets.top}}>
               <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}}>
-                <ScrollView style={{flex: 1}} contentContainerStyle={{paddingBottom: insets.bottom}}>
+                <ScrollView style={{flex: 1}} contentContainerStyle={{paddingBottom: insets.bottom}} keyboardShouldPersistTaps="handled">
                   <AvalancheObservationFormHeader onClose={onCloseHandler} />
                   <VStack>
                     <VStack space={formFieldSpacing} paddingBottom={32} paddingHorizontal={16}>
