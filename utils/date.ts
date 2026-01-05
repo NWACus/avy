@@ -113,8 +113,7 @@ export const observationStartDateToLocalShortDateString = (date: Date | string |
   if (date == null) {
     return 'Unknown';
   }
-  const d = typeof date === 'string' ? toDate(date, {timeZone: 'America/Los_Angeles'}) : date;
-  d.setHours(12);
+  const d = typeof date === 'string' ? toDate(date, {timeZone: 'America/Anchorage'}) : date;
   return format(d, `MMM d, yyyy`);
 };
 
@@ -124,8 +123,8 @@ export const observationStartDateToLocalDateString = (date: Date | string | unde
   if (date == null) {
     return 'Unknown';
   }
-  const d = typeof date === 'string' ? toDate(date, {timeZone: 'America/Los_Angeles'}) : date;
-  d.setHours(12);
+
+  const d = typeof date === 'string' ? toDate(date, {timeZone: 'America/Anchorage'}) : date;
   return format(d, `EEEE, MMMM d, yyyy`);
 };
 
