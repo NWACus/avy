@@ -108,7 +108,9 @@ export const utcDateToLocalShortDateString = (date: Date | string | undefined | 
 };
 
 // This is used when dealing with observation start dates. These dates are given to us with no time zone or timestamp.
-// By giving it a timezone and setting it to miday, the date can be accurately represented in local time regardless of time zone shifts.
+// By setting the time zone to Anchorage, we're creating a buffer for the user so that localized date for the user anywhere east of Anchorage will show the same day.
+// The issue with setting it to Pacific time is that when toDate() is called, the Date object is set to midnight in the given time zone. That means that users in
+// Alaska see the date as 1 day before the original date after localization is done because they're 1 hour behind.
 export const observationStartDateToLocalShortDateString = (date: Date | string | undefined | null): string => {
   if (date == null) {
     return 'Unknown';
@@ -118,7 +120,9 @@ export const observationStartDateToLocalShortDateString = (date: Date | string |
 };
 
 // This is used when dealing with observation start dates. These dates are given to us with no time zone or timestamp.
-// By giving it a timezone and setting it to miday, the date can be accurately represented in local time regardless of time zone shifts.
+// By setting the time zone to Anchorage, we're creating a buffer for the user so that localized date for the user anywhere east of Anchorage will show the same day.
+// The issue with setting it to Pacific time is that when toDate() is called, the Date object is set to midnight in the given time zone. That means that users in
+// Alaska see the date as 1 day before the original date after localization is done because they're 1 hour behind.
 export const observationStartDateToLocalDateString = (date: Date | string | undefined | null): string => {
   if (date == null) {
     return 'Unknown';
