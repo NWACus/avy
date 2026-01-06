@@ -98,8 +98,8 @@ export const EditDeleteCard: React.FunctionComponent<PropsWithChildren<EditDelet
                 <AntDesign.Button
                   size={16}
                   name="edit"
-                  color="white"
-                  backgroundColor="rgba(0, 0, 0, 0.3)"
+                  color="rgba(0, 0, 0, 0.8)"
+                  backgroundColor="white"
                   iconStyle={{marginRight: 0}}
                   style={{textAlign: 'center'}}
                   onPress={onEditHandler}
@@ -109,8 +109,8 @@ export const EditDeleteCard: React.FunctionComponent<PropsWithChildren<EditDelet
               <AntDesign.Button
                 size={16}
                 name="delete"
-                color="white"
-                backgroundColor="rgba(0, 0, 0, 0.3)"
+                color="rgba(0, 0, 0, 0.8)"
+                backgroundColor="white"
                 iconStyle={{marginRight: 0}}
                 style={{textAlign: 'center'}}
                 onPress={onDeleteHandler}
