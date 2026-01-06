@@ -536,9 +536,14 @@ export const ObservationForm: React.FC<{
 
                         <ObservationTextField
                           name="avalanches_summary"
-                          label="Avalanche Summary"
+                          label="Observed avalanches"
                           ref={fieldRefs.avalanches_summary}
                           textInputProps={{
+                            placeholder: `• Location, aspect, and elevation
+• How recently did it occur?
+• Natural or triggered?
+• Was anyone caught?
+• Avalanche size, width, and depth`,
                             multiline: true,
                           }}
                           pb={formFieldSpacing}
