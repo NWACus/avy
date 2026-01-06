@@ -124,7 +124,7 @@ export const avalancheObservationFormSchema = z
     location: z.string(),
     location_point: locationPointSchema,
     number: z.string().regex(/^\d+$/, 'Number of avalanches must be a whole number.'),
-    problem_type: z.nativeEnum(AvalancheType).or(z.string().length(0)).nullable().optional(), // Might need to be renamed to "problem type"
+    avalanche_type: z.nativeEnum(AvalancheType).or(z.string().length(0)).nullable().optional(), // Might need to be renamed to "problem type"
     trigger: z.nativeEnum(AvalancheTrigger).or(z.string().length(0)),
     d_size: z.string().regex(/^\d+(?:\.\d{1})?$/, 'Destructive size must be a number.'),
     elevation: z.string().regex(/^\d+$/, 'Elevation must be a whole number.'),

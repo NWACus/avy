@@ -21,7 +21,16 @@ import {AvalancheObservationFormData, avalancheObservationFormSchema, defaultAva
 import {BodySemibold, Title3Semibold} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
-import {AvalancheAspect, AvalancheCenterID, AvalancheTrigger, FormatAvalancheAspect, FormatAvalancheTrigger, reverseLookup} from 'types/nationalAvalancheCenter';
+import {
+  AvalancheAspect,
+  AvalancheCenterID,
+  AvalancheTrigger,
+  AvalancheType,
+  FormatAvalancheAspect,
+  FormatAvalancheTrigger,
+  FormatAvalancheType,
+  reverseLookup,
+} from 'types/nationalAvalancheCenter';
 
 /**
  * AvalancheObservationTextField can only have a name prop that is a key of a string value.
@@ -154,6 +163,14 @@ export const AvalancheObservationForm: React.FC<{
                         prompt="Avalanche Size - Destructive Potential"
                         minItemsShown={5}
                         items={Object.values(AvalancheSize).map(size => ({label: FormatAvalancheSize(size), value: size}))}
+                      />
+
+                      <SelectField
+                        name="avalanche_type"
+                        label="Problem Type"
+                        prompt="What type of avalanche did you observe?"
+                        minItemsShown={5}
+                        items={Object.values(AvalancheType).map(type => ({label: FormatAvalancheType(type), value: type}))}
                       />
 
                       <AvalancheObservationTextField
