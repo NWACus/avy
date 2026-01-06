@@ -90,8 +90,9 @@ export const AvalancheObservationForm: React.FC<{
   }, [formContext, onSaveHandler, onSaveError]);
 
   const onCloseHandler = useCallback(() => {
+    formContext.reset();
     onClose();
-  }, [onClose]);
+  }, [formContext, onClose]);
 
   const [_, setIsImagePickerDisplayed] = useState(false);
 

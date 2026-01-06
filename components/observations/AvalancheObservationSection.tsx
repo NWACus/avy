@@ -84,7 +84,7 @@ export const AvalancheObservationSection: React.FC<{center_id: AvalancheCenterID
               header={<BodySemibold>{avalanche.location}</BodySemibold>}>
               <HStack space={8}>
                 <Body>{avalanche.date.toDateString()}</Body>
-                <Body>{`D: ${avalanche.d_size}`}</Body>
+                <Body>{`D${avalanche.d_size}`}</Body>
                 <Body>{avalanche.elevation} ft</Body>
               </HStack>
             </EditDeleteCard>
