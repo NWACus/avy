@@ -13,10 +13,17 @@ import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 export const AvalancheObservationSection: React.FC<{center_id: AvalancheCenterID; disabled: boolean; busy: boolean}> = ({center_id, disabled, busy}) => {
   const [isAvyObsModalDislayed, setAvyObsModalDisplayed] = useState(false);
+  const [editAvyObsIndex, setEditAvyObsIndex] = useState<number | null>(null);
   const {field} = useController<ObservationFormData, 'avalanches'>({name: 'avalanches', defaultValue: []});
   const avalancheObs = field.value;
 
-  const onAvyObsModalClose = useCallback(() => setAvyObsModalDisplayed(false), [setAvyObsModalDisplayed]);
+  const onAvyObsModalClose = useCallback(() => {
+    setAvyObsModalDisplayed(false);
+    if (editAvyObsIndex != null) {
+      setEditAvyObsIndex(null);
+    }
+  }, [setAvyObsModalDisplayed, editAvyObsIndex, setEditAvyObsIndex]);
+
   const onNewAvyObsSave = useCallback(
     (avalancheData: AvalancheObservationFormData) => {
       field.onChange([...avalancheObs, avalancheData]);
@@ -24,6 +31,20 @@ export const AvalancheObservationSection: React.FC<{center_id: AvalancheCenterID
     },
     [setAvyObsModalDisplayed, avalancheObs, field],
   );
+
+  const onEditAvyObsSave = useCallback(
+    (avalancheData: AvalancheObservationFormData) => {
+      if (editAvyObsIndex != null) {
+        avalancheObs[editAvyObsIndex] = avalancheData;
+      }
+
+      field.onChange([...avalancheObs]);
+      setAvyObsModalDisplayed(false);
+      setEditAvyObsIndex(null);
+    },
+    [setAvyObsModalDisplayed, avalancheObs, field, editAvyObsIndex, setEditAvyObsIndex],
+  );
+
   const onToggleAvyObsModal = useCallback(() => setAvyObsModalDisplayed(true), [setAvyObsModalDisplayed]);
 
   const onDeleteItem = useCallback(
@@ -34,6 +55,16 @@ export const AvalancheObservationSection: React.FC<{center_id: AvalancheCenterID
   );
 
   const handleDeleteItem = (index: number) => () => onDeleteItem(index);
+
+  const onEditItem = useCallback(
+    (index: number) => {
+      setEditAvyObsIndex(index);
+      setAvyObsModalDisplayed(true);
+    },
+    [setAvyObsModalDisplayed, setEditAvyObsIndex],
+  );
+
+  const handleEditItem = (index: number) => () => onEditItem(index);
 
   return (
     <>
@@ -47,11 +78,13 @@ export const AvalancheObservationSection: React.FC<{center_id: AvalancheCenterID
               my={2}
               py={1}
               borderRadius={10}
+              noDivider
               onDeletePress={handleDeleteItem(index)}
+              onEditPress={handleEditItem(index)}
               header={<BodySemibold>{avalanche.location}</BodySemibold>}>
               <HStack space={8}>
                 <Body>{avalanche.date.toDateString()}</Body>
-                <Body>{avalanche.d_size}</Body>
+                <Body>{`D: ${avalanche.d_size}`}</Body>
                 <Body>{avalanche.elevation} ft</Body>
               </HStack>
             </EditDeleteCard>
@@ -59,7 +92,13 @@ export const AvalancheObservationSection: React.FC<{center_id: AvalancheCenterID
         </VStack>
       )}
       <AddAvalancheObsButton onPress={onToggleAvyObsModal} disabled={disabled} busy={busy} />
-      <AvalancheObservationForm visible={isAvyObsModalDislayed} onSave={onNewAvyObsSave} onClose={onAvyObsModalClose} center_id={center_id} />
+      <AvalancheObservationForm
+        visible={isAvyObsModalDislayed}
+        onSave={editAvyObsIndex == null ? onNewAvyObsSave : onEditAvyObsSave}
+        onClose={onAvyObsModalClose}
+        center_id={center_id}
+        initialData={editAvyObsIndex != null ? avalancheObs[editAvyObsIndex] : undefined}
+      />
     </>
   );
 };

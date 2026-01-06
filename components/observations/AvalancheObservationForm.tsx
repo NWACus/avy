@@ -1,9 +1,9 @@
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useFocusEffect} from '@react-navigation/native';
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
-import {Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, TouchableOpacity} from 'react-native';
+import {KeyboardAvoidingView, Modal, Platform, ScrollView, TouchableOpacity} from 'react-native';
 import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {AntDesign} from '@expo/vector-icons';
@@ -30,18 +30,23 @@ const AvalancheObservationTextField = TextField as TextFieldComponent<AvalancheO
 
 export const AvalancheObservationForm: React.FC<{
   visible: boolean;
+  initialData?: AvalancheObservationFormData;
   center_id: AvalancheCenterID;
   onClose: () => void;
   onSave: (data: AvalancheObservationFormData) => void;
-}> = ({visible, center_id, onClose, onSave}) => {
+}> = ({visible, center_id, initialData, onClose, onSave}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
+
   const formContext = useForm<AvalancheObservationFormData>({
-    defaultValues: defaultAvalancheObservationFormData(),
     resolver: zodResolver(avalancheObservationFormSchema),
     mode: 'onBlur',
     shouldFocusError: false,
     shouldUnregister: true,
   });
+
+  useEffect(() => {
+    formContext.reset(initialData != null ? initialData : defaultAvalancheObservationFormData());
+  }, [formContext, initialData]);
 
   const insets = useSafeAreaInsets();
 
@@ -74,7 +79,7 @@ export const AvalancheObservationForm: React.FC<{
 
   const onSavePress = useCallback(() => {
     void (async () => {
-      // Force validation errors to show up on fields that haven't been visited yet
+      // Set fields that haven't been visited yet
       formContext.setValue('status', 'published');
       formContext.setValue('private', false);
       formContext.setValue('media', []);
@@ -85,26 +90,8 @@ export const AvalancheObservationForm: React.FC<{
   }, [formContext, onSaveHandler, onSaveError]);
 
   const onCloseHandler = useCallback(() => {
-    if (formContext.formState.isDirty) {
-      Alert.alert('Discard changes?', 'By closing the form, you will lose unsaved avalanche obvservation data. Are you sure you want to discard them?', [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Discard',
-          style: 'destructive',
-          onPress: () => {
-            formContext.reset();
-            onClose();
-          },
-        },
-      ]);
-    } else {
-      formContext.reset();
-      onClose();
-    }
-  }, [onClose, formContext]);
+    onClose();
+  }, [onClose]);
 
   const [_, setIsImagePickerDisplayed] = useState(false);
 
@@ -180,7 +167,7 @@ export const AvalancheObservationForm: React.FC<{
 
                       <AvalancheObservationTextField
                         name="number"
-                        label="Number"
+                        label="Number (of avalanches)"
                         textInputProps={{
                           placeholder: 'Use if submitting general information for multipe avalanches',
                           keyboardType: 'number-pad',
