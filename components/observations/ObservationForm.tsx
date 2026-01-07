@@ -520,6 +520,7 @@ export const ObservationForm: React.FC<{
                           label="How widespread was the collapsing?"
                           items={[
                             {value: InstabilityDistribution.Isolated, label: 'Isolated'},
+                            {value: InstabilityDistribution.Specific, label: 'Specific'},
                             {value: InstabilityDistribution.Widespread, label: 'Widespread'},
                           ]}
                           prompt=" "
