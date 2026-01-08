@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react-native';
-import {UseQueryResult} from '@tanstack/react-query';
+import {onlineManager, UseQueryResult} from '@tanstack/react-query';
 import ErrorIllustration from 'assets/illustrations/Error.svg';
-import NoGPS from 'assets/illustrations/NoGPS.svg';
+import NoConnection from 'assets/illustrations/NoConnection.svg';
 import NoSearchResult from 'assets/illustrations/NoSearchResult.svg';
 import {Outcome} from 'components/content/Outcome';
 import {HStack} from 'components/core';
@@ -32,6 +32,10 @@ export const QueryState: React.FunctionComponent<QueryStateProps> = ({results, t
   }
 
   if (results.map(result => result.isLoading).reduce((accumulator, value) => accumulator || value)) {
+    if (!onlineManager.isOnline()) {
+      return <ConnectionLost />;
+    }
+
     return <Loading />;
   }
 
@@ -117,17 +121,11 @@ export const ConnectionLost: React.FunctionComponent = () => {
     return (
       <Outcome
         headline={'Oh no!'}
-        body={'Something went wrong, please try again.'}
-        illustration={<NoGPS />}
+        body={"It looks like you're not connected to the internet. Please reconnect and try again."}
+        illustration={<NoConnection />}
         illustrationBottomMargin={-32}
         illustrationLeftMargin={-16}
         onRetry={setLoadingOn}
-        // onClose={() =>
-        //   navigation.navigate('Home', {
-        //     screen: 'avalancheCenter',
-        //     params: {},
-        //   })
-        // }
       />
     );
   }
