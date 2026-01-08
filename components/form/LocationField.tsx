@@ -34,71 +34,19 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   } = useController<ObservationFormData>({name: name});
   const [modalVisible, setModalVisible] = useState(false);
 
-  const mapLayerResult = useMapLayer(center);
-  const mapLayer = mapLayerResult.data;
-  const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
-  const [mapReady, setMapReady] = useState<boolean>(false);
-  const mapRef = useRef<MapView>(null);
-
-  const mapPanResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderRelease: (event, gestureState) => {
-        if (gestureState.dx != 0 && gestureState.dy != 0) {
-          return;
-        }
-
-        void (async () => {
-          const point = {x: event.nativeEvent.locationX, y: event.nativeEvent.locationY};
-          const coordinate = await mapRef.current?.coordinateForPoint(point);
-          if (coordinate) {
-            field.onChange(latLngToLocationPoint(coordinate));
-          }
-        })();
-      },
-    }),
-  ).current;
-
   const toggleModal = useCallback(() => {
     setModalVisible(!modalVisible);
   }, [modalVisible, setModalVisible]);
 
   const value: LocationPoint | undefined = field.value as LocationPoint | undefined;
 
-  const toggleModalandClearLocation = useCallback(() => {
-    field.onChange(null);
-    setModalVisible(!modalVisible);
-  }, [modalVisible, setModalVisible, field]);
-
-  useEffect(() => {
-    if (mapLayer && !mapReady) {
-      const location: LocationPoint = value || {lat: 0, lng: 0};
-      const initialRegion = defaultMapRegionForGeometries(mapLayer.features.map(feature => feature.geometry));
-      if (location.lat !== 0 && location.lng !== 0) {
-        initialRegion.latitude = location.lat;
-        initialRegion.longitude = location.lng;
-      }
-      setInitialRegion(initialRegion);
-      setMapReady(true);
-    }
-  }, [mapLayer, setInitialRegion, value, mapReady, setMapReady]);
-
-  const zones: MapViewZone[] =
-    mapLayer?.features.map(
-      (feature): MapViewZone => ({
-        zone_id: feature.id,
-        name: feature.properties.name,
-        center_id: center,
-        feature: feature,
-        hasWarning: feature.properties.warning?.product !== null,
-        start_date: feature.properties.start_date,
-        end_date: feature.properties.end_date,
-        fillOpacity: feature.properties.fillOpacity,
-      }),
-    ) ?? [];
-
-  const emptyHandler = useCallback(() => undefined, []);
+  const onLocationSave = useCallback(
+    (newLocation: LocationPoint) => {
+      field.onChange(newLocation);
+      setModalVisible(!modalVisible);
+    },
+    [field, setModalVisible, modalVisible],
+  );
 
   return (
     <>
@@ -117,57 +65,131 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
         {/* TODO: animate the appearance/disappearance of the error string */}
         {error && <BodyXSm color={colorLookup('error.900')}>{error.message}</BodyXSm>}
       </VStack>
-
-      {modalVisible && (
-        <Modal visible={modalVisible} onRequestClose={toggleModalandClearLocation} animationType="slide">
-          <SafeAreaProvider>
-            <SafeAreaView style={{width: '100%', height: '100%'}}>
-              <VStack width="100%" height="100%">
-                <HStack justifyContent="space-between" alignItems="center" pb={8} px={20}>
-                  <View width={80} />
-                  <Title3Black>Pick a location</Title3Black>
-                  <AntDesign.Button
-                    size={24}
-                    color={colorLookup('text')}
-                    name="check"
-                    backgroundColor="white"
-                    iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
-                    style={{textAlign: 'center'}}
-                    onPress={toggleModal}
-                  />
-                  <AntDesign.Button
-                    size={24}
-                    color={colorLookup('text')}
-                    name="close"
-                    backgroundColor="white"
-                    iconStyle={{marginLeft: 0, marginRight: 0, marginTop: 1}}
-                    style={{textAlign: 'center'}}
-                    onPress={toggleModalandClearLocation}
-                  />
-                </HStack>
-                <Center width="100%" height="100%">
-                  {incompleteQueryState(mapLayerResult) && <QueryState results={[mapLayerResult]} />}
-                  {mapReady && (
-                    <View {...mapPanResponder.panHandlers}>
-                      <ZoneMap
-                        ref={mapRef}
-                        animated={false}
-                        style={{minWidth: '100%', minHeight: '100%'}}
-                        zones={zones}
-                        initialRegion={initialRegion}
-                        onPressPolygon={emptyHandler}
-                        renderFillColor={false}>
-                        {field.value != null && <MapMarker coordinate={locationPointToLatLng(field.value as LocationPoint)} />}
-                      </ZoneMap>
-                    </View>
-                  )}
-                </Center>
-              </VStack>
-            </SafeAreaView>
-          </SafeAreaProvider>
-        </Modal>
-      )}
+      {modalVisible && <LocationMap center={center} modalVisible={modalVisible} initialLocation={value} onClose={toggleModal} onSave={onLocationSave} />}
     </>
   );
 });
+
+interface LocationMapProps {
+  center: AvalancheCenterID;
+  modalVisible: boolean;
+  initialLocation: LocationPoint | undefined;
+  onClose: () => void;
+  onSave: (location: LocationPoint) => void;
+}
+
+const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVisible, initialLocation, onClose, onSave}) => {
+  const mapLayerResult = useMapLayer(center);
+  const mapLayer = mapLayerResult.data;
+  const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
+  const [selectedLocation, setSelectedLocation] = useState<LocationPoint | undefined>(initialLocation);
+  const [mapReady, setMapReady] = useState<boolean>(false);
+  const mapRef = useRef<MapView>(null);
+
+  const mapPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderRelease: (event, gestureState) => {
+        if (gestureState.dx != 0 && gestureState.dy != 0) {
+          return;
+        }
+
+        void (async () => {
+          const point = {x: event.nativeEvent.locationX, y: event.nativeEvent.locationY};
+          const coordinate = await mapRef.current?.coordinateForPoint(point);
+          if (coordinate) {
+            setSelectedLocation(latLngToLocationPoint(coordinate));
+          }
+        })();
+      },
+    }),
+  ).current;
+
+  useEffect(() => {
+    if (mapLayer && !mapReady) {
+      const location: LocationPoint = initialLocation || {lat: 0, lng: 0};
+      const initialRegion = defaultMapRegionForGeometries(mapLayer.features.map(feature => feature.geometry));
+      if (location.lat !== 0 && location.lng !== 0) {
+        initialRegion.latitude = location.lat;
+        initialRegion.longitude = location.lng;
+      }
+
+      setInitialRegion(initialRegion);
+      setMapReady(true);
+    }
+  }, [initialLocation, mapLayer, setInitialRegion, mapReady, setMapReady]);
+
+  const zones: MapViewZone[] =
+    mapLayer?.features.map(
+      (feature): MapViewZone => ({
+        zone_id: feature.id,
+        name: feature.properties.name,
+        center_id: center,
+        feature: feature,
+        hasWarning: feature.properties.warning?.product !== null,
+        start_date: feature.properties.start_date,
+        end_date: feature.properties.end_date,
+        fillOpacity: feature.properties.fillOpacity,
+      }),
+    ) ?? [];
+
+  const emptyHandler = useCallback(() => undefined, []);
+
+  const onSaveLocation = useCallback(() => {
+    if (selectedLocation != null) {
+      onSave(selectedLocation);
+    }
+  }, [selectedLocation, onSave]);
+
+  return (
+    <Modal visible={modalVisible} onRequestClose={onClose} animationType="slide">
+      <SafeAreaProvider>
+        <SafeAreaView style={{width: '100%', height: '100%'}}>
+          <VStack width="100%" height="100%">
+            <HStack justifyContent="space-between" alignItems="center" pb={8} px={20}>
+              <AntDesign.Button
+                size={24}
+                color={colorLookup('text')}
+                name="close"
+                backgroundColor="white"
+                iconStyle={{marginLeft: 0, marginRight: 0, marginTop: 1}}
+                style={{textAlign: 'center'}}
+                onPress={onClose}
+              />
+              <Title3Black>Pick a location</Title3Black>
+              <AntDesign.Button
+                size={24}
+                color={colorLookup('text')}
+                name="check"
+                backgroundColor="white"
+                disabled={selectedLocation == null}
+                iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
+                style={{textAlign: 'center'}}
+                onPress={onSaveLocation}
+              />
+            </HStack>
+            <Center width="100%" height="100%">
+              {incompleteQueryState(mapLayerResult) && <QueryState results={[mapLayerResult]} />}
+              {mapReady && (
+                <View {...mapPanResponder.panHandlers}>
+                  <ZoneMap
+                    ref={mapRef}
+                    animated={false}
+                    style={{minWidth: '100%', minHeight: '100%'}}
+                    zones={zones}
+                    initialRegion={initialRegion}
+                    onPressPolygon={emptyHandler}
+                    renderFillColor={false}>
+                    {selectedLocation != null && <MapMarker coordinate={locationPointToLatLng(selectedLocation)} />}
+                  </ZoneMap>
+                </View>
+              )}
+            </Center>
+          </VStack>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </Modal>
+  );
+};
 LocationField.displayName = 'LocationField';
