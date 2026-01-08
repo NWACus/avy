@@ -37,8 +37,6 @@ import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, InstabilityDistribution, userFacingCenterId} from 'types/nationalAvalancheCenter';
 
-import * as Updates from 'expo-updates';
-
 /**
  * ObservationTextField can only have a name prop that is a key of a string value.
  */
@@ -46,10 +44,6 @@ const ObservationTextField = TextField as TextFieldComponent<ObservationFormData
 
 const useKeyboardVerticalOffset = () => {
   return useHeaderHeight();
-};
-
-const isReleaseApp = (): boolean => {
-  return Updates.channel === 'release';
 };
 
 export const ObservationForm: React.FC<{
@@ -88,12 +82,6 @@ export const ObservationForm: React.FC<{
       formContext.setValue('status', 'published');
     }
   }, [formContext, metadata]);
-
-  useEffect(() => {
-    if (isReleaseApp()) {
-      formContext.setValue('avalanches', []);
-    }
-  }, [formContext]);
 
   // When collapsing/cracking are toggled off, make sure the dependent fields are also cleared
   const collapsing = useWatch({control: formContext.control, name: 'instability.collapsing'});
@@ -240,7 +228,7 @@ export const ObservationForm: React.FC<{
 
   const onSubmitPress = useCallback(() => {
     void (async () => {
-      if (!isReleaseApp() && !formContext.getValues('instability.avalanches_observed') && formContext.getValues('avalanches').length > 0) {
+      if (!formContext.getValues('instability.avalanches_observed') && formContext.getValues('avalanches').length > 0) {
         formContext.setValue('avalanches', []);
       }
       // Force validation errors to show up on fields that haven't been visited yet
@@ -533,18 +521,14 @@ export const ObservationForm: React.FC<{
                   <Conditional name="instability.avalanches_observed" value={true}>
                     <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Avalanches</Title3Semibold>}>
                       <VStack space={formFieldSpacing} mt={8}>
-                        {!isReleaseApp() && <AvalancheObservationSection center_id={center_id} disabled={mutation.isSuccess || mutation.isLoading} busy={mutation.isLoading} />}
+                        <AvalancheObservationSection center_id={center_id} disabled={mutation.isSuccess || mutation.isLoading} busy={mutation.isLoading} />
 
                         <ObservationTextField
                           name="avalanches_summary"
-                          label="Observed avalanches"
+                          label="Avalanche Summary"
                           ref={fieldRefs.avalanches_summary}
                           textInputProps={{
-                            placeholder: `• Location, aspect, and elevation
-• How recently did it occur?
-• Natural or triggered?
-• Was anyone caught?
-• Avalanche size, width, and depth`,
+                            placeholder: 'Please add any additional information about the avalanches you saw that was not captured in the specific avalanche observations',
                             multiline: true,
                           }}
                           pb={formFieldSpacing}
