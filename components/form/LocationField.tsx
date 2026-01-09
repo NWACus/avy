@@ -40,7 +40,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
 
   const value: LocationPoint | undefined = field.value as LocationPoint | undefined;
 
-  const onLocationSave = useCallback(
+  const onLocationSelect = useCallback(
     (newLocation: LocationPoint) => {
       field.onChange(newLocation);
       setModalVisible(!modalVisible);
@@ -65,7 +65,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
         {/* TODO: animate the appearance/disappearance of the error string */}
         {error && <BodyXSm color={colorLookup('error.900')}>{error.message}</BodyXSm>}
       </VStack>
-      {modalVisible && <LocationMap center={center} modalVisible={modalVisible} initialLocation={value} onClose={toggleModal} onSave={onLocationSave} />}
+      {modalVisible && <LocationMap center={center} modalVisible={modalVisible} initialLocation={value} onClose={toggleModal} onSelect={onLocationSelect} />}
     </>
   );
 });
@@ -75,10 +75,10 @@ interface LocationMapProps {
   modalVisible: boolean;
   initialLocation: LocationPoint | undefined;
   onClose: () => void;
-  onSave: (location: LocationPoint) => void;
+  onSelect: (location: LocationPoint) => void;
 }
 
-const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVisible, initialLocation, onClose, onSave}) => {
+const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVisible, initialLocation, onClose, onSelect}) => {
   const mapLayerResult = useMapLayer(center);
   const mapLayer = mapLayerResult.data;
   const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
@@ -136,11 +136,11 @@ const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVi
 
   const emptyHandler = useCallback(() => undefined, []);
 
-  const onSaveLocation = useCallback(() => {
+  const onSelectPressed = useCallback(() => {
     if (selectedLocation != null) {
-      onSave(selectedLocation);
+      onSelect(selectedLocation);
     }
-  }, [selectedLocation, onSave]);
+  }, [selectedLocation, onSelect]);
 
   return (
     <Modal visible={modalVisible} onRequestClose={onClose} animationType="slide">
@@ -166,7 +166,7 @@ const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVi
                 disabled={selectedLocation == null}
                 iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
                 style={{textAlign: 'center'}}
-                onPress={onSaveLocation}
+                onPress={onSelectPressed}
               />
             </HStack>
             <Center width="100%" height="100%">
