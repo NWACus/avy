@@ -147,5 +147,8 @@ export type MenuStackParamList = {
 
   expoConfig: undefined;
   featureFlags: undefined;
+  mapBox: {
+    center_id: AvalancheCenterID;
+  };
 };
 export type MenuStackNavigationProps = NativeStackNavigationProp<MenuStackParamList>;

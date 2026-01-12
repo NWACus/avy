@@ -395,6 +395,13 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
                 });
               },
             },
+            {
+              label: 'View MapBox',
+              data: null,
+              action: () => {
+                navigation.navigate('mapBox', {center_id: 'NWAC'});
+              },
+            },
           ]}
         />
         <ActionList

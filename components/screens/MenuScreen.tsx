@@ -23,6 +23,7 @@ import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {FeatureFlagsDebuggerScreen} from 'components/FeatureFlagsDebugger';
+import {MapBoxView} from 'components/map/MapBoxView';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
 import {AboutScreen} from 'components/screens/menu/AboutScreen';
@@ -88,8 +89,15 @@ export const MenuStackScreen = (
       <MenuStack.Screen name="outcome" component={OutcomeScreen} options={{title: `Outcome Preview`}} />
       <MenuStack.Screen name="expoConfig" component={ExpoConfigScreen} options={{title: `Expo Configuration Viewer`}} />
       <MenuStack.Screen name="featureFlags" component={FeatureFlagsDebuggerScreen} options={{title: `Feature Flag Debugger`}} />
+      <MenuStack.Screen name="mapBox" component={MapBoxScreen} options={{title: 'MapBox Map'}} />
     </MenuStack.Navigator>
   );
+};
+
+export const MapBoxScreen = ({route}: NativeStackScreenProps<MenuStackParamList, 'mapBox'>) => {
+  const {center_id} = route.params;
+
+  return <MapBoxView center={center_id} />;
 };
 
 export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheCenterID, staging: boolean, setStaging: React.Dispatch<React.SetStateAction<boolean>>) => {
