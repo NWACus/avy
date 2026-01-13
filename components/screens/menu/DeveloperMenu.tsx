@@ -396,10 +396,10 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               },
             },
             {
-              label: 'View MapBox',
+              label: 'View Forecast Map V2',
               data: null,
               action: () => {
-                navigation.navigate('mapBox', {center_id: 'NWAC'});
+                navigation.navigate('forecastMapV2');
               },
             },
           ]}

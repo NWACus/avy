@@ -23,7 +23,7 @@ import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {FeatureFlagsDebuggerScreen} from 'components/FeatureFlagsDebugger';
-import {MapBoxView} from 'components/map/MapBoxView';
+import {ForecastMapViewV2} from 'components/map/MapsV2/ForecastMapViewV2';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
 import {AboutScreen} from 'components/screens/menu/AboutScreen';
@@ -50,6 +50,7 @@ import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, userFacingCenterId} from 'types/nationalAvalancheCenter';
+import {parseRequestedTimeString} from 'utils/date';
 
 const MenuStack = createNativeStackNavigator<MenuStackParamList>();
 export const MenuStackScreen = (
@@ -89,15 +90,13 @@ export const MenuStackScreen = (
       <MenuStack.Screen name="outcome" component={OutcomeScreen} options={{title: `Outcome Preview`}} />
       <MenuStack.Screen name="expoConfig" component={ExpoConfigScreen} options={{title: `Expo Configuration Viewer`}} />
       <MenuStack.Screen name="featureFlags" component={FeatureFlagsDebuggerScreen} options={{title: `Feature Flag Debugger`}} />
-      <MenuStack.Screen name="mapBox" component={MapBoxScreen} options={{title: 'MapBox Map'}} />
+      <MenuStack.Screen name="forecastMapV2" component={ForecastMapViewV2Screen} options={{title: 'Forecast Map V2'}} />
     </MenuStack.Navigator>
   );
 };
 
-export const MapBoxScreen = ({route}: NativeStackScreenProps<MenuStackParamList, 'mapBox'>) => {
-  const {center_id} = route.params;
-
-  return <MapBoxView center={center_id} />;
+export const ForecastMapViewV2Screen = () => {
+  return <ForecastMapViewV2 requestedTime={parseRequestedTimeString('latest')} />;
 };
 
 export const MenuScreen = (queryCache: QueryCache, avalancheCenterId: AvalancheCenterID, staging: boolean, setStaging: React.Dispatch<React.SetStateAction<boolean>>) => {
