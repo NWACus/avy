@@ -17,9 +17,7 @@ Lastly, please fill out the form linked at the [bottom of this page](https://nwa
 
 # Developer Environment
 
-This project uses the Expo framework; follow their excellent [installation guide](https://docs.expo.dev/get-started/installation/) to get a development environment set up.
-
-If you plan to build a development build of the app using EAS instead of running in the Expo Go sandbox, you'll need to [sign up for an account](https://expo.dev/signup) and get invited to the [project](https://expo.dev/accounts/steve.kuznetsov/projects/avalanche-forecast). If you do not need to do either of those things, you will not need access to the project to proceed with development.
+To start off, please create your own fork of the repo to clone it locally.
 
 We use the following global packages:
 
@@ -27,13 +25,29 @@ We use the following global packages:
 npm install -g npm@8.19.3 yarn@1.22.10
 ```
 
-Currently the team primarily uses the Expo Go sandbox when debugging/testing issues, either inside an Android emulator or with actual hardware connected via USB to the development machine. We have a preview app published on both the Android Play Store and Apple App Store for staging changes that cannot be tested inside the sandbox.
+And we primarily use `yarn` to handle our package management. Before building the app make sure you have all the dependencies installed by running:
+
+```
+yarn install
+```
+
+This project uses the Expo framework; follow their excellent [installation guide](https://docs.expo.dev/get-started/installation/) to get a development environment set up. Make sure to follow the steps for getting your environment set up to be able to make development builds as we currently use local development builds for the bulk of our testing.
+
+If you plan to build a development build of the app using EAS instead of running in the Expo Go sandbox, you'll need to [sign up for an account](https://expo.dev/signup) and get invited to the [project](https://expo.dev/accounts/steve.kuznetsov/projects/avalanche-forecast). If you do not need to do either of those things, you will not need access to the project to proceed with development.
+
+We have a preview app published on both the Android Play Store and Apple App Store for staging changes that cannot be tested inside the sandbox.
+
+## Checking in code
+
+We use CI to check that the code is correctly formatted/styled and to test it. This is verfied by a precommit hook. To make sure that your code meets our style guide run the following command:
+
+```
+yarn prettify
+```
 
 ## Local Secrets
 
-For development with Expo Go, you should be able to run the app with an empty `.env` file in the root of the repository.
-
-If working outside of Expo Go, you will need a number of environment variables set to secret values. You would populate them in a `.env` file at the root of the repository. Make sure to include the following values:
+You will need a number of environment variables set to secret values. You would populate them in a `.env` file at the root of the repository. Make sure to include the following values:
 
 - `ANDROID_GOOGLE_MAPS_API_KEY`
 - `IOS_GOOGLE_MAPS_API_KEY`
@@ -48,9 +62,11 @@ eas secret:push --env-file=.env
 
 If you do not wish to populate your own values, reach out to developer@nwac.us for our test values or reach out to us through our slack volunteer channel.
 
+For development with Expo Go, you should be able to run the app with an empty `.env` file in the root of the repository.
+
 ## Logging
 
-The log level for our logger is set with `$LOG_LEVEL`, the default is `'info'` but it needs to be `'debug'` for the below network bits.
+The log level for our logger is set with `$LOG_LEVEL`, the default is `'info'` but it needs to be `'debug'` for the below network bits. This can be modified easily by adding it to your .env file
 
 Runtime logging can be enabled in development mode by running `npx expo start` with the following environment variables set:
 
