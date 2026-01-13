@@ -1,6 +1,8 @@
+import {onlineManager} from '@tanstack/react-query';
+import {MediaLoadErrorView} from 'components/content/carousel/MediaViewerModal/MediaLoadErrorView';
 import {View} from 'components/core';
 import {Image, useImage} from 'expo-image';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {
   Gesture,
@@ -20,13 +22,27 @@ interface ImageViewProps {
   fullScreenWidth: number | null;
 }
 
+interface ImageLoadError {
+  error: Error;
+  retry: () => void;
+}
+
 const MAX_SCALE = 8.0;
 const MIN_SCALE = 1.0;
 const DOUBLE_TAP_SCALE = 1.5;
 const RESET_TRANSLATION_VALUE = 0.0;
 
 export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, nativeGesture, fullScreenWidth}) => {
-  const image = useImage(item.url.original);
+  const [imageLoadError, setImageLoadError] = useState<ImageLoadError | null>(null);
+
+  const onImageLoadError = useCallback(
+    (error: Error, retry: () => void) => {
+      setImageLoadError({error, retry});
+    },
+    [setImageLoadError],
+  );
+
+  const image = useImage(item.url.original, {onError: onImageLoadError});
 
   const scale = useSharedValue(1);
   const startScale = useSharedValue(0);
@@ -111,7 +127,18 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
 
   const composedGesture = Gesture.Simultaneous(pinchGesture, panGesture, doubleTap);
 
+  const retryImageLoad = useCallback(() => {
+    if (imageLoadError) {
+      imageLoadError.retry();
+    }
+    setImageLoadError(null);
+  }, [setImageLoadError, imageLoadError]);
+
   if (!image) {
+    if (imageLoadError) {
+      return <ImageLoadErrorView isOnline={onlineManager.isOnline()} onImageLoadRetry={retryImageLoad} />;
+    }
+
     return (
       <View flex={1} alignContent="center" justifyContent="center">
         <ActivityIndicator size={'large'} />
@@ -126,4 +153,9 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
       </Animated.View>
     </GestureDetector>
   );
+};
+
+const ImageLoadErrorView: React.FunctionComponent<{isOnline: boolean; onImageLoadRetry: () => void}> = ({isOnline, onImageLoadRetry}) => {
+  const message = isOnline ? 'There was an error loading the image. Please try again' : "It appears that you're offline. Please reconnect to the internet and try again";
+  return <MediaLoadErrorView message={message} onRetry={onImageLoadRetry} />;
 };

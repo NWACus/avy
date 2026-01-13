@@ -1,11 +1,12 @@
+import {MediaLoadErrorView} from 'components/content/carousel/MediaViewerModal/MediaLoadErrorView';
 import {Center, View} from 'components/core';
 import {BodySm} from 'components/text';
 import Constants from 'expo-constants';
 import {usePostHog} from 'posthog-react-native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, Dimensions, Platform} from 'react-native';
 import WebView from 'react-native-webview';
-import {WebViewSource} from 'react-native-webview/lib/WebViewTypes';
+import {WebViewErrorEvent, WebViewSource} from 'react-native-webview/lib/WebViewTypes';
 import {colorLookup} from 'theme';
 import {VideoMediaItem} from 'types/nationalAvalancheCenter';
 
@@ -53,6 +54,8 @@ export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, 
   const webRef = useRef<WebView>(null);
   const postHog = usePostHog();
 
+  const [loadError, setLoadError] = useState<WebViewErrorEvent | null>(null);
+
   useEffect(() => {
     if (!isVisible) {
       const jsCode = `document.querySelector('video').pause();`;
@@ -84,6 +87,18 @@ export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, 
     }
   }, [postHog, item.url]);
 
+  const onError = useCallback(
+    (error: WebViewErrorEvent) => {
+      setLoadError(error);
+    },
+    [setLoadError],
+  );
+
+  const onRetry = useCallback(() => {
+    webRef.current?.reload();
+    setLoadError(null);
+  }, [webRef, setLoadError]);
+
   let sourceData: WebViewSource;
   try {
     sourceData = getSourceData(item);
@@ -95,6 +110,10 @@ export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, 
     );
   }
 
+  if (loadError) {
+    return <WebViewLoadError error={loadError} onRetry={onRetry} />;
+  }
+
   return (
     <WebView
       ref={webRef}
@@ -102,9 +121,30 @@ export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, 
       style={{maxHeight: maxHeight, transform: [{translateY: yOffset}], backgroundColor: colorLookup('modal.background')}}
       source={sourceData}
       renderLoading={onRenderLoading}
+      onError={onError}
       startInLoadingState
       allowsInlineMediaPlayback
       allowsFullscreenVideo
     />
   );
+};
+
+interface LoadErrorViewProps {
+  error: WebViewErrorEvent;
+  onRetry: () => void;
+}
+
+const ANDROID_OFFLINE_ERROR_CODE = -2;
+const IOS_OFFLINE_ERROR_CODE = -1009;
+
+const isOfflineErrorCode = (errorCode: number) => {
+  return (Platform.OS === 'android' && errorCode == ANDROID_OFFLINE_ERROR_CODE) || (Platform.OS === 'ios' && errorCode == IOS_OFFLINE_ERROR_CODE);
+};
+
+const WebViewLoadError: React.FunctionComponent<LoadErrorViewProps> = ({error, onRetry}) => {
+  const message = isOfflineErrorCode(error.nativeEvent.code)
+    ? "It appears you're not connected to the internet. Please reconnect and try again."
+    : 'An error occured loading the video. Please try again';
+
+  return <MediaLoadErrorView message={message} onRetry={onRetry} />;
 };
