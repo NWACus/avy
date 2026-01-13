@@ -38,6 +38,11 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
     setModalVisible(!modalVisible);
   }, [modalVisible, setModalVisible]);
 
+  const toggleModalandClearLocation = useCallback(() => {
+    field.onChange(null);
+    setModalVisible(!modalVisible);
+  }, [modalVisible, setModalVisible, field]);
+
   const value: LocationPoint | undefined = field.value as LocationPoint | undefined;
 
   const onLocationSelect = useCallback(
@@ -65,7 +70,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
         {/* TODO: animate the appearance/disappearance of the error string */}
         {error && <BodyXSm color={colorLookup('error.900')}>{error.message}</BodyXSm>}
       </VStack>
-      {modalVisible && <LocationMap center={center} modalVisible={modalVisible} initialLocation={value} onClose={toggleModal} onSelect={onLocationSelect} />}
+      {modalVisible && <LocationMap center={center} modalVisible={modalVisible} initialLocation={value} onClose={toggleModalandClearLocation} onSelect={onLocationSelect} />}
     </>
   );
 });
