@@ -33,7 +33,7 @@ yarn install
 
 This project uses the Expo framework; follow their excellent [installation guide](https://docs.expo.dev/get-started/installation/) to get a development environment set up. Make sure to follow the steps for getting your environment set up to be able to make development builds as we currently use local development builds for the bulk of our testing.
 
-If you plan to build a development build of the app using EAS instead of running in the Expo Go sandbox, you'll need to [sign up for an account](https://expo.dev/signup) and get invited to the [project](https://expo.dev/accounts/steve.kuznetsov/projects/avalanche-forecast). If you do not need to do either of those things, you will not need access to the project to proceed with development.
+If you plan to build a development build of the app using EAS instead of running in the Expo Go sandbox, you'll need to [sign up for an account](https://expo.dev/signup) and get invited to the [project](https://expo.dev/accounts/nwac/projects/avalanche-forecast). If you do not need to do either of those things, you will not need access to the project to proceed with development.
 
 We have a preview app published on both the Android Play Store and Apple App Store for staging changes that cannot be tested inside the sandbox.
 
