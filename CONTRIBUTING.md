@@ -45,6 +45,8 @@ We use CI to check that the code is correctly formatted/styled and to test it. T
 yarn prettify
 ```
 
+Once the code is commited and pushed to your fork, open a PR against the main Avy repro. NWAC staff, or another volunteer, will review it and get it checked in.
+
 ## Local Secrets
 
 You will need a number of environment variables set to secret values. You would populate them in a `.env` file at the root of the repository. Make sure to include the following values:
