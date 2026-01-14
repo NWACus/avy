@@ -1,3 +1,4 @@
+import {onlineManager} from '@tanstack/react-query';
 import {MediaLoadErrorView} from 'components/content/carousel/MediaViewerModal/MediaLoadErrorView';
 import {Center, View} from 'components/core';
 import {BodySm} from 'components/text';
@@ -50,11 +51,27 @@ const getBundleID = () => {
 const youtubeLink = (videoId: string) => `https://youtube.com/embed/${videoId}`;
 const refererValue = (bundleID: string) => `https://${bundleID}`;
 
+const ANDROID_OFFLINE_ERROR_CODE = -2;
+const IOS_OFFLINE_ERROR_CODE = -1009;
+
+const isOfflineErrorCode = (errorCode: number) => {
+  return (Platform.OS === 'android' && errorCode == ANDROID_OFFLINE_ERROR_CODE) || (Platform.OS === 'ios' && errorCode == IOS_OFFLINE_ERROR_CODE);
+};
+
 export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, isVisible}: WebVideoViewProps) => {
   const webRef = useRef<WebView>(null);
   const postHog = usePostHog();
 
   const [loadError, setLoadError] = useState<WebViewErrorEvent | null>(null);
+
+  useEffect(() => {
+    return onlineManager.subscribe(() => {
+      if (loadError && isOfflineErrorCode(loadError.nativeEvent.code) && onlineManager.isOnline()) {
+        webRef.current?.reload();
+        setLoadError(null);
+      }
+    });
+  }, [loadError, webRef, setLoadError]);
 
   useEffect(() => {
     if (!isVisible) {
@@ -133,13 +150,6 @@ interface LoadErrorViewProps {
   error: WebViewErrorEvent;
   onRetry: () => void;
 }
-
-const ANDROID_OFFLINE_ERROR_CODE = -2;
-const IOS_OFFLINE_ERROR_CODE = -1009;
-
-const isOfflineErrorCode = (errorCode: number) => {
-  return (Platform.OS === 'android' && errorCode == ANDROID_OFFLINE_ERROR_CODE) || (Platform.OS === 'ios' && errorCode == IOS_OFFLINE_ERROR_CODE);
-};
 
 const WebViewLoadError: React.FunctionComponent<LoadErrorViewProps> = ({error, onRetry}) => {
   const message = isOfflineErrorCode(error.nativeEvent.code)

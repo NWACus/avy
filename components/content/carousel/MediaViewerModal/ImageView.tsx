@@ -2,7 +2,7 @@ import {onlineManager} from '@tanstack/react-query';
 import {MediaLoadErrorView} from 'components/content/carousel/MediaViewerModal/MediaLoadErrorView';
 import {View} from 'components/core';
 import {Image, useImage} from 'expo-image';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {
   Gesture,
@@ -43,6 +43,15 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
   );
 
   const image = useImage(item.url.original, {onError: onImageLoadError});
+
+  useEffect(() => {
+    return onlineManager.subscribe(() => {
+      if (imageLoadError && onlineManager.isOnline()) {
+        imageLoadError.retry();
+        setImageLoadError(null);
+      }
+    });
+  }, [imageLoadError, setImageLoadError]);
 
   const scale = useSharedValue(1);
   const startScale = useSharedValue(0);
