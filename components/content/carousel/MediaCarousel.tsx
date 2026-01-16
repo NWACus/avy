@@ -28,7 +28,7 @@ export const MediaCarousel: React.FunctionComponent<PropsWithChildren<MediaCarou
   thumbnailHeight,
   thumbnailAspectRatio = 1.3,
   mediaItems,
-  displayCaptions = true,
+  displayCaptions = false,
   ...props
 }) => {
   const thumbnailWidth = thumbnailAspectRatio * thumbnailHeight;
