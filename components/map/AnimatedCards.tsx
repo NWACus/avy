@@ -1,4 +1,5 @@
 import {AntDesign} from '@expo/vector-icons';
+import {Camera} from '@rnmapbox/maps';
 import {Logger} from 'browser-bunyan';
 import {HStack, View} from 'components/core';
 import {add, isAfter} from 'date-fns';
@@ -66,11 +67,12 @@ export class AnimatedMapWithDrawerController {
   topElementsHeight = 0;
   cardDrawerMaximumHeight = 0;
   tabBarHeight = 0;
-  mapView: RefObject<AnimatedMapView>;
+  mapView?: RefObject<AnimatedMapView> | undefined;
+  cameraView?: RefObject<Camera> | undefined;
   // We store the last time we logged a region calculation so as to continue logging but not spam
   lastLogged: Record<string, string>; // mapping hash of parameters to the time we last logged it
 
-  constructor(state = AnimatedDrawerState.Docked, region: Region, mapView: RefObject<AnimatedMapView>, logger: Logger) {
+  constructor(state = AnimatedDrawerState.Docked, region: Region, logger: Logger, mapView?: RefObject<AnimatedMapView> | undefined, cameraView?: RefObject<Camera> | undefined) {
     this.logger = logger;
     this.state = state;
     this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[state];
@@ -79,6 +81,7 @@ export class AnimatedMapWithDrawerController {
     this.buttonYOffset = new Animated.Value(this.baseOffset);
     this.baseAvalancheCenterMapRegion = region;
     this.mapView = mapView;
+    this.cameraView = cameraView;
     this.lastLogged = {};
   }
 
@@ -299,6 +302,11 @@ export class AnimatedMapWithDrawerController {
       this.lastLogged[parameterHash] = toISOStringUTC(now);
     }
     this.mapView?.current?.animateToRegion(targetRegion);
+
+    const neBound = [targetRegion.longitude + targetRegion.longitudeDelta / 2, targetRegion.latitude + targetRegion.latitudeDelta / 2];
+    const swBound = [targetRegion.longitude - targetRegion.longitudeDelta / 2, targetRegion.latitude - targetRegion.latitudeDelta / 2];
+
+    this.cameraView?.current?.setCamera({bounds: {ne: neBound, sw: swBound}, heading: 0});
   }, this.ANIMATION_DEBOUNCE_MS);
 }
 
@@ -398,7 +406,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
       // map correctly updates.
       const itemId = getItemId(items[index]);
       if (itemId !== selectedItemId) {
-        logger.debug('handleScroll setting selected item ID');
+        console.log('handleScroll setting selected item ID');
         setSelectedItemId(itemId);
         // Set the previously selected item ID as well to avoid a programmatic scroll
         setPreviouslySelectedItemId(itemId);
