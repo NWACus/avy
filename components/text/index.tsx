@@ -42,7 +42,7 @@ const TextWrapper: React.FC<TextWrapperProps> = React.memo(
         });
     }
     return (
-      <Text {...merge({}, props, {style})}>
+      <Text allowFontScaling={true} maxFontSizeMultiplier={1.4} {...merge({}, props, {style})}>
         {React.Children.map(children, child => {
           if (unescapeHTMLEntities && typeof child === 'string') {
             return decode(child);
