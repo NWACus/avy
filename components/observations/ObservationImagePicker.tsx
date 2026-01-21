@@ -9,8 +9,8 @@ import {ColorValue, LayoutChangeEvent, Modal, StyleSheet, TouchableHighlight, Vi
 import {Button} from 'components/content/Button';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
 import {HStack, VStack, ViewProps} from 'components/core';
+import {ObservationImageEditView} from 'components/form/ImageCaptionFieldEditView';
 import {ImageAndCaption, ObservationFormData} from 'components/observations/ObservationFormData';
-import {ObservationImageEditView} from 'components/observations/ObservationImageEditView';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {Body, BodyBlack, BodySm} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
