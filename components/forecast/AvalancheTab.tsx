@@ -243,7 +243,7 @@ export const AvalancheTab: React.FunctionComponent<{
         )}
         {forecast.media && forecast.media.length > 0 && (
           <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>} noDivider>
-            <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={forecast.media} displayCaptions={false} />
+            <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={forecast.media} />
           </Card>
         )}
         <View height={16} />

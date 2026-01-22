@@ -1,5 +1,6 @@
 import {NetworkImage, NetworkImageProps, NetworkImageState} from 'components/content/carousel/NetworkImage';
-import {View} from 'components/core';
+import {VStack, View} from 'components/core';
+import {HTML, HTMLRendererConfig} from 'components/text/HTML';
 import React, {PropsWithChildren, useCallback, useMemo, useState} from 'react';
 import {FlatList, FlatListProps} from 'react-native';
 import {ImageMediaItem, MediaItem, MediaType, VideoMediaItem} from 'types/nationalAvalancheCenter';
@@ -70,6 +71,7 @@ export const ThumbnailList: React.FC<PropsWithChildren<ThumbnailListProps>> = ({
   imageWidth,
   space = 16,
   mediaItems,
+  displayCaptions,
   imageStyle,
   resizeMode,
   onPress = () => undefined,
@@ -93,7 +95,7 @@ export const ThumbnailList: React.FC<PropsWithChildren<ThumbnailListProps>> = ({
 
   const renderItem = useCallback(
     ({item, index}: {item: ThumbnailListItem; index: number}) => (
-      <View width={imageWidth} justifyContent="center" alignItems="center" flex={1}>
+      <VStack width={imageWidth} justifyContent="center" alignItems="center" flex={1} space={8}>
         <NetworkImage
           width={imageWidth}
           height={imageHeight}
@@ -105,9 +107,16 @@ export const ThumbnailList: React.FC<PropsWithChildren<ThumbnailListProps>> = ({
           onStateChange={onStateCallback}
           onPress={onPress}
         />
-      </View>
+        {displayCaptions && item.caption && (
+          <View px={32}>
+            <HTMLRendererConfig baseStyle={{fontSize: 12, textAlign: 'center', fontStyle: 'italic'}}>
+              <HTML source={{html: item.caption}} />
+            </HTMLRendererConfig>
+          </View>
+        )}
+      </VStack>
     ),
-    [imageWidth, imageHeight, imageStyle, resizeMode, onPress, onStateCallback],
+    [imageWidth, imageHeight, imageStyle, resizeMode, displayCaptions, onPress, onStateCallback],
   );
 
   const ItemSeparatorComponent = useCallback(() => <View width={space} />, [space]);

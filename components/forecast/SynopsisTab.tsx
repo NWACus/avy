@@ -97,7 +97,7 @@ export const SynopsisTab: React.FunctionComponent<{
         {synopsis.hazard_discussion && (
           <Card borderRadius={0} borderColor="white" header={<BodyBlack>{synopsis.bottom_line}</BodyBlack>}>
             <HTML source={{html: synopsis.hazard_discussion}} />
-            {synopsis.media && <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={synopsis.media} displayCaptions={false} />}
+            {synopsis.media && <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={synopsis.media} />}
           </Card>
         )}
       </VStack>

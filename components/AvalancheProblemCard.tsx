@@ -76,7 +76,9 @@ export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardP
         />
       </HStack>
       {problem.discussion && <HTML source={{html: problem.discussion}} />}
-      {problem.media && cardWidth > 0 && <MediaCarousel mediaItems={[problem.media]} thumbnailAspectRatio={1.3} thumbnailHeight={cardWidth / 1.3} />}
+      {problem.media && cardWidth > 0 && (
+        <MediaCarousel mediaItems={[problem.media]} thumbnailAspectRatio={1.3} thumbnailHeight={cardWidth / 1.3} displayCaptionsWithThumbnails={true} />
+      )}
     </VStack>
   );
 };
