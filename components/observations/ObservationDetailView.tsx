@@ -343,7 +343,7 @@ export const ObservationCard: React.FunctionComponent<{
               </Card>
               {(observation.media ?? []).length > 0 && (
                 <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>}>
-                  <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={observation.media ?? []} displayCaptions={false} />
+                  <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={observation.media ?? []} />
                 </Card>
               )}
               {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanches_summary) && (
@@ -380,7 +380,7 @@ export const ObservationCard: React.FunctionComponent<{
                         {item.media && (
                           <VStack pt={8} space={8} width="100%">
                             <BodySemibold>Media</BodySemibold>
-                            <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={item.media} displayCaptions={false} />
+                            <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={item.media} />
                           </VStack>
                         )}
                       </VStack>
@@ -396,7 +396,7 @@ export const ObservationCard: React.FunctionComponent<{
                     <VStack space={8} width="100%">
                       {observation.advanced_fields.snowpack_summary && <HTML source={{html: observation.advanced_fields.snowpack_summary}} />}
                       {observation.advanced_fields.snowpack_media && (
-                        <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={observation.advanced_fields.snowpack_media} displayCaptions={false} />
+                        <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={observation.advanced_fields.snowpack_media} />
                       )}
                       {observation.advanced_fields.snowpack && <>{/* we don't know what fields could be in this thing ... */}</>}
                     </VStack>
