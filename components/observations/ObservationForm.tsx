@@ -18,7 +18,7 @@ import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {HStack, VStack, View} from 'components/core';
 import {Conditional} from 'components/form/Conditional';
 import {DateField} from 'components/form/DateField';
-import {AddImageFromPickerButton, ImageCaptionField} from 'components/form/ImageCaptionField';
+import {AddImageFromPickerButton, AddImageFromPickerButtonComponent, ImageCaptionField, ImageCaptionFieldComponent} from 'components/form/ImageCaptionField';
 import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
@@ -41,6 +41,12 @@ import {AvalancheCenterID, InstabilityDistribution, userFacingCenterId} from 'ty
  * ObservationTextField can only have a name prop that is a key of a string value.
  */
 const ObservationTextField = TextField as TextFieldComponent<ObservationFormData>;
+
+/**
+ * The image picker components expect that the name prop is a key of an Array<imageAssetWithCaptionSchema>
+ */
+const ObservationImagePicker = AddImageFromPickerButton as AddImageFromPickerButtonComponent<ObservationFormData>;
+const ObservationImageCaptionField = ImageCaptionField as ImageCaptionFieldComponent<ObservationFormData>;
 
 const useKeyboardVerticalOffset = () => {
   return useHeaderHeight();
@@ -562,11 +568,11 @@ export const ObservationForm: React.FC<{
                     header={
                       <HStack justifyContent="space-between">
                         <Title3Semibold>Photos</Title3Semibold>
-                        <AddImageFromPickerButton name="images" maxImageCount={maxImageCount} disable={disableFormControls} space={4} py={4} pl={4} pr={8} />
+                        <ObservationImagePicker name="images" maxImageCount={maxImageCount} disable={disableFormControls} space={4} py={4} pl={4} pr={8} />
                       </HStack>
                     }>
                     <VStack space={formFieldSpacing} mt={8}>
-                      <ImageCaptionField name="images" maxImageCount={maxImageCount} onModalDisplayed={setModalDisplayed} />
+                      <ObservationImageCaptionField name="images" maxImageCount={maxImageCount} onModalDisplayed={setModalDisplayed} />
                     </VStack>
                   </Card>
 

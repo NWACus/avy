@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/react-native';
 
 import * as ImagePicker from 'expo-image-picker';
 import React, {useCallback, useEffect, useState} from 'react';
-import {useController} from 'react-hook-form';
+import {FieldPathByValue, FieldValues, useController} from 'react-hook-form';
 import {ColorValue, LayoutChangeEvent, Modal, StyleSheet, TouchableHighlight} from 'react-native';
 
 import {Button} from 'components/content/Button';
@@ -17,7 +17,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 
-type ImageAssetArray = ImagePickerAssetWithCaption[];
+type ImageAssetArray = ImagePickerAssetWithCaption[] | undefined | null;
 
 const EditImageCaptionField: React.FC<{
   image: ImageAndCaption | null;
@@ -93,7 +93,9 @@ const useImagePicker = ({images, maxImageCount, disable, onSaveImages}: ImagePic
         });
 
         if (!result.canceled) {
-          onSaveImages(result.assets.map(image => ({image})));
+          const newImages = result.assets.map(image => ({image}));
+          const updatedImages = (images ?? []).concat(newImages).slice(0, maxImageCount);
+          onSaveImages(updatedImages);
         }
       } catch (error) {
         logger.error('ImagePicker error', {error});
@@ -110,21 +112,27 @@ const useImagePicker = ({images, maxImageCount, disable, onSaveImages}: ImagePic
         });
       }
     })();
-  }, [logger, imageCount, maxImageCount, onSaveImages]);
+  }, [images, logger, imageCount, maxImageCount, onSaveImages]);
 
   return {onPickImage: pickImage, isDisabled};
 };
 
-interface AddImageFromPickerButtonProps extends ViewProps {
-  name: string;
+interface AddImageFromPickerButtonProps<TFieldValues extends FieldValues, TKey extends FieldPathByValue<TFieldValues, ImageAssetArray>> extends ViewProps {
+  name: TKey;
   maxImageCount: number;
   disable?: boolean;
   space?: number;
 }
 
-export const AddImageFromPickerButton: React.FC<AddImageFromPickerButtonProps> = ({name, maxImageCount, disable = false, space = 4, ...props}) => {
-  const {field} = useController({name: name});
-  const images = field.value as ImageAssetArray;
+const _AddImageFromPickerButton = <TFieldValues extends FieldValues, TKey extends FieldPathByValue<TFieldValues, ImageAssetArray>>({
+  name,
+  maxImageCount,
+  disable = false,
+  space = 4,
+  ...props
+}: AddImageFromPickerButtonProps<TFieldValues, TKey>) => {
+  const {field} = useController<TFieldValues, TKey>({name: name});
+  const images = field.value;
 
   const renderAddImageButton = useCallback(
     ({textColor}: {textColor: ColorValue}) => (
@@ -137,11 +145,10 @@ export const AddImageFromPickerButton: React.FC<AddImageFromPickerButtonProps> =
   );
 
   const onSaveImages = useCallback(
-    (newImages: ImageAssetArray) => {
-      const updatedImages = (images ?? []).concat(newImages).slice(0, maxImageCount);
+    (updatedImages: ImageAssetArray) => {
       field.onChange(updatedImages);
     },
-    [images, field, maxImageCount],
+    [field],
   );
 
   const {onPickImage, isDisabled} = useImagePicker({images, maxImageCount, disable, onSaveImages});
@@ -149,14 +156,28 @@ export const AddImageFromPickerButton: React.FC<AddImageFromPickerButtonProps> =
   return <Button buttonStyle="normal" onPress={onPickImage} disabled={isDisabled} renderChildren={renderAddImageButton} {...props} />;
 };
 
-interface ImageCaptionFieldProps {
-  name: string;
+export type AddImageFromPickerButtonComponent<TFieldValues extends FieldValues> = <TFieldName extends FieldPathByValue<TFieldValues, ImageAssetArray>>(
+  props: React.PropsWithoutRef<AddImageFromPickerButtonProps<TFieldValues, TFieldName>>,
+) => JSX.Element;
+
+export const AddImageFromPickerButton = _AddImageFromPickerButton as (<TFieldValues extends FieldValues, TFieldName extends FieldPathByValue<TFieldValues, ImageAssetArray>>(
+  props: React.PropsWithoutRef<AddImageFromPickerButtonProps<TFieldValues, TFieldName>>,
+) => JSX.Element) & {displayName?: string};
+
+AddImageFromPickerButton.displayName = 'AddImagePickerButton';
+
+interface ImageCaptionFieldProps<TFieldValues extends FieldValues, TKey extends FieldPathByValue<TFieldValues, ImageAssetArray>> {
+  name: TKey;
   maxImageCount: number;
   onModalDisplayed: (isOpen: boolean) => void;
 }
 
-export const ImageCaptionField: React.FC<ImageCaptionFieldProps> = ({name, maxImageCount, onModalDisplayed}) => {
-  const {field} = useController({name: name});
+const _ImageCaptionField = <TFieldValues extends FieldValues, TKey extends FieldPathByValue<TFieldValues, ImageAssetArray>>({
+  name,
+  maxImageCount,
+  onModalDisplayed,
+}: ImageCaptionFieldProps<TFieldValues, TKey>) => {
+  const {field} = useController<TFieldValues, TKey>({name: name});
   const images = field.value as ImageAssetArray;
 
   const [editingImage, setEditingImage] = useState<ImageAndCaption | null>(null);
@@ -260,6 +281,16 @@ export const ImageCaptionField: React.FC<ImageCaptionFieldProps> = ({name, maxIm
     </>
   );
 };
+
+export type ImageCaptionFieldComponent<TFieldValues extends FieldValues> = <TFieldName extends FieldPathByValue<TFieldValues, ImageAssetArray>>(
+  props: React.PropsWithoutRef<ImageCaptionFieldProps<TFieldValues, TFieldName>>,
+) => JSX.Element;
+
+export const ImageCaptionField = _ImageCaptionField as (<TFieldValues extends FieldValues, TFieldName extends FieldPathByValue<TFieldValues, ImageAssetArray>>(
+  props: React.PropsWithoutRef<ImageCaptionFieldProps<TFieldValues, TFieldName>>,
+) => JSX.Element) & {displayName?: string};
+
+ImageCaptionField.displayName = 'ImageCaptionField';
 
 type SizingProps = Omit<ViewProps, 'onLayout' | 'children'> & {
   children: (size: {width: number; height: number}) => React.ReactNode;
