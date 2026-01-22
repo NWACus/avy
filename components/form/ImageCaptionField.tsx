@@ -2,27 +2,78 @@ import {AntDesign, MaterialIcons} from '@expo/vector-icons';
 import * as Sentry from '@sentry/react-native';
 
 import * as ImagePicker from 'expo-image-picker';
-import React, {useCallback, useState} from 'react';
-import {useController} from 'react-hook-form';
-import {ColorValue, StyleSheet, TouchableHighlight, View} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {FieldPathByValue, FieldValues, useController} from 'react-hook-form';
+import {ColorValue, LayoutChangeEvent, Modal, StyleSheet, TouchableHighlight} from 'react-native';
 
 import {Button} from 'components/content/Button';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
-import {HStack, VStack, ViewProps} from 'components/core';
-import {AvalancheObservationFormData, ImageAndCaption} from 'components/observations/ObservationFormData';
-import {ImageCaptionField, ImageSizingView} from 'components/observations/ObservationImagePicker';
+import {HStack, VStack, View, ViewProps} from 'components/core';
+import {ImageCaptionFieldEditView} from 'components/form/ImageCaptionFieldEditView';
+import {ImageAndCaption, ImagePickerAssetWithCaption} from 'components/observations/ObservationFormData';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {Body, BodyBlack, BodySm} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 
-export const useAvalanchePickImages = ({maxImageCount, disable}: {maxImageCount: number; disable: boolean}) => {
+type ImageAssetArray = ImagePickerAssetWithCaption[] | undefined | null;
+
+const EditImageCaptionField: React.FC<{
+  image: ImageAndCaption | null;
+  onUpdateImage: (image: ImageAndCaption) => void;
+  onDismiss: () => void;
+  onModalDisplayed: (isDisplayed: boolean) => void;
+}> = ({image, onUpdateImage, onDismiss, onModalDisplayed}) => {
+  const onSetCaption = useCallback(
+    (caption: string) => {
+      if (image == null) {
+        return;
+      }
+      onUpdateImage({
+        image: image.image,
+        caption,
+      });
+      onDismiss();
+    },
+    [image, onUpdateImage, onDismiss],
+  );
+
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (image != null) {
+      setVisible(true);
+    }
+  }, [image]);
+
+  const handleDismiss = useCallback(() => {
+    onDismiss();
+    setVisible(false);
+  }, [onDismiss]);
+
+  useEffect(() => {
+    onModalDisplayed(visible);
+  }, [visible, onModalDisplayed]);
+
+  return (
+    <Modal visible={visible} animationType="none" transparent presentationStyle="overFullScreen" onRequestClose={onDismiss}>
+      <ImageCaptionFieldEditView onDismiss={handleDismiss} onViewDismissed={handleDismiss} onSetCaption={onSetCaption} initialCaption={image?.caption} />
+    </Modal>
+  );
+};
+
+interface ImagePickerProps {
+  images: ImageAssetArray;
+  maxImageCount: number;
+  disable: boolean;
+  onSaveImages: (newImages: ImageAssetArray) => void;
+}
+
+const useImagePicker = ({images, maxImageCount, disable, onSaveImages}: ImagePickerProps) => {
   const [imagePermissions] = ImagePicker.useMediaLibraryPermissions();
   const missingImagePermissions = imagePermissions !== null && !imagePermissions.granted && !imagePermissions.canAskAgain;
 
-  const {field} = useController<AvalancheObservationFormData, 'images'>({name: 'images', defaultValue: []});
-  const images = field.value;
   const imageCount = images?.length ?? 0;
 
   const isDisabled = imageCount === maxImageCount || disable || missingImagePermissions;
@@ -38,12 +89,13 @@ export const useAvalanchePickImages = ({maxImageCount, disable}: {maxImageCount:
           mediaTypes: ['images', 'videos', 'livePhotos'],
           preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
           quality: 0.9,
-          selectionLimit: maxImageCount - (images?.length ?? 0),
+          selectionLimit: maxImageCount - imageCount,
         });
 
         if (!result.canceled) {
-          const newImages = (images ?? []).concat(result.assets.map(image => ({image}))).slice(0, maxImageCount);
-          field.onChange(newImages);
+          const newImages = result.assets.map(image => ({image}));
+          const updatedImages = (images ?? []).concat(newImages).slice(0, maxImageCount);
+          onSaveImages(updatedImages);
         }
       } catch (error) {
         logger.error('ImagePicker error', {error});
@@ -60,18 +112,28 @@ export const useAvalanchePickImages = ({maxImageCount, disable}: {maxImageCount:
         });
       }
     })();
-  }, [images, logger, field, maxImageCount]);
+  }, [images, logger, imageCount, maxImageCount, onSaveImages]);
 
   return {onPickImage: pickImage, isDisabled};
 };
 
-interface AvalancheAddImageButtonProps extends ViewProps {
+interface AddImageFromPickerButtonProps<TFieldValues extends FieldValues, TKey extends FieldPathByValue<TFieldValues, ImageAssetArray>> extends ViewProps {
+  name: TKey;
   maxImageCount: number;
   disable?: boolean;
   space?: number;
 }
 
-export const AvalancheAddImageButton: React.FC<AvalancheAddImageButtonProps> = ({maxImageCount, disable = false, space = 4, ...props}) => {
+const _AddImageFromPickerButton = <TFieldValues extends FieldValues, TKey extends FieldPathByValue<TFieldValues, ImageAssetArray>>({
+  name,
+  maxImageCount,
+  disable = false,
+  space = 4,
+  ...props
+}: AddImageFromPickerButtonProps<TFieldValues, TKey>) => {
+  const {field} = useController<TFieldValues, TKey>({name: name});
+  const images = field.value;
+
   const renderAddImageButton = useCallback(
     ({textColor}: {textColor: ColorValue}) => (
       <HStack alignItems="center" space={space}>
@@ -82,17 +144,41 @@ export const AvalancheAddImageButton: React.FC<AvalancheAddImageButtonProps> = (
     [space],
   );
 
-  const {onPickImage, isDisabled} = useAvalanchePickImages({maxImageCount, disable});
+  const onSaveImages = useCallback(
+    (updatedImages: ImageAssetArray) => {
+      field.onChange(updatedImages);
+    },
+    [field],
+  );
+
+  const {onPickImage, isDisabled} = useImagePicker({images, maxImageCount, disable, onSaveImages});
 
   return <Button buttonStyle="normal" onPress={onPickImage} disabled={isDisabled} renderChildren={renderAddImageButton} {...props} />;
 };
 
-export const AvalancheImagePicker: React.FC<{
+export type AddImageFromPickerButtonComponent<TFieldValues extends FieldValues> = <TFieldName extends FieldPathByValue<TFieldValues, ImageAssetArray>>(
+  props: React.PropsWithoutRef<AddImageFromPickerButtonProps<TFieldValues, TFieldName>>,
+) => JSX.Element;
+
+export const AddImageFromPickerButton = _AddImageFromPickerButton as (<TFieldValues extends FieldValues, TFieldName extends FieldPathByValue<TFieldValues, ImageAssetArray>>(
+  props: React.PropsWithoutRef<AddImageFromPickerButtonProps<TFieldValues, TFieldName>>,
+) => JSX.Element) & {displayName?: string};
+
+AddImageFromPickerButton.displayName = 'AddImagePickerButton';
+
+interface ImageCaptionFieldProps<TFieldValues extends FieldValues, TKey extends FieldPathByValue<TFieldValues, ImageAssetArray>> {
+  name: TKey;
   maxImageCount: number;
   onModalDisplayed: (isOpen: boolean) => void;
-}> = ({maxImageCount, onModalDisplayed}) => {
-  const {field} = useController<AvalancheObservationFormData, 'images'>({name: 'images', defaultValue: []});
-  const images = field.value;
+}
+
+const _ImageCaptionField = <TFieldValues extends FieldValues, TKey extends FieldPathByValue<TFieldValues, ImageAssetArray>>({
+  name,
+  maxImageCount,
+  onModalDisplayed,
+}: ImageCaptionFieldProps<TFieldValues, TKey>) => {
+  const {field} = useController<TFieldValues, TKey>({name: name});
+  const images = field.value as ImageAssetArray;
 
   const [editingImage, setEditingImage] = useState<ImageAndCaption | null>(null);
 
@@ -191,8 +277,48 @@ export const AvalancheImagePicker: React.FC<{
         </VStack>
       )}
       {images?.length === 0 && <Body>You can add up to {maxImageCount} images.</Body>}
-      <ImageCaptionField image={editingImage} onUpdateImage={onUpdateImageCaption} onDismiss={onDismiss} onModalDisplayed={onModalDisplayed} />
+      <EditImageCaptionField image={editingImage} onUpdateImage={onUpdateImageCaption} onDismiss={onDismiss} onModalDisplayed={onModalDisplayed} />
     </>
+  );
+};
+
+export type ImageCaptionFieldComponent<TFieldValues extends FieldValues> = <TFieldName extends FieldPathByValue<TFieldValues, ImageAssetArray>>(
+  props: React.PropsWithoutRef<ImageCaptionFieldProps<TFieldValues, TFieldName>>,
+) => JSX.Element;
+
+export const ImageCaptionField = _ImageCaptionField as (<TFieldValues extends FieldValues, TFieldName extends FieldPathByValue<TFieldValues, ImageAssetArray>>(
+  props: React.PropsWithoutRef<ImageCaptionFieldProps<TFieldValues, TFieldName>>,
+) => JSX.Element) & {displayName?: string};
+
+ImageCaptionField.displayName = 'ImageCaptionField';
+
+type SizingProps = Omit<ViewProps, 'onLayout' | 'children'> & {
+  children: (size: {width: number; height: number}) => React.ReactNode;
+};
+
+const ImageSizingView: React.FC<SizingProps> = ({children, ...props}) => {
+  const [state, setState] = useState<{width: number; height: number} | null>(null);
+
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    setState(current => {
+      if (event.nativeEvent.layout == null) {
+        return current;
+      }
+      const next = {width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height};
+      if (current == null) {
+        return next;
+      }
+
+      if (next.height === current.height && next.width === current.width) {
+        return current;
+      }
+      return next;
+    });
+  }, []);
+  return (
+    <View onLayout={handleLayout} {...props}>
+      {state != null && children(state)}
+    </View>
   );
 };
 
