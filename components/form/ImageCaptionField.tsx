@@ -4,20 +4,22 @@ import * as Sentry from '@sentry/react-native';
 import * as ImagePicker from 'expo-image-picker';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {ColorValue, LayoutChangeEvent, Modal, StyleSheet, TouchableHighlight, View} from 'react-native';
+import {ColorValue, LayoutChangeEvent, Modal, StyleSheet, TouchableHighlight} from 'react-native';
 
 import {Button} from 'components/content/Button';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
-import {HStack, VStack, ViewProps} from 'components/core';
-import {ObservationImageEditView} from 'components/form/ImageCaptionFieldEditView';
-import {ImageAndCaption, ObservationFormData} from 'components/observations/ObservationFormData';
+import {HStack, VStack, View, ViewProps} from 'components/core';
+import {ImageCaptionFieldEditView} from 'components/form/ImageCaptionFieldEditView';
+import {ImageAndCaption, ImagePickerAssetWithCaption} from 'components/observations/ObservationFormData';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {Body, BodyBlack, BodySm} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 
-export const ImageCaptionField: React.FC<{
+type ImageAssetArray = ImagePickerAssetWithCaption[];
+
+const EditImageCaptionField: React.FC<{
   image: ImageAndCaption | null;
   onUpdateImage: (image: ImageAndCaption) => void;
   onDismiss: () => void;
@@ -56,17 +58,22 @@ export const ImageCaptionField: React.FC<{
 
   return (
     <Modal visible={visible} animationType="none" transparent presentationStyle="overFullScreen" onRequestClose={onDismiss}>
-      <ObservationImageEditView onDismiss={handleDismiss} onViewDismissed={handleDismiss} onSetCaption={onSetCaption} initialCaption={image?.caption} />
+      <ImageCaptionFieldEditView onDismiss={handleDismiss} onViewDismissed={handleDismiss} onSetCaption={onSetCaption} initialCaption={image?.caption} />
     </Modal>
   );
 };
 
-export const useObservationPickImages = ({maxImageCount, disable}: {maxImageCount: number; disable: boolean}) => {
+interface ImagePickerProps {
+  images: ImageAssetArray;
+  maxImageCount: number;
+  disable: boolean;
+  onSaveImages: (newImages: ImageAssetArray) => void;
+}
+
+const useImagePicker = ({images, maxImageCount, disable, onSaveImages}: ImagePickerProps) => {
   const [imagePermissions] = ImagePicker.useMediaLibraryPermissions();
   const missingImagePermissions = imagePermissions !== null && !imagePermissions.granted && !imagePermissions.canAskAgain;
 
-  const {field} = useController<ObservationFormData, 'images'>({name: 'images', defaultValue: []});
-  const images = field.value;
   const imageCount = images?.length ?? 0;
 
   const isDisabled = imageCount === maxImageCount || disable || missingImagePermissions;
@@ -82,12 +89,11 @@ export const useObservationPickImages = ({maxImageCount, disable}: {maxImageCoun
           mediaTypes: ['images', 'videos', 'livePhotos'],
           preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
           quality: 0.9,
-          selectionLimit: maxImageCount - (images?.length ?? 0),
+          selectionLimit: maxImageCount - imageCount,
         });
 
         if (!result.canceled) {
-          const newImages = (images ?? []).concat(result.assets.map(image => ({image}))).slice(0, maxImageCount);
-          field.onChange(newImages);
+          onSaveImages(result.assets.map(image => ({image})));
         }
       } catch (error) {
         logger.error('ImagePicker error', {error});
@@ -104,18 +110,22 @@ export const useObservationPickImages = ({maxImageCount, disable}: {maxImageCoun
         });
       }
     })();
-  }, [images, logger, field, maxImageCount]);
+  }, [logger, imageCount, maxImageCount, onSaveImages]);
 
   return {onPickImage: pickImage, isDisabled};
 };
 
-interface ObservationAddImageButtonProps extends ViewProps {
+interface AddImageFromPickerButtonProps extends ViewProps {
+  name: string;
   maxImageCount: number;
   disable?: boolean;
   space?: number;
 }
 
-export const ObservationAddImageButton: React.FC<ObservationAddImageButtonProps> = ({maxImageCount, disable = false, space = 4, ...props}) => {
+export const AddImageFromPickerButton: React.FC<AddImageFromPickerButtonProps> = ({name, maxImageCount, disable = false, space = 4, ...props}) => {
+  const {field} = useController({name: name});
+  const images = field.value as ImageAssetArray;
+
   const renderAddImageButton = useCallback(
     ({textColor}: {textColor: ColorValue}) => (
       <HStack alignItems="center" space={space}>
@@ -126,17 +136,28 @@ export const ObservationAddImageButton: React.FC<ObservationAddImageButtonProps>
     [space],
   );
 
-  const {onPickImage, isDisabled} = useObservationPickImages({maxImageCount, disable});
+  const onSaveImages = useCallback(
+    (newImages: ImageAssetArray) => {
+      const updatedImages = (images ?? []).concat(newImages).slice(0, maxImageCount);
+      field.onChange(updatedImages);
+    },
+    [images, field, maxImageCount],
+  );
+
+  const {onPickImage, isDisabled} = useImagePicker({images, maxImageCount, disable, onSaveImages});
 
   return <Button buttonStyle="normal" onPress={onPickImage} disabled={isDisabled} renderChildren={renderAddImageButton} {...props} />;
 };
 
-export const ObservationImagePicker: React.FC<{
+interface ImageCaptionFieldProps {
+  name: string;
   maxImageCount: number;
   onModalDisplayed: (isOpen: boolean) => void;
-}> = ({maxImageCount, onModalDisplayed}) => {
-  const {field} = useController<ObservationFormData, 'images'>({name: 'images', defaultValue: []});
-  const images = field.value;
+}
+
+export const ImageCaptionField: React.FC<ImageCaptionFieldProps> = ({name, maxImageCount, onModalDisplayed}) => {
+  const {field} = useController({name: name});
+  const images = field.value as ImageAssetArray;
 
   const [editingImage, setEditingImage] = useState<ImageAndCaption | null>(null);
 
@@ -235,7 +256,7 @@ export const ObservationImagePicker: React.FC<{
         </VStack>
       )}
       {images?.length === 0 && <Body>You can add up to {maxImageCount} images.</Body>}
-      <ImageCaptionField image={editingImage} onUpdateImage={onUpdateImageCaption} onDismiss={onDismiss} onModalDisplayed={onModalDisplayed} />
+      <EditImageCaptionField image={editingImage} onUpdateImage={onUpdateImageCaption} onDismiss={onDismiss} onModalDisplayed={onModalDisplayed} />
     </>
   );
 };
@@ -244,7 +265,7 @@ type SizingProps = Omit<ViewProps, 'onLayout' | 'children'> & {
   children: (size: {width: number; height: number}) => React.ReactNode;
 };
 
-export const ImageSizingView: React.FC<SizingProps> = ({children, ...props}) => {
+const ImageSizingView: React.FC<SizingProps> = ({children, ...props}) => {
   const [state, setState] = useState<{width: number; height: number} | null>(null);
 
   const handleLayout = useCallback((event: LayoutChangeEvent) => {

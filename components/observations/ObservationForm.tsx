@@ -18,13 +18,13 @@ import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {HStack, VStack, View} from 'components/core';
 import {Conditional} from 'components/form/Conditional';
 import {DateField} from 'components/form/DateField';
+import {AddImageFromPickerButton, ImageCaptionField} from 'components/form/ImageCaptionField';
 import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
 import {AvalancheObservationSection} from 'components/observations/AvalancheObservationSection';
 import {ObservationFormData, defaultObservationFormData, simpleObservationFormSchema} from 'components/observations/ObservationFormData';
-import {ObservationAddImageButton, ObservationImagePicker} from 'components/observations/ObservationImagePicker';
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskStatus} from 'components/observations/uploader/Task';
 import {Body, BodySemibold, Title3Semibold} from 'components/text';
@@ -562,11 +562,11 @@ export const ObservationForm: React.FC<{
                     header={
                       <HStack justifyContent="space-between">
                         <Title3Semibold>Photos</Title3Semibold>
-                        <ObservationAddImageButton maxImageCount={maxImageCount} disable={disableFormControls} space={4} py={4} pl={4} pr={8} />
+                        <AddImageFromPickerButton name="images" maxImageCount={maxImageCount} disable={disableFormControls} space={4} py={4} pl={4} pr={8} />
                       </HStack>
                     }>
                     <VStack space={formFieldSpacing} mt={8}>
-                      <ObservationImagePicker maxImageCount={maxImageCount} onModalDisplayed={setModalDisplayed} />
+                      <ImageCaptionField name="images" maxImageCount={maxImageCount} onModalDisplayed={setModalDisplayed} />
                     </VStack>
                   </Card>
 

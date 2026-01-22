@@ -40,7 +40,7 @@ const AUTO_DISMISS_DRAGGING_COMPLETE_HEIGHT = 320;
 const AUTO_DISMISS_DRAGGING_HEIGHT = 200;
 const AUTO_DISMISS_VELOCITY = 3;
 
-export const ObservationImageEditView: React.FC<Props> = ({onSetCaption, onDismiss, initialCaption, autoDismiss = true}) => {
+export const ImageCaptionFieldEditView: React.FC<Props> = ({onSetCaption, onDismiss, initialCaption, autoDismiss = true}) => {
   const ref = useRef<View>(null);
   const fadeAnim = useRef(new Animated.Value(0)); // Initial value for opacity: 0
 

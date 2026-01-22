@@ -12,11 +12,11 @@ import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {Divider, HStack, VStack, View} from 'components/core';
 import {DateField} from 'components/form/DateField';
+import {AddImageFromPickerButton, ImageCaptionField} from 'components/form/ImageCaptionField';
 import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
-import {AvalancheAddImageButton, AvalancheImagePicker} from 'components/observations/AvalancheImagePicker';
 import {AvalancheObservationFormData, avalancheObservationFormSchema, defaultAvalancheObservationFormData} from 'components/observations/ObservationFormData';
 import {BodySemibold, Title3Semibold} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -199,11 +199,11 @@ export const AvalancheObservationForm: React.FC<{
                       header={
                         <HStack justifyContent="space-between">
                           <Title3Semibold>Photos</Title3Semibold>
-                          <AvalancheAddImageButton maxImageCount={maxImageCount} space={4} py={4} pl={4} pr={8} />
+                          <AddImageFromPickerButton name="images" maxImageCount={maxImageCount} space={4} py={4} pl={4} pr={8} />
                         </HStack>
                       }>
                       <VStack space={formFieldSpacing} mt={8}>
-                        <AvalancheImagePicker maxImageCount={maxImageCount} onModalDisplayed={setIsImagePickerDisplayed} />
+                        <ImageCaptionField name="images" maxImageCount={maxImageCount} onModalDisplayed={setIsImagePickerDisplayed} />
                       </VStack>
                     </Card>
                     <Button mx={16} mt={8} buttonStyle="primary" onPress={onSavePress}>
