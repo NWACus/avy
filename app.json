@@ -65,6 +65,7 @@
     },
     "plugins": [
       "expo-localization",
+      "@rnmapbox/maps",
       [
         "expo-build-properties",
         {
@@ -112,7 +113,8 @@
         "projectId": "47e2fd36-5165-4eb4-9a2d-21beec393379"
       },
       "avalanche_center": "NWAC",
-      "log_level": "info"
+      "log_level": "info",
+      "mapboxAPIKey": "LOADED_FROM_ENVIRONMENT"
     }
   }
 }
