@@ -1,6 +1,8 @@
 import {AntDesign} from '@expo/vector-icons';
+import {Camera, CameraBounds} from '@rnmapbox/maps';
 import {Logger} from 'browser-bunyan';
 import {HStack, View} from 'components/core';
+import {AvalancheCenterRegion} from 'components/helpers/geographicCoordinates';
 import {add, isAfter} from 'date-fns';
 import _ from 'lodash';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -18,7 +20,6 @@ import {
   TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
-import AnimatedMapView, {Region} from 'react-native-maps';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {RequestedTime, toISOStringUTC} from 'utils/date';
@@ -59,18 +60,18 @@ export class AnimatedMapWithDrawerController {
   buttonYOffset: Animated.Value;
 
   // The following members determine the map's region
-  baseAvalancheCenterMapRegion: Region;
+  baseAvalancheCenterMapRegion: AvalancheCenterRegion;
   windowWidth = 0;
   windowHeight = 0;
   topElementsOffset = 0;
   topElementsHeight = 0;
   cardDrawerMaximumHeight = 0;
   tabBarHeight = 0;
-  mapView: RefObject<AnimatedMapView>;
+  mapCameraRef: RefObject<Camera>;
   // We store the last time we logged a region calculation so as to continue logging but not spam
   lastLogged: Record<string, string>; // mapping hash of parameters to the time we last logged it
 
-  constructor(state = AnimatedDrawerState.Docked, region: Region, mapView: RefObject<AnimatedMapView>, logger: Logger) {
+  constructor(state = AnimatedDrawerState.Docked, region: AvalancheCenterRegion, mapCameraRef: RefObject<Camera>, logger: Logger) {
     this.logger = logger;
     this.state = state;
     this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[state];
@@ -78,7 +79,7 @@ export class AnimatedMapWithDrawerController {
     this.yOffset = new Animated.Value(this.baseOffset);
     this.buttonYOffset = new Animated.Value(this.baseOffset);
     this.baseAvalancheCenterMapRegion = region;
-    this.mapView = mapView;
+    this.mapCameraRef = mapCameraRef;
     this.lastLogged = {};
   }
 
@@ -196,7 +197,7 @@ export class AnimatedMapWithDrawerController {
     this.animateMapRegion();
   }
 
-  animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion: Region) {
+  animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion: AvalancheCenterRegion) {
     this.baseAvalancheCenterMapRegion = avalancheCenterMapRegion;
     this.animateMapRegion();
   }
@@ -220,7 +221,8 @@ export class AnimatedMapWithDrawerController {
     // next, we need to figure out if our constraining behavior is fitting the polygons in width-wise, or height-wise
     // by comparing the aspect ratios of our bounding region and the unobstructed view.
     const regionAspectRatio =
-      this.baseAvalancheCenterMapRegion.longitudeDelta / (projectionConversionFactor(this.baseAvalancheCenterMapRegion.latitude) * this.baseAvalancheCenterMapRegion.latitudeDelta);
+      this.baseAvalancheCenterMapRegion.longitudeDelta /
+      (projectionConversionFactor(this.baseAvalancheCenterMapRegion.centerCoordinate.latitude) * this.baseAvalancheCenterMapRegion.latitudeDelta);
     const viewAspectRatio = unobstructedWidth / unobstructedHeight;
 
     // next, we determine the conversion factor between pixels and geographic coordinate degrees
@@ -229,11 +231,11 @@ export class AnimatedMapWithDrawerController {
     if (regionAspectRatio > viewAspectRatio) {
       // our region is wider than our view, so width is our limiting factor
       degreesPerPixelHorizontally = this.baseAvalancheCenterMapRegion.longitudeDelta / unobstructedWidth;
-      degreesPerPixelVertically = degreesPerPixelHorizontally / projectionConversionFactor(this.baseAvalancheCenterMapRegion.latitude);
+      degreesPerPixelVertically = degreesPerPixelHorizontally / projectionConversionFactor(this.baseAvalancheCenterMapRegion.centerCoordinate.latitude);
     } else {
       // our region is taller than our view, so height is our limiting factor
       degreesPerPixelVertically = this.baseAvalancheCenterMapRegion.latitudeDelta / unobstructedHeight;
-      degreesPerPixelHorizontally = degreesPerPixelVertically * projectionConversionFactor(this.baseAvalancheCenterMapRegion.latitude);
+      degreesPerPixelHorizontally = degreesPerPixelVertically * projectionConversionFactor(this.baseAvalancheCenterMapRegion.centerCoordinate.latitude);
     }
 
     // knowing these conversion factors, we can calculate the size of the bounded region in the view
@@ -258,24 +260,40 @@ export class AnimatedMapWithDrawerController {
     // now, we can position our region relative to our overlays by asking the displayed region to:
     // - center around the virtual point that results in the correct layout
     // - contain enough longitude and latitude deltas to match the whole screen
-    const displayedRegion: Region = {
-      latitude: this.baseAvalancheCenterMapRegion.latitude + regionCenterYOffsetPixels * degreesPerPixelVertically,
-      latitudeDelta: this.windowHeight * degreesPerPixelVertically,
 
-      longitude: this.baseAvalancheCenterMapRegion.longitude + regionCenterXOffsetPixels * degreesPerPixelHorizontally,
-      longitudeDelta: this.windowWidth * degreesPerPixelHorizontally,
+    const displayedRegionLat = this.baseAvalancheCenterMapRegion.centerCoordinate.latitude + regionCenterYOffsetPixels * degreesPerPixelVertically;
+    const displayedRegionLatDelta = this.windowHeight * degreesPerPixelVertically;
+
+    const displayedRegionLong = this.baseAvalancheCenterMapRegion.centerCoordinate.longitude + regionCenterXOffsetPixels * degreesPerPixelHorizontally;
+    const displayedRegionLongDelta = this.windowWidth * degreesPerPixelHorizontally;
+
+    const displayedRegionCameraBounds: CameraBounds = {
+      ne: [displayedRegionLong + displayedRegionLongDelta / 2, displayedRegionLat + displayedRegionLatDelta / 2],
+      sw: [displayedRegionLong - displayedRegionLongDelta / 2, displayedRegionLat - displayedRegionLatDelta / 2],
+    };
+
+    const displayedRegion: AvalancheCenterRegion = {
+      centerCoordinate: {latitude: displayedRegionLat, longitude: displayedRegionLong},
+      latitudeDelta: displayedRegionLatDelta,
+      longitudeDelta: displayedRegionLongDelta,
+      cameraBounds: displayedRegionCameraBounds,
     };
 
     // we will get asked to animate a couple of times before the layout settles, at which point we don't have all
     // the parameters we need to calculate the real region to animate to; for those passes through this function
     // we can't animate to this computed displayed region as we'll have NaNs inside, etc
-    let targetRegion: Region;
+    let targetRegion: AvalancheCenterRegion;
     if (degreesPerPixelVertically > 0 && degreesPerPixelHorizontally > 0) {
       targetRegion = displayedRegion;
     } else {
       targetRegion = this.baseAvalancheCenterMapRegion;
     }
-    if (isNaN(targetRegion.latitude) || isNaN(targetRegion.longitude) || isNaN(targetRegion.latitudeDelta) || isNaN(targetRegion.longitudeDelta)) {
+    if (
+      isNaN(targetRegion.centerCoordinate.latitude) ||
+      isNaN(targetRegion.centerCoordinate.longitude) ||
+      isNaN(targetRegion.latitudeDelta) ||
+      isNaN(targetRegion.longitudeDelta)
+    ) {
       return;
     }
     const parameters = {
@@ -298,7 +316,8 @@ export class AnimatedMapWithDrawerController {
       this.logger.info(parameters, 'animating map region');
       this.lastLogged[parameterHash] = toISOStringUTC(now);
     }
-    this.mapView?.current?.animateToRegion(targetRegion);
+
+    this.mapCameraRef?.current?.setCamera({bounds: targetRegion.cameraBounds, heading: 0});
   }, this.ANIMATION_DEBOUNCE_MS);
 }
 

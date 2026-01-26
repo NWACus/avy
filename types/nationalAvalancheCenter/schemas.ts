@@ -1186,6 +1186,12 @@ export const nwacObservationResultSchema = z.object({
 });
 export type NWACObservationResult = z.infer<typeof nwacObservationResultSchema>;
 
+export const avyPositionSchema = z.object({
+  longitude: z.number(),
+  latitude: z.number(),
+});
+export type AvyPosition = z.infer<typeof avyPositionSchema>;
+
 export const bBoxSchema = z.union([z.tuple([z.number(), z.number(), z.number(), z.number()]), z.tuple([z.number(), z.number(), z.number(), z.number(), z.number(), z.number()])]);
 export type BBox = z.infer<typeof bBoxSchema>;
 
@@ -1295,6 +1301,17 @@ export const WeatherStationSource = {
   SNOTEL: 'snotel',
 } as const;
 export type WeatherStationSource = (typeof WeatherStationSource)[keyof typeof WeatherStationSource];
+
+export const StationColorNameForSource = (source: WeatherStationSource) => {
+  switch (source) {
+    case WeatherStationSource.NWAC:
+      return 'weather.nwac.primary';
+    case WeatherStationSource.SNOTEL:
+      return 'weather.snotel.primary';
+    case WeatherStationSource.MESOWEST:
+      return 'weather.mesowest.primary';
+  }
+};
 
 export const NWACWeatherStationStatus = {
   Active: 'active',

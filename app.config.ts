@@ -7,8 +7,6 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   // secrets can be stored in a .env file and loaded via direnv.
 
   // we're overwriting fields that were previously defined in app.json, so we know they're non-null:
-  config.ios!.config!.googleMapsApiKey = process.env.IOS_GOOGLE_MAPS_API_KEY as string;
-  config.android!.config!.googleMaps!.apiKey = process.env.ANDROID_GOOGLE_MAPS_API_KEY as string;
   config.extra!.mapboxAPIKey = process.env.MAPBOX_API_KEY as string;
   config.extra!.log_level = process.env.LOG_LEVEL != null ? (process.env.LOG_LEVEL as string) : 'info';
 
