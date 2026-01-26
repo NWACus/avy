@@ -5,6 +5,7 @@ import {MaterialCommunityIcons} from '@expo/vector-icons';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
+import {CameraBounds, MarkerView} from '@rnmapbox/maps';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {Card, CardProps} from 'components/content/Card';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
@@ -20,7 +21,6 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservation} from 'hooks/useNACObservation';
 import {useNWACObservation} from 'hooks/useNWACObservation';
 import {usePostHog} from 'posthog-react-native';
-import {LatLng, Marker} from 'react-native-maps';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
@@ -32,6 +32,7 @@ import {
   AvalancheCenterID,
   AvalancheTrigger,
   AvalancheType,
+  AvyPosition,
   CloudCover,
   DangerLevel,
   FormatActivity,
@@ -47,6 +48,7 @@ import {
   InstabilityDistribution,
   MapLayer,
   Observation,
+  Position,
   SnowAvailableForTransport,
   WindLoading,
   userFacingCenterId,
@@ -142,51 +144,21 @@ export const WeatherCard = ({observation, ...props}: {observation: Observation} 
 // observations that otherwise do not have them, to allow the code downstream to know that the point exists.
 // We can use that point to determine the zone that the observation was in, but do not want to show the point
 // to users, as it will not match where the observation was actually submitted.
-const placeholders: LatLng[] = [
-  {latitude: 47.4769558629764, longitude: -120.80902913139369},
-  {
-    latitude: 48.508873866573,
-    longitude: -120.6576884996371,
-  },
-  {
-    latitude: 46.20049381811555,
-    longitude: -121.4923824736508,
-  },
-  {
-    latitude: 45.36977193873633,
-    longitude: -121.69703035377452,
-  },
-  {
-    latitude: 47.8010450209029,
-    longitude: -123.70620207968125,
-  },
-  {
-    latitude: 47.6009139228834,
-    longitude: -122.33426358631552,
-  },
-  {
-    latitude: 47.43050191839139,
-    longitude: -121.398011481564,
-  },
-  {
-    latitude: 47.75708705098087,
-    longitude: -121.09839553823569,
-  },
-  {
-    latitude: 48.20857063251787,
-    longitude: -121.41689869612796,
-  },
-  {
-    latitude: 48.83086824211633,
-    longitude: -121.60378434771066,
-  },
-  {
-    latitude: 46.93280523754054,
-    longitude: -121.45393919813452,
-  },
+const placeholders: AvyPosition[] = [
+  {longitude: -120.80902913139369, latitude: 47.4769558629764},
+  {longitude: -120.6576884996371, latitude: 48.508873866573},
+  {longitude: -121.4923824736508, latitude: 46.20049381811555},
+  {longitude: -121.69703035377452, latitude: 45.36977193873633},
+  {longitude: -123.70620207968125, latitude: 47.8010450209029},
+  {longitude: -122.33426358631552, latitude: 47.6009139228834},
+  {longitude: -121.398011481564, latitude: 47.43050191839139},
+  {longitude: -121.09839553823569, latitude: 47.75708705098087},
+  {longitude: -121.41689869612796, latitude: 48.20857063251787},
+  {longitude: -121.60378434771066, latitude: 48.83086824211633},
+  {longitude: -121.45393919813452, latitude: 46.93280523754054},
 ];
-const isPlaceholder = (latitude: number, longtiude: number): boolean => {
-  return placeholders.map(point => point.latitude === latitude && point.longitude === longtiude).reduce((current, accumulator) => current || accumulator, false);
+const isPlaceholder = (latitude: number, longitude: number): boolean => {
+  return placeholders.map(position => position.latitude === latitude && position.longitude === longitude).reduce((current, accumulator) => current || accumulator, false);
 };
 export const withUnits = (value: string | number | null | undefined, units: string) => {
   if (value == null) {
@@ -211,7 +183,6 @@ export const ObservationCard: React.FunctionComponent<{
       navigation.setOptions({title: `${zone_name} Observation`});
     }
   }, [navigation, zone_name]);
-  const emptyHandler = useCallback(() => undefined, []);
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
@@ -223,6 +194,10 @@ export const ObservationCard: React.FunctionComponent<{
     }
   }, [postHog, observation.center_id, observation.id]);
   useFocusEffect(recordAnalytics);
+
+  const nePosition: Position = [(observation.location_point.lng ?? 0) + 0.075 / 2, (observation.location_point.lat ?? 0) + 0.075 / 2];
+  const swPosition: Position = [(observation.location_point.lng ?? 0) - 0.075 / 2, (observation.location_point.lat ?? 0) - 0.075 / 2];
+  const initialCameraBounds: CameraBounds = {ne: nePosition, sw: swPosition};
 
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
@@ -257,28 +232,16 @@ export const ObservationCard: React.FunctionComponent<{
                   {observation.location_point.lat && observation.location_point.lng && !isPlaceholder(observation.location_point.lat, observation.location_point.lng) && (
                     <ZoneMap
                       style={{width: '100%', height: 200}}
-                      animated={false}
                       zones={[]}
-                      onPressPolygon={emptyHandler}
                       pitchEnabled={false}
                       rotateEnabled={false}
                       scrollEnabled={true}
                       zoomEnabled={true}
-                      initialRegion={{
-                        latitude: observation.location_point.lat,
-                        longitude: observation.location_point.lng,
-                        latitudeDelta: 0.075,
-                        longitudeDelta: 0.075,
-                      }}>
-                      <Marker
-                        coordinate={{
-                          latitude: observation.location_point.lat,
-                          longitude: observation.location_point.lng,
-                        }}
-                        anchor={{x: 0.5, y: 1}}>
+                      initialCameraBounds={initialCameraBounds}>
+                      <MarkerView coordinate={[observation.location_point.lng, observation.location_point.lat]} anchor={{x: 0.5, y: 1}}>
                         {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
                         <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40}} />
-                      </Marker>
+                      </MarkerView>
                     </ZoneMap>
                   )}
                   <TableRow label="Avalanche Center" value={userFacingCenterId(observation.center_id, capabilities)} />

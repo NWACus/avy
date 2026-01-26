@@ -82,15 +82,7 @@ export const NWACStationsByZone = (mapLayer: MapLayer | undefined, stations: Wea
       if (!s.latitude || !s.longitude) {
         return;
       }
-      const matchingZones = zones.filter(zoneData =>
-        pointInFeature(
-          {
-            latitude: s.latitude,
-            longitude: s.longitude,
-          },
-          zoneData.feature,
-        ),
-      );
+      const matchingZones = zones.filter(zoneData => pointInFeature([s.longitude, s.latitude], zoneData.feature));
       const stationLogger = logger.child({
         station: {
           id: s.id,
