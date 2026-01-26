@@ -4,30 +4,37 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import centroid from '@turf/centroid';
 import turfClustersDBScan from '@turf/clusters-dbscan';
 import turfDistance from '@turf/distance';
-import {Coord, FeatureCollection, Point, Position, Properties, Units, featureCollection} from '@turf/helpers';
+import {Coord, FeatureCollection, Point, Properties, Units, featureCollection} from '@turf/helpers';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import Constants, {AppOwnership} from 'expo-constants';
-import {View as RNView, StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
-import {default as AnimatedMapView, LatLng, MAP_TYPES, MapMarker, default as MapView, Region} from 'react-native-maps';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import Svg, {Circle} from 'react-native-svg';
+import {StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
 
 import {format} from 'date-fns';
 
-import {MapViewZone, defaultMapRegionForGeometries, mapViewZoneFor} from 'components/content/ZoneMap';
-import {Center, HStack, VStack, View} from 'components/core';
+import {Camera, CircleLayer, ShapeSource} from '@rnmapbox/maps';
+import {MapViewZone, ZoneMap, mapViewZoneFor} from 'components/content/ZoneMap';
+import {HStack, VStack, View} from 'components/core';
+import {defaultMapRegionForGeometries} from 'components/helpers/geographicCoordinates';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
-import {AvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZonePolygon';
-import {BodySm, BodySmSemibold, BodyXSm, Title3Black} from 'components/text';
+import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {formatData, formatTime, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
 import {formatInTimeZone} from 'date-fns-tz';
-import {useToggle} from 'hooks/useToggle';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {WeatherStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, DangerLevel, MapLayer, MapLayerFeature, Variable, WeatherStation, WeatherStationCollection, WeatherStationSource} from 'types/nationalAvalancheCenter';
+import {
+  AvalancheCenterID,
+  DangerLevel,
+  MapLayer,
+  MapLayerFeature,
+  Position,
+  StationColorNameForSource,
+  Variable,
+  WeatherStation,
+  WeatherStationCollection,
+  WeatherStationSource,
+} from 'types/nationalAvalancheCenter';
 import {RequestedTime, RequestedTimeString, formatRequestedTime, parseRequestedTimeString} from 'utils/date';
 
 type ClusteredWeatherStation = Omit<WeatherStationCollection['features'][0], 'properties' | 'id'> & {
@@ -75,9 +82,8 @@ export const WeatherStationMap: React.FunctionComponent<{
   requestedTime: RequestedTimeString;
   toggleList: () => void;
 }> = ({mapLayer, weatherStations, center_id, requestedTime, toggleList}) => {
-  const [ready, {on: setReady}] = useToggle(false);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const avalancheCenterMapRegion: Region = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
+  const avalancheCenterMapRegion = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
@@ -88,8 +94,6 @@ export const WeatherStationMap: React.FunctionComponent<{
     }
   }, [postHog, center_id]);
   useFocusEffect(recordAnalytics);
-
-  const topElements = React.useRef<RNView>(null);
 
   const navigation = useNavigation<WeatherStackNavigationProps>();
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
@@ -114,8 +118,10 @@ export const WeatherStationMap: React.FunctionComponent<{
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
-  const mapView = useRef<AnimatedMapView>(null);
-  const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapView, logger)).current;
+  const mapCameraView = useRef<Camera>(null);
+  const controller = useRef<AnimatedMapWithDrawerController>(
+    new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraView, logger),
+  ).current;
   React.useEffect(() => {
     controller.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
   }, [avalancheCenterMapRegion, controller]);
@@ -149,7 +155,7 @@ export const WeatherStationMap: React.FunctionComponent<{
       ...clusteredStations,
       features: clusteredStations.features.sort((a, b) => {
         // Sort by cluster...
-        const avalancheCenterLongLat: Coord = [avalancheCenterMapRegion.longitude, avalancheCenterMapRegion.latitude];
+        const avalancheCenterLongLat: Coord = [avalancheCenterMapRegion.centerCoordinate.longitude, avalancheCenterMapRegion.centerCoordinate.latitude];
 
         if (a.properties.cluster !== b.properties.cluster) {
           if (a.properties.cluster == null && b.properties.cluster != null) {
@@ -178,74 +184,36 @@ export const WeatherStationMap: React.FunctionComponent<{
   const markers = React.useMemo(
     () =>
       sortedStations.features.map(station => {
-        return (
-          <WeatherStationMarker
-            key={station.properties.stid}
-            selected={station.properties.stid === selectedStationId}
-            coordinate={{latitude: station.geometry.coordinates[1], longitude: station.geometry.coordinates[0]}}
-            onPressMarker={onPressMarker}
-            station={station}
-            cluster={station.properties.cluster}
-          />
-        );
+        return <WeatherStationMarker key={station.properties.stid} selected={false} onPressMarker={onPressMarker} station={station} />;
       }),
-    [sortedStations, selectedStationId, onPressMarker],
+    [sortedStations, onPressMarker],
   );
 
   useEffect(() => {
     const station = sortedStations.features.find(station => station.properties.stid === selectedStationId);
     if (station) {
-      mapView.current?.animateCamera(
-        {
-          center: {
-            longitude: station.geometry.coordinates[0],
-            latitude: station.geometry.coordinates[1],
-          },
-        },
-        {duration: 250},
-      );
+      mapCameraView.current?.moveTo(station.geometry.coordinates, 250);
     }
   }, [selectedStationId, sortedStations]);
 
-  const onLayout = useCallback(() => {
-    // onLayout returns position relative to parent - we need position relative to screen
-    topElements.current?.measureInWindow((x, y, width, height) => {
-      controller.animateUsingUpdatedTopElementsHeight(y, height);
-    });
-
-    // we seem to see races between onLayout firing and the measureInWindow picking up the correct
-    // SafeAreaView bounds, so let's queue up another render pass in the future to hopefully converge
-    setTimeout(() => {
-      if (topElements.current) {
-        topElements.current.measureInWindow((x, y, width, height) => {
-          controller.animateUsingUpdatedTopElementsHeight(y, height);
-        });
-      }
-    }, 50);
-  }, [controller]);
-
-  const isRunningInExpoGo = Constants.appOwnership === AppOwnership.Expo;
-
   return (
     <>
-      <MapView.Animated
-        ref={mapView}
+      <ZoneMap
         style={StyleSheet.absoluteFillObject}
-        onLayout={setReady}
-        onPress={onPressMapView}
-        provider={isRunningInExpoGo ? undefined : 'google'}
-        mapType={MAP_TYPES.TERRAIN}
+        ref={mapCameraView}
+        onMapPress={onPressMapView}
         zoomEnabled={true}
         scrollEnabled={true}
-        initialRegion={avalancheCenterMapRegion}>
-        {ready && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={false} renderFillColor={true} />)}
-        {ready && markers}
-      </MapView.Animated>
-      <SafeAreaView>
-        <View>
-          <VStack ref={topElements} width="100%" position="absolute" top={0} left={0} right={0} mt={8} px={4} flex={1} onLayout={onLayout}></VStack>
-        </View>
-      </SafeAreaView>
+        zones={zones}
+        initialCameraBounds={avalancheCenterMapRegion.cameraBounds}>
+        {markers}
+        {selectedStationId &&
+          sortedStations.features
+            .filter(station => station.properties.stid === selectedStationId)
+            ?.map(selectedStation => (
+              <WeatherStationMarker key={`${selectedStation.properties.stid}-selected`} station={selectedStation} selected={true} onPressMarker={onPressMarker} />
+            ))}
+      </ZoneMap>
 
       <WeatherStationCards
         key={center_id}
@@ -264,46 +232,32 @@ export const WeatherStationMap: React.FunctionComponent<{
 const WeatherStationMarker: React.FC<{
   station: WeatherStation;
   selected: boolean;
-  coordinate: LatLng;
   onPressMarker: (station: WeatherStation) => void;
-  cluster: number | null | undefined;
-}> = ({station, selected, coordinate, onPressMarker, cluster}) => {
-  // We set tracksViewChanges={false} for maximum performance, but that means that we need to manually
-  // trigger redraws of a marker when the selected state changes.
-  const markerRef = useRef<MapMarker>(null);
-  const forceMarkerRedraw = () => {
-    markerRef.current?.redraw();
-  };
-  const [currentlySelected, setCurrentlySelected] = useState(false);
-  if (currentlySelected !== selected) {
-    setCurrentlySelected(selected);
-    forceMarkerRedraw();
-  }
+}> = ({station, selected, onPressMarker}) => {
   const onPressHandler = useCallback(() => {
     onPressMarker(station);
   }, [onPressMarker, station]);
 
+  const selectedKeySuffix = selected ? '-selected' : '';
+
   return (
-    <MapMarker
-      ref={markerRef}
-      key={station.properties.stid}
-      coordinate={coordinate}
+    <ShapeSource
+      key={`${station.properties.stid}-source${selectedKeySuffix}`}
+      id={`${station.properties.stid}-source${selectedKeySuffix}`}
+      shape={station.geometry}
       onPress={onPressHandler}
-      stopPropagation={true}
-      tappable={true}
-      draggable={false}
-      tracksViewChanges={false}
-      tracksInfoWindowChanges={false}
-      anchor={{x: 0.5, y: 0.5}}
-      zIndex={selected ? 100 : 0}>
-      {process.env.EXPO_PUBLIC_WEATHER_STATION_MAP_CLUSTER_DEBUG ? (
-        <Center width={32} height={16} bg={cluster != null ? 'yellow' : 'red'} borderRadius={4} borderWidth={selected ? 1 : 0} borderColor="magenta">
-          <BodyXSm>{cluster != null ? cluster : 'x'}</BodyXSm>
-        </Center>
-      ) : (
-        iconForSource(station.properties.source, selected)
-      )}
-    </MapMarker>
+      hitbox={{width: 0, height: 0}}>
+      <CircleLayer
+        id={`${station.properties.stid}-circleLayer${selectedKeySuffix}`}
+        key={`${station.properties.stid}-circleLayer${selectedKeySuffix}`}
+        style={{
+          circleColor: colorLookup(StationColorNameForSource(station.properties.source)).toString(),
+          circleRadius: 10,
+          circleStrokeColor: selected ? 'white' : colorLookup('text').toString(),
+          circleStrokeWidth: 1,
+        }}
+      />
+    </ShapeSource>
   );
 };
 
@@ -456,58 +410,4 @@ const formatSource = (source: WeatherStationSource): string => {
   } else {
     return source.toUpperCase();
   }
-};
-
-const iconSize = 24;
-const strokeWidth = 5;
-const radius = 50 - 2 * strokeWidth;
-const circleIcons = {
-  [WeatherStationSource.NWAC]: {
-    selected: (
-      <Svg height={iconSize} width={iconSize} viewBox="0 0 100 100">
-        <Circle cx="50" cy="50" r={radius} stroke="white" strokeWidth={strokeWidth} fill={colorLookup('weather.nwac.primary')} />
-      </Svg>
-    ),
-    unselected: (
-      <Svg height={iconSize} width={iconSize} viewBox="0 0 100 100">
-        <Circle cx="50" cy="50" r={radius} stroke={colorLookup('text')} strokeWidth={strokeWidth} fill={colorLookup('weather.nwac.primary')} />
-      </Svg>
-    ),
-  },
-  [WeatherStationSource.SNOTEL]: {
-    selected: (
-      <Svg height={iconSize} width={iconSize} viewBox="0 0 100 100">
-        <Circle cx="50" cy="50" r={radius} stroke="white" strokeWidth={strokeWidth} fill={colorLookup('weather.snotel.primary')} />
-      </Svg>
-    ),
-    unselected: (
-      <Svg height={iconSize} width={iconSize} viewBox="0 0 100 100">
-        <Circle cx="50" cy="50" r={radius} stroke={colorLookup('text')} strokeWidth={strokeWidth} fill={colorLookup('weather.snotel.primary')} />
-      </Svg>
-    ),
-  },
-  [WeatherStationSource.MESOWEST]: {
-    selected: (
-      <Svg height={iconSize} width={iconSize} viewBox="0 0 100 100">
-        <Circle cx="50" cy="50" r={radius} stroke="white" strokeWidth={strokeWidth} fill={colorLookup('weather.mesowest.primary')} />
-      </Svg>
-    ),
-    unselected: (
-      <Svg height={iconSize} width={iconSize} viewBox="0 0 100 100">
-        <Circle cx="50" cy="50" r={radius} stroke={colorLookup('text')} strokeWidth={strokeWidth} fill={colorLookup('weather.mesowest.primary')} />
-      </Svg>
-    ),
-  },
-} as const;
-
-const iconForSource = (source: WeatherStationSource, selected: boolean) => {
-  switch (source) {
-    case WeatherStationSource.NWAC:
-    case WeatherStationSource.SNOTEL:
-    case WeatherStationSource.MESOWEST:
-      return selected ? circleIcons[source].selected : circleIcons[source].unselected;
-  }
-  const invalid: never = source;
-  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-  throw new Error(`Unknown weather station source: ${invalid}`);
 };

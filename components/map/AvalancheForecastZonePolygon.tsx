@@ -1,50 +1,20 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
-import {LatLng, MapPolygonProps, Polygon, PolygonPressEvent} from 'react-native-maps';
 
+import {LineLayer, Animated as MBAnimated, ShapeSource} from '@rnmapbox/maps';
+import {OnPressEvent} from '@rnmapbox/maps/lib/typescript/src/types/OnPressEvent';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {MapViewZone} from 'components/content/ZoneMap';
 import {colorLookup} from 'theme';
-import {Geometry} from 'types/nationalAvalancheCenter';
-
-const coordinateList = (geometry: Geometry): number[][][] => {
-  let items: number[][][] = [];
-  if (geometry.type === 'Polygon') {
-    items = [geometry.coordinates[0]];
-  } else if (geometry.type === 'MultiPolygon') {
-    items = geometry.coordinates.map(coordinates => coordinates[0]);
-  }
-  return items;
-};
-
-const toLatLng = (item: number[]): LatLng => {
-  return {longitude: item[0], latitude: item[1]};
-};
-
-export const toLatLngList = (geometry: Geometry | undefined): LatLng[][] => {
-  if (!geometry) {
-    return [];
-  }
-  return coordinateList(geometry).map(polygon => polygon.map(toLatLng));
-};
 
 export interface AvalancheForecastZonePolygonProps {
   zone: MapViewZone;
-  selected: boolean;
   renderFillColor: boolean;
   onPress?: (zone: MapViewZone) => void;
 }
 
-const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
-
-export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({
-  zone,
-  selected,
-  onPress,
-  renderFillColor,
-}: AvalancheForecastZonePolygonProps) => {
+export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({zone, onPress, renderFillColor}: AvalancheForecastZonePolygonProps) => {
   const outline = colorLookup('gray.700');
-  const highlight = colorLookup('blue.100');
   const useAnimation = zone.hasWarning && renderFillColor;
   const animationProgress = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -59,28 +29,19 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
     }
   }, [animationProgress, useAnimation]);
 
-  const polygonProps: MapPolygonProps[] = toLatLngList(zone.feature.geometry).map(
-    (polygon): MapPolygonProps => ({
-      coordinates: polygon,
-      strokeColor: selected ? highlight.toString() : outline.toString(),
-      strokeWidth: selected ? 4 : 2,
-      tappable: onPress !== undefined,
-      zIndex: selected ? 1 : 0,
-      onPress: (event: PolygonPressEvent) => {
-        if (onPress) {
-          onPress(zone);
-
-          // By calling stopPropagation, we prevent this event from getting passed to the MapView's onPress handler,
-          // which would then clear the selection
-          // https://github.com/react-native-maps/react-native-maps/issues/1132
-          event.stopPropagation();
-        }
-      },
-    }),
+  const onPolygonPress = useCallback(
+    (_: OnPressEvent) => {
+      if (onPress) {
+        onPress(zone);
+      }
+    },
+    [zone, onPress],
   );
 
+  const fillOpacity = renderFillColor ? zone.fillOpacity : 0;
+  let fillColor: string | Animated.AnimatedInterpolation<string | number>;
   if (useAnimation) {
-    const fillColor = animationProgress.interpolate({
+    fillColor = animationProgress.interpolate({
       inputRange: [0, 1, 2, 3, 4, 5],
       outputRange: [
         colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
@@ -91,22 +52,24 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
         colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
       ],
     });
-    return (
-      <>
-        {polygonProps.map((prop, idx) => (
-          <AnimatedPolygon key={idx} fillColor={fillColor} {...prop} />
-        ))}
-      </>
-    );
   } else {
-    const fillOpacity = renderFillColor ? zone.fillOpacity : 0;
-    const fillColor = colorFor(zone.danger_level).alpha(fillOpacity).string();
-    return (
-      <>
-        {polygonProps.map((prop, idx) => (
-          <Polygon key={idx} fillColor={fillColor} {...prop} />
-        ))}
-      </>
-    );
+    fillColor = colorFor(zone.danger_level).alpha(fillOpacity).string();
   }
+
+  return (
+    <ShapeSource key={`${zone.zone_id}`} id={`${zone.zone_id}`} shape={zone.feature} onPress={onPolygonPress} hitbox={{width: 0, height: 0}}>
+      <MBAnimated.FillLayer id={`${zone.zone_id}-fillLayer`} style={{fillColor: fillColor, visibility: renderFillColor ? 'visible' : 'none'}} />
+      <LineLayer id={`${zone.zone_id}-lineLayer`} style={{lineColor: outline.toString(), lineWidth: 2}} />
+    </ShapeSource>
+  );
+};
+
+export const SelectedAvalancheForecastZonePolygon: React.FunctionComponent<{zone: MapViewZone}> = ({zone}) => {
+  const highlight = colorLookup('blue.100');
+
+  return (
+    <ShapeSource key={`${zone.zone_id}-selected`} id={`${zone.zone_id}-selected`} shape={zone.feature}>
+      <LineLayer id={`${zone.zone_id}-lineLayer-selected`} style={{lineColor: highlight.toString(), lineWidth: 4}} />
+    </ShapeSource>
+  );
 };
