@@ -1,12 +1,13 @@
 import React from 'react';
 
-import Constants, {AppOwnership} from 'expo-constants';
-import MapView, {MAP_TYPES, MapViewProps, PoiClickEvent, Region} from 'react-native-maps';
+import {Region} from 'react-native-maps';
 
 import {RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
-import {AvalancheForecastZonePolygon, toLatLngList} from 'components/map/AvalancheForecastZonePolygon';
-import {useToggle} from 'hooks/useToggle';
+import {AvalancheForecastZonePolygon, SelectedAvalancheForecastZonePolygon, toLatLngList} from 'components/map/AvalancheForecastZonePolygon';
 import {AvalancheCenterID, DangerLevel, Geometry, MapLayerFeature} from 'types/nationalAvalancheCenter';
+
+import Mapbox, {Camera, CameraBounds, MapView} from '@rnmapbox/maps';
+import {ViewProps} from 'react-native';
 
 const defaultAvalancheCenterMapRegionBounds: RegionBounds = {
   topLeft: {latitude: 0, longitude: 0},
@@ -39,30 +40,58 @@ export type MapViewZone = {
   hasWarning: boolean;
 };
 
-interface ZoneMapProps extends MapViewProps {
-  animated: boolean;
+interface ZoneMapProps extends ViewProps {
   zones: MapViewZone[];
+  initialCameraBounds: CameraBounds;
+  onPolygonPress: (zone: MapViewZone) => void;
   selectedZoneId?: number | null;
   renderFillColor?: boolean;
-  onPressPolygon: (zone: MapViewZone) => void;
-  onPoiClick?: (event: PoiClickEvent) => void;
+  pitchEnabled?: boolean;
+  rotateEnabled?: boolean;
+  scrollEnabled?: boolean;
+  zoomEnabled?: boolean;
+  onMapPress?: (feature: GeoJSON.Feature) => void;
 }
 
-export const ZoneMap = React.forwardRef<MapView, ZoneMapProps>(({animated, zones, selectedZoneId, onPressPolygon, renderFillColor = true, children, ...props}, ref) => {
-  const [ready, {on: setReady}] = useToggle(false);
-  const MapComponent = animated ? MapView.Animated : MapView;
-  const isRunningInExpoGo = Constants.appOwnership === AppOwnership.Expo;
-
-  return (
-    <MapComponent ref={ref} onLayout={setReady} provider={isRunningInExpoGo ? undefined : 'google'} mapType={MAP_TYPES.TERRAIN} {...props}>
-      {ready &&
-        zones?.map(zone => (
-          <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={selectedZoneId === zone.zone_id} renderFillColor={renderFillColor} onPress={onPressPolygon} />
+export const ZoneMap = React.forwardRef<Camera, ZoneMapProps>(
+  (
+    {
+      zones,
+      selectedZoneId,
+      initialCameraBounds,
+      onPolygonPress,
+      renderFillColor = true,
+      pitchEnabled = true,
+      rotateEnabled = true,
+      scrollEnabled = true,
+      zoomEnabled = true,
+      onMapPress = undefined,
+      children,
+      ...props
+    },
+    cameraRef,
+  ) => {
+    return (
+      <MapView
+        styleURL={Mapbox.StyleURL.Outdoors}
+        scaleBarEnabled={false}
+        zoomEnabled={zoomEnabled}
+        pitchEnabled={pitchEnabled}
+        rotateEnabled={rotateEnabled}
+        scrollEnabled={scrollEnabled}
+        onPress={onMapPress}
+        {...props}>
+        <Camera ref={cameraRef} defaultSettings={{bounds: initialCameraBounds}} />
+        {zones?.map(zone => (
+          <AvalancheForecastZonePolygon key={`${zone.zone_id}-polygon`} zone={zone} renderFillColor={renderFillColor} onPress={onPolygonPress} />
         ))}
-      {children}
-    </MapComponent>
-  );
-});
+        {selectedZoneId &&
+          zones?.filter(zone => zone.zone_id === selectedZoneId).map(zone => <SelectedAvalancheForecastZonePolygon key={`${zone.zone_id}-selectedPolygon`} zone={zone} />)}
+        {children}
+      </MapView>
+    );
+  },
+);
 ZoneMap.displayName = 'ZoneMap';
 
 export function defaultMapRegionForZones(zones: MapViewZone[]) {

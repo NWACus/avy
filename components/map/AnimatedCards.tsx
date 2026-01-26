@@ -1,4 +1,5 @@
 import {AntDesign} from '@expo/vector-icons';
+import {Camera} from '@rnmapbox/maps';
 import {Logger} from 'browser-bunyan';
 import {HStack, View} from 'components/core';
 import {add, isAfter} from 'date-fns';
@@ -18,7 +19,7 @@ import {
   TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
-import AnimatedMapView, {Region} from 'react-native-maps';
+import {Region} from 'react-native-maps';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {RequestedTime, toISOStringUTC} from 'utils/date';
@@ -66,11 +67,11 @@ export class AnimatedMapWithDrawerController {
   topElementsHeight = 0;
   cardDrawerMaximumHeight = 0;
   tabBarHeight = 0;
-  mapView: RefObject<AnimatedMapView>;
+  mapCameraRef: RefObject<Camera>;
   // We store the last time we logged a region calculation so as to continue logging but not spam
   lastLogged: Record<string, string>; // mapping hash of parameters to the time we last logged it
 
-  constructor(state = AnimatedDrawerState.Docked, region: Region, mapView: RefObject<AnimatedMapView>, logger: Logger) {
+  constructor(state = AnimatedDrawerState.Docked, region: Region, mapCameraRef: RefObject<Camera>, logger: Logger) {
     this.logger = logger;
     this.state = state;
     this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[state];
@@ -78,7 +79,7 @@ export class AnimatedMapWithDrawerController {
     this.yOffset = new Animated.Value(this.baseOffset);
     this.buttonYOffset = new Animated.Value(this.baseOffset);
     this.baseAvalancheCenterMapRegion = region;
-    this.mapView = mapView;
+    this.mapCameraRef = mapCameraRef;
     this.lastLogged = {};
   }
 
@@ -298,7 +299,10 @@ export class AnimatedMapWithDrawerController {
       this.logger.info(parameters, 'animating map region');
       this.lastLogged[parameterHash] = toISOStringUTC(now);
     }
-    this.mapView?.current?.animateToRegion(targetRegion);
+    const neBound = [targetRegion.longitude + targetRegion.longitudeDelta / 2, targetRegion.latitude + targetRegion.latitudeDelta / 2];
+    const swBound = [targetRegion.longitude - targetRegion.longitudeDelta / 2, targetRegion.latitude - targetRegion.latitudeDelta / 2];
+
+    this.mapCameraRef?.current?.setCamera({bounds: {ne: neBound, sw: swBound}, heading: 0});
   }, this.ANIMATION_DEBOUNCE_MS);
 }
 

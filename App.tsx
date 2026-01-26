@@ -48,6 +48,7 @@ import {PreferencesProvider, usePreferences} from 'Preferences';
 import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
+import Mapbox from '@rnmapbox/maps';
 import {Integration} from '@sentry/types';
 import {TRACE} from 'browser-bunyan';
 import * as messages from 'compiled-lang/en.json';
@@ -65,6 +66,10 @@ import {startupUpdateCheck, UpdateStatus} from 'Updates';
 import {ZodError} from 'zod';
 
 logger.info('App starting.');
+
+Mapbox.setAccessToken(Constants.expoConfig?.extra?.mapboxAPIKey as string).catch((error: Error) => {
+  logger.error('Failed to initialize mapbox with error: ', error);
+});
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   logger.info('enabling android layout animations');
