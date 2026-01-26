@@ -2,17 +2,15 @@ import React, {useCallback, useRef, useState} from 'react';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
-import AnimatedMapView, {ClickEvent, PoiClickEvent, Region} from 'react-native-maps';
 
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
-import {defaultMapRegionForGeometries, MapViewZone, mapViewZoneFor, ZoneMap} from 'components/content/ZoneMap';
+import {MapViewZone, mapViewZoneFor, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
 import {FocusAwareStatusBar} from 'components/core/FocusAwareStatusBar';
 import {DangerScale} from 'components/DangerScale';
-import {pointInFeature} from 'components/helpers/geographicCoordinates';
 import {TravelAdvice} from 'components/helpers/travelAdvice';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
 import {AvalancheCenterSelectionModal} from 'components/modals/AvalancheCenterSelectionModal';
@@ -30,6 +28,9 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps, TabNavigationProps} from 'routes';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTimeString} from 'utils/date';
+
+import {Camera} from '@rnmapbox/maps';
+import {defaultMapRegionForGeometries} from 'components/helpers/geographicCoordinates';
 
 export interface MapProps {
   center: AvalancheCenterID;
@@ -60,22 +61,16 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   const navigation = useNavigation<HomeStackNavigationProps & TabNavigationProps>();
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
-  const onPressMapView = useCallback(
-    (event: ClickEvent) => {
-      // we seem to now get this event even if we're *also* getting a polygon press
-      // event, so we simply ignore the map press if it's inside a region
-      if (event.nativeEvent.coordinate && mapLayer && mapLayer.features) {
-        for (const feature of mapLayer.features) {
-          if (pointInFeature(event.nativeEvent.coordinate, feature)) {
-            return;
-          }
-        }
-      }
+
+  const onMapPress = useCallback(
+    (_: GeoJSON.Feature) => {
+      // Since the polygons are layered on the map, this is only called when the map is tapped outside of a polygon
       setSelectedZoneId(null);
     },
-    [mapLayer],
+    [setSelectedZoneId],
   );
-  const onPressPolygon = useCallback(
+
+  const onPolygonPress = useCallback(
     (zone: MapViewZone) => {
       if (selectedZoneId === zone.zone_id) {
         navigation.navigate('forecast', {
@@ -89,27 +84,15 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     },
     [navigation, selectedZoneId, requestedTime, setSelectedZoneId],
   );
-  // On the Android version of the Google Map layer, when a user taps on a map label (a place name, etc),
-  // we get a POI click event; we don't get to see the specific point that they tapped on, only the centroid
-  // of the POI itself. It doesn't look like we can turn off interactivity with POIs without hiding them entirely,
-  // so it seems like the best UX we can provide is to act as if the user tapped in the center of the POI itself
-  // and open the forecast zone for that point. When POI labels span multiple zones, that doesn't work perfectly.
-  const onPressPOI = useCallback(
-    (event: PoiClickEvent) => {
-      const matchingZones = event.nativeEvent.coordinate ? mapLayer?.features.filter(feature => pointInFeature(event.nativeEvent.coordinate, feature)) : [];
-      if (matchingZones && matchingZones.length > 0) {
-        onPressPolygon(mapViewZoneFor(center, matchingZones[0]));
-      }
-    },
-    [mapLayer?.features, onPressPolygon, center],
-  );
 
-  const avalancheCenterMapRegion: Region = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
+  const avalancheCenterMapRegion = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
-  const mapView = useRef<AnimatedMapView>(null);
-  const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapView, logger)).current;
+  const mapCameraRef = useRef<Camera>(null);
+  const controller = useRef<AnimatedMapWithDrawerController>(
+    new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraRef, logger),
+  ).current;
   React.useEffect(() => {
     controller.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
   }, [avalancheCenterMapRegion, controller]);
@@ -261,17 +244,13 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     <>
       <FocusAwareStatusBar barStyle="light-content" translucent backgroundColor={'rgba(0, 0, 0, 0.35)'} />
       <ZoneMap
-        ref={mapView}
-        animated
+        ref={mapCameraRef}
         style={StyleSheet.absoluteFillObject}
-        zoomEnabled={true}
-        scrollEnabled={true}
-        initialRegion={avalancheCenterMapRegion}
-        onPress={onPressMapView}
+        initialCameraBounds={avalancheCenterMapRegion.cameraBounds}
         zones={zones}
         selectedZoneId={selectedZoneId}
-        onPressPolygon={onPressPolygon}
-        onPoiClick={onPressPOI}
+        onPolygonPress={onPolygonPress}
+        onMapPress={onMapPress}
       />
       <SafeAreaView>
         <View>
