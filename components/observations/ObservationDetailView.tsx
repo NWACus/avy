@@ -5,6 +5,8 @@ import {MaterialCommunityIcons} from '@expo/vector-icons';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
+import {CameraBounds, MarkerView} from '@rnmapbox/maps';
+import {Position} from '@turf/helpers';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {Card, CardProps} from 'components/content/Card';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
@@ -20,7 +22,7 @@ import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservation} from 'hooks/useNACObservation';
 import {useNWACObservation} from 'hooks/useNWACObservation';
 import {usePostHog} from 'posthog-react-native';
-import {LatLng, Marker} from 'react-native-maps';
+import {LatLng} from 'react-native-maps';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
@@ -224,6 +226,10 @@ export const ObservationCard: React.FunctionComponent<{
   }, [postHog, observation.center_id, observation.id]);
   useFocusEffect(recordAnalytics);
 
+  const nePosition: Position = [(observation.location_point.lng ?? 0) + 0.075 / 2, (observation.location_point.lat ?? 0) + 0.075 / 2];
+  const swPosition: Position = [(observation.location_point.lng ?? 0) - 0.075 / 2, (observation.location_point.lat ?? 0) - 0.075 / 2];
+  const initialCameraBounds: CameraBounds = {ne: nePosition, sw: swPosition};
+
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
       <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
@@ -257,28 +263,17 @@ export const ObservationCard: React.FunctionComponent<{
                   {observation.location_point.lat && observation.location_point.lng && !isPlaceholder(observation.location_point.lat, observation.location_point.lng) && (
                     <ZoneMap
                       style={{width: '100%', height: 200}}
-                      animated={false}
                       zones={[]}
-                      onPressPolygon={emptyHandler}
+                      onPolygonPress={emptyHandler}
                       pitchEnabled={false}
                       rotateEnabled={false}
                       scrollEnabled={true}
                       zoomEnabled={true}
-                      initialRegion={{
-                        latitude: observation.location_point.lat,
-                        longitude: observation.location_point.lng,
-                        latitudeDelta: 0.075,
-                        longitudeDelta: 0.075,
-                      }}>
-                      <Marker
-                        coordinate={{
-                          latitude: observation.location_point.lat,
-                          longitude: observation.location_point.lng,
-                        }}
-                        anchor={{x: 0.5, y: 1}}>
+                      initialCameraBounds={initialCameraBounds}>
+                      <MarkerView coordinate={[observation.location_point.lng, observation.location_point.lat]} anchor={{x: 0.5, y: 1}}>
                         {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
                         <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40}} />
-                      </Marker>
+                      </MarkerView>
                     </ZoneMap>
                   )}
                   <TableRow label="Avalanche Center" value={userFacingCenterId(observation.center_id, capabilities)} />

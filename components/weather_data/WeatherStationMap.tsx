@@ -9,12 +9,13 @@ import {Coord, FeatureCollection, Point, Position, Properties, Units, featureCol
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Constants, {AppOwnership} from 'expo-constants';
 import {View as RNView, StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
-import {default as AnimatedMapView, LatLng, MAP_TYPES, MapMarker, default as MapView, Region} from 'react-native-maps';
+import {LatLng, MAP_TYPES, MapMarker, default as MapView, Region} from 'react-native-maps';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Svg, {Circle} from 'react-native-svg';
 
 import {format} from 'date-fns';
 
+import {Camera} from '@rnmapbox/maps';
 import {MapViewZone, defaultMapRegionForGeometries, mapViewZoneFor} from 'components/content/ZoneMap';
 import {Center, HStack, VStack, View} from 'components/core';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
@@ -114,8 +115,10 @@ export const WeatherStationMap: React.FunctionComponent<{
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
-  const mapView = useRef<AnimatedMapView>(null);
-  const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapView, logger)).current;
+  const mapCameraView = useRef<Camera>(null);
+  const controller = useRef<AnimatedMapWithDrawerController>(
+    new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraView, logger),
+  ).current;
   React.useEffect(() => {
     controller.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
   }, [avalancheCenterMapRegion, controller]);
@@ -195,15 +198,7 @@ export const WeatherStationMap: React.FunctionComponent<{
   useEffect(() => {
     const station = sortedStations.features.find(station => station.properties.stid === selectedStationId);
     if (station) {
-      mapView.current?.animateCamera(
-        {
-          center: {
-            longitude: station.geometry.coordinates[0],
-            latitude: station.geometry.coordinates[1],
-          },
-        },
-        {duration: 250},
-      );
+      mapCameraView.current?.flyTo(station.geometry.coordinates, 250);
     }
   }, [selectedStationId, sortedStations]);
 
@@ -229,7 +224,6 @@ export const WeatherStationMap: React.FunctionComponent<{
   return (
     <>
       <MapView.Animated
-        ref={mapView}
         style={StyleSheet.absoluteFillObject}
         onLayout={setReady}
         onPress={onPressMapView}
@@ -238,7 +232,7 @@ export const WeatherStationMap: React.FunctionComponent<{
         zoomEnabled={true}
         scrollEnabled={true}
         initialRegion={avalancheCenterMapRegion}>
-        {ready && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} selected={false} renderFillColor={true} />)}
+        {ready && zones?.map(zone => <AvalancheForecastZonePolygon key={zone.zone_id} zone={zone} renderFillColor={true} />)}
         {ready && markers}
       </MapView.Animated>
       <SafeAreaView>
