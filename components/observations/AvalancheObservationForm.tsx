@@ -11,6 +11,7 @@ import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {Divider, HStack, VStack, View} from 'components/core';
+import {ButtonSelectField} from 'components/form/ButtonSelectField';
 import {DateField} from 'components/form/DateField';
 import {AddImageFromPickerButton, AddImageFromPickerButtonComponent, ImageCaptionField, ImageCaptionFieldComponent} from 'components/form/ImageCaptionField';
 import {LocationField} from 'components/form/LocationField';
@@ -137,7 +138,7 @@ export const AvalancheObservationForm: React.FC<{
                         }}
                       />
                       <LocationField name="location_point" label="Latitude/Longitude" center={center_id} />
-                      <DateField name="date" label="Occurance date" maximumDate={today} />
+                      <DateField name="date" label="Occurrence date" maximumDate={today} />
                       <SwitchField
                         name="date_known"
                         label="Date Accuracy"
@@ -155,21 +156,13 @@ export const AvalancheObservationForm: React.FC<{
                         items={Object.values(AvalancheTrigger).map(trigger => ({label: FormatAvalancheTrigger(trigger), value: trigger}))}
                       />
 
-                      <SelectField
+                      <ButtonSelectField
                         name="aspect"
                         label="Aspect"
-                        prompt="Primary or average aspect of the slope"
-                        minItemsShown={5}
                         items={Object.values(AvalancheAspect).map(aspect => ({label: FormatAvalancheAspect(aspect), value: aspect}))}
                       />
 
-                      <SelectField
-                        name="d_size"
-                        label="Avalanche Size"
-                        prompt="Avalanche Size - Destructive Potential"
-                        minItemsShown={5}
-                        items={Object.values(AvalancheSize).map(size => ({label: FormatAvalancheSize(size), value: size}))}
-                      />
+                      <ButtonSelectField name="d_size" label="Avalanche Size" items={Object.values(AvalancheSize).map(size => ({label: FormatAvalancheSize(size), value: size}))} />
 
                       <SelectField
                         name="avalanche_type"
@@ -193,7 +186,7 @@ export const AvalancheObservationForm: React.FC<{
                         name="number"
                         label="Number (of avalanches)"
                         textInputProps={{
-                          placeholder: 'Use if submitting general information for multipe avalanches',
+                          placeholder: 'Use if submitting general information for multiple avalanches',
                           keyboardType: 'number-pad',
                           returnKeyType: 'done',
                         }}
@@ -242,15 +235,15 @@ const AvalancheObservationFormHeader: React.FC<{
 };
 
 const AvalancheSize = {
-  'D1 - Relatively harmless to people.': '1',
+  D1: '1',
   'D1.5': '1.5',
-  'D2 - Could bury, injure, or kill a person.': '2',
+  D2: '2',
   'D2.5': '2.5',
-  'D3 - Could bury or destroy a car, damage a truck, destroy a wood frame house, or break a few trees.': '3',
+  D3: '3',
   'D3.5': '3.5',
-  'D4 - Could destroy a railway car, a large truck, several buildings, or substantial amount of forest.': '4',
+  D4: '4',
   'D4.5': '4.5',
-  'D5 - Could gouge the landscape. Largest snow avalanche known.': '5',
+  D5: '5',
 } as const;
 type AvalancheSize = (typeof AvalancheSize)[keyof typeof AvalancheSize];
 const FormatAvalancheSize = (value: AvalancheSize): string => {
