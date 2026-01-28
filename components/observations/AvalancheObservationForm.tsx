@@ -11,8 +11,8 @@ import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {Divider, HStack, VStack, View} from 'components/core';
+import {ButtonSelectDateField} from 'components/form/ButtonSelectDateField';
 import {ButtonSelectField} from 'components/form/ButtonSelectField';
-import {DateField} from 'components/form/DateField';
 import {AddImageFromPickerButton, AddImageFromPickerButtonComponent, ImageCaptionField, ImageCaptionFieldComponent} from 'components/form/ImageCaptionField';
 import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
@@ -20,6 +20,7 @@ import {SwitchField} from 'components/form/SwitchField';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
 import {AvalancheObservationFormData, avalancheObservationFormSchema, defaultAvalancheObservationFormData} from 'components/observations/ObservationFormData';
 import {BodySemibold, Title3Semibold} from 'components/text';
+import {add} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {
@@ -138,7 +139,17 @@ export const AvalancheObservationForm: React.FC<{
                         }}
                       />
                       <LocationField name="location_point" label="Latitude/Longitude" center={center_id} />
-                      <DateField name="date" label="Occurrence date" maximumDate={today} />
+                      <ButtonSelectDateField
+                        name="date"
+                        label="Occurrence date"
+                        quickPickDates={[
+                          {label: 'Today', value: today},
+                          {label: 'Yesterday', value: add(today, {days: -1})},
+                          {label: '2 days ago', value: add(today, {days: -2})},
+                        ]}
+                        maximumDate={today}
+                      />
+
                       <SwitchField
                         name="date_known"
                         label="Date Accuracy"
