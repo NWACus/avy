@@ -19,6 +19,7 @@ interface LocationFieldProps {
   label: string;
   center: AvalancheCenterID;
   disabled?: boolean;
+  required?: boolean;
 }
 
 const latLngToLocationPoint = (latLng: LatLng) => ({lat: latLng.latitude, lng: latLng.longitude});
@@ -27,7 +28,7 @@ const locationPointToLatLng = (locationPoint: LocationPoint) => ({
   longitude: locationPoint.lng,
 });
 
-export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center, disabled}, ref) => {
+export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center, disabled, required = false}, ref) => {
   const {
     field,
     fieldState: {error},
@@ -56,9 +57,18 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   return (
     <>
       <VStack width="100%" space={4} ref={ref}>
-        <BodySmBlack>{label}</BodySmBlack>
+        <BodySmBlack>
+          {label}
+          {required && ' *'}
+        </BodySmBlack>
         <TouchableOpacity onPress={toggleModal} disabled={disabled}>
-          <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
+          <HStack
+            borderWidth={2}
+            borderColor={colorLookup('border.base')}
+            borderRadius={4}
+            justifyContent="space-between"
+            alignItems="stretch"
+            backgroundColor={error && colorLookup('error.outline')}>
             <View p={8}>
               <Body>{value ? `${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : 'Tap to select a location on the map'}</Body>
             </View>
@@ -68,7 +78,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
           </HStack>
         </TouchableOpacity>
         {/* TODO: animate the appearance/disappearance of the error string */}
-        {error && <BodyXSm color={colorLookup('error.900')}>{error.message}</BodyXSm>}
+        {error && <BodyXSm color={colorLookup('error.active')}>{error.message}</BodyXSm>}
       </VStack>
       {modalVisible && <LocationMap center={center} modalVisible={modalVisible} initialLocation={value} onClose={toggleModalandClearLocation} onSelect={onLocationSelect} />}
     </>
