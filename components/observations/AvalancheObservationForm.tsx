@@ -159,21 +159,35 @@ export const AvalancheObservationForm: React.FC<{
                         ]}
                       />
 
-                      <SelectField
+                      <ButtonSelectField
                         name="trigger"
                         label="Trigger"
-                        prompt="What caused the avalanche to release?"
-                        minItemsShown={5}
-                        items={Object.values(AvalancheTrigger).map(trigger => ({label: FormatAvalancheTrigger(trigger), value: trigger}))}
+                        quickPickItems={[
+                          {label: 'Natural', value: 'N'},
+                          {label: 'Unknown', value: 'U'},
+                          {label: 'Skier', value: 'AS'},
+                          {label: 'Snowboarder', value: 'AR'},
+                          {label: 'Snowmobile', value: 'AM'},
+                          {label: 'Wildlife', value: 'AW'},
+                          {label: 'Vehicle', value: 'AV'},
+                        ]}
+                        otherItems={Object.values(AvalancheTrigger)
+                          .slice(8) // Remove quick pick items
+                          .map(trigger => ({label: FormatAvalancheTrigger(trigger), value: trigger}))}
+                        minOtherItemsShown={5}
                       />
 
                       <ButtonSelectField
                         name="aspect"
                         label="Aspect"
-                        items={Object.values(AvalancheAspect).map(aspect => ({label: FormatAvalancheAspect(aspect), value: aspect}))}
+                        quickPickItems={Object.values(AvalancheAspect).map(aspect => ({label: FormatAvalancheAspect(aspect), value: aspect}))}
                       />
 
-                      <ButtonSelectField name="d_size" label="Avalanche Size" items={Object.values(AvalancheSize).map(size => ({label: FormatAvalancheSize(size), value: size}))} />
+                      <ButtonSelectField
+                        name="d_size"
+                        label="Avalanche Size"
+                        quickPickItems={Object.values(AvalancheSize).map(size => ({label: FormatAvalancheSize(size), value: size}))}
+                      />
 
                       <SelectField
                         name="avalanche_type"
