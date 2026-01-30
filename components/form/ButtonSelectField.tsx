@@ -20,6 +20,7 @@ interface ButtonSelectFieldProps extends ViewProps {
   minOtherItemsShown?: number;
   disabled?: boolean;
   labelSpace?: number;
+  required?: boolean;
 }
 
 /**
@@ -31,7 +32,17 @@ interface ButtonSelectFieldProps extends ViewProps {
  *
  * WARNING: The quick pick items list must be distinct from the other items list, i.e. no duplicates.
  */
-export function ButtonSelectField({name, label, quickPickItems, otherItems, minOtherItemsShown, disabled = false, labelSpace = 4, ...props}: ButtonSelectFieldProps) {
+export function ButtonSelectField({
+  name,
+  label,
+  quickPickItems,
+  otherItems,
+  minOtherItemsShown,
+  disabled = false,
+  labelSpace = 4,
+  required = false,
+  ...props
+}: ButtonSelectFieldProps) {
   const {setValue} = useFormContext();
   const {field, fieldState} = useController({name});
   if (Array.isArray(field.value)) {
@@ -45,21 +56,30 @@ export function ButtonSelectField({name, label, quickPickItems, otherItems, minO
     });
   }
 
+  // If the field is required default to first item in list
+  useEffect(() => {
+    if (required && quickPickItems.length > 0) {
+      setValue(name, quickPickItems[0].value, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
+    }
+  }, [name, required, quickPickItems, setValue]);
+
   const selectRef = useRef<SelectRef>(null);
 
   const quickPickSelectionHandlers = useMemo(
     () =>
       quickPickItems.map(item => () => {
         if (item.value === field.value) {
-          // Deselect value
-          setValue(name, '', {shouldValidate: false, shouldDirty: false, shouldTouch: false});
+          // Deselect value if not a required field
+          if (!required) {
+            setValue(name, '', {shouldValidate: false, shouldDirty: false, shouldTouch: false});
+          }
           return;
         }
         setValue(name, item.value, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
         // Clear any selection in the select component
         selectRef.current?.clear();
       }),
-    [name, quickPickItems, field.value, setValue, selectRef],
+    [name, quickPickItems, required, field.value, setValue, selectRef],
   );
 
   useEffect(() => {
@@ -78,7 +98,7 @@ export function ButtonSelectField({name, label, quickPickItems, otherItems, minO
     setValue(name, '', {shouldValidate: false, shouldDirty: false, shouldTouch: false});
   }, [name, setValue]);
 
-  const selectStyles = getSelectStyles(minOtherItemsShown, otherItems?.length);
+  const selectStyles = getSelectStyles(minOtherItemsShown, otherItems?.length, fieldState.error !== undefined);
 
   // RowMargin is the space between rows if the list of buttons wraps onto a second row. We subtract
   // it from top margin of the HStack to stop the first row of buttons from being offset down.
@@ -86,8 +106,11 @@ export function ButtonSelectField({name, label, quickPickItems, otherItems, minO
 
   return (
     <VStack width="100%" space={labelSpace} flex={1} flexGrow={1} bg={'white'} {...props}>
-      <BodySmBlack>{label ?? name}</BodySmBlack>
-      <HStack space={5} flexWrap="wrap" marginTop={-rowMargin} {...props}>
+      <BodySmBlack>
+        {label ?? name}
+        {required && ' *'}
+      </BodySmBlack>
+      <HStack space={5} flexWrap="wrap" marginTop={-rowMargin} backgroundColor={fieldState.error && colorLookup('error.outline')} {...props}>
         {quickPickItems.map((item, index) => {
           const selected = item.value === field.value;
           const LabelFont = selected ? BodyBlack : Body;
@@ -112,6 +135,7 @@ export function ButtonSelectField({name, label, quickPickItems, otherItems, minO
           ref={selectRef}
           onSelect={onSelect}
           onRemove={onRemove}
+          clearable={!required}
           styles={selectStyles}
           // Setting `scrollToSelectedOption` based on
           // https://github.com/MobileReality/react-native-select-pro/issues/230 Seems to fix
@@ -129,12 +153,12 @@ export function ButtonSelectField({name, label, quickPickItems, otherItems, minO
       ) : (
         ''
       )}
-      {fieldState.error && <BodyXSm color={colorLookup('error.900')}>{fieldState.error.message}</BodyXSm>}
+      {fieldState.error && <BodyXSm color={colorLookup('error.active')}>{fieldState.error.message}</BodyXSm>}
     </VStack>
   );
 }
 
-function getSelectStyles(minItemsShown?: number, itemsLength?: number): SelectStyles {
+function getSelectStyles(minItemsShown?: number, itemsLength?: number, isError?: boolean): SelectStyles {
   const borderColor = colorLookup('border.base');
   return {
     select: {
@@ -142,6 +166,7 @@ function getSelectStyles(minItemsShown?: number, itemsLength?: number): SelectSt
         borderWidth: 2,
         borderColor,
         borderRadius: 4,
+        backgroundColor: isError ? colorLookup('error.outline') : undefined,
       },
       text: {
         color: colorLookup('text'),

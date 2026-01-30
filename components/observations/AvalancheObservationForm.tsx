@@ -138,7 +138,7 @@ export const AvalancheObservationForm: React.FC<{
                           multiline: true,
                         }}
                       />
-                      <LocationField name="location_point" label="Latitude/Longitude" center={center_id} />
+                      <LocationField name="location_point" label="Latitude/Longitude" center={center_id} required />
                       <ButtonSelectDateField
                         name="date"
                         label="Occurrence date"
@@ -175,18 +175,21 @@ export const AvalancheObservationForm: React.FC<{
                           .slice(8) // Remove quick pick items
                           .map(trigger => ({label: FormatAvalancheTrigger(trigger), value: trigger}))}
                         minOtherItemsShown={5}
+                        required
                       />
 
                       <ButtonSelectField
                         name="aspect"
                         label="Aspect"
                         quickPickItems={Object.values(AvalancheAspect).map(aspect => ({label: FormatAvalancheAspect(aspect), value: aspect}))}
+                        required
                       />
 
                       <ButtonSelectField
                         name="d_size"
                         label="Avalanche Size"
                         quickPickItems={Object.values(AvalancheSize).map(size => ({label: FormatAvalancheSize(size), value: size}))}
+                        required
                       />
 
                       <SelectField
@@ -205,6 +208,7 @@ export const AvalancheObservationForm: React.FC<{
                           keyboardType: 'number-pad',
                           returnKeyType: 'done',
                         }}
+                        required
                       />
 
                       <AvalancheObservationTextField
@@ -215,6 +219,7 @@ export const AvalancheObservationForm: React.FC<{
                           keyboardType: 'number-pad',
                           returnKeyType: 'done',
                         }}
+                        required
                       />
                     </VStack>
                     <Card
