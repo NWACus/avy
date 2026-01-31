@@ -148,6 +148,7 @@ export const AvalancheObservationForm: React.FC<{
                           {label: '2 days ago', value: add(today, {days: -2})},
                         ]}
                         maximumDate={today}
+                        required
                         helpText={{title: 'Occurrence date', contentHtml: 'To the best of your knowledge, when did the avalanche occur?'}}
                       />
 

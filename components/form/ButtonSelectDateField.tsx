@@ -4,8 +4,8 @@ import {Button} from 'components/content/Button';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {HStack, VStack, ViewProps} from 'components/core';
 import {Body, BodyBlack, BodySmBlack, BodyXSm} from 'components/text';
-import React, {useCallback, useMemo, useState} from 'react';
-import {useController} from 'react-hook-form';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useController, useFormContext} from 'react-hook-form';
 import {Platform} from 'react-native';
 import {colorLookup} from 'theme';
 import {utcDateToLocalDateString} from 'utils/date';
@@ -28,6 +28,7 @@ interface ButtonSelectDateFieldProps extends ViewProps {
   maximumDate?: Date;
   disabled?: boolean;
   labelSpace?: number;
+  required?: boolean;
   helpText?: HelpText;
 }
 
@@ -36,27 +37,53 @@ interface ButtonSelectDateFieldProps extends ViewProps {
  * a variation of the ButtonSelectField component designed for date fields. The final option in the
  * list will open a native date picker allowing the user to select an arbitrary value.
  */
-export function ButtonSelectDateField({name, label, quickPickDates, minimumDate, maximumDate, disabled = false, labelSpace = 4, helpText, ...props}: ButtonSelectDateFieldProps) {
+export function ButtonSelectDateField({
+  name,
+  label,
+  quickPickDates,
+  minimumDate,
+  maximumDate,
+  disabled = false,
+  labelSpace = 4,
+  required = false,
+  helpText,
+  ...props
+}: ButtonSelectDateFieldProps) {
+  const {setValue} = useFormContext();
   const {field, fieldState} = useController({name});
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const currentValue: Date | undefined = field.value as Date | undefined;
 
+  // If the field is required default to first item in list
+  useEffect(() => {
+    if (required && quickPickDates.length > 0) {
+      setValue(name, quickPickDates[0].value, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
+    }
+  }, [name, required, quickPickDates, setValue]);
+
   const quickPickSelectionHandlers = useMemo(
     () =>
       quickPickDates.map(item => () => {
-        field.onChange(item.value);
+        if (item.value.toDateString() === currentValue?.toDateString()) {
+          // Deselect value if not a required field
+          if (!required) {
+            setValue(name, undefined, {shouldValidate: false, shouldDirty: false, shouldTouch: false});
+          }
+          return;
+        }
+        setValue(name, item.value, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
       }),
-    [quickPickDates, field],
+    [name, quickPickDates, required, setValue, currentValue],
   );
 
   const onDateSelected = useCallback(
     (event: DateTimePickerEvent, date?: Date) => {
       if (event.type === 'set') {
-        field.onChange(date);
+        setValue(name, date, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
       }
       setDatePickerVisible(false);
     },
-    [field, setDatePickerVisible],
+    [name, setValue, setDatePickerVisible],
   );
 
   const toggleDatePicker = useCallback(() => {
@@ -78,11 +105,14 @@ export function ButtonSelectDateField({name, label, quickPickDates, minimumDate,
   return (
     <VStack width="100%" space={labelSpace} flex={1} flexGrow={1} bg={'white'} {...props}>
       <HStack>
-        <BodySmBlack>{label ?? name}</BodySmBlack>
+        <BodySmBlack>
+          {label ?? name}
+          {required && ' *'}
+        </BodySmBlack>
         {helpText && <InfoTooltip title={helpText.title} content={helpText.contentHtml} size={14} htmlStyle={{textAlign: 'left'}} />}
       </HStack>
       <Body>{utcDateToLocalDateString(currentValue)}</Body>
-      <HStack space={5} flexWrap="wrap" marginTop={-rowMargin} {...props}>
+      <HStack space={5} flexWrap="wrap" marginTop={-rowMargin} backgroundColor={fieldState.error && colorLookup('error.outline')} {...props}>
         {quickPickDates.map((item, index) => {
           const selected = field.value instanceof Date && item.value.getUTCDate() === field.value.getUTCDate();
           isQuickPick = isQuickPick || selected;
@@ -101,13 +131,21 @@ export function ButtonSelectDateField({name, label, quickPickDates, minimumDate,
             </Button>
           );
         })}
-        <Button key={'other'} onPress={toggleDatePicker} buttonStyle={!isQuickPick ? 'primary' : 'normal'} px={8} py={4} marginTop={rowMargin} borderWidth={1} disabled={disabled}>
+        <Button
+          key={'other'}
+          onPress={toggleDatePicker}
+          buttonStyle={!isQuickPick && field.value ? 'primary' : 'normal'}
+          px={8}
+          py={4}
+          marginTop={rowMargin}
+          borderWidth={1}
+          disabled={disabled}>
           <BodyBlack>
             <AntDesign name="calendar" />
           </BodyBlack>
         </Button>
       </HStack>
-      {fieldState.error && <BodyXSm color={colorLookup('error.900')}>{fieldState.error.message}</BodyXSm>}
+      {fieldState.error && <BodyXSm color={colorLookup('error.active')}>{fieldState.error.message}</BodyXSm>}
 
       {datePickerVisible && Platform.OS === 'ios' && (
         <DateTimePicker
