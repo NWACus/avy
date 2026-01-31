@@ -1,6 +1,7 @@
 import {AntDesign} from '@expo/vector-icons';
 import DateTimePicker, {DateTimePickerAndroid, DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import {Button} from 'components/content/Button';
+import {InfoTooltip} from 'components/content/InfoTooltip';
 import {HStack, VStack, ViewProps} from 'components/core';
 import {Body, BodyBlack, BodySmBlack, BodyXSm} from 'components/text';
 import React, {useCallback, useMemo, useState} from 'react';
@@ -14,6 +15,11 @@ interface DateItem {
   value: Date;
 }
 
+interface HelpText {
+  title: string;
+  contentHtml: string;
+}
+
 interface ButtonSelectDateFieldProps extends ViewProps {
   name: string;
   label?: string;
@@ -22,6 +28,7 @@ interface ButtonSelectDateFieldProps extends ViewProps {
   maximumDate?: Date;
   disabled?: boolean;
   labelSpace?: number;
+  helpText?: HelpText;
 }
 
 /**
@@ -29,7 +36,7 @@ interface ButtonSelectDateFieldProps extends ViewProps {
  * a variation of the ButtonSelectField component designed for date fields. The final option in the
  * list will open a native date picker allowing the user to select an arbitrary value.
  */
-export function ButtonSelectDateField({name, label, quickPickDates, minimumDate, maximumDate, disabled = false, labelSpace = 4, ...props}: ButtonSelectDateFieldProps) {
+export function ButtonSelectDateField({name, label, quickPickDates, minimumDate, maximumDate, disabled = false, labelSpace = 4, helpText, ...props}: ButtonSelectDateFieldProps) {
   const {field, fieldState} = useController({name});
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const currentValue: Date | undefined = field.value as Date | undefined;
@@ -70,7 +77,10 @@ export function ButtonSelectDateField({name, label, quickPickDates, minimumDate,
   let isQuickPick = false;
   return (
     <VStack width="100%" space={labelSpace} flex={1} flexGrow={1} bg={'white'} {...props}>
-      <BodySmBlack>{label ?? name}</BodySmBlack>
+      <HStack>
+        <BodySmBlack>{label ?? name}</BodySmBlack>
+        {helpText && <InfoTooltip title={helpText.title} content={helpText.contentHtml} size={14} htmlStyle={{textAlign: 'left'}} />}
+      </HStack>
       <Body>{utcDateToLocalDateString(currentValue)}</Body>
       <HStack space={5} flexWrap="wrap" marginTop={-rowMargin} {...props}>
         {quickPickDates.map((item, index) => {
