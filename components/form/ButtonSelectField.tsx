@@ -1,5 +1,6 @@
 import {Select, SelectRef, SelectStyles} from '@mobile-reality/react-native-select-pro';
 import {Button} from 'components/content/Button';
+import {InfoTooltip} from 'components/content/InfoTooltip';
 import {HStack, VStack, ViewProps} from 'components/core';
 import {Body, BodyBlack, BodySmBlack, BodyXSm, bodySize} from 'components/text';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
@@ -12,6 +13,11 @@ interface Item {
   value: string;
 }
 
+interface HelpText {
+  title: string;
+  contentHtml: string;
+}
+
 interface ButtonSelectFieldProps extends ViewProps {
   name: string;
   label?: string;
@@ -21,6 +27,7 @@ interface ButtonSelectFieldProps extends ViewProps {
   disabled?: boolean;
   labelSpace?: number;
   required?: boolean;
+  helpText?: HelpText;
 }
 
 /**
@@ -41,6 +48,7 @@ export function ButtonSelectField({
   disabled = false,
   labelSpace = 4,
   required = false,
+  helpText,
   ...props
 }: ButtonSelectFieldProps) {
   const {setValue} = useFormContext();
@@ -106,10 +114,13 @@ export function ButtonSelectField({
 
   return (
     <VStack width="100%" space={labelSpace} flex={1} flexGrow={1} bg={'white'} {...props}>
-      <BodySmBlack>
-        {label ?? name}
-        {required && ' *'}
-      </BodySmBlack>
+      <HStack>
+        <BodySmBlack>
+          {label ?? name}
+          {required && ' *'}
+        </BodySmBlack>
+        {helpText && <InfoTooltip title={helpText.title} content={helpText.contentHtml} size={14} htmlStyle={{textAlign: 'left'}} />}
+      </HStack>
       <HStack space={5} flexWrap="wrap" marginTop={-rowMargin} backgroundColor={fieldState.error && colorLookup('error.outline')} {...props}>
         {quickPickItems.map((item, index) => {
           const selected = item.value === field.value;
