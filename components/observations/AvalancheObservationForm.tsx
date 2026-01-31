@@ -11,7 +11,8 @@ import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {Divider, HStack, VStack, View} from 'components/core';
-import {DateField} from 'components/form/DateField';
+import {ButtonSelectDateField} from 'components/form/ButtonSelectDateField';
+import {ButtonSelectField} from 'components/form/ButtonSelectField';
 import {AddImageFromPickerButton, AddImageFromPickerButtonComponent, ImageCaptionField, ImageCaptionFieldComponent} from 'components/form/ImageCaptionField';
 import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
@@ -19,6 +20,7 @@ import {SwitchField} from 'components/form/SwitchField';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
 import {AvalancheObservationFormData, avalancheObservationFormSchema, defaultAvalancheObservationFormData} from 'components/observations/ObservationFormData';
 import {BodySemibold, Title3Semibold} from 'components/text';
+import {add} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {
@@ -135,9 +137,22 @@ export const AvalancheObservationForm: React.FC<{
                           placeholder: 'Describe the location of the avalanche.',
                           multiline: true,
                         }}
+                        required
                       />
-                      <LocationField name="location_point" label="Latitude/Longitude" center={center_id} />
-                      <DateField name="date" label="Occurance date" maximumDate={today} />
+                      <LocationField name="location_point" label="Latitude/Longitude" center={center_id} required />
+                      <ButtonSelectDateField
+                        name="date"
+                        label="Occurrence date"
+                        quickPickDates={[
+                          {label: 'Today', value: today},
+                          {label: 'Yesterday', value: add(today, {days: -1})},
+                          {label: '2 days ago', value: add(today, {days: -2})},
+                        ]}
+                        maximumDate={today}
+                        required
+                        helpText={{title: 'Occurrence date', contentHtml: 'To the best of your knowledge, when did the avalanche occur?'}}
+                      />
+
                       <SwitchField
                         name="date_known"
                         label="Date Accuracy"
@@ -147,28 +162,41 @@ export const AvalancheObservationForm: React.FC<{
                         ]}
                       />
 
-                      <SelectField
+                      <ButtonSelectField
                         name="trigger"
                         label="Trigger"
-                        prompt="What caused the avalanche to release?"
-                        minItemsShown={5}
-                        items={Object.values(AvalancheTrigger).map(trigger => ({label: FormatAvalancheTrigger(trigger), value: trigger}))}
+                        quickPickItems={[
+                          {label: 'Natural', value: 'N'},
+                          {label: 'Unknown', value: 'U'},
+                          {label: 'Skier', value: 'AS'},
+                          {label: 'Snowboarder', value: 'AR'},
+                          {label: 'Snowmobile', value: 'AM'},
+                        ]}
+                        otherItems={Object.values(AvalancheTrigger)
+                          .slice(5) // Remove quick pick items
+                          .filter(x => x !== 'disabled') // Remove disabled item
+                          .map(trigger => ({label: FormatAvalancheTrigger(trigger), value: trigger}))}
+                        minOtherItemsShown={5}
+                        required
                       />
 
-                      <SelectField
+                      <ButtonSelectField
                         name="aspect"
                         label="Aspect"
-                        prompt="Primary or average aspect of the slope"
-                        minItemsShown={5}
-                        items={Object.values(AvalancheAspect).map(aspect => ({label: FormatAvalancheAspect(aspect), value: aspect}))}
+                        quickPickItems={Object.values(AvalancheAspect).map(aspect => ({label: FormatAvalancheAspect(aspect), value: aspect}))}
+                        required
+                        helpText={{title: 'Aspect', contentHtml: 'Provide primary or average aspect of the slope where the avalanche released.'}}
                       />
 
-                      <SelectField
+                      <ButtonSelectField
                         name="d_size"
                         label="Avalanche Size"
-                        prompt="Avalanche Size - Destructive Potential"
-                        minItemsShown={5}
-                        items={Object.values(AvalancheSize).map(size => ({label: FormatAvalancheSize(size), value: size}))}
+                        quickPickItems={Object.values(AvalancheSize).map(size => ({label: FormatAvalancheSize(size), value: size}))}
+                        required
+                        helpText={{
+                          title: 'About D size',
+                          contentHtml: avalancheSizeHelpTextHtml,
+                        }}
                       />
 
                       <SelectField
@@ -187,16 +215,18 @@ export const AvalancheObservationForm: React.FC<{
                           keyboardType: 'number-pad',
                           returnKeyType: 'done',
                         }}
+                        required
                       />
 
                       <AvalancheObservationTextField
                         name="number"
                         label="Number (of avalanches)"
                         textInputProps={{
-                          placeholder: 'Use if submitting general information for multipe avalanches',
+                          placeholder: 'Use if submitting general information for multiple avalanches',
                           keyboardType: 'number-pad',
                           returnKeyType: 'done',
                         }}
+                        required
                       />
                     </VStack>
                     <Card
@@ -242,17 +272,30 @@ const AvalancheObservationFormHeader: React.FC<{
 };
 
 const AvalancheSize = {
-  'D1 - Relatively harmless to people.': '1',
+  D1: '1',
   'D1.5': '1.5',
-  'D2 - Could bury, injure, or kill a person.': '2',
+  D2: '2',
   'D2.5': '2.5',
-  'D3 - Could bury or destroy a car, damage a truck, destroy a wood frame house, or break a few trees.': '3',
+  D3: '3',
   'D3.5': '3.5',
-  'D4 - Could destroy a railway car, a large truck, several buildings, or substantial amount of forest.': '4',
+  D4: '4',
   'D4.5': '4.5',
-  'D5 - Could gouge the landscape. Largest snow avalanche known.': '5',
+  D5: '5',
 } as const;
 type AvalancheSize = (typeof AvalancheSize)[keyof typeof AvalancheSize];
 const FormatAvalancheSize = (value: AvalancheSize): string => {
   return reverseLookup(AvalancheSize, value);
 };
+
+const avalancheSizeHelpTextHtml = String.raw`
+<div>
+  <h4>Destructive Potential:</h4>
+  <ul>
+    <li><strong>D1</strong> - Relatively harmless to people.</li>
+    <li><strong>D2</strong> - Could bury, injure, or kill a person.</li>
+    <li><strong>D3</strong> - Could bury or destroy a car, damage a truck, destroy a wood frame house, or break a few trees.</li>
+    <li><strong>D4</strong> - Could destroy a railway car, a large truck, several buildings, or substantial amount of forest.</li>
+    <li><strong>D5</strong> - Could gouge the landscape. Largest snow avalanche known.</li>
+  </ul>
+</div>
+`;

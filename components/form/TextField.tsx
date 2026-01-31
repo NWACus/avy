@@ -24,6 +24,7 @@ interface TextFieldProps<TFieldValues extends FieldValues, TFieldName extends Fi
   textInputProps?: Omit<TextInputProps, 'style'>;
   disabled?: boolean;
   hideLabel?: boolean;
+  required?: boolean;
   textInputRef?: React.Ref<TextInput>;
 }
 
@@ -45,7 +46,7 @@ type StringFieldValue = string | null | undefined;
  * To be used with forwardRef to create a generic component.
  */
 const _TextField = <TFieldValues extends FieldValues, TFieldName extends FieldPathByValue<TFieldValues, StringFieldValue>>(
-  {name, label, comment, textTransform, textInputProps = {}, disabled, textInputRef, hideLabel = false, ...props}: TextFieldProps<TFieldValues, TFieldName>,
+  {name, label, comment, textTransform, textInputProps = {}, disabled, textInputRef, hideLabel = false, required = false, ...props}: TextFieldProps<TFieldValues, TFieldName>,
   ref: Ref<RNView>,
 ) => {
   const {field, fieldState} = useController<TFieldValues, TFieldName>({name});
@@ -87,7 +88,10 @@ const _TextField = <TFieldValues extends FieldValues, TFieldName extends FieldPa
     <VStack width="100%" space={4} {...props} ref={ref}>
       {!hideLabel && (
         <HStack space={4}>
-          <BodySmBlack>{label}</BodySmBlack>
+          <BodySmBlack>
+            {label}
+            {required && ' *'}
+          </BodySmBlack>
           {comment && <BodySm>{comment}</BodySm>}
         </HStack>
       )}
@@ -100,7 +104,8 @@ const _TextField = <TFieldValues extends FieldValues, TFieldName extends FieldPa
           display="flex"
           borderWidth={2}
           borderColor={isFocused ? colorLookup('border.active') : colorLookup('border.base')}
-          borderRadius={4}>
+          borderRadius={4}
+          backgroundColor={fieldState.error && colorLookup('error.outline')}>
           <TextInput
             ref={inputRef}
             onBlur={onBlur}
@@ -115,7 +120,7 @@ const _TextField = <TFieldValues extends FieldValues, TFieldName extends FieldPa
         </View>
       </Pressable>
       {/* TODO: animate the appearance/disappearance of the error string */}
-      {fieldState.error && <BodyXSm color={colorLookup('error.900')}>{fieldState.error.message}</BodyXSm>}
+      {fieldState.error && <BodyXSm color={colorLookup('error.active')}>{fieldState.error.message}</BodyXSm>}
     </VStack>
   );
 };
