@@ -171,11 +171,10 @@ export const AvalancheObservationForm: React.FC<{
                           {label: 'Skier', value: 'AS'},
                           {label: 'Snowboarder', value: 'AR'},
                           {label: 'Snowmobile', value: 'AM'},
-                          {label: 'Wildlife', value: 'AW'},
-                          {label: 'Vehicle', value: 'AV'},
                         ]}
                         otherItems={Object.values(AvalancheTrigger)
-                          .slice(8) // Remove quick pick items
+                          .slice(5) // Remove quick pick items
+                          .filter(x => x !== 'disabled') // Remove disabled item
                           .map(trigger => ({label: FormatAvalancheTrigger(trigger), value: trigger}))}
                         minOtherItemsShown={5}
                         required
