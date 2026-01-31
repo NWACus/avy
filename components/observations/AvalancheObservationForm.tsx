@@ -137,6 +137,7 @@ export const AvalancheObservationForm: React.FC<{
                           placeholder: 'Describe the location of the avalanche.',
                           multiline: true,
                         }}
+                        required
                       />
                       <LocationField name="location_point" label="Latitude/Longitude" center={center_id} required />
                       <ButtonSelectDateField
