@@ -104,10 +104,13 @@ const reconcileCachedImages = async (queryClient: QueryClient, queryCache: Query
   const queries = queryCache.findAll({queryKey: [queryKeyPrefix], fetchStatus: 'idle'}); // see comment below for why we only select idle queries
   const fileLinks = queries.map(query => query.state.data as string);
   logger.info({fileLinks: fileLinks}, 'found file links in query cache');
-  const fileLinksToQueryKeys = queries.reduce((accumulator, query) => {
-    accumulator[query.state.data as string] = query.queryKey;
-    return accumulator;
-  }, {} as Record<string, QueryKey>);
+  const fileLinksToQueryKeys = queries.reduce(
+    (accumulator, query) => {
+      accumulator[query.state.data as string] = query.queryKey;
+      return accumulator;
+    },
+    {} as Record<string, QueryKey>,
+  );
   // then, figure out all the files we have on disk
   const fileNames = await FileSystem.readDirectoryAsync(rootDirectory);
   const files = fileNames.map(fileName => rootDirectory + fileName);

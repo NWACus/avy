@@ -14,7 +14,7 @@ import {BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
 import {isAfter, isBefore, parseISO, sub} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
-import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
+import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, SafeAreaView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {colorLookup} from 'theme';
 import {MapLayer, WeatherStation, WeatherStationSource, WeatherStationTimeseriesEntry} from 'types/nationalAvalancheCenter';
@@ -156,7 +156,7 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const formContext = useForm({
     defaultValues: initialFilterConfig,
-    resolver: zodResolver(weatherStationFilterConfigSchema),
+    resolver: zodResolver(weatherStationFilterConfigSchema) as Resolver<WeatherStationFilterConfig>,
     mode: 'onBlur',
     shouldFocusError: false,
     shouldUnregister: true,

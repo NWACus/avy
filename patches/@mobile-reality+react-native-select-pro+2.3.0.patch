@@ -1,0 +1,61 @@
+diff --git a/node_modules/@mobile-reality/react-native-select-pro/src/components/select-provider/select-provider.tsx b/node_modules/@mobile-reality/react-native-select-pro/src/components/select-provider/select-provider.tsx
+index 0bb99fc..7d29905 100644
+--- a/node_modules/@mobile-reality/react-native-select-pro/src/components/select-provider/select-provider.tsx
++++ b/node_modules/@mobile-reality/react-native-select-pro/src/components/select-provider/select-provider.tsx
+@@ -1,6 +1,6 @@
+ import type { ReactNode } from 'react';
+ import React, { createContext } from 'react';
+-import { PortalHost, PortalProvider } from '@gorhom/portal';
++import { Portal } from 'react-native-paper';
+ 
+ import { APPROX_STATUSBAR_HEIGHT, Portals } from '../../constants';
+ 
+@@ -8,21 +8,11 @@ type Props = {
+     children: ReactNode;
+ };
+ 
+-const PortalHosts = () => {
+-    return (
+-        <>
+-            <PortalHost name={Portals.Backdrop} />
+-            <PortalHost name={Portals.OptionsList} />
+-        </>
+-    );
+-};
+-
+ export const SelectProvider = ({ children }: Props) => {
+     return (
+-        <PortalProvider>
++        <Portal.Host>
+             {children}
+-            <PortalHosts />
+-        </PortalProvider>
++        </Portal.Host>
+     );
+ };
+ 
+@@ -31,8 +21,9 @@ export const SelectModalContext = createContext(0);
+ export const SelectModalProvider = ({ children }: Props) => {
+     return (
+         <SelectModalContext.Provider value={APPROX_STATUSBAR_HEIGHT}>
+-            <PortalHosts />
+-            {children}
++            <Portal.Host>
++                {children}
++            </Portal.Host>
+         </SelectModalContext.Provider>
+     );
+ };
+diff --git a/node_modules/@mobile-reality/react-native-select-pro/src/components/select/select.tsx b/node_modules/@mobile-reality/react-native-select-pro/src/components/select/select.tsx
+index ca365ae..41b7d28 100644
+--- a/node_modules/@mobile-reality/react-native-select-pro/src/components/select/select.tsx
++++ b/node_modules/@mobile-reality/react-native-select-pro/src/components/select/select.tsx
+@@ -2,7 +2,7 @@ import type { Dispatch, ForwardedRef, Reducer } from 'react';
+ import React, { forwardRef, useEffect, useReducer, useRef } from 'react';
+ import type { SectionListData, ViewStyle } from 'react-native';
+ import { StyleSheet, UIManager, View } from 'react-native';
+-import { Portal } from '@gorhom/portal';
++import { Portal } from 'react-native-paper';
+ 
+ import { COLORS, Portals } from '../../constants';
+ import { OptionsListContextProvider, SelectContextProvider } from '../../context';
