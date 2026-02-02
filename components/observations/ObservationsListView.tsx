@@ -213,7 +213,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             source: 'nac',
             zone: observation.locationName,
             pending: true,
-          } as const),
+          }) as const,
       ),
     }),
     [pendingObservations],
@@ -231,7 +231,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
               observation: observation,
               source: observation.source,
               zone: observation.zone,
-            } as const),
+            }) as const,
         ),
     }),
     [observations, resolvedFilters],
@@ -328,7 +328,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   return (
     <VStack width="100%" height="100%" space={0}>
-      <Modal visible={filterModalVisible} onRequestClose={hideFilterModal}>
+      <Modal visible={filterModalVisible} onRequestClose={hideFilterModal} presentationStyle="overFullScreen">
         <ObservationsFilterForm
           requestedTime={requestedTime}
           mapLayer={mapLayer}

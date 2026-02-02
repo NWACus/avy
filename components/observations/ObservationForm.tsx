@@ -7,7 +7,7 @@ import {AxiosError} from 'axios';
 
 import _ from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FieldErrors, FieldPath, FormProvider, useForm, useWatch} from 'react-hook-form';
+import {FieldErrors, FieldPath, FormProvider, Resolver, useForm, useWatch} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
@@ -64,7 +64,7 @@ export const ObservationForm: React.FC<{
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const formContext = useForm<ObservationFormData>({
     defaultValues: defaultObservationFormData(),
-    resolver: zodResolver(simpleObservationFormSchema),
+    resolver: zodResolver(simpleObservationFormSchema) as Resolver<ObservationFormData>,
     mode: 'onBlur',
     shouldFocusError: false,
     shouldUnregister: true,
@@ -116,7 +116,7 @@ export const ObservationForm: React.FC<{
         'instability.collapsing_description': React.createRef<RNView>(),
         avalanches_summary: React.createRef<RNView>(),
         observation_summary: React.createRef<RNView>(),
-      } satisfies Partial<Record<FieldPath<ObservationFormData>, React.Ref<unknown>>>),
+      }) satisfies Partial<Record<FieldPath<ObservationFormData>, React.Ref<unknown>>>,
     [],
   );
 
@@ -171,7 +171,7 @@ export const ObservationForm: React.FC<{
               }
             } else if (upload.status === 'error') {
               logger.debug('observation failed', {observationId});
-              reject();
+              reject(new Error('Observation upload failed'));
               getUploader().unsubscribeFromStateUpdates(listener);
               Toast.show({
                 type: 'error',
@@ -246,7 +246,11 @@ export const ObservationForm: React.FC<{
 
   const onCloseHandler = useCallback(() => {
     formContext.reset();
-    onClose ? onClose() : navigation.goBack();
+    if (onClose) {
+      onClose();
+    } else {
+      navigation.goBack();
+    }
   }, [formContext, navigation, onClose]);
 
   useBackHandler(() => {
@@ -287,172 +291,177 @@ export const ObservationForm: React.FC<{
 
   return (
     <FormProvider {...formContext}>
-      <View width="100%" height="100%" bg="F6F8FC">
-        {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there, or top edge since StackHeader is sitting there */}
-        <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
-          <KeyboardAvoidingView
-            enabled={!isModalDisplayed}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={{flex: 1, height: '100%'}}
-            keyboardVerticalOffset={keyboardVerticalOffset}>
-            <VStack style={{height: '100%', width: '100%'}} alignItems="stretch" bg="#F6F8FC">
-              <ScrollView
-                scrollsToTop={!isModalDisplayed}
-                style={{height: '100%', width: '100%', backgroundColor: 'white'}}
-                keyboardShouldPersistTaps="handled"
-                ref={scrollViewRef}>
-                <VStack width="100%" justifyContent="flex-start" alignItems="stretch" pt={8} pb={8}>
-                  <View px={16} pb={formFieldSpacing}>
-                    <Body>Help keep the {userFacingCenterId(center_id, capabilities)} community informed by submitting your observation.</Body>
-                  </View>
-                  <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Privacy</Title3Semibold>}>
-                    <VStack space={formFieldSpacing} mt={8}>
-                      <SwitchField
-                        name="private"
-                        label="Observation visibility"
-                        items={[
-                          {label: 'Public', value: false},
-                          {label: 'Private', value: true},
-                        ]}
-                        disabled={disableFormControls}
-                      />
-                      <SelectField
-                        name="photoUsage"
-                        label="Photo usage"
-                        required
-                        otherItems={[
-                          {value: 'anonymous', label: 'Use anonymously'},
-                          {value: 'credit', label: 'Use with photo credit'},
-                          {value: 'private', label: "Don't use"},
-                        ]}
-                        disabled={disableFormControls}
-                      />
-                      <SelectField name="observer_type" label="Observer Type" required otherItems={[{value: 'public', label: 'Public'}]} disabled={true} invisible={true} />
-                      <SelectField
-                        name="status"
-                        label="Observation status"
-                        required
-                        otherItems={[
-                          {value: 'draft', label: 'Request review'},
-                          {value: 'published', label: 'Publish immediately'},
-                        ]}
-                        disabled={true}
-                        invisible={true}
-                      />
-                    </VStack>
-                  </Card>
-                  <Card borderRadius={0} borderColor="white" header={<Title3Semibold>General information</Title3Semibold>}>
-                    <VStack space={formFieldSpacing} mt={8}>
-                      <TextField name="name" label="Name" textInputProps={{placeholder: 'Jane Doe', textContentType: 'name'}} ref={fieldRefs.name} disabled={disableFormControls} />
-                      <SwitchField
-                        name="show_name"
-                        label="Show name to public?"
-                        items={[
-                          {label: 'Yes', value: true},
-                          {label: 'No', value: false},
-                        ]}
-                        disabled={disableFormControls}
-                      />
-                      <ObservationTextField
-                        name="email"
-                        label="Email address"
-                        comment="(never shared with the public)"
-                        ref={fieldRefs.email}
-                        textInputProps={{
-                          placeholder: 'you@domain.com',
-                          textContentType: 'emailAddress',
-                          keyboardType: 'email-address',
-                          autoCapitalize: 'none',
-                          autoCorrect: false,
-                        }}
-                        disabled={disableFormControls}
-                      />
-                      <ObservationTextField
-                        name="phone"
-                        label="Phone number"
-                        comment="(optional, never shared with the public)"
-                        textTransform={phoneNumberTextTransform}
-                        ref={fieldRefs.phone}
-                        textInputProps={{
-                          placeholder: '(012) 345-6789',
-                          textContentType: 'telephoneNumber',
-                          keyboardType: 'number-pad',
-                          autoCapitalize: 'none',
-                          autoCorrect: false,
-                        }}
-                        disabled={disableFormControls}
-                      />
-                      <DateField name="start_date" label="Observation date" maximumDate={today} disabled={disableFormControls} />
-                      <SelectField
-                        name="activity"
-                        label="Activity"
-                        prompt="What were you doing?"
-                        ref={fieldRefs.activity}
-                        otherItems={[
-                          {
-                            label: 'Skiing/Snowboarding',
-                            value: 'skiing_snowboarding',
-                          },
-                          {
-                            label: 'Snowmobiling/Snowbiking',
-                            value: 'snowmobiling_snowbiking',
-                          },
-                          {
-                            label: 'XC Skiing/Snowshoeing',
-                            value: 'xcskiing_snowshoeing',
-                          },
-                          {
-                            label: 'Climbing',
-                            value: 'climbing',
-                          },
-                          {
-                            label: 'Walking/Hiking',
-                            value: 'walking',
-                          },
-                          {
-                            label: 'Driving',
-                            value: 'driving',
-                          },
-                          {
-                            label: 'Other',
-                            value: 'other',
-                          },
-                        ]}
-                        disabled={disableFormControls}
-                      />
-                      <ObservationTextField
-                        name="location_name"
-                        label="Location"
-                        ref={fieldRefs.location_name}
-                        textInputProps={{
-                          placeholder: 'Please describe your observation location using common geographical place names (drainages, peak names, etc).',
-                          multiline: true,
-                        }}
-                        disabled={disableFormControls}
-                      />
-                      <LocationField name="location_point" label="Latitude/Longitude" center={center_id} ref={fieldRefs.location_point} disabled={disableFormControls} />
-                    </VStack>
-                  </Card>
-                  <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Signs of instability</Title3Semibold>}>
-                    <VStack mt={8}>
-                      <SwitchField
-                        name="instability.avalanches_observed"
-                        label="Did you see recent avalanches?"
-                        items={[
-                          {label: 'No', value: false},
-                          {label: 'Yes', value: true},
-                        ]}
-                        pb={formFieldSpacing}
-                        disabled={disableFormControls}
-                      />
-                      <Conditional name="instability.avalanches_observed" value={true}>
-                        <VStack>
-                          <View pb={formFieldSpacing}>
-                            <Body fontStyle="italic">Please provide more detail in the Avalanches section below.</Body>
-                          </View>
+      <View flex={1} bg="F6F8FC">
+        <KeyboardAvoidingView
+          enabled={!isModalDisplayed}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{flex: 1, height: '100%'}}
+          keyboardVerticalOffset={keyboardVerticalOffset}>
+          <VStack style={{height: '100%', width: '100%'}} alignItems="stretch" bg="#F6F8FC">
+            <ScrollView scrollsToTop={!isModalDisplayed} style={{height: '100%', width: '100%', backgroundColor: 'white'}} keyboardShouldPersistTaps="handled" ref={scrollViewRef}>
+              <VStack width="100%" justifyContent="flex-start" alignItems="stretch" pt={8} pb={8}>
+                <View px={16} pb={formFieldSpacing}>
+                  <Body>Help keep the {userFacingCenterId(center_id, capabilities)} community informed by submitting your observation.</Body>
+                </View>
+                <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Privacy</Title3Semibold>}>
+                  <VStack space={formFieldSpacing} mt={8}>
+                    <SwitchField
+                      name="private"
+                      label="Observation visibility"
+                      items={[
+                        {label: 'Public', value: false},
+                        {label: 'Private', value: true},
+                      ]}
+                      disabled={disableFormControls}
+                    />
+                    <SelectField
+                      name="photoUsage"
+                      label="Photo usage"
+                      required
+                      otherItems={[
+                        {value: 'anonymous', label: 'Use anonymously'},
+                        {value: 'credit', label: 'Use with photo credit'},
+                        {value: 'private', label: "Don't use"},
+                      ]}
+                      disabled={disableFormControls}
+                    />
+                    <SelectField name="observer_type" label="Observer Type" radio items={[{value: 'public', label: 'Public'}]} disabled={true} invisible={true} />
+                    <SelectField
+                      name="status"
+                      label="Observation status"
+                      required
+                      otherItems={[
+                        {value: 'draft', label: 'Request review'},
+                        {value: 'published', label: 'Publish immediately'},
+                      ]}
+                      disabled={true}
+                      invisible={true}
+                    />
+                  </VStack>
+                </Card>
+                <Card borderRadius={0} borderColor="white" header={<Title3Semibold>General information</Title3Semibold>}>
+                  <VStack space={formFieldSpacing} mt={8}>
+                    <TextField name="name" label="Name" textInputProps={{placeholder: 'Jane Doe', textContentType: 'name'}} ref={fieldRefs.name} disabled={disableFormControls} />
+                    <SwitchField
+                      name="show_name"
+                      label="Show name to public?"
+                      items={[
+                        {label: 'Yes', value: true},
+                        {label: 'No', value: false},
+                      ]}
+                      disabled={disableFormControls}
+                    />
+                    <ObservationTextField
+                      name="email"
+                      label="Email address"
+                      comment="(never shared with the public)"
+                      ref={fieldRefs.email}
+                      textInputProps={{
+                        placeholder: 'you@domain.com',
+                        textContentType: 'emailAddress',
+                        keyboardType: 'email-address',
+                        autoCapitalize: 'none',
+                        autoCorrect: false,
+                      }}
+                      disabled={disableFormControls}
+                    />
+                    <ObservationTextField
+                      name="phone"
+                      label="Phone number"
+                      comment="(optional, never shared with the public)"
+                      textTransform={phoneNumberTextTransform}
+                      ref={fieldRefs.phone}
+                      textInputProps={{
+                        placeholder: '(012) 345-6789',
+                        textContentType: 'telephoneNumber',
+                        keyboardType: 'number-pad',
+                        autoCapitalize: 'none',
+                        autoCorrect: false,
+                      }}
+                      disabled={disableFormControls}
+                    />
+                    <DateField name="start_date" label="Observation date" maximumDate={today} disabled={disableFormControls} />
+                    <SelectField
+                      name="activity"
+                      label="Activity"
+                      prompt="What were you doing?"
+                      ref={fieldRefs.activity}
+                      otherItems={[
+                        {
+                          label: 'Skiing/Snowboarding',
+                          value: 'skiing_snowboarding',
+                        },
+                        {
+                          label: 'Snowmobiling/Snowbiking',
+                          value: 'snowmobiling_snowbiking',
+                        },
+                        {
+                          label: 'XC Skiing/Snowshoeing',
+                          value: 'xcskiing_snowshoeing',
+                        },
+                        {
+                          label: 'Climbing',
+                          value: 'climbing',
+                        },
+                        {
+                          label: 'Walking/Hiking',
+                          value: 'walking',
+                        },
+                        {
+                          label: 'Driving',
+                          value: 'driving',
+                        },
+                        {
+                          label: 'Other',
+                          value: 'other',
+                        },
+                      ]}
+                      disabled={disableFormControls}
+                    />
+                    <ObservationTextField
+                      name="location_name"
+                      label="Location"
+                      ref={fieldRefs.location_name}
+                      textInputProps={{
+                        placeholder: 'Please describe your observation location using common geographical place names (drainages, peak names, etc).',
+                        multiline: true,
+                      }}
+                      disabled={disableFormControls}
+                    />
+                    <LocationField name="location_point" label="Latitude/Longitude" center={center_id} ref={fieldRefs.location_point} disabled={disableFormControls} />
+                  </VStack>
+                </Card>
+                <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Signs of instability</Title3Semibold>}>
+                  <VStack mt={8}>
+                    <SwitchField
+                      name="instability.avalanches_observed"
+                      label="Did you see recent avalanches?"
+                      items={[
+                        {label: 'No', value: false},
+                        {label: 'Yes', value: true},
+                      ]}
+                      pb={formFieldSpacing}
+                      disabled={disableFormControls}
+                    />
+                    <Conditional name="instability.avalanches_observed" value={true}>
+                      <VStack>
+                        <View pb={formFieldSpacing}>
+                          <Body fontStyle="italic">Please provide more detail in the Avalanches section below.</Body>
+                        </View>
+                        <SwitchField
+                          name="instability.avalanches_triggered"
+                          label="Did you trigger an avalanche?"
+                          items={[
+                            {label: 'No', value: false},
+                            {label: 'Yes', value: true},
+                          ]}
+                          pb={formFieldSpacing}
+                          disabled={disableFormControls}
+                        />
+                        <Conditional name="instability.avalanches_triggered" value={true}>
                           <SwitchField
-                            name="instability.avalanches_triggered"
-                            label="Did you trigger an avalanche?"
+                            name="instability.avalanches_caught"
+                            label="Were you caught?"
                             items={[
                               {label: 'No', value: false},
                               {label: 'Yes', value: true},
@@ -460,140 +469,128 @@ export const ObservationForm: React.FC<{
                             pb={formFieldSpacing}
                             disabled={disableFormControls}
                           />
-                          <Conditional name="instability.avalanches_triggered" value={true}>
-                            <SwitchField
-                              name="instability.avalanches_caught"
-                              label="Were you caught?"
-                              items={[
-                                {label: 'No', value: false},
-                                {label: 'Yes', value: true},
-                              ]}
-                              pb={formFieldSpacing}
-                              disabled={disableFormControls}
-                            />
-                          </Conditional>
-                        </VStack>
-                      </Conditional>
-                      <SwitchField
-                        name="instability.cracking"
-                        label="Did you experience snowpack cracking?"
+                        </Conditional>
+                      </VStack>
+                    </Conditional>
+                    <SwitchField
+                      name="instability.cracking"
+                      label="Did you experience snowpack cracking?"
+                      items={[
+                        {label: 'No', value: false},
+                        {label: 'Yes', value: true},
+                      ]}
+                      pb={formFieldSpacing}
+                      disabled={disableFormControls}
+                    />
+                    <Conditional name="instability.cracking" value={true} space={formFieldSpacing}>
+                      <SelectField
+                        name="instability.cracking_description"
+                        label="How widespread was the cracking?"
                         items={[
-                          {label: 'No', value: false},
-                          {label: 'Yes', value: true},
+                          {value: InstabilityDistribution.Isolated, label: 'Isolated'},
+                          {value: InstabilityDistribution.Specific, label: 'Specific'},
+                          {value: InstabilityDistribution.Widespread, label: 'Widespread'},
                         ]}
+                        prompt=" "
+                        disabled={disableFormControls}
+                        ref={fieldRefs['instability.cracking_description']}
+                      />
+                    </Conditional>
+                    <SwitchField
+                      name="instability.collapsing"
+                      label="Did you experience snowpack collapsing?"
+                      items={[
+                        {label: 'No', value: false},
+                        {label: 'Yes', value: true},
+                      ]}
+                      pb={formFieldSpacing}
+                      disabled={disableFormControls}
+                    />
+                    <Conditional name="instability.collapsing" value={true} space={formFieldSpacing}>
+                      <SelectField
+                        name="instability.collapsing_description"
+                        label="How widespread was the collapsing?"
+                        items={[
+                          {value: InstabilityDistribution.Isolated, label: 'Isolated'},
+                          {value: InstabilityDistribution.Specific, label: 'Specific'},
+                          {value: InstabilityDistribution.Widespread, label: 'Widespread'},
+                        ]}
+                        prompt=" "
+                        disabled={disableFormControls}
+                        ref={fieldRefs['instability.collapsing_description']}
+                      />
+                    </Conditional>
+                  </VStack>
+                </Card>
+                <Conditional name="instability.avalanches_observed" value={true}>
+                  <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Avalanches</Title3Semibold>}>
+                    <VStack space={formFieldSpacing} mt={8}>
+                      <AvalancheObservationSection center_id={center_id} disabled={mutation.isSuccess || mutation.isLoading} busy={mutation.isLoading} />
+
+                      <ObservationTextField
+                        name="avalanches_summary"
+                        label="Avalanche Summary"
+                        ref={fieldRefs.avalanches_summary}
+                        textInputProps={{
+                          placeholder: 'Please add any additional information about the avalanches you saw that was not captured in the specific avalanche observations',
+                          multiline: true,
+                        }}
                         pb={formFieldSpacing}
                         disabled={disableFormControls}
                       />
-                      <Conditional name="instability.cracking" value={true} space={formFieldSpacing}>
-                        <SelectField
-                          name="instability.cracking_description"
-                          label="How widespread was the cracking?"
-                          otherItems={[
-                            {value: InstabilityDistribution.Isolated, label: 'Isolated'},
-                            {value: InstabilityDistribution.Specific, label: 'Specific'},
-                            {value: InstabilityDistribution.Widespread, label: 'Widespread'},
-                          ]}
-                          prompt=" "
-                          disabled={disableFormControls}
-                          ref={fieldRefs['instability.cracking_description']}
-                        />
-                      </Conditional>
-                      <SwitchField
-                        name="instability.collapsing"
-                        label="Did you experience snowpack collapsing?"
-                        items={[
-                          {label: 'No', value: false},
-                          {label: 'Yes', value: true},
-                        ]}
-                        pb={formFieldSpacing}
-                        disabled={disableFormControls}
-                      />
-                      <Conditional name="instability.collapsing" value={true} space={formFieldSpacing}>
-                        <SelectField
-                          name="instability.collapsing_description"
-                          label="How widespread was the collapsing?"
-                          otherItems={[
-                            {value: InstabilityDistribution.Isolated, label: 'Isolated'},
-                            {value: InstabilityDistribution.Specific, label: 'Specific'},
-                            {value: InstabilityDistribution.Widespread, label: 'Widespread'},
-                          ]}
-                          prompt=" "
-                          disabled={disableFormControls}
-                          ref={fieldRefs['instability.collapsing_description']}
-                        />
-                      </Conditional>
                     </VStack>
                   </Card>
-                  <Conditional name="instability.avalanches_observed" value={true}>
-                    <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Avalanches</Title3Semibold>}>
-                      <VStack space={formFieldSpacing} mt={8}>
-                        <AvalancheObservationSection center_id={center_id} disabled={mutation.isSuccess || mutation.isLoading} busy={mutation.isLoading} />
-
-                        <ObservationTextField
-                          name="avalanches_summary"
-                          label="Avalanche Summary"
-                          ref={fieldRefs.avalanches_summary}
-                          textInputProps={{
-                            placeholder: 'Please add any additional information about the avalanches you saw that was not captured in the specific avalanche observations',
-                            multiline: true,
-                          }}
-                          pb={formFieldSpacing}
-                          disabled={disableFormControls}
-                        />
-                      </VStack>
-                    </Card>
-                  </Conditional>
-                  <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Field Notes</Title3Semibold>}>
-                    <VStack space={formFieldSpacing} mt={8}>
-                      <ObservationTextField
-                        name="observation_summary"
-                        label="What did you observe?"
-                        ref={fieldRefs.observation_summary}
-                        textInputProps={{
-                          placeholder: `• Signs of instability?
+                </Conditional>
+                <Card borderRadius={0} borderColor="white" header={<Title3Semibold>Field Notes</Title3Semibold>}>
+                  <VStack space={formFieldSpacing} mt={8}>
+                    <ObservationTextField
+                      name="observation_summary"
+                      label="What did you observe?"
+                      ref={fieldRefs.observation_summary}
+                      textInputProps={{
+                        placeholder: `• Signs of instability?
 • Amount of new snow/total snow?
 • Weather observations?
 • Snowpack test results?
 • How cautiously or aggressively did you travel?
 • Overall impression of stability?`,
-                          multiline: true,
-                        }}
-                        disabled={disableFormControls}
-                      />
-                    </VStack>
-                  </Card>
-                  <Card
-                    borderRadius={0}
-                    borderColor="white"
-                    header={
-                      <HStack justifyContent="space-between">
-                        <Title3Semibold>Photos</Title3Semibold>
-                        <ObservationImagePicker name="images" maxImageCount={maxImageCount} disable={disableFormControls} space={4} py={4} pl={4} pr={8} />
-                      </HStack>
-                    }>
-                    <VStack space={formFieldSpacing} mt={8}>
-                      <ObservationImageCaptionField name="images" maxImageCount={maxImageCount} onModalDisplayed={setModalDisplayed} />
-                    </VStack>
-                  </Card>
+                        multiline: true,
+                      }}
+                      disabled={disableFormControls}
+                    />
+                  </VStack>
+                </Card>
+                <Card
+                  borderRadius={0}
+                  borderColor="white"
+                  header={
+                    <HStack justifyContent="space-between">
+                      <Title3Semibold>Photos</Title3Semibold>
+                      <ObservationImagePicker name="images" maxImageCount={maxImageCount} disable={disableFormControls} space={4} py={4} pl={4} pr={8} />
+                    </HStack>
+                  }>
+                  <VStack space={formFieldSpacing} mt={8}>
+                    <ObservationImageCaptionField name="images" maxImageCount={maxImageCount} onModalDisplayed={setModalDisplayed} />
+                  </VStack>
+                </Card>
 
-                  <Button mx={16} mt={8} buttonStyle="primary" disabled={mutation.isSuccess || mutation.isLoading} busy={mutation.isLoading} onPress={onSubmitPress}>
-                    <BodySemibold>{mutation.isLoading ? 'Uploading observation' : 'Submit your observation'}</BodySemibold>
-                  </Button>
-                  {mutation.isSuccess && (
-                    <VStack mx={16} mt={16} mb={32}>
-                      <Body>Thanks for your observation!</Body>
-                    </VStack>
-                  )}
-                  {mutation.isError && (
-                    <VStack mx={16} mt={16} mb={32}>
-                      <Body color={colorLookup('error.900')}>There was an error submitting your observation.</Body>
-                    </VStack>
-                  )}
-                </VStack>
-              </ScrollView>
-            </VStack>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
+                <Button mx={16} mt={8} buttonStyle="primary" disabled={mutation.isSuccess || mutation.isLoading} busy={mutation.isLoading} onPress={onSubmitPress}>
+                  <BodySemibold>{mutation.isLoading ? 'Uploading observation' : 'Submit your observation'}</BodySemibold>
+                </Button>
+                {mutation.isSuccess && (
+                  <VStack mx={16} mt={16} mb={32}>
+                    <Body>Thanks for your observation!</Body>
+                  </VStack>
+                )}
+                {mutation.isError && (
+                  <VStack mx={16} mt={16} mb={32}>
+                    <Body color={colorLookup('error.900')}>There was an error submitting your observation.</Body>
+                  </VStack>
+                )}
+              </VStack>
+            </ScrollView>
+          </VStack>
+        </KeyboardAvoidingView>
       </View>
     </FormProvider>
   );

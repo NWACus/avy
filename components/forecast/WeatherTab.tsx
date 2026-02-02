@@ -21,7 +21,7 @@ import {isArray} from 'lodash';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Platform, RefreshControl, ScrollView} from 'react-native';
+import {RefreshControl, ScrollView} from 'react-native';
 import {HomeStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
@@ -166,7 +166,7 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
   }
 
   const adaptedWeatherForecast = center_id === 'SAC' ? adaptSierraWeatherForecast(weatherForecast) : weatherForecast;
-  const shouldStartCollapsed = Platform.OS === 'android';
+
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
@@ -196,10 +196,11 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
         {adaptedWeatherForecast.weather_discussion && (
           <CollapsibleCard
             identifier={'weatherSynopsis'}
+            marginTop={1}
             borderRadius={0}
             borderColor="white"
             header={<BodyBlack>Weather Discussion</BodyBlack>}
-            startsCollapsed={shouldStartCollapsed}>
+            startsCollapsed={false}>
             <HTML source={{html: adaptedWeatherForecast.weather_discussion}} />
           </CollapsibleCard>
         )}
@@ -257,10 +258,13 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
               center_id: center_id,
               stations: stations
                 .map(s => ({id: s.stid, source: s.source}))
-                .reduce((accum, value) => {
-                  accum[value.id] = value.source;
-                  return accum;
-                }, {} as Record<string, WeatherStationSource>),
+                .reduce(
+                  (accum, value) => {
+                    accum[value.id] = value.source;
+                    return accum;
+                  },
+                  {} as Record<string, WeatherStationSource>,
+                ),
               name: name,
               requestedTime: formatRequestedTime(requestedTime),
               zoneName: zone.name,
@@ -791,8 +795,6 @@ export const BTACWeatherForecast: React.FunctionComponent<{forecast: RowColumnWe
     data: snowData,
   };
 
-  const shouldStartCollapsed = Platform.OS === 'android';
-
   return (
     <>
       <CollapsibleCard
@@ -801,7 +803,7 @@ export const BTACWeatherForecast: React.FunctionComponent<{forecast: RowColumnWe
         borderRadius={0}
         borderColor="white"
         header={<BodyBlack>Weather Discussion</BodyBlack>}
-        startsCollapsed={shouldStartCollapsed}>
+        startsCollapsed={false}>
         <Body>{forecast.data[weatherSynopsisRow][0].value}</Body>
       </CollapsibleCard>
       <ForecastPeriod periods={periods} />
