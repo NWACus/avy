@@ -11,7 +11,7 @@ export interface AvalancheProblemIconProps {
 }
 
 const icons: Record<AvalancheProblemType, ImageSourcePropType> = {
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports */
   [AvalancheProblemType.DryLoose]: require('../assets/problem-icons/DryLoose.png'),
   [AvalancheProblemType.StormSlab]: require('../assets/problem-icons/StormSlab.png'),
   [AvalancheProblemType.WindSlab]: require('../assets/problem-icons/WindSlab.png'),
@@ -24,8 +24,8 @@ const icons: Record<AvalancheProblemType, ImageSourcePropType> = {
 };
 
 const sizes: Record<AvalancheProblemType, ImageResolvedAssetSource> = {
-  /* eslint-disable @typescript-eslint/no-unsafe-argument */
-  /* eslint-disable @typescript-eslint/no-var-requires */
+  /* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-require-imports */
+
   [AvalancheProblemType.DryLoose]: Image.resolveAssetSource(require('../assets/problem-icons/DryLoose.png')),
   [AvalancheProblemType.StormSlab]: Image.resolveAssetSource(require('../assets/problem-icons/StormSlab.png')),
   [AvalancheProblemType.WindSlab]: Image.resolveAssetSource(require('../assets/problem-icons/WindSlab.png')),
@@ -55,7 +55,6 @@ export const AvalancheProblemIcon: React.FunctionComponent<AvalancheProblemIconP
 };
 
 export const preloadAvalancheProblemIcons = async (queryClient: QueryClient, logger: Logger) => {
-  /* eslint-disable @typescript-eslint/no-var-requires */
   return Promise.all([
     ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/DryLoose.png')).uri),
     ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/StormSlab.png')).uri),
