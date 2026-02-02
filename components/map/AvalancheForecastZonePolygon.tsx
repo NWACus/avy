@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
 
 import {LineLayer, Animated as MBAnimated, ShapeSource} from '@rnmapbox/maps';
-import {OnPressEvent} from '@rnmapbox/maps/lib/typescript/src/types/OnPressEvent';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {MapViewZone} from 'components/content/ZoneMap';
 import {colorLookup} from 'theme';
@@ -30,7 +29,7 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
   }, [animationProgress, useAnimation]);
 
   const onPolygonPress = useCallback(
-    (_: OnPressEvent) => {
+    (_: object) => {
       if (onPress) {
         onPress(zone);
       }

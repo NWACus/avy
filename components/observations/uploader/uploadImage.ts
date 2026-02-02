@@ -59,7 +59,7 @@ export const captureDateFromExif = (exif?: PickedImage['exif']): string | null =
       const date = parse(DateTimeOriginal, 'yyyy:MM:dd HH:mm:SS', new Date());
       return format(date, 'yyyy-MM-dd');
     }
-  } catch (e) {
+  } catch (_e) {
     // fall through
   }
   return null;

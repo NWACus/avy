@@ -173,7 +173,7 @@ export const ForecastScreen = ({route}: NativeStackScreenProps<HomeStackParamLis
   const {center_id, forecast_zone_id, requestedTime} = route.params;
   return (
     // hat tip to https://github.com/react-navigation/react-navigation/issues/8694 for the use of `edges`
-    <SafeAreaView style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={{flex: 1, backgroundColor: 'white'}} edges={['top', 'left', 'right']}>
       <AvalancheForecast center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
     </SafeAreaView>
   );
