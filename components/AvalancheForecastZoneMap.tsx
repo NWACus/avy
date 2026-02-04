@@ -377,15 +377,10 @@ const DangerLevelTitle: React.FunctionComponent<{
 }> = ({dangerLevel}) => {
   switch (dangerLevel) {
     case DangerLevel.GeneralInformation:
-      return (
-        <BodySmSemibold>
-          <Text style={{textTransform: 'capitalize'}}>General Information</Text>
-        </BodySmSemibold>
-      );
     case DangerLevel.None:
       return (
         <BodySmSemibold>
-          <Text style={{textTransform: 'capitalize'}}>None</Text>
+          <Text style={{textTransform: 'capitalize'}}>No Rating</Text>
         </BodySmSemibold>
       );
     case DangerLevel.Low:
