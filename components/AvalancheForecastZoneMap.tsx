@@ -187,39 +187,49 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       forecast &&
         forecast.forecast_zone?.forEach(({id}) => {
           if (zonesById[id]) {
-            // the map layer will expose old forecasts with their danger level as appropriate, but the map expects to show a card
-            // that doesn't divulge the old forecast's rating, travel advice or publication/expiry times, so we clear things out
-            if (
-              !zonesById[id].end_date ||
-              (zonesById[id].end_date &&
-                isAfter(requestedTimeToUTCDate(requestedTime), toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}))) /* requesting after expiry */
-            ) {
+            // If the zone is marked as off-season in the map layer, we want the danger level to be None so that the color is grey
+            // regarless of what the forecast says
+            if (zonesById[id].feature.properties.off_season) {
               zonesById[id].danger_level = DangerLevel.None;
-              zonesById[id].end_date = null;
-              zonesById[id].start_date = null;
-            }
-            // product-specific queries can give us results that are expired or older than the map layer, in which case we don't
-            // want to use them
-            if (
-              (forecast.product_type === ProductType.Forecast || forecast.product_type === ProductType.Summary) &&
-              forecast.expires_time &&
-              zonesById[id].end_date &&
-              (isAfter(toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}), requestedTimeToUTCDate(requestedTime)) /* product is not expired */ ||
-                isAfter(
-                  toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}),
-                  toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}),
-                )) /* product newer than map layer */
-            ) {
-              if (forecast.product_type === ProductType.Forecast) {
-                const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);
-                if (currentDanger) {
-                  zonesById[id].danger_level = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
-                }
+            } else {
+              // the map layer will expose old forecasts with their danger level as appropriate, but the map expects to show a card
+              // that doesn't divulge the old forecast's rating, travel advice or publication/expiry times, so we clear things out
+              if (
+                !zonesById[id].end_date ||
+                (zonesById[id].end_date &&
+                  isAfter(requestedTimeToUTCDate(requestedTime), toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}))) /* requesting after expiry */
+              ) {
+                zonesById[id].danger_level = DangerLevel.GeneralInformation;
+                zonesById[id].end_date = null;
+                zonesById[id].start_date = null;
               }
+              // product-specific queries can give us results that are expired or older than the map layer, in which case we don't
+              // want to use them
+              if (
+                (forecast.product_type === ProductType.Forecast || forecast.product_type === ProductType.Summary) &&
+                forecast.expires_time &&
+                (isAfter(toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}), requestedTimeToUTCDate(requestedTime)) /* product is not expired */ ||
+                  (zonesById[id].end_date &&
+                    isAfter(
+                      toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}),
+                      toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}),
+                    ))) /* product newer than map layer */
+              ) {
+                if (forecast.product_type === ProductType.Forecast) {
+                  const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);
+                  if (currentDanger) {
+                    const maxCurrentDanger = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
+                    // If we're in season, use the forecast's danger level only if it's not None
+                    if (maxCurrentDanger !== DangerLevel.None) {
+                      zonesById[id].danger_level = maxCurrentDanger;
+                    }
+                  }
+                }
 
-              // Regardless if the product type is a summary or forecast, we want to use the forecast API timestamp as it has timezone information
-              zonesById[id].start_date = forecast.published_time;
-              zonesById[id].end_date = forecast.expires_time;
+                // Regardless if the product type is a summary or forecast, we want to use the forecast API timestamp as it has timezone information
+                zonesById[id].start_date = forecast.published_time;
+                zonesById[id].end_date = forecast.expires_time;
+              }
             }
           }
         });
@@ -367,15 +377,10 @@ const DangerLevelTitle: React.FunctionComponent<{
 }> = ({dangerLevel}) => {
   switch (dangerLevel) {
     case DangerLevel.GeneralInformation:
-      return (
-        <BodySmSemibold>
-          <Text style={{textTransform: 'capitalize'}}>General Information</Text>
-        </BodySmSemibold>
-      );
     case DangerLevel.None:
       return (
         <BodySmSemibold>
-          <Text style={{textTransform: 'capitalize'}}>None</Text>
+          <Text style={{textTransform: 'capitalize'}}>No Rating</Text>
         </BodySmSemibold>
       );
     case DangerLevel.Low:
