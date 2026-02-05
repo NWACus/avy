@@ -4,7 +4,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import centroid from '@turf/centroid';
 import turfClustersDBScan from '@turf/clusters-dbscan';
 import turfDistance from '@turf/distance';
-import {Coord, FeatureCollection, Point, Properties, Units, featureCollection} from '@turf/helpers';
+import {Coord, Units, featureCollection} from '@turf/helpers';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
@@ -19,6 +19,7 @@ import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CAR
 import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {formatData, formatTime, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
 import {formatInTimeZone} from 'date-fns-tz';
+import {FeatureCollection, Point} from 'geojson';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {WeatherStackNavigationProps} from 'routes';
@@ -61,7 +62,7 @@ function clustersDBScan(
   },
 ): ClusteredWeatherStationCollection {
   // Turf's types are not genericized for this function, so we have to explicitly cast the result
-  const result = turfClustersDBScan(weatherStations as FeatureCollection<Point, Properties>, maxDistance, options) as ClusteredWeatherStationCollection;
+  const result = turfClustersDBScan(weatherStations as FeatureCollection<Point>, maxDistance, options) as ClusteredWeatherStationCollection;
 
   // With all features grouped by cluster, calculate the centroid of each cluster and attach it to each feature
   Object.entries(_.groupBy(result.features, f => (f.properties.cluster != null ? f.properties.cluster : -1))).forEach(([cluster, features]) => {

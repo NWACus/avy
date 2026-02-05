@@ -239,7 +239,7 @@ export const ObservationCard: React.FunctionComponent<{
                       zoomEnabled={true}
                       initialCameraBounds={initialCameraBounds}>
                       <MarkerView coordinate={[observation.location_point.lng, observation.location_point.lat]} anchor={{x: 0.5, y: 1}}>
-                        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
+                        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports */}
                         <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40}} />
                       </MarkerView>
                     </ZoneMap>

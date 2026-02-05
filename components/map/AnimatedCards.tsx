@@ -67,11 +67,11 @@ export class AnimatedMapWithDrawerController {
   topElementsHeight = 0;
   cardDrawerMaximumHeight = 0;
   tabBarHeight = 0;
-  mapCameraRef: RefObject<Camera>;
+  mapCameraRef: RefObject<Camera | null>;
   // We store the last time we logged a region calculation so as to continue logging but not spam
   lastLogged: Record<string, string>; // mapping hash of parameters to the time we last logged it
 
-  constructor(state = AnimatedDrawerState.Docked, region: AvalancheCenterRegion, mapCameraRef: RefObject<Camera>, logger: Logger) {
+  constructor(state = AnimatedDrawerState.Docked, region: AvalancheCenterRegion, mapCameraRef: RefObject<Camera | null>, logger: Logger) {
     this.logger = logger;
     this.state = state;
     this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[state];
@@ -494,14 +494,16 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
         onMomentumScrollEnd={onMomentumScrollEnd}
         {...panResponder.panHandlers}
         {...flatListProps}
-        data={items.map(
-          (i: T): ItemRenderData<T, U> => ({
-            key: getItemId(i),
-            item: i,
-            date: date,
-            center_id: center_id,
-          }),
-        )}
+        data={
+          items.map(
+            (i: T): ItemRenderData<T, U> => ({
+              key: getItemId(i),
+              item: i,
+              date: date,
+              center_id: center_id,
+            }),
+          ) as unknown as Animated.WithAnimatedObject<ArrayLike<ItemRenderData<T, U>>>
+        }
         renderItem={renderItemAdapter}
       />
     </Animated.View>

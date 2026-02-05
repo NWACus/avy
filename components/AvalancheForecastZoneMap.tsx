@@ -167,8 +167,8 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     .map(result => result.data) // get data from the results
     .filter(data => data) // only operate on results that have succeeded
     .forEach(forecast => {
-      forecast &&
-        forecast.forecast_zone?.forEach(({id}) => {
+      if (forecast && forecast.forecast_zone) {
+        forecast.forecast_zone.forEach(({id}) => {
           if (zonesById[id]) {
             // If the zone is marked as off-season in the map layer, we want the danger level to be None so that the color is grey
             // regarless of what the forecast says
@@ -216,6 +216,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
             }
           }
         });
+      }
     });
   warningResults
     .map(result => result.data) // get data from the results

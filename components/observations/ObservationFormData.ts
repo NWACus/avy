@@ -221,10 +221,10 @@ export interface ImageAndCaption {
   caption?: string;
 }
 
-export interface ImagePickerAssetSchema extends z.infer<typeof imageAssetSchema> {}
+export type ImagePickerAssetSchema = z.infer<typeof imageAssetSchema>;
 
-export interface ImagePickerAssetWithCaption extends z.infer<typeof imageAssetWithCaptionSchema> {}
+export type ImagePickerAssetWithCaption = z.infer<typeof imageAssetWithCaptionSchema>;
 
-export interface ObservationFormData extends z.infer<typeof simpleObservationFormSchema> {}
+export type ObservationFormData = z.infer<typeof simpleObservationFormSchema>;
 
-export interface AvalancheObservationFormData extends z.infer<typeof avalancheObservationFormSchema> {}
+export type AvalancheObservationFormData = z.infer<typeof avalancheObservationFormSchema>;

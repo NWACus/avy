@@ -39,7 +39,7 @@ import {TabNavigatorParamList} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
 
-require('date-time-format-timezone');
+import 'date-time-format-timezone';
 
 import axios, {AxiosRequestConfig} from 'axios';
 import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
@@ -417,7 +417,7 @@ const BaseApp: React.FunctionComponent<{
             height: '100%',
             resizeMode: Constants.expoConfig?.splash?.resizeMode || 'contain',
           }}
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports
           source={require('./assets/splash.png')}
         />
         <Center style={{position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
