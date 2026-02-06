@@ -395,6 +395,13 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
                 });
               },
             },
+            {
+              label: 'View Forecast Map V2',
+              data: null,
+              action: () => {
+                navigation.navigate('forecastMapV2');
+              },
+            },
           ]}
         />
         <ActionList
