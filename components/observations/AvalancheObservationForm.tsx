@@ -19,6 +19,7 @@ import {SwitchField} from 'components/form/SwitchField';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
 import {AvalancheObservationFormData, avalancheObservationFormSchema, defaultAvalancheObservationFormData} from 'components/observations/ObservationFormData';
 import {BodySemibold, Title3Semibold} from 'components/text';
+import helpStrings from 'content/helpStrings';
 import {add} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
@@ -149,7 +150,7 @@ export const AvalancheObservationForm: React.FC<{
                         ]}
                         maximumDate={today}
                         required
-                        helpText={{title: 'Occurrence date', contentHtml: 'To the best of your knowledge, when did the avalanche occur?'}}
+                        helpText={{title: 'Occurrence date', contentHtml: helpStrings.avalancheObservationOccurrenceDate}}
                       />
 
                       <SwitchField
@@ -184,7 +185,7 @@ export const AvalancheObservationForm: React.FC<{
                         label="Aspect"
                         quickPickItems={Object.values(AvalancheAspect).map(aspect => ({label: FormatAvalancheAspect(aspect), value: aspect}))}
                         required
-                        helpText={{title: 'Aspect', contentHtml: 'Provide primary or average aspect of the slope where the avalanche released.'}}
+                        helpText={{title: 'Aspect', contentHtml: helpStrings.avalancheObservationAspect}}
                       />
 
                       <SelectField
@@ -194,7 +195,7 @@ export const AvalancheObservationForm: React.FC<{
                         required
                         helpText={{
                           title: 'About D size',
-                          contentHtml: avalancheSizeHelpTextHtml,
+                          contentHtml: helpStrings.avalancheObservationSize,
                         }}
                       />
 
@@ -285,16 +286,3 @@ type AvalancheSize = (typeof AvalancheSize)[keyof typeof AvalancheSize];
 const FormatAvalancheSize = (value: AvalancheSize): string => {
   return reverseLookup(AvalancheSize, value);
 };
-
-const avalancheSizeHelpTextHtml = String.raw`
-<div>
-  <h4>Destructive Potential:</h4>
-  <ul>
-    <li><strong>D1</strong> - Relatively harmless to people.</li>
-    <li><strong>D2</strong> - Could bury, injure, or kill a person.</li>
-    <li><strong>D3</strong> - Could bury or destroy a car, damage a truck, destroy a wood frame house, or break a few trees.</li>
-    <li><strong>D4</strong> - Could destroy a railway car, a large truck, several buildings, or substantial amount of forest.</li>
-    <li><strong>D5</strong> - Could gouge the landscape. Largest snow avalanche known.</li>
-  </ul>
-</div>
-`;

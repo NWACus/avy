@@ -7,6 +7,19 @@ export default {
     '<p class="nac-html-p">The <strong>Outlook</strong> is different than today\'s Forecast. The Outlook has a higher level of uncertainty but can still communicate expected danger trends over time.</p>',
   avalancheProblem:
     '<p class="nac-html-p"><strong>Avalanche Problems</strong> use four factors to give a more nuanced description of the days avalanche conditions: the type of potential avalanche, its location in the terrain, the likelihood of triggering it, and the potential size of the avalanche.</p><p class="nac-html-p">Watch this <a class="nac-html-a nac-native-link" href="https://avalanche.org/avalanche-encyclopedia/avalanche-problem/" target="_blank">video</a> to learn more about Avalanche Problems.</p>',
+  avalancheObservationOccurrenceDate: '<p>To the best of your knowledge, when did the avalanche occur?</p>',
+  avalancheObservationAspect: '<p>Provide primary or average aspect of the slope where the avalanche released.</p>',
+  avalancheObservationSize: `
+<div>
+  <h4>Destructive Potential:</h4>
+  <ul>
+    <li><strong>D1</strong> - Relatively harmless to people.</li>
+    <li><strong>D2</strong> - Could bury, injure, or kill a person.</li>
+    <li><strong>D3</strong> - Could bury or destroy a car, damage a truck, destroy a wood frame house, or break a few trees.</li>
+    <li><strong>D4</strong> - Could destroy a railway car, a large truck, several buildings, or substantial amount of forest.</li>
+    <li><strong>D5</strong> - Could gouge the landscape. Largest snow avalanche known.</li>
+  </ul>
+</div>`,
   problemType:
     '<p class="nac-html-p">Avalanche Problems are categories of avalanche activity. The Problems may not describe all avalanche activity you might observe, but they categorize the avalanches by how we manage the risk in the terrain. This approach focuses on relevant observations you can make in the field and how to treat the avalanche risk.</p><p class="nac-html-p">The forecasts list up to three current Problems, along with the spatial distribution, the likelihood of avalanches, and anticipated size. Forecasters may provide specific details to a Problem in the Discussion tab.</p><p class="nac-html-p">This <a class="nac-html-a nac-native-link" href="https://avalanche.org/avalanche-encyclopedia/avalanche-problem/" target="_blank">link</a> has detailed descriptions of each Avalanche Problem and suggestions for risk treatment.</p>',
   problemLocation:
