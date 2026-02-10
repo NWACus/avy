@@ -146,7 +146,6 @@ export const AvalancheObservationForm: React.FC<{
                         quickPickDates={[
                           {label: 'Today', value: today},
                           {label: 'Yesterday', value: add(today, {days: -1})},
-                          {label: '2 days ago', value: add(today, {days: -2})},
                         ]}
                         maximumDate={today}
                         required
