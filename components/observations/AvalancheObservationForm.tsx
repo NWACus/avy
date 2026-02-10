@@ -165,13 +165,16 @@ export const AvalancheObservationForm: React.FC<{
                       <SelectField
                         name="trigger"
                         label="Trigger"
-                        quickPickItems={[
-                          {label: 'Natural', value: 'N'},
-                          {label: 'Unknown', value: 'U'},
-                          {label: 'Skier', value: 'AS'},
-                          {label: 'Snowboarder', value: 'AR'},
-                          {label: 'Snowmobile', value: 'AM'},
-                        ]}
+                        quickPickItems={Object.values(AvalancheTrigger)
+                          .slice(0, 5)
+                          .map(trigger => {
+                            let label = FormatAvalancheTrigger(trigger);
+                            // Labels are in the format 'XX-Name', for the quick pick items we remove the 'XX-'.
+                            if (label.includes('-')) {
+                              label = label.slice(label.indexOf('-') + 1);
+                            }
+                            return {label: label, value: trigger};
+                          })}
                         otherItems={Object.values(AvalancheTrigger)
                           .slice(5) // Remove quick pick items
                           .filter(x => x !== 'disabled') // Remove disabled item
