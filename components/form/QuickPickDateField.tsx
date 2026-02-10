@@ -20,7 +20,7 @@ interface HelpText {
   contentHtml: string;
 }
 
-interface ButtonSelectDateFieldProps extends ViewProps {
+interface QuickPickDateFieldProps extends ViewProps {
   name: string;
   label?: string;
   quickPickDates: DateItem[];
@@ -33,11 +33,11 @@ interface ButtonSelectDateFieldProps extends ViewProps {
 }
 
 /**
- * This component renders a horizontal stack of quick select dates for the user to select from. It's
- * a variation of the ButtonSelectField component designed for date fields. The final option in the
- * list will open a native date picker allowing the user to select an arbitrary value.
+ * This component renders a horizontal stack of quick select dates for the user to select from. The
+ * final option in the list will open a native date picker allowing the user to select an arbitrary
+ * value.
  */
-export function ButtonSelectDateField({
+export function QuickPickDateField({
   name,
   label,
   quickPickDates,
@@ -48,7 +48,7 @@ export function ButtonSelectDateField({
   required = false,
   helpText,
   ...props
-}: ButtonSelectDateFieldProps) {
+}: QuickPickDateFieldProps) {
   const {setValue} = useFormContext();
   const {field, fieldState} = useController({name});
   const [datePickerVisible, setDatePickerVisible] = useState(false);
@@ -163,4 +163,4 @@ export function ButtonSelectDateField({
   );
 }
 
-ButtonSelectDateField.displayName = 'ButtonSelectDateField';
+QuickPickDateField.displayName = 'QuickPickDateField';

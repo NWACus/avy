@@ -11,9 +11,9 @@ import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {Divider, HStack, VStack, View} from 'components/core';
-import {ButtonSelectDateField} from 'components/form/ButtonSelectDateField';
 import {AddImageFromPickerButton, AddImageFromPickerButtonComponent, ImageCaptionField, ImageCaptionFieldComponent} from 'components/form/ImageCaptionField';
 import {LocationField} from 'components/form/LocationField';
+import {QuickPickDateField} from 'components/form/QuickPickDateField';
 import {SelectField} from 'components/form/SelectField';
 import {SwitchField} from 'components/form/SwitchField';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
@@ -139,7 +139,7 @@ export const AvalancheObservationForm: React.FC<{
                         required
                       />
                       <LocationField name="location_point" label="Latitude/Longitude" center={center_id} required />
-                      <ButtonSelectDateField
+                      <QuickPickDateField
                         name="date"
                         label="Occurrence date"
                         quickPickDates={[
