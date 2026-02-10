@@ -1,9 +1,11 @@
 import _ from 'lodash';
 
 import {Select, SelectRef, SelectStyles} from '@mobile-reality/react-native-select-pro';
-import {VStack} from 'components/core';
-import {BodySmBlack, BodyXSm, bodySize} from 'components/text';
-import React, {useCallback, useEffect, useRef} from 'react';
+import {Button} from 'components/content/Button';
+import {InfoTooltip} from 'components/content/InfoTooltip';
+import {HStack, VStack} from 'components/core';
+import {Body, BodyBlack, BodySmBlack, BodyXSm, bodySize} from 'components/text';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
 import {Platform, View as RNView} from 'react-native';
 import {colorLookup} from 'theme';
@@ -13,15 +15,22 @@ interface Item {
   label: string;
 }
 
+interface HelpText {
+  title: string;
+  contentHtml: string;
+}
+
 interface SelectFieldProps {
   name: string;
   label: string;
-  items: string[] | Item[];
+  quickPickItems?: string[] | Item[];
+  otherItems?: string[] | Item[];
   prompt?: string;
-  radio?: boolean; // If true, will default to selecting first item and always enforce selection
   disabled?: boolean;
   invisible?: boolean;
-  minItemsShown?: number;
+  minOtherItemsShown?: number;
+  required?: boolean;
+  helpText?: HelpText;
 }
 
 const borderColor = colorLookup('border.base');
@@ -81,75 +90,170 @@ const selectStyles: SelectStyles = {
   },
 };
 
-export const SelectField = React.forwardRef<RNView, SelectFieldProps>(({name, label, items, prompt, radio, disabled, invisible, minItemsShown}, ref) => {
-  const {setValue} = useFormContext();
-  const {field, fieldState} = useController({name});
-  const menuItems =
-    typeof items[0] === 'string'
-      ? (items as string[]).map(item => ({
-          label: item,
-          value: item,
-        }))
-      : (items as Item[]);
-  const multiple = Array.isArray(field.value);
+export const SelectField = React.forwardRef<RNView, SelectFieldProps>(
+  ({name, label, quickPickItems, otherItems, prompt, disabled, invisible, minOtherItemsShown, required, helpText}, ref) => {
+    const {setValue} = useFormContext();
+    const {field, fieldState} = useController({name});
+    const multiple = Array.isArray(field.value);
 
-  const defaultOption = !Array.isArray(field.value) && Boolean(field.value) ? menuItems.find(item => item.value === field.value) : undefined;
+    const quickPickMenuItems =
+      quickPickItems && quickPickItems.length > 0
+        ? typeof quickPickItems[0] === 'string'
+          ? (quickPickItems as string[]).map(item => ({
+              label: item,
+              value: item,
+            }))
+          : (quickPickItems as Item[])
+        : undefined;
+    const selectMenuItems =
+      otherItems && otherItems.length > 0
+        ? typeof otherItems[0] === 'string'
+          ? (otherItems as string[]).map(item => ({
+              label: item,
+              value: item,
+            }))
+          : (otherItems as Item[])
+        : undefined;
 
-  const selectRef = useRef<SelectRef>(null);
-  useEffect(() => {
-    // Make sure the internal state is cleared when the form is cleared
-    if ((Array.isArray(field.value) && field.value.length === 0) || (!Array.isArray(field.value) && field.value === '')) {
-      selectRef.current?.clear();
-    }
-  }, [selectRef, field.value, multiple]);
-  const onSelect = useCallback(
-    ({value: selectedValue}: Item) => {
-      const newValue = Array.isArray(field.value) ? field.value.concat([selectedValue]) : selectedValue;
-      setValue(name, newValue, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
-    },
-    [field.value, name, setValue],
-  );
-  const onRemove = useCallback(
-    (option: Item) => {
-      const removedValue = option.value;
-      const newValue = Array.isArray(field.value) ? field.value.filter(v => v !== removedValue) : '';
-      setValue(name, newValue, {shouldValidate: false, shouldDirty: false, shouldTouch: false});
-    },
-    [field.value, name, setValue],
-  );
+    // Validate the items passed in
+    useEffect(() => {
+      if (!quickPickItems && !otherItems) {
+        throw new Error('quickPickItems and otherItems cannot both be undefined');
+      }
+      if (quickPickMenuItems && selectMenuItems) {
+        quickPickMenuItems.forEach(item => {
+          if (selectMenuItems.find(x => x.value === item.value)) {
+            throw new Error('quickPickItems and otherItems must be distinct lists');
+          }
+        });
+      }
+    }, [otherItems, quickPickItems, quickPickMenuItems, selectMenuItems]);
 
-  return (
-    <VStack width="100%" space={4} ref={ref} style={invisible && {display: 'none'}}>
-      <BodySmBlack>{label}</BodySmBlack>
-      <Select
-        key={JSON.stringify(defaultOption)} // force a re-render when the default changes
-        disabled={disabled}
-        ref={selectRef}
-        onSelect={onSelect}
-        onRemove={onRemove}
-        styles={_.merge({}, selectStyles, {
-          optionsList: {
-            minHeight: Math.min(minItemsShown ?? 10, menuItems.length) * 40,
-          },
-        })}
-        // Setting `scrollToSelectedOption` based on https://github.com/MobileReality/react-native-select-pro/issues/230
-        // Seems to fix problem with items not showing up in list
-        scrollToSelectedOption={false}
-        theme="none"
-        flatListProps={{
-          // only works on Android, unfortunately
-          persistentScrollbar: true,
-        }}
-        multiple={Array.isArray(field.value)}
-        clearable={!radio}
-        options={menuItems}
-        placeholderText={prompt}
-        placeholderTextColor={colorLookup('text.secondary') as string}
-        defaultOption={defaultOption}
-      />
-      {/* TODO: animate the appearance/disappearance of the error string */}
-      {fieldState.error && <BodyXSm color={colorLookup('error.900')}>{fieldState.error.message}</BodyXSm>}
-    </VStack>
-  );
-});
+    // If the field is required and we have quick pick items default to the first item
+    useEffect(() => {
+      if (
+        required &&
+        quickPickMenuItems &&
+        quickPickMenuItems.length > 0 &&
+        ((Array.isArray(field.value) && field.value.length === 0) || (!Array.isArray(field.value) && !field.value))
+      ) {
+        setValue(name, quickPickMenuItems[0].value, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
+      }
+    }, [name, required, quickPickMenuItems, setValue, field.value]);
+
+    const quickPickSelectionHandlers = useMemo(
+      () =>
+        quickPickMenuItems
+          ? quickPickMenuItems.map(item => () => {
+              // Clear item if it is already selected
+              if ((Array.isArray(field.value) && field.value.includes(item.value)) || item.value === field.value) {
+                // We can only clear the item if it is not required or if it is a multi-select and
+                // there is more then one item selected
+                if (!required || (Array.isArray(field.value) && field.value.length > 1)) {
+                  const newValue = Array.isArray(field.value) ? field.value.filter(v => v !== item.value) : '';
+                  setValue(name, newValue, {shouldValidate: false, shouldDirty: false, shouldTouch: false});
+                }
+                return;
+              }
+
+              // Otherwise select item
+              const newValue = Array.isArray(field.value) ? field.value.concat([item.value]) : item.value;
+              setValue(name, newValue, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
+            })
+          : [],
+      [name, quickPickMenuItems, required, field.value, setValue],
+    );
+
+    const selectRef = useRef<SelectRef>(null);
+    const selectDefaultOption = !Array.isArray(field.value) && Boolean(field.value) ? selectMenuItems?.find(item => item.value === field.value) : undefined;
+    useEffect(() => {
+      // Make sure the internal state is cleared when the form is cleared
+      if ((Array.isArray(field.value) && field.value.length === 0) || (!Array.isArray(field.value) && field.value === '')) {
+        selectRef.current?.clear();
+      }
+    }, [selectRef, field.value, multiple]);
+    const onSelect = useCallback(
+      ({value: selectedValue}: Item) => {
+        const newValue = Array.isArray(field.value) ? field.value.concat([selectedValue]) : selectedValue;
+        setValue(name, newValue, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
+      },
+      [field.value, name, setValue],
+    );
+    const onRemove = useCallback(
+      (option: Item) => {
+        const removedValue = option.value;
+        const newValue = Array.isArray(field.value) ? field.value.filter(v => v !== removedValue) : '';
+        setValue(name, newValue, {shouldValidate: false, shouldDirty: false, shouldTouch: false});
+      },
+      [field.value, name, setValue],
+    );
+
+    // RowMargin is the space between rows if the list of buttons wraps onto a second row. We subtract
+    // it from top margin of the HStack to stop the first row of buttons from being offset down.
+    const rowMargin = 5;
+
+    return (
+      <VStack width="100%" space={4} ref={ref} style={invisible && {display: 'none'}}>
+        <HStack>
+          <BodySmBlack>
+            {label ?? name}
+            {required && ' *'}
+          </BodySmBlack>
+          {helpText && <InfoTooltip title={helpText.title} content={helpText.contentHtml} size={14} htmlStyle={{textAlign: 'left'}} />}
+        </HStack>
+        {quickPickMenuItems && (
+          <HStack space={5} flexWrap="wrap" marginTop={-rowMargin} backgroundColor={fieldState.error && colorLookup('error.outline')}>
+            {quickPickMenuItems.map((item, index) => {
+              const selected = item.value === field.value;
+              const LabelFont = selected ? BodyBlack : Body;
+              return (
+                <Button
+                  key={item.label}
+                  onPress={quickPickSelectionHandlers[index]}
+                  buttonStyle={selected ? 'primary' : 'normal'}
+                  px={8}
+                  py={4}
+                  marginTop={rowMargin}
+                  borderWidth={1}
+                  disabled={disabled}>
+                  <LabelFont>{item.label}</LabelFont>
+                </Button>
+              );
+            })}
+          </HStack>
+        )}
+        {selectMenuItems && (
+          <Select
+            key={JSON.stringify(selectDefaultOption)} // force a re-render when the default changes
+            disabled={disabled}
+            ref={selectRef}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            styles={_.merge({}, selectStyles, {
+              optionsList: {
+                minHeight: Math.min(minOtherItemsShown ?? 10, selectMenuItems.length) * 40,
+              },
+            })}
+            // Setting `scrollToSelectedOption` based on https://github.com/MobileReality/react-native-select-pro/issues/230
+            // Seems to fix problem with items not showing up in list
+            scrollToSelectedOption={false}
+            theme="none"
+            flatListProps={{
+              // only works on Android, unfortunately
+              persistentScrollbar: true,
+            }}
+            multiple={Array.isArray(field.value)}
+            clearable={!required}
+            options={selectMenuItems}
+            placeholderText={prompt}
+            placeholderTextColor={colorLookup('text.secondary') as string}
+            defaultOption={selectDefaultOption}
+          />
+        )}
+        {/* TODO: animate the appearance/disappearance of the error string */}
+        {fieldState.error && <BodyXSm color={colorLookup('error.900')}>{fieldState.error.message}</BodyXSm>}
+      </VStack>
+    );
+  },
+);
 SelectField.displayName = 'SelectField';

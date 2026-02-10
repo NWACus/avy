@@ -12,7 +12,6 @@ import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {Divider, HStack, VStack, View} from 'components/core';
 import {ButtonSelectDateField} from 'components/form/ButtonSelectDateField';
-import {ButtonSelectField} from 'components/form/ButtonSelectField';
 import {AddImageFromPickerButton, AddImageFromPickerButtonComponent, ImageCaptionField, ImageCaptionFieldComponent} from 'components/form/ImageCaptionField';
 import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
@@ -162,7 +161,7 @@ export const AvalancheObservationForm: React.FC<{
                         ]}
                       />
 
-                      <ButtonSelectField
+                      <SelectField
                         name="trigger"
                         label="Trigger"
                         quickPickItems={[
@@ -180,7 +179,7 @@ export const AvalancheObservationForm: React.FC<{
                         required
                       />
 
-                      <ButtonSelectField
+                      <SelectField
                         name="aspect"
                         label="Aspect"
                         quickPickItems={Object.values(AvalancheAspect).map(aspect => ({label: FormatAvalancheAspect(aspect), value: aspect}))}
@@ -188,7 +187,7 @@ export const AvalancheObservationForm: React.FC<{
                         helpText={{title: 'Aspect', contentHtml: 'Provide primary or average aspect of the slope where the avalanche released.'}}
                       />
 
-                      <ButtonSelectField
+                      <SelectField
                         name="d_size"
                         label="Avalanche Size"
                         quickPickItems={Object.values(AvalancheSize).map(size => ({label: FormatAvalancheSize(size), value: size}))}
@@ -203,8 +202,8 @@ export const AvalancheObservationForm: React.FC<{
                         name="avalanche_type"
                         label="Problem Type"
                         prompt="What type of avalanche did you observe?"
-                        minItemsShown={5}
-                        items={Object.values(AvalancheType).map(type => ({label: FormatAvalancheType(type), value: type}))}
+                        minOtherItemsShown={5}
+                        otherItems={Object.values(AvalancheType).map(type => ({label: FormatAvalancheType(type), value: type}))}
                       />
 
                       <AvalancheObservationTextField
