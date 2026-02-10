@@ -56,10 +56,10 @@ export function QuickPickDateField({
 
   // If the field is required default to first item in list
   useEffect(() => {
-    if (required && quickPickDates.length > 0) {
+    if (required && quickPickDates.length > 0 && !currentValue) {
       setValue(name, quickPickDates[0].value, {shouldValidate: true, shouldDirty: true, shouldTouch: true});
     }
-  }, [name, required, quickPickDates, setValue]);
+  }, [name, required, quickPickDates, setValue, currentValue]);
 
   const quickPickSelectionHandlers = useMemo(
     () =>
@@ -101,7 +101,15 @@ export function QuickPickDateField({
   // it from top margin of the HStack to stop the first row of buttons from being offset down.
   const rowMargin = 5;
 
-  let isQuickPick = false;
+  const isQuickPickSelected = useMemo(() => {
+    for (const item of quickPickDates) {
+      if (field.value instanceof Date && item.value.getUTCDate() === field.value.getUTCDate()) {
+        return true;
+      }
+    }
+    return false;
+  }, [field.value, quickPickDates]);
+
   return (
     <VStack width="100%" space={labelSpace} flex={1} flexGrow={1} bg={'white'} {...props}>
       <HStack>
@@ -115,7 +123,6 @@ export function QuickPickDateField({
       <HStack space={5} flexWrap="wrap" marginTop={-rowMargin} backgroundColor={fieldState.error && colorLookup('error.outline')} {...props}>
         {quickPickDates.map((item, index) => {
           const selected = field.value instanceof Date && item.value.getUTCDate() === field.value.getUTCDate();
-          isQuickPick = isQuickPick || selected;
           const LabelFont = selected ? BodyBlack : Body;
           return (
             <Button
@@ -134,15 +141,23 @@ export function QuickPickDateField({
         <Button
           key={'other'}
           onPress={toggleDatePicker}
-          buttonStyle={!isQuickPick && field.value ? 'primary' : 'normal'}
+          buttonStyle={!isQuickPickSelected && field.value ? 'primary' : 'normal'}
           px={8}
           py={4}
           marginTop={rowMargin}
           borderWidth={1}
           disabled={disabled}>
-          <BodyBlack>
-            <AntDesign name="calendar" />
-          </BodyBlack>
+          {!isQuickPickSelected ? (
+            <BodyBlack>
+              Other&nbsp;
+              <AntDesign name="calendar" size={20} />
+            </BodyBlack>
+          ) : (
+            <Body>
+              Other&nbsp;
+              <AntDesign name="calendar" size={20} />
+            </Body>
+          )}
         </Button>
       </HStack>
       {fieldState.error && <BodyXSm color={colorLookup('error.active')}>{fieldState.error.message}</BodyXSm>}
