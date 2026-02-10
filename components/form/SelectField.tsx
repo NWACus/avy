@@ -2,9 +2,9 @@ import _ from 'lodash';
 
 import {Select, SelectRef, SelectStyles} from '@mobile-reality/react-native-select-pro';
 import {Button} from 'components/content/Button';
-import {InfoTooltip} from 'components/content/InfoTooltip';
 import {HStack, VStack} from 'components/core';
-import {Body, BodyBlack, BodySmBlack, BodyXSm, bodySize} from 'components/text';
+import {FieldLabel} from 'components/form/FieldLabel';
+import {Body, BodyBlack, BodyXSm, bodySize} from 'components/text';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
 import {Platform, View as RNView} from 'react-native';
@@ -194,13 +194,7 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(
 
     return (
       <VStack width="100%" space={4} ref={ref} style={invisible && {display: 'none'}}>
-        <HStack>
-          <BodySmBlack>
-            {label ?? name}
-            {required && ' *'}
-          </BodySmBlack>
-          {helpText && <InfoTooltip title={helpText.title} content={helpText.contentHtml} size={14} htmlStyle={{textAlign: 'left'}} />}
-        </HStack>
+        <FieldLabel label={label} required={required} helpText={helpText} />
         {quickPickMenuItems && (
           <HStack space={5} flexWrap="wrap" marginTop={-rowMargin} backgroundColor={fieldState.error && colorLookup('error.outline')}>
             {quickPickMenuItems.map((item, index) => {

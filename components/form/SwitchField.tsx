@@ -1,6 +1,6 @@
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import {ViewProps, VStack} from 'components/core';
-import {BodySmBlack} from 'components/text';
+import {FieldLabel} from 'components/form/FieldLabel';
 import React, {useCallback} from 'react';
 import {useController} from 'react-hook-form';
 import {Platform} from 'react-native';
@@ -32,7 +32,7 @@ export function SwitchField<T>({name, label, items, disabled, ...props}: SwitchF
 
   return (
     <VStack width="100%" space={4} {...props}>
-      {label && <BodySmBlack>{label}</BodySmBlack>}
+      {label && <FieldLabel label={label} />}
       <SegmentedControl
         tintColor="white"
         activeFontStyle={{

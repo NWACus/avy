@@ -1,9 +1,9 @@
 import {AntDesign} from '@expo/vector-icons';
 import DateTimePicker, {DateTimePickerAndroid, DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import {Button} from 'components/content/Button';
-import {InfoTooltip} from 'components/content/InfoTooltip';
 import {HStack, VStack, ViewProps} from 'components/core';
-import {Body, BodyBlack, BodySmBlack, BodyXSm} from 'components/text';
+import {FieldLabel, HelpText} from 'components/form/FieldLabel';
+import {Body, BodyBlack, BodyXSm} from 'components/text';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
 import {Platform} from 'react-native';
@@ -13,11 +13,6 @@ import {utcDateToLocalDateString} from 'utils/date';
 interface DateItem {
   label: string;
   value: Date;
-}
-
-interface HelpText {
-  title: string;
-  contentHtml: string;
 }
 
 interface QuickPickDateFieldProps extends ViewProps {
@@ -112,13 +107,7 @@ export function QuickPickDateField({
 
   return (
     <VStack width="100%" space={labelSpace} flex={1} flexGrow={1} bg={'white'} {...props}>
-      <HStack>
-        <BodySmBlack>
-          {label ?? name}
-          {required && ' *'}
-        </BodySmBlack>
-        {helpText && <InfoTooltip title={helpText.title} content={helpText.contentHtml} size={14} htmlStyle={{textAlign: 'left'}} />}
-      </HStack>
+      <FieldLabel label={label ?? name} required={required} helpText={helpText} />
       <Body>{utcDateToLocalDateString(currentValue)}</Body>
       <HStack space={5} flexWrap="wrap" marginTop={-rowMargin} backgroundColor={fieldState.error && colorLookup('error.outline')} {...props}>
         {quickPickDates.map((item, index) => {

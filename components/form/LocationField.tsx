@@ -2,9 +2,10 @@ import {AntDesign, FontAwesome} from '@expo/vector-icons';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {MapViewZone, ZoneMap, defaultMapRegionForGeometries, defaultMapRegionForZones} from 'components/content/ZoneMap';
 import {Center, HStack, VStack, View} from 'components/core';
+import {FieldLabel} from 'components/form/FieldLabel';
 import {KeysMatching} from 'components/form/TextField';
 import {LocationPoint, ObservationFormData} from 'components/observations/ObservationFormData';
-import {Body, BodySmBlack, BodyXSm, Title3Black, bodySize} from 'components/text';
+import {Body, BodyXSm, Title3Black, bodySize} from 'components/text';
 import {useMapLayer} from 'hooks/useMapLayer';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useController} from 'react-hook-form';
@@ -57,10 +58,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   return (
     <>
       <VStack width="100%" space={4} ref={ref}>
-        <BodySmBlack>
-          {label}
-          {required && ' *'}
-        </BodySmBlack>
+        <FieldLabel label={label} required={required} />
         <TouchableOpacity onPress={toggleModal} disabled={disabled}>
           <HStack
             borderWidth={2}

@@ -1,5 +1,6 @@
 import {HStack, View, ViewProps, VStack} from 'components/core';
-import {BodySm, BodySmBlack, BodyXSm} from 'components/text';
+import {FieldLabel} from 'components/form/FieldLabel';
+import {BodySm, BodyXSm} from 'components/text';
 import {combineRefs} from 'hooks/combineRefs';
 import React, {Ref, useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {FieldPathByValue, FieldValues, useController} from 'react-hook-form';
@@ -88,10 +89,7 @@ const _TextField = <TFieldValues extends FieldValues, TFieldName extends FieldPa
     <VStack width="100%" space={4} {...props} ref={ref}>
       {!hideLabel && (
         <HStack space={4}>
-          <BodySmBlack>
-            {label}
-            {required && ' *'}
-          </BodySmBlack>
+          <FieldLabel label={label} required={required} />
           {comment && <BodySm>{comment}</BodySm>}
         </HStack>
       )}

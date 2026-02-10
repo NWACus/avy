@@ -1,7 +1,8 @@
 import {AntDesign} from '@expo/vector-icons';
 import DateTimePicker, {DateTimePickerAndroid, DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import {Center, HStack, VStack, View, ViewProps} from 'components/core';
-import {Body, BodySmBlack, bodySize} from 'components/text';
+import {FieldLabel} from 'components/form/FieldLabel';
+import {Body, bodySize} from 'components/text';
 import React, {useCallback, useState} from 'react';
 import {useController} from 'react-hook-form';
 import {Platform, TouchableOpacity} from 'react-native';
@@ -45,7 +46,7 @@ export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, m
 
   return (
     <VStack width="100%" space={4} {...props}>
-      {label && <BodySmBlack>{label}</BodySmBlack>}
+      {label && <FieldLabel label={label} />}
       <TouchableOpacity onPress={toggleDatePicker} disabled={disabled}>
         <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
           <View p={8}>

@@ -1,5 +1,6 @@
 import {HStack, VStack, View, ViewProps} from 'components/core';
-import {Body, BodyXSmBlack, TextWrapperProps} from 'components/text';
+import {FieldLabel} from 'components/form/FieldLabel';
+import {Body} from 'components/text';
 import Checkbox from 'expo-checkbox';
 import React, {useCallback, useMemo} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
@@ -16,13 +17,12 @@ interface CheckboxSelectFieldProps extends ViewProps {
   items: Item[];
   radio?: boolean; // If true, will default to selecting first item and always enforce selection
   disabled?: boolean;
-  labelComponent?: React.FunctionComponent<TextWrapperProps>;
   labelSpace?: number;
 }
 
 // This component renders a column of checkboxes for the given items
 // It's an alternative to SelectField when you don't want a dropdown
-export function CheckboxSelectField({name, label, items, disabled, labelComponent = BodyXSmBlack, labelSpace = 4, radio, ...props}: CheckboxSelectFieldProps) {
+export function CheckboxSelectField({name, label, items, disabled, labelSpace = 4, radio, ...props}: CheckboxSelectFieldProps) {
   const {setValue} = useFormContext();
   const {field} = useController({name});
   const onChange = useCallback(
@@ -54,7 +54,7 @@ export function CheckboxSelectField({name, label, items, disabled, labelComponen
 
   return (
     <VStack width="100%" space={labelSpace} flex={1} flexGrow={1} bg={'white'} {...props}>
-      {label && labelComponent({children: label})}
+      {label && <FieldLabel label={label} />}
       {items.map(({value, label}, index) => (
         <HStack
           key={index}
