@@ -20,8 +20,7 @@ export const productionHosts = {
 export const stagingHosts = {
   nationalAvalancheCenterHost: 'https://staging-api.avalanche.org',
   nationalAvalancheCenterWordpressHost: 'https://devavycenters.wpengine.com',
-  // TODO(brian): what's the Staging version for Snowbound?
-  snowboundHost: 'https://api.snowobs.com',
+  snowboundHost: 'https://dev.snowobs.com',
   nwacHost: 'https://staging.nwac.us',
 };
 
