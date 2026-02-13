@@ -4,10 +4,10 @@ import {Logger} from 'browser-bunyan';
 import {HStack, View} from 'components/core';
 import {AvalancheCenterRegion} from 'components/helpers/geographicCoordinates';
 import {add, isAfter} from 'date-fns';
-import _ from 'lodash';
+import _, {isEqual} from 'lodash';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import md5 from 'md5';
-import React, {RefObject, useCallback, useRef, useState} from 'react';
+import React, {RefObject, useCallback, useEffect, useRef, useState} from 'react';
 import {
   Animated,
   FlatList,
@@ -83,13 +83,17 @@ export class AnimatedMapWithDrawerController {
     this.lastLogged = {};
   }
 
-  setState(state: AnimatedDrawerState) {
+  setState(state: AnimatedDrawerState, shouldAnimateRegion: boolean = true) {
     this.state = state;
     this.panning = false;
     this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[state];
+
     this.yOffset.flattenOffset();
     this.buttonYOffset.flattenOffset();
-    this.animateMapRegion();
+    if (shouldAnimateRegion) {
+      this.animateMapRegion();
+    }
+
     Animated.parallel([
       Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}),
       Animated.spring(this.buttonYOffset, {toValue: this.buttonOffset(), useNativeDriver: true}),
@@ -176,30 +180,40 @@ export class AnimatedMapWithDrawerController {
   }
 
   animateUsingUpdatedCardDrawerMaximumHeight(height: number) {
-    this.cardDrawerMaximumHeight = height;
-    this.animateMapRegion();
+    if (this.cardDrawerMaximumHeight !== height) {
+      this.cardDrawerMaximumHeight = height;
+      this.animateMapRegion();
+    }
   }
 
   animateUsingUpdatedTopElementsHeight(offset: number, height: number) {
-    this.topElementsOffset = offset;
-    this.topElementsHeight = height;
-    this.animateMapRegion();
+    if (this.topElementsOffset !== offset || this.topElementsHeight !== height) {
+      this.topElementsOffset = offset;
+      this.topElementsHeight = height;
+      this.animateMapRegion();
+    }
   }
 
   animateUsingUpdatedTabBarHeight(height: number) {
-    this.tabBarHeight = height;
-    this.animateMapRegion();
+    if (this.tabBarHeight !== height) {
+      this.tabBarHeight = height;
+      this.animateMapRegion();
+    }
   }
 
   animateUsingUpdatedWindowDimensions(width: number, height: number) {
-    this.windowHeight = height;
-    this.windowWidth = width;
-    this.animateMapRegion();
+    if (this.windowHeight !== height || this.windowWidth !== width) {
+      this.windowHeight = height;
+      this.windowWidth = width;
+      this.animateMapRegion();
+    }
   }
 
   animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion: AvalancheCenterRegion) {
-    this.baseAvalancheCenterMapRegion = avalancheCenterMapRegion;
-    this.animateMapRegion();
+    if (!isEqual(this.baseAvalancheCenterMapRegion, avalancheCenterMapRegion)) {
+      this.baseAvalancheCenterMapRegion = avalancheCenterMapRegion;
+      this.animateMapRegion();
+    }
   }
 
   // This function gets called many times in short succession when the layout changes. We debounce it so that
@@ -335,13 +349,13 @@ export interface AnimatedCardsProps<T, U> {
   getItemId: (item: T) => U;
   selectedItemId: U | null;
   setSelectedItemId: React.Dispatch<React.SetStateAction<U | null>>;
-  controller: AnimatedMapWithDrawerController;
+  controllerRef: RefObject<AnimatedMapWithDrawerController>;
   renderItem: (item: ItemRenderData<T, U>) => React.ReactElement;
   buttonOnPress?: () => void;
 }
 
 export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
-  const {center_id, date, items, getItemId, selectedItemId, setSelectedItemId, controller, renderItem, buttonOnPress} = props;
+  const {center_id, date, items, getItemId, selectedItemId, setSelectedItemId, controllerRef, renderItem, buttonOnPress} = props;
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
   const {width} = useWindowDimensions();
@@ -351,7 +365,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
 
   const offsets = items?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
   const flatListProps = {
-    snapToAlignment: 'start',
+    snapToAlignment: 'center',
     decelerationRate: 'fast',
     snapToOffsets: offsets,
     contentInset: {
@@ -361,25 +375,17 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
     contentContainerStyle: {paddingHorizontal: CARD_MARGIN * width},
   } as const;
 
-  // The list view has drawer-like behavior - it can be swiped into view, or swiped away.
-  // These values control the state that's driven through gestures & animation.
-  if (selectedItemId && controller.state !== AnimatedDrawerState.Visible) {
-    controller.setState(AnimatedDrawerState.Visible);
-  } else if (!selectedItemId && controller.state === AnimatedDrawerState.Visible) {
-    controller.setState(AnimatedDrawerState.Docked);
-  }
-
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_event, {dx, dy}) => dx > 0 || dy > 0,
-      onPanResponderGrant: () => controller.onPanResponderGrant(),
-      onPanResponderMove: (e, gestureState) => controller.onPanResponderMove(e, gestureState),
-      onPanResponderRelease: () => controller.onPanResponderRelease(),
+      onPanResponderGrant: () => controllerRef.current.onPanResponderGrant(),
+      onPanResponderMove: (e, gestureState) => controllerRef.current.onPanResponderMove(e, gestureState),
+      onPanResponderRelease: () => controllerRef.current.onPanResponderRelease(),
     }),
   ).current;
 
   const flatListRef = useRef<FlatList>(null);
-  const onLayout = useCallback((event: LayoutChangeEvent) => controller.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height), [controller]);
+  const onLayout = useCallback((event: LayoutChangeEvent) => controllerRef.current.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height), [controllerRef]);
 
   const renderItemAdapter = useCallback(({item}: {item: ItemRenderData<T, U>}) => renderItem(item), [renderItem]);
 
@@ -442,17 +448,37 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
     [programmaticallyScrolling, logger, handleScroll],
   );
 
+  const getItemLayout = useCallback(
+    (_data: unknown, index: number) => ({
+      length: width * CARD_WIDTH,
+      offset: offsets[index],
+      index,
+    }),
+    [offsets, width],
+  );
+
+  // The list view has drawer-like behavior - it can be swiped into view, or swiped away.
+  // These values control the state that's driven through gestures & animation.
+  useEffect(() => {
+    if (selectedItemId && controllerRef.current.state !== AnimatedDrawerState.Visible) {
+      controllerRef.current.setState(AnimatedDrawerState.Visible);
+    } else if (!selectedItemId && controllerRef.current.state === AnimatedDrawerState.Visible) {
+      controllerRef.current.setState(AnimatedDrawerState.Docked);
+    }
+  }, [selectedItemId, controllerRef]);
+
   // The selected item changes when a user selects a zone on the map, programmatically scroll to the
   // appropriate card.
-  if (selectedItemId !== previouslySelectedItemId) {
-    if (selectedItemId && flatListRef.current) {
-      logger.debug('Programmatically scrolling');
-      const index = items.findIndex(i => getItemId(i) === selectedItemId);
-      setProgrammaticallyScrolling(true);
-      flatListRef.current.scrollToIndex({index, animated: true, viewPosition: 0.5});
+  useEffect(() => {
+    if (selectedItemId !== previouslySelectedItemId) {
+      if (selectedItemId) {
+        const index = items.findIndex(i => getItemId(i) === selectedItemId);
+        setProgrammaticallyScrolling(true);
+        flatListRef.current?.scrollToIndex({index, animated: true});
+      }
+      setPreviouslySelectedItemId(selectedItemId);
     }
-    setPreviouslySelectedItemId(selectedItemId);
-  }
+  }, [selectedItemId, previouslySelectedItemId, flatListRef, items, setProgrammaticallyScrolling, setPreviouslySelectedItemId, getItemId]);
 
   return (
     <Animated.View
@@ -461,7 +487,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
           position: 'absolute',
           width: '100%',
           bottom: 6,
-          transform: [controller.getTransform()],
+          transform: [controllerRef.current.getTransform()],
         },
       ]}>
       {buttonOnPress && (
@@ -485,13 +511,15 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
       )}
       <Animated.FlatList
         initialNumToRender={items.length}
-        onLayout={onLayout}
         ref={flatListRef}
+        initialScrollIndex={items.findIndex(item => getItemId(item) === selectedItemId) === -1 ? 0 : items.findIndex(item => getItemId(item) === selectedItemId)}
         horizontal
         style={{width: '100%'}}
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
         onMomentumScrollEnd={onMomentumScrollEnd}
+        onLayout={onLayout}
+        getItemLayout={getItemLayout}
         {...panResponder.panHandlers}
         {...flatListProps}
         data={

@@ -45,6 +45,14 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
     ['VAC']: Image.resolveAssetSource(require('../assets/logos/VAC.png')),
     ['WAC']: Image.resolveAssetSource(require('../assets/logos/WAC.png')),
     ['WCMAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    // The following are unsupported
+    ['CAIC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['UAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['SOAIX']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['EWYAIX']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['EARAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['CAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['CAAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
   };
 
   const {data: uri} = useCachedImageURI(source[avalancheCenterId].uri);
@@ -120,6 +128,27 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
     ['WCMAC']: (s: ImageStyle) => {
       return <Image style={s} source={{uri: uri}} />;
     },
+    ['CAIC']: (s: ImageStyle) => {
+      return <Image style={s} source={{uri: uri}} />;
+    },
+    ['UAC']: (s: ImageStyle) => {
+      return <Image style={s} source={{uri: uri}} />;
+    },
+    ['SOAIX']: (s: ImageStyle) => {
+      return <Image style={s} source={{uri: uri}} />;
+    },
+    ['EWYAIX']: (s: ImageStyle) => {
+      return <Image style={s} source={{uri: uri}} />;
+    },
+    ['EARAC']: (s: ImageStyle) => {
+      return <Image style={s} source={{uri: uri}} />;
+    },
+    ['CAC']: (s: ImageStyle) => {
+      return <Image style={s} source={{uri: uri}} />;
+    },
+    ['CAAC']: (s: ImageStyle) => {
+      return <Image style={s} source={{uri: uri}} />;
+    },
   };
   const actualStyle: ImageStyle = {...style};
   if (actualStyle.resizeMode !== 'contain') {
@@ -178,6 +207,21 @@ export const preloadAvalancheCenterLogo = async (queryClient: QueryClient, logge
     case 'WAC':
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WAC.png')).uri);
     case 'WCMAC':
+      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+    // The following are unsupported
+    case 'CAIC':
+      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+    case 'UAC':
+      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+    case 'SOAIX':
+      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+    case 'EWYAIX':
+      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+    case 'EARAC':
+      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+    case 'CAC':
+      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+    case 'CAAC':
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
   }
   const invalid: never = avalancheCenter;

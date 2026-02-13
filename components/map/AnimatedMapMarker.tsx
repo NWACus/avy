@@ -27,7 +27,7 @@ export const AnimatedMapMarker: React.FunctionComponent<{id: string; coordinate:
     <AnimatedMarkerView
       id={id}
       animatedProps={animatedProps}
-      coordinate={[longitude.value, latitude.value]}
+      coordinate={coordinate}
       anchor={{x: 0.5, y: 0.5}}
       isSelected={false}
       allowOverlap={false}
