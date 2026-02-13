@@ -3,7 +3,7 @@ import _ from 'lodash';
 import {Select, SelectRef, SelectStyles} from '@mobile-reality/react-native-select-pro';
 import {Button} from 'components/content/Button';
 import {HStack, VStack} from 'components/core';
-import {FieldLabel} from 'components/form/FieldLabel';
+import {FieldLabel, HelpText} from 'components/form/FieldLabel';
 import {Body, BodyBlack, BodyXSm, bodySize} from 'components/text';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
@@ -13,11 +13,6 @@ import {colorLookup} from 'theme';
 interface Item {
   value: string;
   label: string;
-}
-
-interface HelpText {
-  title: string;
-  contentHtml: string;
 }
 
 interface SelectFieldProps {
