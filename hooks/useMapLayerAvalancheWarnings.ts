@@ -11,10 +11,11 @@ import {ZodError} from 'zod';
 export const useMapLayerAvalancheWarnings = (center_id: AvalancheCenterID, requestedTime: RequestedTime, mapLayer: MapLayer | undefined) => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const preferredCenterFeatures = mapLayer?.features.filter(feature => feature.properties.center_id === center_id);
 
   return useQueries<UseQueryOptions<WarningResultWithZone, AxiosError | ZodError>[]>({
-    queries: mapLayer
-      ? mapLayer.features.map(feature => {
+    queries: preferredCenterFeatures
+      ? preferredCenterFeatures.map(feature => {
           return {
             queryKey: AvalancheWarningQuery.queryKey(nationalAvalancheCenterHost, center_id, feature.id, requestedTime),
             queryFn: async (): Promise<WarningResultWithZone> => AvalancheWarningQuery.fetch(nationalAvalancheCenterHost, center_id, feature.id, requestedTime, logger),

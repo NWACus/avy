@@ -2,15 +2,15 @@ import {AvalancheForecastZonePolygon, SelectedAvalancheForecastZonePolygon} from
 import React from 'react';
 import {AvalancheCenterID, DangerLevel, MapLayerFeature} from 'types/nationalAvalancheCenter';
 
-import Mapbox, {Camera, CameraBounds, MapView} from '@rnmapbox/maps';
+import Mapbox, {Camera, CameraBounds, MapState, MapView} from '@rnmapbox/maps';
 import {ViewProps} from 'react-native';
 
-export const mapViewZoneFor = (center: AvalancheCenterID, feature: MapLayerFeature): MapViewZone => {
+export const mapViewZoneFor = (feature: MapLayerFeature): MapViewZone => {
   return {
     zone_id: feature.id,
     feature: feature,
     hasWarning: feature.properties.warning.product !== null,
-    center_id: center,
+    center_id: feature.properties.center_id,
     name: feature.properties.name,
     danger_level: feature.properties.danger_level,
     start_date: feature.properties.start_date,
@@ -42,6 +42,7 @@ interface ZoneMapProps extends ViewProps {
   zoomEnabled?: boolean;
   onPolygonPress?: (zone: MapViewZone) => void;
   onMapPress?: (feature: GeoJSON.Feature) => void;
+  onCameraChanged?: (mapState: MapState) => void;
 }
 
 export const ZoneMap = React.forwardRef<Camera, ZoneMapProps>(
@@ -57,6 +58,7 @@ export const ZoneMap = React.forwardRef<Camera, ZoneMapProps>(
       zoomEnabled = true,
       onMapPress = undefined,
       onPolygonPress = undefined,
+      onCameraChanged = undefined,
       children,
       ...props
     },
@@ -71,6 +73,7 @@ export const ZoneMap = React.forwardRef<Camera, ZoneMapProps>(
         rotateEnabled={rotateEnabled}
         scrollEnabled={scrollEnabled}
         onPress={onMapPress}
+        onCameraChanged={onCameraChanged}
         {...props}>
         <Camera ref={cameraRef} defaultSettings={{bounds: initialCameraBounds}} />
         {zones?.map(zone => (
