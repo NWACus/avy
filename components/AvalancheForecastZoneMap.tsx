@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {RefObject, useCallback, useRef, useState} from 'react';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
@@ -18,7 +18,6 @@ import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {isAfter} from 'date-fns';
 import {toDate} from 'date-fns-tz';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
-import {useMapLayer} from 'hooks/useMapLayer';
 import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts';
 import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -29,8 +28,10 @@ import {HomeStackNavigationProps, TabNavigationProps} from 'routes';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTimeString} from 'utils/date';
 
-import {Camera} from '@rnmapbox/maps';
+import {Camera, MapState} from '@rnmapbox/maps';
 import {defaultMapRegionForGeometries} from 'components/helpers/geographicCoordinates';
+import {useAllMapLayers} from 'hooks/useAllMapLayers';
+import {useMapLayer} from 'hooks/useMapLayer';
 
 export interface MapProps {
   center: AvalancheCenterID;
@@ -39,12 +40,19 @@ export interface MapProps {
 
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, requestedTime}: MapProps) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const mapLayerResult = useMapLayer(center);
-  const mapLayer = mapLayerResult.data;
+  const [mapCenterId, setMapCenterId] = useState<AvalancheCenterID>(center);
+
+  // Fetches all the map layers in call. Unfortunately, CBAC isn't included in that call so it needs to be fetched separately
+  const allMapLayersResult = useAllMapLayers();
+  const cbacMapLayerResult = useMapLayer('CBAC');
+  const allMapLayers = allMapLayersResult.data;
+  const cbacMapLayer = cbacMapLayerResult.data;
+
   const metadataResult = useAvalancheCenterMetadata(center);
   const metadata = metadataResult.data;
-  const forecastResults = useMapLayerAvalancheForecasts(center, requestedTime, mapLayer, metadata);
-  const warningResults = useMapLayerAvalancheWarnings(center, requestedTime, mapLayer);
+
+  const forecastResults = useMapLayerAvalancheForecasts(mapCenterId, requestedTime, allMapLayers, metadata);
+  const warningResults = useMapLayerAvalancheWarnings(mapCenterId, requestedTime, allMapLayers);
 
   const topElements = React.useRef<RNView>(null);
 
@@ -61,6 +69,78 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   const navigation = useNavigation<HomeStackNavigationProps & TabNavigationProps>();
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
+
+  // CAIC and CBAC overlap. The way we're handling this now is to remove CAIC and add the features for CBAC in the array of features that
+  // we want to show on the map.
+  const filteredMapFeatures = allMapLayers?.features.filter(feature => feature.properties.center_id !== 'CAIC');
+  const cbacMapFeatures = cbacMapLayer?.features ?? [];
+  const adjustedMapLayerFeatures = filteredMapFeatures?.concat(cbacMapFeatures);
+
+  const preferredCenterFeatures = adjustedMapLayerFeatures?.filter(feature => feature.properties.center_id === mapCenterId);
+
+  const avalancheCenterMapRegion = defaultMapRegionForGeometries(preferredCenterFeatures?.map(feature => feature.geometry));
+
+  // useRef has to be used here. Animation and gesture handlers can't use props and state,
+  // and aren't re-evaluated on render. Fun!
+  const mapCameraRef = useRef<Camera>(null);
+  const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraRef, logger));
+  React.useEffect(() => {
+    controller.current.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
+  }, [avalancheCenterMapRegion, controller]);
+
+  const {width: windowWidth, height: windowHeight} = useWindowDimensions();
+  React.useEffect(() => {
+    controller.current.animateUsingUpdatedWindowDimensions(windowWidth, windowHeight);
+  }, [windowWidth, windowHeight, controller]);
+
+  const tabBarHeight = useBottomTabBarHeight();
+  React.useEffect(() => {
+    controller.current.animateUsingUpdatedTabBarHeight(tabBarHeight);
+  }, [tabBarHeight, controller]);
+
+  const {preferences, setPreferences} = usePreferences();
+
+  const onLayout = useCallback(() => {
+    // onLayout returns position relative to parent - we need position relative to screen
+    topElements.current?.measureInWindow((x, y, width, height) => {
+      controller.current.animateUsingUpdatedTopElementsHeight(y, height);
+    });
+
+    // we seem to see races between onLayout firing and the measureInWindow picking up the correct
+    // SafeAreaView bounds, so let's queue up another render pass in the future to hopefully converge
+    setTimeout(() => {
+      if (topElements.current) {
+        topElements.current.measureInWindow((x, y, width, height) => {
+          controller.current.animateUsingUpdatedTopElementsHeight(y, height);
+        });
+      }
+    }, 50);
+  }, [controller]);
+
+  const onSelectCenter = useCallback(
+    (center: AvalancheCenterID) => {
+      setPreferences({center: center, hasSeenCenterPicker: true});
+      // We need to clear navigation state to force all screens from the
+      // previous avalanche center selection to unmount
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'Home'}],
+      });
+    },
+    [setPreferences, navigation],
+  );
+
+  const onCameraChanged = useCallback(
+    (mapState: MapState) => {
+      if (mapState.gestures.isGestureActive) {
+        if (mapState.properties.zoom < 5.5 && controller.current.state !== AnimatedDrawerState.Hidden) {
+          controller.current.setState(AnimatedDrawerState.Hidden, false);
+          setSelectedZoneId(null);
+        }
+      }
+    },
+    [controller, setSelectedZoneId],
+  );
 
   const onMapPress = useCallback(
     (_: GeoJSON.Feature) => {
@@ -80,71 +160,25 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         });
       } else {
         setSelectedZoneId(zone.zone_id);
+        if (zone.center_id !== mapCenterId) {
+          setMapCenterId(zone.center_id);
+        }
       }
     },
-    [navigation, selectedZoneId, requestedTime, setSelectedZoneId],
+    [navigation, selectedZoneId, mapCenterId, requestedTime, setSelectedZoneId, setMapCenterId],
   );
 
-  const avalancheCenterMapRegion = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
-
-  // useRef has to be used here. Animation and gesture handlers can't use props and state,
-  // and aren't re-evaluated on render. Fun!
-  const mapCameraRef = useRef<Camera>(null);
-  const controller = useRef<AnimatedMapWithDrawerController>(
-    new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraRef, logger),
-  ).current;
-  React.useEffect(() => {
-    controller.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
-  }, [avalancheCenterMapRegion, controller]);
-
-  const {width: windowWidth, height: windowHeight} = useWindowDimensions();
-  React.useEffect(() => {
-    controller.animateUsingUpdatedWindowDimensions(windowWidth, windowHeight);
-  }, [windowWidth, windowHeight, controller]);
-
-  const tabBarHeight = useBottomTabBarHeight();
-  React.useEffect(() => {
-    controller.animateUsingUpdatedTabBarHeight(tabBarHeight);
-  }, [tabBarHeight, controller]);
-
-  const {preferences, setPreferences} = usePreferences();
-
-  const onLayout = useCallback(() => {
-    // onLayout returns position relative to parent - we need position relative to screen
-    topElements.current?.measureInWindow((x, y, width, height) => {
-      controller.animateUsingUpdatedTopElementsHeight(y, height);
-    });
-
-    // we seem to see races between onLayout firing and the measureInWindow picking up the correct
-    // SafeAreaView bounds, so let's queue up another render pass in the future to hopefully converge
-    setTimeout(() => {
-      if (topElements.current) {
-        topElements.current.measureInWindow((x, y, width, height) => {
-          controller.animateUsingUpdatedTopElementsHeight(y, height);
-        });
-      }
-    }, 50);
-  }, [controller]);
-
-  const onSelectCenter = useCallback(
-    (center: AvalancheCenterID) => {
-      setPreferences({center: center, hasSeenCenterPicker: true});
-      // We need to clear navigation state to force all screens from the
-      // previous avalanche center selection to unmount
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'Home'}],
-      });
-    },
-    [setPreferences, navigation],
-  );
-
-  if (incompleteQueryState(mapLayerResult, metadataResult, ...forecastResults, ...warningResults) || !mapLayer || !metadata) {
+  if (
+    incompleteQueryState(allMapLayersResult, cbacMapLayerResult, metadataResult, ...forecastResults, ...warningResults) ||
+    !adjustedMapLayerFeatures ||
+    !metadata ||
+    !preferredCenterFeatures
+  ) {
     return (
       <SafeAreaView edges={['top', 'left', 'right']}>
         <Center width="100%" height="100%">
           <QueryState
-            results={[mapLayerResult, metadataResult, ...forecastResults, ...warningResults]}
+            results={[allMapLayersResult, metadataResult, ...forecastResults, ...warningResults]}
             terminal
             customMessage={{
               notFound: () => ({
@@ -159,8 +193,8 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   }
 
   // default to the values in the map layer, but update it with the forecasts and warnings we've fetched
-  const zonesById: Record<string, MapViewZone> = mapLayer.features.reduce((accum: Record<string, MapViewZone>, feature: MapLayerFeature) => {
-    accum[feature.id] = mapViewZoneFor(center, feature);
+  const zonesById: Record<string, MapViewZone> = adjustedMapLayerFeatures.reduce((accum: Record<string, MapViewZone>, feature: MapLayerFeature) => {
+    accum[feature.id] = mapViewZoneFor(feature);
     return accum;
   }, {});
   forecastResults
@@ -239,6 +273,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       }
     });
   const zones = Object.keys(zonesById).map(k => zonesById[k]);
+  const selectedACZones = zones.filter(zone => zone.feature.properties.center_id === mapCenterId);
   const showAvalancheCenterSelectionModal = !preferences.hasSeenCenterPicker;
 
   return (
@@ -252,6 +287,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         selectedZoneId={selectedZoneId}
         onPolygonPress={onPolygonPress}
         onMapPress={onMapPress}
+        onCameraChanged={onCameraChanged}
       />
       <SafeAreaView>
         <View>
@@ -262,13 +298,13 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       </SafeAreaView>
 
       <AvalancheForecastZoneCards
-        key={center}
-        center_id={center}
+        key={mapCenterId}
+        center_id={mapCenterId}
         date={requestedTime}
-        zones={zones}
+        zones={selectedACZones}
         selectedZoneId={selectedZoneId}
         setSelectedZoneId={setSelectedZoneId}
-        controller={controller}
+        controllerRef={controller}
       />
       <AvalancheCenterSelectionModal visible={showAvalancheCenterSelectionModal} initialSelection={preferences.center} onClose={onSelectCenter} />
     </>
@@ -281,8 +317,8 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
   zones: MapViewZone[];
   selectedZoneId: number | null;
   setSelectedZoneId: React.Dispatch<React.SetStateAction<number | null>>;
-  controller: AnimatedMapWithDrawerController;
-}> = ({center_id, date, zones, selectedZoneId, setSelectedZoneId, controller}) => {
+  controllerRef: RefObject<AnimatedMapWithDrawerController>;
+}> = ({center_id, date, zones, selectedZoneId, setSelectedZoneId, controllerRef}) => {
   return AnimatedCards<MapViewZone, number>({
     center_id: center_id,
     date: date,
@@ -290,7 +326,7 @@ const AvalancheForecastZoneCards: React.FunctionComponent<{
     getItemId: zone => zone.zone_id,
     selectedItemId: selectedZoneId,
     setSelectedItemId: setSelectedZoneId,
-    controller: controller,
+    controllerRef: controllerRef,
     renderItem: ({date, item}) => <AvalancheForecastZoneCard date={date} zone={item} />,
   });
 };

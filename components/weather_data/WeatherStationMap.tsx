@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {RefObject, useCallback, useEffect, useRef, useState} from 'react';
 
 import centroid from '@turf/centroid';
 import turfClustersDBScan from '@turf/clusters-dbscan';
@@ -120,16 +120,14 @@ export const WeatherStationMap: React.FunctionComponent<{
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
   const mapCameraView = useRef<Camera>(null);
-  const controller = useRef<AnimatedMapWithDrawerController>(
-    new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraView, logger),
-  ).current;
+  const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraView, logger));
   React.useEffect(() => {
-    controller.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
+    controller.current.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
   }, [avalancheCenterMapRegion, controller]);
 
   // we want light grey zones in the background here
   const zones: MapViewZone[] = mapLayer.features.map((feature: MapLayerFeature) => ({
-    ...mapViewZoneFor(center_id, feature),
+    ...mapViewZoneFor(feature),
     hasWarning: false,
     danger_level: DangerLevel.None,
     fillOpacity: 0.1,
@@ -223,7 +221,7 @@ export const WeatherStationMap: React.FunctionComponent<{
         stations={sortedStations}
         selectedStationId={selectedStationId}
         setSelectedStationId={setSelectedStationId}
-        controller={controller}
+        controllerRef={controller}
         buttonOnPress={process.env.EXPO_PUBLIC_WEATHER_STATION_LIST_TOGGLE ? toggleList : undefined}
       />
     </>
@@ -268,9 +266,9 @@ export const WeatherStationCards: React.FunctionComponent<{
   stations: WeatherStationCollection;
   selectedStationId: string | null;
   setSelectedStationId: React.Dispatch<React.SetStateAction<string | null>>;
-  controller: AnimatedMapWithDrawerController;
+  controllerRef: RefObject<AnimatedMapWithDrawerController>;
   buttonOnPress?: () => void;
-}> = ({center_id, date, stations, selectedStationId, setSelectedStationId, controller, buttonOnPress}) => {
+}> = ({center_id, date, stations, selectedStationId, setSelectedStationId, controllerRef, buttonOnPress}) => {
   return AnimatedCards<WeatherStation, string>({
     center_id,
     date,
@@ -278,7 +276,7 @@ export const WeatherStationCards: React.FunctionComponent<{
     getItemId: station => station.properties.stid,
     selectedItemId: selectedStationId,
     setSelectedItemId: setSelectedStationId,
-    controller,
+    controllerRef,
     renderItem: ({date, center_id, item}) => (
       <WeatherStationCard mode={'map'} center_id={center_id} date={date} station={item} units={stations.properties.units} variables={stations.properties.variables} />
     ),
