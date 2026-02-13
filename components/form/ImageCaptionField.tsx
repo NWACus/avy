@@ -86,7 +86,7 @@ const useImagePicker = ({images, maxImageCount, disable, onSaveImages}: ImagePic
         const result = await ImagePicker.launchImageLibraryAsync({
           allowsMultipleSelection: true,
           exif: true,
-          mediaTypes: ['images', 'videos', 'livePhotos'],
+          mediaTypes: ['images', 'livePhotos'],
           preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
           quality: 0.9,
           selectionLimit: maxImageCount - imageCount,
