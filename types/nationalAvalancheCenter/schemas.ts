@@ -22,6 +22,13 @@ export const avalancheCenterIDSchema = z.enum([
   'VAC', // Valdez: AK
   'WAC', // Wallowas: OR
   'WCMAC', // West Central Montana: MT
+  'CAIC', // Colorado - Unsupported
+  'UAC', // Utah - Unsupported
+  'SOAIX', // Southern Oregon - Unsupported
+  'EWYAIX', // Eastern Wyoming - Unsupported
+  'EARAC', // Eastern Alaska - Unsupported
+  'CAC', // Cordova, Alaska - Unsupported
+  'CAAC', // Coastal Alaska - Unsupported
 ]);
 
 export type AvalancheCenterID = z.infer<typeof avalancheCenterIDSchema>;
@@ -54,6 +61,13 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
   ['VAC']: 'https://alaskasnow.org/valdez/',
   ['WAC']: 'https://wallowaavalanchecenter.org/',
   ['WCMAC']: 'https://missoulaavalanche.org/',
+  ['CAIC']: '',
+  ['UAC']: '',
+  ['SOAIX']: '',
+  ['EWYAIX']: '',
+  ['EARAC']: '',
+  ['CAC']: '',
+  ['CAAC']: '',
 };
 
 export enum DangerLevel {
