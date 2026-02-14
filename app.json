@@ -59,7 +59,13 @@
       "expo-mail-composer",
       "expo-web-browser",
       "expo-localization",
-      "@rnmapbox/maps",
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsVersion": "11.16.0",
+          "RNMapboxImpl": "mapbox"
+        }
+      ],
       [
         "expo-build-properties",
         {
