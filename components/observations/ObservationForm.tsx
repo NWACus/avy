@@ -319,20 +319,20 @@ export const ObservationForm: React.FC<{
                       <SelectField
                         name="photoUsage"
                         label="Photo usage"
-                        radio
-                        items={[
+                        required
+                        otherItems={[
                           {value: 'anonymous', label: 'Use anonymously'},
                           {value: 'credit', label: 'Use with photo credit'},
                           {value: 'private', label: "Don't use"},
                         ]}
                         disabled={disableFormControls}
                       />
-                      <SelectField name="observer_type" label="Observer Type" radio items={[{value: 'public', label: 'Public'}]} disabled={true} invisible={true} />
+                      <SelectField name="observer_type" label="Observer Type" required otherItems={[{value: 'public', label: 'Public'}]} disabled={true} invisible={true} />
                       <SelectField
                         name="status"
                         label="Observation status"
-                        radio
-                        items={[
+                        required
+                        otherItems={[
                           {value: 'draft', label: 'Request review'},
                           {value: 'published', label: 'Publish immediately'},
                         ]}
@@ -388,7 +388,7 @@ export const ObservationForm: React.FC<{
                         label="Activity"
                         prompt="What were you doing?"
                         ref={fieldRefs.activity}
-                        items={[
+                        otherItems={[
                           {
                             label: 'Skiing/Snowboarding',
                             value: 'skiing_snowboarding',
@@ -488,7 +488,7 @@ export const ObservationForm: React.FC<{
                         <SelectField
                           name="instability.cracking_description"
                           label="How widespread was the cracking?"
-                          items={[
+                          otherItems={[
                             {value: InstabilityDistribution.Isolated, label: 'Isolated'},
                             {value: InstabilityDistribution.Specific, label: 'Specific'},
                             {value: InstabilityDistribution.Widespread, label: 'Widespread'},
@@ -512,7 +512,7 @@ export const ObservationForm: React.FC<{
                         <SelectField
                           name="instability.collapsing_description"
                           label="How widespread was the collapsing?"
-                          items={[
+                          otherItems={[
                             {value: InstabilityDistribution.Isolated, label: 'Isolated'},
                             {value: InstabilityDistribution.Specific, label: 'Specific'},
                             {value: InstabilityDistribution.Widespread, label: 'Widespread'},

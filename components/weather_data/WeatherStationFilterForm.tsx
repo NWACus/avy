@@ -255,18 +255,24 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
                     </HStack>
                   }>
                   <VStack space={formFieldSpacing} mt={8}>
-                    <SelectField name="zone" label="Zone" radio items={mapLayer.features.map(feature => feature.properties.name)} disabled={Boolean(initialFilterConfig.zone)} />
+                    <SelectField
+                      name="zone"
+                      label="Zone"
+                      required
+                      otherItems={mapLayer.features.map(feature => feature.properties.name)}
+                      disabled={Boolean(initialFilterConfig.zone)}
+                    />
                     <SelectField
                       name="recency"
                       label="Most Recent Data"
-                      radio
-                      items={(['past_hour', 'past_3_hours', 'past_12_hours', 'past_day'] as const).map(val => ({value: val, label: DATE_LABELS[val]}))}
+                      required
+                      otherItems={(['past_hour', 'past_3_hours', 'past_12_hours', 'past_day'] as const).map(val => ({value: val, label: DATE_LABELS[val]}))}
                     />
                     <SelectField
                       name="source"
                       label="Data Source"
-                      radio
-                      items={[
+                      required
+                      otherItems={[
                         {value: WeatherStationSource.NWAC, label: WeatherStationSource.NWAC.toUpperCase()},
                         {value: WeatherStationSource.MESOWEST, label: 'Synoptic Data'},
                         {value: WeatherStationSource.SNOTEL, label: WeatherStationSource.SNOTEL.toUpperCase()},
