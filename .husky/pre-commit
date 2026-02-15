@@ -1,4 +1,1 @@
-yarn ci:prettier
-yarn ci:eslint
-yarn ci:tsc
-yarn test
+
