@@ -2,9 +2,10 @@ import {AntDesign, FontAwesome} from '@expo/vector-icons';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {MapViewZone, ZoneMap, defaultMapRegionForGeometries, defaultMapRegionForZones} from 'components/content/ZoneMap';
 import {Center, HStack, VStack, View} from 'components/core';
+import {FieldLabel} from 'components/form/FieldLabel';
 import {KeysMatching} from 'components/form/TextField';
 import {LocationPoint, ObservationFormData} from 'components/observations/ObservationFormData';
-import {Body, BodySmBlack, BodyXSm, Title3Black, bodySize} from 'components/text';
+import {Body, BodyXSm, Title3Black, bodySize} from 'components/text';
 import {useMapLayer} from 'hooks/useMapLayer';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useController} from 'react-hook-form';
@@ -19,6 +20,7 @@ interface LocationFieldProps {
   label: string;
   center: AvalancheCenterID;
   disabled?: boolean;
+  required?: boolean;
 }
 
 const latLngToLocationPoint = (latLng: LatLng) => ({lat: latLng.latitude, lng: latLng.longitude});
@@ -27,7 +29,7 @@ const locationPointToLatLng = (locationPoint: LocationPoint) => ({
   longitude: locationPoint.lng,
 });
 
-export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center, disabled}, ref) => {
+export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center, disabled, required = false}, ref) => {
   const {
     field,
     fieldState: {error},
@@ -56,9 +58,15 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
   return (
     <>
       <VStack width="100%" space={4} ref={ref}>
-        <BodySmBlack>{label}</BodySmBlack>
+        <FieldLabel label={label} required={required} />
         <TouchableOpacity onPress={toggleModal} disabled={disabled}>
-          <HStack borderWidth={2} borderColor={colorLookup('border.base')} borderRadius={4} justifyContent="space-between" alignItems="stretch">
+          <HStack
+            borderWidth={2}
+            borderColor={colorLookup('border.base')}
+            borderRadius={4}
+            justifyContent="space-between"
+            alignItems="stretch"
+            backgroundColor={error && colorLookup('error.outline')}>
             <View p={8}>
               <Body>{value ? `${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : 'Tap to select a location on the map'}</Body>
             </View>
@@ -68,7 +76,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
           </HStack>
         </TouchableOpacity>
         {/* TODO: animate the appearance/disappearance of the error string */}
-        {error && <BodyXSm color={colorLookup('error.900')}>{error.message}</BodyXSm>}
+        {error && <BodyXSm color={colorLookup('error.active')}>{error.message}</BodyXSm>}
       </VStack>
       {modalVisible && <LocationMap center={center} modalVisible={modalVisible} initialLocation={value} onClose={toggleModalandClearLocation} onSelect={onLocationSelect} />}
     </>
