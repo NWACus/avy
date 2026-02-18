@@ -258,13 +258,10 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
               center_id: center_id,
               stations: stations
                 .map(s => ({id: s.stid, source: s.source}))
-                .reduce(
-                  (accum, value) => {
-                    accum[value.id] = value.source;
-                    return accum;
-                  },
-                  {} as Record<string, WeatherStationSource>,
-                ),
+                .reduce((accum, value) => {
+                  accum[value.id] = value.source;
+                  return accum;
+                }, {} as Record<string, WeatherStationSource>),
               name: name,
               requestedTime: formatRequestedTime(requestedTime),
               zoneName: zone.name,

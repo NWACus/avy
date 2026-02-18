@@ -128,13 +128,10 @@ export const NWACStationList: React.FunctionComponent<{token: string; requestedT
                   center_id: 'NWAC',
                   stations: data
                     .map(s => ({id: s.stid, source: s.source}))
-                    .reduce(
-                      (accum, value) => {
-                        accum[value.id] = value.source;
-                        return accum;
-                      },
-                      {} as Record<string, WeatherStationSource>,
-                    ),
+                    .reduce((accum, value) => {
+                      accum[value.id] = value.source;
+                      return accum;
+                    }, {} as Record<string, WeatherStationSource>),
                   name: label,
                   requestedTime: requestedTime,
                   zoneName: zone.feature.properties.name,

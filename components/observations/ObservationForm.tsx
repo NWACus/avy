@@ -116,7 +116,7 @@ export const ObservationForm: React.FC<{
         'instability.collapsing_description': React.createRef<RNView>(),
         avalanches_summary: React.createRef<RNView>(),
         observation_summary: React.createRef<RNView>(),
-      }) satisfies Partial<Record<FieldPath<ObservationFormData>, React.Ref<unknown>>>,
+      } satisfies Partial<Record<FieldPath<ObservationFormData>, React.Ref<unknown>>>),
     [],
   );
 
@@ -325,7 +325,7 @@ export const ObservationForm: React.FC<{
                       ]}
                       disabled={disableFormControls}
                     />
-                    <SelectField name="observer_type" label="Observer Type" radio items={[{value: 'public', label: 'Public'}]} disabled={true} invisible={true} />
+                    <SelectField name="observer_type" label="Observer Type" required otherItems={[{value: 'public', label: 'Public'}]} disabled={true} invisible={true} />
                     <SelectField
                       name="status"
                       label="Observation status"
@@ -486,7 +486,7 @@ export const ObservationForm: React.FC<{
                       <SelectField
                         name="instability.cracking_description"
                         label="How widespread was the cracking?"
-                        items={[
+                        otherItems={[
                           {value: InstabilityDistribution.Isolated, label: 'Isolated'},
                           {value: InstabilityDistribution.Specific, label: 'Specific'},
                           {value: InstabilityDistribution.Widespread, label: 'Widespread'},
@@ -510,7 +510,7 @@ export const ObservationForm: React.FC<{
                       <SelectField
                         name="instability.collapsing_description"
                         label="How widespread was the collapsing?"
-                        items={[
+                        otherItems={[
                           {value: InstabilityDistribution.Isolated, label: 'Isolated'},
                           {value: InstabilityDistribution.Specific, label: 'Specific'},
                           {value: InstabilityDistribution.Widespread, label: 'Widespread'},
