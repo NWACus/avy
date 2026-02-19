@@ -1,7 +1,7 @@
-import React, {RefObject, useCallback, useRef, useState} from 'react';
+import React, {RefObject, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
+import {Alert, View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
 
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
@@ -9,7 +9,6 @@ import {colorFor} from 'components/AvalancheDangerTriangle';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {MapViewZone, mapViewZoneFor, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
-import {FocusAwareStatusBar} from 'components/core/FocusAwareStatusBar';
 import {DangerScale} from 'components/DangerScale';
 import {TravelAdvice} from 'components/helpers/travelAdvice';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
@@ -23,38 +22,41 @@ import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps, TabNavigationProps} from 'routes';
-import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, DangerLevel, ForecastPeriod, isSupportedCenter, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTimeString} from 'utils/date';
 
 import {Camera, MapState} from '@rnmapbox/maps';
 import {defaultMapRegionForGeometries} from 'components/helpers/geographicCoordinates';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
-import {useMapLayer} from 'hooks/useMapLayer';
+import Toast from 'react-native-toast-message';
 
 export interface MapProps {
-  center: AvalancheCenterID;
   requestedTime: RequestedTime;
 }
 
-export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center, requestedTime}: MapProps) => {
+export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({requestedTime}: MapProps) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const [mapCenterId, setMapCenterId] = useState<AvalancheCenterID>(center);
+
+  const {preferences, setPreferences} = usePreferences();
+  const center = preferences.center;
 
   // Fetches all the map layers in call. Unfortunately, CBAC isn't included in that call so it needs to be fetched separately
   const allMapLayersResult = useAllMapLayers();
-  const cbacMapLayerResult = useMapLayer('CBAC');
   const allMapLayers = allMapLayersResult.data;
-  const cbacMapLayer = cbacMapLayerResult.data;
 
   const metadataResult = useAvalancheCenterMetadata(center);
   const metadata = metadataResult.data;
+  const forecastResults = useMapLayerAvalancheForecasts(center, requestedTime, allMapLayers, metadata);
+  const warningResults = useMapLayerAvalancheWarnings(center, requestedTime, allMapLayers);
 
-  const forecastResults = useMapLayerAvalancheForecasts(mapCenterId, requestedTime, allMapLayers, metadata);
-  const warningResults = useMapLayerAvalancheWarnings(mapCenterId, requestedTime, allMapLayers);
+  const navigation = useNavigation<HomeStackNavigationProps & TabNavigationProps>();
+  const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
 
   const topElements = React.useRef<RNView>(null);
+
+  const insets = useSafeAreaInsets();
 
   const postHog = usePostHog();
 
@@ -67,18 +69,55 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   }, [postHog, center]);
   useFocusEffect(recordAnalytics);
 
-  const navigation = useNavigation<HomeStackNavigationProps & TabNavigationProps>();
-  const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
+  const onMapPresOutsideOfPolygon = useCallback(
+    (_: GeoJSON.Feature) => {
+      // Since the polygons are layered on the map, this is only called when the map is tapped outside of a polygon
+      setSelectedZoneId(null);
+    },
+    [setSelectedZoneId],
+  );
 
-  // CAIC and CBAC overlap. The way we're handling this now is to remove CAIC and add the features for CBAC in the array of features that
-  // we want to show on the map.
-  const filteredMapFeatures = allMapLayers?.features.filter(feature => feature.properties.center_id !== 'CAIC');
-  const cbacMapFeatures = cbacMapLayer?.features ?? [];
-  const adjustedMapLayerFeatures = filteredMapFeatures?.concat(cbacMapFeatures);
+  const onPolygonPress = useCallback(
+    (zone: MapViewZone) => {
+      if (selectedZoneId === zone.zone_id) {
+        navigation.navigate('forecast', {
+          center_id: zone.center_id,
+          forecast_zone_id: zone.zone_id,
+          requestedTime: formatRequestedTime(requestedTime),
+        });
+      } else {
+        const selectedZoneCenter = zone.center_id;
+        if (isSupportedCenter(selectedZoneCenter)) {
+          setSelectedZoneId(zone.zone_id);
+          if (selectedZoneCenter !== center) {
+            setPreferences({center: selectedZoneCenter});
+            // This is purely for debugging purposes
+            Toast.show({
+              type: 'info',
+              text1: `Your preferred center has changed to: ${selectedZoneCenter}`,
+              position: 'bottom',
+            });
+          }
+        } else {
+          Alert.alert(`${selectedZoneCenter} is not supported`, `Please go to their website to view the full forecast for ${selectedZoneCenter} or select another center`, [
+            {
+              text: 'OK',
+              onPress: () => {},
+            },
+            {
+              text: 'Go to website',
+              onPress: () => {},
+            },
+          ]);
+        }
+      }
+    },
+    [navigation, selectedZoneId, center, requestedTime, setSelectedZoneId, setPreferences],
+  );
 
-  const preferredCenterFeatures = adjustedMapLayerFeatures?.filter(feature => feature.properties.center_id === mapCenterId);
+  const preferredCenterFeatures = useMemo(() => allMapLayers?.features.filter(feature => feature.properties.center_id === center), [allMapLayers, center]);
 
-  const avalancheCenterMapRegion = defaultMapRegionForGeometries(preferredCenterFeatures?.map(feature => feature.geometry));
+  const avalancheCenterMapRegion = useMemo(() => defaultMapRegionForGeometries(preferredCenterFeatures?.map(feature => feature.geometry)), [preferredCenterFeatures]);
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
@@ -97,8 +136,6 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   React.useEffect(() => {
     controller.current.animateUsingUpdatedTabBarHeight(tabBarHeight);
   }, [tabBarHeight, controller]);
-
-  const {preferences, setPreferences} = usePreferences();
 
   const onLayout = useCallback(() => {
     // onLayout returns position relative to parent - we need position relative to screen
@@ -142,38 +179,102 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     [controller, setSelectedZoneId],
   );
 
-  const onMapPress = useCallback(
-    (_: GeoJSON.Feature) => {
-      // Since the polygons are layered on the map, this is only called when the map is tapped outside of a polygon
-      setSelectedZoneId(null);
-    },
-    [setSelectedZoneId],
-  );
+  // default to the values in the map layer, but update it with the forecasts and warnings we've fetched
+  const zonesById = useMemo(() => {
+    return allMapLayers?.features.reduce((accum: Record<string, MapViewZone>, feature: MapLayerFeature) => {
+      accum[feature.id] = mapViewZoneFor(feature);
+      return accum;
+    }, {});
+  }, [allMapLayers]);
 
-  const onPolygonPress = useCallback(
-    (zone: MapViewZone) => {
-      if (selectedZoneId === zone.zone_id) {
-        navigation.navigate('forecast', {
-          center_id: zone.center_id,
-          forecast_zone_id: zone.zone_id,
-          requestedTime: formatRequestedTime(requestedTime),
-        });
-      } else {
-        setSelectedZoneId(zone.zone_id);
-        if (zone.center_id !== mapCenterId) {
-          setMapCenterId(zone.center_id);
+  useEffect(() => {
+    forecastResults
+      .map(result => result.data) // get data from the results
+      .filter(data => data) // only operate on results that have succeeded
+      .forEach(forecast => {
+        if (forecast && forecast.forecast_zone && zonesById) {
+          forecast.forecast_zone.forEach(({id}) => {
+            if (zonesById[id]) {
+              // If the zone is marked as off-season in the map layer, we want the danger level to be None so that the color is grey
+              // regarless of what the forecast says
+              if (zonesById[id].feature.properties.off_season) {
+                zonesById[id].danger_level = DangerLevel.None;
+              } else {
+                // the map layer will expose old forecasts with their danger level as appropriate, but the map expects to show a card
+                // that doesn't divulge the old forecast's rating, travel advice or publication/expiry times, so we clear things out
+                if (
+                  !zonesById[id].end_date ||
+                  (zonesById[id].end_date &&
+                    isAfter(requestedTimeToUTCDate(requestedTime), toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}))) /* requesting after expiry */
+                ) {
+                  zonesById[id].danger_level = DangerLevel.GeneralInformation;
+                  zonesById[id].end_date = null;
+                  zonesById[id].start_date = null;
+                }
+                // product-specific queries can give us results that are expired or older than the map layer, in which case we don't
+                // want to use them
+                if (
+                  (forecast.product_type === ProductType.Forecast || forecast.product_type === ProductType.Summary) &&
+                  forecast.expires_time &&
+                  (isAfter(toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}), requestedTimeToUTCDate(requestedTime)) /* product is not expired */ ||
+                    (zonesById[id].end_date &&
+                      isAfter(
+                        toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}),
+                        toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}),
+                      ))) /* product newer than map layer */
+                ) {
+                  if (forecast.product_type === ProductType.Forecast) {
+                    const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);
+                    if (currentDanger) {
+                      const maxCurrentDanger = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
+                      // If we're in season, use the forecast's danger level only if it's not None
+                      if (maxCurrentDanger !== DangerLevel.None) {
+                        zonesById[id].danger_level = maxCurrentDanger;
+                      }
+                    }
+                  }
+
+                  // Regardless if the product type is a summary or forecast, we want to use the forecast API timestamp as it has timezone information
+                  zonesById[id].start_date = forecast.published_time;
+                  zonesById[id].end_date = forecast.expires_time;
+                }
+              }
+            }
+          });
         }
-      }
-    },
-    [navigation, selectedZoneId, mapCenterId, requestedTime, setSelectedZoneId, setMapCenterId],
-  );
+      });
+  }, [zonesById, forecastResults, requestedTime]);
 
-  if (
-    incompleteQueryState(allMapLayersResult, cbacMapLayerResult, metadataResult, ...forecastResults, ...warningResults) ||
-    !adjustedMapLayerFeatures ||
-    !metadata ||
-    !preferredCenterFeatures
-  ) {
+  useEffect(() => {
+    warningResults
+      .map(result => result.data) // get data from the results
+      .forEach(warning => {
+        if (!warning || !zonesById) {
+          return;
+        }
+        // the warnings endpoint can return warnings, watches and special bulletins; we only want to make the map flash
+        // when there's an active warning for the zone
+        if (
+          'product_type' in warning.data &&
+          warning.data.product_type === ProductType.Warning &&
+          'expires_time' in warning.data &&
+          isAfter(toDate(new Date(warning.data.expires_time), {timeZone: 'UTC'}), requestedTimeToUTCDate(requestedTime))
+        ) {
+          const mapViewZoneData = zonesById[warning.zone_id];
+          if (mapViewZoneData) {
+            mapViewZoneData.hasWarning = true;
+          }
+        }
+      });
+  }, [zonesById, warningResults, requestedTime]);
+
+  const zones = useMemo(() => (zonesById !== undefined ? Object.keys(zonesById).map(k => zonesById[k]) : []), [zonesById]);
+
+  const selectedACZones = useMemo(() => zones.filter(zone => zone.feature.properties.center_id === center), [zones, center]);
+
+  const showAvalancheCenterSelectionModal = useMemo(() => !preferences.hasSeenCenterPicker, [preferences.hasSeenCenterPicker]);
+
+  if (incompleteQueryState(allMapLayersResult, metadataResult, ...forecastResults, ...warningResults) || !allMapLayers || !metadata || !preferredCenterFeatures) {
     return (
       <SafeAreaView edges={['top', 'left', 'right']}>
         <Center width="100%" height="100%">
@@ -192,93 +293,8 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     );
   }
 
-  // default to the values in the map layer, but update it with the forecasts and warnings we've fetched
-  const zonesById: Record<string, MapViewZone> = adjustedMapLayerFeatures.reduce((accum: Record<string, MapViewZone>, feature: MapLayerFeature) => {
-    accum[feature.id] = mapViewZoneFor(feature);
-    return accum;
-  }, {});
-  forecastResults
-    .map(result => result.data) // get data from the results
-    .filter(data => data) // only operate on results that have succeeded
-    .forEach(forecast => {
-      if (forecast && forecast.forecast_zone) {
-        forecast.forecast_zone.forEach(({id}) => {
-          if (zonesById[id]) {
-            // If the zone is marked as off-season in the map layer, we want the danger level to be None so that the color is grey
-            // regarless of what the forecast says
-            if (zonesById[id].feature.properties.off_season) {
-              zonesById[id].danger_level = DangerLevel.None;
-            } else {
-              // the map layer will expose old forecasts with their danger level as appropriate, but the map expects to show a card
-              // that doesn't divulge the old forecast's rating, travel advice or publication/expiry times, so we clear things out
-              if (
-                !zonesById[id].end_date ||
-                (zonesById[id].end_date &&
-                  isAfter(requestedTimeToUTCDate(requestedTime), toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}))) /* requesting after expiry */
-              ) {
-                zonesById[id].danger_level = DangerLevel.GeneralInformation;
-                zonesById[id].end_date = null;
-                zonesById[id].start_date = null;
-              }
-              // product-specific queries can give us results that are expired or older than the map layer, in which case we don't
-              // want to use them
-              if (
-                (forecast.product_type === ProductType.Forecast || forecast.product_type === ProductType.Summary) &&
-                forecast.expires_time &&
-                (isAfter(toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}), requestedTimeToUTCDate(requestedTime)) /* product is not expired */ ||
-                  (zonesById[id].end_date &&
-                    isAfter(
-                      toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}),
-                      toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}),
-                    ))) /* product newer than map layer */
-              ) {
-                if (forecast.product_type === ProductType.Forecast) {
-                  const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);
-                  if (currentDanger) {
-                    const maxCurrentDanger = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
-                    // If we're in season, use the forecast's danger level only if it's not None
-                    if (maxCurrentDanger !== DangerLevel.None) {
-                      zonesById[id].danger_level = maxCurrentDanger;
-                    }
-                  }
-                }
-
-                // Regardless if the product type is a summary or forecast, we want to use the forecast API timestamp as it has timezone information
-                zonesById[id].start_date = forecast.published_time;
-                zonesById[id].end_date = forecast.expires_time;
-              }
-            }
-          }
-        });
-      }
-    });
-  warningResults
-    .map(result => result.data) // get data from the results
-    .forEach(warning => {
-      if (!warning) {
-        return;
-      }
-      // the warnings endpoint can return warnings, watches and special bulletins; we only want to make the map flash
-      // when there's an active warning for the zone
-      if (
-        'product_type' in warning.data &&
-        warning.data.product_type === ProductType.Warning &&
-        'expires_time' in warning.data &&
-        isAfter(toDate(new Date(warning.data.expires_time), {timeZone: 'UTC'}), requestedTimeToUTCDate(requestedTime))
-      ) {
-        const mapViewZoneData = zonesById[warning.zone_id];
-        if (mapViewZoneData) {
-          mapViewZoneData.hasWarning = true;
-        }
-      }
-    });
-  const zones = Object.keys(zonesById).map(k => zonesById[k]);
-  const selectedACZones = zones.filter(zone => zone.feature.properties.center_id === mapCenterId);
-  const showAvalancheCenterSelectionModal = !preferences.hasSeenCenterPicker;
-
   return (
     <>
-      <FocusAwareStatusBar barStyle="light-content" translucent backgroundColor={'rgba(0, 0, 0, 0.35)'} />
       <ZoneMap
         ref={mapCameraRef}
         style={StyleSheet.absoluteFillObject}
@@ -286,20 +302,17 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         zones={zones}
         selectedZoneId={selectedZoneId}
         onPolygonPress={onPolygonPress}
-        onMapPress={onMapPress}
+        onMapPress={onMapPresOutsideOfPolygon}
         onCameraChanged={onCameraChanged}
       />
-      <SafeAreaView>
-        <View>
-          <VStack ref={topElements} width="100%" position="absolute" top={0} left={0} right={0} mt={8} px={4} flex={1} onLayout={onLayout}>
-            <DangerScale width="100%" />
-          </VStack>
-        </View>
-      </SafeAreaView>
+
+      <VStack ref={topElements} width="100%" position="absolute" paddingTop={insets.top} left={0} right={0} mt={8} px={4} flex={1} onLayout={onLayout}>
+        <DangerScale width="100%" />
+      </VStack>
 
       <AvalancheForecastZoneCards
-        key={mapCenterId}
-        center_id={mapCenterId}
+        key={`${center}-zoneCards`}
+        center_id={center}
         date={requestedTime}
         zones={selectedACZones}
         selectedZoneId={selectedZoneId}

@@ -10,9 +10,9 @@ import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, BodyXSmBlack, Title3
 import {HTML} from 'components/text/HTML';
 import {NWACStationsByZone, ZoneWithWeatherStations} from 'components/weather_data/NWACWeatherStationList';
 import helpStrings from 'content/helpStrings';
+import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
-import {useMapLayer} from 'hooks/useMapLayer';
 import {FormatTimeOfDay, useNWACWeatherForecast} from 'hooks/useNWACWeatherForecast';
 import {useRefresh} from 'hooks/useRefresh';
 import {useWeatherForecast} from 'hooks/useWeatherForecast';
@@ -36,6 +36,7 @@ import {
   WeatherDatum,
   WeatherPeriodLabel,
   WeatherStationSource,
+  mapFeaturesForCenter,
 } from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {RequestedTime, RequestedTimeString, formatRequestedTime, pacificDateToDayOfWeekString, parseRequestedTimeString, utcDateToLocalTimeString} from 'utils/date';
@@ -215,7 +216,7 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
   const metadata = avalancheCenterMetadataResult.data;
   const nwacForecastResult = useNWACWeatherForecast(center_id, zone.id, requestedTime);
   const nwacForecast = nwacForecastResult.data;
-  const mapLayerResult = useMapLayer(center_id);
+  const mapLayerResult = useAllMapLayers();
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata(center_id, metadata?.widget_config.stations?.token);
   const weatherStations = weatherStationsResult.data;
@@ -228,9 +229,9 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
   const navigation = useNavigation<ForecastNavigationProp>();
   useEffect(() => {
     if (metadata?.widget_config.stations?.token && weatherStations && mapLayer) {
-      setStationsByZone(NWACStationsByZone(mapLayer, weatherStations));
+      setStationsByZone(NWACStationsByZone(mapFeaturesForCenter(mapLayer, center_id), weatherStations));
     }
-  }, [metadata, weatherStations, mapLayer]);
+  }, [metadata, weatherStations, mapLayer, center_id]);
 
   const postHog = usePostHog();
 
