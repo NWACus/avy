@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {Image, ScrollView, StyleSheet} from 'react-native';
 
 import {MaterialCommunityIcons} from '@expo/vector-icons';
@@ -16,8 +16,8 @@ import {NACAvalancheIcon} from 'components/icons/nac-icons';
 import {matchesZone} from 'components/observations/ObservationsFilterForm';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize} from 'components/text';
 import {HTML} from 'components/text/HTML';
+import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
-import {useMapLayer} from 'hooks/useMapLayer';
 import {useNACObservation} from 'hooks/useNACObservation';
 import {useNWACObservation} from 'hooks/useNWACObservation';
 import {usePostHog} from 'posthog-react-native';
@@ -46,11 +46,12 @@ import {
   FormatSnowAvailableForTransport,
   FormatWindLoading,
   InstabilityDistribution,
-  MapLayer,
+  MapLayerFeature,
   Observation,
   Position,
   SnowAvailableForTransport,
   WindLoading,
+  mapFeaturesForCenter,
   userFacingCenterId,
 } from 'types/nationalAvalancheCenter';
 import {observationDateToLocalShortDateString, utcDateToLocalShortDateString} from 'utils/date';
@@ -60,16 +61,18 @@ export const NWACObservationDetailView: React.FunctionComponent<{
 }> = ({id}) => {
   const observationResult = useNWACObservation(parseInt(id));
   const observation = observationResult.data;
-  const mapResult = useMapLayer(observation?.center_id);
+  const mapResult = useAllMapLayers();
   const mapLayer = mapResult.data;
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
+
+  const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, observation?.center_id.toUpperCase() as AvalancheCenterID), [mapLayer, observation]);
 
   if (incompleteQueryState(observationResult, mapResult, capabilitiesResult) || !observation || !mapLayer || !capabilities) {
     return <QueryState results={[observationResult, mapResult, capabilitiesResult]} />;
   }
 
-  return <ObservationCard observation={observation} mapLayer={mapLayer} capabilities={capabilities} />;
+  return <ObservationCard observation={observation} mapLayerFeatures={mapFeatures} capabilities={capabilities} />;
 };
 
 export const ObservationDetailView: React.FunctionComponent<{
@@ -77,16 +80,18 @@ export const ObservationDetailView: React.FunctionComponent<{
 }> = ({id}) => {
   const observationResult = useNACObservation(id);
   const observation = observationResult.data;
-  const mapResult = useMapLayer(observation?.center_id?.toUpperCase() as AvalancheCenterID);
+  const mapResult = useAllMapLayers();
   const mapLayer = mapResult.data;
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
+
+  const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, observation?.center_id.toUpperCase() as AvalancheCenterID), [mapLayer, observation?.center_id]);
 
   if (incompleteQueryState(observationResult, mapResult, capabilitiesResult) || !observation || !mapLayer || !capabilities || !capabilities) {
     return <QueryState results={[observationResult, mapResult, capabilitiesResult]} />;
   }
 
-  return <ObservationCard observation={observation} mapLayer={mapLayer} capabilities={capabilities} />;
+  return <ObservationCard observation={observation} mapLayerFeatures={mapFeatures} capabilities={capabilities} />;
 };
 
 const dataTableFlex = [1, 1];
@@ -172,12 +177,13 @@ export const withUnits = (value: string | number | null | undefined, units: stri
 
 export const ObservationCard: React.FunctionComponent<{
   observation: Observation;
-  mapLayer: MapLayer;
+  mapLayerFeatures: MapLayerFeature[];
   capabilities: AllAvalancheCenterCapabilities;
-}> = ({observation, mapLayer, capabilities}) => {
+}> = ({observation, mapLayerFeatures, capabilities}) => {
   const navigation = useNavigation<ObservationsStackNavigationProps>();
   const {avalanches_observed, avalanches_triggered, avalanches_caught} = observation.instability;
-  const zone_name = observation.location_point?.lat && observation.location_point?.lng && matchesZone(mapLayer, observation.location_point?.lat, observation.location_point?.lng);
+  const zone_name =
+    observation.location_point?.lat && observation.location_point?.lng && matchesZone(mapLayerFeatures, observation.location_point?.lat, observation.location_point?.lng);
   React.useEffect(() => {
     if (zone_name) {
       navigation.setOptions({title: `${zone_name} Observation`});

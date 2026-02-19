@@ -7,12 +7,12 @@ import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {VStack} from 'components/core';
 import {featureBounds, pointInFeature, RegionBounds} from 'components/helpers/geographicCoordinates';
 import {BodyBlack} from 'components/text';
-import {useMapLayer} from 'hooks/useMapLayer';
+import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import {logger} from 'logger';
 import {WeatherStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {MapLayer, MapLayerFeature, WeatherStationCollection, WeatherStationProperties, WeatherStationSource} from 'types/nationalAvalancheCenter';
+import {mapFeaturesForCenter, MapLayerFeature, WeatherStationCollection, WeatherStationProperties, WeatherStationSource} from 'types/nationalAvalancheCenter';
 import {RequestedTimeString} from 'utils/date';
 
 const stationGroupMapping = {
@@ -65,11 +65,11 @@ export interface ZoneWithWeatherStations {
   stationGroups: Record<string, WeatherStationProperties[]>;
 }
 
-export const NWACStationsByZone = (mapLayer: MapLayer | undefined, stations: WeatherStationCollection | undefined): ZoneWithWeatherStations[] => {
-  if (!mapLayer || !stations) {
+export const NWACStationsByZone = (mapLayerFeatures: MapLayerFeature[] | undefined, stations: WeatherStationCollection | undefined): ZoneWithWeatherStations[] => {
+  if (!mapLayerFeatures || !stations) {
     return [];
   }
-  const zones: ZoneWithWeatherStations[] = mapLayer.features.map(f => ({
+  const zones: ZoneWithWeatherStations[] = mapLayerFeatures.map(f => ({
     feature: f,
     bounds: featureBounds(f),
     stationGroups: {},
@@ -107,12 +107,14 @@ export const NWACStationsByZone = (mapLayer: MapLayer | undefined, stations: Wea
 
 export const NWACStationList: React.FunctionComponent<{token: string; requestedTime: RequestedTimeString}> = ({token, requestedTime}) => {
   const navigation = useNavigation<WeatherStackNavigationProps>();
-  const mapLayerResult = useMapLayer('NWAC');
+  const mapLayerResult = useAllMapLayers();
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata('NWAC', token);
   const weatherStations = weatherStationsResult.data;
 
-  const stationsByZone = useMemo(() => NWACStationsByZone(mapLayer, weatherStations), [mapLayer, weatherStations]);
+  const mapLayerFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, 'NWAC'), [mapLayer]);
+
+  const stationsByZone = useMemo(() => NWACStationsByZone(mapLayerFeatures, weatherStations), [mapLayerFeatures, weatherStations]);
 
   const data = useMemo(
     () =>

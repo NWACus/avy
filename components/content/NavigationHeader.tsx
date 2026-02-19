@@ -22,7 +22,7 @@ export const NavigationHeader: React.FunctionComponent<
   let shareCenterId: AvalancheCenterID = center_id;
   const shareParams: {share: boolean; share_url: string} = route?.params as {share: boolean; share_url: string};
 
-  if (shareParams.share) {
+  if (shareParams?.share) {
     share = true;
     // if back is false, means the obs screens have not been open yet
     if (!back) {
