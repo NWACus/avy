@@ -37,7 +37,7 @@ import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
 import Toast, {ToastConfigParams} from 'react-native-toast-message';
 import {TabNavigatorParamList} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
 
 import 'date-time-format-timezone';
 
@@ -308,14 +308,8 @@ const BaseApp: React.FunctionComponent<{
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({staging, setStaging}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const {preferences, setPreferences} = usePreferences();
+  const {preferences} = usePreferences();
   const avalancheCenterId = preferences.center;
-  const setAvalancheCenterId = useCallback(
-    (avalancheCenterId: AvalancheCenterID) => {
-      setPreferences({center: avalancheCenterId});
-    },
-    [setPreferences],
-  );
 
   const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
@@ -521,15 +515,14 @@ const BaseApp: React.FunctionComponent<{
                 <KillSwitchMonitor>
                   <SelectProvider>
                     <StatusBar barStyle="dark-content" backgroundColor="white" />
-                    <View style={StyleSheet.absoluteFill}>
+                    <View style={{flex: 1}}>
                       <TabNavigator.Navigator initialRouteName="Home" screenOptions={tabNavigatorScreenOptions}>
-                        <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
+                        <TabNavigator.Screen name="Home" initialParams={{requestedTime: formatRequestedTime(requestedTime)}} options={{title: 'Zones'}}>
                           {state =>
                             HomeTabScreen(
                               merge(state, {
                                 route: {
                                   params: {
-                                    center_id: avalancheCenterId,
                                     requestedTime: formatRequestedTime(requestedTime),
                                   },
                                 },
@@ -537,13 +530,12 @@ const BaseApp: React.FunctionComponent<{
                             )
                           }
                         </TabNavigator.Screen>
-                        <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
+                        <TabNavigator.Screen name="Observations" initialParams={{requestedTime: formatRequestedTime(requestedTime)}}>
                           {state =>
                             ObservationsTabScreen(
                               merge(state, {
                                 route: {
                                   params: {
-                                    center_id: avalancheCenterId,
                                     requestedTime: formatRequestedTime(requestedTime),
                                   },
                                 },
@@ -551,13 +543,12 @@ const BaseApp: React.FunctionComponent<{
                             )
                           }
                         </TabNavigator.Screen>
-                        <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
+                        <TabNavigator.Screen name="Weather Data" initialParams={{requestedTime: formatRequestedTime(requestedTime)}}>
                           {state =>
                             WeatherScreen(
                               merge(state, {
                                 route: {
                                   params: {
-                                    center_id: avalancheCenterId,
                                     requestedTime: formatRequestedTime(requestedTime),
                                   },
                                 },
@@ -565,8 +556,8 @@ const BaseApp: React.FunctionComponent<{
                             )
                           }
                         </TabNavigator.Screen>
-                        <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}} options={{title: 'More'}}>
-                          {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
+                        <TabNavigator.Screen name="Menu" initialParams={{requestedTime: formatRequestedTime(requestedTime)}} options={{title: 'More'}}>
+                          {state => MenuStackScreen(state, queryCache, staging, setStaging)}
                         </TabNavigator.Screen>
                       </TabNavigator.Navigator>
                     </View>

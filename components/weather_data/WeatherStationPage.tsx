@@ -4,13 +4,13 @@ import {NWACStationList} from 'components/weather_data/NWACWeatherStationList';
 import {WeatherStationList} from 'components/weather_data/WeatherStationList';
 import {WeatherStationMap} from 'components/weather_data/WeatherStationMap';
 import {centerOrPartnerCenter} from 'components/weather_data/WeatherUtils';
+import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
-import {useMapLayer} from 'hooks/useMapLayer';
 import {useToggle} from 'hooks/useToggle';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import {usePostHog} from 'posthog-react-native';
-import React, {useCallback} from 'react';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import React, {useCallback, useMemo} from 'react';
+import {AvalancheCenterID, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {RequestedTimeString} from 'utils/date';
 
@@ -54,18 +54,20 @@ export const WeatherStations: React.FunctionComponent<{
   requestedTime: RequestedTimeString;
 }> = ({center_id, token, requestedTime}) => {
   const [list, {toggle: toggleList}] = useToggle(false);
-  const mapLayerResult = useMapLayer(center_id);
+  const mapLayerResult = useAllMapLayers();
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata(centerOrPartnerCenter(center_id), token);
   const weatherStations = weatherStationsResult.data;
+
+  const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, center_id), [mapLayer, center_id]);
 
   if (incompleteQueryState(mapLayerResult, weatherStationsResult) || !mapLayer || !weatherStations) {
     return <QueryState results={[mapLayerResult, weatherStationsResult]} />;
   }
 
   if (list) {
-    return <WeatherStationList center_id={center_id} requestedTime={requestedTime} mapLayer={mapLayer} weatherStations={weatherStations} toggleMap={toggleList} />;
+    return <WeatherStationList center_id={center_id} requestedTime={requestedTime} mapLayerFeatures={mapFeatures ?? []} weatherStations={weatherStations} toggleMap={toggleList} />;
   } else {
-    return <WeatherStationMap center_id={center_id} requestedTime={requestedTime} mapLayer={mapLayer} weatherStations={weatherStations} toggleList={toggleList} />;
+    return <WeatherStationMap center_id={center_id} requestedTime={requestedTime} mapLayerFeatures={mapFeatures} weatherStations={weatherStations} toggleList={toggleList} />;
   }
 };

@@ -1,5 +1,5 @@
 import {AvalancheForecastZonePolygon, SelectedAvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZonePolygon';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {AvalancheCenterID, DangerLevel, MapLayerFeature} from 'types/nationalAvalancheCenter';
 
 import Mapbox, {Camera, CameraBounds, MapState, MapView} from '@rnmapbox/maps';
@@ -64,6 +64,18 @@ export const ZoneMap = React.forwardRef<Camera, ZoneMapProps>(
     },
     cameraRef,
   ) => {
+    const zonePolygons = useMemo(() => {
+      return zones?.map(zone => <AvalancheForecastZonePolygon key={`${zone.zone_id}-polygon`} zone={zone} renderFillColor={renderFillColor} onPress={onPolygonPress} />);
+    }, [zones, renderFillColor, onPolygonPress]);
+
+    const selectedPolygon = useMemo(() => {
+      if (selectedZoneId !== null) {
+        return zones?.filter(zone => zone.zone_id === selectedZoneId).map(zone => <SelectedAvalancheForecastZonePolygon key={`${zone.zone_id}-selectedPolygon`} zone={zone} />);
+      }
+
+      return null;
+    }, [zones, selectedZoneId]);
+
     return (
       <MapView
         styleURL={Mapbox.StyleURL.Outdoors}
@@ -76,11 +88,8 @@ export const ZoneMap = React.forwardRef<Camera, ZoneMapProps>(
         onCameraChanged={onCameraChanged}
         {...props}>
         <Camera ref={cameraRef} defaultSettings={{bounds: initialCameraBounds}} />
-        {zones?.map(zone => (
-          <AvalancheForecastZonePolygon key={`${zone.zone_id}-polygon`} zone={zone} renderFillColor={renderFillColor} onPress={onPolygonPress} />
-        ))}
-        {selectedZoneId &&
-          zones?.filter(zone => zone.zone_id === selectedZoneId).map(zone => <SelectedAvalancheForecastZonePolygon key={`${zone.zone_id}-selectedPolygon`} zone={zone} />)}
+        {zonePolygons}
+        {selectedPolygon}
         {children}
       </MapView>
     );

@@ -23,7 +23,7 @@ export const useAllMapLayers = (): UseQueryResult<MapLayer, AxiosError | ZodErro
     queryKey: key,
     queryFn: async (): Promise<MapLayer> => fetchAllMapLayers(nationalAvalancheCenterHost, thisLogger),
     enabled: true,
-    cacheTime: Infinity, // hold on to this cached data forever
+    cacheTime: 24 * 60 * 60 * 1000, // hold this in the query cache for one day after it's become inactive
   });
 };
 
@@ -45,7 +45,7 @@ export const prefetchAllMapLayers = async (queryClient: QueryClient, nationalAva
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
-    cacheTime: Infinity, // hold this in the query cache forever
+    cacheTime: 24 * 60 * 60 * 1000, // hold this in the query cache for one day after it's become inactive
     staleTime: 24 * 60 * 60 * 1000, // don't bother prefetching again for a day
   });
 };
@@ -67,7 +67,25 @@ const fetchAllMapLayers = async (nationalAvalancheCenterHost: string, logger: Lo
     });
     throw parseResult.error;
   } else {
-    return parseResult.data;
+    // This is temporary until we can get 1 call that includes CBAC
+    const urlCBAC = `${nationalAvalancheCenterHost}/v2/public/products/map-layer/CBAC`;
+    const cbacData = await safeFetch(() => axios.get<AxiosResponse<unknown>>(urlCBAC), thisLogger, what);
+    const cbacResult = mapLayerSchema.safeParse(cbacData);
+    if (!cbacResult.success) {
+      thisLogger.warn({error: cbacResult.error}, 'failed to parse');
+      Sentry.captureException(cbacResult.error, {
+        tags: {
+          zod_error: true,
+          url,
+        },
+      });
+      throw cbacResult.error;
+    } else {
+      // CAIC and CBAC overlap on the map. We need to remove CAIC in favor of CBAC since CAIC is unsupported in the app
+      const adjustedFeatures = parseResult.data.features.filter(feature => feature.properties.center_id !== 'CAIC').concat(cbacResult.data.features);
+      parseResult.data.features = adjustedFeatures;
+      return parseResult.data;
+    }
   }
 };
 

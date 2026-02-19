@@ -10,7 +10,7 @@ import {usePostHog} from 'posthog-react-native';
 import React, {useCallback, useMemo} from 'react';
 import {FlatList, ListRenderItemInfo, Modal, ScrollView, TouchableOpacity} from 'react-native';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, MapLayer, WeatherStation, WeatherStationCollection, WeatherStationTimeseriesEntry} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MapLayerFeature, WeatherStation, WeatherStationCollection, WeatherStationTimeseriesEntry} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {RequestedTimeString, parseRequestedTimeString, requestedTimeToUTCDate} from 'utils/date';
 
@@ -20,13 +20,13 @@ interface WeatherStationListItem {
 }
 
 export const WeatherStationList: React.FunctionComponent<{
-  mapLayer: MapLayer;
+  mapLayerFeatures: MapLayerFeature[];
   weatherStations: WeatherStationCollection;
   center_id: AvalancheCenterID;
   requestedTime: RequestedTimeString;
   toggleMap: () => void;
   initialFilterConfig?: WeatherStationFilterConfig;
-}> = ({mapLayer, weatherStations, center_id, requestedTime, toggleMap, initialFilterConfig}) => {
+}> = ({mapLayerFeatures, weatherStations, center_id, requestedTime, toggleMap, initialFilterConfig}) => {
   const parsedTime = parseRequestedTimeString(requestedTime);
   const currentTime = requestedTimeToUTCDate(parsedTime);
   const [filterConfig, setFilterConfig] = React.useState<WeatherStationFilterConfig>({...initialFilterConfig});
@@ -53,8 +53,8 @@ export const WeatherStationList: React.FunctionComponent<{
   // the displayed stations need to match all filters - for instance, if a user chooses a zone *and*
   // a source type, we only show stations that match both of those at the same time
   const resolvedFilters = useMemo(
-    () => (mapLayer ? filtersForConfig(mapLayer, filterConfig, initialFilterConfig, currentTime) : []),
-    [mapLayer, filterConfig, initialFilterConfig, currentTime],
+    () => (mapLayerFeatures ? filtersForConfig(mapLayerFeatures, filterConfig, initialFilterConfig, currentTime) : []),
+    [mapLayerFeatures, filterConfig, initialFilterConfig, currentTime],
   );
 
   const displayedStations: WeatherStationListItem[] = useMemo(
@@ -88,7 +88,7 @@ export const WeatherStationList: React.FunctionComponent<{
       <VStack width="100%" height="100%" space={0}>
         <Modal visible={filterModalVisible} onRequestClose={hideFilterModal}>
           <WeatherStationFilterForm
-            mapLayer={mapLayer}
+            mapLayerFeatures={mapLayerFeatures}
             initialFilterConfig={{...initialFilterConfig}}
             currentFilterConfig={filterConfig}
             setFilterConfig={setFilterConfig}

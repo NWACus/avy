@@ -27,7 +27,6 @@ import {colorLookup} from 'theme';
 import {
   AvalancheCenterID,
   DangerLevel,
-  MapLayer,
   MapLayerFeature,
   Position,
   StationColorNameForSource,
@@ -77,14 +76,14 @@ function clustersDBScan(
 }
 
 export const WeatherStationMap: React.FunctionComponent<{
-  mapLayer: MapLayer;
+  mapLayerFeatures: MapLayerFeature[];
   weatherStations: WeatherStationCollection;
   center_id: AvalancheCenterID;
   requestedTime: RequestedTimeString;
   toggleList: () => void;
-}> = ({mapLayer, weatherStations, center_id, requestedTime, toggleList}) => {
+}> = ({mapLayerFeatures, weatherStations, center_id, requestedTime, toggleList}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const avalancheCenterMapRegion = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
+  const avalancheCenterMapRegion = defaultMapRegionForGeometries(mapLayerFeatures.map(feature => feature.geometry));
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
@@ -126,7 +125,7 @@ export const WeatherStationMap: React.FunctionComponent<{
   }, [avalancheCenterMapRegion, controller]);
 
   // we want light grey zones in the background here
-  const zones: MapViewZone[] = mapLayer.features.map((feature: MapLayerFeature) => ({
+  const zones: MapViewZone[] = mapLayerFeatures.map((feature: MapLayerFeature) => ({
     ...mapViewZoneFor(feature),
     hasWarning: false,
     danger_level: DangerLevel.None,

@@ -17,7 +17,7 @@ import {usePostHog} from 'posthog-react-native';
 import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, SafeAreaView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {colorLookup} from 'theme';
-import {MapLayer, WeatherStation, WeatherStationSource, WeatherStationTimeseriesEntry} from 'types/nationalAvalancheCenter';
+import {MapLayerFeature, WeatherStation, WeatherStationSource, WeatherStationTimeseriesEntry} from 'types/nationalAvalancheCenter';
 import {z} from 'zod';
 
 const dateValueSchema = z.enum(['past_hour', 'past_3_hours', 'past_12_hours', 'past_day']);
@@ -97,7 +97,7 @@ interface FilterListItem {
   removeFilter?: (config: WeatherStationFilterConfig) => WeatherStationFilterConfig;
 }
 export const filtersForConfig = (
-  mapLayer: MapLayer,
+  mapLayerFeatures: MapLayerFeature[],
   config: WeatherStationFilterConfig,
   initialFilterConfig: WeatherStationFilterConfig | undefined,
   currentDate: Date,
@@ -117,7 +117,7 @@ export const filtersForConfig = (
 
   if (config.zone) {
     filterFuncs.push({
-      filter: station => config.zone === matchesZone(mapLayer, station.properties.latitude, station.properties.longitude),
+      filter: station => config.zone === matchesZone(mapLayerFeatures, station.properties.latitude, station.properties.longitude),
       label: config.zone,
       // If the zone was specified as part of the initialFilterConfig (i.e. we're browsing the tab of a particular zone),
       // then removeFilter should be undefined since re-setting the filters should keep that zone filter around
@@ -137,7 +137,7 @@ export const filtersForConfig = (
 };
 
 interface WeatherStationFilterFormProps {
-  mapLayer: MapLayer;
+  mapLayerFeatures: MapLayerFeature[];
   initialFilterConfig: WeatherStationFilterConfig;
   currentFilterConfig: WeatherStationFilterConfig;
   setFilterConfig: React.Dispatch<React.SetStateAction<WeatherStationFilterConfig>>;
@@ -147,7 +147,7 @@ interface WeatherStationFilterFormProps {
 const formFieldSpacing = 16;
 
 export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFilterFormProps> = ({
-  mapLayer,
+  mapLayerFeatures,
   initialFilterConfig,
   currentFilterConfig,
   setFilterConfig,
@@ -259,7 +259,7 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
                       name="zone"
                       label="Zone"
                       required
-                      otherItems={mapLayer.features.map(feature => feature.properties.name)}
+                      otherItems={mapLayerFeatures.map(feature => feature.properties.name)}
                       disabled={Boolean(initialFilterConfig.zone)}
                     />
                     <SelectField
