@@ -6,10 +6,10 @@ import {AvalancheCenterID, WeatherStationSource} from 'types/nationalAvalancheCe
 import {RequestedTimeString} from 'utils/date';
 
 export type TabNavigatorParamList = {
-  Home: NavigatorScreenParams<HomeStackParamList> & {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
-  'Weather Data': NavigatorScreenParams<WeatherStackParamList> & {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
-  Observations: NavigatorScreenParams<ObservationsStackParamList> & {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
-  Menu: NavigatorScreenParams<MenuStackParamList> & {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
+  Home: NavigatorScreenParams<HomeStackParamList> & {requestedTime: RequestedTimeString};
+  'Weather Data': NavigatorScreenParams<WeatherStackParamList> & {requestedTime: RequestedTimeString};
+  Observations: NavigatorScreenParams<ObservationsStackParamList> & {requestedTime: RequestedTimeString};
+  Menu: NavigatorScreenParams<MenuStackParamList> & {requestedTime: RequestedTimeString};
 };
 export type TabNavigationProps = BottomTabNavigationProp<TabNavigatorParamList>;
 
@@ -99,9 +99,7 @@ export type ObservationsStackParamList = {
     center_id: AvalancheCenterID;
     requestedTime: RequestedTimeString;
   };
-  observationSubmit: {
-    center_id: AvalancheCenterID;
-  };
+  observationSubmit: undefined;
   observationsList: {
     center_id: AvalancheCenterID;
     requestedTime: RequestedTimeString;
