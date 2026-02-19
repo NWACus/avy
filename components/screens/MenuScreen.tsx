@@ -54,12 +54,13 @@ const MenuStack = createNativeStackNavigator<MenuStackParamList>();
 export const MenuStackScreen = (
   {route}: NativeStackScreenProps<TabNavigatorParamList, 'Menu'>,
   queryCache: QueryCache,
-  avalancheCenterId: AvalancheCenterID,
-  setAvalancheCenter: (center: AvalancheCenterID) => void,
   staging: boolean,
   setStaging: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
-  const {center_id, requestedTime} = route.params;
+  const {requestedTime} = route.params;
+  const {preferences, setPreferences} = usePreferences();
+
+  const centerId = preferences.center;
   const avalancheCenterSelectorOptions = useCallback(
     ({route}: {route: RouteProp<MenuStackParamList, 'avalancheCenterSelector'>}) => ({
       headerShown: true,
@@ -67,12 +68,20 @@ export const MenuStackScreen = (
     }),
     [],
   );
+
+  const setAvalancheCenter = useCallback(
+    (avalancheCenterId: AvalancheCenterID) => {
+      setPreferences({center: avalancheCenterId});
+    },
+    [setPreferences],
+  );
+
   return (
     <MenuStack.Navigator initialRouteName="menu" screenOptions={{headerShown: true}}>
-      <MenuStack.Screen name="menu" component={MenuScreen(queryCache, avalancheCenterId, staging, setStaging)} options={{title: `Settings`, headerShown: false}} />
+      <MenuStack.Screen name="menu" component={MenuScreen(queryCache, centerId, staging, setStaging)} options={{title: `Settings`, headerShown: false}} />
       <MenuStack.Screen
         name="avalancheCenterSelector"
-        component={AvalancheCenterSelectorScreen(AvalancheCenters.SupportedCenters, avalancheCenterId, setAvalancheCenter)}
+        component={AvalancheCenterSelectorScreen(AvalancheCenters.SupportedCenters, centerId, setAvalancheCenter)}
         options={avalancheCenterSelectorOptions}
       />
       <MenuStack.Screen name="buttonStylePreview" component={ButtonStylePreview} options={{title: `Button Style Preview`}} />
@@ -80,8 +89,8 @@ export const MenuStackScreen = (
       <MenuStack.Screen name="avalancheComponentPreview" component={AvalancheComponentPreview} options={{title: `Avalanche Component Preview`}} />
       <MenuStack.Screen name="toastPreview" component={ToastPreview} options={{title: `Toast Preview`}} />
       <MenuStack.Screen name="timeMachine" component={TimeMachine} options={{title: `Time Machine`}} />
-      <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={{headerShown: false}} />
-      <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={{headerShown: false}} />
+      <MenuStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{center_id: centerId, requestedTime: requestedTime}} options={{headerShown: false}} />
+      <MenuStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: centerId, requestedTime: requestedTime}} options={{headerShown: false}} />
       <MenuStack.Screen name="observation" component={ObservationScreen} />
       <MenuStack.Screen name="nwacObservation" component={NWACObservationScreen} />
       <MenuStack.Screen name="about" component={AboutScreen} options={{title: 'Avy'}} />

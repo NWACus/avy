@@ -33,6 +33,42 @@ export const avalancheCenterIDSchema = z.enum([
 
 export type AvalancheCenterID = z.infer<typeof avalancheCenterIDSchema>;
 
+export const isSupportedCenter = (centerId: AvalancheCenterID): boolean => {
+  switch (centerId) {
+    case 'BAC':
+    case 'BTAC':
+    case 'CBAC':
+    case 'CNFAIC':
+    case 'COAA':
+    case 'ESAC':
+    case 'FAC':
+    case 'GNFAC':
+    case 'HAC':
+    case 'HPAC':
+    case 'IPAC':
+    case 'KPAC':
+    case 'MSAC':
+    case 'MWAC':
+    case 'NWAC':
+    case 'PAC':
+    case 'SAC':
+    case 'SNFAC':
+    case 'TAC':
+    case 'VAC':
+    case 'WAC':
+    case 'WCMAC':
+      return true;
+    case 'CAIC':
+    case 'UAC':
+    case 'SOAIX':
+    case 'EWYAIX':
+    case 'EARAC':
+    case 'CAC':
+    case 'CAAC':
+      return false;
+  }
+};
+
 export function userFacingCenterId(input: AvalancheCenterID, capabilities: AllAvalancheCenterCapabilities): string {
   const capability = capabilities.centers.find(center => center.id === input);
   return capability !== undefined ? capability.display_id : input;
@@ -1308,6 +1344,9 @@ export const mapLayerSchema = featureCollectionSchema(mapLayerFeatureSchema).ext
   end_time: z.null(),
 });
 export type MapLayer = z.infer<typeof mapLayerSchema>;
+
+export const mapFeaturesForCenter = (allMapLayer: MapLayer | undefined, centerId: AvalancheCenterID): MapLayerFeature[] =>
+  allMapLayer?.features.filter(feature => feature.properties.center_id === centerId) ?? [];
 
 export const WeatherStationSource = {
   NWAC: 'nwac',

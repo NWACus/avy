@@ -4,7 +4,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Sentry from '@sentry/react-native';
 import {merge} from 'lodash';
-import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
+import React, {createContext, ReactNode, useCallback, useContext, useEffect, useState} from 'react';
 import uuid from 'react-native-uuid';
 import {useAsyncEffect} from 'use-async-effect';
 import {z} from 'zod';
@@ -69,14 +69,17 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
     void AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
   }, [preferences]);
 
-  const setPartialPreferences = (newPreferences: Partial<Preferences>) => {
-    setPreferences(merge({}, preferences, newPreferences));
-  };
+  const setPartialPreferences = useCallback(
+    (newPreferences: Partial<Preferences>) => {
+      setPreferences(merge({}, preferences, newPreferences));
+    },
+    [preferences, setPreferences],
+  );
 
-  const clearPreferences = () => {
+  const clearPreferences = useCallback(() => {
     // Clear everything _except_ the mixpanelUserId. It might not be set yet, but if it is we don't want to lose it.
     setPreferences({...defaultPreferences, mixpanelUserId: preferences.mixpanelUserId});
-  };
+  }, [setPreferences, preferences.mixpanelUserId]);
 
   return <PreferencesContext.Provider value={{preferences, setPreferences: setPartialPreferences, clearPreferences}}>{children}</PreferencesContext.Provider>;
 };

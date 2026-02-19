@@ -9,13 +9,13 @@ import {AvalancheCenterRegion, defaultMapRegionForGeometries, defaultMapRegionFo
 import {AnimatedMapMarker} from 'components/map/AnimatedMapMarker';
 import {LocationPoint, ObservationFormData} from 'components/observations/ObservationFormData';
 import {Body, BodyXSm, Title3Black, bodySize} from 'components/text';
-import {useMapLayer} from 'hooks/useMapLayer';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {useAllMapLayers} from 'hooks/useAllMapLayers';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useController} from 'react-hook-form';
 import {Modal, View as RNView, TouchableOpacity} from 'react-native';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, Position} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, Position, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
 
 interface LocationFieldProps {
   name: KeysMatching<ObservationFormData, LocationPoint>;
@@ -90,12 +90,14 @@ interface LocationMapProps {
 }
 
 const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVisible, initialLocation, onClose, onSelect}) => {
-  const mapLayerResult = useMapLayer(center);
+  const mapLayerResult = useAllMapLayers();
   const mapLayer = mapLayerResult.data;
   const [initialRegion, setInitialRegion] = useState<AvalancheCenterRegion>(defaultMapRegionForZones([]));
   const [selectedLocation, setSelectedLocation] = useState<LocationPoint | undefined>(initialLocation);
   const [mapReady, setMapReady] = useState<boolean>(false);
   const mapCameraRef = useRef<Camera>(null);
+
+  const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, center), [mapLayer, center]);
 
   const onMapPress = useCallback(
     (feature: GeoJSON.Feature) => {
@@ -107,9 +109,9 @@ const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVi
   );
 
   useEffect(() => {
-    if (mapLayer && !mapReady) {
+    if (!mapReady) {
       const location: LocationPoint = initialLocation || {lat: 0, lng: 0};
-      const initialRegion = defaultMapRegionForGeometries(mapLayer.features.map(feature => feature.geometry));
+      const initialRegion = defaultMapRegionForGeometries(mapFeatures.map(feature => feature.geometry));
       if (location.lat !== 0 && location.lng !== 0) {
         initialRegion.centerCoordinate.latitude = location.lat;
         initialRegion.centerCoordinate.longitude = location.lng;
@@ -118,10 +120,10 @@ const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVi
       setInitialRegion(initialRegion);
       setMapReady(true);
     }
-  }, [initialLocation, mapLayer, mapCameraRef, setInitialRegion, mapReady, setMapReady]);
+  }, [initialLocation, mapFeatures, mapCameraRef, setInitialRegion, mapReady, setMapReady]);
 
   const zones: MapViewZone[] =
-    mapLayer?.features.map(
+    mapFeatures.map(
       (feature): MapViewZone => ({
         zone_id: feature.id,
         name: feature.properties.name,

@@ -10,7 +10,6 @@ import md5 from 'md5';
 import React, {RefObject, useCallback, useEffect, useRef, useState} from 'react';
 import {
   Animated,
-  FlatList,
   GestureResponderEvent,
   LayoutChangeEvent,
   NativeScrollEvent,
@@ -19,6 +18,7 @@ import {
   PanResponderGestureState,
   TouchableOpacity,
   useWindowDimensions,
+  VirtualizedList,
 } from 'react-native';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -384,7 +384,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
     }),
   ).current;
 
-  const flatListRef = useRef<FlatList>(null);
+  const listRef = useRef<VirtualizedList<ItemRenderData<T, U>>>(null);
   const onLayout = useCallback((event: LayoutChangeEvent) => controllerRef.current.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height), [controllerRef]);
 
   const renderItemAdapter = useCallback(({item}: {item: ItemRenderData<T, U>}) => renderItem(item), [renderItem]);
@@ -457,6 +457,10 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
     [offsets, width],
   );
 
+  const getItemCount = useCallback(() => items.length, [items]);
+
+  const getItem = useCallback((data: ItemRenderData<T, U>[], index: number) => data[index], []);
+
   // The list view has drawer-like behavior - it can be swiped into view, or swiped away.
   // These values control the state that's driven through gestures & animation.
   useEffect(() => {
@@ -474,11 +478,11 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
       if (selectedItemId) {
         const index = items.findIndex(i => getItemId(i) === selectedItemId);
         setProgrammaticallyScrolling(true);
-        flatListRef.current?.scrollToIndex({index, animated: true});
+        listRef.current?.scrollToIndex({index: index !== -1 ? index : 0, animated: true});
       }
       setPreviouslySelectedItemId(selectedItemId);
     }
-  }, [selectedItemId, previouslySelectedItemId, flatListRef, items, setProgrammaticallyScrolling, setPreviouslySelectedItemId, getItemId]);
+  }, [selectedItemId, previouslySelectedItemId, listRef, items, setProgrammaticallyScrolling, setPreviouslySelectedItemId, getItemId]);
 
   return (
     <Animated.View
@@ -509,9 +513,11 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
           </TouchableOpacity>
         </View>
       )}
-      <Animated.FlatList
-        initialNumToRender={items.length}
-        ref={flatListRef}
+      <VirtualizedList
+        // Only render the first 2 cards if there are more than 2 items. The cards take up most of the screen so this will render the first 2 upfront.
+        // This helps keep the list from using too much memory by trying to render all of the cards before showing the view
+        initialNumToRender={items.length > 2 ? 2 : items.length}
+        ref={listRef}
         initialScrollIndex={items.findIndex(item => getItemId(item) === selectedItemId) === -1 ? 0 : items.findIndex(item => getItemId(item) === selectedItemId)}
         horizontal
         style={{width: '100%'}}
@@ -520,18 +526,18 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
         onMomentumScrollEnd={onMomentumScrollEnd}
         onLayout={onLayout}
         getItemLayout={getItemLayout}
+        getItemCount={getItemCount}
+        getItem={getItem}
         {...panResponder.panHandlers}
         {...flatListProps}
-        data={
-          items.map(
-            (i: T): ItemRenderData<T, U> => ({
-              key: getItemId(i),
-              item: i,
-              date: date,
-              center_id: center_id,
-            }),
-          ) as unknown as Animated.WithAnimatedObject<ArrayLike<ItemRenderData<T, U>>>
-        }
+        data={items.map(
+          (i: T): ItemRenderData<T, U> => ({
+            key: getItemId(i),
+            item: i,
+            date: date,
+            center_id: center_id,
+          }),
+        )}
         renderItem={renderItemAdapter}
       />
     </Animated.View>
