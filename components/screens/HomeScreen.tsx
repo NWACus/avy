@@ -6,11 +6,14 @@ import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {MapScreen} from 'components/screens/MapScreen';
 import {NWACObservationScreen, ObservationScreen, ObservationSubmitScreen} from 'components/screens/ObservationsScreen';
 import {StationDetailScreen, StationsDetailScreen} from 'components/screens/WeatherScreen';
+import {usePreferences} from 'Preferences';
 import {HomeStackParamList, TabNavigatorParamList} from 'routes';
 
 const AvalancheCenterStack = createNativeStackNavigator<HomeStackParamList>();
 export const HomeTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Home'>) => {
-  const {center_id, requestedTime} = route.params;
+  const {requestedTime} = route.params;
+  const {preferences} = usePreferences();
+  const center_id = preferences.center;
   return (
     <AvalancheCenterStack.Navigator initialRouteName="avalancheCenter" screenOptions={{header: props => <NavigationHeader center_id={center_id} {...props} />}}>
       <AvalancheCenterStack.Screen
