@@ -15,7 +15,7 @@ import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConf
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
 import {compareDesc, formatDuration, isBefore, parseISO, sub} from 'date-fns';
-import {useMapLayer} from 'hooks/useMapLayer';
+import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
@@ -38,7 +38,7 @@ import {
 } from 'react-native';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
 import {RequestedTime, observationDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
 
 interface ObservationsListViewItem {
@@ -73,8 +73,10 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal}] = useToggle(false);
-  const mapResult = useMapLayer(center_id);
+  const mapResult = useAllMapLayers();
   const mapLayer = mapResult.data;
+
+  const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, center_id), [mapLayer, center_id]);
 
   const postHog = usePostHog();
 
@@ -138,16 +140,16 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         // calculate the zone and cache it now
         .map(observation => ({
           ...observation,
-          zone: mapLayer ? matchesZone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng) : '',
+          zone: matchesZone(mapFeatures, observation.locationPoint.lat, observation.locationPoint.lng),
         })),
-    [flatObservationList, mapLayer, displayNWACObservations],
+    [flatObservationList, mapFeatures, displayNWACObservations],
   );
   const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
   const refreshWrapper = useCallback(() => void refresh(), [refresh]);
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
-  const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters) : []), [mapLayer, filterConfig, additionalFilters]);
+  const resolvedFilters = useMemo(() => filtersForConfig(mapFeatures, filterConfig, additionalFilters), [mapFeatures, filterConfig, additionalFilters]);
 
   // Set a date limit for how far back to look for observations
   const [lookBackLimit, setLookBackLimit] = useState<Duration>({years: 1});
@@ -251,8 +253,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   );
 
   const submit = useCallback(() => {
-    navigation.navigate('observationSubmit', {center_id});
-  }, [navigation, center_id]);
+    navigation.navigate('observationSubmit');
+  }, [navigation]);
 
   const [showSubmitButtonText, setShowSubmitButtonText] = useState(true);
   const onScroll = useCallback(
@@ -315,7 +317,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [filterConfig, setFilterConfig],
   );
 
-  if (incompleteQueryState(observationsResult, mapResult) || !mapLayer) {
+  if (incompleteQueryState(observationsResult, mapResult) || !mapLayer || !mapFeatures) {
     return (
       <Center width="100%" height="100%">
         <QueryState results={[observationsResult, mapResult]} />
@@ -331,7 +333,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       <Modal visible={filterModalVisible} onRequestClose={hideFilterModal} presentationStyle="overFullScreen">
         <ObservationsFilterForm
           requestedTime={requestedTime}
-          mapLayer={mapLayer}
+          mapLayerFeatures={mapFeatures}
           initialFilterConfig={originalFilterConfig}
           currentFilterConfig={filterConfig}
           setFilterConfig={setFilterConfig}

@@ -21,7 +21,7 @@ import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
-import {MapLayer, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
+import {MapLayerFeature, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
 import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 import {z} from 'zod';
 
@@ -107,7 +107,11 @@ interface FilterListItem {
   label: string;
   removeFilter?: (config: ObservationFilterConfig) => ObservationFilterConfig;
 }
-export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterConfig, additionalFilters: Partial<ObservationFilterConfig> | undefined): FilterListItem[] => {
+export const filtersForConfig = (
+  mapLayerFeatures: MapLayerFeature[],
+  config: ObservationFilterConfig,
+  additionalFilters: Partial<ObservationFilterConfig> | undefined,
+): FilterListItem[] => {
   if (!config) {
     return [];
   }
@@ -125,7 +129,7 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
   if (config.zones.length > 0) {
     filterFuncs.push({
       type: 'zone',
-      filter: (observation: ObservationFragment) => config.zones.includes(matchesZone(mapLayer, observation.locationPoint?.lat, observation.locationPoint?.lng)),
+      filter: (observation: ObservationFragment) => config.zones.includes(matchesZone(mapLayerFeatures, observation.locationPoint?.lat, observation.locationPoint?.lng)),
       removeFilter: additionalFilters?.zones ? undefined : (config: ObservationFilterConfig) => ({...config, zones: []}),
       label: config.zones.join(', '),
     });
@@ -171,7 +175,7 @@ export const filtersForConfig = (mapLayer: MapLayer, config: ObservationFilterCo
 
 interface ObservationsFilterFormProps {
   requestedTime: RequestedTime;
-  mapLayer: MapLayer;
+  mapLayerFeatures: MapLayerFeature[];
   initialFilterConfig: ObservationFilterConfig;
   currentFilterConfig: ObservationFilterConfig;
   setFilterConfig: React.Dispatch<React.SetStateAction<ObservationFilterConfig>>;
@@ -182,7 +186,7 @@ const formFieldSpacing = 16;
 
 export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterFormProps> = ({
   requestedTime,
-  mapLayer,
+  mapLayerFeatures,
   initialFilterConfig,
   currentFilterConfig,
   setFilterConfig,
@@ -318,18 +322,18 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                       <DateField name="dates.to" maximumDate={minMaxDates.max} />
                     </View>
                   </VStack>
-                  {mapLayer && (
+                  {mapLayerFeatures && (
                     <View px={16} pt={16}>
                       <BodyBlack>Zone</BodyBlack>
                     </View>
                   )}
-                  {mapLayer && (
+                  {mapLayerFeatures && (
                     <CheckboxSelectField
                       name="zones"
                       items={
                         initialFilterConfig.zones.length > 0
                           ? initialFilterConfig.zones.map(z => ({label: z, value: z}))
-                          : mapLayer.features.map(feature => ({label: feature.properties.name, value: feature.properties.name}))
+                          : mapLayerFeatures.map(feature => ({label: feature.properties.name, value: feature.properties.name}))
                       }
                       disabled={initialFilterConfig.zones.length > 0}
                       px={16}
@@ -401,11 +405,11 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   );
 };
 
-export const matchesZone = (mapLayer: MapLayer, lat: number | null | undefined, long: number | null | undefined): string => {
+export const matchesZone = (mapLayerFeatures: MapLayerFeature[], lat: number | null | undefined, long: number | null | undefined): string => {
   if (!lat || !long) {
     return 'Unknown Zone';
   }
-  const matchingFeatures = mapLayer.features
+  const matchingFeatures = mapLayerFeatures
     .filter(feature => (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') && booleanPointInPolygon([long, lat], feature.geometry))
     .map(feature => feature.properties.name);
   if (matchingFeatures.length === 0) {
