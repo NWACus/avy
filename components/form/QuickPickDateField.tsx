@@ -1,4 +1,4 @@
-import {AntDesign} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker, {DateTimePickerAndroid, DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import {Button} from 'components/content/Button';
 import {HStack, VStack, ViewProps} from 'components/core';
@@ -6,7 +6,7 @@ import {FieldLabel, HelpText} from 'components/form/FieldLabel';
 import {Body, BodyBlack, BodyXSm} from 'components/text';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
-import {Platform} from 'react-native';
+import {ColorValue, Platform} from 'react-native';
 import {colorLookup} from 'theme';
 import {utcDateToLocalDateString} from 'utils/date';
 
@@ -105,6 +105,20 @@ export function QuickPickDateField({
     return false;
   }, [field.value, quickPickDates]);
 
+  const renderOtherButtonContent = useCallback(
+    (style: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => {
+      const {textColor} = style;
+      const TextElement = isQuickPickSelected ? Body : BodyBlack;
+      return (
+        <HStack>
+          <TextElement color={textColor}>Other&nbsp;</TextElement>
+          <Ionicons name="calendar-outline" size={20} color={textColor} />
+        </HStack>
+      );
+    },
+    [isQuickPickSelected],
+  );
+
   return (
     <VStack width="100%" space={labelSpace} flex={1} flexGrow={1} bg={'white'} {...props}>
       <FieldLabel label={label ?? name} required={required} helpText={helpText} />
@@ -131,23 +145,15 @@ export function QuickPickDateField({
           key={'other'}
           onPress={toggleDatePicker}
           buttonStyle={!isQuickPickSelected && field.value ? 'primary' : 'normal'}
+          justifyContent="center"
+          alignContent="center"
           px={8}
           py={4}
           marginTop={rowMargin}
           borderWidth={1}
-          disabled={disabled}>
-          {!isQuickPickSelected ? (
-            <BodyBlack>
-              Other&nbsp;
-              <AntDesign name="calendar" size={20} />
-            </BodyBlack>
-          ) : (
-            <Body>
-              Other&nbsp;
-              <AntDesign name="calendar" size={20} />
-            </Body>
-          )}
-        </Button>
+          disabled={disabled}
+          renderChildren={renderOtherButtonContent}
+        />
       </HStack>
       {fieldState.error && <BodyXSm color={colorLookup('error.active')}>{fieldState.error.message}</BodyXSm>}
 

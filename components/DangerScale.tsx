@@ -34,7 +34,7 @@ export const DangerScale: React.FunctionComponent<DangerScaleProps> = props => {
           ))}
         </HStack>
         <View>
-          <InfoTooltip color="white" size={16} title="Danger Scale" style={{padding: 0}} hitSlop={{top: 8, left: 8, bottom: 8, right: 8}} content={helpStrings.dangerScaleDetail} />
+          <InfoTooltip color="white" size={20} title="Danger Scale" style={{padding: 0}} hitSlop={{top: 8, left: 8, bottom: 8, right: 8}} content={helpStrings.dangerScaleDetail} />
         </View>
       </HStack>
     </View>

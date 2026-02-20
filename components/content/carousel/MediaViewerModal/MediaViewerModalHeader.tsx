@@ -1,4 +1,4 @@
-import {AntDesign} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {Center, HStack, View, ViewProps} from 'components/core';
 import {BodySm} from 'components/text';
 import React from 'react';
@@ -15,7 +15,7 @@ interface MediaViewerModalHeaderProps {
 const RoundButton = ({onPress, ...props}: {onPress: ((event: GestureResponderEvent) => void) | undefined} & ViewProps) => (
   <TouchableOpacity onPress={onPress}>
     <Center height={32} width={32} backgroundColor={colorLookup('modal.background')} borderRadius={16} {...props}>
-      <AntDesign size={24} color="white" name="close" />
+      <Ionicons size={28} color="white" name="close-outline" />
     </Center>
   </TouchableOpacity>
 );

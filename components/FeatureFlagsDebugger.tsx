@@ -1,4 +1,4 @@
-import {AntDesign} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {FeatureFlagKey, FeatureFlagValue, useDebugFeatureFlags, useOneFeatureFlag} from 'FeatureFlags';
 import {Card} from 'components/content/Card';
@@ -99,14 +99,14 @@ const FeatureFlagCard: React.FunctionComponent<{flag: FeatureFlagKey}> = ({flag}
 
 const FeatureFlagIcon: React.FunctionComponent<{value: FeatureFlagValue | undefined}> = ({value}) => {
   if (value === undefined) {
-    return <AntDesign name="questioncircleo" size={16} color={colorLookup('general_information')} />;
+    return <Ionicons name="help-circle-outline" size={16} color={colorLookup('general_information')} />;
   }
   if (typeof value === 'boolean') {
     if (value) {
-      return <AntDesign name="checkcircle" size={16} color={colorLookup('success')} />;
+      return <Ionicons name="checkmark-circle-outline" size={16} color={colorLookup('success')} />;
     } else {
-      return <AntDesign name="closecircle" size={16} color={colorLookup('error')} />;
+      return <Ionicons name="close-circle-outline" size={16} color={colorLookup('error')} />;
     }
   }
-  return <AntDesign name="infocirlceo" size={16} color={colorLookup('primary')} />;
+  return <Ionicons name="information-circle-outline" size={16} color={colorLookup('primary')} />;
 };

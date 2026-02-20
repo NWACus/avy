@@ -3,7 +3,7 @@ import React, {PropsWithChildren, ReactNode, useCallback, useEffect, useState} f
 import {ColorValue, TouchableOpacity, ViewStyle} from 'react-native';
 import Collapsible from 'react-native-collapsible';
 
-import {AntDesign, FontAwesome} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import {Divider, HStack, View, ViewProps, VStack} from 'components/core';
 import {usePostHog} from 'posthog-react-native';
@@ -95,9 +95,9 @@ export const EditDeleteCard: React.FunctionComponent<PropsWithChildren<EditDelet
             <>{header}</>
             <HStack space={4}>
               {onEditPress && (
-                <AntDesign.Button
+                <Ionicons.Button
                   size={16}
-                  name="edit"
+                  name="pencil-outline"
                   color="rgba(0, 0, 0, 0.8)"
                   backgroundColor="white"
                   iconStyle={{marginRight: 0}}
@@ -106,9 +106,9 @@ export const EditDeleteCard: React.FunctionComponent<PropsWithChildren<EditDelet
                 />
               )}
 
-              <AntDesign.Button
+              <Ionicons.Button
                 size={16}
-                name="delete"
+                name="trash-outline"
                 color="rgba(0, 0, 0, 0.8)"
                 backgroundColor="white"
                 iconStyle={{marginRight: 0}}
@@ -154,7 +154,7 @@ export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<Collapsi
         <TouchableOpacity onPress={pressHandler}>
           <HStack justifyContent="space-between" alignItems="center">
             {header}
-            <FontAwesome name={isCollapsed ? 'angle-down' : 'angle-up'} color={textColor} backgroundColor="white" size={24} />
+            <Ionicons name={isCollapsed ? 'chevron-down' : 'chevron-up'} color={textColor} backgroundColor="white" size={24} />
           </HStack>
         </TouchableOpacity>
       }>

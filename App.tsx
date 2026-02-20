@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
-import {Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {getStateFromPath, NavigationContainer, PathConfigMap, RouteProp, useNavigationContainerRef} from '@react-navigation/native';
@@ -377,13 +377,13 @@ const BaseApp: React.FunctionComponent<{
       headerShown: false,
       tabBarIcon: ({color, size}: {focused: boolean; color: string; size: number}) => {
         if (name === 'Home') {
-          return <MaterialCommunityIcons name="map-outline" size={size} color={color} />;
+          return <Ionicons name="map-outline" size={size} color={color} />;
         } else if (name === 'Observations') {
-          return <MaterialCommunityIcons name="text-box-plus-outline" size={size} color={color} />;
+          return <Ionicons name="reader-outline" size={size} color={color} />;
         } else if (name === 'Weather Data') {
           return <Ionicons name="stats-chart-outline" size={size} color={color} />;
         } else if (name === 'Menu') {
-          return <MaterialCommunityIcons name="dots-horizontal" size={size} color={color} />;
+          return <Ionicons name="ellipsis-horizontal" size={size} color={color} />;
         }
       },
       // these two properties should really take ColorValue but oh well

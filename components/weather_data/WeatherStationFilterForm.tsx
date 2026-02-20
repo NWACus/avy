@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 
-import {AntDesign} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {useBackHandler} from '@react-native-community/hooks';
@@ -246,7 +246,7 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
                   header={
                     <HStack justifyContent={'space-between'} alignItems={'center'}>
                       <TouchableOpacity onPress={saveAndClose}>
-                        <AntDesign name="close" size={24} color="black" />
+                        <Ionicons name="close-outline" size={28} color="black" />
                       </TouchableOpacity>
                       <Title3Semibold>Filters</Title3Semibold>
                       <TouchableOpacity onPress={onResetHandler}>
