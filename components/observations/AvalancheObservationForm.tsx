@@ -6,7 +6,7 @@ import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Modal, Platform, ScrollView, TouchableOpacity} from 'react-native';
 import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
 
-import {AntDesign} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
@@ -265,7 +265,7 @@ const AvalancheObservationFormHeader: React.FC<{
     <View style={{width: '100%'}}>
       <HStack flex={1} justifyContent="space-between" height={64} paddingHorizontal={16}>
         <TouchableOpacity onPress={onClose} style={{flex: 1}}>
-          <AntDesign name="close" size={24} color="black" />
+          <Ionicons name="close-outline" size={28} color="black" />
         </TouchableOpacity>
         <Title3Semibold style={{flex: 3}}>Avalanche sighting</Title3Semibold>
       </HStack>

@@ -4,7 +4,7 @@ import {merge} from 'lodash';
 
 import {ActivityIndicator, Image, ImageStyle, StyleProp, TouchableOpacity} from 'react-native';
 
-import {FontAwesome, FontAwesome5} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import {Center, View, VStack} from 'components/core';
 import {Body} from 'components/text';
@@ -69,7 +69,7 @@ export const NetworkImage: React.FC<NetworkImageProps> = ({
           {image}
           {showVideoIndicator && (
             <View style={{zIndex: 1, position: 'absolute'}}>
-              <FontAwesome name="youtube-play" color={'red'} size={48} />
+              <Ionicons name="logo-youtube" color={'red'} size={48} />
             </View>
           )}
         </Center>
@@ -82,7 +82,7 @@ export const NetworkImage: React.FC<NetworkImageProps> = ({
       {status === 'loading' && <ActivityIndicator style={{height: Math.min(32, height / 2)}} />}
       {status === 'error' && (
         <VStack space={8} alignItems="center">
-          <FontAwesome5 name="exclamation-triangle" size={Math.min(32, height / 2)} color={COLORS['warning.700']} />
+          <Ionicons name="alert-circle" size={Math.min(32, height / 2)} color={COLORS['warning.700']} />
           <Body>Media failed to load.</Body>
         </VStack>
       )}

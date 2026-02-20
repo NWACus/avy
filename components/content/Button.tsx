@@ -106,7 +106,7 @@ const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, rende
     <Pressable disabled={disabled} onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
       <View borderColor={borderColor} borderWidth={2} borderRadius={8} py={12} px={16} {...props} backgroundColor={backgroundColor}>
         <Center>
-          <View style={{position: 'relative'}}>
+          <View>
             {renderChildren ? renderChildren({backgroundColor, textColor}) : <Text style={{color: textColor}}>{children}</Text>}
             {busy && <ActivityIndicator size={bodySize} color={textColor} style={{position: 'absolute', right: -1.5 * bodySize, top: 0.25 * bodySize}} />}
           </View>

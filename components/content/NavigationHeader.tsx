@@ -1,4 +1,4 @@
-import {AntDesign, Entypo} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {getHeaderTitle} from '@react-navigation/elements';
 import {NativeStackHeaderProps} from '@react-navigation/native-stack/lib/typescript/src/types';
 import {HStack, View} from 'components/core';
@@ -81,10 +81,10 @@ export const NavigationHeader: React.FunctionComponent<
     <View style={{width: '100%', backgroundColor: 'white', paddingTop: Math.max(8, insets.top)}}>
       <HStack justifyContent="space-between" pb={8} style={options.headerStyle} space={8} pl={3} pr={16}>
         {back ? (
-          <AntDesign.Button
+          <Ionicons.Button
             size={24}
             color={colorLookup('text')}
-            name="arrowleft"
+            name="arrow-back-outline"
             backgroundColor="white"
             iconStyle={{marginLeft: 0, marginRight: 0}}
             style={{textAlign: 'center', borderColor: 'transparent', borderWidth: 1}}
@@ -99,10 +99,10 @@ export const NavigationHeader: React.FunctionComponent<
           {title}
         </TextComponent>
         {shareUrl ? (
-          <Entypo.Button
+          <Ionicons.Button
             size={24}
             color={colorLookup('text')}
-            name={Platform.OS == 'ios' ? 'share-alternative' : 'share'}
+            name={Platform.OS == 'ios' ? 'share-outline' : 'share-social'}
             backgroundColor="white"
             iconStyle={{marginLeft: 0, marginRight: 0}}
             style={{textAlign: 'center', borderColor: 'transparent', borderWidth: 1}}

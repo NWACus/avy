@@ -1,4 +1,4 @@
-import {FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {useFocusEffect} from '@react-navigation/native';
 import {NotFound} from 'components/content/QueryState';
 import {Divider, HStack, VStack, View} from 'components/core';
@@ -101,7 +101,7 @@ export const WeatherStationList: React.FunctionComponent<{
             textColor={colorLookup('text')}
             backgroundColor={colorLookup('white')}
             onPress={showFilterModal}
-            headIcon={<FontAwesome name="sliders" size={16} color={colorLookup('text')} style={{marginRight: 2}} />}
+            headIcon={<Ionicons name="options" size={16} color={colorLookup('text')} style={{marginRight: 2}} />}
           />
           <Divider direction="vertical" />
           <ScrollView horizontal style={{width: '100%'}} showsHorizontalScrollIndicator={false}>
@@ -110,9 +110,7 @@ export const WeatherStationList: React.FunctionComponent<{
                 const canBeDeleted = removeFilter !== undefined;
                 const textColor = canBeDeleted ? colorLookup('blue2') : colorLookup('text');
                 const backgroundColor = canBeDeleted ? colorLookup('color-tag') : colorLookup('white');
-                const tailIcon = canBeDeleted ? (
-                  <MaterialCommunityIcons name="close" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('blue2')} />
-                ) : undefined;
+                const tailIcon = canBeDeleted ? <Ionicons name="close-outline" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('blue2')} /> : undefined;
                 return (
                   <FilterPillButton
                     key={label}
@@ -139,7 +137,7 @@ export const WeatherStationList: React.FunctionComponent<{
         <HStack style={{position: 'absolute', width: '100%', bottom: 24}} px={8}>
           <View flex={1} />
           <View px={8} py={4} bg={'primary'} borderRadius={30}>
-            <MaterialCommunityIcons name="map-outline" size={24} color={colorLookup('primary.background').toString()} />
+            <Ionicons name="map-outline" size={24} color={colorLookup('primary.background').toString()} />
           </View>
         </HStack>
       </TouchableOpacity>

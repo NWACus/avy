@@ -1,4 +1,4 @@
-import {AntDesign, FontAwesome} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {MapViewZone, ZoneMap, defaultMapRegionForGeometries, defaultMapRegionForZones} from 'components/content/ZoneMap';
 import {Center, HStack, VStack, View} from 'components/core';
@@ -71,7 +71,7 @@ export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name
               <Body>{value ? `${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : 'Tap to select a location on the map'}</Body>
             </View>
             <Center px={8} borderLeftWidth={2} borderColor={colorLookup('border.base')}>
-              <FontAwesome name="map-marker" color={colorLookup('text')} size={bodySize} />
+              <Ionicons name="location" color={colorLookup('text')} size={bodySize} />
             </Center>
           </HStack>
         </TouchableOpacity>
@@ -161,20 +161,20 @@ const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVi
         <SafeAreaView style={{width: '100%', height: '100%'}}>
           <VStack width="100%" height="100%">
             <HStack justifyContent="space-between" alignItems="center" pb={8} px={20}>
-              <AntDesign.Button
-                size={24}
+              <Ionicons.Button
+                size={28}
                 color={colorLookup('text')}
-                name="close"
+                name="close-outline"
                 backgroundColor="white"
                 iconStyle={{marginLeft: 0, marginRight: 0, marginTop: 1}}
                 style={{textAlign: 'center'}}
                 onPress={onClose}
               />
               <Title3Black>Pick a location</Title3Black>
-              <AntDesign.Button
+              <Ionicons.Button
                 size={24}
                 color={colorLookup('text')}
-                name="check"
+                name="checkmark"
                 backgroundColor="white"
                 disabled={selectedLocation == null}
                 iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}

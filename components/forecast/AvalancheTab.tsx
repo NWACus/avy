@@ -2,7 +2,7 @@ import React, {useCallback, useState} from 'react';
 
 import {addDays, formatDistanceToNow, isAfter} from 'date-fns';
 
-import {Feather, FontAwesome} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
@@ -15,7 +15,7 @@ import {InfoTooltip} from 'components/content/InfoTooltip';
 import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {MediaCarousel} from 'components/content/carousel/MediaCarousel';
 import {HStack, VStack, View} from 'components/core';
-import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, BodySm, BodySmBlack, BodySmSemibold, Title3Black, bodySize} from 'components/text';
+import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, BodySm, BodySmBlack, BodySmSemibold, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
 import {toDate} from 'date-fns-tz';
@@ -55,7 +55,7 @@ const HeaderWithTooltip: React.FunctionComponent<{
   // text - neither `center` nor `baseline` alignment look good on their own
   <HStack space={6} alignItems="center">
     <BodyBlack numberOfLines={1}>{title}</BodyBlack>
-    <InfoTooltip size={bodySize} title={title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />
+    <InfoTooltip size={20} title={title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />
   </HStack>
 );
 
@@ -263,7 +263,7 @@ const WarningCard: React.FunctionComponent<{warning: Warning | Watch | Special}>
         <VStack space={16} flex={1}>
           <VStack space={8}>
             <HStack space={8} alignItems={'flex-start'}>
-              <Feather name="alert-triangle" size={24} color={accentColor} />
+              <Ionicons name="alert-circle-outline" size={24} color={accentColor} />
               <Title3Black color="white">{title}</Title3Black>
             </HStack>
             <VStack>
@@ -307,7 +307,7 @@ const WarningCard: React.FunctionComponent<{warning: Warning | Watch | Special}>
         </VStack>
         <TouchableOpacity onPress={toggleCollapsed}>
           <HStack mr={12} justifyContent="space-between" alignItems="center">
-            <FontAwesome name={isCollapsed ? 'angle-down' : 'angle-up'} color={'white'} backgroundColor={colorLookup('modal.background')} size={24} />
+            <Ionicons name={isCollapsed ? 'chevron-down' : 'chevron-up'} color={'white'} backgroundColor={colorLookup('modal.background')} size={24} />
           </HStack>
         </TouchableOpacity>
       </HStack>

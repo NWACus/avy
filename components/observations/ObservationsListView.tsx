@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {FormattedMessage} from 'react-intl';
 
-import {FontAwesome, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {Button} from 'components/content/Button';
@@ -344,7 +344,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           textColor={colorLookup('primary')}
           backgroundColor={colorLookup('white')}
           onPress={showFilterModal}
-          headIcon={<FontAwesome name="sliders" size={bodyXSmSize} color={colorLookup('primary')} style={{marginRight: 2}} />}
+          headIcon={<Ionicons name="options" size={bodyXSmSize} color={colorLookup('primary')} style={{marginRight: 2}} />}
           tailIcon={
             optionalFilterCount > 0 && (
               <Center backgroundColor={colorLookup('primary')} width={14} height={14} borderRadius={7} minWidth={bodyXSmSize}>
@@ -363,9 +363,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
               const textColor = colorLookup('primary');
               const backgroundColor = colorLookup('white');
               const tailIcon = canBeDeleted ? (
-                <MaterialCommunityIcons name="close" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('primary')} />
+                <Ionicons name="close-outline" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('primary')} />
               ) : filterType === 'date' ? (
-                <MaterialCommunityIcons name="chevron-down" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('primary')} />
+                <Ionicons name="chevron-down" size={16} style={{marginTop: 2, marginHorizontal: 0}} color={colorLookup('primary')} />
               ) : undefined;
               return (
                 <FilterPillButton
@@ -421,7 +421,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           also, I hate the platform specific padding value here but I don't have time to dig into the rendering differences right now.
            */}
           <HStack alignItems="center" space={4} key={showSubmitButtonText ? 'show' : 'hide'} pt={Platform.OS === 'android' ? 0 : 4} pl={1} pr={1}>
-            <MaterialIcons name="add" size={24} color="white" />
+            <Ionicons name="add" size={24} color="white" />
             {showSubmitButtonText && <BodySmBlack color="white">Submit</BodySmBlack>}
           </HStack>
         </Button>
@@ -524,7 +524,7 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
         <HStack alignContent="flex-start" justifyContent="space-between" flexWrap="wrap" alignItems="center" space={8}>
           <BodySmBlack>{observationDateToLocalDateString(observation.startDate)}</BodySmBlack>
           <HStack space={8} alignItems="center">
-            {redFlags && <MaterialCommunityIcons name="flag" size={bodySize} color={colorFor(DangerLevel.Considerable).string()} />}
+            {redFlags && <Ionicons name="flag" size={bodySize} color={colorFor(DangerLevel.Considerable).string()} />}
             {avalanches && <NACAvalancheIcon size={bodySize} color={colorFor(DangerLevel.High).string()} />}
             <Caption1Semibold color={colorsFor(observation.observerType).primary} style={{textTransform: 'uppercase'}}>
               {observation.observerType}

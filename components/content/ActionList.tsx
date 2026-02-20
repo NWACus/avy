@@ -1,4 +1,4 @@
-import {Entypo} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {HStack, View, ViewProps, VStack} from 'components/core';
 import {Body} from 'components/text';
 import {logger} from 'logger';
@@ -40,7 +40,7 @@ function ActionListInternal<T>({actions, header, ...props}: ActionListProps<T>) 
         <TouchableOpacity onPress={onPressHandlers[index]} key={label}>
           <HStack borderBottomWidth={index < actions.length - 1 ? 1 : 0} borderColor={colorLookup('light.300')} py={10} pr={8} justifyContent="space-between">
             <Body style={{flex: 1, flexGrow: 1}}>{label}</Body>
-            <Entypo name={'chevron-small-right'} color={colorLookup('light.300')} size={24} />
+            <Ionicons name={'chevron-forward'} color={colorLookup('light.300')} size={16} />
           </HStack>
         </TouchableOpacity>
       ))}

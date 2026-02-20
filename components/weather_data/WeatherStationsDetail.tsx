@@ -325,8 +325,8 @@ export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, station
           <BodyBlack style={{textTransform: 'capitalize'}}>{name.toLowerCase()}</BodyBlack>
           {warnings.length > 0 && (
             <InfoTooltip
-              outlineIcon="bells"
-              solidIcon="bells"
+              outlineIcon="notifications-outline"
+              solidIcon="notifications-outline"
               title="Status Alerts"
               htmlStyle={{textAlign: 'left'}}
               content={warnings.map(w => `<h3>${w.name} (${utcDateToLocalDateString(w.start_date)})</h3><p>${w.note}</p>`).join('\n')}
