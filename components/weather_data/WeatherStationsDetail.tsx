@@ -70,7 +70,6 @@ const shortFieldMap: Record<string, string> = {
   intermittent_snow: 'I/S_Sno',
   net_solar: 'SR',
   solar_radiation: 'SR',
-  battery_voltage: 'Battery',
 };
 
 const shortField = (field: string): string => shortFieldMap[field] || field;
@@ -81,10 +80,13 @@ const shortUnitsMap: Record<string, string> = {
   degrees: 'deg',
   millibar: 'mbar',
   'MJ/m**2': 'MJ/m²',
-  volt: 'V',
 };
 
 const shortUnits = (units: string): string => shortUnitsMap[units] || units;
+
+// Don't display any of the following fields. Soil temperature can be one of soil_temperature_a/b/c
+const shouldSkipField = (fieldName: string): boolean =>
+  fieldName === 'date_time' || fieldName === 'solar_radiation' || fieldName === 'battery_voltage' || fieldName.includes('soil_temperature');
 
 const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({timeSeries}) => {
   type Column = {
@@ -102,12 +104,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
           continue; // can't record this time-less value
         }
         for (const [field, value] of Object.entries(observation)) {
-          if (field === 'date_time') {
-            // don't add station-specific date time columns
-            continue;
-          }
-          if (field === 'solar_radiation') {
-            // we don't display solar_radiation, only net_solar
+          if (shouldSkipField(field)) {
             continue;
           }
           if (!dataByTimeByField[field]) {
