@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {Image, ScrollView, StyleSheet} from 'react-native';
 
-import {MaterialCommunityIcons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
@@ -271,11 +271,7 @@ export const ObservationCard: React.FunctionComponent<{
                   )}
                   {/* Collapsing section */}
                   <HStack space={8}>
-                    <MaterialCommunityIcons
-                      name="flag"
-                      size={bodySize}
-                      color={observation.instability.collapsing ? colorFor(DangerLevel.Considerable).string() : colorLookup('text')}
-                    />
+                    <Ionicons name="flag" size={bodySize} color={observation.instability.collapsing ? colorFor(DangerLevel.Considerable).string() : colorLookup('text')} />
                     <Body>
                       {observation.instability.collapsing
                         ? `${FormatInstabilityDistribution(observation.instability.collapsing_description as InstabilityDistribution)} Collapsing`
@@ -284,11 +280,7 @@ export const ObservationCard: React.FunctionComponent<{
                   </HStack>
                   {/* Cracking section */}
                   <HStack space={8}>
-                    <MaterialCommunityIcons
-                      name="flag"
-                      size={bodySize}
-                      color={observation.instability.cracking ? colorFor(DangerLevel.Considerable).string() : colorLookup('text')}
-                    />
+                    <Ionicons name="flag" size={bodySize} color={observation.instability.cracking ? colorFor(DangerLevel.Considerable).string() : colorLookup('text')} />
                     <Body>
                       {observation.instability.cracking
                         ? `${FormatInstabilityDistribution(observation.instability.cracking_description as InstabilityDistribution)} Cracking`

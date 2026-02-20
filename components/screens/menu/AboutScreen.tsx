@@ -8,7 +8,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as Updates from 'expo-updates';
 import * as WebBrowser from 'expo-web-browser';
 
-import {Ionicons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {ActionList} from 'components/content/ActionList';

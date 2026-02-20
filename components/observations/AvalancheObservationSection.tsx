@@ -1,4 +1,4 @@
-import {MaterialIcons} from '@expo/vector-icons';
+import {Ionicons} from '@expo/vector-icons';
 import {Button} from 'components/content/Button';
 import {EditDeleteCard} from 'components/content/Card';
 import {HStack, VStack} from 'components/core';
@@ -108,7 +108,7 @@ const AddAvalancheObsButton: React.FC<{onPress: () => void; disabled: boolean; b
     ({textColor}: {textColor: ColorValue}) => (
       <HStack width={'100%'} justifyContent="space-between">
         <BodySemibold color={textColor}>{'Add avalanche details'}</BodySemibold>
-        <MaterialIcons name="chevron-right" size={24} color={textColor} style={{marginTop: 1}} />
+        <Ionicons name="chevron-forward" size={24} color={textColor} style={{marginTop: 1}} />
       </HStack>
     ),
     [],

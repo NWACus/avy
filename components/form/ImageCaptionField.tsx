@@ -1,4 +1,4 @@
-import {AntDesign, MaterialIcons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Sentry from '@sentry/react-native';
 
 import * as ImagePicker from 'expo-image-picker';
@@ -137,7 +137,7 @@ const _AddImageFromPickerButton = <TFieldValues extends FieldValues, TKey extend
   const renderAddImageButton = useCallback(
     ({textColor}: {textColor: ColorValue}) => (
       <HStack alignItems="center" space={space}>
-        <MaterialIcons name="add" size={24} color={textColor} style={{marginTop: 1}} />
+        <Ionicons name="add" size={24} color={textColor} style={{marginTop: 1}} />
         <BodyBlack color={textColor}>Add images</BodyBlack>
       </HStack>
     ),
@@ -257,9 +257,9 @@ const _ImageCaptionField = <TFieldValues extends FieldValues, TKey extends Field
                 </>
               </TouchableHighlight>
               <View style={[styles.remove, i % 2 == 0 ? styles.trashLeft : styles.trashRight]}>
-                <AntDesign.Button
+                <Ionicons.Button
                   size={16}
-                  name="delete"
+                  name="trash-outline"
                   color="white"
                   backgroundColor="rgba(0, 0, 0, 0.3)"
                   iconStyle={{marginRight: 0}}

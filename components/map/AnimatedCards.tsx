@@ -1,4 +1,4 @@
-import {AntDesign} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {Camera, CameraBounds} from '@rnmapbox/maps';
 import {Logger} from 'browser-bunyan';
 import {HStack, View} from 'components/core';
@@ -477,7 +477,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
             <HStack px={8}>
               <View flex={1} />
               <View px={8} py={4} bg={'primary'} borderRadius={30}>
-                <AntDesign name={'bars'} size={24} color={colorLookup('primary.background').toString()} />
+                <Ionicons name="list-outline" size={24} color={colorLookup('primary.background').toString()} />
               </View>
             </HStack>
           </TouchableOpacity>

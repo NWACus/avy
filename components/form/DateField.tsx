@@ -1,4 +1,4 @@
-import {AntDesign} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker, {DateTimePickerAndroid, DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import {Center, HStack, VStack, View, ViewProps} from 'components/core';
 import {FieldLabel} from 'components/form/FieldLabel';
@@ -53,7 +53,7 @@ export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, m
             <Body>{utcDateToLocalDateString(value)}</Body>
           </View>
           <Center px={8} borderLeftWidth={2} borderColor={colorLookup('border.base')}>
-            <AntDesign name="calendar" color={colorLookup('text')} size={bodySize} />
+            <Ionicons name="calendar-outline" color={colorLookup('text')} size={bodySize} />
           </Center>
         </HStack>
       </TouchableOpacity>
