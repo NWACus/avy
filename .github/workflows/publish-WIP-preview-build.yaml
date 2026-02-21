@@ -1,0 +1,29 @@
+name: publish-WIP-preview-build
+on:
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-and-submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v3
+
+      - name: 🏗 Setup build environment
+        uses: ./.github/actions/setup
+        with:
+          install_expo: true
+          expo_token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 🚀 Build and submit Android and iOS apps
+        env:
+          IOS_USER_ID: ${{ secrets.IOS_USER_ID }}
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          IOS_APP_ID: ${{ secrets.IOS_APP_ID }}
+          PROFILE: 'preview'
+          PLATFORM: 'all'
+        run: ./eas_build_and_submit.sh
