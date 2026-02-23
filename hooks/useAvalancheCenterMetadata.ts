@@ -25,7 +25,8 @@ export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID): UseQue
   return useQuery<AvalancheCenter, AxiosError | ZodError>({
     queryKey: key,
     queryFn: async (): Promise<AvalancheCenter> => fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, center_id, thisLogger),
-    cacheTime: Infinity, // hold on to this cached data forever
+    cacheTime: 24 * 60 * 60 * 1000, // hold on to inactive query data for 1 day
+    staleTime: 24 * 60 * 80 * 1000, // don't bother fetching again for a day
   });
 };
 
@@ -47,7 +48,7 @@ export const prefetchAvalancheCenterMetadata = async (queryClient: QueryClient, 
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
-    cacheTime: Infinity, // hold this in the query cache forever
+    cacheTime: 24 * 60 * 60 * 1000,
     staleTime: 24 * 60 * 60 * 1000, // don't bother prefetching again for a day
   });
 };
