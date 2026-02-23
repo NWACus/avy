@@ -21,18 +21,9 @@ export interface MediaCarouselProps extends ViewProps {
   thumbnailHeight: number;
   thumbnailAspectRatio?: number;
   mediaItems: MediaItem[];
-  displayCaptionsWithThumbnails?: boolean;
 }
 
-// The default for displayCaptionsWithThumbnails is set to false as it's only used for AvalancheProblemCard.
-// There will be a new component that handles this. That work is being tracked in issue 1066
-export const MediaCarousel: React.FunctionComponent<PropsWithChildren<MediaCarouselProps>> = ({
-  thumbnailHeight,
-  thumbnailAspectRatio = 1.3,
-  mediaItems,
-  displayCaptionsWithThumbnails = false,
-  ...props
-}) => {
+export const MediaCarousel: React.FunctionComponent<PropsWithChildren<MediaCarouselProps>> = ({thumbnailHeight, thumbnailAspectRatio = 1.3, mediaItems, ...props}) => {
   const thumbnailWidth = thumbnailAspectRatio * thumbnailHeight;
 
   const [modalIndex, setModalIndex] = useState<number | null>(null);
@@ -48,14 +39,7 @@ export const MediaCarousel: React.FunctionComponent<PropsWithChildren<MediaCarou
 
   return (
     <View {...props}>
-      <ThumbnailList
-        imageWidth={thumbnailWidth}
-        imageHeight={thumbnailHeight}
-        mediaItems={mediaItems}
-        displayCaptions={displayCaptionsWithThumbnails}
-        onPress={onPress}
-        imageStyle={{borderRadius: 4}}
-      />
+      <ThumbnailList imageWidth={thumbnailWidth} imageHeight={thumbnailHeight} mediaItems={mediaItems} onPress={onPress} imageStyle={{borderRadius: 4}} />
       <MediaViewerModal visible={modalIndex !== null} startIndex={modalIndex ?? 0} mediaItems={mediaItems} onClose={onClose} />
     </View>
   );

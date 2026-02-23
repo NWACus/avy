@@ -1,11 +1,10 @@
 import {NetworkImage, NetworkImageProps, NetworkImageState} from 'components/content/carousel/NetworkImage';
 import {VStack, View} from 'components/core';
-import {HTML, HTMLRendererConfig} from 'components/text/HTML';
 import React, {PropsWithChildren, useCallback, useMemo, useState} from 'react';
 import {FlatList, FlatListProps} from 'react-native';
 import {ImageMediaItem, MediaItem, MediaType, VideoMediaItem} from 'types/nationalAvalancheCenter';
 
-interface ThumbnailListItem {
+export interface ThumbnailListItem {
   uri: string;
   isVideo: boolean;
   caption: string | null;
@@ -27,7 +26,7 @@ const thumbnailListItems = (mediaItems: MediaItem[]): ThumbnailListItem[] => {
   return thumbnailItems;
 };
 
-const videoToThumbnailListItem = (item: VideoMediaItem): ThumbnailListItem => {
+export const videoToThumbnailListItem = (item: VideoMediaItem): ThumbnailListItem => {
   if (typeof item.url === 'string' || 'external_link' in item.url) {
     return {
       uri: '',
@@ -46,7 +45,7 @@ const videoToThumbnailListItem = (item: VideoMediaItem): ThumbnailListItem => {
   };
 };
 
-const imageToThumbnailListItem = (item: ImageMediaItem): ThumbnailListItem => {
+export const imageToThumbnailListItem = (item: ImageMediaItem): ThumbnailListItem => {
   return {
     uri: item.url['thumbnail'],
     isVideo: false,
@@ -60,7 +59,6 @@ export interface ThumbnailListProps extends Omit<FlatListProps<ThumbnailListItem
   imageWidth: number;
   space?: number;
   mediaItems: MediaItem[];
-  displayCaptions?: boolean;
   imageStyle?: NetworkImageProps['imageStyle'];
   resizeMode?: NetworkImageProps['resizeMode'];
   onPress?: (index: number) => void;
@@ -71,7 +69,6 @@ export const ThumbnailList: React.FC<PropsWithChildren<ThumbnailListProps>> = ({
   imageWidth,
   space = 16,
   mediaItems,
-  displayCaptions,
   imageStyle,
   resizeMode,
   onPress = () => undefined,
@@ -107,16 +104,9 @@ export const ThumbnailList: React.FC<PropsWithChildren<ThumbnailListProps>> = ({
           onStateChange={onStateCallback}
           onPress={onPress}
         />
-        {displayCaptions && item.caption && (
-          <View px={32}>
-            <HTMLRendererConfig baseStyle={{fontSize: 12, textAlign: 'center', fontStyle: 'italic'}}>
-              <HTML source={{html: item.caption}} />
-            </HTMLRendererConfig>
-          </View>
-        )}
       </VStack>
     ),
-    [imageWidth, imageHeight, imageStyle, resizeMode, displayCaptions, onPress, onStateCallback],
+    [imageWidth, imageHeight, imageStyle, resizeMode, onPress, onStateCallback],
   );
 
   const ItemSeparatorComponent = useCallback(() => <View width={space} />, [space]);
