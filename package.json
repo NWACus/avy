@@ -23,8 +23,6 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.0.0-0",
-    "@babel/plugin-proposal-optional-chaining": "^7.0.0-0",
     "@babel/plugin-transform-arrow-functions": "^7.0.0-0",
     "@babel/plugin-transform-shorthand-properties": "^7.0.0-0",
     "@babel/plugin-transform-template-literals": "^7.0.0-0",
@@ -101,7 +99,6 @@
     "global": "^4.4.0",
     "html-entities": "^2.4.0",
     "lodash": "^4.17.21",
-    "metro-react-native-babel-preset": "^0.77.0",
     "polylabel": "^1.1.0",
     "posthog-react-native": "^2.8.1",
     "react": "18.3.1",
@@ -173,8 +170,6 @@
     "doctor": {
       "reactNativeDirectoryCheck": {
         "exclude": [
-          "/@babel/plugin-proposal-nullish-coalescing-operator/",
-          "/@babel/plugin-proposal-optional-chaining/",
           "/@babel/plugin-transform-arrow-functions/",
           "/@babel/plugin-transform-shorthand-properties/",
           "/@babel/plugin-transform-template-literals/",
@@ -200,7 +195,6 @@
           "/date-fns-tz",
           "/date-time-format-timezone/",
           "/global/",
-          "/metro-react-native-babel-preset/",
           "/polylabel/",
           "/react-intl/",
           "/tinycolor2/",
