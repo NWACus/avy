@@ -113,6 +113,7 @@ const _TextField = <TFieldValues extends FieldValues, TFieldName extends FieldPa
             style={textInputDefaultStyle}
             placeholderTextColor={colorLookup('text.tertiary')}
             editable={!disabled}
+            textAlignVertical="top"
             {...textInputProps}
           />
         </View>
