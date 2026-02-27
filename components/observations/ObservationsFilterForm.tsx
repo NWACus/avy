@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 
 import {startCase} from 'lodash';
 
-import {AntDesign} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {useBackHandler} from '@react-native-community/hooks';
@@ -292,7 +292,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
               <VStack space={12} pt={4}>
                 <HStack justifyContent={'space-between'} alignItems={'center'} px={16}>
                   <TouchableOpacity onPress={onCloseHandler}>
-                    <AntDesign name="close" size={24} color="black" />
+                    <Ionicons name="close-outline" size={28} color="black" />
                   </TouchableOpacity>
                   <Title3Semibold>Filters</Title3Semibold>
                   <TouchableOpacity onPress={onResetHandler}>

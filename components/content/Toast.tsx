@@ -1,4 +1,4 @@
-import {AntDesign} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {HStack, View, VStack} from 'components/core';
 import {Body} from 'components/text';
 import React, {ReactNode} from 'react';
@@ -20,7 +20,7 @@ export const BaseToast: React.FunctionComponent<{
           <View flex={1}>
             <Body>{content}</Body>
           </View>
-          {onPress && onPress.name !== 'noop' && <AntDesign name="close" size={18} color={colorLookup('muted.700')} />}
+          {onPress && onPress.name !== 'noop' && <Ionicons name="close-outline" size={24} color={colorLookup('muted.700')} />}
         </HStack>
       </HStack>
     </VStack>
@@ -33,21 +33,21 @@ export const BaseToast: React.FunctionComponent<{
 };
 
 export const SuccessToast: React.FunctionComponent<{content: string; onPress?: () => void}> = ({...props}) => {
-  return <BaseToast icon={<AntDesign name="checkcircle" size={18} color="#006D23" />} borderColor={'#9ED696'} {...props} />;
+  return <BaseToast icon={<Ionicons name="checkmark-circle-outline" size={24} color="#006D23" />} borderColor={'#9ED696'} {...props} />;
 };
 
 export const InfoToast: React.FunctionComponent<{content: string; onPress?: () => void}> = ({...props}) => {
-  return <BaseToast icon={<AntDesign name="infocirlce" size={18} color="#5A657C" />} borderColor={'#CFD9E0'} {...props} />;
+  return <BaseToast icon={<Ionicons name="information-circle-outline" size={24} color="#5A657C" />} borderColor={'#CFD9E0'} {...props} />;
 };
 
 export const ActionToast: React.FunctionComponent<{content: string; onPress?: () => void}> = ({...props}) => {
-  return <BaseToast icon={<AntDesign name="infocirlce" size={18} color="#0059C8" />} borderColor={'#98CBFF'} {...props} />;
+  return <BaseToast icon={<Ionicons name="information-circle-outline" size={24} color="#0059C8" />} borderColor={'#98CBFF'} {...props} />;
 };
 
 export const ErrorToast: React.FunctionComponent<{content: string; onPress?: () => void}> = ({...props}) => {
-  return <BaseToast icon={<AntDesign name="warning" size={18} color="#DB3832" />} borderColor={'#FF3141'} {...props} />;
+  return <BaseToast icon={<Ionicons name="warning-outline" size={24} color="#DB3832" />} borderColor={'#FF3141'} {...props} />;
 };
 
 export const WarningToast: React.FunctionComponent<{content: string; onPress?: () => void}> = ({...props}) => {
-  return <BaseToast icon={<AntDesign name="warning" size={18} color="#EA983F" />} borderColor={'#EA983F'} {...props} />;
+  return <BaseToast icon={<Ionicons name="warning-outline" size={24} color="#EA983F" />} borderColor={'#EA983F'} {...props} />;
 };

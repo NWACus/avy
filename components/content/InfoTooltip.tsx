@@ -1,4 +1,4 @@
-import {AntDesign} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {Button} from 'components/content/Button';
 import {Center, View, VStack} from 'components/core';
 import {BodyBlack, Title3Semibold} from 'components/text';
@@ -14,8 +14,8 @@ export interface InfoTooltipProps {
   content: string;
   size: number;
   color?: ColorValue;
-  solidIcon?: keyof typeof AntDesign.glyphMap;
-  outlineIcon?: keyof typeof AntDesign.glyphMap;
+  solidIcon?: keyof typeof Ionicons.glyphMap;
+  outlineIcon?: keyof typeof Ionicons.glyphMap;
 
   htmlStyle?: HTMLRendererConfigProps['baseStyle'];
   // Additional IconButton customization
@@ -29,8 +29,8 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
   title,
   content,
   color = 'text',
-  solidIcon = 'infocirlce', // unfortunate ant misspelling: infocirlce
-  outlineIcon = 'infocirlceo', // another unfortunate ant misspelling: infocirlceo
+  solidIcon = 'information-circle', // unfortunate ant misspelling: infocirlce
+  outlineIcon = 'information-circle-outline', // another unfortunate ant misspelling: infocirlceo
   size,
   htmlStyle = {},
   ...props
@@ -48,7 +48,7 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
   return (
     <>
       {/* unfortunate ant misspelling: infocirlceo */}
-      <AntDesign.Button name={outlineIcon} color={colorLookup(color)} backgroundColor="transparent" onPress={openModal} size={size} iconStyle={{marginRight: 0}} {...props} />
+      <Ionicons.Button name={outlineIcon} color={colorLookup(color)} backgroundColor="transparent" onPress={openModal} size={size} iconStyle={{marginRight: 0}} {...props} />
       {/* Pressing the Android back button dismisses the modal */}
       <Modal visible={showModal} transparent animationType="fade" onRequestClose={closeModal}>
         {/* Pressing anywhere outside the modal dismisses the modal */}
@@ -75,7 +75,7 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
 
                     elevation: 5,
                   }}>
-                  <AntDesign name={solidIcon} color={colorLookup('primary')} size={30} style={{alignSelf: 'center', marginBottom: 4}} />
+                  <Ionicons name={solidIcon} color={colorLookup('primary')} size={30} style={{alignSelf: 'center', marginBottom: 4}} />
                   <Title3Semibold textAlign="center">{title}</Title3Semibold>
                   <HTMLRendererConfig baseStyle={finalHtmlStyle}>
                     <HTML source={{html: content}} />
