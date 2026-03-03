@@ -5,12 +5,12 @@ import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {getStateFromPath, NavigationContainer, PathConfigMap, RouteProp, useNavigationContainerRef} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
-import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, UIManager, View} from 'react-native';
+import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import * as Sentry from '@sentry/react-native';
 import * as Application from 'expo-application';
-import * as BackgroundFetch from 'expo-background-fetch';
+import * as BackgroundFetch from 'expo-background-task';
 import Constants from 'expo-constants';
 import * as TaskManager from 'expo-task-manager';
 
@@ -70,11 +70,6 @@ logger.info('App starting.');
 Mapbox.setAccessToken(Constants.expoConfig?.extra?.mapboxAPIKey as string).catch((error: Error) => {
   logger.error('Failed to initialize mapbox with error: ', error);
 });
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  logger.info('enabling android layout animations');
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 const encodeParams = (params: {[s: string]: string}) => {
   return Object.entries(params)
@@ -229,8 +224,9 @@ TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, async () => {
     await ImageCache.reconcile(queryClient, queryClient.getQueryCache(), logger);
   } catch (e) {
     logger.error({error: e}, 'error reconciling image cache');
+    return BackgroundFetch.BackgroundTaskResult.Failed;
   }
-  return BackgroundFetch.BackgroundFetchResult.NewData;
+  return BackgroundFetch.BackgroundTaskResult.Success;
 });
 void BackgroundFetch.registerTaskAsync(BACKGROUND_CACHE_RECONCILIATION_TASK, {
   minimumInterval: 15 * 60, // fifteen minutes, in seconds

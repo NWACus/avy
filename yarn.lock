@@ -5882,10 +5882,10 @@ expo-asset@~11.1.7:
     "@expo/image-utils" "^0.7.6"
     expo-constants "~17.1.7"
 
-expo-background-fetch@~13.1.6:
-  version "13.1.6"
-  resolved "https://registry.yarnpkg.com/expo-background-fetch/-/expo-background-fetch-13.1.6.tgz#bc58673b08bdb67716ba3a02978f992f0b8eeec0"
-  integrity sha512-hl4kR32DaxoHFYqNsILLZG2mWssCkUb4wnEAHtDGmpxUP4SCnJILcAn99J6AGDFUw5lF6FXNZZCXNfcrFioO4Q==
+expo-background-task@~0.2.8:
+  version "0.2.8"
+  resolved "https://registry.yarnpkg.com/expo-background-task/-/expo-background-task-0.2.8.tgz#624462053fd568b8ff7447bc97ba4b105eccd393"
+  integrity sha512-dePyskpmyDZeOtbr9vWFh+Nrse0TvF6YitJqnKcd+3P7pDMiDr1V2aT6zHdNOc5iV9vPaDJoH/zdmlarp1uHMQ==
   dependencies:
     expo-task-manager "~13.1.6"
 

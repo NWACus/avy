@@ -59,6 +59,7 @@
       "expo-mail-composer",
       "expo-web-browser",
       "expo-localization",
+      "expo-background-task",
       [
         "@rnmapbox/maps",
         {
