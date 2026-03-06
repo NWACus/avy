@@ -3,23 +3,22 @@ import {getHeaderTitle} from '@react-navigation/elements';
 import {NativeStackHeaderProps} from '@react-navigation/native-stack';
 import {HStack, View} from 'components/core';
 import {GenerateObservationShareLink} from 'components/observations/ObservationUrlMapping';
-import {Title1Black, Title3Black} from 'components/text';
+import {Title3Black} from 'components/text';
 import {logger} from 'logger';
+import {usePreferences} from 'Preferences';
 import React, {useCallback} from 'react';
 import {Platform, Share} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheCenterWebsites, reverseLookup} from 'types/nationalAvalancheCenter';
 
-export const NavigationHeader: React.FunctionComponent<
-  NativeStackHeaderProps & {
-    center_id: AvalancheCenterID;
-    large?: boolean;
-  }
-> = ({navigation, route, options, back, center_id, large}) => {
+export const NavigationHeader: React.FunctionComponent<NativeStackHeaderProps> = ({navigation, route, options, back}) => {
+  const {preferences} = usePreferences();
+  const centerId = preferences.center;
+
   let share: boolean = false;
   let firstOpen: boolean = false;
-  let shareCenterId: AvalancheCenterID = center_id;
+  let shareCenterId: AvalancheCenterID = centerId;
   const shareParams: {share: boolean; share_url: string} = route?.params as {share: boolean; share_url: string};
 
   if (shareParams?.share) {
@@ -35,7 +34,7 @@ export const NavigationHeader: React.FunctionComponent<
   }
 
   const title = getHeaderTitle(options, route.name);
-  const TextComponent = large ? Title1Black : Title3Black;
+  const TextComponent = Title3Black;
   const insets = useSafeAreaInsets();
   const goBack = useCallback(() => {
     if (share) {
@@ -76,16 +75,15 @@ export const NavigationHeader: React.FunctionComponent<
   }, [shareUrl]);
 
   return (
-    // On phones with notches, the insets.top value will be non-zero and we don't need additional padding on top.
-    // On phones without notches, the insets.top value will be 0 and we don't want the header to be flush with the top of the screen.
-    <View style={{width: '100%', backgroundColor: 'white', paddingTop: Math.max(8, insets.top)}}>
-      <HStack justifyContent="space-between" pb={8} style={options.headerStyle} space={8} pl={3} pr={16}>
+    // Setting the top padding to insets.top correclty aligns the view underneath the notches on iPhone. Trying to set the padding ourselves could lead to unexpected behavior
+    <View style={{width: '100%', backgroundColor: colorLookup('white'), paddingTop: insets.top, justifyContent: 'center', alignContent: 'center'}}>
+      <HStack justifyContent="space-between" style={options.headerStyle} space={8} pl={3} pr={16}>
         {back ? (
           <Ionicons.Button
             size={24}
-            color={colorLookup('text')}
+            color={colorLookup('primary')}
             name="arrow-back-outline"
-            backgroundColor="white"
+            backgroundColor={colorLookup('white')}
             iconStyle={{marginLeft: 0, marginRight: 0}}
             style={{textAlign: 'center', borderColor: 'transparent', borderWidth: 1}}
             onPress={firstOpen ? reset : goBack}
@@ -95,15 +93,17 @@ export const NavigationHeader: React.FunctionComponent<
           // is not shown.
           <View width={24} />
         )}
-        <TextComponent textAlign="center" style={{flex: 1, borderColor: 'transparent', borderWidth: 1}}>
+
+        <TextComponent textAlign="center" style={{flex: 1, borderColor: 'transparent', borderWidth: 1, color: colorLookup('text')}}>
           {title}
         </TextComponent>
+
         {shareUrl ? (
           <Ionicons.Button
             size={24}
-            color={colorLookup('text')}
+            color={colorLookup('primary')}
             name={Platform.OS == 'ios' ? 'share-outline' : 'share-social'}
-            backgroundColor="white"
+            backgroundColor={colorLookup('white')}
             iconStyle={{marginLeft: 0, marginRight: 0}}
             style={{textAlign: 'center', borderColor: 'transparent', borderWidth: 1}}
             onPress={onShareButtonPress}

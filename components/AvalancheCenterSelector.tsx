@@ -10,15 +10,16 @@ import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {useAllAvalancheCenterMetadata} from 'hooks/useAllAvalancheCenterMetadata';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {usePostHog} from 'posthog-react-native';
-import {MenuStackParamList, TabNavigationProps} from 'routes';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {RootStackNavigatorProps, RootStackParamList} from 'routes';
 import {AvalancheCenter, AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 export const AvalancheCenterSelector: React.FunctionComponent<{
   currentCenterId: AvalancheCenterID;
   setAvalancheCenter: (center: AvalancheCenterID) => void;
 }> = ({currentCenterId, setAvalancheCenter}) => {
-  const navigation = useNavigation<TabNavigationProps>();
-  const route = useRoute<NativeStackScreenProps<MenuStackParamList, 'avalancheCenterSelector'>['route']>();
+  const navigation = useNavigation<RootStackNavigatorProps>();
+  const route = useRoute<NativeStackScreenProps<RootStackParamList, 'avalancheCenterSelector'>['route']>();
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
   const whichCenters = route.params.debugMode ? AvalancheCenters.AllCenters : AvalancheCenters.SupportedCenters;
@@ -26,12 +27,8 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
   const setAvalancheCenterWrapper = React.useCallback(
     (center: AvalancheCenterID) => {
       setAvalancheCenter(center);
-      // We need to clear navigation state to force all screens from the
-      // previous avalanche center selection to unmount
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'Home'}],
-      });
+
+      navigation.goBack();
     },
     [setAvalancheCenter, navigation],
   );
@@ -41,6 +38,8 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
     postHog?.screen('centerSelector');
   }, [postHog]);
   useFocusEffect(recordAnalytics);
+
+  const insets = useSafeAreaInsets();
 
   if (incompleteQueryState(capabilitiesResult, ...metadataResults) || !capabilities) {
     return <QueryState results={[capabilitiesResult, ...metadataResults]} />;
@@ -64,6 +63,7 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
         bg="white"
         px={16}
         py={8}
+        paddingBottom={insets.bottom}
       />
     </ScrollView>
   );

@@ -22,21 +22,21 @@ import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
-import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
-import {HomeStackNavigationProps, TabNavigationProps} from 'routes';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {MainStackNavigationProps, TabNavigationProps} from 'routes';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, isSupportedCenter, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTimeString} from 'utils/date';
 
 import {Camera, MapState} from '@rnmapbox/maps';
 import {defaultMapRegionForGeometries} from 'components/helpers/geographicCoordinates';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
-import Toast from 'react-native-toast-message';
 
 export interface MapProps {
+  center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
 }
 
-export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({requestedTime}: MapProps) => {
+export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime}: MapProps) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
   const {preferences, setPreferences} = usePreferences();
@@ -46,27 +46,25 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({req
   const allMapLayersResult = useAllMapLayers();
   const allMapLayers = allMapLayersResult.data;
 
-  const metadataResult = useAvalancheCenterMetadata(center);
+  const metadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = metadataResult.data;
-  const forecastResults = useMapLayerAvalancheForecasts(center, requestedTime, allMapLayers, metadata);
-  const warningResults = useMapLayerAvalancheWarnings(center, requestedTime, allMapLayers);
+  const forecastResults = useMapLayerAvalancheForecasts(center_id, requestedTime, allMapLayers, metadata);
+  const warningResults = useMapLayerAvalancheWarnings(center_id, requestedTime, allMapLayers);
 
-  const navigation = useNavigation<HomeStackNavigationProps & TabNavigationProps>();
+  const navigation = useNavigation<MainStackNavigationProps & TabNavigationProps>();
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
 
   const topElements = React.useRef<RNView>(null);
 
-  const insets = useSafeAreaInsets();
-
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    if (postHog && center) {
+    if (postHog && center_id) {
       postHog.screen('avalancheForecastMap', {
-        center: center,
+        center: center_id,
       });
     }
-  }, [postHog, center]);
+  }, [postHog, center_id]);
   useFocusEffect(recordAnalytics);
 
   const onMapPresOutsideOfPolygon = useCallback(
@@ -89,14 +87,8 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({req
         const selectedZoneCenter = zone.center_id;
         if (isSupportedCenter(selectedZoneCenter)) {
           setSelectedZoneId(zone.zone_id);
-          if (selectedZoneCenter !== center) {
+          if (selectedZoneCenter !== center_id) {
             setPreferences({center: selectedZoneCenter});
-            // This is purely for debugging purposes
-            Toast.show({
-              type: 'info',
-              text1: `Your preferred center has changed to: ${selectedZoneCenter}`,
-              position: 'bottom',
-            });
           }
         } else {
           Alert.alert(`${selectedZoneCenter} is not supported`, `Please go to their website to view the full forecast for ${selectedZoneCenter} or select another center`, [
@@ -112,10 +104,10 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({req
         }
       }
     },
-    [navigation, selectedZoneId, center, requestedTime, setSelectedZoneId, setPreferences],
+    [navigation, selectedZoneId, center_id, requestedTime, setSelectedZoneId, setPreferences],
   );
 
-  const preferredCenterFeatures = useMemo(() => allMapLayers?.features.filter(feature => feature.properties.center_id === center), [allMapLayers, center]);
+  const preferredCenterFeatures = useMemo(() => allMapLayers?.features.filter(feature => feature.properties.center_id === center_id), [allMapLayers, center_id]);
 
   const avalancheCenterMapRegion = useMemo(() => defaultMapRegionForGeometries(preferredCenterFeatures?.map(feature => feature.geometry)), [preferredCenterFeatures]);
 
@@ -123,6 +115,12 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({req
   // and aren't re-evaluated on render. Fun!
   const mapCameraRef = useRef<Camera>(null);
   const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraRef, logger));
+
+  const reanimateOnFocus = useCallback(() => {
+    controller.current.forceAnimateMapRegion();
+  }, [controller]);
+  useFocusEffect(reanimateOnFocus);
+
   React.useEffect(() => {
     controller.current.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
   }, [avalancheCenterMapRegion, controller]);
@@ -157,14 +155,8 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({req
   const onSelectCenter = useCallback(
     (center: AvalancheCenterID) => {
       setPreferences({center: center, hasSeenCenterPicker: true});
-      // We need to clear navigation state to force all screens from the
-      // previous avalanche center selection to unmount
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'Home'}],
-      });
     },
-    [setPreferences, navigation],
+    [setPreferences],
   );
 
   const onCameraChanged = useCallback(
@@ -270,7 +262,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({req
 
   const zones = useMemo(() => (zonesById !== undefined ? Object.keys(zonesById).map(k => zonesById[k]) : []), [zonesById]);
 
-  const selectedACZones = useMemo(() => zones.filter(zone => zone.feature.properties.center_id === center), [zones, center]);
+  const selectedACZones = useMemo(() => zones.filter(zone => zone.feature.properties.center_id === center_id), [zones, center_id]);
 
   const showAvalancheCenterSelectionModal = useMemo(() => !preferences.hasSeenCenterPicker, [preferences.hasSeenCenterPicker]);
 
@@ -306,7 +298,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({req
         onCameraChanged={onCameraChanged}
       />
 
-      <VStack ref={topElements} width="100%" position="absolute" paddingTop={insets.top} left={0} right={0} mt={8} px={4} flex={1} onLayout={onLayout}>
+      <VStack ref={topElements} width="100%" position="absolute" left={0} right={0} mt={8} px={4} flex={1} onLayout={onLayout}>
         <DangerScale width="100%" />
       </VStack>
 
@@ -349,7 +341,7 @@ const AvalancheForecastZoneCard: React.FunctionComponent<{
   zone: MapViewZone;
 }> = React.memo(({date, zone}: {date: RequestedTime; zone: MapViewZone}) => {
   const {width} = useWindowDimensions();
-  const navigation = useNavigation<HomeStackNavigationProps>();
+  const navigation = useNavigation<MainStackNavigationProps>();
 
   const dangerLevel = zone.danger_level ?? DangerLevel.None;
   const dangerColor = colorFor(dangerLevel);

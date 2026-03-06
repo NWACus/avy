@@ -22,7 +22,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
-import {HomeStackParamList, TabNavigationProps} from 'routes';
+import {MainStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
   AvalancheCenterID,
@@ -41,7 +41,7 @@ import {
 import {NotFoundError} from 'types/requests';
 import {RequestedTime, RequestedTimeString, formatRequestedTime, pacificDateToDayOfWeekString, parseRequestedTimeString, utcDateToLocalTimeString} from 'utils/date';
 
-type ForecastNavigationProp = CompositeNavigationProp<NativeStackNavigationProp<HomeStackParamList, 'forecast'>, TabNavigationProps>;
+type ForecastNavigationProp = CompositeNavigationProp<NativeStackNavigationProp<MainStackParamList, 'forecast'>, TabNavigationProps>;
 
 interface WeatherTabProps {
   zone: AvalancheForecastZone;

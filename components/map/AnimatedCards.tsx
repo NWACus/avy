@@ -216,6 +216,10 @@ export class AnimatedMapWithDrawerController {
     }
   }
 
+  forceAnimateMapRegion() {
+    this.animateMapRegion();
+  }
+
   // This function gets called many times in short succession when the layout changes. We debounce it so that
   // we only try to animate after layout changes are complete.
   ANIMATION_DEBOUNCE_MS = 250;
