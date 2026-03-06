@@ -24,3 +24,7 @@ android
 
 # Ignore changes to the package-lock
 package-lock.json
+
+# Claude Code local files
+.claude/plans/
+.claude/settings.local.json
