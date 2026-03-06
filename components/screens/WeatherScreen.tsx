@@ -14,20 +14,14 @@ import {TabNavigatorParamList, WeatherStackParamList} from 'routes';
 const WeatherStack = createNativeStackNavigator<WeatherStackParamList>();
 export const WeatherScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Weather Data'>) => {
   const {requestedTime} = route.params;
-  const {preferences} = usePreferences();
-  const center_id = preferences.center;
+
   return (
     <WeatherStack.Navigator
       initialRouteName="stationList"
       screenOptions={{
-        header: props => <NavigationHeader center_id={center_id} {...props} />,
+        header: props => <NavigationHeader {...props} />,
       }}>
-      <WeatherStack.Screen
-        name="stationList"
-        component={StationListScreen}
-        options={{title: 'Weather Stations', header: props => (center_id === 'NWAC' ? <NavigationHeader center_id={center_id} {...props} /> : <></>)}}
-        initialParams={{requestedTime}}
-      />
+      <WeatherStack.Screen name="stationList" component={StationListScreen} initialParams={{requestedTime}} />
       <WeatherStack.Screen name="stationsDetail" component={StationsDetailScreen} options={{title: 'Weather Station'}} />
       <WeatherStack.Screen name="stationDetail" component={StationDetailScreen} options={{title: 'Weather Station'}} />
     </WeatherStack.Navigator>
