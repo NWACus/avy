@@ -14,25 +14,13 @@ export const HomeTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamL
   const {requestedTime} = route.params;
   const {preferences} = usePreferences();
   const center_id = preferences.center;
+
   return (
-    <AvalancheCenterStack.Navigator initialRouteName="avalancheCenter" screenOptions={{header: props => <NavigationHeader center_id={center_id} {...props} />}}>
-      <AvalancheCenterStack.Screen
-        name="avalancheCenter"
-        component={MapScreen}
-        initialParams={{center_id: center_id, requestedTime: requestedTime}}
-        options={{headerShown: false}}
-      />
-      <AvalancheCenterStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} options={{headerShown: false}} />
-      <AvalancheCenterStack.Screen
-        name="stationsDetail"
-        component={StationsDetailScreen}
-        options={{title: 'Weather Station', header: props => <NavigationHeader center_id={center_id} {...props} />}}
-      />
-      <AvalancheCenterStack.Screen
-        name="stationDetail"
-        component={StationDetailScreen}
-        options={{title: 'Weather Station', header: props => <NavigationHeader center_id={center_id} {...props} />}}
-      />
+    <AvalancheCenterStack.Navigator initialRouteName="avalancheCenter" screenOptions={{header: props => <NavigationHeader {...props} />}}>
+      <AvalancheCenterStack.Screen name="avalancheCenter" component={MapScreen} initialParams={{requestedTime: requestedTime}} />
+      <AvalancheCenterStack.Screen name="forecast" component={ForecastScreen} initialParams={{center_id: center_id, requestedTime: requestedTime}} />
+      <AvalancheCenterStack.Screen name="stationsDetail" component={StationsDetailScreen} options={{title: 'Weather Station', header: props => <NavigationHeader {...props} />}} />
+      <AvalancheCenterStack.Screen name="stationDetail" component={StationDetailScreen} options={{title: 'Weather Station', header: props => <NavigationHeader {...props} />}} />
       <AvalancheCenterStack.Screen
         name="observation"
         component={ObservationScreen}

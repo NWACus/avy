@@ -22,7 +22,7 @@ import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
-import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {HomeStackNavigationProps, TabNavigationProps} from 'routes';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, isSupportedCenter, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTimeString} from 'utils/date';
@@ -30,7 +30,6 @@ import {formatRequestedTime, RequestedTime, requestedTimeToUTCDate, utcDateToLoc
 import {Camera, MapState} from '@rnmapbox/maps';
 import {defaultMapRegionForGeometries} from 'components/helpers/geographicCoordinates';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
-import Toast from 'react-native-toast-message';
 
 export interface MapProps {
   requestedTime: RequestedTime;
@@ -55,8 +54,6 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({req
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
 
   const topElements = React.useRef<RNView>(null);
-
-  const insets = useSafeAreaInsets();
 
   const postHog = usePostHog();
 
@@ -91,12 +88,6 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({req
           setSelectedZoneId(zone.zone_id);
           if (selectedZoneCenter !== center) {
             setPreferences({center: selectedZoneCenter});
-            // This is purely for debugging purposes
-            Toast.show({
-              type: 'info',
-              text1: `Your preferred center has changed to: ${selectedZoneCenter}`,
-              position: 'bottom',
-            });
           }
         } else {
           Alert.alert(`${selectedZoneCenter} is not supported`, `Please go to their website to view the full forecast for ${selectedZoneCenter} or select another center`, [
@@ -306,7 +297,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({req
         onCameraChanged={onCameraChanged}
       />
 
-      <VStack ref={topElements} width="100%" position="absolute" paddingTop={insets.top} left={0} right={0} mt={8} px={4} flex={1} onLayout={onLayout}>
+      <VStack ref={topElements} width="100%" position="absolute" left={0} right={0} mt={8} px={4} flex={1} onLayout={onLayout}>
         <DangerScale width="100%" />
       </VStack>
 

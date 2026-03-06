@@ -13,17 +13,16 @@ import {parseRequestedTimeString} from 'utils/date';
 const ObservationsStack = createNativeStackNavigator<ObservationsStackParamList>();
 export const ObservationsTabScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Observations'>) => {
   const {requestedTime} = route.params;
-  const {preferences} = usePreferences();
-  const center_id = preferences.center;
+
   return (
     <ObservationsStack.Navigator
       initialRouteName="observationsList"
       screenOptions={{
-        header: props => <NavigationHeader center_id={center_id} {...props} />,
+        header: props => <NavigationHeader {...props} />,
       }}>
       <ObservationsStack.Screen name="observationsPortal" component={ObservationsPortalScreen} initialParams={{requestedTime}} options={{headerShown: false}} />
       <ObservationsStack.Screen name="observationSubmit" component={ObservationSubmitScreen} options={{title: 'Submit an Observation'}} />
-      <ObservationsStack.Screen name="observationsList" component={ObservationsListScreen} options={{title: 'Observations'}} initialParams={{requestedTime}} />
+      <ObservationsStack.Screen name="observationsList" component={ObservationsListScreen} initialParams={{requestedTime}} />
       <ObservationsStack.Screen name="observation" component={ObservationScreen} options={{title: 'Observation'}} />
       <ObservationsStack.Screen name="nwacObservation" component={NWACObservationScreen} options={{title: 'Observation'}} />
     </ObservationsStack.Navigator>
