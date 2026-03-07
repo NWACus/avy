@@ -1,75 +1,75 @@
-import {boundsForRegions, RegionBounds, regionFromBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
-import {LatLng} from 'react-native-maps';
+import {AvalancheCenterRegion, avalancheCenterRegionFromRegionBounds, boundsForRegions, RegionBounds, updateBoundsToContain} from 'components/helpers/geographicCoordinates';
+import {Position} from 'types/nationalAvalancheCenter';
 
 describe('AvalancheForecastZonePolygon', () => {
   describe('updateRegionToContain', () => {
     it('returns the region bounds unchanged when no coordinates are provided', () => {
       const bounds: RegionBounds = {
-        topLeft: {latitude: 1, longitude: 1},
-        bottomRight: {latitude: 2, longitude: 2},
+        topRight: {longitude: 1, latitude: 1},
+        bottomLeft: {longitude: 2, latitude: 2},
       };
-      const coordinates: LatLng[] = [];
+      const coordinates: Position[] = [];
       expect(updateBoundsToContain(bounds, coordinates)).toStrictEqual({
-        topLeft: {latitude: 1, longitude: 1},
-        bottomRight: {latitude: 2, longitude: 2},
+        topRight: {longitude: 1, latitude: 1},
+        bottomLeft: {longitude: 2, latitude: 2},
       });
     });
 
     it('initializes an empty region bound', () => {
       const bounds: RegionBounds = {
-        topLeft: {latitude: 0, longitude: 0},
-        bottomRight: {latitude: 0, longitude: 0},
+        topRight: {longitude: 0, latitude: 0},
+        bottomLeft: {longitude: 0, latitude: 0},
       };
-      const coordinates: LatLng[] = [{latitude: 1, longitude: 1}];
+      const coordinates: Position[] = [[1, 1]];
 
       const updated: RegionBounds = updateBoundsToContain(bounds, coordinates);
       expect(updated).toStrictEqual({
-        topLeft: {latitude: 1, longitude: 1},
-        bottomRight: {latitude: 1, longitude: 1},
+        topRight: {longitude: 1, latitude: 1},
+        bottomLeft: {longitude: 1, latitude: 1},
       });
 
       expect(bounds).not.toStrictEqual(updated); // should not mutate input
     });
 
-    const coordinates: LatLng[] = [
-      {longitude: -121.9298, latitude: 45.2792},
-      {longitude: -121.952, latitude: 45.326},
-      {longitude: -121.9315, latitude: 45.3659},
-      {longitude: -121.8805, latitude: 45.4445},
-      {longitude: -121.8473, latitude: 45.4646},
-      {longitude: -121.8032, latitude: 45.4794},
-      {longitude: -121.7216, latitude: 45.4921},
-      {longitude: -121.6435, latitude: 45.4839},
-      {longitude: -121.5219, latitude: 45.4578},
-      {longitude: -121.431, latitude: 45.3475},
-      {longitude: -121.477, latitude: 45.2279},
-      {longitude: -121.5565, latitude: 45.2055},
-      {longitude: -121.623, latitude: 45.1939},
-      {longitude: -121.7036, latitude: 45.1916},
-      {longitude: -121.8579, latitude: 45.2292},
-      {longitude: -121.92, latitude: 45.2646},
-      {longitude: -121.9298, latitude: 45.2792},
+    const coordinates: Position[] = [
+      [-121.9298, 45.2792],
+      [-121.952, 45.326],
+      [-121.9315, 45.3659],
+      [-121.8805, 45.4445],
+      [-121.8473, 45.4646],
+      [-121.8032, 45.4794],
+      [-121.7216, 45.4921],
+      [-121.6435, 45.4839],
+      [-121.5219, 45.4578],
+      [-121.431, 45.3475],
+      [-121.477, 45.2279],
+      [-121.5565, 45.2055],
+      [-121.623, 45.1939],
+      [-121.7036, 45.1916],
+      [-121.8579, 45.2292],
+      [-121.92, 45.2646],
+      [-121.9298, 45.2792],
     ];
 
-    // for the US, the "top left" corner of a map will have the largest latitude and smallest longitude
-    // similarly, the "bottom right" will have the smallest latitude and largest longitude
+    // for the US, the "top right" corner of a map will have the largest latitude and largest longitude
+    // similarly, the "bottom left" will have the smallest latitude and smallest longitude
     const regionBounds: RegionBounds = {
-      topLeft: {latitude: 45.4921, longitude: -121.952},
-      bottomRight: {latitude: 45.1916, longitude: -121.431},
+      topRight: {longitude: -121.431, latitude: 45.4921},
+      bottomLeft: {longitude: -121.952, latitude: 45.1916},
     };
 
     it('minimally bounds all coordinates with the region', () => {
       const bounds: RegionBounds = {
-        topLeft: {latitude: 0, longitude: 0},
-        bottomRight: {latitude: 0, longitude: 0},
+        topRight: {longitude: 0, latitude: 0},
+        bottomLeft: {longitude: 0, latitude: 0},
       };
       expect(updateBoundsToContain(bounds, coordinates)).toStrictEqual(regionBounds);
     });
 
     it('arrives at the same result regardless of how many iterations it takes to apply all coordinates', () => {
       const bounds: RegionBounds = {
-        topLeft: {latitude: 0, longitude: 0},
-        bottomRight: {latitude: 0, longitude: 0},
+        topRight: {longitude: 0, latitude: 0},
+        bottomLeft: {longitude: 0, latitude: 0},
       };
 
       const firstPass = updateBoundsToContain(bounds, coordinates.slice(0, 5));
@@ -82,15 +82,22 @@ describe('AvalancheForecastZonePolygon', () => {
   describe('regionFromBounds', () => {
     it('returns the region from bounds', () => {
       const bounds: RegionBounds = {
-        topLeft: {latitude: 0, longitude: 0},
-        bottomRight: {latitude: 2, longitude: 2},
+        topRight: {longitude: 0, latitude: 0},
+        bottomLeft: {longitude: 2, latitude: 2},
       };
-      expect(regionFromBounds(bounds)).toStrictEqual({
-        latitude: 1,
-        longitude: 1,
+      const expectedAvalancheCenterRegion: AvalancheCenterRegion = {
+        centerCoordinate: {
+          latitude: 1,
+          longitude: 1,
+        },
         latitudeDelta: 2,
         longitudeDelta: 2,
-      });
+        cameraBounds: {
+          ne: [2, 2],
+          sw: [0, 0],
+        },
+      };
+      expect(avalancheCenterRegionFromRegionBounds(bounds)).toStrictEqual(expectedAvalancheCenterRegion);
     });
   });
 
@@ -98,17 +105,17 @@ describe('AvalancheForecastZonePolygon', () => {
     it('calculates the total bounding box for multiple regions', () => {
       const regions = [
         {
-          topLeft: {latitude: 20, longitude: -100},
-          bottomRight: {latitude: 10, longitude: -50},
+          topRight: {longitude: -50, latitude: 20},
+          bottomLeft: {longitude: -100, latitude: 10},
         },
         {
-          topLeft: {latitude: 40, longitude: -110},
-          bottomRight: {latitude: 15, longitude: -75},
+          topRight: {longitude: -75, latitude: 40},
+          bottomLeft: {longitude: -110, latitude: 15},
         },
       ];
       expect(boundsForRegions(regions)).toStrictEqual({
-        topLeft: {latitude: 40, longitude: -110},
-        bottomRight: {latitude: 10, longitude: -50},
+        topRight: {longitude: -50, latitude: 40},
+        bottomLeft: {longitude: -110, latitude: 10},
       });
     });
   });

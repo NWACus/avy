@@ -2,7 +2,7 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {useFocusEffect} from '@react-navigation/native';
 
 import React, {useCallback, useEffect, useState} from 'react';
-import {FieldErrors, FormProvider, useForm} from 'react-hook-form';
+import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Modal, Platform, ScrollView, TouchableOpacity} from 'react-native';
 import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
 
@@ -55,7 +55,7 @@ export const AvalancheObservationForm: React.FC<{
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
   const formContext = useForm<AvalancheObservationFormData>({
-    resolver: zodResolver(avalancheObservationFormSchema),
+    resolver: zodResolver(avalancheObservationFormSchema) as Resolver<AvalancheObservationFormData>,
     mode: 'onBlur',
     shouldFocusError: false,
     shouldUnregister: true,

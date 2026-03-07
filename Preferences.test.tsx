@@ -1,11 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {renderHook} from '@testing-library/react-hooks';
+import {waitFor} from '@testing-library/react-native';
 
 import {PREFERENCES_KEY} from 'data/asyncStorageKeys';
 import {PreferencesProvider, resetPreferencesForTests, usePreferences} from 'Preferences';
 
 // Mock out AsyncStorage for tests
-// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-require-imports
 jest.mock('@react-native-async-storage/async-storage', () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 
 describe('Preferences', () => {
@@ -21,11 +22,12 @@ describe('Preferences', () => {
 
   it('updates after preferences are loaded', async () => {
     await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify({center: 'BAC', hasSeenCenterPicker: true}));
-    const {result, waitForNextUpdate} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
+    const {result} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
     expect(result.current.preferences.center).toEqual('NWAC');
 
-    await waitForNextUpdate();
-    expect(result.current.preferences.center).toEqual('BAC');
+    await waitFor(() => {
+      expect(result.current.preferences.center).toEqual('BAC');
+    });
   });
 
   it('falls back to defaults if preferences cannot be parsed', async () => {
@@ -48,20 +50,22 @@ describe('Preferences', () => {
 
     it('updates to a default value after loading', async () => {
       await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify({center: 'BAC', hasSeenCenterPicker: true}));
-      const {result, waitForNextUpdate} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
+      const {result} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
       expect(result.current.preferences.mixpanelUserId).toBeUndefined();
 
-      await waitForNextUpdate();
-      expect(result.current.preferences.mixpanelUserId).toMatch(/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/);
+      await waitFor(() => {
+        expect(result.current.preferences.mixpanelUserId).toMatch(/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/);
+      });
     });
 
     it('does not overwrite a previously saved id', async () => {
       await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify({center: 'BAC', hasSeenCenterPicker: true, mixpanelUserId: '00000000-0000-0000-0000-000000000000'}));
-      const {result, waitForNextUpdate} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
+      const {result} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
       expect(result.current.preferences.mixpanelUserId).toBeUndefined();
 
-      await waitForNextUpdate();
-      expect(result.current.preferences.mixpanelUserId).toEqual('00000000-0000-0000-0000-000000000000');
+      await waitFor(() => {
+        expect(result.current.preferences.mixpanelUserId).toEqual('00000000-0000-0000-0000-000000000000');
+      });
     });
 
     it('is preserved when clearPreferences is called', async () => {
@@ -69,18 +73,22 @@ describe('Preferences', () => {
       await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify({center: 'BAC', hasSeenCenterPicker: true, mixpanelUserId: userId}));
 
       // Render the hook to load the preferences. First we'll see the default value, then the saved value
-      const {result, waitForNextUpdate} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
+      const {result} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
       expect(result.current.preferences.mixpanelUserId).toBeUndefined();
-      await waitForNextUpdate();
-      expect(result.current.preferences.center).toEqual('BAC');
-      expect(result.current.preferences.mixpanelUserId).toEqual(userId);
+
+      await waitFor(() => {
+        expect(result.current.preferences.center).toEqual('BAC');
+        expect(result.current.preferences.mixpanelUserId).toEqual(userId);
+      });
 
       // Now clear the preferences. This is not async - we clear them in memory immediately, and lazily persist the change.
       result.current.clearPreferences();
 
       // After clearing, the center is reset to the default, but the userId is preserved
-      expect(result.current.preferences.center).toEqual('NWAC');
-      expect(result.current.preferences.mixpanelUserId).toEqual(userId);
+      await waitFor(() => {
+        expect(result.current.preferences.center).toEqual('NWAC');
+        expect(result.current.preferences.mixpanelUserId).toEqual(userId);
+      });
     });
 
     it('is lost when preferences are damaged', async () => {
@@ -88,21 +96,23 @@ describe('Preferences', () => {
       await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify({mixpanelUserId: userId, center: 'this is not a valid center'}));
 
       // Render the hook to load the preferences. First we'll see the default value, then the saved value
-      const {result, waitForNextUpdate} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
+      const {result} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
       expect(result.current.preferences.mixpanelUserId).toBeUndefined();
-      await waitForNextUpdate();
       // The center is invalid, so preferences parsing will fail. The previous user id is lost, and we get a different UUID in its place.
-      expect(result.current.preferences.mixpanelUserId).toMatch(/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/);
-      expect(result.current.preferences.mixpanelUserId).not.toEqual(userId);
+      await waitFor(() => {
+        expect(result.current.preferences.mixpanelUserId).toMatch(/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/);
+        expect(result.current.preferences.mixpanelUserId).not.toEqual(userId);
+      });
     });
 
     it('does overwrite an invalid id', async () => {
       await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify({center: 'BAC', hasSeenCenterPicker: true, mixpanelUserId: 'not a uuid'}));
-      const {result, waitForNextUpdate} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
+      const {result} = renderHook(() => usePreferences(), {wrapper: PreferencesProvider});
       expect(result.current.preferences.mixpanelUserId).toBeUndefined();
 
-      await waitForNextUpdate();
-      expect(result.current.preferences.mixpanelUserId).toMatch(/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/);
+      await waitFor(() => {
+        expect(result.current.preferences.mixpanelUserId).toMatch(/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/);
+      });
     });
   });
 

@@ -222,7 +222,7 @@ export class ObservationUploader {
     observationTaskId: string,
     photoUsage: MediaUsage,
     name: string,
-    avalancheIndex?: number | undefined,
+    avalancheIndex?: number,
   ) => {
     tasks.push({
       id: uuid.v4(),

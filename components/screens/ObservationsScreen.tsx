@@ -66,7 +66,6 @@ export const NWACObservationScreen = ({route}: NativeStackScreenProps<Observatio
 
 const styles = StyleSheet.create({
   fullScreen: {
-    ...StyleSheet.absoluteFillObject,
     flex: 1,
   },
 });

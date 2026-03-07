@@ -1,55 +1,82 @@
+import {CameraBounds} from '@rnmapbox/maps';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
-import {LatLng, Region} from 'react-native-maps';
-import {MapLayerFeature, Position} from 'types/nationalAvalancheCenter';
+import {MapViewZone} from 'components/content/ZoneMap';
+import {AvyPosition, Geometry, MapLayerFeature, Position} from 'types/nationalAvalancheCenter';
 
 export interface RegionBounds {
-  topLeft: LatLng;
-  bottomRight: LatLng;
+  topRight: AvyPosition;
+  bottomLeft: AvyPosition;
 }
 
-export const regionFromBounds = (bounds: RegionBounds): Region => {
+const defaultAvalancheCenterMapRegionBounds: RegionBounds = {
+  topRight: {longitude: 0, latitude: 0},
+  bottomLeft: {longitude: 0, latitude: 0},
+};
+
+export interface AvalancheCenterRegion {
+  centerCoordinate: {longitude: number; latitude: number};
+  longitudeDelta: number;
+  latitudeDelta: number;
+  cameraBounds: CameraBounds;
+}
+
+export const toGeoJSONPosition = (avyPosition: AvyPosition): Position => [avyPosition.longitude, avyPosition.latitude];
+export const toAvyPosition = (geoJsonPosition: Position): AvyPosition => {
   return {
-    latitude: (bounds.topLeft.latitude + bounds.bottomRight.latitude) / 2.0,
-    latitudeDelta: Math.abs(bounds.topLeft.latitude - bounds.bottomRight.latitude),
-    longitude: (bounds.topLeft.longitude + bounds.bottomRight.longitude) / 2.0,
-    longitudeDelta: Math.abs(bounds.bottomRight.longitude - bounds.topLeft.longitude),
+    longitude: geoJsonPosition[0],
+    latitude: geoJsonPosition[1],
   };
 };
 
-export const updateBoundsToContain = (previous: RegionBounds, coordinates: LatLng[]): RegionBounds => {
+export const avalancheCenterRegionFromRegionBounds = (bounds: RegionBounds): AvalancheCenterRegion => {
+  const centerlong = (bounds.topRight.longitude + bounds.bottomLeft.longitude) / 2.0;
+  const centerLat = (bounds.topRight.latitude + bounds.bottomLeft.latitude) / 2.0;
+  const longDelta = Math.abs(bounds.bottomLeft.longitude - bounds.topRight.longitude);
+  const latDelta = Math.abs(bounds.topRight.latitude - bounds.bottomLeft.latitude);
+  const cameraBounds = {
+    ne: [centerlong + longDelta / 2.0, centerLat + latDelta / 2.0],
+    sw: [centerlong - longDelta / 2.0, centerLat - latDelta / 2.0],
+  };
+  return {
+    centerCoordinate: {
+      longitude: centerlong,
+      latitude: centerLat,
+    },
+    longitudeDelta: longDelta,
+    latitudeDelta: latDelta,
+    cameraBounds: cameraBounds,
+  };
+};
+
+export const updateBoundsToContain = (previous: RegionBounds, coordinates: Position[]): RegionBounds => {
   if (!coordinates) {
     return previous;
   }
   const bounds: RegionBounds = {
-    topLeft: {latitude: previous.topLeft.latitude, longitude: previous.topLeft.longitude},
-    bottomRight: {latitude: previous.bottomRight.latitude, longitude: previous.bottomRight.longitude},
+    topRight: {longitude: previous.topRight.longitude, latitude: previous.topRight.latitude},
+    bottomLeft: {longitude: previous.bottomLeft.longitude, latitude: previous.bottomLeft.latitude},
   };
   // for the US, the "top left" corner of a map will have the largest latitude and smallest longitude
   // similarly, the "bottom right" will have the smallest latitude and largest longitude
   for (const coordinate of coordinates) {
     // initialize our points to something on the polygons, so we always
     // end up centered around the polygons we're bounding
-    if (bounds.topLeft.longitude === 0) {
-      bounds.topLeft = {longitude: coordinate.longitude, latitude: coordinate.latitude};
-      bounds.bottomRight = {longitude: coordinate.longitude, latitude: coordinate.latitude};
+    const newCoordinate = toAvyPosition(coordinate);
+    if (bounds.topRight.longitude === 0) {
+      bounds.topRight = newCoordinate;
+      bounds.bottomLeft = newCoordinate;
     } else {
-      bounds.topLeft = {
-        longitude: Math.min(bounds.topLeft.longitude, coordinate.longitude),
-        latitude: Math.max(bounds.topLeft.latitude, coordinate.latitude),
-      };
-      bounds.bottomRight = {
-        longitude: Math.max(bounds.bottomRight.longitude, coordinate.longitude),
-        latitude: Math.min(bounds.bottomRight.latitude, coordinate.latitude),
-      };
+      bounds.topRight = {longitude: Math.max(bounds.topRight.longitude, newCoordinate.longitude), latitude: Math.max(bounds.topRight.latitude, newCoordinate.latitude)};
+      bounds.bottomLeft = {longitude: Math.min(bounds.bottomLeft.longitude, newCoordinate.longitude), latitude: Math.min(bounds.bottomLeft.latitude, newCoordinate.latitude)};
     }
   }
 
   return bounds;
 };
 
-export const emptyBounds = () => ({
-  topLeft: {latitude: 0, longitude: 0},
-  bottomRight: {latitude: 0, longitude: 0},
+export const emptyBounds = (): RegionBounds => ({
+  topRight: {longitude: 0, latitude: 0},
+  bottomLeft: {longitude: 0, latitude: 0},
 });
 
 export const featureBounds = (feature: MapLayerFeature): RegionBounds => {
@@ -60,21 +87,50 @@ export const featureBounds = (feature: MapLayerFeature): RegionBounds => {
     throw new Error(`bounds for ${feature.geometry.type} geometry not implemented!`);
   }
   const outerBorderPoints: Position[] = feature.geometry.type === 'MultiPolygon' ? feature.geometry.coordinates.map(p => p[0]).flat() : feature.geometry.coordinates[0];
-  return updateBoundsToContain(
-    emptyBounds(),
-    outerBorderPoints.map(([longitude, latitude]) => ({latitude, longitude})),
-  );
+  return updateBoundsToContain(emptyBounds(), outerBorderPoints);
 };
 
 // Given a list of RegionBounds, calculate a total region bounding box
 export const boundsForRegions = (bounds: RegionBounds[]): RegionBounds => ({
-  topLeft: {latitude: Math.max(...bounds.map(b => b.topLeft.latitude)), longitude: Math.min(...bounds.map(b => b.topLeft.longitude))},
-  bottomRight: {latitude: Math.min(...bounds.map(b => b.bottomRight.latitude)), longitude: Math.max(...bounds.map(b => b.bottomRight.longitude))},
+  topRight: {longitude: Math.max(...bounds.map(b => b.topRight.longitude)), latitude: Math.max(...bounds.map(b => b.topRight.latitude))},
+  bottomLeft: {longitude: Math.min(...bounds.map(b => b.bottomLeft.longitude)), latitude: Math.min(...bounds.map(b => b.bottomLeft.latitude))},
 });
 
-export const pointInBounds = ({latitude, longitude}: LatLng, {topLeft, bottomRight}: RegionBounds): boolean =>
-  latitude >= bottomRight.latitude && latitude <= topLeft.latitude && longitude <= bottomRight.latitude && longitude >= topLeft.longitude;
+export const pointInBounds = (position: AvyPosition, {topRight, bottomLeft}: RegionBounds): boolean =>
+  position.latitude >= bottomLeft.latitude && position.latitude <= topRight.latitude && position.longitude >= bottomLeft.longitude && position.longitude >= topRight.longitude;
 
-export const pointInFeature = ({latitude, longitude}: LatLng, feature: MapLayerFeature): boolean => {
-  return (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') && booleanPointInPolygon([longitude, latitude], feature.geometry);
+export const pointInFeature = (position: Position, feature: MapLayerFeature): boolean => {
+  return (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') && booleanPointInPolygon(position, feature.geometry);
 };
+
+const coordinateList = (geometry: Geometry): number[][][] => {
+  let items: number[][][] = [];
+  if (geometry.type === 'Polygon') {
+    items = [geometry.coordinates[0]];
+  } else if (geometry.type === 'MultiPolygon') {
+    items = geometry.coordinates.map(coordinates => coordinates[0]);
+  }
+  return items;
+};
+
+export const toPositionList = (geometry: Geometry | undefined): Position[][] => {
+  if (!geometry) {
+    return [];
+  }
+  return coordinateList(geometry);
+};
+
+export function defaultMapRegionForZones(zones: MapViewZone[]) {
+  return defaultMapRegionForGeometries(zones.map(zone => zone.feature.geometry));
+}
+
+export function defaultMapRegionForGeometries(geometries: (Geometry | undefined)[] | undefined) {
+  const avalancheCenterMapRegionBounds: RegionBounds = geometries
+    ? geometries.reduce((accumulator, currentValue) => updateBoundsToContain(accumulator, toPositionList(currentValue).flat()), defaultAvalancheCenterMapRegionBounds)
+    : defaultAvalancheCenterMapRegionBounds;
+
+  const avalancheCenterRegion = avalancheCenterRegionFromRegionBounds(avalancheCenterMapRegionBounds);
+  avalancheCenterRegion.latitudeDelta *= 1.05;
+  avalancheCenterRegion.longitudeDelta *= 1.05;
+  return avalancheCenterRegion;
+}

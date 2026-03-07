@@ -27,7 +27,5 @@ export const stagingHosts = {
 export const ClientContext: Context<ClientProps> = React.createContext<ClientProps>({
   ...productionHosts,
   requestedTime: 'latest',
-  setRequestedTime: () => {
-    undefined;
-  },
+  setRequestedTime: () => {},
 });
