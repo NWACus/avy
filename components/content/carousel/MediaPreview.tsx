@@ -1,7 +1,6 @@
 import {MediaViewerModal} from 'components/content/carousel/MediaViewerModal/MediaViewerModal';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
 import {imageToThumbnailListItem, ThumbnailListItem, videoToThumbnailListItem} from 'components/content/carousel/ThumbnailList';
-import {InternalError} from 'components/content/QueryState';
 import {View, ViewProps, VStack} from 'components/core';
 import {HTML, HTMLRendererConfig} from 'components/text/HTML';
 import React, {useCallback, useMemo, useState} from 'react';
@@ -41,7 +40,7 @@ export const MediaPreview: React.FunctionComponent<MediaPreviewProps> = ({thumbn
   const thumbnailItem = useMemo(() => thumbnailListItem(mediaItem), [mediaItem]);
 
   if (!thumbnailItem) {
-    return <InternalError />;
+    return <View />;
   }
 
   return (

@@ -1,19 +1,21 @@
 import {AntDesign, FontAwesome} from '@expo/vector-icons';
+import {Camera} from '@rnmapbox/maps';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
-import {MapViewZone, ZoneMap, defaultMapRegionForGeometries, defaultMapRegionForZones} from 'components/content/ZoneMap';
+import {MapViewZone, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, VStack, View} from 'components/core';
 import {FieldLabel} from 'components/form/FieldLabel';
 import {KeysMatching} from 'components/form/TextField';
+import {AvalancheCenterRegion, defaultMapRegionForGeometries, defaultMapRegionForZones} from 'components/helpers/geographicCoordinates';
+import {AnimatedMapMarker} from 'components/map/AnimatedMapMarker';
 import {LocationPoint, ObservationFormData} from 'components/observations/ObservationFormData';
 import {Body, BodyXSm, Title3Black, bodySize} from 'components/text';
 import {useMapLayer} from 'hooks/useMapLayer';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {Modal, PanResponder, View as RNView, TouchableOpacity} from 'react-native';
-import MapView, {LatLng, MapMarker, Region} from 'react-native-maps';
+import {Modal, View as RNView, TouchableOpacity} from 'react-native';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, Position} from 'types/nationalAvalancheCenter';
 
 interface LocationFieldProps {
   name: KeysMatching<ObservationFormData, LocationPoint>;
@@ -22,12 +24,8 @@ interface LocationFieldProps {
   disabled?: boolean;
   required?: boolean;
 }
-
-const latLngToLocationPoint = (latLng: LatLng) => ({lat: latLng.latitude, lng: latLng.longitude});
-const locationPointToLatLng = (locationPoint: LocationPoint) => ({
-  latitude: locationPoint.lat,
-  longitude: locationPoint.lng,
-});
+const positionToLocationPoint = (position: Position) => ({lat: position[1], lng: position[0]});
+const locationPointToPosition = (locationPoint: LocationPoint) => [locationPoint.lng, locationPoint.lat];
 
 export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center, disabled, required = false}, ref) => {
   const {
@@ -94,44 +92,33 @@ interface LocationMapProps {
 const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVisible, initialLocation, onClose, onSelect}) => {
   const mapLayerResult = useMapLayer(center);
   const mapLayer = mapLayerResult.data;
-  const [initialRegion, setInitialRegion] = useState<Region>(defaultMapRegionForZones([]));
+  const [initialRegion, setInitialRegion] = useState<AvalancheCenterRegion>(defaultMapRegionForZones([]));
   const [selectedLocation, setSelectedLocation] = useState<LocationPoint | undefined>(initialLocation);
   const [mapReady, setMapReady] = useState<boolean>(false);
-  const mapRef = useRef<MapView>(null);
+  const mapCameraRef = useRef<Camera>(null);
 
-  const mapPanResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderRelease: (event, gestureState) => {
-        if (gestureState.dx != 0 && gestureState.dy != 0) {
-          return;
-        }
-
-        void (async () => {
-          const point = {x: event.nativeEvent.locationX, y: event.nativeEvent.locationY};
-          const coordinate = await mapRef.current?.coordinateForPoint(point);
-          if (coordinate) {
-            setSelectedLocation(latLngToLocationPoint(coordinate));
-          }
-        })();
-      },
-    }),
-  ).current;
+  const onMapPress = useCallback(
+    (feature: GeoJSON.Feature) => {
+      if (feature.geometry.type === 'Point') {
+        setSelectedLocation(positionToLocationPoint(feature.geometry.coordinates));
+      }
+    },
+    [setSelectedLocation],
+  );
 
   useEffect(() => {
     if (mapLayer && !mapReady) {
       const location: LocationPoint = initialLocation || {lat: 0, lng: 0};
       const initialRegion = defaultMapRegionForGeometries(mapLayer.features.map(feature => feature.geometry));
       if (location.lat !== 0 && location.lng !== 0) {
-        initialRegion.latitude = location.lat;
-        initialRegion.longitude = location.lng;
+        initialRegion.centerCoordinate.latitude = location.lat;
+        initialRegion.centerCoordinate.longitude = location.lng;
       }
 
       setInitialRegion(initialRegion);
       setMapReady(true);
     }
-  }, [initialLocation, mapLayer, setInitialRegion, mapReady, setMapReady]);
+  }, [initialLocation, mapLayer, mapCameraRef, setInitialRegion, mapReady, setMapReady]);
 
   const zones: MapViewZone[] =
     mapLayer?.features.map(
@@ -185,18 +172,16 @@ const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVi
             <Center width="100%" height="100%">
               {incompleteQueryState(mapLayerResult) && <QueryState results={[mapLayerResult]} />}
               {mapReady && (
-                <View {...mapPanResponder.panHandlers}>
-                  <ZoneMap
-                    ref={mapRef}
-                    animated={false}
-                    style={{minWidth: '100%', minHeight: '100%'}}
-                    zones={zones}
-                    initialRegion={initialRegion}
-                    onPressPolygon={emptyHandler}
-                    renderFillColor={false}>
-                    {selectedLocation != null && <MapMarker coordinate={locationPointToLatLng(selectedLocation)} />}
-                  </ZoneMap>
-                </View>
+                <ZoneMap
+                  ref={mapCameraRef}
+                  style={{minWidth: '100%', minHeight: '100%'}}
+                  zones={zones}
+                  initialCameraBounds={initialRegion.cameraBounds}
+                  onPolygonPress={emptyHandler}
+                  onMapPress={onMapPress}
+                  renderFillColor={false}>
+                  {selectedLocation && <AnimatedMapMarker id="obs-location-marker" coordinate={locationPointToPosition(selectedLocation)} />}
+                </ZoneMap>
               )}
             </Center>
           </VStack>
@@ -205,4 +190,5 @@ const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVi
     </Modal>
   );
 };
+
 LocationField.displayName = 'LocationField';

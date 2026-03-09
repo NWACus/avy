@@ -5,12 +5,12 @@ import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {getStateFromPath, NavigationContainer, PathConfigMap, RouteProp, useNavigationContainerRef} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
-import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, UIManager, View} from 'react-native';
+import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import * as Sentry from '@sentry/react-native';
 import * as Application from 'expo-application';
-import * as BackgroundFetch from 'expo-background-fetch';
+import * as BackgroundFetch from 'expo-background-task';
 import Constants from 'expo-constants';
 import * as TaskManager from 'expo-task-manager';
 
@@ -39,7 +39,7 @@ import {TabNavigatorParamList} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
 
-require('date-time-format-timezone');
+import 'date-time-format-timezone';
 
 import axios, {AxiosRequestConfig} from 'axios';
 import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
@@ -48,6 +48,7 @@ import {PreferencesProvider, usePreferences} from 'Preferences';
 import {NotFoundError} from 'types/requests';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
+import Mapbox from '@rnmapbox/maps';
 import {Integration} from '@sentry/types';
 import {TRACE} from 'browser-bunyan';
 import * as messages from 'compiled-lang/en.json';
@@ -66,10 +67,9 @@ import {ZodError} from 'zod';
 
 logger.info('App starting.');
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  logger.info('enabling android layout animations');
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+Mapbox.setAccessToken(Constants.expoConfig?.extra?.mapboxAPIKey as string).catch((error: Error) => {
+  logger.error('Failed to initialize mapbox with error: ', error);
+});
 
 const encodeParams = (params: {[s: string]: string}) => {
   return Object.entries(params)
@@ -224,8 +224,9 @@ TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, async () => {
     await ImageCache.reconcile(queryClient, queryClient.getQueryCache(), logger);
   } catch (e) {
     logger.error({error: e}, 'error reconciling image cache');
+    return BackgroundFetch.BackgroundTaskResult.Failed;
   }
-  return BackgroundFetch.BackgroundFetchResult.NewData;
+  return BackgroundFetch.BackgroundTaskResult.Success;
 });
 void BackgroundFetch.registerTaskAsync(BACKGROUND_CACHE_RECONCILIATION_TASK, {
   minimumInterval: 15 * 60, // fifteen minutes, in seconds
@@ -412,7 +413,7 @@ const BaseApp: React.FunctionComponent<{
             height: '100%',
             resizeMode: Constants.expoConfig?.splash?.resizeMode || 'contain',
           }}
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports
           source={require('./assets/splash.png')}
         />
         <Center style={{position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>

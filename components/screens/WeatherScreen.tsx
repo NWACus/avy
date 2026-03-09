@@ -7,7 +7,6 @@ import {View, VStack} from 'components/core';
 import {WeatherStationDetail} from 'components/weather_data/WeatherStationDetail';
 import {WeatherStationPage} from 'components/weather_data/WeatherStationPage';
 import {WeatherStationsDetail} from 'components/weather_data/WeatherStationsDetail';
-import {StyleSheet} from 'react-native';
 import {Edge, SafeAreaView} from 'react-native-safe-area-context';
 import {TabNavigatorParamList, WeatherStackParamList} from 'routes';
 
@@ -35,7 +34,7 @@ export const WeatherScreen = ({route}: NativeStackScreenProps<TabNavigatorParamL
 const StationListScreen = ({route}: NativeStackScreenProps<WeatherStackParamList, 'stationList'>) => {
   const edges: Edge[] = route.params.center_id === 'NWAC' ? ['left', 'right'] : ['left', 'right', 'top'];
   return (
-    <View style={{...StyleSheet.absoluteFillObject}} bg="white">
+    <View flex={1} bg="white">
       {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
       <SafeAreaView edges={edges} style={{height: '100%', width: '100%'}}>
         <VStack width="100%" height="100%" justifyContent="space-between" alignItems="stretch" bg="primary.background">
@@ -48,7 +47,7 @@ const StationListScreen = ({route}: NativeStackScreenProps<WeatherStackParamList
 
 export const StationsDetailScreen = ({route}: NativeStackScreenProps<WeatherStackParamList, 'stationsDetail'>) => {
   return (
-    <View style={{...StyleSheet.absoluteFillObject}} bg="white">
+    <View flex={1} bg="white">
       {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there, or top edge since StackHeader is sitting there */}
       <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
         <WeatherStationsDetail {...route.params} />
@@ -59,7 +58,7 @@ export const StationsDetailScreen = ({route}: NativeStackScreenProps<WeatherStac
 
 export const StationDetailScreen = ({route}: NativeStackScreenProps<WeatherStackParamList, 'stationDetail'>) => {
   return (
-    <View style={{...StyleSheet.absoluteFillObject}} bg="white">
+    <View flex={1} bg="white">
       {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there, or top edge since StackHeader is sitting there */}
       <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
         <WeatherStationDetail {...route.params} />

@@ -4,7 +4,7 @@ import {TextField, TextFieldComponent} from 'components/form/TextField';
 import {BodySemibold} from 'components/text';
 import {useEditViewState} from 'hooks/useEditViewState';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {FormProvider, useForm} from 'react-hook-form';
+import {FormProvider, Resolver, useForm} from 'react-hook-form';
 import {Animated, Keyboard, KeyboardAvoidingView, LayoutChangeEvent, PanResponder, Platform, Pressable, StyleSheet, TextInput, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {z} from 'zod';
@@ -50,7 +50,7 @@ export const ImageCaptionFieldEditView: React.FC<Props> = ({onSetCaption, onDism
   // There is only one value, but using <TextField /> requires the use of a <FormProvider />
   const formContext = useForm<CaptionFormData>({
     defaultValues: initialCaption ? {caption: initialCaption} : DefaultCaptionData,
-    resolver: zodResolver(captionForm),
+    resolver: zodResolver(captionForm) as Resolver<CaptionFormData>,
     mode: 'onBlur',
     shouldFocusError: false,
     shouldUnregister: true,

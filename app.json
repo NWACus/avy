@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -26,9 +26,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "us.nwac.forecast",
-      "config": {
-        "googleMapsApiKey": "LOADED_FROM_ENVIRONMENT"
-      },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": "NO",
         "NSPhotoLibraryUsageDescription": "The app is requesting access to the photo library to enable submission of avalanche observations that can include photos and/or video to provide context of an avalanche that was observed."
@@ -37,11 +34,6 @@
     },
     "android": {
       "package": "us.nwac.forecast",
-      "config": {
-        "googleMaps": {
-          "apiKey": "LOADED_FROM_ENVIRONMENT"
-        }
-      },
       "icon": "./assets/icon.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -64,7 +56,17 @@
       ]
     },
     "plugins": [
+      "expo-mail-composer",
+      "expo-web-browser",
       "expo-localization",
+      "expo-background-task",
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsVersion": "11.16.0",
+          "RNMapboxImpl": "mapbox"
+        }
+      ],
       [
         "expo-build-properties",
         {
@@ -112,7 +114,8 @@
         "projectId": "47e2fd36-5165-4eb4-9a2d-21beec393379"
       },
       "avalanche_center": "NWAC",
-      "log_level": "info"
+      "log_level": "info",
+      "mapboxAPIKey": "LOADED_FROM_ENVIRONMENT"
     }
   }
 }
