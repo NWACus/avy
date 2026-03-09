@@ -193,7 +193,7 @@ export const SelectField = React.forwardRef<RNView, SelectFieldProps>(
         {quickPickMenuItems && (
           <HStack space={5} flexWrap="wrap" marginTop={-rowMargin} backgroundColor={fieldState.error && colorLookup('error.outline')}>
             {quickPickMenuItems.map((item, index) => {
-              const selected = item.value === field.value;
+              const selected = (Array.isArray(field.value) && field.value.includes(item.value)) || item.value === field.value;
               const LabelFont = selected ? BodyBlack : Body;
               return (
                 <Button
