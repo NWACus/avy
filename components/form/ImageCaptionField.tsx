@@ -87,7 +87,7 @@ const useImagePicker = ({images, maxImageCount, disable, onSaveImages}: ImagePic
           allowsMultipleSelection: true,
           exif: true,
           mediaTypes: ['images', 'livePhotos'],
-          preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+          preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Current,
           quality: 0.9,
           selectionLimit: maxImageCount - imageCount,
         });
