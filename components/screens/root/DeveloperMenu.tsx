@@ -2,7 +2,7 @@
 // We normally want to avoid using fat arrow functions in props as it can cause excessive re-rendering,
 // but for the debug menu we shouldn't be too worried about it. It never renders in production.
 
-import React, {ReactNode, useCallback, useState} from 'react';
+import React, {ReactNode, useCallback, useMemo, useState} from 'react';
 
 import DateTimePicker, {DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import {Platform, ScrollView, SectionList, StyleSheet, Switch, TouchableOpacity} from 'react-native';
@@ -12,7 +12,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
-import {MenuStackNavigationProps, MenuStackParamList, TabNavigationProps} from 'routes';
+import {RootStackNavigatorProps, RootStackParamList, TabNavigationProps} from 'routes';
 
 import {Divider, HStack, View, VStack} from 'components/core';
 
@@ -29,8 +29,8 @@ import {Card} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
-import {Keys} from 'components/screens/menu/Keys';
-import {getVersionInfoFull} from 'components/screens/menu/Version';
+import {Keys} from 'components/screens/root/Keys';
+import {getVersionInfoFull} from 'components/screens/root/Version';
 import {
   AllCapsSm,
   AllCapsSmBlack,
@@ -69,7 +69,7 @@ interface DeveloperMenuProps {
 }
 
 export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
-  const navigation = useNavigation<MenuStackNavigationProps>();
+  const navigation = useNavigation<RootStackNavigatorProps>();
   const queryCache = useQueryClient().getQueryCache();
   const toggleStaging = React.useCallback(() => {
     setStaging(!staging);
@@ -78,45 +78,380 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
   }, [staging, setStaging]);
   const {preferences, clearPreferences} = usePreferences();
   const [updateGroupId] = useState(getUpdateGroupId());
+
+  const debugSettingsActions = useMemo(
+    () => [
+      {
+        label: 'Select avalanche center (debug)',
+        data: 'Center (debug)',
+        action: () => {
+          navigation.navigate('avalancheCenterSelector', {debugMode: true});
+        },
+      },
+      {
+        label: 'Time machine',
+        data: 'timeMachine',
+        action: () => {
+          navigation.navigate('timeMachine');
+        },
+      },
+      {
+        label: 'View Expo configuration',
+        data: 'Expo Configuration',
+        action: () => {
+          navigation.navigate('expoConfig');
+        },
+      },
+      {
+        label: 'Debug Feature Flags',
+        data: 'Feature Flags',
+        action: () => {
+          navigation.navigate('featureFlags');
+        },
+      },
+    ],
+    [navigation],
+  );
+
+  const sentryErrorAction = useMemo(
+    () => [
+      {
+        label: 'Trigger exception',
+        data: 'Button Style Preview',
+        action: () => {
+          throw new Error('Test error');
+        },
+      },
+    ],
+    [],
+  );
+
+  const designPreviewActions = useMemo(
+    () => [
+      {
+        label: 'Open button style preview',
+        data: 'Button Style Preview',
+        action: () => {
+          navigation.navigate('buttonStylePreview');
+        },
+      },
+      {
+        label: 'Open text style preview',
+        data: 'Text Style Preview',
+        action: () => {
+          navigation.navigate('textStylePreview');
+        },
+      },
+      {
+        label: 'Open toast preview',
+        data: 'Toast Preview',
+        action: () => {
+          navigation.navigate('toastPreview');
+        },
+      },
+      {
+        label: 'Open avalanche component preview',
+        action: () => {
+          navigation.navigate('avalancheComponentPreview');
+        },
+        data: undefined,
+      },
+    ],
+    [navigation],
+  );
+
+  const screensActions = useMemo(
+    () => [
+      {
+        label: 'View map layer with active warning',
+        data: null,
+        action: () => {
+          navigation.navigate('avalancheCenter', {
+            center_id: 'NWAC',
+            requestedTime: toISOStringUTC(new Date('2024-02-27T15:21:00-0800')),
+          });
+        },
+      },
+      {
+        label: 'View map layer with active watch',
+        data: null,
+        action: () => {
+          navigation.navigate('avalancheCenter', {
+            center_id: 'CBAC',
+            requestedTime: toISOStringUTC(new Date('2023-03-21T5:21:00-0800')),
+          });
+        },
+      },
+      {
+        label: 'View forecast with active warning',
+        data: null,
+        action: () => {
+          navigation.navigate('forecast', {
+            center_id: 'NWAC',
+            forecast_zone_id: 1130,
+            requestedTime: toISOStringUTC(new Date('2023-02-20T5:21:00-0800')),
+          });
+        },
+      },
+      {
+        label: 'View forecast with active watch',
+        data: null,
+        action: () => {
+          navigation.navigate('forecast', {
+            center_id: 'CBAC',
+            forecast_zone_id: 298,
+            requestedTime: toISOStringUTC(new Date('2023-03-21T5:21:00-0800')),
+          });
+        },
+      },
+      {
+        label: 'View forecast with active special bulletin',
+        data: null,
+        action: () => {
+          navigation.navigate('forecast', {
+            center_id: 'CBAC',
+            forecast_zone_id: 298,
+            requestedTime: toISOStringUTC(new Date('2022-02-25T5:21:00-0800')),
+          });
+        },
+      },
+      {
+        label: 'View forecast with synopsis', // TODO(skuznets): move this to BTAC or something that uses blogs still
+        data: null,
+        action: () => {
+          navigation.navigate('forecast', {
+            center_id: 'NWAC',
+            forecast_zone_id: 1130,
+            requestedTime: toISOStringUTC(new Date('2022-04-10T5:21:00-0800')),
+          });
+        },
+      },
+      // TODO(skuznets): choose a recent forecast that's a summary
+      {
+        label: 'View forecast with standard row/column weather forecast',
+        data: null,
+        action: () => {
+          navigation.navigate('forecast', {
+            center_id: 'SNFAC',
+            forecast_zone_id: 714,
+            requestedTime: toISOStringUTC(new Date('2023-04-13T5:21:00-0800')),
+          });
+        },
+      },
+      {
+        label: 'View forecast with custom row/column weather forecast',
+        data: null,
+        action: () => {
+          navigation.navigate('forecast', {
+            center_id: 'BTAC',
+            forecast_zone_id: 1329,
+            requestedTime: toISOStringUTC(new Date('2023-05-01T21:21:00-0000')),
+          });
+        },
+      },
+      {
+        label: 'View forecast with another custom row/column weather forecast',
+        data: null,
+        action: () => {
+          navigation.navigate('forecast', {
+            center_id: 'SAC',
+            forecast_zone_id: 77,
+            requestedTime: toISOStringUTC(new Date('2023-04-08T14:21:00-0000')),
+          });
+        },
+      },
+      {
+        label: 'View forecast with inline weather forecast',
+        data: null,
+        action: () => {
+          navigation.navigate('forecast', {
+            center_id: 'SNFAC',
+            forecast_zone_id: 714,
+            requestedTime: toISOStringUTC(new Date('2020-04-08T5:21:00-0800')),
+          });
+        },
+      },
+      {
+        label: 'View expired forecast',
+        data: null,
+        action: () => {
+          navigation.navigate('forecast', {
+            center_id: 'NWAC',
+            forecast_zone_id: 1130,
+            requestedTime: toISOStringUTC(new Date('2023-02-01T5:21:00-0800')),
+          });
+        },
+      },
+      {
+        label: "View a forecast we can't find",
+        data: null,
+        action: () => {
+          navigation.navigate('forecast', {
+            center_id: 'NWAC',
+            forecast_zone_id: 1130,
+            requestedTime: toISOStringUTC(new Date('2000-01-01T00:00:00-0800')),
+          });
+        },
+      },
+      {
+        label: 'View a forecast with videos',
+        data: null,
+        action: () => {
+          navigation.navigate('forecast', {
+            center_id: 'NWAC',
+            forecast_zone_id: 1649,
+            requestedTime: toISOStringUTC(new Date('2025-02-26T5:11:30-0800')),
+          });
+        },
+      },
+    ],
+    [navigation],
+  );
+
+  const observationsActions = useMemo(
+    () => [
+      {
+        label: '1: simple',
+        data: null,
+        action: () => {
+          navigation.navigate('observation', {
+            id: '65450a80-1f57-468b-a51e-8c19789e0fab',
+          });
+        },
+      },
+      {
+        label: '2: simple',
+        data: null,
+        action: () => {
+          navigation.navigate('observation', {
+            id: '249e927f-aa0e-4e93-90fc-c9a54bc480d8',
+          });
+        },
+      },
+      {
+        label: '3: simple: icons',
+        data: null,
+        action: () => {
+          navigation.navigate('observation', {
+            id: '441f400b-56ac-498c-8754-f9d407796a82',
+          });
+        },
+      },
+      {
+        label: '4: complex: weather',
+        data: null,
+        action: () => {
+          navigation.navigate('observation', {
+            id: 'b8d347d1-7597-47be-9247-adc117100a69',
+          });
+        },
+      },
+      {
+        label: '5: complex: weather, snowpack',
+        data: null,
+        action: () => {
+          navigation.navigate('observation', {
+            id: '2d2f37b4-f46b-4ef2-967d-b018d41d0f2d',
+          });
+        },
+      },
+      {
+        label: '6: complex: snowpack',
+        data: null,
+        action: () => {
+          navigation.navigate('observation', {
+            id: '999d1e0c-154e-43f8-b15f-6585eac4d985',
+          });
+        },
+      },
+      {
+        label: '7: complex: avalanches',
+        data: null,
+        action: () => {
+          navigation.navigate('observation', {
+            id: '4b80e7fc-0011-4fdf-8d86-f2534c1d981c',
+          });
+        },
+      },
+      {
+        label: '8: complex: avalanches',
+        data: null,
+        action: () => {
+          navigation.navigate('observation', {
+            id: '5910e9e7-fe6e-46de-af08-9df9be9192e2',
+          });
+        },
+      },
+      {
+        label: '9: with video',
+        data: null,
+        action: () => {
+          navigation.navigate('observation', {
+            id: '7b1f595d-312a-42f8-adb1-2f1886b7802b',
+          });
+        },
+      },
+      {
+        label: 'NWAC pro observation with avalanches',
+        data: null,
+        action: () => {
+          navigation.navigate('nwacObservation', {
+            id: '20312',
+          });
+        },
+      },
+    ],
+    [navigation],
+  );
+
+  const componentsActions = useMemo(
+    () => [
+      {
+        label: 'View connection lost outcome',
+        data: 'Connection Lost',
+        action: () => {
+          navigation.navigate('outcome', {
+            which: 'connection',
+          });
+        },
+      },
+      {
+        label: 'View terminal error outcome',
+        data: 'Terminal Error',
+        action: () => {
+          navigation.navigate('outcome', {
+            which: 'terminal-error',
+          });
+        },
+      },
+      {
+        label: 'View retryable error outcome',
+        data: 'Retryable Error',
+        action: () => {
+          navigation.navigate('outcome', {
+            which: 'retryable-error',
+          });
+        },
+      },
+      {
+        label: 'View not found outcome',
+        data: 'Not Found',
+        action: () => {
+          navigation.navigate('outcome', {
+            which: 'not-found',
+          });
+        },
+      },
+    ],
+    [navigation],
+  );
+
   return (
     <Card borderColor="white" header={<BodyBlack>Developer Menu</BodyBlack>}>
       <VStack space={4}>
         <Card borderRadius={0} borderColor="white" header={<BodyBlack>Debug Settings</BodyBlack>}>
           <VStack space={12}>
-            <ActionList
-              bg="white"
-              pl={16}
-              actions={[
-                {
-                  label: 'Select avalanche center (debug)',
-                  data: 'Center (debug)',
-                  action: () => {
-                    navigation.navigate('avalancheCenterSelector', {debugMode: true});
-                  },
-                },
-                {
-                  label: 'Time machine',
-                  data: 'timeMachine',
-                  action: () => {
-                    navigation.navigate('timeMachine');
-                  },
-                },
-                {
-                  label: 'View Expo configuration',
-                  data: 'Expo Configuration',
-                  action: () => {
-                    navigation.navigate('expoConfig');
-                  },
-                },
-                {
-                  label: 'Debug Feature Flags',
-                  data: 'Feature Flags',
-                  action: () => {
-                    navigation.navigate('featureFlags');
-                  },
-                },
-              ]}
-            />
+            <ActionList bg="white" pl={16} actions={debugSettingsActions} />
             <HStack alignItems="center" justifyContent={'space-between'} space={16}>
               <Button
                 buttonStyle="normal"
@@ -200,343 +535,13 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
                 </BodySm>
               );
             })()}
-            <ActionList
-              actions={[
-                {
-                  label: 'Trigger exception',
-                  data: 'Button Style Preview',
-                  action: () => {
-                    throw new Error('Test error');
-                  },
-                },
-              ]}
-            />
+            <ActionList actions={sentryErrorAction} />
           </VStack>
         </Card>
-        <ActionList
-          header={<BodyBlack>Design Previews</BodyBlack>}
-          bg="white"
-          pl={16}
-          actions={[
-            {
-              label: 'Open button style preview',
-              data: 'Button Style Preview',
-              action: () => {
-                navigation.navigate('buttonStylePreview');
-              },
-            },
-            {
-              label: 'Open text style preview',
-              data: 'Text Style Preview',
-              action: () => {
-                navigation.navigate('textStylePreview');
-              },
-            },
-            {
-              label: 'Open toast preview',
-              data: 'Toast Preview',
-              action: () => {
-                navigation.navigate('toastPreview');
-              },
-            },
-            {
-              label: 'Open avalanche component preview',
-              action: () => {
-                navigation.navigate('avalancheComponentPreview');
-              },
-              data: undefined,
-            },
-          ]}
-        />
-        <ActionList
-          header={<BodyBlack>Screens</BodyBlack>}
-          bg="white"
-          pl={16}
-          actions={[
-            {
-              label: 'View map layer with active warning',
-              data: null,
-              action: () => {
-                navigation.navigate('avalancheCenter', {
-                  center_id: 'NWAC',
-                  requestedTime: toISOStringUTC(new Date('2024-02-27T15:21:00-0800')),
-                });
-              },
-            },
-            {
-              label: 'View map layer with active watch',
-              data: null,
-              action: () => {
-                navigation.navigate('avalancheCenter', {
-                  center_id: 'CBAC',
-                  requestedTime: toISOStringUTC(new Date('2023-03-21T5:21:00-0800')),
-                });
-              },
-            },
-            {
-              label: 'View forecast with active warning',
-              data: null,
-              action: () => {
-                navigation.navigate('forecast', {
-                  center_id: 'NWAC',
-                  forecast_zone_id: 1130,
-                  requestedTime: toISOStringUTC(new Date('2023-02-20T5:21:00-0800')),
-                });
-              },
-            },
-            {
-              label: 'View forecast with active watch',
-              data: null,
-              action: () => {
-                navigation.navigate('forecast', {
-                  center_id: 'CBAC',
-                  forecast_zone_id: 298,
-                  requestedTime: toISOStringUTC(new Date('2023-03-21T5:21:00-0800')),
-                });
-              },
-            },
-            {
-              label: 'View forecast with active special bulletin',
-              data: null,
-              action: () => {
-                navigation.navigate('forecast', {
-                  center_id: 'CBAC',
-                  forecast_zone_id: 298,
-                  requestedTime: toISOStringUTC(new Date('2022-02-25T5:21:00-0800')),
-                });
-              },
-            },
-            {
-              label: 'View forecast with synopsis', // TODO(skuznets): move this to BTAC or something that uses blogs still
-              data: null,
-              action: () => {
-                navigation.navigate('forecast', {
-                  center_id: 'NWAC',
-                  forecast_zone_id: 1130,
-                  requestedTime: toISOStringUTC(new Date('2022-04-10T5:21:00-0800')),
-                });
-              },
-            },
-            // TODO(skuznets): choose a recent forecast that's a summary
-            {
-              label: 'View forecast with standard row/column weather forecast',
-              data: null,
-              action: () => {
-                navigation.navigate('forecast', {
-                  center_id: 'SNFAC',
-                  forecast_zone_id: 714,
-                  requestedTime: toISOStringUTC(new Date('2023-04-13T5:21:00-0800')),
-                });
-              },
-            },
-            {
-              label: 'View forecast with custom row/column weather forecast',
-              data: null,
-              action: () => {
-                navigation.navigate('forecast', {
-                  center_id: 'BTAC',
-                  forecast_zone_id: 1329,
-                  requestedTime: toISOStringUTC(new Date('2023-05-01T21:21:00-0000')),
-                });
-              },
-            },
-            {
-              label: 'View forecast with another custom row/column weather forecast',
-              data: null,
-              action: () => {
-                navigation.navigate('forecast', {
-                  center_id: 'SAC',
-                  forecast_zone_id: 77,
-                  requestedTime: toISOStringUTC(new Date('2023-04-08T14:21:00-0000')),
-                });
-              },
-            },
-            {
-              label: 'View forecast with inline weather forecast',
-              data: null,
-              action: () => {
-                navigation.navigate('forecast', {
-                  center_id: 'SNFAC',
-                  forecast_zone_id: 714,
-                  requestedTime: toISOStringUTC(new Date('2020-04-08T5:21:00-0800')),
-                });
-              },
-            },
-            {
-              label: 'View expired forecast',
-              data: null,
-              action: () => {
-                navigation.navigate('forecast', {
-                  center_id: 'NWAC',
-                  forecast_zone_id: 1130,
-                  requestedTime: toISOStringUTC(new Date('2023-02-01T5:21:00-0800')),
-                });
-              },
-            },
-            {
-              label: "View a forecast we can't find",
-              data: null,
-              action: () => {
-                navigation.navigate('forecast', {
-                  center_id: 'NWAC',
-                  forecast_zone_id: 1130,
-                  requestedTime: toISOStringUTC(new Date('2000-01-01T00:00:00-0800')),
-                });
-              },
-            },
-            {
-              label: 'View a forecast with videos',
-              data: null,
-              action: () => {
-                navigation.navigate('forecast', {
-                  center_id: 'NWAC',
-                  forecast_zone_id: 1649,
-                  requestedTime: toISOStringUTC(new Date('2025-02-26T5:11:30-0800')),
-                });
-              },
-            },
-          ]}
-        />
-        <ActionList
-          header={<BodyBlack>Observations</BodyBlack>}
-          bg="white"
-          pl={16}
-          actions={[
-            {
-              label: '1: simple',
-              data: null,
-              action: () => {
-                navigation.navigate('observation', {
-                  id: '65450a80-1f57-468b-a51e-8c19789e0fab',
-                });
-              },
-            },
-            {
-              label: '2: simple',
-              data: null,
-              action: () => {
-                navigation.navigate('observation', {
-                  id: '249e927f-aa0e-4e93-90fc-c9a54bc480d8',
-                });
-              },
-            },
-            {
-              label: '3: simple: icons',
-              data: null,
-              action: () => {
-                navigation.navigate('observation', {
-                  id: '441f400b-56ac-498c-8754-f9d407796a82',
-                });
-              },
-            },
-            {
-              label: '4: complex: weather',
-              data: null,
-              action: () => {
-                navigation.navigate('observation', {
-                  id: 'b8d347d1-7597-47be-9247-adc117100a69',
-                });
-              },
-            },
-            {
-              label: '5: complex: weather, snowpack',
-              data: null,
-              action: () => {
-                navigation.navigate('observation', {
-                  id: '2d2f37b4-f46b-4ef2-967d-b018d41d0f2d',
-                });
-              },
-            },
-            {
-              label: '6: complex: snowpack',
-              data: null,
-              action: () => {
-                navigation.navigate('observation', {
-                  id: '999d1e0c-154e-43f8-b15f-6585eac4d985',
-                });
-              },
-            },
-            {
-              label: '7: complex: avalanches',
-              data: null,
-              action: () => {
-                navigation.navigate('observation', {
-                  id: '4b80e7fc-0011-4fdf-8d86-f2534c1d981c',
-                });
-              },
-            },
-            {
-              label: '8: complex: avalanches',
-              data: null,
-              action: () => {
-                navigation.navigate('observation', {
-                  id: '5910e9e7-fe6e-46de-af08-9df9be9192e2',
-                });
-              },
-            },
-            {
-              label: '9: with video',
-              data: null,
-              action: () => {
-                navigation.navigate('observation', {
-                  id: '7b1f595d-312a-42f8-adb1-2f1886b7802b',
-                });
-              },
-            },
-            {
-              label: 'NWAC pro observation with avalanches',
-              data: null,
-              action: () => {
-                navigation.navigate('nwacObservation', {
-                  id: '20312',
-                });
-              },
-            },
-          ]}
-        />
-        <ActionList
-          header={<BodyBlack>Components</BodyBlack>}
-          bg="white"
-          pl={16}
-          actions={[
-            {
-              label: 'View connection lost outcome',
-              data: 'Connection Lost',
-              action: () => {
-                navigation.navigate('outcome', {
-                  which: 'connection',
-                });
-              },
-            },
-            {
-              label: 'View terminal error outcome',
-              data: 'Terminal Error',
-              action: () => {
-                navigation.navigate('outcome', {
-                  which: 'terminal-error',
-                });
-              },
-            },
-            {
-              label: 'View retryable error outcome',
-              data: 'Retryable Error',
-              action: () => {
-                navigation.navigate('outcome', {
-                  which: 'retryable-error',
-                });
-              },
-            },
-            {
-              label: 'View not found outcome',
-              data: 'Not Found',
-              action: () => {
-                navigation.navigate('outcome', {
-                  which: 'not-found',
-                });
-              },
-            },
-          ]}
-        />
+        <ActionList header={<BodyBlack>Design Previews</BodyBlack>} bg="white" pl={16} actions={designPreviewActions} />
+        <ActionList header={<BodyBlack>Screens</BodyBlack>} bg="white" pl={16} actions={screensActions} />
+        <ActionList header={<BodyBlack>Observations</BodyBlack>} bg="white" pl={16} actions={observationsActions} />
+        <ActionList header={<BodyBlack>Components</BodyBlack>} bg="white" pl={16} actions={componentsActions} />
       </VStack>
     </Card>
   );
@@ -789,7 +794,7 @@ export const TimeMachine = () => {
   );
 };
 
-export const OutcomeScreen = ({route}: NativeStackScreenProps<MenuStackParamList, 'outcome'>) => {
+export const OutcomeScreen = ({route}: NativeStackScreenProps<RootStackParamList, 'outcome'>) => {
   const {which} = route.params;
   let outcome: ReactNode = <View></View>;
   switch (which) {
@@ -813,7 +818,7 @@ export const OutcomeScreen = ({route}: NativeStackScreenProps<MenuStackParamList
   );
 };
 
-export const ExpoConfigScreen = (_: NativeStackScreenProps<MenuStackParamList, 'expoConfig'>) => {
+export const ExpoConfigScreen = (_: NativeStackScreenProps<RootStackParamList, 'expoConfig'>) => {
   return (
     <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
       <ScrollView>

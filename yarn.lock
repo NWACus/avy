@@ -2423,10 +2423,29 @@
     use-latest-callback "^0.2.4"
     use-sync-external-store "^1.5.0"
 
+"@react-navigation/drawer@^7.9.2":
+  version "7.9.2"
+  resolved "https://registry.yarnpkg.com/@react-navigation/drawer/-/drawer-7.9.2.tgz#b964177890db18f0edfcee873788cd691ceced79"
+  integrity sha512-hVpRBcsOQlTm9UMwlXqoB2wRIMgjDxZ75ksiqCU5Bo5MUk8h/k4bzY9SO2/ViORjELOkzPZVRas+107H15/Wmw==
+  dependencies:
+    "@react-navigation/elements" "^2.9.8"
+    color "^4.2.3"
+    react-native-drawer-layout "^4.2.2"
+    use-latest-callback "^0.2.4"
+
 "@react-navigation/elements@^2.9.5":
   version "2.9.5"
   resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-2.9.5.tgz#29f68c4975351724dcfe1d3bdc76c4d6dc65fc33"
   integrity sha512-iHZU8rRN1014Upz73AqNVXDvSMZDh5/ktQ1CMe21rdgnOY79RWtHHBp9qOS3VtqlUVYGkuX5GEw5mDt4tKdl0g==
+  dependencies:
+    color "^4.2.3"
+    use-latest-callback "^0.2.4"
+    use-sync-external-store "^1.5.0"
+
+"@react-navigation/elements@^2.9.8":
+  version "2.9.8"
+  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-2.9.8.tgz#88833bc7a73e1f022302ea99171cbbb8fe509a9b"
+  integrity sha512-3gpwUmVnDJYvK9nFmAA/YXw0hmT/C/lZx8RkRMK+ux9l1T+32EWnQFnn34Wa1BMDX8HN2r64yrlW93DIzKI7Uw==
   dependencies:
     color "^4.2.3"
     use-latest-callback "^0.2.4"
@@ -9635,6 +9654,14 @@ react-native-collapsible@^1.6.0:
   version "1.6.2"
   resolved "https://registry.yarnpkg.com/react-native-collapsible/-/react-native-collapsible-1.6.2.tgz#3b67fa402a6ba3c291022f5db8f345083862c3d8"
   integrity sha512-MCOBVJWqHNjnDaGkvxX997VONmJeebh6wyJxnHEgg0L1PrlcXU1e/bo6eK+CDVFuMrCafw8Qh4DOv/C4V/+Iew==
+
+react-native-drawer-layout@^4.2.2:
+  version "4.2.2"
+  resolved "https://registry.yarnpkg.com/react-native-drawer-layout/-/react-native-drawer-layout-4.2.2.tgz#57832c186158e1ce1df78eca5f024fc9fc53bb80"
+  integrity sha512-UG/PTTeyyr43KahbgoGyXri8LMO5USHY3/RUpeKBKwCc7xLVGnDLOVNSRrJw0dDc7YmPbmAyJ4oxp8nKboKKuw==
+  dependencies:
+    color "^4.2.3"
+    use-latest-callback "^0.2.4"
 
 react-native-edge-to-edge@1.6.0:
   version "1.6.0"
