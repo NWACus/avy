@@ -384,9 +384,8 @@ export const ObservationForm: React.FC<{
                     <SelectField
                       name="activity"
                       label="Activity"
-                      prompt="What were you doing?"
                       ref={fieldRefs.activity}
-                      otherItems={[
+                      quickPickItems={[
                         {
                           label: 'Skiing/Snowboarding',
                           value: 'skiing_snowboarding',
@@ -396,13 +395,16 @@ export const ObservationForm: React.FC<{
                           value: 'snowmobiling_snowbiking',
                         },
                         {
-                          label: 'XC Skiing/Snowshoeing',
-                          value: 'xcskiing_snowshoeing',
-                        },
-                        {
                           label: 'Climbing',
                           value: 'climbing',
                         },
+                      ]}
+                      otherItems={[
+                        {
+                          label: 'XC Skiing/Snowshoeing',
+                          value: 'xcskiing_snowshoeing',
+                        },
+
                         {
                           label: 'Walking/Hiking',
                           value: 'walking',
@@ -416,6 +418,7 @@ export const ObservationForm: React.FC<{
                           value: 'other',
                         },
                       ]}
+                      prompt="Other"
                       disabled={disableFormControls}
                     />
                     <ObservationTextField

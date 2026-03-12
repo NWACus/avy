@@ -178,6 +178,7 @@ export const AvalancheObservationForm: React.FC<{
                           .slice(5) // Remove quick pick items
                           .filter(x => x !== 'disabled') // Remove disabled item
                           .map(trigger => ({label: FormatAvalancheTrigger(trigger), value: trigger}))}
+                        prompt="Other"
                         minOtherItemsShown={5}
                         required
                       />
