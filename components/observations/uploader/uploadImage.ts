@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {ImagePickerAssetSchema} from 'components/observations/ObservationFormData';
 import {format, parse} from 'date-fns';
-import {Action, SaveFormat, manipulateAsync} from 'expo-image-manipulator';
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 
 import {AvalancheCenterID, MediaItem, MediaUsage} from 'types/nationalAvalancheCenter';
 
@@ -27,25 +27,24 @@ const loadImageData = async ({uri, width, height}: PickedImage): Promise<{imageD
   const portrait = height > width;
   const maxDimension = portrait ? height : width;
   const clampedDimension = Math.min(maxDimension, 2048);
-  const manipulationActions: Action[] = [];
-  if (clampedDimension !== maxDimension) {
-    manipulationActions.push({
-      resize: {
-        width: portrait ? undefined : clampedDimension,
-        height: portrait ? clampedDimension : undefined,
-      },
-    });
-  }
 
   // We are happy to always run the image through the image manipulation pipeline, even if
-  // manipulationActions is empty, because it will resave the image as a JPEG and apply
+  // no resize is needed, because it will resave the image as a JPEG and apply
   // any necessary transforms to make it look correct. Images with non-standard orientations
   // are not handled correctly by the NAC image pipeline (you get things like flipped thumbnails).
   // More info on EXIF orientation: https://sirv.com/help/articles/rotate-photos-to-be-upright/
   //
   // The solution is pretty simple: allow the expo image manipulation library to save a copy, which
   // writes the image with a "normal" orientation and applies any necessary transforms to make it look correct.
-  const result = await manipulateAsync(uri, manipulationActions, {format: SaveFormat.JPEG, base64: true, compress: 0.9});
+  const context = ImageManipulator.manipulate(uri);
+  if (clampedDimension !== maxDimension) {
+    context.resize({
+      width: portrait ? undefined : clampedDimension,
+      height: portrait ? clampedDimension : undefined,
+    });
+  }
+  const imageRef = await context.renderAsync();
+  const result = await imageRef.saveAsync({format: SaveFormat.JPEG, base64: true, compress: 0.9});
   return {imageDataBase64: result.base64 ?? '', filename, mimeType: 'image/jpeg'};
 };
 
@@ -67,7 +66,6 @@ export const captureDateFromExif = (exif?: PickedImage['exif']): string | null =
 
 export const uploadImage = async (taskId: string, {apiPrefix, image, name, center_id, photoUsage, title, caption}: UploadImageOptions): Promise<MediaItem> => {
   const {imageDataBase64, filename, mimeType} = await loadImageData(image);
-
   const payload = {
     file: `data:${mimeType};base64,${imageDataBase64}`,
     type: 'image',
