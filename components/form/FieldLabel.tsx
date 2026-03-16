@@ -20,7 +20,7 @@ export function FieldLabel({label, required = false, helpText}: FieldLabelProps)
     <HStack>
       <BodySmBlack>{label}</BodySmBlack>
       {required && <RequiredLabel />}
-      {helpText && <InfoTooltip title={helpText.title} content={helpText.contentHtml} size={14} htmlStyle={{textAlign: 'left'}} />}
+      {helpText && <InfoTooltip title={helpText.title} content={helpText.contentHtml} size={18} htmlStyle={{textAlign: 'left'}} />}
     </HStack>
   );
 }

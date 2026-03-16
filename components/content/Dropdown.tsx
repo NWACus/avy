@@ -1,6 +1,6 @@
 import {View as RNView, TouchableOpacity} from 'react-native';
 
-import {Entypo} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {HStack, View, ViewProps, VStack} from 'components/core';
 import {Body} from 'components/text';
 import {useToggle} from 'hooks/useToggle';
@@ -53,7 +53,7 @@ export const Dropdown: React.FC<DropdownProps> = ({items, selectedItem, onSelect
         <View ref={ref} borderColor={borderColor} borderWidth={2} borderRadius={4} p={8} flexDirection="column" justifyContent="center" {...props}>
           <HStack justifyContent="space-between" alignItems="center">
             <Body>{selectedItem}</Body>
-            <Entypo name={dropdownVisible ? 'chevron-small-up' : 'chevron-small-down'} size={32} style={{marginTop: -2.25}} color={colorLookup('text')} />
+            <Ionicons name={dropdownVisible ? 'chevron-up' : 'chevron-down'} size={20} style={{marginTop: -2.25}} color={colorLookup('text')} />
           </HStack>
         </View>
       </TouchableOpacity>

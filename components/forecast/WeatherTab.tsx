@@ -6,7 +6,7 @@ import {Card, CollapsibleCard} from 'components/content/Card';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {InternalError, NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {HStack, VStack, View} from 'components/core';
-import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, BodyXSmBlack, Title3Black, bodySmSize} from 'components/text';
+import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, BodyXSmBlack, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {NWACStationsByZone, ZoneWithWeatherStations} from 'components/weather_data/NWACWeatherStationList';
 import helpStrings from 'content/helpStrings';
@@ -58,7 +58,7 @@ const SmallHeaderWithTooltip: React.FunctionComponent<{
   // text - neither `center` nor `baseline` alignment look good on their own
   <HStack space={6} alignItems="center" justifyContent="space-between" width="100%">
     <BodyXSmBlack style={{flex: 1}}>{title}</BodyXSmBlack>
-    {content && <InfoTooltip size={bodySmSize} title={dialogTitle || title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />}
+    {content && <InfoTooltip size={16} title={dialogTitle || title} content={content} style={{paddingBottom: 0, paddingTop: 1}} />}
   </HStack>
 );
 
