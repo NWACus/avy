@@ -29,8 +29,8 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
   title,
   content,
   color = 'text',
-  solidIcon = 'information-circle', // unfortunate ant misspelling: infocirlce
-  outlineIcon = 'information-circle-outline', // another unfortunate ant misspelling: infocirlceo
+  solidIcon = 'information-circle',
+  outlineIcon = 'information-circle-outline',
   size,
   htmlStyle = {},
   ...props

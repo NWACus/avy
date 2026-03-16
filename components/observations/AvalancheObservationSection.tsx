@@ -1,4 +1,4 @@
-import {Ionicons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {Button} from 'components/content/Button';
 import {EditDeleteCard} from 'components/content/Card';
 import {HStack, VStack} from 'components/core';
