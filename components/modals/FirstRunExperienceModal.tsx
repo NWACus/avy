@@ -25,7 +25,7 @@ export const FirstRunExperienceModal: React.FC<FirstRunExperienceModalProps> = (
   }, [onClose]);
 
   return (
-    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+    <Modal transparent statusBarTranslucent visible={visible} animationType="fade" onRequestClose={onClose}>
       <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24}}>
         <View style={{backgroundColor: colorLookup('white'), borderRadius: 16, padding: 24, width: '100%', maxWidth: 340}}>
           {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports*/}

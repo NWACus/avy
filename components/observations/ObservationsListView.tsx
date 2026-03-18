@@ -333,8 +333,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const optionalFilterCount = resolvedFilters.filter(value => value.removeFilter !== undefined).length;
 
   return (
-    <VStack width="100%" height="100%" space={0} paddingBottom={insets.bottom}>
-      <Modal visible={filterModalVisible} onRequestClose={hideFilterModal} presentationStyle="overFullScreen">
+    <VStack width="100%" height="100%" space={0}>
+      <Modal visible={filterModalVisible} onRequestClose={hideFilterModal} presentationStyle="overFullScreen" animationType="slide" statusBarTranslucent>
         <ObservationsFilterForm
           requestedTime={requestedTime}
           mapLayerFeatures={mapFeatures}
@@ -413,14 +413,14 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             </Center>
           )
         }
-        contentContainerStyle={{flexGrow: 1, paddingBottom: tabBarHeight}}
+        contentContainerStyle={{flexGrow: 1, paddingBottom: tabBarHeight + insets.bottom}}
         style={{backgroundColor: colorLookup('primary.background'), width: '100%', height: '100%'}}
         refreshing={isRefreshing}
         onRefresh={refreshWrapper}
         getItemLayout={getItemLayout}
         renderItem={renderItem}
       />
-      <HStack position="absolute" bottom={tabBarHeight + 16} right={16} justifyContent="flex-end">
+      <HStack position="absolute" bottom={tabBarHeight > 0 ? tabBarHeight + 8 : 32} right={16} justifyContent="flex-end">
         {/* Padding numbers are carefully chosen to center things, and to make the button perfectly round
         when the text is hidden. Expo icons are never vertically centered correctly by default for some reason. */}
         <Button buttonStyle="primary" onPress={submit} borderRadius={32} paddingHorizontal={13}>

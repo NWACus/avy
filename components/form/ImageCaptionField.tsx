@@ -57,7 +57,7 @@ const EditImageCaptionField: React.FC<{
   }, [visible, onModalDisplayed]);
 
   return (
-    <Modal visible={visible} animationType="none" transparent presentationStyle="overFullScreen" onRequestClose={onDismiss}>
+    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen" onRequestClose={onDismiss} statusBarTranslucent>
       <ImageCaptionFieldEditView onDismiss={handleDismiss} onViewDismissed={handleDismiss} onSetCaption={onSetCaption} initialCaption={image?.caption} />
     </Modal>
   );
@@ -228,7 +228,7 @@ const _ImageCaptionField = <TFieldValues extends FieldValues, TKey extends Field
           return (
             <View style={[styles.column, i % 2 == 0 ? styles.left : styles.right]} key={i}>
               <TouchableHighlight onPress={handlePressItem(i)} style={styles.cell}>
-                <>
+                <View flex={1}>
                   <ImageSizingView style={styles.view}>
                     {({width, height}) => (
                       <NetworkImage
@@ -254,7 +254,7 @@ const _ImageCaptionField = <TFieldValues extends FieldValues, TKey extends Field
                       <Body numberOfLines={1}>{caption}</Body>
                     )}
                   </View>
-                </>
+                </View>
               </TouchableHighlight>
               <View style={[styles.remove, i % 2 == 0 ? styles.trashLeft : styles.trashRight]}>
                 <Ionicons.Button

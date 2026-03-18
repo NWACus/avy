@@ -3,6 +3,7 @@ import {Button} from 'components/content/Button';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
 import {BodySemibold} from 'components/text';
 import {useEditViewState} from 'hooks/useEditViewState';
+import {useKeyboardBehavior} from 'hooks/useKeyboardBehavior';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {FormProvider, Resolver, useForm} from 'react-hook-form';
 import {Animated, Keyboard, KeyboardAvoidingView, LayoutChangeEvent, PanResponder, Platform, Pressable, StyleSheet, TextInput, View} from 'react-native';
@@ -30,9 +31,6 @@ const CaptionFormTextField = TextField as TextFieldComponent<CaptionFormData>;
 const captionForm = z.object({
   caption: z.string(),
 });
-
-// Behavior for KeyboardAvoidingView
-const BEHAVIOR = Platform.OS === 'ios' ? 'padding' : undefined;
 
 const INITIAL_HEIGHT = 320;
 const MAX_FORM_HEIGHT = 400;
@@ -296,8 +294,10 @@ export const ImageCaptionFieldEditView: React.FC<Props> = ({onSetCaption, onDism
     [actions, state.mode],
   );
 
+  const keyboardBehavior = useKeyboardBehavior();
+
   return (
-    <KeyboardAvoidingView behavior={BEHAVIOR} style={[styles.flexV, styles.container]}>
+    <KeyboardAvoidingView behavior={keyboardBehavior} style={[styles.flexV, styles.container]}>
       <Animated.View style={[styles.overlay, {opacity: fadeAnim.current}]} />
 
       <View onLayout={onLayout} style={[styles.flexV, {height: '100%'}]}>

@@ -3,7 +3,7 @@ import {useFocusEffect} from '@react-navigation/native';
 
 import React, {useCallback, useEffect, useState} from 'react';
 import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
-import {KeyboardAvoidingView, Modal, Platform, ScrollView, TouchableOpacity} from 'react-native';
+import {KeyboardAvoidingView, Modal, ScrollView, TouchableOpacity} from 'react-native';
 import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -21,6 +21,7 @@ import {AvalancheObservationFormData, avalancheObservationFormSchema, defaultAva
 import {BodySemibold, Title3Semibold} from 'components/text';
 import helpStrings from 'content/helpStrings';
 import {add} from 'date-fns';
+import {useKeyboardBehavior} from 'hooks/useKeyboardBehavior';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {
@@ -113,6 +114,8 @@ export const AvalancheObservationForm: React.FC<{
 
   const [_, setIsImagePickerDisplayed] = useState(false);
 
+  const keyboardBehavior = useKeyboardBehavior();
+
   const formFieldSpacing = 16;
 
   const maxImageCount = 4;
@@ -120,10 +123,10 @@ export const AvalancheObservationForm: React.FC<{
   return (
     <FormProvider {...formContext}>
       <SafeAreaProvider>
-        <Modal visible={visible} animationType="slide" onRequestClose={onCloseHandler}>
+        <Modal visible={visible} animationType="slide" onRequestClose={onCloseHandler} statusBarTranslucent>
           <SelectModalProvider>
             <View flex={1} style={{paddingTop: insets.top}}>
-              <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}}>
+              <KeyboardAvoidingView behavior={keyboardBehavior} style={{flex: 1, height: '100%'}}>
                 <ScrollView style={{flex: 1}} contentContainerStyle={{paddingBottom: insets.bottom}} keyboardShouldPersistTaps="handled">
                   <AvalancheObservationFormHeader onClose={onCloseHandler} />
                   <VStack>

@@ -15,10 +15,11 @@ import {DateField} from 'components/form/DateField';
 import {SwitchField} from 'components/form/SwitchField';
 import {BodyBlack, BodySemibold, BodySmBlack, Title3Semibold} from 'components/text';
 import {endOfDay, isAfter, isBefore, parseISO} from 'date-fns';
+import {useKeyboardBehavior} from 'hooks/useKeyboardBehavior';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
-import {KeyboardAvoidingView, Platform, View as RNView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
+import {KeyboardAvoidingView, View as RNView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 import {MapLayerFeature, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
@@ -287,12 +288,13 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   const minMaxDates = {
     max: requestedTimeToUTCDate(requestedTime),
   };
+  const keyboardBehavior = useKeyboardBehavior();
 
   return (
     <FormProvider {...formContext}>
       <SelectModalProvider>
-        <SafeAreaView style={{flex: 1}}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1}}>
+        <SafeAreaView style={{flex: 1}} edges={['top', 'bottom']}>
+          <KeyboardAvoidingView behavior={keyboardBehavior} style={{flex: 1, height: '100%'}}>
             <ScrollView style={{flex: 1, backgroundColor: 'white'}} ref={scrollViewRef}>
               <VStack space={12} pt={4}>
                 <HStack justifyContent={'space-between'} alignItems={'center'} px={16}>

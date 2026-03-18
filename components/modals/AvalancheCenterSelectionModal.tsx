@@ -11,7 +11,6 @@ import {Body, BodyBlack, Title3Black} from 'components/text';
 import {useAllAvalancheCenterMetadata} from 'hooks/useAllAvalancheCenterMetadata';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {Modal} from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 import {AvalancheCenter, AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
@@ -38,16 +37,15 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
       metadata.push(result.data);
     }
   }
-  const safeAreaInsets = useSafeAreaInsets();
 
   return (
-    <Modal transparent visible={visible && !loading} animationType="slide" onRequestClose={closeHandler}>
+    <Modal transparent visible={visible && !loading} animationType="slide" onRequestClose={closeHandler} statusBarTranslucent>
       {incompleteQueryState(capabilitiesResult, ...metadataResults) || !capabilities ? (
         // We want to show the query state as a part of the modal so that it only shows when the modal is present
         <QueryState results={[capabilitiesResult, ...metadataResults]} />
       ) : (
         // overflow hidden to keep the topo illustration from going beyond this view
-        <VStack justifyContent="space-between" height="100%" overflow="hidden" paddingBottom={safeAreaInsets.bottom} backgroundColor={colorLookup('primary.background')}>
+        <VStack justifyContent="space-between" height="100%" overflow="hidden" backgroundColor={colorLookup('primary.background')}>
           {/* these magic numbers are yanked out of Figma */}
           <Topo width={887.0152587890625} height={456.3430480957031} style={{position: 'absolute', left: -264, top: 338}} />
           <VStack space={16} pt={96} px={16} flex={1}>
@@ -64,7 +62,7 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
             </ScrollView>
           </VStack>
           <Divider />
-          <Center height={100} width="100%" px={16} backgroundColor={'white'} alignItems="stretch">
+          <Center height={100} width="100%" px={16} paddingBottom={16} backgroundColor={'white'} alignItems="stretch">
             <Button disabled={!selectedCenter} onPress={closeHandler} buttonStyle="primary" mt={16}>
               <BodyBlack>Continue</BodyBlack>
             </Button>

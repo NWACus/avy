@@ -66,7 +66,7 @@ export const MediaViewerModal: React.FunctionComponent<MediaViewerModalProps> = 
   );
 
   return (
-    <Modal visible={visible} onRequestClose={onClose} animationType="fade" presentationStyle="overFullScreen">
+    <Modal visible={visible} onRequestClose={onClose} animationType="fade" presentationStyle="overFullScreen" statusBarTranslucent>
       <View flex={1} style={{backgroundColor: colorLookup('modal.background')}}>
         <MediaViewerModalHeader index={currentItemIndex} mediaCount={mediaItems.length} onClose={onClose} />
         <GestureHandlerRootView>
