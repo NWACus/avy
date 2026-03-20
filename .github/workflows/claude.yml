@@ -32,4 +32,4 @@ jobs:
 
           # Limit tools to safe operations for this codebase
           claude_args: |
-            --allowedTools "Read,Glob,Grep,Edit,Write,Bash(pnpm prettify),Bash(pnpm tsc),Bash(pnpm lint),Bash(pnpm test),Bash(pnpm test:*),Bash(git status),Bash(git diff),Bash(git add),Bash(git commit),Bash(git checkout -b *),Bash(git push),Bash(gh pr create *),Bash(gh issue comment *),mcp__github_inline_comment__create_inline_comment"
+            --allowedTools "Read,Glob,Grep,Edit,Write,yarn,Bash(pnpm prettify),Bash(pnpm tsc),Bash(pnpm lint),Bash(pnpm test),Bash(pnpm test:*),Bash(git status),Bash(git diff),Bash(git add),Bash(git commit),Bash(git checkout -b *),Bash(git push),Bash(gh pr create *),Bash(gh issue comment *),mcp__github_inline_comment__create_inline_comment"
