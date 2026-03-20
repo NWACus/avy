@@ -5,6 +5,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useMutation} from '@tanstack/react-query';
 import {AxiosError} from 'axios';
 
+import {add} from 'date-fns';
 import _ from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FieldErrors, FieldPath, FormProvider, Resolver, useForm, useWatch} from 'react-hook-form';
@@ -17,7 +18,7 @@ import {Card} from 'components/content/Card';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {HStack, VStack, View} from 'components/core';
 import {Conditional} from 'components/form/Conditional';
-import {DateField} from 'components/form/DateField';
+import {QuickPickDateField} from 'components/form/QuickPickDateField';
 import {AddImageFromPickerButton, AddImageFromPickerButtonComponent, ImageCaptionField, ImageCaptionFieldComponent} from 'components/form/ImageCaptionField';
 import {LocationField} from 'components/form/LocationField';
 import {SelectField} from 'components/form/SelectField';
@@ -380,7 +381,17 @@ export const ObservationForm: React.FC<{
                       }}
                       disabled={disableFormControls}
                     />
-                    <DateField name="start_date" label="Observation date" maximumDate={today} disabled={disableFormControls} />
+                    <QuickPickDateField
+                      name="start_date"
+                      label="Observation date"
+                      quickPickDates={[
+                        {label: 'Today', value: today},
+                        {label: 'Yesterday', value: add(today, {days: -1})},
+                      ]}
+                      maximumDate={today}
+                      required
+                      disabled={disableFormControls}
+                    />
                     <SelectField
                       name="activity"
                       label="Activity"
