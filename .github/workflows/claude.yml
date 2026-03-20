@@ -1,0 +1,35 @@
+name: Claude Code
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+
+jobs:
+  claude:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          track_progress: true
+
+          # Limit tools to safe operations for this codebase
+          claude_args: |
+            --allowedTools "Read,Glob,Grep,Edit,Write,Bash(pnpm prettify),Bash(pnpm tsc),Bash(pnpm lint),Bash(pnpm test),Bash(pnpm test:*),Bash(git status),Bash(git diff),Bash(git add),Bash(git commit),Bash(git checkout -b *),Bash(git push),Bash(gh pr create *),Bash(gh issue comment *),mcp__github_inline_comment__create_inline_comment"
