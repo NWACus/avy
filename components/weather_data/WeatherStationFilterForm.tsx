@@ -15,7 +15,8 @@ import {isAfter, isBefore, parseISO, sub} from 'date-fns';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
-import {KeyboardAvoidingView, Platform, View as RNView, SafeAreaView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
+import {KeyboardAvoidingView, Platform, View as RNView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 import {MapLayer, WeatherStation, WeatherStationSource, WeatherStationTimeseriesEntry} from 'types/nationalAvalancheCenter';
 import {z} from 'zod';
@@ -236,9 +237,9 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
   return (
     <FormProvider {...formContext}>
       <SelectModalProvider>
-        <SafeAreaView style={{flex: 1, height: '100%'}}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1, height: '100%'}}>
-            <ScrollView style={{height: '100%', width: '100%', backgroundColor: 'white'}} ref={scrollViewRef}>
+        <SafeAreaView style={{flex: 1}}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1}}>
+            <ScrollView style={{flex: 1, backgroundColor: 'white'}} ref={scrollViewRef}>
               <VStack space={12} backgroundColor={colorLookup('primary.background')} pt={4}>
                 <Card
                   borderRadius={0}
