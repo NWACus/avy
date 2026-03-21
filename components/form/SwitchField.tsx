@@ -1,6 +1,6 @@
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import {ViewProps, VStack} from 'components/core';
-import {FieldLabel} from 'components/form/FieldLabel';
+import {FieldLabel, HelpText} from 'components/form/FieldLabel';
 import React, {useCallback} from 'react';
 import {useController} from 'react-hook-form';
 import {Platform} from 'react-native';
@@ -16,9 +16,10 @@ interface SwitchFieldProps<T> extends ViewProps {
   label?: string;
   items: Item<T>[];
   disabled?: boolean;
+  helpText?: HelpText;
 }
 
-export function SwitchField<T>({name, label, items, disabled, ...props}: SwitchFieldProps<T>) {
+export function SwitchField<T>({name, label, items, disabled, helpText, ...props}: SwitchFieldProps<T>) {
   const {field} = useController({name});
   const onValueChange = useCallback(
     (label: string) => {
@@ -32,7 +33,7 @@ export function SwitchField<T>({name, label, items, disabled, ...props}: SwitchF
 
   return (
     <VStack width="100%" space={4} {...props}>
-      {label && <FieldLabel label={label} />}
+      {label && <FieldLabel label={label} helpText={helpText} />}
       <SegmentedControl
         tintColor="white"
         activeFontStyle={{

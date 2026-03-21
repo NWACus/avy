@@ -36,6 +36,7 @@ import {usePostHog} from 'posthog-react-native';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
+import helpStrings from 'content/helpStrings';
 import {AvalancheCenterID, InstabilityDistribution, userFacingCenterId} from 'types/nationalAvalancheCenter';
 
 /**
@@ -495,6 +496,7 @@ export const ObservationForm: React.FC<{
                       ]}
                       pb={formFieldSpacing}
                       disabled={disableFormControls}
+                      helpText={{title: 'Cracking', contentHtml: helpStrings.observationCracking}}
                     />
                     <Conditional name="instability.cracking" value={true} space={formFieldSpacing}>
                       <SelectField
@@ -519,6 +521,7 @@ export const ObservationForm: React.FC<{
                       ]}
                       pb={formFieldSpacing}
                       disabled={disableFormControls}
+                      helpText={{title: 'Collapsing', contentHtml: helpStrings.observationCollapsing}}
                     />
                     <Conditional name="instability.collapsing" value={true} space={formFieldSpacing}>
                       <SelectField
