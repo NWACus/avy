@@ -29,6 +29,7 @@ import {ObservationFormData, defaultObservationFormData, simpleObservationFormSc
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskStatus} from 'components/observations/uploader/Task';
 import {Body, BodySemibold, Title3Semibold} from 'components/text';
+import helpStrings from 'content/helpStrings';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -36,7 +37,6 @@ import {usePostHog} from 'posthog-react-native';
 import Toast from 'react-native-toast-message';
 import {ObservationsStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import helpStrings from 'content/helpStrings';
 import {AvalancheCenterID, InstabilityDistribution, userFacingCenterId} from 'types/nationalAvalancheCenter';
 
 /**
