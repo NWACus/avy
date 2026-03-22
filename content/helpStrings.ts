@@ -7,6 +7,8 @@ export default {
     '<p class="nac-html-p">The <strong>Outlook</strong> is different than today\'s Forecast. The Outlook has a higher level of uncertainty but can still communicate expected danger trends over time.</p>',
   avalancheProblem:
     '<p class="nac-html-p"><strong>Avalanche Problems</strong> use four factors to give a more nuanced description of the days avalanche conditions: the type of potential avalanche, its location in the terrain, the likelihood of triggering it, and the potential size of the avalanche.</p><p class="nac-html-p">Watch this <a class="nac-html-a nac-native-link" href="https://avalanche.org/avalanche-encyclopedia/avalanche-problem/" target="_blank">video</a> to learn more about Avalanche Problems.</p>',
+  observationCracking: '<p>Mark yes if you experienced cracks triggered by your weight that shot out more than about 6 feet.</p>',
+  observationCollapsing: "<p>Mark yes if you experienced a notable collapse, drop or 'whoomph' of the snowpack.</p>",
   avalancheObservationOccurrenceDate: '<p>To the best of your knowledge, when did the avalanche occur?</p>',
   avalancheObservationAspect: '<p>Provide primary or average aspect of the slope where the avalanche released.</p>',
   avalancheObservationSize: `

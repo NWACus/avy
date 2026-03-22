@@ -29,6 +29,7 @@ import {ObservationFormData, defaultObservationFormData, simpleObservationFormSc
 import {UploaderState, getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {TaskStatus} from 'components/observations/uploader/Task';
 import {Body, BodySemibold, Title3Semibold} from 'components/text';
+import helpStrings from 'content/helpStrings';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -495,6 +496,7 @@ export const ObservationForm: React.FC<{
                       ]}
                       pb={formFieldSpacing}
                       disabled={disableFormControls}
+                      helpText={{title: 'Cracking', contentHtml: helpStrings.observationCracking}}
                     />
                     <Conditional name="instability.cracking" value={true} space={formFieldSpacing}>
                       <SelectField
@@ -519,6 +521,7 @@ export const ObservationForm: React.FC<{
                       ]}
                       pb={formFieldSpacing}
                       disabled={disableFormControls}
+                      helpText={{title: 'Collapsing', contentHtml: helpStrings.observationCollapsing}}
                     />
                     <Conditional name="instability.collapsing" value={true} space={formFieldSpacing}>
                       <SelectField
