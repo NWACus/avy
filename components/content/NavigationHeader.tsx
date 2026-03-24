@@ -75,7 +75,7 @@ export const NavigationHeader: React.FunctionComponent<NativeStackHeaderProps> =
   }, [shareUrl]);
 
   return (
-    // Setting the top padding to insets.top correclty aligns the view underneath the notches on iPhone. Trying to set the padding ourselves could lead to unexpected behavior
+    // Setting the top padding to insets.top correctly aligns the view underneath the notches on iPhone. Trying to set the padding ourselves could lead to unexpected behavior
     <View style={{width: '100%', backgroundColor: colorLookup('white'), paddingTop: insets.top, justifyContent: 'center', alignContent: 'center'}}>
       <HStack justifyContent="space-between" style={options.headerStyle} space={8} pl={3} pr={16}>
         {back ? (

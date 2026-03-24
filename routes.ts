@@ -14,7 +14,7 @@ export type TabNavigatorParamList = {
 export type TabNavigationProps = BottomTabNavigationProp<TabNavigatorParamList>;
 
 export type MainStackParamList = {
-  bottomTabs: TabNavigationProps;
+  bottomTabs: TabNavigationProps | undefined;
 
   avalancheCenter: {
     center_id: AvalancheCenterID;
@@ -41,51 +41,39 @@ export type MainStackParamList = {
     center_id: AvalancheCenterID;
     requestedTime: RequestedTimeString;
   };
-};
 
-export type MainStackNavigationProps = NativeStackNavigationProp<MainStackParamList>;
-
-export type DrawerParamList = {
-  MainStack: MainStackNavigationProps;
-};
-
-export type SideDrawerNavigationProps = DrawerNavigationProp<DrawerParamList>;
-
-export type RootStackParamList = {
-  drawer: SideDrawerNavigationProps;
+  // These screens are navigated to from the drawer
   avalancheCenterSelector: {
     debugMode: boolean;
   };
-  buttonStylePreview: undefined;
-  textStylePreview: undefined;
-  avalancheComponentPreview: undefined;
-  toastPreview: undefined;
-  timeMachine: undefined;
-  avalancheCenter: {
-    center_id: AvalancheCenterID;
-    requestedTime: RequestedTimeString;
-  };
-  forecast: {
-    center_id: AvalancheCenterID;
-    forecast_zone_id: number;
-    requestedTime: RequestedTimeString;
-  };
-  observation: {
-    id: string;
-  };
-  nwacObservation: {
-    id: string;
-  };
+
   about: undefined;
   outcome: {
     which: string;
   };
 
-  expoConfig: undefined;
+  // These screens are for the developer menu
+  developerMenu: {
+    staging: boolean;
+    setStaging: React.Dispatch<React.SetStateAction<boolean>>;
+  };
+
+  buttonStylePreview: undefined;
+  textStylePreview: undefined;
+  avalancheComponentPreview: undefined;
+  toastPreview: undefined;
+  timeMachine: undefined;
   featureFlags: undefined;
+  expoConfig: undefined;
 };
 
-export type RootStackNavigatorProps = NativeStackNavigationProp<RootStackParamList>;
+export type MainStackNavigationProps = NativeStackNavigationProp<MainStackParamList>;
+
+export type DrawerParamList = {
+  MainStack: MainStackNavigationProps | undefined;
+};
+
+export type SideDrawerNavigationProps = DrawerNavigationProp<DrawerParamList>;
 
 type WeatherStationsDetailPageProps = {
   center_id: AvalancheCenterID;

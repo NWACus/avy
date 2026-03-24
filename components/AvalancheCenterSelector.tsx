@@ -11,15 +11,15 @@ import {useAllAvalancheCenterMetadata} from 'hooks/useAllAvalancheCenterMetadata
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {usePostHog} from 'posthog-react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {RootStackNavigatorProps, RootStackParamList} from 'routes';
+import {MainStackNavigationProps, MainStackParamList} from 'routes';
 import {AvalancheCenter, AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 export const AvalancheCenterSelector: React.FunctionComponent<{
   currentCenterId: AvalancheCenterID;
   setAvalancheCenter: (center: AvalancheCenterID) => void;
 }> = ({currentCenterId, setAvalancheCenter}) => {
-  const navigation = useNavigation<RootStackNavigatorProps>();
-  const route = useRoute<NativeStackScreenProps<RootStackParamList, 'avalancheCenterSelector'>['route']>();
+  const navigation = useNavigation<MainStackNavigationProps>();
+  const route = useRoute<NativeStackScreenProps<MainStackParamList, 'avalancheCenterSelector'>['route']>();
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
   const whichCenters = route.params.debugMode ? AvalancheCenters.AllCenters : AvalancheCenters.SupportedCenters;

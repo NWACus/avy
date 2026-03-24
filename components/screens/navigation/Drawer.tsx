@@ -5,9 +5,8 @@ import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
+import {getVersionInfoFull} from 'components/screens/main/Version';
 import {MainStackNavigator} from 'components/screens/navigation/MainStack';
-import {DeveloperMenu} from 'components/screens/root/DeveloperMenu';
-import {getVersionInfoFull} from 'components/screens/root/Version';
 import {BodyBlack, Title3Semibold} from 'components/text';
 import {settingsMenuItems} from 'data/settingsMenuItems';
 import * as Updates from 'expo-updates';
@@ -40,8 +39,8 @@ export const DrawerNavigator: React.FunctionComponent<{
   );
 
   const renderMainStack = useCallback(
-    (_: {route: RouteProp<DrawerParamList, 'MainStack'>}) => <MainStackNavigator centerId={centerId} requestedTime={requestedTime} />,
-    [requestedTime, centerId],
+    (_: {route: RouteProp<DrawerParamList, 'MainStack'>}) => <MainStackNavigator centerId={centerId} requestedTime={requestedTime} staging={staging} setStaging={setStaging} />,
+    [requestedTime, centerId, staging, setStaging],
   );
   return (
     <Drawer.Navigator initialRouteName="MainStack" drawerContent={renderDrawer}>
@@ -85,12 +84,16 @@ const DrawerMenu: React.FunctionComponent<
   );
 
   const navigateToCenterSelection = useCallback(() => {
-    navigation.navigate('avalancheCenterSelector', {debugMode: false});
+    navigation.navigate('MainStack', {screen: 'avalancheCenterSelector', params: {debugMode: false}});
   }, [navigation]);
 
   const navigateToAbout = useCallback(() => {
-    navigation.navigate('about');
+    navigation.navigate('MainStack', {screen: 'about'});
   }, [navigation]);
+
+  const navigateToDeveloperMenu = useCallback(() => {
+    navigation.navigate('MainStack', {screen: 'developerMenu', params: {staging: staging, setStaging: setStaging}});
+  }, [navigation, staging, setStaging]);
 
   const menuActions = useMemo(
     () =>
@@ -140,7 +143,20 @@ const DrawerMenu: React.FunctionComponent<
                 },
               ]}
             />
-            {Updates.channel !== 'release' && <DeveloperMenu staging={staging} setStaging={setStaging} />}
+            {Updates.channel !== 'release' && (
+              <ActionList
+                header={<BodyBlack>Developer Menu</BodyBlack>}
+                bg="white"
+                pl={16}
+                actions={[
+                  {
+                    label: 'Open Dev Menu',
+                    data: '',
+                    action: navigateToDeveloperMenu,
+                  },
+                ]}
+              />
+            )}
           </VStack>
         </ScrollView>
       </SafeAreaView>

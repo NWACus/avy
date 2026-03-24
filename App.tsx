@@ -45,7 +45,7 @@ import * as messages from 'compiled-lang/en.json';
 import {Button} from 'components/content/Button';
 import {Center, VStack} from 'components/core';
 import {KillSwitchMonitor} from 'components/KillSwitchMonitor';
-import {RootStackNavigator} from 'components/screens/navigation/RootStack';
+import {DrawerNavigator} from 'components/screens/navigation/Drawer';
 import {Body, BodyBlack, Title3Black} from 'components/text';
 import * as Linking from 'expo-linking';
 import * as Updates from 'expo-updates';
@@ -484,7 +484,7 @@ const BaseApp: React.FunctionComponent<{
                   <SelectProvider>
                     <StatusBar barStyle={'dark-content'} animated={false} backgroundColor={'white'} />
                     <View style={{flex: 1}}>
-                      <RootStackNavigator requestedTime={requestedTime} centerId={avalancheCenterId} staging={staging} setStaging={setStaging} />
+                      <DrawerNavigator requestedTime={requestedTime} centerId={avalancheCenterId} staging={staging} setStaging={setStaging} />
                     </View>
                   </SelectProvider>
                 </KillSwitchMonitor>

@@ -12,7 +12,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
-import {RootStackNavigatorProps, RootStackParamList} from 'routes';
+import {MainStackNavigationProps, MainStackParamList} from 'routes';
 
 import {Divider, HStack, View, VStack} from 'components/core';
 
@@ -29,8 +29,8 @@ import {Card} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
-import {Keys} from 'components/screens/root/Keys';
-import {getVersionInfoFull} from 'components/screens/root/Version';
+import {Keys} from 'components/screens/main/Keys';
+import {getVersionInfoFull} from 'components/screens/main/Version';
 import {
   AllCapsSm,
   AllCapsSmBlack,
@@ -68,8 +68,27 @@ interface DeveloperMenuProps {
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
-  const navigation = useNavigation<RootStackNavigatorProps>();
+export const DeveloperMenuScreen = ({route}: NativeStackScreenProps<MainStackParamList, 'developerMenu'>) => {
+  const {staging: initialStaging, setStaging} = route.params;
+  const [staging, setStagingLocal] = useState(initialStaging);
+
+  const handleSetStaging = useCallback(
+    (value: boolean | ((prev: boolean) => boolean)) => {
+      setStagingLocal(value);
+      setStaging(value);
+    },
+    [setStaging],
+  );
+
+  return (
+    <View flex={1}>
+      <DeveloperMenu staging={staging} setStaging={handleSetStaging} />
+    </View>
+  );
+};
+
+const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
+  const navigation = useNavigation<MainStackNavigationProps>();
   const queryCache = useQueryClient().getQueryCache();
   const toggleStaging = React.useCallback(() => {
     setStaging(!staging);
@@ -447,103 +466,105 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
   );
 
   return (
-    <Card borderColor="white" header={<BodyBlack>Developer Menu</BodyBlack>}>
-      <VStack space={4}>
-        <Card borderRadius={0} borderColor="white" header={<BodyBlack>Debug Settings</BodyBlack>}>
-          <VStack space={12}>
-            <ActionList bg="white" pl={16} actions={debugSettingsActions} />
-            <HStack alignItems="center" justifyContent={'space-between'} space={16}>
+    <ScrollView style={{flex: 1}}>
+      <Card borderColor="white" header={<BodyBlack>Developer Menu</BodyBlack>}>
+        <VStack space={4}>
+          <Card borderRadius={0} borderColor="white" header={<BodyBlack>Debug Settings</BodyBlack>}>
+            <VStack space={12}>
+              <ActionList bg="white" pl={16} actions={debugSettingsActions} />
+              <HStack alignItems="center" justifyContent={'space-between'} space={16}>
+                <Button
+                  buttonStyle="normal"
+                  // this is disabled on iOS and enabled on Android,
+                  // since we don't have proper attachment support on iOS
+                  // https://github.com/expo/expo/issues/24613
+                  disabled={Platform.OS === 'ios'}
+                  onPress={() => {
+                    void (async () => {
+                      if (
+                        !(await sendMail({
+                          to: 'developer+app-logs@nwac.us',
+                          subject: 'NWAC app log files',
+                          body: `\n\n---\n\nRun \`yarn bunyan ${logFilePath.split('/').slice(-1)[0]}\` to view.\nRun \`yarn bunyan --help\` for additional options.`,
+                          footer: getVersionInfoFull(preferences.mixpanelUserId, updateGroupId),
+                          attachments: [logFilePath],
+                          logger,
+                        }))
+                      ) {
+                        Toast.show({
+                          type: 'error',
+                          text1: 'Email is not configured!',
+                          position: 'bottom',
+                        });
+                      }
+                    })();
+                  }}>
+                  Email log file
+                </Button>
+                <Button
+                  buttonStyle="normal"
+                  onPress={() => {
+                    void (async () => {
+                      const log = await FileSystem.readAsStringAsync(logFilePath);
+                      await Clipboard.setStringAsync(log);
+                    })();
+                  }}>
+                  Copy log to clipboard
+                </Button>
+              </HStack>
               <Button
                 buttonStyle="normal"
-                // this is disabled on iOS and enabled on Android,
-                // since we don't have proper attachment support on iOS
-                // https://github.com/expo/expo/issues/24613
-                disabled={Platform.OS === 'ios'}
                 onPress={() => {
                   void (async () => {
-                    if (
-                      !(await sendMail({
-                        to: 'developer+app-logs@nwac.us',
-                        subject: 'NWAC app log files',
-                        body: `\n\n---\n\nRun \`yarn bunyan ${logFilePath.split('/').slice(-1)[0]}\` to view.\nRun \`yarn bunyan --help\` for additional options.`,
-                        footer: getVersionInfoFull(preferences.mixpanelUserId, updateGroupId),
-                        attachments: [logFilePath],
-                        logger,
-                      }))
-                    ) {
-                      Toast.show({
-                        type: 'error',
-                        text1: 'Email is not configured!',
-                        position: 'bottom',
-                      });
-                    }
+                    await AsyncStorage.removeItem(QUERY_CACHE_ASYNC_STORAGE_KEY);
+                    queryCache.clear();
                   })();
                 }}>
-                Email log file
+                Reset the query cache
               </Button>
-              <Button
-                buttonStyle="normal"
-                onPress={() => {
-                  void (async () => {
-                    const log = await FileSystem.readAsStringAsync(logFilePath);
-                    await Clipboard.setStringAsync(log);
-                  })();
-                }}>
-                Copy log to clipboard
+              <Button buttonStyle="normal" onPress={() => void clearPreferences()}>
+                Reset preferences
               </Button>
-            </HStack>
-            <Button
-              buttonStyle="normal"
-              onPress={() => {
-                void (async () => {
-                  await AsyncStorage.removeItem(QUERY_CACHE_ASYNC_STORAGE_KEY);
-                  queryCache.clear();
-                })();
-              }}>
-              Reset the query cache
-            </Button>
-            <Button buttonStyle="normal" onPress={() => void clearPreferences()}>
-              Reset preferences
-            </Button>
-            <HStack justifyContent="space-between" alignItems="center" space={16}>
-              <Body>Use staging environment</Body>
-              <Switch value={staging} onValueChange={toggleStaging} />
-            </HStack>
-          </VStack>
-        </Card>
-        <Card borderRadius={0} borderColor="white" header={<BodyBlack>Keys</BodyBlack>}>
-          <Keys />
-        </Card>
-        <Card borderRadius={0} borderColor="white" header={<BodyBlack>Observation Uploader</BodyBlack>}>
-          <VStack space={12}>
-            <Button buttonStyle="normal" onPress={() => logger.info({stats: getUploader().getState()}, 'ObservationUploader state')}>
-              Dump state to log
-            </Button>
-            <Button buttonStyle="normal" onPress={() => void getUploader().resetTaskQueue()}>
-              Reset the observation uploader
-            </Button>
-          </VStack>
-        </Card>
-        <Card borderRadius={0} borderColor="white" header={<BodyBlack>Sentry</BodyBlack>}>
-          <VStack space={4}>
-            <Body>Config</Body>
-            {(() => {
-              const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN as string;
-              return (
-                <BodySm fontFamily={Platform.select({ios: 'Courier New', android: 'monospace'})} color={colorLookup(dsn ? 'text' : 'red')}>
-                  SENTRY_DSN: {dsn ? `${dsn.slice(0, 15)}...` : 'not supplied'}
-                </BodySm>
-              );
-            })()}
-            <ActionList actions={sentryErrorAction} />
-          </VStack>
-        </Card>
-        <ActionList header={<BodyBlack>Design Previews</BodyBlack>} bg="white" pl={16} actions={designPreviewActions} />
-        <ActionList header={<BodyBlack>Screens</BodyBlack>} bg="white" pl={16} actions={screensActions} />
-        <ActionList header={<BodyBlack>Observations</BodyBlack>} bg="white" pl={16} actions={observationsActions} />
-        <ActionList header={<BodyBlack>Components</BodyBlack>} bg="white" pl={16} actions={componentsActions} />
-      </VStack>
-    </Card>
+              <HStack justifyContent="space-between" alignItems="center" space={16}>
+                <Body>Use staging environment</Body>
+                <Switch value={staging} onValueChange={toggleStaging} />
+              </HStack>
+            </VStack>
+          </Card>
+          <Card borderRadius={0} borderColor="white" header={<BodyBlack>Keys</BodyBlack>}>
+            <Keys />
+          </Card>
+          <Card borderRadius={0} borderColor="white" header={<BodyBlack>Observation Uploader</BodyBlack>}>
+            <VStack space={12}>
+              <Button buttonStyle="normal" onPress={() => logger.info({stats: getUploader().getState()}, 'ObservationUploader state')}>
+                Dump state to log
+              </Button>
+              <Button buttonStyle="normal" onPress={() => void getUploader().resetTaskQueue()}>
+                Reset the observation uploader
+              </Button>
+            </VStack>
+          </Card>
+          <Card borderRadius={0} borderColor="white" header={<BodyBlack>Sentry</BodyBlack>}>
+            <VStack space={4}>
+              <Body>Config</Body>
+              {(() => {
+                const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN as string;
+                return (
+                  <BodySm fontFamily={Platform.select({ios: 'Courier New', android: 'monospace'})} color={colorLookup(dsn ? 'text' : 'red')}>
+                    SENTRY_DSN: {dsn ? `${dsn.slice(0, 15)}...` : 'not supplied'}
+                  </BodySm>
+                );
+              })()}
+              <ActionList actions={sentryErrorAction} />
+            </VStack>
+          </Card>
+          <ActionList header={<BodyBlack>Design Previews</BodyBlack>} bg="white" pl={16} actions={designPreviewActions} />
+          <ActionList header={<BodyBlack>Screens</BodyBlack>} bg="white" pl={16} actions={screensActions} />
+          <ActionList header={<BodyBlack>Observations</BodyBlack>} bg="white" pl={16} actions={observationsActions} />
+          <ActionList header={<BodyBlack>Components</BodyBlack>} bg="white" pl={16} actions={componentsActions} />
+        </VStack>
+      </Card>
+    </ScrollView>
   );
 };
 
@@ -787,7 +808,7 @@ export const TimeMachine = () => {
   );
 };
 
-export const OutcomeScreen = ({route}: NativeStackScreenProps<RootStackParamList, 'outcome'>) => {
+export const OutcomeScreen = ({route}: NativeStackScreenProps<MainStackParamList, 'outcome'>) => {
   const {which} = route.params;
   let outcome: ReactNode = <View></View>;
   switch (which) {
@@ -811,7 +832,7 @@ export const OutcomeScreen = ({route}: NativeStackScreenProps<RootStackParamList
   );
 };
 
-export const ExpoConfigScreen = (_: NativeStackScreenProps<RootStackParamList, 'expoConfig'>) => {
+export const ExpoConfigScreen = (_: NativeStackScreenProps<MainStackParamList, 'expoConfig'>) => {
   return (
     <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
       <ScrollView>

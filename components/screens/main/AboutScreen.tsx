@@ -13,15 +13,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import {useFocusEffect} from '@react-navigation/native';
 import {ActionList} from 'components/content/ActionList';
 import {Center, HStack, View, VStack} from 'components/core';
-import {getVersionInfoFull} from 'components/screens/root/Version';
+import {getVersionInfoFull} from 'components/screens/main/Version';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {RootStackParamList} from 'routes';
+import {MainStackParamList} from 'routes';
 
-export const AboutScreen = (_: NativeStackScreenProps<RootStackParamList, 'about'>) => {
+export const AboutScreen = (_: NativeStackScreenProps<MainStackParamList, 'about'>) => {
   const {
     preferences: {mixpanelUserId},
   } = usePreferences();
