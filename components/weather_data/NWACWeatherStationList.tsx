@@ -10,7 +10,7 @@ import {BodyBlack} from 'components/text';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import {logger} from 'logger';
-import {WeatherStackNavigationProps} from 'routes';
+import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {mapFeaturesForCenter, MapLayerFeature, WeatherStationCollection, WeatherStationProperties, WeatherStationSource} from 'types/nationalAvalancheCenter';
 import {RequestedTimeString} from 'utils/date';
@@ -106,7 +106,7 @@ export const NWACStationsByZone = (mapLayerFeatures: MapLayerFeature[] | undefin
 };
 
 export const NWACStationList: React.FunctionComponent<{token: string; requestedTime: RequestedTimeString}> = ({token, requestedTime}) => {
-  const navigation = useNavigation<WeatherStackNavigationProps>();
+  const navigation = useNavigation<MainStackNavigationProps>();
   const mapLayerResult = useAllMapLayers();
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata('NWAC', token);

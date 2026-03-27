@@ -3,7 +3,7 @@ import {Image, ScrollView, StyleSheet} from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {CameraBounds, MarkerView} from '@rnmapbox/maps';
 import {colorFor} from 'components/AvalancheDangerTriangle';
@@ -21,7 +21,7 @@ import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabiliti
 import {useNACObservation} from 'hooks/useNACObservation';
 import {useNWACObservation} from 'hooks/useNWACObservation';
 import {usePostHog} from 'posthog-react-native';
-import {ObservationsStackNavigationProps} from 'routes';
+import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
   Activity,
@@ -180,7 +180,7 @@ export const ObservationCard: React.FunctionComponent<{
   mapLayerFeatures: MapLayerFeature[];
   capabilities: AllAvalancheCenterCapabilities;
 }> = ({observation, mapLayerFeatures, capabilities}) => {
-  const navigation = useNavigation<ObservationsStackNavigationProps>();
+  const navigation = useNavigation<MainStackNavigationProps>();
   const {avalanches_observed, avalanches_triggered, avalanches_caught} = observation.instability;
   const zone_name =
     observation.location_point?.lat && observation.location_point?.lng && matchesZone(mapLayerFeatures, observation.location_point?.lat, observation.location_point?.lng);
@@ -201,171 +201,162 @@ export const ObservationCard: React.FunctionComponent<{
   }, [postHog, observation.center_id, observation.id]);
   useFocusEffect(recordAnalytics);
 
+  const insets = useSafeAreaInsets();
+
   const nePosition: Position = [(observation.location_point.lng ?? 0) + 0.075 / 2, (observation.location_point.lat ?? 0) + 0.075 / 2];
   const swPosition: Position = [(observation.location_point.lng ?? 0) - 0.075 / 2, (observation.location_point.lat ?? 0) - 0.075 / 2];
   const initialCameraBounds: CameraBounds = {ne: nePosition, sw: swPosition};
 
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
-      <SafeAreaView edges={['left', 'right']} style={{height: '100%', width: '100%'}}>
-        <VStack space={8} backgroundColor="white" style={{height: '100%', width: '100%'}}>
-          <ScrollView style={{height: '100%', width: '100%'}}>
-            <VStack space={8} backgroundColor={colorLookup('primary.background')}>
-              <View bg="white" py={8} px={16}>
-                <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
-                  <VStack space={8} style={{flex: 1}}>
-                    <AllCapsSmBlack>Observed</AllCapsSmBlack>
-                    <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                      {observationDateToLocalShortDateString(observation.start_date)}
-                    </AllCapsSm>
-                  </VStack>
-                  <VStack space={8} style={{flex: 1}}>
-                    <AllCapsSmBlack>Submitted</AllCapsSmBlack>
-                    <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
-                      {utcDateToLocalShortDateString(observation.created_at)}
-                    </AllCapsSm>
-                  </VStack>
-                  <VStack space={8} style={{flex: 1}}>
-                    <AllCapsSmBlack>Author</AllCapsSmBlack>
-                    <AllCapsSm style={{textTransform: 'none'}} color="text.secondary" unescapeHTMLEntities>
-                      {observation.name || 'Unknown'}
-                    </AllCapsSm>
-                  </VStack>
-                </HStack>
-              </View>
-              <Card borderRadius={0} borderColor="white" header={<BodyBlack>Summary</BodyBlack>}>
-                <VStack space={8} width="100%">
-                  {observation.location_point.lat && observation.location_point.lng && !isPlaceholder(observation.location_point.lat, observation.location_point.lng) && (
-                    <ZoneMap
-                      style={{width: '100%', height: 200}}
-                      zones={[]}
-                      rotateEnabled={false}
-                      scrollEnabled={true}
-                      zoomEnabled={true}
-                      initialCameraBounds={initialCameraBounds}>
-                      <MarkerView coordinate={[observation.location_point.lng, observation.location_point.lat]} anchor={{x: 0.5, y: 1}}>
-                        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports */}
-                        <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40}} />
-                      </MarkerView>
-                    </ZoneMap>
-                  )}
-                  <TableRow label="Avalanche Center" value={userFacingCenterId(observation.center_id, capabilities)} />
-                  {observation.location_name && <TableRow label="Location" value={observation.location_name} />}
-                  <TableRow label="Route" value={observation.route || 'Not specified'} />
-                  <TableRow label="Activity" value={activityDisplayName(observation.activity)} />
-                  {observation.observation_summary && <HTML source={{html: observation.observation_summary}} />}
-                  <View pt={8}>
-                    <BodySemibold>Signs of Instability</BodySemibold>
-                  </View>
-                  {/* Avalanche section */}
-                  <HStack space={8}>
-                    <NACAvalancheIcon size={bodySize} color={avalanches_observed ? colorFor(DangerLevel.High).string() : colorLookup('text')} />
-                    <Body>{avalanches_observed ? 'Avalanche(s) Observed' : 'No Avalanche(s) Observed'}</Body>
-                  </HStack>
-                  {avalanches_triggered && (
-                    <HStack space={8}>
-                      <NACAvalancheIcon size={bodySize} color={colorFor(DangerLevel.High).string()} />
-                      <Body>{'Avalanche(s) Triggered'}</Body>
-                    </HStack>
-                  )}
-                  {avalanches_caught && (
-                    <HStack space={8}>
-                      <NACAvalancheIcon size={bodySize} color={colorFor(DangerLevel.High).string()} />
-                      <Body>{'Caught In Avalanche'}</Body>
-                    </HStack>
-                  )}
-                  {/* Collapsing section */}
-                  <HStack space={8}>
-                    <Ionicons name="flag" size={bodySize} color={observation.instability.collapsing ? colorFor(DangerLevel.Considerable).string() : colorLookup('text')} />
-                    <Body>
-                      {observation.instability.collapsing
-                        ? `${FormatInstabilityDistribution(observation.instability.collapsing_description as InstabilityDistribution)} Collapsing`
-                        : 'No Collapsing Observed'}
-                    </Body>
-                  </HStack>
-                  {/* Cracking section */}
-                  <HStack space={8}>
-                    <Ionicons name="flag" size={bodySize} color={observation.instability.cracking ? colorFor(DangerLevel.Considerable).string() : colorLookup('text')} />
-                    <Body>
-                      {observation.instability.cracking
-                        ? `${FormatInstabilityDistribution(observation.instability.cracking_description as InstabilityDistribution)} Cracking`
-                        : 'No Cracking Observed'}
-                    </Body>
-                  </HStack>
-
-                  {observation.instability_summary && (
-                    <VStack pt={8} space={8} width="100%">
-                      <BodySemibold>Instability Comments</BodySemibold>
-                      <HTML source={{html: observation.instability_summary}} />
-                    </VStack>
-                  )}
+      <VStack space={8} backgroundColor="white" style={{height: '100%', width: '100%'}}>
+        <ScrollView style={{height: '100%', width: '100%'}}>
+          <VStack space={8} backgroundColor={colorLookup('primary.background')} paddingBottom={insets.bottom}>
+            <View bg="white" py={8} px={16}>
+              <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
+                <VStack space={8} style={{flex: 1}}>
+                  <AllCapsSmBlack>Observed</AllCapsSmBlack>
+                  <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                    {observationDateToLocalShortDateString(observation.start_date)}
+                  </AllCapsSm>
                 </VStack>
-              </Card>
-              {(observation.media ?? []).length > 0 && (
-                <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>}>
-                  <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={observation.media ?? []} />
-                </Card>
-              )}
-              {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanches_summary) && (
-                <Card borderRadius={0} borderColor="white" header={<BodyBlack>Avalanches</BodyBlack>}>
-                  <VStack space={8} width="100%">
-                    {observation.avalanches_summary && <HTML source={{html: observation.avalanches_summary}} />}
-                  </VStack>
-                  {observation.avalanches &&
-                    observation.avalanches.length > 0 &&
-                    observation.avalanches.map((item, index) => (
-                      <VStack space={8} style={{flex: 1}} key={`avalanche-${index}`}>
-                        <BodyBlack>{`#${index + 1}${item.location ? `: ${item.location}` : ''}`}</BodyBlack>
-                        {item.comments && <HTML source={{html: item.comments}} />}
-                        <TableRow label={`Date (${item.date_known ? 'Exact' : 'Estimated'})`} value={`${observationDateToLocalShortDateString(item.date)}`} />
-                        {item.d_size && <TableRow label={'Size'} value={`D${item.d_size}${item.r_size ? '-R' + item.r_size : ''}`} />}
-                        {item.trigger && (
-                          <TableRow
-                            label={'Trigger'}
-                            value={`${FormatAvalancheTrigger(item.trigger as AvalancheTrigger)}${item.cause ? ' - ' + FormatAvalancheCause(item.cause as AvalancheCause) : ''}`}
-                          />
-                        )}
-                        <TableRow
-                          label={'Start Zone'}
-                          value={`${FormatAvalancheAspect(item.aspect as AvalancheAspect)}${item.slope_angle ? `, ${item.slope_angle}°` : ''} at ${withUnits(
-                            item.elevation,
-                            'ft',
-                          )}`}
-                        />
-                        {item.vertical_fall && <TableRow label={'Vertical Fall'} value={`${withUnits(item.vertical_fall, 'ft')}`} />}
-                        {item.avg_crown_depth && <TableRow label={'Crown Thickness'} value={`${withUnits(item.avg_crown_depth, 'cm')}`} />}
-                        {item.width && <TableRow label={'Width'} value={`${withUnits(item.width, 'ft')}`} />}
-                        {item.avalanche_type && <TableRow label={'Type'} value={FormatAvalancheType(item.avalanche_type as AvalancheType)} />}
-                        {item.bed_sfc && <TableRow label={'Bed Surface'} value={FormatAvalancheBedSurface(item.bed_sfc as AvalancheBedSurface)} />}
-                        {item.media && (
-                          <VStack pt={8} space={8} width="100%">
-                            <BodySemibold>Media</BodySemibold>
-                            <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={item.media} />
-                          </VStack>
-                        )}
-                      </VStack>
-                    ))}
-                </Card>
-              )}
-              <WeatherCard observation={observation} />
-              {observation.advanced_fields &&
-                (observation.advanced_fields.snowpack ||
-                  (observation.advanced_fields.snowpack_media && observation.advanced_fields.snowpack_media.length > 0) ||
-                  observation.advanced_fields.snowpack_summary) && (
-                  <Card borderRadius={0} borderColor="white" header={<BodyBlack>Snowpack</BodyBlack>}>
-                    <VStack space={8} width="100%">
-                      {observation.advanced_fields.snowpack_summary && <HTML source={{html: observation.advanced_fields.snowpack_summary}} />}
-                      {observation.advanced_fields.snowpack_media && (
-                        <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={observation.advanced_fields.snowpack_media} />
-                      )}
-                      {observation.advanced_fields.snowpack && <>{/* we don't know what fields could be in this thing ... */}</>}
-                    </VStack>
-                  </Card>
+                <VStack space={8} style={{flex: 1}}>
+                  <AllCapsSmBlack>Submitted</AllCapsSmBlack>
+                  <AllCapsSm style={{textTransform: 'none'}} color="text.secondary">
+                    {utcDateToLocalShortDateString(observation.created_at)}
+                  </AllCapsSm>
+                </VStack>
+                <VStack space={8} style={{flex: 1}}>
+                  <AllCapsSmBlack>Author</AllCapsSmBlack>
+                  <AllCapsSm style={{textTransform: 'none'}} color="text.secondary" unescapeHTMLEntities>
+                    {observation.name || 'Unknown'}
+                  </AllCapsSm>
+                </VStack>
+              </HStack>
+            </View>
+            <Card borderRadius={0} borderColor="white" header={<BodyBlack>Summary</BodyBlack>}>
+              <VStack space={8} width="100%">
+                {observation.location_point.lat && observation.location_point.lng && !isPlaceholder(observation.location_point.lat, observation.location_point.lng) && (
+                  <ZoneMap style={{width: '100%', height: 200}} zones={[]} rotateEnabled={false} scrollEnabled={true} zoomEnabled={true} initialCameraBounds={initialCameraBounds}>
+                    <MarkerView coordinate={[observation.location_point.lng, observation.location_point.lat]} anchor={{x: 0.5, y: 1}}>
+                      {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports */}
+                      <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40}} />
+                    </MarkerView>
+                  </ZoneMap>
                 )}
-            </VStack>
-          </ScrollView>
-        </VStack>
-      </SafeAreaView>
+                <TableRow label="Avalanche Center" value={userFacingCenterId(observation.center_id, capabilities)} />
+                {observation.location_name && <TableRow label="Location" value={observation.location_name} />}
+                <TableRow label="Route" value={observation.route || 'Not specified'} />
+                <TableRow label="Activity" value={activityDisplayName(observation.activity)} />
+                {observation.observation_summary && <HTML source={{html: observation.observation_summary}} />}
+                <View pt={8}>
+                  <BodySemibold>Signs of Instability</BodySemibold>
+                </View>
+                {/* Avalanche section */}
+                <HStack space={8}>
+                  <NACAvalancheIcon size={bodySize} color={avalanches_observed ? colorFor(DangerLevel.High).string() : colorLookup('text')} />
+                  <Body>{avalanches_observed ? 'Avalanche(s) Observed' : 'No Avalanche(s) Observed'}</Body>
+                </HStack>
+                {avalanches_triggered && (
+                  <HStack space={8}>
+                    <NACAvalancheIcon size={bodySize} color={colorFor(DangerLevel.High).string()} />
+                    <Body>{'Avalanche(s) Triggered'}</Body>
+                  </HStack>
+                )}
+                {avalanches_caught && (
+                  <HStack space={8}>
+                    <NACAvalancheIcon size={bodySize} color={colorFor(DangerLevel.High).string()} />
+                    <Body>{'Caught In Avalanche'}</Body>
+                  </HStack>
+                )}
+                {/* Collapsing section */}
+                <HStack space={8}>
+                  <Ionicons name="flag" size={bodySize} color={observation.instability.collapsing ? colorFor(DangerLevel.Considerable).string() : colorLookup('text')} />
+                  <Body>
+                    {observation.instability.collapsing
+                      ? `${FormatInstabilityDistribution(observation.instability.collapsing_description as InstabilityDistribution)} Collapsing`
+                      : 'No Collapsing Observed'}
+                  </Body>
+                </HStack>
+                {/* Cracking section */}
+                <HStack space={8}>
+                  <Ionicons name="flag" size={bodySize} color={observation.instability.cracking ? colorFor(DangerLevel.Considerable).string() : colorLookup('text')} />
+                  <Body>
+                    {observation.instability.cracking
+                      ? `${FormatInstabilityDistribution(observation.instability.cracking_description as InstabilityDistribution)} Cracking`
+                      : 'No Cracking Observed'}
+                  </Body>
+                </HStack>
+
+                {observation.instability_summary && (
+                  <VStack pt={8} space={8} width="100%">
+                    <BodySemibold>Instability Comments</BodySemibold>
+                    <HTML source={{html: observation.instability_summary}} />
+                  </VStack>
+                )}
+              </VStack>
+            </Card>
+            {(observation.media ?? []).length > 0 && (
+              <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>}>
+                <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={observation.media ?? []} />
+              </Card>
+            )}
+            {((observation.avalanches && observation.avalanches.length > 0) || observation.avalanches_summary) && (
+              <Card borderRadius={0} borderColor="white" header={<BodyBlack>Avalanches</BodyBlack>}>
+                <VStack space={8} width="100%">
+                  {observation.avalanches_summary && <HTML source={{html: observation.avalanches_summary}} />}
+                </VStack>
+                {observation.avalanches &&
+                  observation.avalanches.length > 0 &&
+                  observation.avalanches.map((item, index) => (
+                    <VStack space={8} style={{flex: 1}} key={`avalanche-${index}`}>
+                      <BodyBlack>{`#${index + 1}${item.location ? `: ${item.location}` : ''}`}</BodyBlack>
+                      {item.comments && <HTML source={{html: item.comments}} />}
+                      <TableRow label={`Date (${item.date_known ? 'Exact' : 'Estimated'})`} value={`${observationDateToLocalShortDateString(item.date)}`} />
+                      {item.d_size && <TableRow label={'Size'} value={`D${item.d_size}${item.r_size ? '-R' + item.r_size : ''}`} />}
+                      {item.trigger && (
+                        <TableRow
+                          label={'Trigger'}
+                          value={`${FormatAvalancheTrigger(item.trigger as AvalancheTrigger)}${item.cause ? ' - ' + FormatAvalancheCause(item.cause as AvalancheCause) : ''}`}
+                        />
+                      )}
+                      <TableRow
+                        label={'Start Zone'}
+                        value={`${FormatAvalancheAspect(item.aspect as AvalancheAspect)}${item.slope_angle ? `, ${item.slope_angle}°` : ''} at ${withUnits(item.elevation, 'ft')}`}
+                      />
+                      {item.vertical_fall && <TableRow label={'Vertical Fall'} value={`${withUnits(item.vertical_fall, 'ft')}`} />}
+                      {item.avg_crown_depth && <TableRow label={'Crown Thickness'} value={`${withUnits(item.avg_crown_depth, 'cm')}`} />}
+                      {item.width && <TableRow label={'Width'} value={`${withUnits(item.width, 'ft')}`} />}
+                      {item.avalanche_type && <TableRow label={'Type'} value={FormatAvalancheType(item.avalanche_type as AvalancheType)} />}
+                      {item.bed_sfc && <TableRow label={'Bed Surface'} value={FormatAvalancheBedSurface(item.bed_sfc as AvalancheBedSurface)} />}
+                      {item.media && (
+                        <VStack pt={8} space={8} width="100%">
+                          <BodySemibold>Media</BodySemibold>
+                          <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={item.media} />
+                        </VStack>
+                      )}
+                    </VStack>
+                  ))}
+              </Card>
+            )}
+            <WeatherCard observation={observation} />
+            {observation.advanced_fields &&
+              (observation.advanced_fields.snowpack ||
+                (observation.advanced_fields.snowpack_media && observation.advanced_fields.snowpack_media.length > 0) ||
+                observation.advanced_fields.snowpack_summary) && (
+                <Card borderRadius={0} borderColor="white" header={<BodyBlack>Snowpack</BodyBlack>}>
+                  <VStack space={8} width="100%">
+                    {observation.advanced_fields.snowpack_summary && <HTML source={{html: observation.advanced_fields.snowpack_summary}} />}
+                    {observation.advanced_fields.snowpack_media && (
+                      <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={observation.advanced_fields.snowpack_media} />
+                    )}
+                    {observation.advanced_fields.snowpack && <>{/* we don't know what fields could be in this thing ... */}</>}
+                  </VStack>
+                </Card>
+              )}
+          </VStack>
+        </ScrollView>
+      </VStack>
     </View>
   );
 };

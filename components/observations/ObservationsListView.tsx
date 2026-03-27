@@ -36,7 +36,7 @@ import {
   SectionListRenderItemInfo,
   TouchableOpacity,
 } from 'react-native';
-import {ObservationsStackNavigationProps} from 'routes';
+import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
 import {RequestedTime, observationDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
@@ -68,7 +68,7 @@ interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFr
 
 export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, additionalFilters}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const navigation = useNavigation<ObservationsStackNavigationProps>();
+  const navigation = useNavigation<MainStackNavigationProps>();
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
@@ -487,7 +487,7 @@ export interface ObservationSummaryCardProps {
 const OBSERVATION_SUMMARY_CARD_HEIGHT = 132;
 
 export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(({source, zone, observation, pending}: ObservationSummaryCardProps) => {
-  const navigation = useNavigation<ObservationsStackNavigationProps>();
+  const navigation = useNavigation<MainStackNavigationProps>();
   const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
   const redFlags = observation.instability.collapsing || observation.instability.cracking;
   const onPress = useCallback(() => {

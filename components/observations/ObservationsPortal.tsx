@@ -8,7 +8,7 @@ import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabiliti
 import {usePostHog} from 'posthog-react-native';
 import React, {useCallback} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {ObservationsStackNavigationProps} from 'routes';
+import {MainStackNavigationProps, TabNavigationProps} from 'routes';
 import {AvalancheCenterID, userFacingCenterId} from 'types/nationalAvalancheCenter';
 import {RequestedTime, formatRequestedTime} from 'utils/date';
 
@@ -16,12 +16,13 @@ export const ObservationsPortal: React.FC<{
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
 }> = ({center_id, requestedTime}) => {
-  const navigation = useNavigation<ObservationsStackNavigationProps>();
+  const tabNavigation = useNavigation<TabNavigationProps>();
+  const mainNavigation = useNavigation<MainStackNavigationProps>();
   const onViewAll = useCallback(
-    () => navigation.navigate('observationsList', {center_id, requestedTime: formatRequestedTime(requestedTime)}),
-    [center_id, navigation, requestedTime],
+    () => tabNavigation.navigate('Observations', {center_id, requestedTime: formatRequestedTime(requestedTime)}),
+    [center_id, tabNavigation, requestedTime],
   );
-  const onSubmit = useCallback(() => navigation.navigate('observationSubmit'), [navigation]);
+  const onSubmit = useCallback(() => mainNavigation.navigate('observationSubmit'), [mainNavigation]);
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {

@@ -7,10 +7,10 @@ import {Body, BodySmBlack, Caption1Semibold} from 'components/text';
 import React, {useCallback, useEffect, useState} from 'react';
 import {FlatList, StyleSheet, Switch} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {MenuStackParamList} from 'routes';
+import {MainStackParamList} from 'routes';
 import {colorLookup} from 'theme';
 
-export const FeatureFlagsDebuggerScreen = (_: NativeStackScreenProps<MenuStackParamList, 'featureFlags'>) => {
+export const FeatureFlagsDebuggerScreen = (_: NativeStackScreenProps<MainStackParamList, 'featureFlags'>) => {
   return (
     <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
       <FeatureFlagsDebugger />
