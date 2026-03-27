@@ -1093,7 +1093,7 @@ export const observationSchema = z.object({
             location: z.array(avalancheProblemLocationSchema).nullable().optional(/* only because of NWAC */),
             distribution: z.nativeEnum(AvalancheProblemDistribution).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
             sensitivity: z.nativeEnum(AvalancheProblemSensitivity).or(z.string().length(0)).nullable().optional(/* only because of NWAC */),
-            d_size: z.array(z.string().or(z.number())).nullable().optional(/* only because of NWAC */),
+            d_size: z.array(z.string().nullable().or(z.number().nullable())).nullable().optional(/* only because of NWAC */),
             comments: z.string().nullable().optional(/* only because of NWAC */),
           }),
         )
