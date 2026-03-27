@@ -28,7 +28,7 @@ import {usePostHog} from 'posthog-react-native';
 import {RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
 import Collapsible from 'react-native-collapsible';
 import Toast from 'react-native-toast-message';
-import {HomeStackNavigationProps} from 'routes';
+import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {COLORS} from 'theme/colors';
 import {
@@ -78,7 +78,7 @@ export const AvalancheTab: React.FunctionComponent<{
   // When navigating from elsewhere in the app, the screen title should already
   // be set to the zone name. But if we warp directly to a forecast link, we
   // need to load the zone name dynamically.
-  const navigation = useNavigation<HomeStackNavigationProps>();
+  const navigation = useNavigation<MainStackNavigationProps>();
   const [zoneName, setZoneName] = useState('');
   React.useEffect(() => {
     if (forecast) {

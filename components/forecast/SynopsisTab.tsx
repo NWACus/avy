@@ -14,7 +14,7 @@ import {useRefresh} from 'hooks/useRefresh';
 import {useSynopsis} from 'hooks/useSynopsis';
 import {RefreshControl, ScrollView} from 'react-native';
 import Toast from 'react-native-toast-message';
-import {HomeStackNavigationProps} from 'routes';
+import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {RequestedTimeString, parseRequestedTimeString, utcDateToLocalTimeString} from 'utils/date';
@@ -32,7 +32,7 @@ export const SynopsisTab: React.FunctionComponent<{
   const {isRefreshing, refresh} = useRefresh(synopsisResult.refetch);
   const onRefresh = useCallback(() => void refresh(), [refresh]);
 
-  const navigation = useNavigation<HomeStackNavigationProps>();
+  const navigation = useNavigation<MainStackNavigationProps>();
   React.useEffect(() => {
     return navigation.addListener('beforeRemove', () => {
       Toast.hide();

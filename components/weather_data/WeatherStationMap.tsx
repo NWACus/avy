@@ -22,7 +22,7 @@ import {formatInTimeZone} from 'date-fns-tz';
 import {FeatureCollection, Point} from 'geojson';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
-import {WeatherStackNavigationProps} from 'routes';
+import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
   AvalancheCenterID,
@@ -95,7 +95,7 @@ export const WeatherStationMap: React.FunctionComponent<{
   }, [postHog, center_id]);
   useFocusEffect(recordAnalytics);
 
-  const navigation = useNavigation<WeatherStackNavigationProps>();
+  const navigation = useNavigation<MainStackNavigationProps>();
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const onPressMarker = React.useCallback(
     (station: WeatherStation) => {
@@ -316,7 +316,7 @@ export const WeatherStationCard: React.FunctionComponent<{
     mode: 'map' | 'list';
   }) => {
     const {width} = useWindowDimensions();
-    const navigation = useNavigation<WeatherStackNavigationProps>();
+    const navigation = useNavigation<MainStackNavigationProps>();
 
     const latestObservationDateString = weatherStationCardDateString(station.properties.data['date_time']);
     const latestObservation: Record<string, string | number | null> | undefined = station.properties.data;
