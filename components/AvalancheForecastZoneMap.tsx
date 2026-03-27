@@ -3,7 +3,6 @@ import React, {RefObject, useCallback, useEffect, useMemo, useRef, useState} fro
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {Alert, View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
 
-import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
@@ -22,7 +21,6 @@ import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {MainStackNavigationProps, TabNavigationProps} from 'routes';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, isSupportedCenter, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTimeString} from 'utils/date';
@@ -34,9 +32,10 @@ import {useAllMapLayers} from 'hooks/useAllMapLayers';
 export interface MapProps {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
+  bottomTabBarHeight?: number;
 }
 
-export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime}: MapProps) => {
+export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime, bottomTabBarHeight = 0}: MapProps) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
   const {preferences, setPreferences} = usePreferences();
@@ -130,10 +129,9 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     controller.current.animateUsingUpdatedWindowDimensions(windowWidth, windowHeight);
   }, [windowWidth, windowHeight, controller]);
 
-  const tabBarHeight = useBottomTabBarHeight();
   React.useEffect(() => {
-    controller.current.animateUsingUpdatedTabBarHeight(tabBarHeight);
-  }, [tabBarHeight, controller]);
+    controller.current.animateUsingUpdatedTabBarHeight(bottomTabBarHeight);
+  }, [bottomTabBarHeight, controller]);
 
   const onLayout = useCallback(() => {
     // onLayout returns position relative to parent - we need position relative to screen
@@ -268,20 +266,18 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   if (incompleteQueryState(allMapLayersResult, metadataResult, ...forecastResults, ...warningResults) || !allMapLayers || !metadata || !preferredCenterFeatures) {
     return (
-      <SafeAreaView edges={['top', 'left', 'right']}>
-        <Center width="100%" height="100%">
-          <QueryState
-            results={[allMapLayersResult, metadataResult, ...forecastResults, ...warningResults]}
-            terminal
-            customMessage={{
-              notFound: () => ({
-                headline: 'Missing forecast',
-                body: 'There may not be a forecast available for today.',
-              }),
-            }}
-          />
-        </Center>
-      </SafeAreaView>
+      <Center width="100%" height="100%">
+        <QueryState
+          results={[allMapLayersResult, metadataResult, ...forecastResults, ...warningResults]}
+          terminal
+          customMessage={{
+            notFound: () => ({
+              headline: 'Missing forecast',
+              body: 'There may not be a forecast available for today.',
+            }),
+          }}
+        />
+      </Center>
     );
   }
 

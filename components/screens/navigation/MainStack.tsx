@@ -13,6 +13,7 @@ import {AvalancheCenterSelectorScreen} from 'components/screens/main/AvalancheCe
 import {
   AvalancheComponentPreview,
   ButtonStylePreview,
+  DebugMapScreen,
   DeveloperMenuScreen,
   ExpoConfigScreen,
   OutcomeScreen,
@@ -51,9 +52,9 @@ export const MainStackNavigator: React.FunctionComponent<{
   const renderBottomTabs = useCallback((_: {route: RouteProp<MainStackParamList, 'bottomTabs'>}) => <BottomTabs requestedTime={requestedTime} />, [requestedTime]);
 
   const avalancheCenterSelectorOptions = useCallback(
-    (_: {route: RouteProp<MainStackParamList, 'avalancheCenterSelector'>}) => ({
+    ({route}: {route: RouteProp<MainStackParamList, 'avalancheCenterSelector'>}) => ({
       headerShown: true,
-      title: `Select Avalanche Center`,
+      title: `Select Avalanche Center${route.params.debugMode ? ' (debug)' : ''}`,
       headerBackButtonDisplayMode: 'minimal' as BackButtonDisplayMode,
     }),
     [],
@@ -113,6 +114,8 @@ export const MainStackNavigator: React.FunctionComponent<{
         initialParams={{staging: staging, setStaging: setStaging}}
         options={{title: 'Developer Menu', headerBackButtonDisplayMode: 'minimal'}}
       />
+
+      <MainStack.Screen name="debugForecastMap" component={DebugMapScreen} options={{title: `Debug Forecast Map`, headerBackButtonDisplayMode: 'minimal'}} />
 
       <MainStack.Screen name="outcome" component={OutcomeScreen} options={{title: `Outcome Preview`, headerBackButtonDisplayMode: 'minimal'}} />
       <MainStack.Screen name="expoConfig" component={ExpoConfigScreen} options={{title: `Expo Configuration Viewer`, headerBackButtonDisplayMode: 'minimal'}} />

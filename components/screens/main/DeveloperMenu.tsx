@@ -22,6 +22,7 @@ import * as FileSystem from 'expo-file-system';
 
 import {useQueryClient} from '@tanstack/react-query';
 import {ClientContext} from 'clientContext';
+import {AvalancheForecastZoneMap} from 'components/AvalancheForecastZoneMap';
 import {AvalancheProblemSizeLine} from 'components/AvalancheProblemSizeLine';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
@@ -61,7 +62,7 @@ import {sendMail} from 'network/sendMail';
 import {usePreferences} from 'Preferences';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
-import {RequestedTime, requestedTimeToUTCDate, toISOStringUTC} from 'utils/date';
+import {parseRequestedTimeString, RequestedTime, requestedTimeToUTCDate, toISOStringUTC} from 'utils/date';
 
 interface DeveloperMenuProps {
   staging: boolean;
@@ -185,7 +186,7 @@ const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
         label: 'View map layer with active warning',
         data: null,
         action: () => {
-          navigation.navigate('avalancheCenter', {
+          navigation.navigate('debugForecastMap', {
             center_id: 'NWAC',
             requestedTime: toISOStringUTC(new Date('2024-02-27T15:21:00-0800')),
           });
@@ -195,7 +196,7 @@ const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
         label: 'View map layer with active watch',
         data: null,
         action: () => {
-          navigation.navigate('avalancheCenter', {
+          navigation.navigate('debugForecastMap', {
             center_id: 'CBAC',
             requestedTime: toISOStringUTC(new Date('2023-03-21T5:21:00-0800')),
           });
@@ -805,6 +806,15 @@ export const TimeMachine = () => {
         3/1/2023 - random winter day
       </Button>
     </VStack>
+  );
+};
+
+export const DebugMapScreen = ({route}: NativeStackScreenProps<MainStackParamList, 'debugForecastMap'>) => {
+  const {center_id, requestedTime} = route.params;
+  return (
+    <View style={{flex: 1}}>
+      <AvalancheForecastZoneMap center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />
+    </View>
   );
 };
 

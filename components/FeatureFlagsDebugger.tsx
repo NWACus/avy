@@ -5,14 +5,14 @@ import {Card} from 'components/content/Card';
 import {HStack} from 'components/core';
 import {Body, BodySmBlack, Caption1Semibold} from 'components/text';
 import React, {useCallback, useEffect, useState} from 'react';
-import {FlatList, StyleSheet, Switch} from 'react-native';
+import {FlatList, Switch} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {MainStackParamList} from 'routes';
 import {colorLookup} from 'theme';
 
 export const FeatureFlagsDebuggerScreen = (_: NativeStackScreenProps<MainStackParamList, 'featureFlags'>) => {
   return (
-    <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={{flex: 1}} edges={['top', 'left', 'right']}>
       <FeatureFlagsDebugger />
     </SafeAreaView>
   );
