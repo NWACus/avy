@@ -216,6 +216,11 @@ export class AnimatedMapWithDrawerController {
     }
   }
 
+  // When switching centers from the observation or weather tab, the map view doesn't animate. This forces the animation to happen when it becomes the focus screen again
+  forceAnimateMapRegion() {
+    this.animateMapRegion();
+  }
+
   // This function gets called many times in short succession when the layout changes. We debounce it so that
   // we only try to animate after layout changes are complete.
   ANIMATION_DEBOUNCE_MS = 250;
