@@ -36,7 +36,6 @@ interface ZoneMapProps extends ViewProps {
   initialCameraBounds: CameraBounds;
   selectedZoneId?: number | null;
   renderFillColor?: boolean;
-  pitchEnabled?: boolean;
   rotateEnabled?: boolean;
   scrollEnabled?: boolean;
   zoomEnabled?: boolean;
@@ -51,7 +50,6 @@ export const ZoneMap = React.forwardRef<Camera, ZoneMapProps>(
       selectedZoneId,
       initialCameraBounds,
       renderFillColor = true,
-      pitchEnabled = true,
       rotateEnabled = true,
       scrollEnabled = true,
       zoomEnabled = true,
@@ -67,7 +65,7 @@ export const ZoneMap = React.forwardRef<Camera, ZoneMapProps>(
         styleURL={Mapbox.StyleURL.Outdoors}
         scaleBarEnabled={false}
         zoomEnabled={zoomEnabled}
-        pitchEnabled={pitchEnabled}
+        pitchEnabled={false}
         rotateEnabled={rotateEnabled}
         scrollEnabled={scrollEnabled}
         onPress={onMapPress}

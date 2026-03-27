@@ -233,7 +233,6 @@ export const ObservationCard: React.FunctionComponent<{
                     <ZoneMap
                       style={{width: '100%', height: 200}}
                       zones={[]}
-                      pitchEnabled={false}
                       rotateEnabled={false}
                       scrollEnabled={true}
                       zoomEnabled={true}
