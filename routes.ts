@@ -29,6 +29,9 @@ export type MainStackParamList = {
   observation: {
     id: string;
   };
+  observationModal: {
+    id: string;
+  };
   nwacObservation: {
     id: string;
   };

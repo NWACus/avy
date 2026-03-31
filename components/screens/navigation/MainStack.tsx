@@ -5,6 +5,7 @@ import {NavigationHeader} from 'components/content/NavigationHeader';
 import {View} from 'components/core';
 import {FeatureFlagsDebuggerScreen} from 'components/FeatureFlagsDebugger';
 import {NWACObservationDetailView, ObservationDetailView} from 'components/observations/ObservationDetailView';
+import {ObservationDetailModalView} from 'components/observations/ObservationDetailViewModal';
 import {ObservationForm} from 'components/observations/ObservationForm';
 import {ObservationsPortal} from 'components/observations/ObservationsPortal';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
@@ -78,6 +79,16 @@ export const MainStackNavigator: React.FunctionComponent<{
           title: 'Observation',
         }}
       />
+
+      <MainStack.Screen
+        name="observationModal"
+        component={ObservationDetailModal}
+        options={{
+          presentation: 'pageSheet',
+          headerShown: false,
+        }}
+      />
+
       <MainStack.Screen
         name="nwacObservation"
         component={NWACObservationDetailScreen}
@@ -149,7 +160,7 @@ const ObservationSubmitScreen = () => {
   return <ObservationForm key={`${center_id}-observationForm`} center_id={center_id} />;
 };
 
-export const ObservationDetailScreen = ({route}: NativeStackScreenProps<MainStackParamList, 'observation'>) => {
+const ObservationDetailScreen = ({route}: NativeStackScreenProps<MainStackParamList, 'observation'>) => {
   const {id} = route.params;
   return (
     <View style={styles.fullScreen}>
@@ -158,7 +169,17 @@ export const ObservationDetailScreen = ({route}: NativeStackScreenProps<MainStac
   );
 };
 
-export const NWACObservationDetailScreen = ({route}: NativeStackScreenProps<MainStackParamList, 'nwacObservation'>) => {
+const ObservationDetailModal = ({route}: NativeStackScreenProps<MainStackParamList, 'observationModal'>) => {
+  const {id} = route.params;
+
+  return (
+    <View style={styles.fullScreen}>
+      <ObservationDetailModalView id={id} />
+    </View>
+  );
+};
+
+const NWACObservationDetailScreen = ({route}: NativeStackScreenProps<MainStackParamList, 'nwacObservation'>) => {
   const {id} = route.params;
   return (
     <View style={styles.fullScreen}>
@@ -169,7 +190,7 @@ export const NWACObservationDetailScreen = ({route}: NativeStackScreenProps<Main
 
 // MARK: Weather Station Screens
 
-export const WeatherStationsDetailScreen = ({route}: NativeStackScreenProps<MainStackParamList, 'stationsDetail'>) => {
+const WeatherStationsDetailScreen = ({route}: NativeStackScreenProps<MainStackParamList, 'stationsDetail'>) => {
   const {preferences} = usePreferences();
   const center_id = preferences.center;
   return (
@@ -182,7 +203,7 @@ export const WeatherStationsDetailScreen = ({route}: NativeStackScreenProps<Main
   );
 };
 
-export const WeatherStationDetailScreen = ({route}: NativeStackScreenProps<MainStackParamList, 'stationDetail'>) => {
+const WeatherStationDetailScreen = ({route}: NativeStackScreenProps<MainStackParamList, 'stationDetail'>) => {
   const {preferences} = usePreferences();
   const center_id = preferences.center;
   return (

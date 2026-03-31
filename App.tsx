@@ -424,11 +424,15 @@ const BaseApp: React.FunctionComponent<{
     filter: (url: string) => url.includes('/observations/'), // Only handle observation links
     config: {
       screens: {
-        Observations: {
+        MainStack: {
           path: 'observations/#/view/observations',
           screens: {
-            observationsList: '',
-            observation: ':id',
+            bottomTabs: {
+              screens: {
+                Observations: '',
+              },
+            },
+            observationModal: ':id',
           },
         },
       },

@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {Image, ScrollView, StyleSheet} from 'react-native';
+import {Image, ScrollView} from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
@@ -46,7 +46,6 @@ import {
   FormatSnowAvailableForTransport,
   FormatWindLoading,
   InstabilityDistribution,
-  MapLayerFeature,
   Observation,
   Position,
   SnowAvailableForTransport,
@@ -56,6 +55,7 @@ import {
 } from 'types/nationalAvalancheCenter';
 import {observationDateToLocalShortDateString, utcDateToLocalShortDateString} from 'utils/date';
 
+// TODO: Remove NWACObs issue:1152
 export const NWACObservationDetailView: React.FunctionComponent<{
   id: string;
 }> = ({id}) => {
@@ -66,13 +66,11 @@ export const NWACObservationDetailView: React.FunctionComponent<{
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
 
-  const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, observation?.center_id.toUpperCase() as AvalancheCenterID), [mapLayer, observation]);
-
   if (incompleteQueryState(observationResult, mapResult, capabilitiesResult) || !observation || !mapLayer || !capabilities) {
     return <QueryState results={[observationResult, mapResult, capabilitiesResult]} />;
   }
 
-  return <ObservationCard observation={observation} mapLayerFeatures={mapFeatures} capabilities={capabilities} />;
+  return <ObservationCard observation={observation} capabilities={capabilities} />;
 };
 
 export const ObservationDetailView: React.FunctionComponent<{
@@ -86,12 +84,23 @@ export const ObservationDetailView: React.FunctionComponent<{
   const capabilities = capabilitiesResult.data;
 
   const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, observation?.center_id.toUpperCase() as AvalancheCenterID), [mapLayer, observation?.center_id]);
+  const navigation = useNavigation<MainStackNavigationProps>();
+  const zone_name = useMemo(
+    () => observation?.location_point?.lat && observation?.location_point?.lng && matchesZone(mapFeatures ?? [], observation.location_point?.lat, observation.location_point?.lng),
+    [observation, mapFeatures],
+  );
+
+  React.useEffect(() => {
+    if (zone_name) {
+      navigation.setOptions({title: `${zone_name} Observation`});
+    }
+  }, [navigation, zone_name]);
 
   if (incompleteQueryState(observationResult, mapResult, capabilitiesResult) || !observation || !mapLayer || !capabilities || !capabilities) {
     return <QueryState results={[observationResult, mapResult, capabilitiesResult]} />;
   }
 
-  return <ObservationCard observation={observation} mapLayerFeatures={mapFeatures} capabilities={capabilities} />;
+  return <ObservationCard observation={observation} capabilities={capabilities} />;
 };
 
 const dataTableFlex = [1, 1];
@@ -177,18 +186,10 @@ export const withUnits = (value: string | number | null | undefined, units: stri
 
 export const ObservationCard: React.FunctionComponent<{
   observation: Observation;
-  mapLayerFeatures: MapLayerFeature[];
   capabilities: AllAvalancheCenterCapabilities;
-}> = ({observation, mapLayerFeatures, capabilities}) => {
-  const navigation = useNavigation<MainStackNavigationProps>();
+}> = ({observation, capabilities}) => {
   const {avalanches_observed, avalanches_triggered, avalanches_caught} = observation.instability;
-  const zone_name =
-    observation.location_point?.lat && observation.location_point?.lng && matchesZone(mapLayerFeatures, observation.location_point?.lat, observation.location_point?.lng);
-  React.useEffect(() => {
-    if (zone_name) {
-      navigation.setOptions({title: `${zone_name} Observation`});
-    }
-  }, [navigation, zone_name]);
+
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
@@ -208,7 +209,7 @@ export const ObservationCard: React.FunctionComponent<{
   const initialCameraBounds: CameraBounds = {ne: nePosition, sw: swPosition};
 
   return (
-    <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
+    <View style={{flex: 1, backgroundColor: 'white'}}>
       <VStack space={8} backgroundColor="white" style={{height: '100%', width: '100%'}}>
         <ScrollView style={{height: '100%', width: '100%'}}>
           <VStack space={8} backgroundColor={colorLookup('primary.background')} paddingBottom={insets.bottom}>
