@@ -1,5 +1,5 @@
 import * as Updates from 'expo-updates';
-import {AllAvalancheCenterCapabilities, AvalancheCenter, AvalancheCenterID, avalancheCenterIDSchema, userFacingCenterId} from 'types/nationalAvalancheCenter';
+import {AllAvalancheCenterCapabilities, AvalancheCenter, AvalancheCenterID, avalancheCenterIDSchema, isSupportedCenter, userFacingCenterId} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheCenterListData {
   center: AvalancheCenter;
@@ -52,7 +52,7 @@ export const filterToKnownCenters = (ids: string[]): AvalancheCenterID[] => {
   const knownCenters: AvalancheCenterID[] = [];
   for (const center of ids) {
     const idResult = avalancheCenterIDSchema.safeParse(center);
-    if (idResult.success) {
+    if (idResult.success && isSupportedCenter(idResult.data)) {
       knownCenters.push(idResult.data);
     }
   }

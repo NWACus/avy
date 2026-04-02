@@ -1,7 +1,6 @@
 import React, {useCallback, useState} from 'react';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {StyleSheet} from 'react-native';
 
 import * as Application from 'expo-application';
 import * as Clipboard from 'expo-clipboard';
@@ -43,7 +42,7 @@ export const AboutScreen = (_: NativeStackScreenProps<MainStackParamList, 'about
   useFocusEffect(recordAnalytics);
 
   return (
-    <View style={StyleSheet.absoluteFillObject}>
+    <View flex={1}>
       <VStack backgroundColor="white" width="100%" height="100%" pt={16} justifyContent="space-between" paddingBottom={insets.bottom}>
         <VStack space={16}>
           <Center>

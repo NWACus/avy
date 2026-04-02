@@ -1,9 +1,8 @@
-import React, {RefObject, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {RefObject, useCallback, useMemo, useRef, useState} from 'react';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {Alert, View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
 
-import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
@@ -22,7 +21,6 @@ import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {MainStackNavigationProps, TabNavigationProps} from 'routes';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, isSupportedCenter, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTimeString} from 'utils/date';
@@ -34,9 +32,10 @@ import {useAllMapLayers} from 'hooks/useAllMapLayers';
 export interface MapProps {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
+  bottomTabBarHeight?: number;
 }
 
-export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime}: MapProps) => {
+export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime, bottomTabBarHeight = 0}: MapProps) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
   const {preferences, setPreferences} = usePreferences();
@@ -130,10 +129,9 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     controller.current.animateUsingUpdatedWindowDimensions(windowWidth, windowHeight);
   }, [windowWidth, windowHeight, controller]);
 
-  const tabBarHeight = useBottomTabBarHeight();
   React.useEffect(() => {
-    controller.current.animateUsingUpdatedTabBarHeight(tabBarHeight);
-  }, [tabBarHeight, controller]);
+    controller.current.animateUsingUpdatedTabBarHeight(bottomTabBarHeight);
+  }, [bottomTabBarHeight, controller]);
 
   const onLayout = useCallback(() => {
     // onLayout returns position relative to parent - we need position relative to screen
@@ -171,37 +169,40 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     [controller, setSelectedZoneId],
   );
 
-  // default to the values in the map layer, but update it with the forecasts and warnings we've fetched
+  // Default to the values in the map layer, but update it with the forecasts and warnings we've fetched
+  // This is done all at once so that zonesById is recalculated when forecastResults or warningResults changes while
+  // avoiding the recalculation on every re-render
   const zonesById = useMemo(() => {
-    return allMapLayers?.features.reduce((accum: Record<string, MapViewZone>, feature: MapLayerFeature) => {
+    const zones = allMapLayers?.features.reduce((accum: Record<string, MapViewZone>, feature: MapLayerFeature) => {
       accum[feature.id] = mapViewZoneFor(feature);
       return accum;
     }, {});
-  }, [allMapLayers]);
 
-  useEffect(() => {
+    if (!zones) return zones;
+
+    // Apply forecast changes — objects in base are freshly created above, so mutation here is safe
     forecastResults
       .map(result => result.data) // get data from the results
       .filter(data => data) // only operate on results that have succeeded
       .forEach(forecast => {
-        if (forecast && forecast.forecast_zone && zonesById) {
+        if (forecast && forecast.forecast_zone) {
           forecast.forecast_zone.forEach(({id}) => {
-            if (zonesById[id]) {
+            if (zones[id]) {
               // If the zone is marked as off-season in the map layer, we want the danger level to be None so that the color is grey
               // regarless of what the forecast says
-              if (zonesById[id].feature.properties.off_season) {
-                zonesById[id].danger_level = DangerLevel.None;
+              if (zones[id].feature.properties.off_season) {
+                zones[id].danger_level = DangerLevel.None;
               } else {
                 // the map layer will expose old forecasts with their danger level as appropriate, but the map expects to show a card
                 // that doesn't divulge the old forecast's rating, travel advice or publication/expiry times, so we clear things out
                 if (
-                  !zonesById[id].end_date ||
-                  (zonesById[id].end_date &&
-                    isAfter(requestedTimeToUTCDate(requestedTime), toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}))) /* requesting after expiry */
+                  !zones[id].end_date ||
+                  (zones[id].end_date &&
+                    isAfter(requestedTimeToUTCDate(requestedTime), toDate(new Date(zones[id].end_date || '2000-01-01'), {timeZone: 'UTC'}))) /* requesting after expiry */
                 ) {
-                  zonesById[id].danger_level = DangerLevel.GeneralInformation;
-                  zonesById[id].end_date = null;
-                  zonesById[id].start_date = null;
+                  zones[id].danger_level = DangerLevel.GeneralInformation;
+                  zones[id].end_date = null;
+                  zones[id].start_date = null;
                 }
                 // product-specific queries can give us results that are expired or older than the map layer, in which case we don't
                 // want to use them
@@ -209,10 +210,10 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
                   (forecast.product_type === ProductType.Forecast || forecast.product_type === ProductType.Summary) &&
                   forecast.expires_time &&
                   (isAfter(toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}), requestedTimeToUTCDate(requestedTime)) /* product is not expired */ ||
-                    (zonesById[id].end_date &&
+                    (zones[id].end_date &&
                       isAfter(
                         toDate(new Date(forecast.expires_time), {timeZone: 'UTC'}),
-                        toDate(new Date(zonesById[id].end_date || '2000-01-01'), {timeZone: 'UTC'}),
+                        toDate(new Date(zones[id].end_date || '2000-01-01'), {timeZone: 'UTC'}),
                       ))) /* product newer than map layer */
                 ) {
                   if (forecast.product_type === ProductType.Forecast) {
@@ -221,29 +222,26 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
                       const maxCurrentDanger = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
                       // If we're in season, use the forecast's danger level only if it's not None
                       if (maxCurrentDanger !== DangerLevel.None) {
-                        zonesById[id].danger_level = maxCurrentDanger;
+                        zones[id].danger_level = maxCurrentDanger;
                       }
                     }
                   }
 
                   // Regardless if the product type is a summary or forecast, we want to use the forecast API timestamp as it has timezone information
-                  zonesById[id].start_date = forecast.published_time;
-                  zonesById[id].end_date = forecast.expires_time;
+                  zones[id].start_date = forecast.published_time;
+                  zones[id].end_date = forecast.expires_time;
                 }
               }
             }
           });
         }
       });
-  }, [zonesById, forecastResults, requestedTime]);
 
-  useEffect(() => {
+    // Apply warning changes
     warningResults
       .map(result => result.data) // get data from the results
       .forEach(warning => {
-        if (!warning || !zonesById) {
-          return;
-        }
+        if (!warning) return;
         // the warnings endpoint can return warnings, watches and special bulletins; we only want to make the map flash
         // when there's an active warning for the zone
         if (
@@ -252,13 +250,15 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           'expires_time' in warning.data &&
           isAfter(toDate(new Date(warning.data.expires_time), {timeZone: 'UTC'}), requestedTimeToUTCDate(requestedTime))
         ) {
-          const mapViewZoneData = zonesById[warning.zone_id];
+          const mapViewZoneData = zones[warning.zone_id];
           if (mapViewZoneData) {
             mapViewZoneData.hasWarning = true;
           }
         }
       });
-  }, [zonesById, warningResults, requestedTime]);
+
+    return zones;
+  }, [allMapLayers, forecastResults, warningResults, requestedTime]);
 
   const zones = useMemo(() => (zonesById !== undefined ? Object.keys(zonesById).map(k => zonesById[k]) : []), [zonesById]);
 
@@ -268,20 +268,18 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   if (incompleteQueryState(allMapLayersResult, metadataResult, ...forecastResults, ...warningResults) || !allMapLayers || !metadata || !preferredCenterFeatures) {
     return (
-      <SafeAreaView edges={['top', 'left', 'right']}>
-        <Center width="100%" height="100%">
-          <QueryState
-            results={[allMapLayersResult, metadataResult, ...forecastResults, ...warningResults]}
-            terminal
-            customMessage={{
-              notFound: () => ({
-                headline: 'Missing forecast',
-                body: 'There may not be a forecast available for today.',
-              }),
-            }}
-          />
-        </Center>
-      </SafeAreaView>
+      <Center width="100%" height="100%">
+        <QueryState
+          results={[allMapLayersResult, metadataResult, ...forecastResults, ...warningResults]}
+          terminal
+          customMessage={{
+            notFound: () => ({
+              headline: 'Missing forecast',
+              body: 'There may not be a forecast available for today.',
+            }),
+          }}
+        />
+      </Center>
     );
   }
 
