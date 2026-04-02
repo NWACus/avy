@@ -55,7 +55,7 @@ export const toSnowboundStringUTC = (date: Date) => formatInTimeZone(date, 'UTC'
 export const nominalForecastDate = (requestedTime: Date, expiryTimeZone: string, expiryTimeHours: number): Date => {
   // requestedTime is in UTC, expiryTimeHours is relative to the locale-specific start of day
   const normalizedExpiryTimeZone = normalizeTimeZone(expiryTimeZone);
-  const expiryTimeString = `${formatInTimeZone(requestedTime, normalizedExpiryTimeZone.ianaName, 'yyyy-MM-dd')} ${String(expiryTimeHours).padStart(2, '0')}:00:00`;
+  const expiryTimeString = `${formatInTimeZone(requestedTime, normalizedExpiryTimeZone.ianaName, 'yyyy-MM-dd')} ${expiryTimeHoursToString(expiryTimeHours)}`;
   const expiryTime = toDate(expiryTimeString, {timeZone: normalizedExpiryTimeZone.ianaName});
   if (isAfter(expiryTime, requestedTime)) {
     return requestedTime;
@@ -74,13 +74,20 @@ export const nominalNWACWeatherForecastDate = (requestedTime: Date): string => {
   const expiryTimeZone = 'America/Los_Angeles';
   const expiryTimeHours = 10;
   // requestedTime is in UTC, expiryTimeHours is relative to the locale-specific start of day
-  const expiryTimeString = `${formatInTimeZone(requestedTime, expiryTimeZone, 'yyyy-MM-dd')} ${String(expiryTimeHours).padStart(2, '0')}:00:00`;
+  const expiryTimeString = `${formatInTimeZone(requestedTime, expiryTimeZone, 'yyyy-MM-dd')} ${expiryTimeHoursToString(expiryTimeHours)}`;
   const expiryTime = toDate(expiryTimeString, {timeZone: expiryTimeZone});
   if (isAfter(expiryTime, requestedTime)) {
     return `${formatInTimeZone(requestedTime, expiryTimeZone, 'yyyy-MM-dd')} morning`;
   } else {
     return `${formatInTimeZone(requestedTime, expiryTimeZone, 'yyyy-MM-dd')} afternoon`;
   }
+};
+
+export const expiryTimeHoursToString = (expiryTimeHours: number): string => {
+  const hours = Math.trunc(expiryTimeHours);
+  const adjustedHours = hours >= 24 ? hours - 24 : hours;
+  const minutes = Math.round((expiryTimeHours % 1) * 60);
+  return `${adjustedHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
 };
 
 export const utcDateToLocalTimeString = (date: Date | string | undefined | null): string => {

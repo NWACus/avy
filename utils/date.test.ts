@@ -1,5 +1,13 @@
 import * as TimezoneMock from 'timezone-mock';
-import {apiDateString, nominalForecastDateString, nominalNWACWeatherForecastDate, normalizeTimeZone, utcDateToLocalDateString, utcDateToLocalTimeString} from 'utils/date';
+import {
+  apiDateString,
+  expiryTimeHoursToString,
+  nominalForecastDateString,
+  nominalNWACWeatherForecastDate,
+  normalizeTimeZone,
+  utcDateToLocalDateString,
+  utcDateToLocalTimeString,
+} from 'utils/date';
 
 describe('Dates', () => {
   describe('apiDateString', () => {
@@ -75,7 +83,7 @@ describe('Dates', () => {
 
   describe('nominalForecastDate', () => {
     it('returns the current day when requesting before the expiry time', () => {
-      expect(nominalForecastDateString(new Date('2023-01-24T09:44:27-08:00'), 'America/Los_Angeles', 18)).toBe('2023-01-24');
+      expect(nominalForecastDateString(new Date('2023-01-24T09:44:27-08:00'), 'America/Los_Angeles', 18.5)).toBe('2023-01-24');
     });
     it('returns the next day when requesting after the expiry time', () => {
       expect(nominalForecastDateString(new Date('2023-01-24T19:44:27-08:00'), 'America/Los_Angeles', 18)).toBe('2023-01-25');
@@ -103,6 +111,37 @@ describe('Dates', () => {
     });
     it('returns the current day afternoon when requesting after the expiry time using UTC', () => {
       expect(nominalNWACWeatherForecastDate(new Date('2023-01-25T03:44:27-00:00'))).toBe('2023-01-24 afternoon');
+    });
+  });
+
+  describe('expiryTimeHoursToString', () => {
+    it('formats whole hours with zero-padded minutes', () => {
+      expect(expiryTimeHoursToString(18)).toBe('18:00:00');
+    });
+
+    it('zero-pads single-digit hours', () => {
+      expect(expiryTimeHoursToString(1)).toBe('01:00:00');
+    });
+
+    it('formats midnight', () => {
+      expect(expiryTimeHoursToString(0)).toBe('00:00:00');
+    });
+
+    it('converts fractional hours to minutes', () => {
+      expect(expiryTimeHoursToString(18.5)).toBe('18:30:00');
+    });
+
+    it('converts quarter-hour fractions', () => {
+      expect(expiryTimeHoursToString(18.25)).toBe('18:15:00');
+    });
+
+    it('zero-pads single-digit minutes', () => {
+      expect(expiryTimeHoursToString(0.5)).toBe('00:30:00');
+    });
+
+    it('wraps hours >= 24 by subtracting 24', () => {
+      expect(expiryTimeHoursToString(24)).toBe('00:00:00');
+      expect(expiryTimeHoursToString(25)).toBe('01:00:00');
     });
   });
 
