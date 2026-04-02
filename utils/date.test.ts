@@ -139,9 +139,11 @@ describe('Dates', () => {
       expect(expiryTimeHoursToString(0.5)).toBe('00:30:00');
     });
 
-    it('wraps hours >= 24 by subtracting 24', () => {
+    it('wraps hours >= 24', () => {
       expect(expiryTimeHoursToString(24)).toBe('00:00:00');
       expect(expiryTimeHoursToString(25)).toBe('01:00:00');
+      expect(expiryTimeHoursToString(48)).toBe('00:00:00');
+      expect(expiryTimeHoursToString(49)).toBe('01:00:00');
     });
   });
 

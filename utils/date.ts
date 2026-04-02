@@ -84,10 +84,9 @@ export const nominalNWACWeatherForecastDate = (requestedTime: Date): string => {
 };
 
 export const expiryTimeHoursToString = (expiryTimeHours: number): string => {
-  const hours = Math.trunc(expiryTimeHours);
-  const adjustedHours = hours >= 24 ? hours - 24 : hours;
+  const hours = Math.trunc(expiryTimeHours) % 24;
   const minutes = Math.round((expiryTimeHours % 1) * 60);
-  return `${adjustedHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
 };
 
 export const utcDateToLocalTimeString = (date: Date | string | undefined | null): string => {
