@@ -16,10 +16,6 @@ export type TabNavigationProps = BottomTabNavigationProp<TabNavigatorParamList>;
 export type MainStackParamList = {
   bottomTabs: TabNavigationProps | undefined;
 
-  avalancheCenter: {
-    center_id: AvalancheCenterID;
-    requestedTime: RequestedTimeString;
-  };
   forecast: {
     center_id: AvalancheCenterID;
     forecast_zone_id: number;
@@ -56,6 +52,11 @@ export type MainStackParamList = {
   developerMenu: {
     staging: boolean;
     setStaging: React.Dispatch<React.SetStateAction<boolean>>;
+  };
+
+  debugForecastMap: {
+    center_id: AvalancheCenterID;
+    requestedTime: RequestedTimeString;
   };
 
   buttonStylePreview: undefined;

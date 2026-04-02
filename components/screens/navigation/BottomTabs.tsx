@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import {BottomTabHeaderProps, createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {BottomTabBarHeightContext, BottomTabHeaderProps, createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {RouteProp, useIsFocused} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {AvalancheForecastZoneMap} from 'components/AvalancheForecastZoneMap';
@@ -13,7 +13,7 @@ import {merge} from 'lodash';
 import {usePreferences} from 'Preferences';
 import React, {useCallback, useEffect} from 'react';
 import {Alert, StyleSheet} from 'react-native';
-import {Edge, SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Edge, SafeAreaView} from 'react-native-safe-area-context';
 import {TabNavigatorParamList} from 'routes';
 import {colorLookup} from 'theme';
 import {formatRequestedTime, parseRequestedTimeString, RequestedTime} from 'utils/date';
@@ -96,7 +96,6 @@ export const BottomTabs: React.FunctionComponent<{requestedTime: RequestedTime}>
 const MapScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Map'>) => {
   const updateStatus = useEASUpdateStatus();
   const isActiveScreen = useIsFocused();
-  const safeAreaInset = useSafeAreaInsets();
 
   useEffect(() => {
     if (updateStatus === 'update-downloaded' && isActiveScreen) {
@@ -111,9 +110,13 @@ const MapScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Map'>
 
   const {center_id, requestedTime} = route.params;
   return (
-    <View style={{flex: 1, paddingTop: safeAreaInset.top}}>
-      <AvalancheForecastZoneMap center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />
-    </View>
+    <BottomTabBarHeightContext.Consumer>
+      {tabBarHeight => (
+        <View style={{flex: 1}}>
+          <AvalancheForecastZoneMap center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} bottomTabBarHeight={tabBarHeight ?? 0} />
+        </View>
+      )}
+    </BottomTabBarHeightContext.Consumer>
   );
 };
 
