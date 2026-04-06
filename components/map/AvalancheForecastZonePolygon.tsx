@@ -3,7 +3,7 @@ import {Animated} from 'react-native';
 
 import {LineLayer, Animated as MBAnimated, ShapeSource} from '@rnmapbox/maps';
 import {colorFor} from 'components/AvalancheDangerTriangle';
-import {MapViewZone} from 'components/content/ZoneMap';
+import {MapViewZone} from 'components/map/ZoneMap';
 import {colorLookup} from 'theme';
 
 export interface AvalancheForecastZonePolygonProps {

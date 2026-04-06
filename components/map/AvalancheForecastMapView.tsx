@@ -6,11 +6,11 @@ import {Alert, View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDime
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
-import {MapViewZone, mapViewZoneFor, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, View, VStack} from 'components/core';
 import {DangerScale} from 'components/DangerScale';
 import {TravelAdvice} from 'components/helpers/travelAdvice';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
+import {MapViewZone, mapViewZoneFor, ZoneMap} from 'components/map/ZoneMap';
 import {AvalancheCenterSelectionModal} from 'components/modals/AvalancheCenterSelectionModal';
 import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {isAfter} from 'date-fns';
@@ -286,7 +286,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   return (
     <>
       <ZoneMap
-        ref={mapCameraRef}
+        cameraRef={mapCameraRef}
         style={StyleSheet.absoluteFillObject}
         initialCameraBounds={avalancheCenterMapRegion.cameraBounds}
         zones={zones}

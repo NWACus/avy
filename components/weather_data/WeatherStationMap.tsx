@@ -12,10 +12,10 @@ import {StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
 import {format} from 'date-fns';
 
 import {Camera, CircleLayer, ShapeSource} from '@rnmapbox/maps';
-import {MapViewZone, ZoneMap, mapViewZoneFor} from 'components/content/ZoneMap';
 import {HStack, VStack, View} from 'components/core';
 import {defaultMapRegionForGeometries} from 'components/helpers/geographicCoordinates';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
+import {MapViewZone, ZoneMap, mapViewZoneFor} from 'components/map/ZoneMap';
 import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {formatData, formatTime, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
 import {formatInTimeZone} from 'date-fns-tz';
@@ -198,7 +198,7 @@ export const WeatherStationMap: React.FunctionComponent<{
     <>
       <ZoneMap
         style={StyleSheet.absoluteFillObject}
-        ref={mapCameraView}
+        cameraRef={mapCameraView}
         onMapPress={onPressMapView}
         zoomEnabled={true}
         scrollEnabled={true}

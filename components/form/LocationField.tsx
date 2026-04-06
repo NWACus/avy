@@ -1,12 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {Camera} from '@rnmapbox/maps';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
-import {MapViewZone, ZoneMap} from 'components/content/ZoneMap';
 import {Center, HStack, VStack, View} from 'components/core';
 import {FieldLabel} from 'components/form/FieldLabel';
 import {KeysMatching} from 'components/form/TextField';
 import {AvalancheCenterRegion, defaultMapRegionForGeometries, defaultMapRegionForZones} from 'components/helpers/geographicCoordinates';
 import {AnimatedMapMarker} from 'components/map/AnimatedMapMarker';
+import {MapViewZone, ZoneMap} from 'components/map/ZoneMap';
 import {LocationPoint, ObservationFormData} from 'components/observations/ObservationFormData';
 import {Body, BodyXSm, Title3Black, bodySize} from 'components/text';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
@@ -175,7 +175,7 @@ const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVi
               {incompleteQueryState(mapLayerResult) && <QueryState results={[mapLayerResult]} />}
               {mapReady && (
                 <ZoneMap
-                  ref={mapCameraRef}
+                  cameraRef={mapCameraRef}
                   style={{minWidth: '100%', minHeight: '100%'}}
                   zones={zones}
                   initialCameraBounds={initialRegion.cameraBounds}
