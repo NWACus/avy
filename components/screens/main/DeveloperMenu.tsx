@@ -22,13 +22,13 @@ import * as FileSystem from 'expo-file-system';
 
 import {useQueryClient} from '@tanstack/react-query';
 import {ClientContext} from 'clientContext';
-import {AvalancheForecastZoneMap} from 'components/AvalancheForecastZoneMap';
 import {AvalancheProblemSizeLine} from 'components/AvalancheProblemSizeLine';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
+import {AvalancheForecastZoneMap} from 'components/map/AvalancheForecastZoneMap';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {Keys} from 'components/screens/main/Keys';
 import {getVersionInfoFull} from 'components/screens/main/Version';
