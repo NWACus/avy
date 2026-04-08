@@ -1,18 +1,19 @@
-import {Ionicons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {BottomTabHeaderProps} from '@react-navigation/bottom-tabs';
 import {DrawerActions} from '@react-navigation/native';
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {HStack, View} from 'components/core';
 import {Title3Black} from 'components/text';
-import {usePreferences} from 'Preferences';
 import React, {useCallback} from 'react';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
-export const BottomTabNavigationHeader: React.FunctionComponent<BottomTabHeaderProps> = ({navigation}) => {
-  const {preferences} = usePreferences();
-  const centerId = preferences.center;
+interface BottomTabNavigationHeader extends BottomTabHeaderProps {
+  centerId: AvalancheCenterID;
+}
 
+export const BottomTabNavigationHeader: React.FunctionComponent<BottomTabNavigationHeader> = ({navigation, centerId}) => {
   const title = centerId as string;
   const TextComponent = Title3Black;
   const insets = useSafeAreaInsets();

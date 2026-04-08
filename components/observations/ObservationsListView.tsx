@@ -36,6 +36,7 @@ import {
   SectionListRenderItemInfo,
   TouchableOpacity,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
@@ -317,6 +318,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [filterConfig, setFilterConfig],
   );
 
+  const insets = useSafeAreaInsets();
+
   if (incompleteQueryState(observationsResult, mapResult) || !mapLayer || !mapFeatures) {
     return (
       <Center width="100%" height="100%">
@@ -408,7 +411,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             </Center>
           )
         }
-        contentContainerStyle={{flexGrow: 1}}
+        contentContainerStyle={{flexGrow: 1, paddingBottom: insets.bottom}}
         style={{backgroundColor: colorLookup('primary.background'), width: '100%', height: '100%'}}
         refreshing={isRefreshing}
         onRefresh={refreshWrapper}

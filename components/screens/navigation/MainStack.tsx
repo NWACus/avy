@@ -1,7 +1,7 @@
 import {RouteProp} from '@react-navigation/native';
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 import {AvalancheCenters} from 'components/avalancheCenterList';
-import {NavigationHeader} from 'components/content/NavigationHeader';
+import {NavigationHeader} from 'components/content/navigation/NavigationHeader';
 import {View} from 'components/core';
 import {FeatureFlagsDebuggerScreen} from 'components/FeatureFlagsDebugger';
 import {NWACObservationDetailView, ObservationDetailView} from 'components/observations/ObservationDetailView';
@@ -38,19 +38,23 @@ const MainStack = createNativeStackNavigator<MainStackParamList>();
 export const MainStackNavigator: React.FunctionComponent<{
   requestedTime: RequestedTime;
   centerId: AvalancheCenterID;
+  isInNoCenterExperience: boolean;
   staging: boolean;
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
-}> = ({requestedTime, centerId, staging, setStaging}) => {
+}> = ({requestedTime, centerId, isInNoCenterExperience, staging, setStaging}) => {
   const {setPreferences} = usePreferences();
 
   const setAvalancheCenter = useCallback(
     (avalancheCenterId: AvalancheCenterID) => {
-      setPreferences({center: avalancheCenterId});
+      setPreferences({center: avalancheCenterId, isInNoCenterExperience: false});
     },
     [setPreferences],
   );
 
-  const renderBottomTabs = useCallback((_: {route: RouteProp<MainStackParamList, 'bottomTabs'>}) => <BottomTabs requestedTime={requestedTime} />, [requestedTime]);
+  const renderBottomTabs = useCallback(
+    (_: {route: RouteProp<MainStackParamList, 'bottomTabs'>}) => <BottomTabs requestedTime={requestedTime} center={centerId} isInNoCenterExperience={isInNoCenterExperience} />,
+    [requestedTime, centerId, isInNoCenterExperience],
+  );
 
   const avalancheCenterSelectorOptions = useCallback(
     ({route}: {route: RouteProp<MainStackParamList, 'avalancheCenterSelector'>}) => ({

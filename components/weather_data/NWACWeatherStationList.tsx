@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {ScrollView} from 'react-native';
 
+import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {useNavigation} from '@react-navigation/native';
 import {ActionList} from 'components/content/ActionList';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
@@ -146,12 +147,14 @@ export const NWACStationList: React.FunctionComponent<{token: string; requestedT
     [stationsByZone, navigation, requestedTime],
   );
 
+  const tabBarHeight = useBottomTabBarHeight();
+
   if (incompleteQueryState(mapLayerResult, weatherStationsResult) || !mapLayer || !weatherStations) {
     return <QueryState results={[mapLayerResult, weatherStationsResult]} />;
   }
 
   return (
-    <ScrollView style={{width: '100%', height: '100%', backgroundColor: colorLookup('primary.background')}}>
+    <ScrollView style={{flex: 1, backgroundColor: colorLookup('primary.background')}} contentContainerStyle={{paddingBottom: tabBarHeight}}>
       <VStack space={10}>
         {data.map((d, i) => (
           <ActionList header={<BodyBlack>{d.zoneName}</BodyBlack>} actions={d.actions} key={i} bg="white" pl={16} />

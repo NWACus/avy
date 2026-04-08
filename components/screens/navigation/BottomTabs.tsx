@@ -1,8 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import {BottomTabBarHeightContext, BottomTabHeaderProps, createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {RouteProp, useIsFocused} from '@react-navigation/native';
+import {BottomTabBarProps, BottomTabHeaderProps, createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {RouteProp, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {BottomTabNavigationHeader} from 'components/content/BottomTabNavigationHeader';
+import {AnimatedBottomTabBar} from 'components/content/navigation/AnimatedBottomTabBar';
+import {BottomTabNavigationHeader} from 'components/content/navigation/BottomTabNavigationHeader';
 import {View, VStack} from 'components/core';
 import {AvalancheForecastZoneMap} from 'components/map/AvalancheForecastZoneMap';
 import {ObservationsListView} from 'components/observations/ObservationsListView';
@@ -10,20 +11,34 @@ import {WeatherStationPage} from 'components/weather_data/WeatherStationPage';
 import * as Updates from 'expo-updates';
 import {useEASUpdateStatus} from 'hooks/useEASUpdateStatus';
 import {merge} from 'lodash';
-import {usePreferences} from 'Preferences';
 import React, {useCallback, useEffect} from 'react';
 import {Alert, StyleSheet} from 'react-native';
 import {Edge, SafeAreaView} from 'react-native-safe-area-context';
 import {TabNavigatorParamList} from 'routes';
 import {colorLookup} from 'theme';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, parseRequestedTimeString, RequestedTime} from 'utils/date';
 
 const BottomTabNavigator = createBottomTabNavigator<TabNavigatorParamList>();
-export const BottomTabs: React.FunctionComponent<{requestedTime: RequestedTime}> = ({requestedTime}) => {
-  const renderHeader = useCallback((props: BottomTabHeaderProps) => <BottomTabNavigationHeader {...props} />, []);
+export const BottomTabs: React.FunctionComponent<{requestedTime: RequestedTime; center: AvalancheCenterID; isInNoCenterExperience: boolean}> = ({
+  requestedTime,
+  center,
+  isInNoCenterExperience,
+}) => {
+  const navigation = useNavigation();
+  // Drawer swipe is disabled by default so it doesn't intercept the native stack back-swipe on detail screens.
+  // Re-enable it here so swipe-to-open still works from the top-level tab screens.
+  useFocusEffect(
+    useCallback(() => {
+      navigation.getParent()?.setOptions({swipeEnabled: true});
+      return () => {
+        navigation.getParent()?.setOptions({swipeEnabled: false});
+      };
+    }, [navigation]),
+  );
 
-  const {preferences} = usePreferences();
-  const centerId = preferences.center;
+  const renderHeader = useCallback((props: BottomTabHeaderProps) => <BottomTabNavigationHeader centerId={center} {...props} />, [center]);
+  const renderCustomTabBar = useCallback((props: BottomTabBarProps) => <AnimatedBottomTabBar isVisible={!isInNoCenterExperience} {...props} />, [isInNoCenterExperience]);
 
   const tabNavigatorScreenOptions = useCallback(
     ({route: {name}}: {route: RouteProp<TabNavigatorParamList, keyof TabNavigatorParamList>}) => ({
@@ -39,19 +54,21 @@ export const BottomTabs: React.FunctionComponent<{requestedTime: RequestedTime}>
       // these two properties should really take ColorValue but oh well
       tabBarActiveTintColor: colorLookup('primary') as string,
       tabBarInactiveTintColor: colorLookup('text.secondary') as string,
-      header: renderHeader,
+      headerShown: name !== 'Map',
+      header: name !== 'Map' ? renderHeader : undefined,
     }),
     [renderHeader],
   );
+
   return (
-    <BottomTabNavigator.Navigator initialRouteName="Map" screenOptions={tabNavigatorScreenOptions}>
-      <BottomTabNavigator.Screen name="Map" initialParams={{center_id: centerId, requestedTime: formatRequestedTime(requestedTime)}}>
+    <BottomTabNavigator.Navigator initialRouteName="Map" screenOptions={tabNavigatorScreenOptions} tabBar={renderCustomTabBar}>
+      <BottomTabNavigator.Screen name="Map" initialParams={{center_id: center, requestedTime: formatRequestedTime(requestedTime)}}>
         {state =>
           MapScreen(
             merge(state, {
               route: {
                 params: {
-                  center_id: centerId,
+                  center_id: center,
                   requestedTime: formatRequestedTime(requestedTime),
                 },
               },
@@ -59,13 +76,13 @@ export const BottomTabs: React.FunctionComponent<{requestedTime: RequestedTime}>
           )
         }
       </BottomTabNavigator.Screen>
-      <BottomTabNavigator.Screen name="Observations" initialParams={{center_id: centerId, requestedTime: formatRequestedTime(requestedTime)}}>
+      <BottomTabNavigator.Screen name="Observations" initialParams={{center_id: center, requestedTime: formatRequestedTime(requestedTime)}}>
         {state =>
           ObservationsListScreen(
             merge(state, {
               route: {
                 params: {
-                  center_id: centerId,
+                  center_id: center,
                   requestedTime: formatRequestedTime(requestedTime),
                 },
               },
@@ -73,13 +90,13 @@ export const BottomTabs: React.FunctionComponent<{requestedTime: RequestedTime}>
           )
         }
       </BottomTabNavigator.Screen>
-      <BottomTabNavigator.Screen name="Weather" initialParams={{center_id: centerId, requestedTime: formatRequestedTime(requestedTime)}}>
+      <BottomTabNavigator.Screen name="Weather" initialParams={{center_id: center, requestedTime: formatRequestedTime(requestedTime)}}>
         {state =>
           WeatherStationListScreen(
             merge(state, {
               route: {
                 params: {
-                  center_id: centerId,
+                  center_id: center,
                   requestedTime: formatRequestedTime(requestedTime),
                 },
               },
@@ -110,13 +127,9 @@ const MapScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Map'>
 
   const {center_id, requestedTime} = route.params;
   return (
-    <BottomTabBarHeightContext.Consumer>
-      {tabBarHeight => (
-        <View style={{flex: 1}}>
-          <AvalancheForecastZoneMap center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} bottomTabBarHeight={tabBarHeight ?? 0} />
-        </View>
-      )}
-    </BottomTabBarHeightContext.Consumer>
+    <View style={{flex: 1}}>
+      <AvalancheForecastZoneMap center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />
+    </View>
   );
 };
 

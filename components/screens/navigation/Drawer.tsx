@@ -3,6 +3,7 @@ import {RouteProp, useFocusEffect} from '@react-navigation/native';
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
+import {NoCenterDrawerHeader} from 'components/content/navigation/NoCenterDrawerHeader';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, View, VStack} from 'components/core';
 import {getVersionInfoFull} from 'components/screens/main/Version';
@@ -19,8 +20,8 @@ import {sendMail} from 'network/sendMail';
 import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
 import React, {useCallback, useMemo} from 'react';
-import {ScrollView, StyleSheet} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {ScrollView} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {DrawerParamList} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -30,20 +31,25 @@ const Drawer = createDrawerNavigator<DrawerParamList>();
 export const DrawerNavigator: React.FunctionComponent<{
   requestedTime: RequestedTime;
   centerId: AvalancheCenterID;
+  isInNoCenterExperience: boolean;
   staging: boolean;
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
-}> = ({requestedTime, centerId, staging, setStaging}) => {
+}> = ({requestedTime, centerId, isInNoCenterExperience, staging, setStaging}) => {
   const renderDrawer = useCallback(
-    (props: DrawerContentComponentProps) => <DrawerMenu avalancheCenterId={centerId} staging={staging} setStaging={setStaging} {...props} />,
-    [centerId, staging, setStaging],
+    (props: DrawerContentComponentProps) => (
+      <DrawerMenu avalancheCenterId={centerId} isInNoCenterExperience={isInNoCenterExperience} staging={staging} setStaging={setStaging} {...props} />
+    ),
+    [centerId, isInNoCenterExperience, staging, setStaging],
   );
 
   const renderMainStack = useCallback(
-    (_: {route: RouteProp<DrawerParamList, 'MainStack'>}) => <MainStackNavigator centerId={centerId} requestedTime={requestedTime} staging={staging} setStaging={setStaging} />,
-    [requestedTime, centerId, staging, setStaging],
+    (_: {route: RouteProp<DrawerParamList, 'MainStack'>}) => (
+      <MainStackNavigator centerId={centerId} isInNoCenterExperience={isInNoCenterExperience} requestedTime={requestedTime} staging={staging} setStaging={setStaging} />
+    ),
+    [requestedTime, centerId, isInNoCenterExperience, staging, setStaging],
   );
   return (
-    <Drawer.Navigator initialRouteName="MainStack" drawerContent={renderDrawer}>
+    <Drawer.Navigator initialRouteName="MainStack" drawerContent={renderDrawer} screenOptions={{swipeEnabled: false}}>
       <Drawer.Screen name="MainStack" options={{headerShown: false}}>
         {renderMainStack}
       </Drawer.Screen>
@@ -51,9 +57,14 @@ export const DrawerNavigator: React.FunctionComponent<{
   );
 };
 
-const DrawerMenu: React.FunctionComponent<
-  DrawerContentComponentProps & {avalancheCenterId: AvalancheCenterID; staging: boolean; setStaging: React.Dispatch<React.SetStateAction<boolean>>}
-> = ({navigation, avalancheCenterId, staging, setStaging}) => {
+interface DrawerMenuProps extends DrawerContentComponentProps {
+  avalancheCenterId: AvalancheCenterID;
+  isInNoCenterExperience: boolean;
+  staging: boolean;
+  setStaging: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avalancheCenterId, isInNoCenterExperience, staging, setStaging}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
   const {data} = useAvalancheCenterMetadata(avalancheCenterId);
@@ -107,59 +118,65 @@ const DrawerMenu: React.FunctionComponent<
     [menuItems],
   );
 
+  const insets = useSafeAreaInsets();
+
   if (incompleteQueryState(capabilitiesResult) || !capabilities) {
     return <QueryState results={[capabilitiesResult]} />;
   }
 
   return (
-    <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}}>
-      <SafeAreaView edges={['top', 'left', 'right']} style={{height: '100%', width: '100%'}}>
-        <ScrollView style={{width: '100%', height: '100%'}}>
-          <VStack width="100%" height="100%" justifyContent="flex-start" alignItems="stretch" bg={colorLookup('primary.background')} space={10}>
-            <HStack flex={1} paddingHorizontal={16} paddingBottom={8} backgroundColor={'white'} justifyContent="space-between">
+    <View style={{flex: 1}}>
+      <ScrollView style={{flex: 1}}>
+        <VStack width="100%" height="100%" justifyContent="flex-start" alignItems="stretch" bg={colorLookup('primary.background')} space={10}>
+          {isInNoCenterExperience ? (
+            <View style={{paddingTop: insets.top, backgroundColor: '#333333'}}>
+              <NoCenterDrawerHeader />
+            </View>
+          ) : (
+            <HStack flex={1} paddingHorizontal={16} paddingBottom={8} pt={insets.top} backgroundColor={'white'} justifyContent="space-between">
               <Title3Semibold style={{flex: 2}}>{data?.name && data.name}</Title3Semibold>
               <AvalancheCenterLogo style={{height: 48, width: 48, resizeMode: 'contain'}} avalancheCenterId={avalancheCenterId} />
             </HStack>
-            <View py={12} px={32}>
-              <Button buttonStyle="primary" onPress={sendMailHandler}>
-                <BodyBlack>Submit App Feedback</BodyBlack>
-              </Button>
-            </View>
-            {menuItems && menuItems.length > 0 && <ActionList header={<BodyBlack>General</BodyBlack>} bg="white" pl={16} actions={menuActions} />}
+          )}
+          <View py={12} px={32}>
+            <Button buttonStyle="primary" onPress={sendMailHandler}>
+              <BodyBlack>Submit App Feedback</BodyBlack>
+            </Button>
+          </View>
+          {!isInNoCenterExperience && menuItems && menuItems.length > 0 && <ActionList header={<BodyBlack>General</BodyBlack>} bg="white" pl={16} actions={menuActions} />}
+          <ActionList
+            header={<BodyBlack>Settings</BodyBlack>}
+            bg="white"
+            pl={16}
+            actions={[
+              {
+                label: 'Select avalanche center',
+                data: 'Center',
+                action: navigateToCenterSelection,
+              },
+              {
+                label: 'About Avy',
+                data: 'About',
+                action: navigateToAbout,
+              },
+            ]}
+          />
+          {Updates.channel !== 'release' && (
             <ActionList
-              header={<BodyBlack>Settings</BodyBlack>}
+              header={<BodyBlack>Developer Menu</BodyBlack>}
               bg="white"
               pl={16}
               actions={[
                 {
-                  label: 'Select avalanche center',
-                  data: 'Center',
-                  action: navigateToCenterSelection,
-                },
-                {
-                  label: 'About Avy',
-                  data: 'About',
-                  action: navigateToAbout,
+                  label: 'Open Dev Menu',
+                  data: '',
+                  action: navigateToDeveloperMenu,
                 },
               ]}
             />
-            {Updates.channel !== 'release' && (
-              <ActionList
-                header={<BodyBlack>Developer Menu</BodyBlack>}
-                bg="white"
-                pl={16}
-                actions={[
-                  {
-                    label: 'Open Dev Menu',
-                    data: '',
-                    action: navigateToDeveloperMenu,
-                  },
-                ]}
-              />
-            )}
-          </VStack>
-        </ScrollView>
-      </SafeAreaView>
+          )}
+        </VStack>
+      </ScrollView>
     </View>
   );
 };
