@@ -357,16 +357,18 @@ export interface AnimatedCardsProps<T, U> {
   controllerRef: RefObject<AnimatedMapWithDrawerController>;
   renderItem: (item: ItemRenderData<T, U>) => React.ReactElement;
   buttonOnPress?: () => void;
+  bottomOffset?: number;
 }
 
 export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
-  const {center_id, date, items, getItemId, selectedItemId, setSelectedItemId, controllerRef, renderItem, buttonOnPress} = props;
+  const {center_id, date, items, getItemId, selectedItemId, setSelectedItemId, controllerRef, renderItem, buttonOnPress, bottomOffset = 0} = props;
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
   const {width} = useWindowDimensions();
 
   const [previouslySelectedItemId, setPreviouslySelectedItemId] = useState<U | null>(null);
   const [programmaticallyScrolling, setProgrammaticallyScrolling] = useState<boolean>(false);
+  const isUserScrolling = useRef(false);
 
   const offsets = items?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
   const flatListProps = {
@@ -394,12 +396,31 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
 
   const renderItemAdapter = useCallback(({item}: {item: ItemRenderData<T, U>}) => renderItem(item), [renderItem]);
 
+  const onScrollBeginDrag = useCallback(() => {
+    isUserScrolling.current = true;
+  }, []);
+
+  const onScrollEndDrag = useCallback(() => {
+    isUserScrolling.current = false; // may be re-set by onMomentumScrollBegin if momentum follows
+  }, []);
+
+  const onMomentumScrollBegin = useCallback(() => {
+    isUserScrolling.current = true; // re-arm so handleScroll works through momentum
+  }, []);
+
   // handleScroll updates the highlighted zone on the map when a user scrolls. Called about once per
   // frame by the onScroll event of the FlatList component while scrolling.
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       logger.debug('handleScroll started');
       if (!offsets || offsets.length === 0) {
+        return;
+      }
+
+      // Guard against spurious scroll events (e.g. from the nav drawer opening) that are not
+      // initiated by the user dragging the card list.
+      if (!isUserScrolling.current) {
+        logger.debug('handleScroll exiting: not a user scroll');
         return;
       }
 
@@ -448,14 +469,15 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
         setProgrammaticallyScrolling(false);
         return;
       }
-      handleScroll(event);
+      handleScroll(event); // isUserScrolling is still true here (set by onMomentumScrollBegin)
+      isUserScrolling.current = false; // reset after the final update
     },
     [programmaticallyScrolling, logger, handleScroll],
   );
 
   const getItemLayout = useCallback(
     (_data: unknown, index: number) => ({
-      length: width * CARD_WIDTH,
+      length: width * (CARD_WIDTH + CARD_SPACING),
       offset: offsets[index],
       index,
     }),
@@ -495,7 +517,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
         {
           position: 'absolute',
           width: '100%',
-          bottom: 6,
+          bottom: bottomOffset + 6,
           transform: [controllerRef.current.getTransform()],
         },
       ]}>
@@ -528,6 +550,9 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
         style={{width: '100%'}}
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
+        onScrollBeginDrag={onScrollBeginDrag}
+        onScrollEndDrag={onScrollEndDrag}
+        onMomentumScrollBegin={onMomentumScrollBegin}
         onMomentumScrollEnd={onMomentumScrollEnd}
         onLayout={onLayout}
         getItemLayout={getItemLayout}

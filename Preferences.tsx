@@ -16,6 +16,7 @@ const preferencesSchema = z.object({
   center: avalancheCenterIDSchema.default('NWAC'),
   hasSeenCenterPicker: z.boolean().default(false),
   developerMenuCollapsed: z.boolean().default(true),
+  isInNoCenterExperience: z.boolean().default(false),
   mixpanelUserId: z.string().uuid().optional(),
 });
 
@@ -71,9 +72,9 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
 
   const setPartialPreferences = useCallback(
     (newPreferences: Partial<Preferences>) => {
-      setPreferences(merge({}, preferences, newPreferences));
+      setPreferences(current => merge({}, current, newPreferences));
     },
-    [preferences, setPreferences],
+    [setPreferences],
   );
 
   const clearPreferences = useCallback(() => {

@@ -297,8 +297,8 @@ const BaseApp: React.FunctionComponent<{
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({staging, setStaging}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const {preferences} = usePreferences();
-  const avalancheCenterId = preferences.center;
+  const {preferences, setPreferences} = usePreferences();
+  const {center, isInNoCenterExperience} = preferences;
 
   const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
@@ -308,13 +308,13 @@ const BaseApp: React.FunctionComponent<{
         logger.info('skipping prefetch because EXPO_PUBLIC_DISABLE_PREFETCHING is set');
       } else {
         try {
-          await prefetchAllActiveForecasts(queryClient, avalancheCenterId, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, logger);
+          await prefetchAllActiveForecasts(queryClient, center, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, logger);
         } catch (e) {
           logger.error({error: e}, 'error prefetching data');
         }
       }
     })();
-  }, [logger, queryClient, avalancheCenterId, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost]);
+  }, [logger, queryClient, center, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost]);
 
   const navigationRef = useNavigationContainerRef();
   const trackNavigationChange = useCallback(() => {
@@ -458,6 +458,12 @@ const BaseApp: React.FunctionComponent<{
         }
       }
 
+      // When receiving a deep link, we need to make sure we're in the center focused experience so that the tab bar is shown when
+      // navigating to the observations tab
+      if (preferences.isInNoCenterExperience) {
+        setPreferences({isInNoCenterExperience: false});
+      }
+
       return getStateFromPath(newPath, opts);
     },
   };
@@ -488,7 +494,7 @@ const BaseApp: React.FunctionComponent<{
                   <SelectProvider>
                     <StatusBar barStyle={'dark-content'} animated={false} backgroundColor={'white'} />
                     <View style={{flex: 1}}>
-                      <DrawerNavigator requestedTime={requestedTime} centerId={avalancheCenterId} staging={staging} setStaging={setStaging} />
+                      <DrawerNavigator requestedTime={requestedTime} centerId={center} isInNoCenterExperience={isInNoCenterExperience} staging={staging} setStaging={setStaging} />
                     </View>
                   </SelectProvider>
                 </KillSwitchMonitor>

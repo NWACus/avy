@@ -7,10 +7,11 @@ import turfDistance from '@turf/distance';
 import {Coord, Units, featureCollection} from '@turf/helpers';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
+import {TouchableOpacity, useWindowDimensions} from 'react-native';
 
 import {format} from 'date-fns';
 
+import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {Camera, CircleLayer, ShapeSource} from '@rnmapbox/maps';
 import {HStack, VStack, View} from 'components/core';
 import {defaultMapRegionForGeometries} from 'components/helpers/geographicCoordinates';
@@ -124,6 +125,11 @@ export const WeatherStationMap: React.FunctionComponent<{
     controller.current.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
   }, [avalancheCenterMapRegion, controller]);
 
+  const bottomTabBarHeight = useBottomTabBarHeight();
+  React.useEffect(() => {
+    controller.current.animateUsingUpdatedTabBarHeight(bottomTabBarHeight);
+  }, [bottomTabBarHeight, controller]);
+
   // we want light grey zones in the background here
   const zones: MapViewZone[] = mapLayerFeatures.map((feature: MapLayerFeature) => ({
     ...mapViewZoneFor(feature),
@@ -197,7 +203,7 @@ export const WeatherStationMap: React.FunctionComponent<{
   return (
     <>
       <ZoneMap
-        style={StyleSheet.absoluteFillObject}
+        style={{flex: 1, paddingBottom: bottomTabBarHeight}}
         cameraRef={mapCameraView}
         onMapPress={onPressMapView}
         zoomEnabled={true}
@@ -222,6 +228,7 @@ export const WeatherStationMap: React.FunctionComponent<{
         setSelectedStationId={setSelectedStationId}
         controllerRef={controller}
         buttonOnPress={process.env.EXPO_PUBLIC_WEATHER_STATION_LIST_TOGGLE ? toggleList : undefined}
+        bottomOffset={bottomTabBarHeight}
       />
     </>
   );
@@ -267,7 +274,8 @@ export const WeatherStationCards: React.FunctionComponent<{
   setSelectedStationId: React.Dispatch<React.SetStateAction<string | null>>;
   controllerRef: RefObject<AnimatedMapWithDrawerController>;
   buttonOnPress?: () => void;
-}> = ({center_id, date, stations, selectedStationId, setSelectedStationId, controllerRef, buttonOnPress}) => {
+  bottomOffset?: number;
+}> = ({center_id, date, stations, selectedStationId, setSelectedStationId, controllerRef, buttonOnPress, bottomOffset = 0}) => {
   return AnimatedCards<WeatherStation, string>({
     center_id,
     date,
@@ -280,6 +288,7 @@ export const WeatherStationCards: React.FunctionComponent<{
       <WeatherStationCard mode={'map'} center_id={center_id} date={date} station={item} units={stations.properties.units} variables={stations.properties.variables} />
     ),
     buttonOnPress,
+    bottomOffset,
   });
 };
 

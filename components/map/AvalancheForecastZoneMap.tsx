@@ -1,44 +1,43 @@
-import React, {RefObject, useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {Alert, View as RNView, StyleSheet, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
-
-import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
-import {colorFor} from 'components/AvalancheDangerTriangle';
+import {useFocusEffect} from '@react-navigation/native';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
-import {Center, HStack, View, VStack} from 'components/core';
-import {DangerScale} from 'components/DangerScale';
-import {TravelAdvice} from 'components/helpers/travelAdvice';
-import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
-import {MapViewZone, mapViewZoneFor, ZoneMap} from 'components/map/ZoneMap';
+import {Center, VStack} from 'components/core';
+import {MapViewZone, mapViewZoneFor} from 'components/map/ZoneMap';
 import {AvalancheCenterSelectionModal} from 'components/modals/AvalancheCenterSelectionModal';
-import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {isAfter} from 'date-fns';
 import {toDate} from 'date-fns-tz';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts';
 import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
-import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
-import {MainStackNavigationProps, TabNavigationProps} from 'routes';
-import {AvalancheCenterID, DangerLevel, ForecastPeriod, isSupportedCenter, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
-import {formatRequestedTime, RequestedTime, requestedTimeToUTCDate, utcDateToLocalTimeString} from 'utils/date';
+import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
+import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 
-import {Camera, MapState} from '@rnmapbox/maps';
-import {defaultMapRegionForGeometries} from 'components/helpers/geographicCoordinates';
+import {BottomTabBarHeightContext} from '@react-navigation/bottom-tabs';
+
+import {ForecastNavigationHeader} from 'components/content/navigation/ForecastMapNavigationHeader';
+import {DangerScale} from 'components/DangerScale';
+import {AvalancheForecastMapView} from 'components/map/AvalancheForecastMapView';
+import * as Location from 'expo-location';
+import {Position} from 'geojson';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
+import {Alert, Linking, View} from 'react-native';
 
 export interface MapProps {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
-  bottomTabBarHeight?: number;
 }
 
-export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime, bottomTabBarHeight = 0}: MapProps) => {
-  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+export type TopElementMeasurments = {
+  yPos: number;
+  height: number;
+};
 
+export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime}: MapProps) => {
   const {preferences, setPreferences} = usePreferences();
+  const isInNoCenterExperience = preferences.isInNoCenterExperience;
 
   // Fetches all the map layers in call. Unfortunately, CBAC isn't included in that call so it needs to be fetched separately
   const allMapLayersResult = useAllMapLayers();
@@ -49,13 +48,12 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const forecastResults = useMapLayerAvalancheForecasts(center_id, requestedTime, allMapLayers, metadata);
   const warningResults = useMapLayerAvalancheWarnings(center_id, requestedTime, allMapLayers);
 
-  const navigation = useNavigation<MainStackNavigationProps & TabNavigationProps>();
-  const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
+  const topElements = React.useRef<View>(null);
 
-  const topElements = React.useRef<RNView>(null);
+  const [userLocation, setUserLocation] = useState<Position | undefined>(undefined);
+  const [topElementMeasurements, setTopElementMeasurements] = useState<TopElementMeasurments>({yPos: 0, height: 0});
 
   const postHog = usePostHog();
-
   const recordAnalytics = useCallback(() => {
     if (postHog && center_id) {
       postHog.screen('avalancheForecastMap', {
@@ -64,109 +62,6 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     }
   }, [postHog, center_id]);
   useFocusEffect(recordAnalytics);
-
-  const onMapPresOutsideOfPolygon = useCallback(
-    (_: GeoJSON.Feature) => {
-      // Since the polygons are layered on the map, this is only called when the map is tapped outside of a polygon
-      setSelectedZoneId(null);
-    },
-    [setSelectedZoneId],
-  );
-
-  const onPolygonPress = useCallback(
-    (zone: MapViewZone) => {
-      if (selectedZoneId === zone.zone_id) {
-        navigation.navigate('forecast', {
-          center_id: zone.center_id,
-          forecast_zone_id: zone.zone_id,
-          requestedTime: formatRequestedTime(requestedTime),
-        });
-      } else {
-        const selectedZoneCenter = zone.center_id;
-        if (isSupportedCenter(selectedZoneCenter)) {
-          setSelectedZoneId(zone.zone_id);
-          if (selectedZoneCenter !== center_id) {
-            setPreferences({center: selectedZoneCenter});
-          }
-        } else {
-          Alert.alert(`${selectedZoneCenter} is not supported`, `Please go to their website to view the full forecast for ${selectedZoneCenter} or select another center`, [
-            {
-              text: 'OK',
-              onPress: () => {},
-            },
-            {
-              text: 'Go to website',
-              onPress: () => {},
-            },
-          ]);
-        }
-      }
-    },
-    [navigation, selectedZoneId, center_id, requestedTime, setSelectedZoneId, setPreferences],
-  );
-
-  const preferredCenterFeatures = useMemo(() => allMapLayers?.features.filter(feature => feature.properties.center_id === center_id), [allMapLayers, center_id]);
-
-  const avalancheCenterMapRegion = useMemo(() => defaultMapRegionForGeometries(preferredCenterFeatures?.map(feature => feature.geometry)), [preferredCenterFeatures]);
-
-  // useRef has to be used here. Animation and gesture handlers can't use props and state,
-  // and aren't re-evaluated on render. Fun!
-  const mapCameraRef = useRef<Camera>(null);
-  const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraRef, logger));
-
-  const reanimateOnFocus = useCallback(() => {
-    controller.current.forceAnimateMapRegion();
-  }, [controller]);
-  useFocusEffect(reanimateOnFocus);
-
-  React.useEffect(() => {
-    controller.current.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
-  }, [avalancheCenterMapRegion, controller]);
-
-  const {width: windowWidth, height: windowHeight} = useWindowDimensions();
-  React.useEffect(() => {
-    controller.current.animateUsingUpdatedWindowDimensions(windowWidth, windowHeight);
-  }, [windowWidth, windowHeight, controller]);
-
-  React.useEffect(() => {
-    controller.current.animateUsingUpdatedTabBarHeight(bottomTabBarHeight);
-  }, [bottomTabBarHeight, controller]);
-
-  const onLayout = useCallback(() => {
-    // onLayout returns position relative to parent - we need position relative to screen
-    topElements.current?.measureInWindow((x, y, width, height) => {
-      controller.current.animateUsingUpdatedTopElementsHeight(y, height);
-    });
-
-    // we seem to see races between onLayout firing and the measureInWindow picking up the correct
-    // SafeAreaView bounds, so let's queue up another render pass in the future to hopefully converge
-    setTimeout(() => {
-      if (topElements.current) {
-        topElements.current.measureInWindow((x, y, width, height) => {
-          controller.current.animateUsingUpdatedTopElementsHeight(y, height);
-        });
-      }
-    }, 50);
-  }, [controller]);
-
-  const onSelectCenter = useCallback(
-    (center: AvalancheCenterID) => {
-      setPreferences({center: center, hasSeenCenterPicker: true});
-    },
-    [setPreferences],
-  );
-
-  const onCameraChanged = useCallback(
-    (mapState: MapState) => {
-      if (mapState.gestures.isGestureActive) {
-        if (mapState.properties.zoom < 5.5 && controller.current.state !== AnimatedDrawerState.Hidden) {
-          controller.current.setState(AnimatedDrawerState.Hidden, false);
-          setSelectedZoneId(null);
-        }
-      }
-    },
-    [controller, setSelectedZoneId],
-  );
 
   // Default to the values in the map layer, but update it with the forecasts and warnings we've fetched
   // This is done all at once so that zonesById is recalculated when forecastResults or warningResults changes while
@@ -259,160 +154,124 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     return zones;
   }, [allMapLayers, forecastResults, warningResults, requestedTime]);
 
+  const onSelectCenter = useCallback(
+    (center: AvalancheCenterID) => {
+      setPreferences({center: center, hasSeenCenterPicker: true});
+    },
+    [setPreferences],
+  );
+
+  const onLayout = useCallback(() => {
+    // onLayout returns position relative to parent - we need position relative to screen
+    topElements.current?.measureInWindow((x, y, width, height) => {
+      setTopElementMeasurements({yPos: y, height: height});
+    });
+
+    // we seem to see races between onLayout firing and the measureInWindow picking up the correct
+    // SafeAreaView bounds, so let's queue up another render pass in the future to hopefully converge
+    setTimeout(() => {
+      if (topElements.current) {
+        topElements.current.measureInWindow((x, y, width, height) => {
+          setTopElementMeasurements({yPos: y, height: height});
+        });
+      }
+    }, 50);
+  }, [setTopElementMeasurements]);
+
+  const onFetchLocation = useCallback(() => {
+    async function getUserLocation() {
+      const {status: existingStatus, canAskAgain} = await Location.getForegroundPermissionsAsync();
+
+      if (existingStatus !== Location.PermissionStatus.GRANTED && canAskAgain) {
+        // Request permissions if needed
+        const {status: newStatus} = await Location.requestForegroundPermissionsAsync();
+        if (newStatus !== Location.PermissionStatus.GRANTED) {
+          Alert.alert('Location Permissions Denied', 'Please enable location permissions in settings in order to center the map', [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Go to Settings',
+              onPress: () => void Linking.openSettings(),
+            },
+          ]);
+          return;
+        }
+      }
+
+      // Get the last known location that's less than 12 hours old.
+      // getCurrentPositionAsync can sometimes take 5+ seconds to resolve while getLastKnownPositionAsync will fire immediately if the location matches the criteria
+      let location = await Location.getLastKnownPositionAsync({maxAge: 12 * 60 * 60 * 1000});
+      if (!location) {
+        location = await Location.getCurrentPositionAsync({accuracy: Location.LocationAccuracy.Low});
+      }
+      setUserLocation([location.coords.longitude, location.coords.latitude]);
+    }
+
+    void getUserLocation();
+  }, [setUserLocation]);
+
   const zones = useMemo(() => (zonesById !== undefined ? Object.keys(zonesById).map(k => zonesById[k]) : []), [zonesById]);
 
-  const selectedACZones = useMemo(() => zones.filter(zone => zone.feature.properties.center_id === center_id), [zones, center_id]);
+  const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
+
+  // Reset selected zone when the user switches centers via the center picker (not via zone tap).
+  // When a zone tap switches centers, selectedZoneId is set to the tapped zone which belongs to the
+  // new center — so we only clear when the selected zone doesn't belong to the current center.
+  useEffect(() => {
+    if (selectedZoneId === null || zones.length === 0) return;
+    const selectedZoneBelongsToCurrentCenter = zones.some(z => z.zone_id === selectedZoneId && z.center_id === center_id);
+    if (!selectedZoneBelongsToCurrentCenter) {
+      setSelectedZoneId(null);
+    }
+  }, [center_id, zones, selectedZoneId]);
 
   const showAvalancheCenterSelectionModal = useMemo(() => !preferences.hasSeenCenterPicker, [preferences.hasSeenCenterPicker]);
 
-  if (incompleteQueryState(allMapLayersResult, metadataResult, ...forecastResults, ...warningResults) || !allMapLayers || !metadata || !preferredCenterFeatures) {
-    return (
-      <Center width="100%" height="100%">
-        <QueryState
-          results={[allMapLayersResult, metadataResult, ...forecastResults, ...warningResults]}
-          terminal
-          customMessage={{
-            notFound: () => ({
-              headline: 'Missing forecast',
-              body: 'There may not be a forecast available for today.',
-            }),
-          }}
-        />
-      </Center>
-    );
-  }
+  const isQueryIncomplete = incompleteQueryState(allMapLayersResult, metadataResult, ...forecastResults, ...warningResults) || !allMapLayers || !metadata;
 
   return (
     <>
-      <ZoneMap
-        cameraRef={mapCameraRef}
-        style={StyleSheet.absoluteFillObject}
-        initialCameraBounds={avalancheCenterMapRegion.cameraBounds}
-        zones={zones}
-        selectedZoneId={selectedZoneId}
-        onPolygonPress={onPolygonPress}
-        onMapPress={onMapPresOutsideOfPolygon}
-        onCameraChanged={onCameraChanged}
-      />
+      {isQueryIncomplete ? (
+        <Center width="100%" height="100%">
+          <QueryState
+            results={[allMapLayersResult, metadataResult, ...forecastResults, ...warningResults]}
+            terminal
+            customMessage={{
+              notFound: () => ({
+                headline: 'Missing forecast',
+                body: 'There may not be a forecast available for today.',
+              }),
+            }}
+          />
+        </Center>
+      ) : (
+        <BottomTabBarHeightContext.Consumer>
+          {tabBarHeight => (
+            <AvalancheForecastMapView
+              preferredCenterId={center_id}
+              zones={zones}
+              requestedTime={requestedTime}
+              bottomTabBarHeight={tabBarHeight}
+              topElementMeasurements={topElementMeasurements}
+              userLocation={userLocation}
+              isInNoCenterExperience={isInNoCenterExperience}
+              selectedZoneId={selectedZoneId}
+              setSelectedZoneId={setSelectedZoneId}
+            />
+          )}
+        </BottomTabBarHeightContext.Consumer>
+      )}
 
-      <VStack ref={topElements} width="100%" position="absolute" left={0} right={0} mt={8} px={4} flex={1} onLayout={onLayout}>
-        <DangerScale width="100%" />
+      <VStack ref={topElements} width="100%" position="absolute" top={0} left={0} right={0} onLayout={onLayout}>
+        <ForecastNavigationHeader centerId={center_id} isInNoCenterExperience={isInNoCenterExperience} onFetchUserLocation={onFetchLocation} />
+        <VStack px={4} marginTop={8}>
+          <DangerScale width="100%" />
+        </VStack>
       </VStack>
 
-      <AvalancheForecastZoneCards
-        key={`${center_id}-zoneCards`}
-        center_id={center_id}
-        date={requestedTime}
-        zones={selectedACZones}
-        selectedZoneId={selectedZoneId}
-        setSelectedZoneId={setSelectedZoneId}
-        controllerRef={controller}
-      />
       <AvalancheCenterSelectionModal visible={showAvalancheCenterSelectionModal} initialSelection={preferences.center} onClose={onSelectCenter} />
     </>
   );
-};
-
-const AvalancheForecastZoneCards: React.FunctionComponent<{
-  center_id: AvalancheCenterID;
-  date: RequestedTime;
-  zones: MapViewZone[];
-  selectedZoneId: number | null;
-  setSelectedZoneId: React.Dispatch<React.SetStateAction<number | null>>;
-  controllerRef: RefObject<AnimatedMapWithDrawerController>;
-}> = ({center_id, date, zones, selectedZoneId, setSelectedZoneId, controllerRef}) => {
-  return AnimatedCards<MapViewZone, number>({
-    center_id: center_id,
-    date: date,
-    items: zones,
-    getItemId: zone => zone.zone_id,
-    selectedItemId: selectedZoneId,
-    setSelectedItemId: setSelectedZoneId,
-    controllerRef: controllerRef,
-    renderItem: ({date, item}) => <AvalancheForecastZoneCard date={date} zone={item} />,
-  });
-};
-
-const AvalancheForecastZoneCard: React.FunctionComponent<{
-  date: RequestedTime;
-  zone: MapViewZone;
-}> = React.memo(({date, zone}: {date: RequestedTime; zone: MapViewZone}) => {
-  const {width} = useWindowDimensions();
-  const navigation = useNavigation<MainStackNavigationProps>();
-
-  const dangerLevel = zone.danger_level ?? DangerLevel.None;
-  const dangerColor = colorFor(dangerLevel);
-  const onPress = useCallback(() => {
-    navigation.navigate('forecast', {
-      center_id: zone.center_id,
-      forecast_zone_id: zone.zone_id,
-      requestedTime: formatRequestedTime(date),
-    });
-  }, [navigation, zone, date]);
-
-  return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
-      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={'100%'}>
-        <View height={8} width="100%" bg={dangerColor.string()} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
-        <VStack px={24} pt={4} pb={12} space={8}>
-          <HStack space={8} alignItems="center">
-            <AvalancheDangerIcon style={{height: 32}} level={dangerLevel} />
-            <DangerLevelTitle dangerLevel={dangerLevel} />
-          </HStack>
-          <Title3Black>{zone.name}</Title3Black>
-          {(zone.start_date || zone.start_date) && (
-            <VStack py={8}>
-              <Text>
-                {zone.start_date && (
-                  <>
-                    <BodySm>Published: </BodySm>
-                    <BodySm>{utcDateToLocalTimeString(zone.start_date)}</BodySm>
-                    {'\n'}
-                  </>
-                )}
-                {zone.end_date && (
-                  <>
-                    <BodySm>Expires: </BodySm>
-                    <BodySm>{utcDateToLocalTimeString(zone.end_date)}</BodySm>
-                  </>
-                )}
-              </Text>
-            </VStack>
-          )}
-          <Text>
-            <BodySm>Travel advice: </BodySm>
-            <TravelAdvice dangerLevel={dangerLevel} HeadingText={BodySm} BodyText={BodySm} />
-          </Text>
-        </VStack>
-      </VStack>
-    </TouchableOpacity>
-  );
-});
-AvalancheForecastZoneCard.displayName = 'AvalancheForecastZoneCard';
-
-const DangerLevelTitle: React.FunctionComponent<{
-  dangerLevel: DangerLevel;
-}> = ({dangerLevel}) => {
-  switch (dangerLevel) {
-    case DangerLevel.GeneralInformation:
-    case DangerLevel.None:
-      return (
-        <BodySmSemibold>
-          <Text style={{textTransform: 'capitalize'}}>No Rating</Text>
-        </BodySmSemibold>
-      );
-    case DangerLevel.Low:
-    case DangerLevel.Moderate:
-    case DangerLevel.Considerable:
-    case DangerLevel.High:
-    case DangerLevel.Extreme:
-      return (
-        <BodySmSemibold>
-          {dangerLevel} - <Text style={{textTransform: 'capitalize'}}>{DangerLevel[dangerLevel]}</Text>
-        </BodySmSemibold>
-      );
-  }
-  const invalid: never = dangerLevel;
-  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-  throw new Error(`Unknown danger level: ${invalid}`);
 };
