@@ -89,7 +89,7 @@ export enum AvalancheProblemType {
   DeepPersistentSlab,
   WetLoose,
   WetSlab,
-  CorniceFall,
+  Cornice,
   Glide,
 }
 
@@ -101,7 +101,7 @@ export enum AvalancheProblemName {
   DeepPersistentSlab = 'Deep Persistent Slab',
   WetLoose = 'Wet Loose',
   WetSlab = 'Wet Slab',
-  CorniceFall = 'Cornice Fall',
+  Cornice = 'Cornice',
   Glide = 'Glide',
   GlideAvalanches = 'Glide Avalanches',
 }
