@@ -19,7 +19,6 @@ import {HTML} from 'components/text/HTML';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useNACObservation} from 'hooks/useNACObservation';
-import {useNWACObservation} from 'hooks/useNWACObservation';
 import {usePostHog} from 'posthog-react-native';
 import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
@@ -54,24 +53,6 @@ import {
   userFacingCenterId,
 } from 'types/nationalAvalancheCenter';
 import {observationDateToLocalShortDateString, utcDateToLocalShortDateString} from 'utils/date';
-
-// TODO: Remove NWACObs issue:1152
-export const NWACObservationDetailView: React.FunctionComponent<{
-  id: string;
-}> = ({id}) => {
-  const observationResult = useNWACObservation(parseInt(id));
-  const observation = observationResult.data;
-  const mapResult = useAllMapLayers();
-  const mapLayer = mapResult.data;
-  const capabilitiesResult = useAvalancheCenterCapabilities();
-  const capabilities = capabilitiesResult.data;
-
-  if (incompleteQueryState(observationResult, mapResult, capabilitiesResult) || !observation || !mapLayer || !capabilities) {
-    return <QueryState results={[observationResult, mapResult, capabilitiesResult]} />;
-  }
-
-  return <ObservationCard observation={observation} capabilities={capabilities} />;
-};
 
 export const ObservationDetailView: React.FunctionComponent<{
   id: string;

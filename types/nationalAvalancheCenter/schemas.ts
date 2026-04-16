@@ -1194,49 +1194,6 @@ export const observationListResultSchema = z.object({
 });
 export type ObservationListResult = z.infer<typeof observationListResultSchema>;
 
-export const nwacObservationSchema = observationSchema.extend({
-  zone: z.string().optional(),
-  visible: z.boolean(),
-  id: z.number().transform(n => String(n)),
-});
-export type NWACObservation = z.infer<typeof nwacObservationSchema>;
-
-export const nwacObservationsListSchema = z.object({
-  meta: z.object({
-    limit: z.number().optional().nullable(),
-    next: z.string().optional().nullable(),
-    offset: z.number().optional().nullable(),
-    previous: z.string().optional().nullable(),
-    total_count: z.number().optional().nullable(),
-  }),
-  objects: z.array(
-    z.object({
-      id: z.number(),
-      post_type: z.string(),
-      post_date: z.string(),
-      content: nwacObservationSchema,
-    }),
-  ),
-});
-export type NWACObservationListResult = z.infer<typeof nwacObservationsListSchema>;
-
-export const nwacObservationResultSchema = z.object({
-  meta: z.object({
-    limit: z.number().optional().nullable(),
-    next: z.string().optional().nullable(),
-    offset: z.number().optional().nullable(),
-    previous: z.string().optional().nullable(),
-    total_count: z.number().optional().nullable(),
-  }),
-  objects: z.object({
-    id: z.number(),
-    post_type: z.string(),
-    post_date: z.string(),
-    content: nwacObservationSchema,
-  }),
-});
-export type NWACObservationResult = z.infer<typeof nwacObservationResultSchema>;
-
 export const avyPositionSchema = z.object({
   longitude: z.number(),
   latitude: z.number(),

@@ -12,7 +12,6 @@ import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
 import AvalancheWarningQuery from 'hooks/useAvalancheWarning';
 import ImageCache from 'hooks/useCachedImageURI';
 import NACObservationsQuery from 'hooks/useNACObservations';
-import NWACObservationsQuery from 'hooks/useNWACObservations';
 import NWACWeatherForecastQuery from 'hooks/useNWACWeatherForecast';
 import SynopsisQuery from 'hooks/useSynopsis';
 import WeatherForecastQuery from 'hooks/useWeatherForecast';
@@ -66,11 +65,7 @@ export const prefetchAllActiveForecasts = async (
   }
 
   const endDate: Date = currentDateTime;
-  if (center_id === 'NWAC') {
-    // NWAC fetches in pages of 50 working backwards from endDate
-    // This call will prefetch the 50 most recent
-    void NWACObservationsQuery.prefetch(queryClient, nwacHost, center_id, endDate, logger);
-  }
+
   if (metadata?.widget_config?.danger_map) {
     // NAC fetches in 2 week chunks working backwards from endDate
     void NACObservationsQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, endDate, logger);

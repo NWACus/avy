@@ -55,7 +55,7 @@ export const NavigationHeader: React.FunctionComponent<NativeStackHeaderProps> =
   );
 
   let shareUrl: string | null = null;
-  if (route.name === 'observation' || route.name === 'nwacObservation') {
+  if (route.name === 'observation') {
     const params = route.params;
     if (params && 'id' in params) {
       const observationId = params.id as string;

@@ -280,7 +280,7 @@ Cache is persisted to AsyncStorage with the git revision as a buster, ensuring a
 
 - **`useQuery`**: Standard single queries (most hooks)
 - **`useQueries`**: Parallel independent queries (e.g., `useMapLayerAvalancheForecasts` maps features into parallel queries)
-- **`useInfiniteQuery`**: Paginated data (e.g., `useNWACObservations` with time-window pagination)
+- **`useInfiniteQuery`**: Paginated data (e.g., `useNACObservations` with time-window pagination)
 
 ### Safe Fetch Wrapper
 

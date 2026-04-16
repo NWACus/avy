@@ -32,9 +32,6 @@ export type MainStackParamList = {
   observationModal: {
     id: string;
   };
-  nwacObservation: {
-    id: string;
-  };
   observationSubmit: undefined;
   observationsPortal: {
     center_id: AvalancheCenterID;

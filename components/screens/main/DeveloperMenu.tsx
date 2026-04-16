@@ -411,15 +411,6 @@ const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
           });
         },
       },
-      {
-        label: 'NWAC pro observation with avalanches',
-        data: null,
-        action: () => {
-          navigation.navigate('nwacObservation', {
-            id: '20312',
-          });
-        },
-      },
     ],
     [navigation],
   );

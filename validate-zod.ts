@@ -6,8 +6,6 @@ import * as path from 'path';
 import {
   avalancheCenterSchema,
   mapLayerSchema,
-  nwacObservationResultSchema,
-  nwacObservationsListSchema,
   observationListResultSchema,
   observationSchema,
   productFragmentArraySchema,
@@ -48,9 +46,6 @@ async function main() {
   let obsLists = 0;
   let obsFragments = 0;
   let obs = 0;
-  let nwacObsLists = 0;
-  let nwacObsFragments = 0;
-  let nwacObs = 0;
   let weatherStationLists = 0;
   let weatherStations = 0;
   let weatherStationTimeseries = 0;
@@ -66,10 +61,6 @@ async function main() {
     console.log(`parsed ${String(obsLists)} observation lists`);
     console.log(`parsed ${String(obsFragments)} observation fragments`);
     console.log(`parsed ${String(obs)} observations`);
-
-    console.log(`parsed ${String(nwacObsLists)} NWAC observation lists`);
-    console.log(`parsed ${String(nwacObsFragments)} NWAC observation fragments`);
-    console.log(`parsed ${String(nwacObs)} NWAC observations`);
 
     console.log(`parsed ${String(weatherStationLists)} weather station lists`);
     console.log(`parsed ${String(weatherStations)} weather stations`);
@@ -206,35 +197,6 @@ async function main() {
         }
       });
     }
-  }
-
-  fs.readFile(`${dir}/NWAC/nwac-observations.json`, (err, data) => {
-    if (err) {
-      throw err;
-    }
-    const rawData: unknown = JSON.parse(data.toString());
-    const parseResult = nwacObservationsListSchema.strict().safeParse(rawData);
-    if (!parseResult.success) {
-      console.error(`failed to parse list of observations ${dir}/NWAC/nwac-observations.json for NWAC: ${JSON.stringify(parseResult.error, null, 2)}`);
-    } else {
-      nwacObsFragments += parseResult.data.objects.length;
-    }
-    nwacObsLists++;
-  });
-
-  for await (const p of walk(`${dir}/NWAC/nwac-observations`)) {
-    fs.readFile(p, (err, data) => {
-      if (err) {
-        throw err;
-      }
-      const rawData: unknown = JSON.parse(data.toString());
-      const parseResult = nwacObservationResultSchema.strict().safeParse(rawData);
-      if (!parseResult.success) {
-        console.error(`failed to parse NWAC observation ${p} for NWAC: ${JSON.stringify(parseResult.error, null, 2)}`);
-      } else {
-        nwacObs++;
-      }
-    });
   }
 }
 

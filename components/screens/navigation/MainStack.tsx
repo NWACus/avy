@@ -4,7 +4,7 @@ import {AvalancheCenters} from 'components/avalancheCenterList';
 import {NavigationHeader} from 'components/content/navigation/NavigationHeader';
 import {View} from 'components/core';
 import {FeatureFlagsDebuggerScreen} from 'components/FeatureFlagsDebugger';
-import {NWACObservationDetailView, ObservationDetailView} from 'components/observations/ObservationDetailView';
+import {ObservationDetailView} from 'components/observations/ObservationDetailView';
 import {ObservationDetailModalView} from 'components/observations/ObservationDetailViewModal';
 import {ObservationForm} from 'components/observations/ObservationForm';
 import {ObservationsPortal} from 'components/observations/ObservationsPortal';
@@ -97,13 +97,6 @@ export const MainStackNavigator: React.FunctionComponent<{
       />
 
       <MainStack.Screen
-        name="nwacObservation"
-        component={NWACObservationDetailScreen}
-        options={{
-          title: 'Observation',
-        }}
-      />
-      <MainStack.Screen
         name="observationSubmit"
         component={ObservationSubmitScreen}
         options={{
@@ -182,15 +175,6 @@ const ObservationDetailModal = ({route}: NativeStackScreenProps<MainStackParamLi
   return (
     <View style={styles.fullScreen}>
       <ObservationDetailModalView id={id} />
-    </View>
-  );
-};
-
-const NWACObservationDetailScreen = ({route}: NativeStackScreenProps<MainStackParamList, 'nwacObservation'>) => {
-  const {id} = route.params;
-  return (
-    <View style={styles.fullScreen}>
-      <NWACObservationDetailView id={id} />
     </View>
   );
 };
