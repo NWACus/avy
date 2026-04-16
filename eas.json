@@ -32,13 +32,19 @@
     "preview": {
       "channel": "preview",
       "autoIncrement": true,
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-26.2"
+      },
       "env": {
         "APP_VARIANT": "preview"
       }
     },
     "release": {
       "channel": "release",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-26.2"
+      }
     }
   },
   "submit": {
