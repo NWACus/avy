@@ -12,12 +12,20 @@ import {z} from 'zod';
 import {PREFERENCES_KEY} from 'data/asyncStorageKeys';
 import {avalancheCenterIDSchema} from 'types/nationalAvalancheCenter';
 
+const lastMapCameraSchema = z.object({
+  center: z.tuple([z.number(), z.number()]),
+  zoom: z.number(),
+});
+
+export type MapCameraStop = z.infer<typeof lastMapCameraSchema>;
+
 const preferencesSchema = z.object({
   center: avalancheCenterIDSchema.default('NWAC'),
   hasSeenCenterPicker: z.boolean().default(false),
   developerMenuCollapsed: z.boolean().default(true),
   isInNoCenterExperience: z.boolean().default(false),
   mixpanelUserId: z.string().uuid().optional(),
+  lastMapCamera: lastMapCameraSchema.optional(),
 });
 
 export type Preferences = z.infer<typeof preferencesSchema>;

@@ -21,6 +21,7 @@ import {AvalancheForecastMapView} from 'components/map/AvalancheForecastMapView'
 import * as Location from 'expo-location';
 import {Position} from 'geojson';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
+import {logger} from 'logger';
 import {Alert, Linking, View} from 'react-native';
 
 export interface MapProps {
@@ -36,7 +37,7 @@ export type TopElementMeasurments = {
 
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime, tabBarHeight = 0}: MapProps) => {
   const {preferences, setPreferences} = usePreferences();
-  const isInNoCenterExperience = preferences.isInNoCenterExperience;
+  const {isInNoCenterExperience, lastMapCamera} = preferences;
 
   // Fetches all the map layers in call. Unfortunately, CBAC isn't included in that call so it needs to be fetched separately
   const allMapLayersResult = useAllMapLayers();
@@ -203,9 +204,13 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       // getCurrentPositionAsync can sometimes take 5+ seconds to resolve while getLastKnownPositionAsync will fire immediately if the location matches the criteria
       let location = await Location.getLastKnownPositionAsync({maxAge: 12 * 60 * 60 * 1000});
       if (!location) {
-        location = await Location.getCurrentPositionAsync({accuracy: Location.LocationAccuracy.Low});
+        try {
+          location = await Location.getCurrentPositionAsync({accuracy: Location.LocationAccuracy.Low});
+          setUserLocation([location.coords.longitude, location.coords.latitude]);
+        } catch (error) {
+          logger.debug({error}, "Failed to fetch the user's location");
+        }
       }
-      setUserLocation([location.coords.longitude, location.coords.latitude]);
     }
 
     void getUserLocation();
@@ -253,6 +258,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           topElementMeasurements={topElementMeasurements}
           userLocation={userLocation}
           isInNoCenterExperience={isInNoCenterExperience}
+          lastMapCamera={lastMapCamera}
           selectedZoneId={selectedZoneId}
           tabBarHeight={tabBarHeight}
           setSelectedZoneId={setSelectedZoneId}
