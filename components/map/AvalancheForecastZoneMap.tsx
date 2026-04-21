@@ -15,8 +15,6 @@ import {usePreferences} from 'Preferences';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
 import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 
-import {BottomTabBarHeightContext} from '@react-navigation/bottom-tabs';
-
 import {ForecastNavigationHeader} from 'components/content/navigation/ForecastMapNavigationHeader';
 import {DangerScale} from 'components/DangerScale';
 import {AvalancheForecastMapView} from 'components/map/AvalancheForecastMapView';
@@ -28,6 +26,7 @@ import {Alert, Linking, View} from 'react-native';
 export interface MapProps {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
+  tabBarHeight?: number;
 }
 
 export type TopElementMeasurments = {
@@ -35,7 +34,7 @@ export type TopElementMeasurments = {
   height: number;
 };
 
-export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime}: MapProps) => {
+export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime, tabBarHeight = 0}: MapProps) => {
   const {preferences, setPreferences} = usePreferences();
   const isInNoCenterExperience = preferences.isInNoCenterExperience;
 
@@ -247,21 +246,17 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           />
         </Center>
       ) : (
-        <BottomTabBarHeightContext.Consumer>
-          {tabBarHeight => (
-            <AvalancheForecastMapView
-              preferredCenterId={center_id}
-              zones={zones}
-              requestedTime={requestedTime}
-              bottomTabBarHeight={tabBarHeight}
-              topElementMeasurements={topElementMeasurements}
-              userLocation={userLocation}
-              isInNoCenterExperience={isInNoCenterExperience}
-              selectedZoneId={selectedZoneId}
-              setSelectedZoneId={setSelectedZoneId}
-            />
-          )}
-        </BottomTabBarHeightContext.Consumer>
+        <AvalancheForecastMapView
+          preferredCenterId={center_id}
+          zones={zones}
+          requestedTime={requestedTime}
+          topElementMeasurements={topElementMeasurements}
+          userLocation={userLocation}
+          isInNoCenterExperience={isInNoCenterExperience}
+          selectedZoneId={selectedZoneId}
+          tabBarHeight={tabBarHeight}
+          setSelectedZoneId={setSelectedZoneId}
+        />
       )}
 
       <VStack ref={topElements} width="100%" position="absolute" top={0} left={0} right={0} onLayout={onLayout}>

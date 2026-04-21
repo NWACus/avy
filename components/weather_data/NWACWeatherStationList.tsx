@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {ScrollView} from 'react-native';
 
-import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {useNavigation} from '@react-navigation/native';
 import {ActionList} from 'components/content/ActionList';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
@@ -106,7 +105,7 @@ export const NWACStationsByZone = (mapLayerFeatures: MapLayerFeature[] | undefin
   return zones;
 };
 
-export const NWACStationList: React.FunctionComponent<{token: string; requestedTime: RequestedTimeString}> = ({token, requestedTime}) => {
+export const NWACStationList: React.FunctionComponent<{token: string; requestedTime: RequestedTimeString; tabBarHeight: number}> = ({token, requestedTime, tabBarHeight}) => {
   const navigation = useNavigation<MainStackNavigationProps>();
   const mapLayerResult = useAllMapLayers();
   const mapLayer = mapLayerResult.data;
@@ -146,8 +145,6 @@ export const NWACStationList: React.FunctionComponent<{token: string; requestedT
         .filter(d => d.actions.length > 0),
     [stationsByZone, navigation, requestedTime],
   );
-
-  const tabBarHeight = useBottomTabBarHeight();
 
   if (incompleteQueryState(mapLayerResult, weatherStationsResult) || !mapLayer || !weatherStations) {
     return <QueryState results={[mapLayerResult, weatherStationsResult]} />;

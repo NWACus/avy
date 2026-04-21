@@ -24,9 +24,10 @@ export const WeatherStationList: React.FunctionComponent<{
   weatherStations: WeatherStationCollection;
   center_id: AvalancheCenterID;
   requestedTime: RequestedTimeString;
+  tabBarHeight: number;
   toggleMap: () => void;
   initialFilterConfig?: WeatherStationFilterConfig;
-}> = ({mapLayerFeatures, weatherStations, center_id, requestedTime, toggleMap, initialFilterConfig}) => {
+}> = ({mapLayerFeatures, weatherStations, center_id, requestedTime, tabBarHeight, toggleMap, initialFilterConfig}) => {
   const parsedTime = parseRequestedTimeString(requestedTime);
   const currentTime = requestedTimeToUTCDate(parsedTime);
   const [filterConfig, setFilterConfig] = React.useState<WeatherStationFilterConfig>({...initialFilterConfig});
@@ -129,6 +130,7 @@ export const WeatherStationList: React.FunctionComponent<{
         <FlatList
           ListEmptyComponent={<NotFound inline terminal what={[new NotFoundError('no weather stations found', 'any matching weather stations')]} />}
           style={{backgroundColor: colorLookup('primary.background'), width: '100%', height: '100%'}}
+          contentContainerStyle={{paddingBottom: tabBarHeight}}
           data={displayedStations}
           renderItem={renderItem}
         />

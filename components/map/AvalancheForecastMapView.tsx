@@ -24,11 +24,17 @@ interface AvalancheForecastMapViewProps {
   requestedTime: RequestedTime;
   isInNoCenterExperience: boolean;
   selectedZoneId: number | null;
+  tabBarHeight: number;
   setSelectedZoneId: React.Dispatch<React.SetStateAction<number | null>>;
-  bottomTabBarHeight?: number;
   topElementMeasurements?: TopElementMeasurments;
   userLocation?: Position | undefined;
 }
+
+// These map zoom level thresholds control when the AnimatedCards are automatically hidden and when the isInNoCenterExperience triggers
+// In Mapbox, the levels start at 0 (most zoomed out) and go to 22 (most zoomed in). The card threshold therefore happens first and then the no center experience is triggered
+// This prevents all the changes from happening at once
+const CARD_HIDDEN_ZOOM_THRESHOLD = 6;
+const NO_CENTER_EXPERIENCE_ZOOM_THRESHOLD = 5;
 
 export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecastMapViewProps> = ({
   preferredCenterId,
@@ -36,8 +42,8 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   requestedTime,
   isInNoCenterExperience,
   selectedZoneId,
+  tabBarHeight,
   setSelectedZoneId,
-  bottomTabBarHeight = 0,
   topElementMeasurements = {yPos: 0, height: 0},
   userLocation = undefined,
 }: AvalancheForecastMapViewProps) => {
@@ -76,7 +82,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
             shouldUpdatePreferences = true;
           }
 
-          if (isInNoCenterExperience) {
+          if (isInNoCenterExperienceRef.current) {
             const noCenterPreference: Partial<Preferences> = {isInNoCenterExperience: false};
             updatedPreferences = merge({}, updatedPreferences, noCenterPreference);
             shouldUpdatePreferences = true;
@@ -99,12 +105,17 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         }
       }
     },
-    [navigation, selectedZoneId, isInNoCenterExperience, preferredCenterId, requestedTime, setSelectedZoneId, setPreferences],
+    [navigation, selectedZoneId, preferredCenterId, requestedTime, setSelectedZoneId, setPreferences],
   );
 
   const preferredCenterZones = useMemo(() => zones.filter(zone => zone.center_id === preferredCenterId), [zones, preferredCenterId]);
 
   const avalancheCenterMapRegion = useMemo(() => defaultMapRegionForGeometries(preferredCenterZones.map(zone => zone.feature.geometry)), [preferredCenterZones]);
+
+  const isInNoCenterExperienceRef = useRef(isInNoCenterExperience);
+  useEffect(() => {
+    isInNoCenterExperienceRef.current = isInNoCenterExperience;
+  }, [isInNoCenterExperience]);
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
@@ -126,8 +137,8 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   }, [windowWidth, windowHeight, controller]);
 
   React.useEffect(() => {
-    controller.current.animateUsingUpdatedTabBarHeight(bottomTabBarHeight);
-  }, [bottomTabBarHeight, controller]);
+    controller.current.animateUsingUpdatedTabBarHeight(tabBarHeight);
+  }, [tabBarHeight, controller]);
 
   React.useEffect(() => {
     controller.current.animateUsingUpdatedTopElementsHeight(topElementMeasurements.yPos, topElementMeasurements.height);
@@ -136,18 +147,19 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   const onCameraChanged = useCallback(
     (mapState: MapState) => {
       if (mapState.gestures.isGestureActive) {
-        if (mapState.properties.zoom < 6 && controller.current.state !== AnimatedDrawerState.Hidden) {
+        if (mapState.properties.zoom < CARD_HIDDEN_ZOOM_THRESHOLD && controller.current.state !== AnimatedDrawerState.Hidden) {
           controller.current.setState(AnimatedDrawerState.Hidden, false);
           setSelectedZoneId(null);
         }
 
-        // There's a difference threshold for the no center experience so that the transition between the center focused state and the no center state is smoother
-        if (!isInNoCenterExperience && mapState.properties.zoom < 5) {
+        if (!isInNoCenterExperienceRef.current && mapState.properties.zoom < NO_CENTER_EXPERIENCE_ZOOM_THRESHOLD) {
+          // Updating the ref here helps prevent unnecessary calls to setPreferences.
+          isInNoCenterExperienceRef.current = true;
           setPreferences({isInNoCenterExperience: true});
         }
       }
     },
-    [controller, isInNoCenterExperience, setPreferences, setSelectedZoneId],
+    [controller, setPreferences, setSelectedZoneId],
   );
 
   useEffect(() => {
@@ -159,6 +171,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   return (
     <>
       <ZoneMap
+        key={'forecastZoneMap'}
         cameraRef={mapCameraRef}
         style={StyleSheet.absoluteFillObject}
         initialCameraBounds={avalancheCenterMapRegion.cameraBounds}
@@ -176,7 +189,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         selectedZoneId={selectedZoneId}
         setSelectedZoneId={setSelectedZoneId}
         controllerRef={controller}
-        bottomOffset={isInNoCenterExperience ? 0 : bottomTabBarHeight}
+        bottomOffset={isInNoCenterExperience ? 0 : tabBarHeight}
       />
     </>
   );
