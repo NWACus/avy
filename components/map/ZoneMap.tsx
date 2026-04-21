@@ -2,7 +2,7 @@ import {AvalancheForecastZonePolygon, SelectedAvalancheForecastZonePolygon} from
 import React, {RefObject, useMemo} from 'react';
 import {AvalancheCenterID, DangerLevel, MapLayerFeature} from 'types/nationalAvalancheCenter';
 
-import Mapbox, {Camera, CameraBounds, MapState, MapView} from '@rnmapbox/maps';
+import Mapbox, {Camera, CameraBounds, CameraStop, MapState, MapView} from '@rnmapbox/maps';
 import {ViewProps} from 'react-native';
 
 export const mapViewZoneFor = (feature: MapLayerFeature): MapViewZone => {
@@ -31,9 +31,11 @@ export type MapViewZone = {
   hasWarning: boolean;
 };
 
+// If both initialCameraBounds and initialCameraStop are passed in, then initialCameraStop will take priority when setting the Camera
 interface ZoneMapProps extends ViewProps {
   zones: MapViewZone[];
   initialCameraBounds: CameraBounds;
+  initialCameraStop?: CameraStop;
   cameraRef?: RefObject<Camera | null>;
   selectedZoneId?: number | null;
   renderFillColor?: boolean;
@@ -50,6 +52,7 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
   cameraRef,
   selectedZoneId,
   initialCameraBounds,
+  initialCameraStop,
   renderFillColor = true,
   rotateEnabled = true,
   scrollEnabled = true,
@@ -83,7 +86,7 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
       onPress={onMapPress}
       onCameraChanged={onCameraChanged}
       {...props}>
-      <Camera ref={cameraRef} defaultSettings={{bounds: initialCameraBounds}} />
+      <Camera ref={cameraRef} defaultSettings={initialCameraStop ?? {bounds: initialCameraBounds}} />
       {zonePolygons}
       {selectedPolygon}
       {children}
