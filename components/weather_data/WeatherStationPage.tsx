@@ -17,9 +17,10 @@ import {RequestedTimeString} from 'utils/date';
 interface Props {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTimeString;
+  tabBarHeight: number;
 }
 
-export const WeatherStationPage: React.FC<Props> = ({center_id, requestedTime}) => {
+export const WeatherStationPage: React.FC<Props> = ({center_id, requestedTime, tabBarHeight}) => {
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(centerOrPartnerCenter(center_id));
   const metadata = avalancheCenterMetadataResult.data;
   const postHog = usePostHog();
@@ -42,17 +43,18 @@ export const WeatherStationPage: React.FC<Props> = ({center_id, requestedTime}) 
   }
 
   if (center_id === 'NWAC') {
-    return <NWACStationList token={metadata.widget_config.stations?.token} requestedTime={requestedTime} />;
+    return <NWACStationList token={metadata.widget_config.stations?.token} requestedTime={requestedTime} tabBarHeight={tabBarHeight} />;
   }
 
-  return <WeatherStations center_id={center_id} token={metadata.widget_config.stations?.token} requestedTime={requestedTime} />;
+  return <WeatherStations center_id={center_id} token={metadata.widget_config.stations?.token} requestedTime={requestedTime} tabBarHeight={tabBarHeight} />;
 };
 
 export const WeatherStations: React.FunctionComponent<{
   center_id: AvalancheCenterID;
   token: string;
   requestedTime: RequestedTimeString;
-}> = ({center_id, token, requestedTime}) => {
+  tabBarHeight: number;
+}> = ({center_id, token, requestedTime, tabBarHeight}) => {
   const [list, {toggle: toggleList}] = useToggle(false);
   const mapLayerResult = useAllMapLayers();
   const mapLayer = mapLayerResult.data;
@@ -66,8 +68,26 @@ export const WeatherStations: React.FunctionComponent<{
   }
 
   if (list) {
-    return <WeatherStationList center_id={center_id} requestedTime={requestedTime} mapLayerFeatures={mapFeatures ?? []} weatherStations={weatherStations} toggleMap={toggleList} />;
+    return (
+      <WeatherStationList
+        center_id={center_id}
+        requestedTime={requestedTime}
+        mapLayerFeatures={mapFeatures ?? []}
+        weatherStations={weatherStations}
+        tabBarHeight={tabBarHeight}
+        toggleMap={toggleList}
+      />
+    );
   } else {
-    return <WeatherStationMap center_id={center_id} requestedTime={requestedTime} mapLayerFeatures={mapFeatures} weatherStations={weatherStations} toggleList={toggleList} />;
+    return (
+      <WeatherStationMap
+        center_id={center_id}
+        requestedTime={requestedTime}
+        mapLayerFeatures={mapFeatures}
+        weatherStations={weatherStations}
+        tabBarHeight={tabBarHeight}
+        toggleList={toggleList}
+      />
+    );
   }
 };

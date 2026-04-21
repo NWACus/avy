@@ -11,13 +11,13 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
-interface ForecastNavigaitonHeaderProps {
+interface ForecastNavigationHeaderProps {
   centerId: AvalancheCenterID;
   isInNoCenterExperience: boolean;
   onFetchUserLocation: () => void;
 }
 
-export const ForecastNavigationHeader: React.FunctionComponent<ForecastNavigaitonHeaderProps> = ({centerId, isInNoCenterExperience, onFetchUserLocation}) => {
+export const ForecastNavigationHeader: React.FunctionComponent<ForecastNavigationHeaderProps> = ({centerId, isInNoCenterExperience, onFetchUserLocation}) => {
   const navigation = useNavigation();
 
   const title = centerId as string;
@@ -44,7 +44,7 @@ export const ForecastNavigationHeader: React.FunctionComponent<ForecastNavigaito
     <View style={{width: '100%', paddingTop: insets.top}}>
       <LinearGradient colors={['rgba(0,0,0,0.9)', 'rgba(0,0,0,0.0)']} style={[StyleSheet.absoluteFillObject]} pointerEvents="none" />
       <Animated.View style={[StyleSheet.absoluteFillObject, styles.whiteBackground, whiteOverlayStyle]} pointerEvents="none" />
-      <HStack justifyContent="space-between" space={8} pl={3} pr={16}>
+      <HStack justifyContent="space-between" alignItems="center" height={44} space={8} pl={3} pr={16}>
         <Ionicons.Button
           size={24}
           color={iconColor}

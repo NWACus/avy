@@ -11,7 +11,6 @@ import {TouchableOpacity, useWindowDimensions} from 'react-native';
 
 import {format} from 'date-fns';
 
-import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {Camera, CircleLayer, ShapeSource} from '@rnmapbox/maps';
 import {HStack, VStack, View} from 'components/core';
 import {defaultMapRegionForGeometries} from 'components/helpers/geographicCoordinates';
@@ -81,8 +80,9 @@ export const WeatherStationMap: React.FunctionComponent<{
   weatherStations: WeatherStationCollection;
   center_id: AvalancheCenterID;
   requestedTime: RequestedTimeString;
+  tabBarHeight: number;
   toggleList: () => void;
-}> = ({mapLayerFeatures, weatherStations, center_id, requestedTime, toggleList}) => {
+}> = ({mapLayerFeatures, weatherStations, center_id, requestedTime, tabBarHeight, toggleList}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const avalancheCenterMapRegion = defaultMapRegionForGeometries(mapLayerFeatures.map(feature => feature.geometry));
   const postHog = usePostHog();
@@ -125,10 +125,9 @@ export const WeatherStationMap: React.FunctionComponent<{
     controller.current.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
   }, [avalancheCenterMapRegion, controller]);
 
-  const bottomTabBarHeight = useBottomTabBarHeight();
   React.useEffect(() => {
-    controller.current.animateUsingUpdatedTabBarHeight(bottomTabBarHeight);
-  }, [bottomTabBarHeight, controller]);
+    controller.current.animateUsingUpdatedTabBarHeight(tabBarHeight);
+  }, [tabBarHeight, controller]);
 
   // we want light grey zones in the background here
   const zones: MapViewZone[] = mapLayerFeatures.map((feature: MapLayerFeature) => ({
@@ -203,7 +202,7 @@ export const WeatherStationMap: React.FunctionComponent<{
   return (
     <>
       <ZoneMap
-        style={{flex: 1, paddingBottom: bottomTabBarHeight}}
+        style={{flex: 1, marginBottom: tabBarHeight}}
         cameraRef={mapCameraView}
         onMapPress={onPressMapView}
         zoomEnabled={true}
@@ -228,7 +227,7 @@ export const WeatherStationMap: React.FunctionComponent<{
         setSelectedStationId={setSelectedStationId}
         controllerRef={controller}
         buttonOnPress={process.env.EXPO_PUBLIC_WEATHER_STATION_LIST_TOGGLE ? toggleList : undefined}
-        bottomOffset={bottomTabBarHeight}
+        bottomOffset={tabBarHeight}
       />
     </>
   );

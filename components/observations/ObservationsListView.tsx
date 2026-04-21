@@ -53,6 +53,7 @@ interface ObservationsListViewItem {
 interface ObservationsListViewProps {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
+  tabBarHeight?: number;
   additionalFilters?: Partial<ObservationFilterConfig>;
 }
 
@@ -67,7 +68,7 @@ interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFr
   source: SourceType;
 }
 
-export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, additionalFilters}) => {
+export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, tabBarHeight = 0, additionalFilters}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const navigation = useNavigation<MainStackNavigationProps>();
   const endDate = requestedTimeToUTCDate(requestedTime);
@@ -332,7 +333,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const optionalFilterCount = resolvedFilters.filter(value => value.removeFilter !== undefined).length;
 
   return (
-    <VStack width="100%" height="100%" space={0}>
+    <VStack width="100%" height="100%" space={0} paddingBottom={insets.bottom}>
       <Modal visible={filterModalVisible} onRequestClose={hideFilterModal} presentationStyle="overFullScreen">
         <ObservationsFilterForm
           requestedTime={requestedTime}
@@ -411,14 +412,14 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             </Center>
           )
         }
-        contentContainerStyle={{flexGrow: 1, paddingBottom: insets.bottom}}
+        contentContainerStyle={{flexGrow: 1, paddingBottom: tabBarHeight}}
         style={{backgroundColor: colorLookup('primary.background'), width: '100%', height: '100%'}}
         refreshing={isRefreshing}
         onRefresh={refreshWrapper}
         getItemLayout={getItemLayout}
         renderItem={renderItem}
       />
-      <HStack position="absolute" bottom={16} right={16} justifyContent="flex-end">
+      <HStack position="absolute" bottom={tabBarHeight + 16} right={16} justifyContent="flex-end">
         {/* Padding numbers are carefully chosen to center things, and to make the button perfectly round
         when the text is hidden. Expo icons are never vertically centered correctly by default for some reason. */}
         <Button buttonStyle="primary" onPress={submit} borderRadius={32} paddingHorizontal={13}>

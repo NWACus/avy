@@ -21,7 +21,7 @@ const TabItem: React.FunctionComponent<TabItemProps> = ({routeKey, routeName, la
   const color = isFocused ? (colorLookup('primary') as string) : (colorLookup('text.secondary') as string);
 
   return (
-    <TouchableOpacity style={styles.tab} onPress={onPress} accessibilityRole="button" accessibilityState={isFocused ? {selected: true} : {}}>
+    <TouchableOpacity style={styles.tab} onPress={onPress} accessibilityRole="button" accessibilityState={isFocused ? {selected: true} : {}} accessibilityLabel={label}>
       {tabBarIcon?.({focused: isFocused, color, size: 24})}
       <Text style={[styles.label, {color}]}>{label}</Text>
     </TouchableOpacity>

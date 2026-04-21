@@ -26,12 +26,14 @@ const defaultPreferences = preferencesSchema.parse({});
 
 interface PreferencesContextType {
   preferences: Preferences;
+  preferencesLoaded: boolean;
   setPreferences: (preferences: Partial<Preferences>) => void;
   clearPreferences: () => void;
 }
 
 const PreferencesContext = createContext<PreferencesContextType>({
   preferences: defaultPreferences,
+  preferencesLoaded: false,
   setPreferences: () => undefined,
   clearPreferences: () => undefined,
 });
@@ -42,6 +44,7 @@ interface PreferencesProviderProps {
 
 export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({children}) => {
   const [preferences, setPreferences] = useState<Preferences>(defaultPreferences);
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
   useAsyncEffect(async () => {
     let storedPreferences = {};
@@ -64,6 +67,7 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
         storedPreferences,
       ),
     );
+    setPreferencesLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -82,7 +86,7 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({childre
     setPreferences({...defaultPreferences, mixpanelUserId: preferences.mixpanelUserId});
   }, [setPreferences, preferences.mixpanelUserId]);
 
-  return <PreferencesContext.Provider value={{preferences, setPreferences: setPartialPreferences, clearPreferences}}>{children}</PreferencesContext.Provider>;
+  return <PreferencesContext.Provider value={{preferences, preferencesLoaded, setPreferences: setPartialPreferences, clearPreferences}}>{children}</PreferencesContext.Provider>;
 };
 
 export const usePreferences = () => useContext(PreferencesContext);

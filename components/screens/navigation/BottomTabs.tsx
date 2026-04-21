@@ -1,10 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import {BottomTabBarProps, BottomTabHeaderProps, createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {BottomTabBarHeightContext, BottomTabBarProps, BottomTabHeaderProps, createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {RouteProp, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {AnimatedBottomTabBar} from 'components/content/navigation/AnimatedBottomTabBar';
 import {BottomTabNavigationHeader} from 'components/content/navigation/BottomTabNavigationHeader';
-import {View, VStack} from 'components/core';
+import {View} from 'components/core';
 import {AvalancheForecastZoneMap} from 'components/map/AvalancheForecastZoneMap';
 import {ObservationsListView} from 'components/observations/ObservationsListView';
 import {WeatherStationPage} from 'components/weather_data/WeatherStationPage';
@@ -13,7 +13,6 @@ import {useEASUpdateStatus} from 'hooks/useEASUpdateStatus';
 import {merge} from 'lodash';
 import React, {useCallback, useEffect} from 'react';
 import {Alert, StyleSheet} from 'react-native';
-import {Edge, SafeAreaView} from 'react-native-safe-area-context';
 import {TabNavigatorParamList} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -128,32 +127,33 @@ const MapScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Map'>
   const {center_id, requestedTime} = route.params;
   return (
     <View style={{flex: 1}}>
-      <AvalancheForecastZoneMap center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />
+      <BottomTabBarHeightContext.Consumer>
+        {tabBarHeight => <AvalancheForecastZoneMap center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} tabBarHeight={tabBarHeight ?? 0} />}
+      </BottomTabBarHeightContext.Consumer>
     </View>
   );
 };
 
 const ObservationsListScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Observations'>) => {
   const {center_id, requestedTime} = route.params;
+
   return (
     <View style={{...styles.fullScreen, backgroundColor: 'white'}}>
-      <ObservationsListView center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} />
+      <BottomTabBarHeightContext.Consumer>
+        {tabBarHeight => <ObservationsListView center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} tabBarHeight={tabBarHeight} />}
+      </BottomTabBarHeightContext.Consumer>
     </View>
   );
 };
 
 const WeatherStationListScreen = ({route}: NativeStackScreenProps<TabNavigatorParamList, 'Weather'>) => {
-  const edges: Edge[] = ['left', 'right'];
   const {center_id, requestedTime} = route.params;
 
   return (
     <View flex={1} bg="white" key={`${center_id}_weather`}>
-      {/* SafeAreaView shouldn't inset from bottom edge because TabNavigator is sitting there */}
-      <SafeAreaView edges={edges} style={{height: '100%', width: '100%'}}>
-        <VStack width="100%" height="100%" justifyContent="space-between" alignItems="stretch" bg="primary.background">
-          <WeatherStationPage center_id={center_id} requestedTime={requestedTime} />
-        </VStack>
-      </SafeAreaView>
+      <BottomTabBarHeightContext.Consumer>
+        {tabBarHeight => <WeatherStationPage center_id={center_id} requestedTime={requestedTime} tabBarHeight={tabBarHeight ?? 0} />}
+      </BottomTabBarHeightContext.Consumer>
     </View>
   );
 };

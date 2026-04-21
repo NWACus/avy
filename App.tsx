@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {getStateFromPath, NavigationContainer, PathConfigMap, useNavigationContainerRef} from '@react-navigation/native';
@@ -297,7 +297,7 @@ const BaseApp: React.FunctionComponent<{
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({staging, setStaging}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const {preferences, setPreferences} = usePreferences();
+  const {preferences, preferencesLoaded, setPreferences} = usePreferences();
   const {center, isInNoCenterExperience} = preferences;
 
   const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
@@ -317,6 +317,39 @@ const BaseApp: React.FunctionComponent<{
   }, [logger, queryClient, center, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost]);
 
   const navigationRef = useNavigationContainerRef();
+
+  const initialUrlRef = useRef<string | null>(null);
+  const isInNoCenterExperienceRef = useRef(isInNoCenterExperience);
+
+  useEffect(() => {
+    isInNoCenterExperienceRef.current = isInNoCenterExperience;
+  }, [isInNoCenterExperience]);
+
+  const handleDeepLink = useCallback(
+    (url: string) => {
+      initialUrlRef.current = url;
+      const urlHash = new URL(url).hash;
+      const isObservationsList = urlHash === '#/view/observations' || urlHash === '#/observations';
+      if (isObservationsList && isInNoCenterExperienceRef.current && preferencesLoaded) {
+        setPreferences({isInNoCenterExperience: false});
+      }
+    },
+    [setPreferences, preferencesLoaded],
+  );
+
+  useEffect(() => {
+    Linking.getInitialURL()
+      .then(url => {
+        if (url) handleDeepLink(url);
+      })
+      .catch(err => logger.error('An error occurred while getting InitialUrl.', err));
+  }, [handleDeepLink, logger]);
+
+  useEffect(() => {
+    const subscription = Linking.addEventListener('url', event => handleDeepLink(event.url));
+    return () => subscription.remove();
+  }, [handleDeepLink]);
+
   const trackNavigationChange = useCallback(() => {
     if (routingInstrumentation && navigationRef) {
       routingInstrumentation.registerNavigationContainer(navigationRef);
@@ -400,22 +433,6 @@ const BaseApp: React.FunctionComponent<{
     );
   }
 
-  let initialUrl: string | null = null;
-  // get the universal link the app was open with, if one exists
-  Linking.getInitialURL()
-    .then(url => {
-      if (url) {
-        initialUrl = url;
-      }
-    })
-    .catch(err => {
-      logger.error('An error occurred while getting InitialUrl.', err);
-    });
-
-  Linking.addEventListener('url', event => {
-    initialUrl = event.url;
-  });
-
   const linking = {
     prefixes: [
       // Prefixes are removed from URL before parsing
@@ -426,6 +443,7 @@ const BaseApp: React.FunctionComponent<{
       screens: {
         MainStack: {
           path: 'observations/#/view/observations',
+          initialRouteName: 'bottomTabs',
           screens: {
             bottomTabs: {
               screens: {
@@ -450,18 +468,12 @@ const BaseApp: React.FunctionComponent<{
       let newPath = path.replace('observations/#/observation', 'observations/#/view/observations');
 
       // Setup share URL for back controls
-      if (initialUrl) {
+      if (initialUrlRef.current) {
         // this url contains the whole url, like so: https://nwac.us/observations/#/observations/fb5bb19a-2b89-4c9c-91d2-eb673c5ab877
-        const origin = new URL(initialUrl).origin;
+        const origin = new URL(initialUrlRef.current).origin;
         if (origin !== 'null') {
           newPath += '?share=true&share_url=' + origin + '/';
         }
-      }
-
-      // When receiving a deep link, we need to make sure we're in the center focused experience so that the tab bar is shown when
-      // navigating to the observations tab
-      if (preferences.isInNoCenterExperience) {
-        setPreferences({isInNoCenterExperience: false});
       }
 
       return getStateFromPath(newPath, opts);
