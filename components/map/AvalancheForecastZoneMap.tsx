@@ -210,6 +210,8 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         } catch (error) {
           logger.debug({error}, "Failed to fetch the user's location");
         }
+      } else {
+        setUserLocation([location.coords.longitude, location.coords.latitude]);
       }
     }
 
