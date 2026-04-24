@@ -102,6 +102,7 @@ export enum AvalancheProblemName {
   WetLoose = 'Wet Loose',
   WetSlab = 'Wet Slab',
   CorniceFall = 'Cornice Fall',
+  Cornice = 'Cornice',
   Glide = 'Glide',
   GlideAvalanches = 'Glide Avalanches',
 }
