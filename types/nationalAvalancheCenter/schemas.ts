@@ -89,7 +89,7 @@ export enum AvalancheProblemType {
   DeepPersistentSlab,
   WetLoose,
   WetSlab,
-  Cornice,
+  CorniceFall,
   Glide,
 }
 

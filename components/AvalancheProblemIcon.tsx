@@ -19,7 +19,7 @@ const icons: Record<AvalancheProblemType, ImageSourcePropType> = {
   [AvalancheProblemType.DeepPersistentSlab]: require('../assets/problem-icons/DeepPersistentSlab.png'),
   [AvalancheProblemType.WetLoose]: require('../assets/problem-icons/WetLoose.png'),
   [AvalancheProblemType.WetSlab]: require('../assets/problem-icons/WetSlab.png'),
-  [AvalancheProblemType.Cornice]: require('../assets/problem-icons/CorniceFall.png'),
+  [AvalancheProblemType.CorniceFall]: require('../assets/problem-icons/CorniceFall.png'),
   [AvalancheProblemType.Glide]: require('../assets/problem-icons/Glide.png'),
 };
 
@@ -33,7 +33,7 @@ const sizes: Record<AvalancheProblemType, ImageResolvedAssetSource> = {
   [AvalancheProblemType.DeepPersistentSlab]: Image.resolveAssetSource(require('../assets/problem-icons/DeepPersistentSlab.png')),
   [AvalancheProblemType.WetLoose]: Image.resolveAssetSource(require('../assets/problem-icons/WetLoose.png')),
   [AvalancheProblemType.WetSlab]: Image.resolveAssetSource(require('../assets/problem-icons/WetSlab.png')),
-  [AvalancheProblemType.Cornice]: Image.resolveAssetSource(require('../assets/problem-icons/CorniceFall.png')),
+  [AvalancheProblemType.CorniceFall]: Image.resolveAssetSource(require('../assets/problem-icons/CorniceFall.png')),
   [AvalancheProblemType.Glide]: Image.resolveAssetSource(require('../assets/problem-icons/Glide.png')),
 };
 
