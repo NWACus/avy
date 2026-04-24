@@ -47,10 +47,10 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
         <QueryState results={[capabilitiesResult, ...metadataResults]} />
       ) : (
         // overflow hidden to keep the topo illustration from going beyond this view
-        <VStack justifyContent="space-between" height="100%" overflow="hidden" paddingBottom={safeAreaInsets.bottom} backgroundColor={colorLookup('white')}>
+        <VStack justifyContent="space-between" height="100%" overflow="hidden" paddingBottom={safeAreaInsets.bottom} backgroundColor={colorLookup('primary.background')}>
           {/* these magic numbers are yanked out of Figma */}
           <Topo width={887.0152587890625} height={456.3430480957031} style={{position: 'absolute', left: -264, top: 338}} />
-          <VStack space={16} pt={96} px={16} flex={1} backgroundColor={colorLookup('primary.background')}>
+          <VStack space={16} pt={96} px={16} flex={1}>
             <Center px={32}>
               <Title3Black textAlign="center" color={colorLookup('NWAC-dark')}>
                 Welcome! Get started by selecting your local avalanche center.

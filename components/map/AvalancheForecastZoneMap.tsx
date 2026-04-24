@@ -182,10 +182,10 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     async function getUserLocation() {
       const {status: existingStatus, canAskAgain} = await Location.getForegroundPermissionsAsync();
 
-      if (existingStatus !== Location.PermissionStatus.GRANTED && canAskAgain) {
-        // Request permissions if needed
-        const {status: newStatus} = await Location.requestForegroundPermissionsAsync();
-        if (newStatus !== Location.PermissionStatus.GRANTED) {
+      if (existingStatus !== Location.PermissionStatus.GRANTED) {
+        const finalStatus = canAskAgain ? (await Location.requestForegroundPermissionsAsync()).status : existingStatus;
+
+        if (finalStatus !== Location.PermissionStatus.GRANTED) {
           Alert.alert('Location Permissions Denied', 'Please enable location permissions in settings in order to center the map', [
             {
               text: 'Cancel',
