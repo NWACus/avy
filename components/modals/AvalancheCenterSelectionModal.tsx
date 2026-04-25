@@ -59,7 +59,7 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
             <Center px={32} pb={32}>
               <Body textAlign="center">You can change this anytime in settings.</Body>
             </Center>
-            <ScrollView>
+            <ScrollView directionalLockEnabled={true}>
               <AvalancheCenterList selectedCenter={selectedCenter} setSelectedCenter={setSelectedCenter} data={avalancheCenterList(metadata, capabilities)} />
             </ScrollView>
           </VStack>

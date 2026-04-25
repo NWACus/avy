@@ -160,7 +160,7 @@ export const AvalancheTab: React.FunctionComponent<{
   }
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
+    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />} directionalLockEnabled={true}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
         <Card
           borderRadius={0}

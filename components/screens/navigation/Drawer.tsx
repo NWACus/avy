@@ -136,16 +136,16 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
 
   return (
     <View style={{flex: 1}}>
+      <View style={{paddingTop: insets.top, backgroundColor: '#333333'}}>
+        {isInNoCenterExperience ? (
+          <NoCenterDrawerHeader />
+        ) : (
+          <CenterFocusedDrawerHeaer avalancheCenterId={avalancheCenterId} centerFullName={data?.name ?? ''} centerDisplayId={displayId} centerDescription={description} />
+        )}
+      </View>
+
       <ScrollView style={{flex: 1}}>
         <VStack width="100%" height="100%" justifyContent="flex-start" alignItems="stretch" bg={colorLookup('primary.background')} space={10}>
-          <View style={{paddingTop: insets.top, backgroundColor: '#333333'}}>
-            {isInNoCenterExperience ? (
-              <NoCenterDrawerHeader />
-            ) : (
-              <CenterFocusedDrawerHeaer avalancheCenterId={avalancheCenterId} centerFullName={data?.name ?? ''} centerDisplayId={displayId} centerDescription={description} />
-            )}
-          </View>
-
           <View py={12} px={32}>
             <Button buttonStyle="primary" onPress={sendMailHandler}>
               <BodyBlack>Submit App Feedback</BodyBlack>

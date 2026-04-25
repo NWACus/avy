@@ -10,6 +10,7 @@ import {toDate} from 'date-fns-tz';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts';
 import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
+import {useMapPersistence} from 'MapPersistence';
 import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
@@ -37,7 +38,7 @@ export type TopElementMeasurments = {
 
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime, tabBarHeight = 0}: MapProps) => {
   const {preferences, setPreferences} = usePreferences();
-  const {isInNoCenterExperience, lastMapCamera} = preferences;
+  const {isInNoCenterExperience} = useMapPersistence();
 
   // Fetches all the map layers in call. Unfortunately, CBAC isn't included in that call so it needs to be fetched separately
   const allMapLayersResult = useAllMapLayers();
@@ -259,8 +260,6 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           requestedTime={requestedTime}
           topElementMeasurements={topElementMeasurements}
           userLocation={userLocation}
-          isInNoCenterExperience={isInNoCenterExperience}
-          lastMapCamera={lastMapCamera}
           selectedZoneId={selectedZoneId}
           tabBarHeight={tabBarHeight}
           setSelectedZoneId={setSelectedZoneId}
