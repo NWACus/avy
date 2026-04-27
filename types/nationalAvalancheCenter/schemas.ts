@@ -97,13 +97,13 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
   ['VAC']: 'https://alaskasnow.org/valdez/',
   ['WAC']: 'https://wallowaavalanchecenter.org/',
   ['WCMAC']: 'https://missoulaavalanche.org/',
-  ['CAIC']: '',
-  ['UAC']: '',
-  ['SOAIX']: '',
-  ['EWYAIX']: '',
-  ['EARAC']: '',
-  ['CAC']: '',
-  ['CAAC']: '',
+  ['CAIC']: 'https://avalanche.state.co.us/',
+  ['UAC']: 'https://utahavalanchecenter.org/',
+  ['SOAIX']: 'https://www.oregonsnow.org/observations/#/view/observations',
+  ['EWYAIX']: 'https://ewyoavalanche.org/#/view/observations',
+  ['EARAC']: 'https://alaskasnow.org/eastern-ak-range/',
+  ['CAC']: 'https://alaskasnow.org/cordova/',
+  ['CAAC']: 'https://www.coastalakavalanche.org/',
 };
 
 export enum DangerLevel {

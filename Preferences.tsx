@@ -15,6 +15,7 @@ import {avalancheCenterIDSchema} from 'types/nationalAvalancheCenter';
 const preferencesSchema = z.object({
   center: avalancheCenterIDSchema.default('NWAC'),
   hasSeenCenterPicker: z.boolean().default(false),
+  hasSeenFRE: z.boolean().default(false),
   developerMenuCollapsed: z.boolean().default(true),
   mixpanelUserId: z.string().uuid().optional(),
 });

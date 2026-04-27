@@ -1,10 +1,11 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {Alert, StyleSheet, useWindowDimensions} from 'react-native';
+import {StyleSheet, useWindowDimensions} from 'react-native';
 
 import {AnimatedDrawerState, AnimatedMapWithDrawerController} from 'components/map/AnimatedCards';
 import {MapViewZone, ZoneMap} from 'components/map/ZoneMap';
+import {CenterNotSupportedModal} from 'components/modals/CenterNotSupportedModal';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {useMapPersistence} from 'MapPersistence';
 import {usePreferences} from 'Preferences';
@@ -52,6 +53,9 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 
   const navigation = useNavigation<MainStackNavigationProps>();
 
+  const [unsupportedCenterId, setUnsupportedCenterId] = useState<AvalancheCenterID | null>(null);
+  const onCloseUnsupportedModal = useCallback(() => setUnsupportedCenterId(null), []);
+
   const onMapPresOutsideOfPolygon = useCallback(
     (_: GeoJSON.Feature) => {
       // Since the polygons are layered on the map, this is only called when the map is tapped outside of a polygon
@@ -81,16 +85,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
             setIsInNoCenterExperience(false);
           }
         } else {
-          Alert.alert(`${selectedZoneCenter} is not supported`, `Please go to their website to view the full forecast for ${selectedZoneCenter} or select another center`, [
-            {
-              text: 'OK',
-              onPress: () => {},
-            },
-            {
-              text: 'Go to website',
-              onPress: () => {},
-            },
-          ]);
+          setUnsupportedCenterId(selectedZoneCenter);
         }
       }
     },
@@ -205,6 +200,8 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         controllerRef={controller}
         bottomOffset={isInNoCenterExperience ? 0 : tabBarHeight}
       />
+
+      <CenterNotSupportedModal visible={unsupportedCenterId !== null} centerId={unsupportedCenterId} onClose={onCloseUnsupportedModal} />
     </>
   );
 };

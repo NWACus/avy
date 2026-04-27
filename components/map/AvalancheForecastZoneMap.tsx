@@ -19,6 +19,7 @@ import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 import {ForecastNavigationHeader} from 'components/content/navigation/ForecastMapNavigationHeader';
 import {DangerScale} from 'components/DangerScale';
 import {AvalancheForecastMapView} from 'components/map/AvalancheForecastMapView';
+import {FirstRunExperienceModal} from 'components/modals/FirstRunExperienceModal';
 import * as Location from 'expo-location';
 import {Position} from 'geojson';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
@@ -236,6 +237,9 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   const showAvalancheCenterSelectionModal = useMemo(() => !preferences.hasSeenCenterPicker, [preferences.hasSeenCenterPicker]);
 
+  const showFREModal = useMemo(() => preferences.hasSeenCenterPicker && !preferences.hasSeenFRE, [preferences.hasSeenCenterPicker, preferences.hasSeenFRE]);
+  const onFREClose = useCallback(() => setPreferences({hasSeenFRE: true}), [setPreferences]);
+
   const isQueryIncomplete = incompleteQueryState(allMapLayersResult, metadataResult, ...forecastResults, ...warningResults) || !allMapLayers || !metadata;
 
   return (
@@ -274,6 +278,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       </VStack>
 
       <AvalancheCenterSelectionModal visible={showAvalancheCenterSelectionModal} initialSelection={preferences.center} onClose={onSelectCenter} />
+      <FirstRunExperienceModal visible={showFREModal} onClose={onFREClose} />
     </>
   );
 };
