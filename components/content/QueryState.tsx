@@ -54,7 +54,6 @@ export const QueryState: React.FunctionComponent<QueryStateProps> = ({results, t
 const isResultNotFound = (result: UseQueryResult): boolean => result.isError && result.error instanceof NotFoundError;
 
 export const InternalError: React.FunctionComponent<{inline?: boolean}> = ({inline}) => {
-  // const navigation = useNavigation<TabNavigationProps>();
   return (
     <Outcome
       headline={'Oh no!'}
@@ -63,7 +62,6 @@ export const InternalError: React.FunctionComponent<{inline?: boolean}> = ({inli
       illustrationBottomMargin={-64}
       illustrationLeftMargin={-16}
       inline={inline}
-      // onClose={() => navigation.navigate('Home')} // TODO(skuznets): figure out how to navigate home here, as we don't have the props needed to go home - can we go to defaults for tab navigator?
     />
   );
 };
