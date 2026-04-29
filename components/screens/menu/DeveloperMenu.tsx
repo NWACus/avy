@@ -484,6 +484,15 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging
               },
             },
             {
+              label: '10: with PDF',
+              data: null,
+              action: () => {
+                navigation.navigate('observation', {
+                  id: 'a1af8dc3-ba24-403c-a87b-43e94796361d',
+                });
+              },
+            },
+            {
               label: 'NWAC pro observation with avalanches',
               data: null,
               action: () => {
