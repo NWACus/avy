@@ -158,7 +158,7 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
   return (
     <GestureDetector gesture={composedGesture}>
       <Animated.View style={[{flex: 1}, animatedStyle]}>
-        <Image style={[{flex: 1}, animatedStyle]} contentFit="contain" contentPosition={'center'} source={item.url.original} />
+        <Image style={{flex: 1}} contentFit="contain" contentPosition={'center'} source={item.url.original} />
       </Animated.View>
     </GestureDetector>
   );

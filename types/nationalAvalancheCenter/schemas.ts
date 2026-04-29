@@ -384,6 +384,7 @@ export const pdfMediaSchema = z.object({
     original: z.string().url(),
   }),
 });
+export type PDFMediaItem = z.infer<typeof pdfMediaSchema>;
 
 const unknownMediaSchema = z.object({
   type: z.literal(MediaType.Unknown),

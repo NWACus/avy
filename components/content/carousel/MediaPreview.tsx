@@ -1,6 +1,7 @@
 import {MediaViewerModal} from 'components/content/carousel/MediaViewerModal/MediaViewerModal';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
-import {imageToThumbnailListItem, ThumbnailListItem, videoToThumbnailListItem} from 'components/content/carousel/ThumbnailList';
+import {PDFThumbnail} from 'components/content/carousel/PDFThumbnail';
+import {imageToThumbnailListItem, pdfToThumbnailListItem, ThumbnailListItem, videoToThumbnailListItem} from 'components/content/carousel/ThumbnailList';
 import {InternalError} from 'components/content/QueryState';
 import {View, ViewProps, VStack} from 'components/core';
 import {HTML, HTMLRendererConfig} from 'components/text/HTML';
@@ -15,6 +16,10 @@ const thumbnailListItem = (mediaItem: MediaItem): ThumbnailListItem | undefined 
 
   if (mediaItem.type === MediaType.Image) {
     return imageToThumbnailListItem(mediaItem);
+  }
+
+  if (mediaItem.type === MediaType.PDF) {
+    return pdfToThumbnailListItem(mediaItem);
   }
 
   return undefined;
@@ -51,15 +56,19 @@ export const MediaPreview: React.FunctionComponent<MediaPreviewProps> = ({thumbn
   return (
     <View>
       <VStack justifyContent="center" alignItems="center" space={8}>
-        <NetworkImage
-          width={thumbnailWidth}
-          height={thumbnailHeight}
-          uri={thumbnailItem.uri}
-          index={0}
-          showVideoIndicator={thumbnailItem.isVideo}
-          onPress={onPress}
-          imageStyle={{borderRadius: 4}}
-        />
+        {thumbnailItem.kind === 'pdf' ? (
+          <PDFThumbnail width={thumbnailWidth} height={thumbnailHeight} index={0} onPress={onPress} imageStyle={{borderRadius: 4}} />
+        ) : (
+          <NetworkImage
+            width={thumbnailWidth}
+            height={thumbnailHeight}
+            uri={thumbnailItem.uri}
+            index={0}
+            showVideoIndicator={thumbnailItem.kind === 'video'}
+            onPress={onPress}
+            imageStyle={{borderRadius: 4}}
+          />
+        )}
         {thumbnailItem.caption && (
           <View px={32}>
             <HTMLRendererConfig baseStyle={{fontSize: 12, textAlign: 'center', fontStyle: 'italic'}}>
