@@ -70,6 +70,7 @@ export class AnimatedMapWithDrawerController {
   mapCameraRef: RefObject<Camera | null>;
   // We store the last time we logged a region calculation so as to continue logging but not spam
   lastLogged: Record<string, string>; // mapping hash of parameters to the time we last logged it
+  private suppressMapCentering = false;
 
   constructor(state = AnimatedDrawerState.Docked, region: AvalancheCenterRegion, mapCameraRef: RefObject<Camera | null>, logger: Logger) {
     this.logger = logger;
@@ -221,11 +222,22 @@ export class AnimatedMapWithDrawerController {
     this.animateMapRegion();
   }
 
+  // When in the no-center experience the map should remain wherever the user has panned/zoomed it.
+  // Suppressing here is the single choke point that covers every caller of animateMapRegion (setState, layout-driven calls, focus effects, etc.)
+  setSuppressMapCentering(suppress: boolean) {
+    if (this.suppressMapCentering === suppress) return;
+    this.suppressMapCentering = suppress;
+    if (suppress) {
+      this.animateMapRegion.cancel();
+    }
+  }
+
   // This function gets called many times in short succession when the layout changes. We debounce it so that
   // we only try to animate after layout changes are complete.
   ANIMATION_DEBOUNCE_MS = 250;
 
   private animateMapRegion = _.debounce(() => {
+    if (this.suppressMapCentering) return;
     const cardDrawerHeight = Math.max(0, this.cardDrawerMaximumHeight - this.baseOffset); // negative when hidden
     // then, we need to look at the entire available screen real-estate for our app
     // to determine the unobstructed area for the polygons

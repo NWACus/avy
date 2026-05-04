@@ -87,7 +87,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
               // If the zone is marked as off-season in the map layer, we want the danger level to be None so that the color is grey
               // regarless of what the forecast says
               if (zones[id].feature.properties.off_season) {
-                zones[id].danger_level = DangerLevel.None;
+                zones[id].danger_level = DangerLevel.GeneralInformation;
               } else {
                 // the map layer will expose old forecasts with their danger level as appropriate, but the map expects to show a card
                 // that doesn't divulge the old forecast's rating, travel advice or publication/expiry times, so we clear things out

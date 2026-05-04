@@ -99,6 +99,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   const isInNoCenterExperienceRef = useRef(isInNoCenterExperience);
   useEffect(() => {
     isInNoCenterExperienceRef.current = isInNoCenterExperience;
+    controller.current.setSuppressMapCentering(isInNoCenterExperience);
   }, [isInNoCenterExperience]);
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
@@ -107,36 +108,26 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraRef, logger));
 
   const reanimateOnFocus = useCallback(() => {
-    if (!isInNoCenterExperienceRef.current) {
-      controller.current.forceAnimateMapRegion();
-    }
+    controller.current.forceAnimateMapRegion();
   }, [controller]);
   useFocusEffect(reanimateOnFocus);
 
   React.useEffect(() => {
-    if (!isInNoCenterExperience) {
-      controller.current.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
-    }
-  }, [avalancheCenterMapRegion, isInNoCenterExperience]);
+    controller.current.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
+  }, [avalancheCenterMapRegion, controller]);
 
   const {width: windowWidth, height: windowHeight} = useWindowDimensions();
   React.useEffect(() => {
-    if (!isInNoCenterExperience) {
-      controller.current.animateUsingUpdatedWindowDimensions(windowWidth, windowHeight);
-    }
-  }, [windowWidth, windowHeight, isInNoCenterExperience, controller]);
+    controller.current.animateUsingUpdatedWindowDimensions(windowWidth, windowHeight);
+  }, [windowWidth, windowHeight, controller]);
 
   React.useEffect(() => {
-    if (!isInNoCenterExperience) {
-      controller.current.animateUsingUpdatedTabBarHeight(tabBarHeight);
-    }
-  }, [tabBarHeight, isInNoCenterExperience, controller]);
+    controller.current.animateUsingUpdatedTabBarHeight(tabBarHeight);
+  }, [tabBarHeight, controller]);
 
   React.useEffect(() => {
-    if (!isInNoCenterExperience) {
-      controller.current.animateUsingUpdatedTopElementsHeight(topElementMeasurements.yPos, topElementMeasurements.height);
-    }
-  }, [controller, isInNoCenterExperience, topElementMeasurements]);
+    controller.current.animateUsingUpdatedTopElementsHeight(topElementMeasurements.yPos, topElementMeasurements.height);
+  }, [controller, topElementMeasurements]);
 
   const onCameraChanged = useCallback(
     (mapState: MapState) => {
@@ -150,6 +141,8 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
           // Updating the ref here helps prevent unnecessary calls to setIsInNoCenterExperience.
           isInNoCenterExperienceRef.current = true;
           setIsInNoCenterExperience(true);
+          // Suppress synchronously so any debounced animateMapRegion already in flight is cancelled before setPreferences schedules a re-render.
+          controller.current.setSuppressMapCentering(true);
         }
       }
 
