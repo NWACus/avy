@@ -79,35 +79,38 @@ export const MapPersistenceProvider: React.FC<MapPersistenceProviderProps> = ({c
     }
   }, []);
 
+  const cancelPendingCameraStateSave = useCallback(() => {
+    if (saveCameraTimeoutRef.current) {
+      clearTimeout(saveCameraTimeoutRef.current);
+      saveCameraTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Canceling the pending camera save here prevents race conditions between this synchronous call and the debounced saveMapCamera
   const setIsInNoCenterExperience = useCallback(
     (value: boolean) => {
+      cancelPendingCameraStateSave();
       isInNoCenterExperienceRef.current = value;
       setIsInNoCenterExperienceState(value);
       void persist({isInNoCenterExperience: value, lastMapCamera: latestCameraRef.current});
     },
-    [persist],
+    [persist, cancelPendingCameraStateSave],
   );
 
   const saveMapCamera = useCallback(
     (camera: MapCameraStop) => {
       latestCameraRef.current = camera;
-      if (saveCameraTimeoutRef.current) {
-        clearTimeout(saveCameraTimeoutRef.current);
-      }
+      cancelPendingCameraStateSave();
       saveCameraTimeoutRef.current = setTimeout(() => {
         void persist({isInNoCenterExperience: isInNoCenterExperienceRef.current, lastMapCamera: latestCameraRef.current});
       }, SAVE_CAMERA_DEBOUNCE_MS);
     },
-    [persist],
+    [persist, cancelPendingCameraStateSave],
   );
 
   useEffect(() => {
-    return () => {
-      if (saveCameraTimeoutRef.current) {
-        clearTimeout(saveCameraTimeoutRef.current);
-      }
-    };
-  }, []);
+    return cancelPendingCameraStateSave;
+  }, [cancelPendingCameraStateSave]);
 
   const value = useMemo<MapPersistenceContextType>(
     () => ({

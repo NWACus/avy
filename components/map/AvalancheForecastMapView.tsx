@@ -97,15 +97,16 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   const avalancheCenterMapRegion = useMemo(() => defaultMapRegionForGeometries(preferredCenterZones.map(zone => zone.feature.geometry)), [preferredCenterZones]);
 
   const isInNoCenterExperienceRef = useRef(isInNoCenterExperience);
-  useEffect(() => {
-    isInNoCenterExperienceRef.current = isInNoCenterExperience;
-    controller.current.setSuppressMapCentering(isInNoCenterExperience);
-  }, [isInNoCenterExperience]);
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
   const mapCameraRef = useRef<Camera>(null);
   const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraRef, logger));
+
+  useEffect(() => {
+    isInNoCenterExperienceRef.current = isInNoCenterExperience;
+    controller.current.setSuppressMapCentering(isInNoCenterExperience);
+  }, [controller, isInNoCenterExperience]);
 
   const reanimateOnFocus = useCallback(() => {
     controller.current.forceAnimateMapRegion();

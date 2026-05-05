@@ -39,7 +39,7 @@ export const FirstRunExperienceModal: React.FC<FirstRunExperienceModalProps> = (
               </BulletItem>
               <BulletItem>
                 You can still switch <BodyBlack>Centers</BodyBlack> in the settings, accessible in the upper left <BodyBlack>Menu</BodyBlack>
-                <Ionicons color={colorLookup('primary')} name="menu" backgroundColor={colorLookup('white')} style={{width: 12, height: 12}} />
+                <Ionicons color={colorLookup('primary')} name="menu" backgroundColor={colorLookup('white')} size={12} />
               </BulletItem>
             </VStack>
           </VStack>

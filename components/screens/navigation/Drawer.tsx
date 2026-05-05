@@ -3,7 +3,7 @@ import {RouteProp, useFocusEffect} from '@react-navigation/native';
 import {supportedAvalancheCenters} from 'components/avalancheCenterList';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
-import {CenterFocusedDrawerHeaer} from 'components/content/navigation/CenterFocusedDrawerHeader';
+import {CenterFocusedDrawerHeader} from 'components/content/navigation/CenterFocusedDrawerHeader';
 import {NoCenterDrawerHeader} from 'components/content/navigation/NoCenterDrawerHeader';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {View, VStack} from 'components/core';
@@ -140,7 +140,7 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
         {isInNoCenterExperience ? (
           <NoCenterDrawerHeader />
         ) : (
-          <CenterFocusedDrawerHeaer avalancheCenterId={avalancheCenterId} centerFullName={data?.name ?? ''} centerDisplayId={displayId} centerDescription={description} />
+          <CenterFocusedDrawerHeader avalancheCenterId={avalancheCenterId} centerFullName={data?.name ?? ''} centerDisplayId={displayId} centerDescription={description} />
         )}
       </View>
 

@@ -5,14 +5,14 @@ import React from 'react';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
-interface CenterFocusedDrawerHeaer {
+interface CenterFocusedDrawerHeader {
   avalancheCenterId: AvalancheCenterID;
   centerFullName: string;
   centerDisplayId: string;
   centerDescription: string;
 }
 
-export const CenterFocusedDrawerHeaer: React.FunctionComponent<CenterFocusedDrawerHeaer> = ({avalancheCenterId, centerFullName, centerDisplayId, centerDescription}) => (
+export const CenterFocusedDrawerHeader: React.FunctionComponent<CenterFocusedDrawerHeader> = ({avalancheCenterId, centerFullName, centerDisplayId, centerDescription}) => (
   <HStack justifyContent="space-between" alignItems="center" space={12} padding={12} minHeight={86}>
     <AvalancheCenterLogo style={{height: 60, width: 60, resizeMode: 'contain', flex: 0, flexGrow: 0, marginTop: 4}} avalancheCenterId={avalancheCenterId} />
     <VStack flexShrink={1} flexGrow={1}>
