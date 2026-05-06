@@ -224,7 +224,7 @@ export class AnimatedMapWithDrawerController {
 
   // When in the no-center experience the map should remain wherever the user has panned/zoomed it.
   // Suppressing here is the single choke point that covers every caller of animateMapRegion (setState, layout-driven calls, focus effects, etc.)
-  setSuppressMapCentering(suppress: boolean) {
+  shouldSuppressMapCentering(suppress: boolean) {
     if (this.suppressMapCentering === suppress) return;
     this.suppressMapCentering = suppress;
     if (suppress) {

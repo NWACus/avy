@@ -35,11 +35,15 @@ export const FirstRunExperienceModal: React.FC<FirstRunExperienceModalProps> = (
             <Body textAlign="left">{'We’ve redesigned the map to make it faster and easier to access avalanche forecasts from across the country.'}</Body>
             <VStack space={8}>
               <BulletItem>
-                Switch <BodyBlack>Centers</BodyBlack> right from the map! Simply zoom out and tap on a <BodyBlack>Zone</BodyBlack> from a different <BodyBlack>Center</BodyBlack>.
+                Switch <BodyBlack letterSpacing={0}>Centers</BodyBlack> right from the map! Simply zoom out and tap on a <BodyBlack letterSpacing={0}>Zone</BodyBlack> from a
+                different <BodyBlack letterSpacing={0}>Center</BodyBlack>.
               </BulletItem>
               <BulletItem>
-                You can still switch <BodyBlack>Centers</BodyBlack> in the settings, accessible in the upper left <BodyBlack>Menu</BodyBlack>
-                <Ionicons color={colorLookup('primary')} name="menu" backgroundColor={colorLookup('white')} size={12} />
+                You can still switch <BodyBlack letterSpacing={0}>Centers</BodyBlack> in the settings, accessible in the upper left{' '}
+                <BodyBlack letterSpacing={0}>
+                  Menu
+                  <Ionicons color={colorLookup('primary')} name="menu" backgroundColor={colorLookup('white')} size={12} />
+                </BodyBlack>
               </BulletItem>
             </VStack>
           </VStack>

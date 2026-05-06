@@ -27,14 +27,15 @@ export const CenterNotSupportedModal: React.FC<CenterNotSupportedModalProps> = (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
       <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24}}>
         <VStack style={{backgroundColor: colorLookup('white'), borderRadius: 16, padding: 24, width: '100%', maxWidth: 340}}>
-          <HStack justifyContent="flex-end" width={'100%'} paddingBottom={8}>
-            <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
-              <Ionicons name="close-outline" size={24} color={colorLookup('text')} />
-            </TouchableOpacity>
-          </HStack>
-
           <VStack space={12}>
-            <Title3Black>Forecast Available on Official Site</Title3Black>
+            <HStack width={'100%'} paddingHorizontal={8} alignItems={'flex-start'} space={8}>
+              <View flex={1}>
+                <Title3Black>Forecast Available on Official Site</Title3Black>
+              </View>
+              <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
+                <Ionicons name="close-outline" size={24} color={colorLookup('text')} />
+              </TouchableOpacity>
+            </HStack>
             <Body>{"This avalanche center isn't available within Avy right now. You can still access their latest forecast and updates on their website."}</Body>
           </VStack>
           <View mt={20}>

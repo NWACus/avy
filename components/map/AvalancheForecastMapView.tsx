@@ -105,7 +105,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 
   useEffect(() => {
     isInNoCenterExperienceRef.current = isInNoCenterExperience;
-    controller.current.setSuppressMapCentering(isInNoCenterExperience);
+    controller.current.shouldSuppressMapCentering(isInNoCenterExperience);
   }, [controller, isInNoCenterExperience]);
 
   const reanimateOnFocus = useCallback(() => {
@@ -143,7 +143,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
           isInNoCenterExperienceRef.current = true;
           setIsInNoCenterExperience(true);
           // Suppress synchronously so any debounced animateMapRegion already in flight is cancelled before setPreferences schedules a re-render.
-          controller.current.setSuppressMapCentering(true);
+          controller.current.shouldSuppressMapCentering(true);
         }
       }
 
