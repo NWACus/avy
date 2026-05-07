@@ -25,6 +25,7 @@ import {
 import {BottomTabs} from 'components/screens/navigation/BottomTabs';
 import {WeatherStationDetail} from 'components/weather_data/WeatherStationDetail';
 import {WeatherStationsDetail} from 'components/weather_data/WeatherStationsDetail';
+import {useMapPersistence} from 'MapPersistence';
 import {usePreferences} from 'Preferences';
 import React, {useCallback} from 'react';
 import {StyleSheet} from 'react-native';
@@ -43,12 +44,14 @@ export const MainStackNavigator: React.FunctionComponent<{
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({requestedTime, centerId, isInNoCenterExperience, staging, setStaging}) => {
   const {setPreferences} = usePreferences();
+  const {setIsInNoCenterExperience} = useMapPersistence();
 
   const setAvalancheCenter = useCallback(
     (avalancheCenterId: AvalancheCenterID) => {
-      setPreferences({center: avalancheCenterId, isInNoCenterExperience: false});
+      setPreferences({center: avalancheCenterId});
+      setIsInNoCenterExperience(false);
     },
-    [setPreferences],
+    [setPreferences, setIsInNoCenterExperience],
   );
 
   const renderBottomTabs = useCallback(

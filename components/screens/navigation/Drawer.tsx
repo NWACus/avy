@@ -1,14 +1,15 @@
 import {createDrawerNavigator, DrawerContentComponentProps} from '@react-navigation/drawer';
 import {RouteProp, useFocusEffect} from '@react-navigation/native';
-import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
+import {supportedAvalancheCenters} from 'components/avalancheCenterList';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
+import {CenterFocusedDrawerHeader} from 'components/content/navigation/CenterFocusedDrawerHeader';
 import {NoCenterDrawerHeader} from 'components/content/navigation/NoCenterDrawerHeader';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
-import {HStack, View, VStack} from 'components/core';
+import {View, VStack} from 'components/core';
 import {getVersionInfoFull} from 'components/screens/main/Version';
 import {MainStackNavigator} from 'components/screens/navigation/MainStack';
-import {BodyBlack, Title3Semibold} from 'components/text';
+import {BodyBlack} from 'components/text';
 import {settingsMenuItems} from 'data/settingsMenuItems';
 import * as Updates from 'expo-updates';
 import * as WebBrowser from 'expo-web-browser';
@@ -24,7 +25,7 @@ import {ScrollView} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {DrawerParamList} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, userFacingCenterId} from 'types/nationalAvalancheCenter';
 import {RequestedTime} from 'utils/date';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
@@ -71,6 +72,15 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
   const menuItems = settingsMenuItems[avalancheCenterId];
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
+
+  const displayId = useMemo(() => {
+    if (capabilities) {
+      return userFacingCenterId(avalancheCenterId, capabilities);
+    }
+    return '';
+  }, [avalancheCenterId, capabilities]);
+
+  const description = useMemo(() => supportedAvalancheCenters().find(supported => supported.center === avalancheCenterId)?.description ?? '', [avalancheCenterId]);
 
   const {
     preferences: {mixpanelUserId},
@@ -126,18 +136,16 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
 
   return (
     <View style={{flex: 1}}>
+      <View style={{paddingTop: insets.top, backgroundColor: '#333333'}}>
+        {isInNoCenterExperience ? (
+          <NoCenterDrawerHeader />
+        ) : (
+          <CenterFocusedDrawerHeader avalancheCenterId={avalancheCenterId} centerFullName={data?.name ?? ''} centerDisplayId={displayId} centerDescription={description} />
+        )}
+      </View>
+
       <ScrollView style={{flex: 1}}>
         <VStack width="100%" height="100%" justifyContent="flex-start" alignItems="stretch" bg={colorLookup('primary.background')} space={10}>
-          {isInNoCenterExperience ? (
-            <View style={{paddingTop: insets.top, backgroundColor: '#333333'}}>
-              <NoCenterDrawerHeader />
-            </View>
-          ) : (
-            <HStack flex={1} paddingHorizontal={16} paddingBottom={8} pt={insets.top} backgroundColor={'white'} justifyContent="space-between">
-              <Title3Semibold style={{flex: 2}}>{data?.name && data.name}</Title3Semibold>
-              <AvalancheCenterLogo style={{height: 48, width: 48, resizeMode: 'contain'}} avalancheCenterId={avalancheCenterId} />
-            </HStack>
-          )}
           <View py={12} px={32}>
             <Button buttonStyle="primary" onPress={sendMailHandler}>
               <BodyBlack>Submit App Feedback</BodyBlack>

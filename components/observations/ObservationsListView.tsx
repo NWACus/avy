@@ -390,6 +390,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       <Divider />
       <SectionList
         sections={sections}
+        directionalLockEnabled={true}
         renderSectionHeader={renderSectionHeader}
         onScroll={onScroll}
         onScrollEndDrag={onScroll}

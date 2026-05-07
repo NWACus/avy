@@ -1,12 +1,14 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {Alert, StyleSheet, useWindowDimensions} from 'react-native';
+import {StyleSheet, useWindowDimensions} from 'react-native';
 
 import {AnimatedDrawerState, AnimatedMapWithDrawerController} from 'components/map/AnimatedCards';
 import {MapViewZone, ZoneMap} from 'components/map/ZoneMap';
+import {CenterNotSupportedModal} from 'components/modals/CenterNotSupportedModal';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {MapCameraStop, Preferences, usePreferences} from 'Preferences';
+import {useMapPersistence} from 'MapPersistence';
+import {usePreferences} from 'Preferences';
 import {MainStackNavigationProps} from 'routes';
 import {AvalancheCenterID, isSupportedCenter} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
@@ -16,14 +18,11 @@ import {defaultMapRegionForGeometries} from 'components/helpers/geographicCoordi
 import {AvalancheForecastZoneCards} from 'components/map/AvalancheForecastZoneCards';
 import {TopElementMeasurments} from 'components/map/AvalancheForecastZoneMap';
 import {Position} from 'geojson';
-import {merge} from 'lodash';
 
 interface AvalancheForecastMapViewProps {
   preferredCenterId: AvalancheCenterID;
   zones: MapViewZone[];
   requestedTime: RequestedTime;
-  isInNoCenterExperience: boolean;
-  lastMapCamera: MapCameraStop | undefined;
   selectedZoneId: number | null;
   tabBarHeight: number;
   setSelectedZoneId: React.Dispatch<React.SetStateAction<number | null>>;
@@ -41,8 +40,6 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   preferredCenterId,
   zones,
   requestedTime,
-  isInNoCenterExperience,
-  lastMapCamera,
   selectedZoneId,
   tabBarHeight,
   setSelectedZoneId,
@@ -52,8 +49,12 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
   const {setPreferences} = usePreferences();
+  const {isInNoCenterExperience, setIsInNoCenterExperience, initialMapCamera, saveMapCamera} = useMapPersistence();
 
   const navigation = useNavigation<MainStackNavigationProps>();
+
+  const [unsupportedCenterId, setUnsupportedCenterId] = useState<AvalancheCenterID | null>(null);
+  const onCloseUnsupportedModal = useCallback(() => setUnsupportedCenterId(null), []);
 
   const onMapPresOutsideOfPolygon = useCallback(
     (_: GeoJSON.Feature) => {
@@ -75,39 +76,20 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         const selectedZoneCenter = zone.center_id;
         if (isSupportedCenter(selectedZoneCenter)) {
           setSelectedZoneId(zone.zone_id);
-          let updatedPreferences: Partial<Preferences> = {};
-          let shouldUpdatePreferences = false;
 
           if (selectedZoneCenter !== preferredCenterId) {
-            const centerPreference: Partial<Preferences> = {center: selectedZoneCenter};
-            updatedPreferences = merge({}, updatedPreferences, centerPreference);
-            shouldUpdatePreferences = true;
+            setPreferences({center: selectedZoneCenter});
           }
 
           if (isInNoCenterExperienceRef.current) {
-            const noCenterPreference: Partial<Preferences> = {isInNoCenterExperience: false};
-            updatedPreferences = merge({}, updatedPreferences, noCenterPreference);
-            shouldUpdatePreferences = true;
-          }
-
-          if (shouldUpdatePreferences) {
-            setPreferences(updatedPreferences);
+            setIsInNoCenterExperience(false);
           }
         } else {
-          Alert.alert(`${selectedZoneCenter} is not supported`, `Please go to their website to view the full forecast for ${selectedZoneCenter} or select another center`, [
-            {
-              text: 'OK',
-              onPress: () => {},
-            },
-            {
-              text: 'Go to website',
-              onPress: () => {},
-            },
-          ]);
+          setUnsupportedCenterId(selectedZoneCenter);
         }
       }
     },
-    [navigation, selectedZoneId, preferredCenterId, requestedTime, setSelectedZoneId, setPreferences],
+    [navigation, selectedZoneId, preferredCenterId, requestedTime, setSelectedZoneId, setPreferences, setIsInNoCenterExperience],
   );
 
   const preferredCenterZones = useMemo(() => zones.filter(zone => zone.center_id === preferredCenterId), [zones, preferredCenterId]);
@@ -115,55 +97,38 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   const avalancheCenterMapRegion = useMemo(() => defaultMapRegionForGeometries(preferredCenterZones.map(zone => zone.feature.geometry)), [preferredCenterZones]);
 
   const isInNoCenterExperienceRef = useRef(isInNoCenterExperience);
-  useEffect(() => {
-    isInNoCenterExperienceRef.current = isInNoCenterExperience;
-  }, [isInNoCenterExperience]);
-
-  const saveCameraTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    return () => {
-      if (saveCameraTimeoutRef.current) {
-        clearTimeout(saveCameraTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
   const mapCameraRef = useRef<Camera>(null);
   const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraRef, logger));
 
+  useEffect(() => {
+    isInNoCenterExperienceRef.current = isInNoCenterExperience;
+    controller.current.shouldSuppressMapCentering(isInNoCenterExperience);
+  }, [controller, isInNoCenterExperience]);
+
   const reanimateOnFocus = useCallback(() => {
-    if (!isInNoCenterExperienceRef.current) {
-      controller.current.forceAnimateMapRegion();
-    }
+    controller.current.forceAnimateMapRegion();
   }, [controller]);
   useFocusEffect(reanimateOnFocus);
 
   React.useEffect(() => {
-    if (!isInNoCenterExperience) {
-      controller.current.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
-    }
-  }, [avalancheCenterMapRegion, controller, isInNoCenterExperience]);
+    controller.current.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
+  }, [avalancheCenterMapRegion, controller]);
 
   const {width: windowWidth, height: windowHeight} = useWindowDimensions();
   React.useEffect(() => {
-    if (!isInNoCenterExperience) {
-      controller.current.animateUsingUpdatedWindowDimensions(windowWidth, windowHeight);
-    }
-  }, [windowWidth, windowHeight, isInNoCenterExperience, controller]);
+    controller.current.animateUsingUpdatedWindowDimensions(windowWidth, windowHeight);
+  }, [windowWidth, windowHeight, controller]);
 
   React.useEffect(() => {
-    if (!isInNoCenterExperience) {
-      controller.current.animateUsingUpdatedTabBarHeight(tabBarHeight);
-    }
-  }, [tabBarHeight, isInNoCenterExperience, controller]);
+    controller.current.animateUsingUpdatedTabBarHeight(tabBarHeight);
+  }, [tabBarHeight, controller]);
 
   React.useEffect(() => {
-    if (!isInNoCenterExperience) {
-      controller.current.animateUsingUpdatedTopElementsHeight(topElementMeasurements.yPos, topElementMeasurements.height);
-    }
-  }, [controller, isInNoCenterExperience, topElementMeasurements]);
+    controller.current.animateUsingUpdatedTopElementsHeight(topElementMeasurements.yPos, topElementMeasurements.height);
+  }, [controller, topElementMeasurements]);
 
   const onCameraChanged = useCallback(
     (mapState: MapState) => {
@@ -174,29 +139,22 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         }
 
         if (!isInNoCenterExperienceRef.current && mapState.properties.zoom < NO_CENTER_EXPERIENCE_ZOOM_THRESHOLD) {
-          // Updating the ref here helps prevent unnecessary calls to setPreferences.
+          // Updating the ref here helps prevent unnecessary calls to setIsInNoCenterExperience.
           isInNoCenterExperienceRef.current = true;
-          setPreferences({isInNoCenterExperience: true});
+          setIsInNoCenterExperience(true);
+          // Suppress synchronously so any debounced animateMapRegion already in flight is cancelled before setPreferences schedules a re-render.
+          controller.current.shouldSuppressMapCentering(true);
         }
       }
 
-      // Update the saved camera stop if the user is in the no center state to correctly load the map on the next launch
-      // This part of the callback is debounced to prevent calling setPreferences on every frame
       if (isInNoCenterExperienceRef.current) {
-        if (saveCameraTimeoutRef.current) {
-          clearTimeout(saveCameraTimeoutRef.current);
-        }
-        saveCameraTimeoutRef.current = setTimeout(() => {
-          setPreferences({
-            lastMapCamera: {
-              center: mapState.properties.center as [number, number],
-              zoom: mapState.properties.zoom,
-            },
-          });
-        }, 500);
+        saveMapCamera({
+          center: mapState.properties.center as [number, number],
+          zoom: mapState.properties.zoom,
+        });
       }
     },
-    [controller, setPreferences, setSelectedZoneId],
+    [controller, setIsInNoCenterExperience, saveMapCamera, setSelectedZoneId],
   );
 
   useEffect(() => {
@@ -206,11 +164,11 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   }, [mapCameraRef, userLocation]);
 
   const initialCameraStop: CameraStop | undefined = useMemo(() => {
-    if (isInNoCenterExperience && lastMapCamera) {
-      return {centerCoordinate: lastMapCamera.center, zoomLevel: lastMapCamera.zoom};
+    if (isInNoCenterExperience && initialMapCamera) {
+      return {centerCoordinate: initialMapCamera.center, zoomLevel: initialMapCamera.zoom};
     }
     return undefined;
-  }, [isInNoCenterExperience, lastMapCamera]);
+  }, [isInNoCenterExperience, initialMapCamera]);
 
   return (
     <>
@@ -236,6 +194,8 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         controllerRef={controller}
         bottomOffset={isInNoCenterExperience ? 0 : tabBarHeight}
       />
+
+      <CenterNotSupportedModal visible={unsupportedCenterId !== null} centerId={unsupportedCenterId} onClose={onCloseUnsupportedModal} />
     </>
   );
 };

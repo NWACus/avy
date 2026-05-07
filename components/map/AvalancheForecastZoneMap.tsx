@@ -10,6 +10,7 @@ import {toDate} from 'date-fns-tz';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts';
 import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
+import {useMapPersistence} from 'MapPersistence';
 import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
@@ -18,6 +19,7 @@ import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 import {ForecastNavigationHeader} from 'components/content/navigation/ForecastMapNavigationHeader';
 import {DangerScale} from 'components/DangerScale';
 import {AvalancheForecastMapView} from 'components/map/AvalancheForecastMapView';
+import {FirstRunExperienceModal} from 'components/modals/FirstRunExperienceModal';
 import * as Location from 'expo-location';
 import {Position} from 'geojson';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
@@ -37,7 +39,7 @@ export type TopElementMeasurments = {
 
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime, tabBarHeight = 0}: MapProps) => {
   const {preferences, setPreferences} = usePreferences();
-  const {isInNoCenterExperience, lastMapCamera} = preferences;
+  const {isInNoCenterExperience} = useMapPersistence();
 
   // Fetches all the map layers in call. Unfortunately, CBAC isn't included in that call so it needs to be fetched separately
   const allMapLayersResult = useAllMapLayers();
@@ -85,7 +87,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
               // If the zone is marked as off-season in the map layer, we want the danger level to be None so that the color is grey
               // regarless of what the forecast says
               if (zones[id].feature.properties.off_season) {
-                zones[id].danger_level = DangerLevel.None;
+                zones[id].danger_level = DangerLevel.GeneralInformation;
               } else {
                 // the map layer will expose old forecasts with their danger level as appropriate, but the map expects to show a card
                 // that doesn't divulge the old forecast's rating, travel advice or publication/expiry times, so we clear things out
@@ -182,10 +184,10 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     async function getUserLocation() {
       const {status: existingStatus, canAskAgain} = await Location.getForegroundPermissionsAsync();
 
-      if (existingStatus !== Location.PermissionStatus.GRANTED && canAskAgain) {
-        // Request permissions if needed
-        const {status: newStatus} = await Location.requestForegroundPermissionsAsync();
-        if (newStatus !== Location.PermissionStatus.GRANTED) {
+      if (existingStatus !== Location.PermissionStatus.GRANTED) {
+        const finalStatus = canAskAgain ? (await Location.requestForegroundPermissionsAsync()).status : existingStatus;
+
+        if (finalStatus !== Location.PermissionStatus.GRANTED) {
           Alert.alert('Location Permissions Denied', 'Please enable location permissions in settings in order to center the map', [
             {
               text: 'Cancel',
@@ -235,6 +237,9 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   const showAvalancheCenterSelectionModal = useMemo(() => !preferences.hasSeenCenterPicker, [preferences.hasSeenCenterPicker]);
 
+  const showFREModal = useMemo(() => preferences.hasSeenCenterPicker && !preferences.hasSeenFRE, [preferences.hasSeenCenterPicker, preferences.hasSeenFRE]);
+  const onFREClose = useCallback(() => setPreferences({hasSeenFRE: true}), [setPreferences]);
+
   const isQueryIncomplete = incompleteQueryState(allMapLayersResult, metadataResult, ...forecastResults, ...warningResults) || !allMapLayers || !metadata;
 
   return (
@@ -259,8 +264,6 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           requestedTime={requestedTime}
           topElementMeasurements={topElementMeasurements}
           userLocation={userLocation}
-          isInNoCenterExperience={isInNoCenterExperience}
-          lastMapCamera={lastMapCamera}
           selectedZoneId={selectedZoneId}
           tabBarHeight={tabBarHeight}
           setSelectedZoneId={setSelectedZoneId}
@@ -275,6 +278,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       </VStack>
 
       <AvalancheCenterSelectionModal visible={showAvalancheCenterSelectionModal} initialSelection={preferences.center} onClose={onSelectCenter} />
+      <FirstRunExperienceModal visible={showFREModal} onClose={onFREClose} />
     </>
   );
 };

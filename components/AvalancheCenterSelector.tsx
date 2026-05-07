@@ -53,7 +53,7 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
   }
 
   return (
-    <ScrollView style={{height: '100%', width: '100%'}}>
+    <ScrollView style={{height: '100%', width: '100%'}} directionalLockEnabled={true}>
       <AvalancheCenterList
         selectedCenter={currentCenterId}
         setSelectedCenter={setAvalancheCenterWrapper}

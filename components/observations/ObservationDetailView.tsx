@@ -211,7 +211,7 @@ export const ObservationCard: React.FunctionComponent<{
   return (
     <View style={{flex: 1, backgroundColor: 'white'}}>
       <VStack space={8} backgroundColor="white" style={{height: '100%', width: '100%'}}>
-        <ScrollView style={{height: '100%', width: '100%'}}>
+        <ScrollView style={{flex: 1}} directionalLockEnabled={true}>
           <VStack space={8} backgroundColor={colorLookup('primary.background')} paddingBottom={insets.bottom}>
             <View bg="white" py={8} px={16}>
               <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>

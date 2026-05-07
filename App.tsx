@@ -34,6 +34,7 @@ import 'date-time-format-timezone';
 import axios, {AxiosRequestConfig} from 'axios';
 import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
 import * as FileSystem from 'expo-file-system';
+import {MapPersistenceProvider, useMapPersistence} from 'MapPersistence';
 import {PreferencesProvider, usePreferences} from 'Preferences';
 import {NotFoundError} from 'types/requests';
 import {RequestedTime} from 'utils/date';
@@ -286,7 +287,9 @@ const AppWithClientContext = () => {
   return (
     <ClientContext.Provider value={contextValue}>
       <PreferencesProvider>
-        <BaseApp staging={staging} setStaging={setStaging} />
+        <MapPersistenceProvider>
+          <BaseApp staging={staging} setStaging={setStaging} />
+        </MapPersistenceProvider>
       </PreferencesProvider>
     </ClientContext.Provider>
   );
@@ -297,8 +300,9 @@ const BaseApp: React.FunctionComponent<{
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({staging, setStaging}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const {preferences, preferencesLoaded, setPreferences} = usePreferences();
-  const {center, isInNoCenterExperience} = preferences;
+  const {preferences} = usePreferences();
+  const {center} = preferences;
+  const {isInNoCenterExperience, setIsInNoCenterExperience, mapPersistenceLoaded} = useMapPersistence();
 
   const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
@@ -330,11 +334,11 @@ const BaseApp: React.FunctionComponent<{
       initialUrlRef.current = url;
       const urlHash = new URL(url).hash;
       const isObservationsList = urlHash === '#/view/observations' || urlHash === '#/observations';
-      if (isObservationsList && isInNoCenterExperienceRef.current && preferencesLoaded) {
-        setPreferences({isInNoCenterExperience: false});
+      if (isObservationsList && isInNoCenterExperienceRef.current && mapPersistenceLoaded) {
+        setIsInNoCenterExperience(false);
       }
     },
-    [setPreferences, preferencesLoaded],
+    [setIsInNoCenterExperience, mapPersistenceLoaded],
   );
 
   useEffect(() => {

@@ -7,7 +7,7 @@ export interface AvalancheCenterListData {
   display_id: string;
 }
 
-const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: string}[] => {
+export const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: string}[] => {
   const centers: {center: AvalancheCenterID; description: string}[] = [
     {center: 'BTAC', description: 'Avalanche forecasts for Western Wyoming and Eastern Idaho.'},
     {center: 'BAC', description: 'Avalanche forecasts for the Bridgeport region in California.'},

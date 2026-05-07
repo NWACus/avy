@@ -4,19 +4,28 @@ import {DrawerActions} from '@react-navigation/native';
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {HStack, View} from 'components/core';
 import {Title3Black} from 'components/text';
-import React, {useCallback} from 'react';
+import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
+import React, {useCallback, useMemo} from 'react';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, userFacingCenterId} from 'types/nationalAvalancheCenter';
 
 interface BottomTabNavigationHeader extends BottomTabHeaderProps {
   centerId: AvalancheCenterID;
 }
 
 export const BottomTabNavigationHeader: React.FunctionComponent<BottomTabNavigationHeader> = ({navigation, centerId}) => {
-  const title = centerId as string;
   const TextComponent = Title3Black;
   const insets = useSafeAreaInsets();
+  const capabilitiesResult = useAvalancheCenterCapabilities();
+  const capabilities = capabilitiesResult.data;
+
+  const title = useMemo(() => {
+    if (capabilities) {
+      return userFacingCenterId(centerId, capabilities);
+    }
+    return centerId as string;
+  }, [centerId, capabilities]);
 
   const openDrawer = useCallback(() => {
     navigation.dispatch(DrawerActions.openDrawer());

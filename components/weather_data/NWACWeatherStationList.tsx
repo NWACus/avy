@@ -151,7 +151,7 @@ export const NWACStationList: React.FunctionComponent<{token: string; requestedT
   }
 
   return (
-    <ScrollView style={{flex: 1, backgroundColor: colorLookup('primary.background')}} contentContainerStyle={{paddingBottom: tabBarHeight}}>
+    <ScrollView style={{flex: 1, backgroundColor: colorLookup('primary.background')}} directionalLockEnabled={true} contentContainerStyle={{paddingBottom: tabBarHeight}}>
       <VStack space={10}>
         {data.map((d, i) => (
           <ActionList header={<BodyBlack>{d.zoneName}</BodyBlack>} actions={d.actions} key={i} bg="white" pl={16} />
