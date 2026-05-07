@@ -12,6 +12,8 @@ import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
 import AvalancheWarningQuery from 'hooks/useAvalancheWarning';
 import ImageCache from 'hooks/useCachedImageURI';
+import CanadaForecastMetadataQuery from 'hooks/useCanadaForecastMetadata';
+import CanadaMapLayerQuery from 'hooks/useCanadaMapLayer';
 import NACObservationsQuery from 'hooks/useNACObservations';
 import NWACWeatherForecastQuery from 'hooks/useNWACWeatherForecast';
 import SynopsisQuery from 'hooks/useSynopsis';
@@ -38,6 +40,7 @@ export const prefetchAllActiveForecasts = async (
   nationalAvalancheCenterWordpressHost: string,
   nwacHost: string,
   snowboundHost: string,
+  avalancheCanadaHost: string,
   logger: Logger,
 ) => {
   const requestedTime = 'latest';
@@ -63,6 +66,8 @@ export const prefetchAllActiveForecasts = async (
 
   if (metadata?.widget_config?.danger_map) {
     void AllMapLayersQuery.prefetch(queryClient, nationalAvalancheCenterHost, requestedTime, logger);
+    void CanadaMapLayerQuery.prefetch(queryClient, avalancheCanadaHost, logger);
+    void CanadaForecastMetadataQuery.prefetch(queryClient, avalancheCanadaHost, logger);
   }
 
   const alternateZonesUrl = metadata?.widget_config?.observation_viewer?.alternate_zones;
