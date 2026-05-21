@@ -11,6 +11,7 @@ import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {MapLayer, mapLayerSchema} from 'types/nationalAvalancheCenter';
+import {carvePolygonFeatures} from 'utils/carvePolygonFeatures';
 import {ZodError} from 'zod';
 
 export const useAllMapLayers = (): UseQueryResult<MapLayer, AxiosError | ZodError> => {
@@ -81,9 +82,11 @@ const fetchAllMapLayers = async (nationalAvalancheCenterHost: string, logger: Lo
       });
       throw cbacResult.error;
     } else {
-      // CAIC and CBAC overlap on the map. We need to remove CAIC in favor of CBAC since CAIC is unsupported in the app
-      const adjustedFeatures = parseResult.data.features.filter(feature => feature.properties.center_id !== 'CAIC').concat(cbacResult.data.features);
-      parseResult.data.features = adjustedFeatures;
+      // CAIC and CBAC overlap on the map. The following modifies the CAIC polygons so that they do not overlap with CBAC
+      const caicFeatures = parseResult.data.features.filter(f => f.properties.center_id === 'CAIC');
+      const otherFeatures = parseResult.data.features.filter(f => f.properties.center_id !== 'CAIC');
+      const carvedCAIC = carvePolygonFeatures(caicFeatures, cbacResult.data.features, thisLogger);
+      parseResult.data.features = otherFeatures.concat(carvedCAIC, cbacResult.data.features);
       return parseResult.data;
     }
   }
