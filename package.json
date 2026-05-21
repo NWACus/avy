@@ -64,7 +64,7 @@
     "@turf/clusters-dbscan": "^7.3.2",
     "@turf/difference": "^7.3.2",
     "@turf/distance": "^7.3.0",
-    "@turf/helpers": "^7.3.2",
+    "@turf/helpers": "^7.3.5",
     "@turf/union": "^7.3.2",
     "@types/geojson": "^7946.0.10",
     "@types/tinycolor2": "^1.4.3",

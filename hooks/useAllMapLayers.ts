@@ -82,6 +82,7 @@ const fetchAllMapLayers = async (nationalAvalancheCenterHost: string, logger: Lo
       });
       throw cbacResult.error;
     } else {
+      // CAIC and CBAC overlap on the map. The following modifies the CAIC polygons so that they do not overlap with CBAC
       const caicFeatures = parseResult.data.features.filter(f => f.properties.center_id === 'CAIC');
       const otherFeatures = parseResult.data.features.filter(f => f.properties.center_id !== 'CAIC');
       const carvedCAIC = carvePolygonFeatures(caicFeatures, cbacResult.data.features, thisLogger);

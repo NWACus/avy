@@ -3002,7 +3002,7 @@
     "@types/geojson" "^7946.0.10"
     tslib "^2.8.1"
 
-"@turf/helpers@7.3.2", "@turf/helpers@^7.3.2":
+"@turf/helpers@7.3.2":
   version "7.3.2"
   resolved "https://registry.yarnpkg.com/@turf/helpers/-/helpers-7.3.2.tgz#deb2a1a5bb84d8db78571bc89ca8b75586e31ed7"
   integrity sha512-5HFN42rgWjSobdTMxbuq+ZdXPcqp1IbMgFYULTLCplEQM3dXhsyRFe7DCss4Eiw12iW3q6Z5UeTNVfITsE5lgA==
@@ -3010,7 +3010,7 @@
     "@types/geojson" "^7946.0.10"
     tslib "^2.8.1"
 
-"@turf/helpers@7.3.5":
+"@turf/helpers@7.3.5", "@turf/helpers@^7.3.5":
   version "7.3.5"
   resolved "https://registry.yarnpkg.com/@turf/helpers/-/helpers-7.3.5.tgz#051928c03cdf9ffcc7ae36581c317afc49bfd999"
   integrity sha512-E/NMGV5MwbjjP7AJXBtsanC3yY8N2MQ87IGdIgkB2ji5AtBpwnH4L3gEqpYN4RlCJJWbLbzO91BbKv2waUd0eg==
