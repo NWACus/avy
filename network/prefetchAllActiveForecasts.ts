@@ -5,12 +5,12 @@ import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {preloadAvalancheDangerIcons} from 'components/AvalancheDangerIcon';
 import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
 import {images} from 'components/content/carousel/MediaCarousel';
+import AllMapLayersQuery from 'hooks/useAllMapLayers';
 import AvalancheCenterCapabilitiesQuery from 'hooks/useAvalancheCenterCapabilities';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
 import AvalancheWarningQuery from 'hooks/useAvalancheWarning';
 import ImageCache from 'hooks/useCachedImageURI';
-import AvalancheCenterMapLayerQuery from 'hooks/useMapLayer';
 import NACObservationsQuery from 'hooks/useNACObservations';
 import NWACObservationsQuery from 'hooks/useNWACObservations';
 import NWACWeatherForecastQuery from 'hooks/useNWACWeatherForecast';
@@ -62,7 +62,7 @@ export const prefetchAllActiveForecasts = async (
   const metadata = queryClient.getQueryData<AvalancheCenter>(AvalancheCenterMetadataQuery.queryKey(nationalAvalancheCenterHost, center_id));
 
   if (metadata?.widget_config?.danger_map) {
-    void AvalancheCenterMapLayerQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, logger);
+    void AllMapLayersQuery.prefetch(queryClient, nationalAvalancheCenterHost, logger);
   }
 
   const endDate: Date = currentDateTime;

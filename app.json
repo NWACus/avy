@@ -28,7 +28,8 @@
       "bundleIdentifier": "us.nwac.forecast",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": "NO",
-        "NSPhotoLibraryUsageDescription": "The app is requesting access to the photo library to enable submission of avalanche observations that can include photos and/or video to provide context of an avalanche that was observed."
+        "NSPhotoLibraryUsageDescription": "The app is requesting access to the photo library to enable submission of avalanche observations that can include photos and/or video to provide context of an avalanche that was observed.",
+        "NSLocationWhenInUseUsageDescription": "AvyApp needs location permissions to accurately center the map to where you are."
       },
       "associatedDomains": ["applinks:nwac.us"]
     },
@@ -39,7 +40,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#152E57"
       },
-      "permissions": ["READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
+      "permissions": ["READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
       "intentFilters": [
         {
           "action": "VIEW",
@@ -60,6 +61,7 @@
       "expo-web-browser",
       "expo-localization",
       "expo-background-task",
+      "expo-location",
       [
         "@rnmapbox/maps",
         {

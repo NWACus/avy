@@ -24,14 +24,7 @@ export const AnimatedMapMarker: React.FunctionComponent<{id: string; coordinate:
   }, [longitude, latitude]);
 
   return (
-    <AnimatedMarkerView
-      id={id}
-      animatedProps={animatedProps}
-      coordinate={[longitude.value, latitude.value]}
-      anchor={{x: 0.5, y: 0.5}}
-      isSelected={false}
-      allowOverlap={false}
-      allowOverlapWithPuck={false}>
+    <AnimatedMarkerView id={id} animatedProps={animatedProps} coordinate={coordinate} anchor={{x: 0.5, y: 1}} isSelected={false} allowOverlap={false} allowOverlapWithPuck={false}>
       {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports*/}
       <Image source={require('assets/map-marker.png')} style={{width: 40, height: 40}} />
     </AnimatedMarkerView>

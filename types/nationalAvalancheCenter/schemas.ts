@@ -22,9 +22,52 @@ export const avalancheCenterIDSchema = z.enum([
   'VAC', // Valdez: AK
   'WAC', // Wallowas: OR
   'WCMAC', // West Central Montana: MT
+  'CAIC', // Colorado - Unsupported
+  'UAC', // Utah - Unsupported
+  'SOAIX', // Southern Oregon - Unsupported
+  'EWYAIX', // Eastern Wyoming - Unsupported
+  'EARAC', // Eastern Alaska - Unsupported
+  'CAC', // Cordova, Alaska - Unsupported
+  'CAAC', // Coastal Alaska - Unsupported
 ]);
 
 export type AvalancheCenterID = z.infer<typeof avalancheCenterIDSchema>;
+
+export const isSupportedCenter = (centerId: AvalancheCenterID): boolean => {
+  switch (centerId) {
+    case 'BAC':
+    case 'BTAC':
+    case 'CBAC':
+    case 'CNFAIC':
+    case 'COAA':
+    case 'ESAC':
+    case 'FAC':
+    case 'GNFAC':
+    case 'HAC':
+    case 'HPAC':
+    case 'IPAC':
+    case 'KPAC':
+    case 'MSAC':
+    case 'MWAC':
+    case 'NWAC':
+    case 'PAC':
+    case 'SAC':
+    case 'SNFAC':
+    case 'TAC':
+    case 'VAC':
+    case 'WAC':
+    case 'WCMAC':
+      return true;
+    case 'CAIC':
+    case 'UAC':
+    case 'SOAIX':
+    case 'EWYAIX':
+    case 'EARAC':
+    case 'CAC':
+    case 'CAAC':
+      return false;
+  }
+};
 
 export function userFacingCenterId(input: AvalancheCenterID, capabilities: AllAvalancheCenterCapabilities): string {
   const capability = capabilities.centers.find(center => center.id === input);
@@ -54,6 +97,13 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
   ['VAC']: 'https://alaskasnow.org/valdez/',
   ['WAC']: 'https://wallowaavalanchecenter.org/',
   ['WCMAC']: 'https://missoulaavalanche.org/',
+  ['CAIC']: 'https://avalanche.state.co.us/',
+  ['UAC']: 'https://utahavalanchecenter.org/',
+  ['SOAIX']: 'https://www.oregonsnow.org/observations/#/view/observations',
+  ['EWYAIX']: 'https://ewyoavalanche.org/#/view/observations',
+  ['EARAC']: 'https://alaskasnow.org/eastern-ak-range/',
+  ['CAC']: 'https://alaskasnow.org/cordova/',
+  ['CAAC']: 'https://www.coastalakavalanche.org/',
 };
 
 export enum DangerLevel {
@@ -1295,6 +1345,9 @@ export const mapLayerSchema = featureCollectionSchema(mapLayerFeatureSchema).ext
   end_time: z.null(),
 });
 export type MapLayer = z.infer<typeof mapLayerSchema>;
+
+export const mapFeaturesForCenter = (allMapLayer: MapLayer | undefined, centerId: AvalancheCenterID): MapLayerFeature[] =>
+  allMapLayer?.features.filter(feature => feature.properties.center_id === centerId) ?? [];
 
 export const WeatherStationSource = {
   NWAC: 'nwac',

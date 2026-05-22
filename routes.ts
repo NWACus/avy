@@ -1,17 +1,83 @@
 import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
+import {DrawerNavigationProp} from '@react-navigation/drawer';
 import {MaterialTopTabNavigationProp} from '@react-navigation/material-top-tabs';
-import {NavigatorScreenParams} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {AvalancheCenterID, WeatherStationSource} from 'types/nationalAvalancheCenter';
 import {RequestedTimeString} from 'utils/date';
 
 export type TabNavigatorParamList = {
-  Home: NavigatorScreenParams<HomeStackParamList> & {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
-  'Weather Data': NavigatorScreenParams<WeatherStackParamList> & {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
-  Observations: NavigatorScreenParams<ObservationsStackParamList> & {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
-  Menu: NavigatorScreenParams<MenuStackParamList> & {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
+  Map: {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
+  Weather: {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
+  Observations: {center_id: AvalancheCenterID; requestedTime: RequestedTimeString};
 };
+
 export type TabNavigationProps = BottomTabNavigationProp<TabNavigatorParamList>;
+
+export type MainStackParamList = {
+  bottomTabs: TabNavigationProps | undefined;
+
+  forecast: {
+    center_id: AvalancheCenterID;
+    forecast_zone_id: number;
+    requestedTime: RequestedTimeString;
+  };
+  // While in the home stack, we can display these pages:
+  // - weather station detail
+  // - observation detail (nwac & nac)
+  stationsDetail: WeatherStationsDetailPageProps;
+  stationDetail: WeatherStationDetailPageProps;
+  observation: {
+    id: string;
+  };
+  observationModal: {
+    id: string;
+  };
+  nwacObservation: {
+    id: string;
+  };
+  observationSubmit: undefined;
+  observationsPortal: {
+    center_id: AvalancheCenterID;
+    requestedTime: RequestedTimeString;
+  };
+
+  // These screens are navigated to from the drawer
+  avalancheCenterSelector: {
+    debugMode: boolean;
+  };
+
+  about: undefined;
+  outcome: {
+    which: string;
+  };
+
+  // These screens are for the developer menu
+  developerMenu: {
+    staging: boolean;
+    setStaging: React.Dispatch<React.SetStateAction<boolean>>;
+  };
+
+  debugForecastMap: {
+    center_id: AvalancheCenterID;
+    requestedTime: RequestedTimeString;
+  };
+
+  buttonStylePreview: undefined;
+  textStylePreview: undefined;
+  avalancheComponentPreview: undefined;
+  toastPreview: undefined;
+  timeMachine: undefined;
+  featureFlags: undefined;
+  expoConfig: undefined;
+};
+
+export type MainStackNavigationProps = NativeStackNavigationProp<MainStackParamList>;
+
+export type DrawerParamList = {
+  MainStack: MainStackNavigationProps | undefined;
+};
+
+export type SideDrawerNavigationProps = DrawerNavigationProp<DrawerParamList>;
 
 type WeatherStationsDetailPageProps = {
   center_id: AvalancheCenterID;
@@ -28,33 +94,6 @@ type WeatherStationDetailPageProps = {
   requestedTime: RequestedTimeString;
 };
 
-export type HomeStackParamList = {
-  avalancheCenter: {
-    center_id: AvalancheCenterID;
-    requestedTime: RequestedTimeString;
-  };
-  forecast: {
-    center_id: AvalancheCenterID;
-    forecast_zone_id: number;
-    requestedTime: RequestedTimeString;
-  };
-  // While in the home stack, we can display these pages:
-  // - weather station detail
-  // - observation detail (nwac & nac)
-  stationsDetail: WeatherStationsDetailPageProps;
-  stationDetail: WeatherStationDetailPageProps;
-  observation: {
-    id: string;
-  };
-  nwacObservation: {
-    id: string;
-  };
-  observationSubmit: {
-    center_id: AvalancheCenterID;
-  };
-};
-export type HomeStackNavigationProps = NativeStackNavigationProp<HomeStackParamList>;
-
 type ForecastPageProps = {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTimeString;
@@ -68,84 +107,3 @@ export type ForecastTabNavigatorParamList = {
   blog: ForecastPageProps;
 };
 export type ForecastTabNavigatorProps = MaterialTopTabNavigationProp<ForecastTabNavigatorParamList>;
-
-export type WeatherStackParamList = {
-  stationList: {
-    center_id: AvalancheCenterID;
-    requestedTime: RequestedTimeString;
-  };
-  stationsDetail: WeatherStationsDetailPageProps;
-  stationDetail: WeatherStationDetailPageProps;
-};
-export type WeatherStackNavigationProps = NativeStackNavigationProp<WeatherStackParamList>;
-
-export type TelemetryStackParamList = {
-  telemetryStations: {
-    center_id: AvalancheCenterID;
-    requestedTime: RequestedTimeString;
-  };
-  telemetryStation: {
-    center_id: AvalancheCenterID;
-    source: string;
-    station_id: number;
-    name: string;
-    requestedTime: RequestedTimeString;
-  };
-};
-export type TelemetryStackNavigationProps = NativeStackNavigationProp<TelemetryStackParamList>;
-
-export type ObservationsStackParamList = {
-  observationsPortal: {
-    center_id: AvalancheCenterID;
-    requestedTime: RequestedTimeString;
-  };
-  observationSubmit: {
-    center_id: AvalancheCenterID;
-  };
-  observationsList: {
-    center_id: AvalancheCenterID;
-    requestedTime: RequestedTimeString;
-  };
-  observation: {
-    id: string;
-  };
-  nwacObservation: {
-    id: string;
-  };
-};
-export type ObservationsStackNavigationProps = NativeStackNavigationProp<ObservationsStackParamList>;
-
-export type MenuStackParamList = {
-  menu: undefined;
-  avalancheCenterSelector: {
-    debugMode: boolean;
-  };
-  buttonStylePreview: undefined;
-  textStylePreview: undefined;
-  avalancheComponentPreview: undefined;
-  toastPreview: undefined;
-  timeMachine: undefined;
-  avalancheCenter: {
-    center_id: AvalancheCenterID;
-    requestedTime: RequestedTimeString;
-  };
-  forecast: {
-    center_id: AvalancheCenterID;
-    forecast_zone_id: number;
-    requestedTime: RequestedTimeString;
-  };
-  observation: {
-    id: string;
-  };
-  nwacObservation: {
-    id: string;
-  };
-  about: undefined;
-  outcome: {
-    which: string;
-  };
-
-  expoConfig: undefined;
-  featureFlags: undefined;
-};
-export type MenuStackNavigationProps = NativeStackNavigationProp<MenuStackParamList>;

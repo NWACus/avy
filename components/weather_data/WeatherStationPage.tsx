@@ -4,22 +4,23 @@ import {NWACStationList} from 'components/weather_data/NWACWeatherStationList';
 import {WeatherStationList} from 'components/weather_data/WeatherStationList';
 import {WeatherStationMap} from 'components/weather_data/WeatherStationMap';
 import {centerOrPartnerCenter} from 'components/weather_data/WeatherUtils';
+import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
-import {useMapLayer} from 'hooks/useMapLayer';
 import {useToggle} from 'hooks/useToggle';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import {usePostHog} from 'posthog-react-native';
-import React, {useCallback} from 'react';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import React, {useCallback, useMemo} from 'react';
+import {AvalancheCenterID, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {RequestedTimeString} from 'utils/date';
 
 interface Props {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTimeString;
+  tabBarHeight: number;
 }
 
-export const WeatherStationPage: React.FC<Props> = ({center_id, requestedTime}) => {
+export const WeatherStationPage: React.FC<Props> = ({center_id, requestedTime, tabBarHeight}) => {
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(centerOrPartnerCenter(center_id));
   const metadata = avalancheCenterMetadataResult.data;
   const postHog = usePostHog();
@@ -42,30 +43,51 @@ export const WeatherStationPage: React.FC<Props> = ({center_id, requestedTime}) 
   }
 
   if (center_id === 'NWAC') {
-    return <NWACStationList token={metadata.widget_config.stations?.token} requestedTime={requestedTime} />;
+    return <NWACStationList token={metadata.widget_config.stations?.token} requestedTime={requestedTime} tabBarHeight={tabBarHeight} />;
   }
 
-  return <WeatherStations center_id={center_id} token={metadata.widget_config.stations?.token} requestedTime={requestedTime} />;
+  return <WeatherStations center_id={center_id} token={metadata.widget_config.stations?.token} requestedTime={requestedTime} tabBarHeight={tabBarHeight} />;
 };
 
 export const WeatherStations: React.FunctionComponent<{
   center_id: AvalancheCenterID;
   token: string;
   requestedTime: RequestedTimeString;
-}> = ({center_id, token, requestedTime}) => {
+  tabBarHeight: number;
+}> = ({center_id, token, requestedTime, tabBarHeight}) => {
   const [list, {toggle: toggleList}] = useToggle(false);
-  const mapLayerResult = useMapLayer(center_id);
+  const mapLayerResult = useAllMapLayers();
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata(centerOrPartnerCenter(center_id), token);
   const weatherStations = weatherStationsResult.data;
+
+  const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, center_id), [mapLayer, center_id]);
 
   if (incompleteQueryState(mapLayerResult, weatherStationsResult) || !mapLayer || !weatherStations) {
     return <QueryState results={[mapLayerResult, weatherStationsResult]} />;
   }
 
   if (list) {
-    return <WeatherStationList center_id={center_id} requestedTime={requestedTime} mapLayer={mapLayer} weatherStations={weatherStations} toggleMap={toggleList} />;
+    return (
+      <WeatherStationList
+        center_id={center_id}
+        requestedTime={requestedTime}
+        mapLayerFeatures={mapFeatures ?? []}
+        weatherStations={weatherStations}
+        tabBarHeight={tabBarHeight}
+        toggleMap={toggleList}
+      />
+    );
   } else {
-    return <WeatherStationMap center_id={center_id} requestedTime={requestedTime} mapLayer={mapLayer} weatherStations={weatherStations} toggleList={toggleList} />;
+    return (
+      <WeatherStationMap
+        center_id={center_id}
+        requestedTime={requestedTime}
+        mapLayerFeatures={mapFeatures}
+        weatherStations={weatherStations}
+        tabBarHeight={tabBarHeight}
+        toggleList={toggleList}
+      />
+    );
   }
 };

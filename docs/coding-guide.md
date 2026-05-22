@@ -611,7 +611,6 @@ TabNavigator
   Home -> HomeStack (MapScreen, ForecastScreen, weather/observation details)
   Observations -> ObservationsStack (portal, list, detail, submit)
   Weather Data -> WeatherStack (station list, detail)
-  Menu -> MenuStack (settings, center selector, previews, about)
 ```
 
 Each tab has its own native stack navigator. The forecast detail view uses material top tabs for sub-sections (avalanche, weather, observations, blog).

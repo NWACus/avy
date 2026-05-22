@@ -15,7 +15,7 @@ import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConf
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
 import {compareDesc, formatDuration, isBefore, parseISO, sub} from 'date-fns';
-import {useMapLayer} from 'hooks/useMapLayer';
+import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
@@ -36,9 +36,10 @@ import {
   SectionListRenderItemInfo,
   TouchableOpacity,
 } from 'react-native';
-import {ObservationsStackNavigationProps} from 'routes';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
 import {RequestedTime, observationDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
 
 interface ObservationsListViewItem {
@@ -52,6 +53,7 @@ interface ObservationsListViewItem {
 interface ObservationsListViewProps {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
+  tabBarHeight?: number;
   additionalFilters?: Partial<ObservationFilterConfig>;
 }
 
@@ -66,15 +68,17 @@ interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFr
   source: SourceType;
 }
 
-export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, additionalFilters}) => {
+export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, tabBarHeight = 0, additionalFilters}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const navigation = useNavigation<ObservationsStackNavigationProps>();
+  const navigation = useNavigation<MainStackNavigationProps>();
   const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal}] = useToggle(false);
-  const mapResult = useMapLayer(center_id);
+  const mapResult = useAllMapLayers();
   const mapLayer = mapResult.data;
+
+  const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, center_id), [mapLayer, center_id]);
 
   const postHog = usePostHog();
 
@@ -138,16 +142,16 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         // calculate the zone and cache it now
         .map(observation => ({
           ...observation,
-          zone: mapLayer ? matchesZone(mapLayer, observation.locationPoint.lat, observation.locationPoint.lng) : '',
+          zone: matchesZone(mapFeatures, observation.locationPoint.lat, observation.locationPoint.lng),
         })),
-    [flatObservationList, mapLayer, displayNWACObservations],
+    [flatObservationList, mapFeatures, displayNWACObservations],
   );
   const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
   const refreshWrapper = useCallback(() => void refresh(), [refresh]);
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
-  const resolvedFilters = useMemo(() => (mapLayer ? filtersForConfig(mapLayer, filterConfig, additionalFilters) : []), [mapLayer, filterConfig, additionalFilters]);
+  const resolvedFilters = useMemo(() => filtersForConfig(mapFeatures, filterConfig, additionalFilters), [mapFeatures, filterConfig, additionalFilters]);
 
   // Set a date limit for how far back to look for observations
   const [lookBackLimit, setLookBackLimit] = useState<Duration>({years: 1});
@@ -251,8 +255,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   );
 
   const submit = useCallback(() => {
-    navigation.navigate('observationSubmit', {center_id});
-  }, [navigation, center_id]);
+    navigation.navigate('observationSubmit');
+  }, [navigation]);
 
   const [showSubmitButtonText, setShowSubmitButtonText] = useState(true);
   const onScroll = useCallback(
@@ -315,7 +319,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     [filterConfig, setFilterConfig],
   );
 
-  if (incompleteQueryState(observationsResult, mapResult) || !mapLayer) {
+  const insets = useSafeAreaInsets();
+
+  if (incompleteQueryState(observationsResult, mapResult) || !mapLayer || !mapFeatures) {
     return (
       <Center width="100%" height="100%">
         <QueryState results={[observationsResult, mapResult]} />
@@ -327,11 +333,11 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const optionalFilterCount = resolvedFilters.filter(value => value.removeFilter !== undefined).length;
 
   return (
-    <VStack width="100%" height="100%" space={0}>
+    <VStack width="100%" height="100%" space={0} paddingBottom={insets.bottom}>
       <Modal visible={filterModalVisible} onRequestClose={hideFilterModal} presentationStyle="overFullScreen">
         <ObservationsFilterForm
           requestedTime={requestedTime}
-          mapLayer={mapLayer}
+          mapLayerFeatures={mapFeatures}
           initialFilterConfig={originalFilterConfig}
           currentFilterConfig={filterConfig}
           setFilterConfig={setFilterConfig}
@@ -384,6 +390,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       <Divider />
       <SectionList
         sections={sections}
+        directionalLockEnabled={true}
         renderSectionHeader={renderSectionHeader}
         onScroll={onScroll}
         onScrollEndDrag={onScroll}
@@ -406,14 +413,14 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             </Center>
           )
         }
-        contentContainerStyle={{flexGrow: 1}}
+        contentContainerStyle={{flexGrow: 1, paddingBottom: tabBarHeight}}
         style={{backgroundColor: colorLookup('primary.background'), width: '100%', height: '100%'}}
         refreshing={isRefreshing}
         onRefresh={refreshWrapper}
         getItemLayout={getItemLayout}
         renderItem={renderItem}
       />
-      <HStack position="absolute" bottom={16} right={16} justifyContent="flex-end">
+      <HStack position="absolute" bottom={tabBarHeight + 16} right={16} justifyContent="flex-end">
         {/* Padding numbers are carefully chosen to center things, and to make the button perfectly round
         when the text is hidden. Expo icons are never vertically centered correctly by default for some reason. */}
         <Button buttonStyle="primary" onPress={submit} borderRadius={32} paddingHorizontal={13}>
@@ -485,7 +492,7 @@ export interface ObservationSummaryCardProps {
 const OBSERVATION_SUMMARY_CARD_HEIGHT = 132;
 
 export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(({source, zone, observation, pending}: ObservationSummaryCardProps) => {
-  const navigation = useNavigation<ObservationsStackNavigationProps>();
+  const navigation = useNavigation<MainStackNavigationProps>();
   const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
   const redFlags = observation.instability.collapsing || observation.instability.cracking;
   const onPress = useCallback(() => {

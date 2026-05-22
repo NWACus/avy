@@ -1,7 +1,6 @@
 import React, {useCallback, useState} from 'react';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {StyleSheet} from 'react-native';
 
 import * as Application from 'expo-application';
 import * as Clipboard from 'expo-clipboard';
@@ -13,14 +12,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import {useFocusEffect} from '@react-navigation/native';
 import {ActionList} from 'components/content/ActionList';
 import {Center, HStack, View, VStack} from 'components/core';
-import {getVersionInfoFull} from 'components/screens/menu/Version';
+import {getVersionInfoFull} from 'components/screens/main/Version';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
-import {MenuStackParamList} from 'routes';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {MainStackParamList} from 'routes';
 
-export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about'>) => {
+export const AboutScreen = (_: NativeStackScreenProps<MainStackParamList, 'about'>) => {
   const {
     preferences: {mixpanelUserId},
   } = usePreferences();
@@ -34,14 +34,16 @@ export const AboutScreen = (_: NativeStackScreenProps<MenuStackParamList, 'about
 
   const postHog = usePostHog();
 
+  const insets = useSafeAreaInsets();
+
   const recordAnalytics = useCallback(() => {
     postHog?.screen('about');
   }, [postHog]);
   useFocusEffect(recordAnalytics);
 
   return (
-    <View style={StyleSheet.absoluteFillObject}>
-      <VStack backgroundColor="white" width="100%" height="100%" pt={16} justifyContent="space-between">
+    <View flex={1}>
+      <VStack backgroundColor="white" width="100%" height="100%" pt={16} justifyContent="space-between" paddingBottom={insets.bottom}>
         <VStack space={16}>
           <Center>
             <Title3Black>About Avy</Title3Black>

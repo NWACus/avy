@@ -1,6 +1,6 @@
 import {CameraBounds} from '@rnmapbox/maps';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
-import {MapViewZone} from 'components/content/ZoneMap';
+import {MapViewZone} from 'components/map/ZoneMap';
 import {AvyPosition, Geometry, MapLayerFeature, Position} from 'types/nationalAvalancheCenter';
 
 export interface RegionBounds {

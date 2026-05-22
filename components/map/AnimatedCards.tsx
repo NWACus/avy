@@ -4,13 +4,12 @@ import {Logger} from 'browser-bunyan';
 import {HStack, View} from 'components/core';
 import {AvalancheCenterRegion} from 'components/helpers/geographicCoordinates';
 import {add, isAfter} from 'date-fns';
-import _ from 'lodash';
+import _, {isEqual} from 'lodash';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import md5 from 'md5';
-import React, {RefObject, useCallback, useRef, useState} from 'react';
+import React, {RefObject, useCallback, useEffect, useRef, useState} from 'react';
 import {
   Animated,
-  FlatList,
   GestureResponderEvent,
   LayoutChangeEvent,
   NativeScrollEvent,
@@ -19,6 +18,7 @@ import {
   PanResponderGestureState,
   TouchableOpacity,
   useWindowDimensions,
+  VirtualizedList,
 } from 'react-native';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -70,6 +70,7 @@ export class AnimatedMapWithDrawerController {
   mapCameraRef: RefObject<Camera | null>;
   // We store the last time we logged a region calculation so as to continue logging but not spam
   lastLogged: Record<string, string>; // mapping hash of parameters to the time we last logged it
+  private suppressMapCentering = false;
 
   constructor(state = AnimatedDrawerState.Docked, region: AvalancheCenterRegion, mapCameraRef: RefObject<Camera | null>, logger: Logger) {
     this.logger = logger;
@@ -83,13 +84,17 @@ export class AnimatedMapWithDrawerController {
     this.lastLogged = {};
   }
 
-  setState(state: AnimatedDrawerState) {
+  setState(state: AnimatedDrawerState, shouldAnimateRegion: boolean = true) {
     this.state = state;
     this.panning = false;
     this.baseOffset = AnimatedMapWithDrawerController.OFFSETS[state];
+
     this.yOffset.flattenOffset();
     this.buttonYOffset.flattenOffset();
-    this.animateMapRegion();
+    if (shouldAnimateRegion) {
+      this.animateMapRegion();
+    }
+
     Animated.parallel([
       Animated.spring(this.yOffset, {toValue: this.baseOffset, useNativeDriver: true}),
       Animated.spring(this.buttonYOffset, {toValue: this.buttonOffset(), useNativeDriver: true}),
@@ -176,30 +181,55 @@ export class AnimatedMapWithDrawerController {
   }
 
   animateUsingUpdatedCardDrawerMaximumHeight(height: number) {
-    this.cardDrawerMaximumHeight = height;
-    this.animateMapRegion();
+    if (this.cardDrawerMaximumHeight !== height) {
+      this.cardDrawerMaximumHeight = height;
+      this.animateMapRegion();
+    }
   }
 
   animateUsingUpdatedTopElementsHeight(offset: number, height: number) {
-    this.topElementsOffset = offset;
-    this.topElementsHeight = height;
-    this.animateMapRegion();
+    if (this.topElementsOffset !== offset || this.topElementsHeight !== height) {
+      this.topElementsOffset = offset;
+      this.topElementsHeight = height;
+      this.animateMapRegion();
+    }
   }
 
   animateUsingUpdatedTabBarHeight(height: number) {
-    this.tabBarHeight = height;
-    this.animateMapRegion();
+    if (this.tabBarHeight !== height) {
+      this.tabBarHeight = height;
+      this.animateMapRegion();
+    }
   }
 
   animateUsingUpdatedWindowDimensions(width: number, height: number) {
-    this.windowHeight = height;
-    this.windowWidth = width;
-    this.animateMapRegion();
+    if (this.windowHeight !== height || this.windowWidth !== width) {
+      this.windowHeight = height;
+      this.windowWidth = width;
+      this.animateMapRegion();
+    }
   }
 
   animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion: AvalancheCenterRegion) {
-    this.baseAvalancheCenterMapRegion = avalancheCenterMapRegion;
+    if (!isEqual(this.baseAvalancheCenterMapRegion, avalancheCenterMapRegion)) {
+      this.baseAvalancheCenterMapRegion = avalancheCenterMapRegion;
+      this.animateMapRegion();
+    }
+  }
+
+  // When switching centers from the observation or weather tab, the map view doesn't animate. This forces the animation to happen when it becomes the focus screen again
+  forceAnimateMapRegion() {
     this.animateMapRegion();
+  }
+
+  // When in the no-center experience the map should remain wherever the user has panned/zoomed it.
+  // Suppressing here is the single choke point that covers every caller of animateMapRegion (setState, layout-driven calls, focus effects, etc.)
+  shouldSuppressMapCentering(suppress: boolean) {
+    if (this.suppressMapCentering === suppress) return;
+    this.suppressMapCentering = suppress;
+    if (suppress) {
+      this.animateMapRegion.cancel();
+    }
   }
 
   // This function gets called many times in short succession when the layout changes. We debounce it so that
@@ -207,6 +237,7 @@ export class AnimatedMapWithDrawerController {
   ANIMATION_DEBOUNCE_MS = 250;
 
   private animateMapRegion = _.debounce(() => {
+    if (this.suppressMapCentering) return;
     const cardDrawerHeight = Math.max(0, this.cardDrawerMaximumHeight - this.baseOffset); // negative when hidden
     // then, we need to look at the entire available screen real-estate for our app
     // to determine the unobstructed area for the polygons
@@ -335,23 +366,25 @@ export interface AnimatedCardsProps<T, U> {
   getItemId: (item: T) => U;
   selectedItemId: U | null;
   setSelectedItemId: React.Dispatch<React.SetStateAction<U | null>>;
-  controller: AnimatedMapWithDrawerController;
+  controllerRef: RefObject<AnimatedMapWithDrawerController>;
   renderItem: (item: ItemRenderData<T, U>) => React.ReactElement;
   buttonOnPress?: () => void;
+  bottomOffset?: number;
 }
 
 export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
-  const {center_id, date, items, getItemId, selectedItemId, setSelectedItemId, controller, renderItem, buttonOnPress} = props;
+  const {center_id, date, items, getItemId, selectedItemId, setSelectedItemId, controllerRef, renderItem, buttonOnPress, bottomOffset = 0} = props;
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
   const {width} = useWindowDimensions();
 
   const [previouslySelectedItemId, setPreviouslySelectedItemId] = useState<U | null>(null);
   const [programmaticallyScrolling, setProgrammaticallyScrolling] = useState<boolean>(false);
+  const isUserScrolling = useRef(false);
 
   const offsets = items?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
   const flatListProps = {
-    snapToAlignment: 'start',
+    snapToAlignment: 'center',
     decelerationRate: 'fast',
     snapToOffsets: offsets,
     contentInset: {
@@ -361,27 +394,31 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
     contentContainerStyle: {paddingHorizontal: CARD_MARGIN * width},
   } as const;
 
-  // The list view has drawer-like behavior - it can be swiped into view, or swiped away.
-  // These values control the state that's driven through gestures & animation.
-  if (selectedItemId && controller.state !== AnimatedDrawerState.Visible) {
-    controller.setState(AnimatedDrawerState.Visible);
-  } else if (!selectedItemId && controller.state === AnimatedDrawerState.Visible) {
-    controller.setState(AnimatedDrawerState.Docked);
-  }
-
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_event, {dx, dy}) => dx > 0 || dy > 0,
-      onPanResponderGrant: () => controller.onPanResponderGrant(),
-      onPanResponderMove: (e, gestureState) => controller.onPanResponderMove(e, gestureState),
-      onPanResponderRelease: () => controller.onPanResponderRelease(),
+      onPanResponderGrant: () => controllerRef.current.onPanResponderGrant(),
+      onPanResponderMove: (e, gestureState) => controllerRef.current.onPanResponderMove(e, gestureState),
+      onPanResponderRelease: () => controllerRef.current.onPanResponderRelease(),
     }),
   ).current;
 
-  const flatListRef = useRef<FlatList>(null);
-  const onLayout = useCallback((event: LayoutChangeEvent) => controller.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height), [controller]);
+  const listRef = useRef<VirtualizedList<ItemRenderData<T, U>>>(null);
+  const onLayout = useCallback((event: LayoutChangeEvent) => controllerRef.current.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height), [controllerRef]);
 
   const renderItemAdapter = useCallback(({item}: {item: ItemRenderData<T, U>}) => renderItem(item), [renderItem]);
+
+  const onScrollBeginDrag = useCallback(() => {
+    isUserScrolling.current = true;
+  }, []);
+
+  const onScrollEndDrag = useCallback(() => {
+    isUserScrolling.current = false; // may be re-set by onMomentumScrollBegin if momentum follows
+  }, []);
+
+  const onMomentumScrollBegin = useCallback(() => {
+    isUserScrolling.current = true; // re-arm so handleScroll works through momentum
+  }, []);
 
   // handleScroll updates the highlighted zone on the map when a user scrolls. Called about once per
   // frame by the onScroll event of the FlatList component while scrolling.
@@ -389,6 +426,13 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       logger.debug('handleScroll started');
       if (!offsets || offsets.length === 0) {
+        return;
+      }
+
+      // Guard against spurious scroll events (e.g. from the nav drawer opening) that are not
+      // initiated by the user dragging the card list.
+      if (!isUserScrolling.current) {
+        logger.debug('handleScroll exiting: not a user scroll');
         return;
       }
 
@@ -437,22 +481,47 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
         setProgrammaticallyScrolling(false);
         return;
       }
-      handleScroll(event);
+      handleScroll(event); // isUserScrolling is still true here (set by onMomentumScrollBegin)
+      isUserScrolling.current = false; // reset after the final update
     },
     [programmaticallyScrolling, logger, handleScroll],
   );
 
+  const getItemLayout = useCallback(
+    (_data: unknown, index: number) => ({
+      length: width * (CARD_WIDTH + CARD_SPACING),
+      offset: offsets[index],
+      index,
+    }),
+    [offsets, width],
+  );
+
+  const getItemCount = useCallback(() => items.length, [items]);
+
+  const getItem = useCallback((data: ItemRenderData<T, U>[], index: number) => data[index], []);
+
+  // The list view has drawer-like behavior - it can be swiped into view, or swiped away.
+  // These values control the state that's driven through gestures & animation.
+  useEffect(() => {
+    if (selectedItemId && controllerRef.current.state !== AnimatedDrawerState.Visible) {
+      controllerRef.current.setState(AnimatedDrawerState.Visible);
+    } else if (!selectedItemId && controllerRef.current.state === AnimatedDrawerState.Visible) {
+      controllerRef.current.setState(AnimatedDrawerState.Docked);
+    }
+  }, [selectedItemId, controllerRef]);
+
   // The selected item changes when a user selects a zone on the map, programmatically scroll to the
   // appropriate card.
-  if (selectedItemId !== previouslySelectedItemId) {
-    if (selectedItemId && flatListRef.current) {
-      logger.debug('Programmatically scrolling');
-      const index = items.findIndex(i => getItemId(i) === selectedItemId);
-      setProgrammaticallyScrolling(true);
-      flatListRef.current.scrollToIndex({index, animated: true, viewPosition: 0.5});
+  useEffect(() => {
+    if (selectedItemId !== previouslySelectedItemId) {
+      if (selectedItemId) {
+        const index = items.findIndex(i => getItemId(i) === selectedItemId);
+        setProgrammaticallyScrolling(true);
+        listRef.current?.scrollToIndex({index: index !== -1 ? index : 0, animated: true});
+      }
+      setPreviouslySelectedItemId(selectedItemId);
     }
-    setPreviouslySelectedItemId(selectedItemId);
-  }
+  }, [selectedItemId, previouslySelectedItemId, listRef, items, setProgrammaticallyScrolling, setPreviouslySelectedItemId, getItemId]);
 
   return (
     <Animated.View
@@ -460,8 +529,8 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
         {
           position: 'absolute',
           width: '100%',
-          bottom: 6,
-          transform: [controller.getTransform()],
+          bottom: bottomOffset + 6,
+          transform: [controllerRef.current.getTransform()],
         },
       ]}>
       {buttonOnPress && (
@@ -483,27 +552,34 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
           </TouchableOpacity>
         </View>
       )}
-      <Animated.FlatList
-        initialNumToRender={items.length}
-        onLayout={onLayout}
-        ref={flatListRef}
+      <VirtualizedList
+        // Only render the first 2 cards if there are more than 2 items. The cards take up most of the screen so this will render the first 2 upfront.
+        // This helps keep the list from using too much memory by trying to render all of the cards before showing the view
+        initialNumToRender={items.length > 2 ? 2 : items.length}
+        ref={listRef}
+        initialScrollIndex={items.findIndex(item => getItemId(item) === selectedItemId) === -1 ? 0 : items.findIndex(item => getItemId(item) === selectedItemId)}
         horizontal
         style={{width: '100%'}}
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
+        onScrollBeginDrag={onScrollBeginDrag}
+        onScrollEndDrag={onScrollEndDrag}
+        onMomentumScrollBegin={onMomentumScrollBegin}
         onMomentumScrollEnd={onMomentumScrollEnd}
+        onLayout={onLayout}
+        getItemLayout={getItemLayout}
+        getItemCount={getItemCount}
+        getItem={getItem}
         {...panResponder.panHandlers}
         {...flatListProps}
-        data={
-          items.map(
-            (i: T): ItemRenderData<T, U> => ({
-              key: getItemId(i),
-              item: i,
-              date: date,
-              center_id: center_id,
-            }),
-          ) as unknown as Animated.WithAnimatedObject<ArrayLike<ItemRenderData<T, U>>>
-        }
+        data={items.map(
+          (i: T): ItemRenderData<T, U> => ({
+            key: getItemId(i),
+            item: i,
+            date: date,
+            center_id: center_id,
+          }),
+        )}
         renderItem={renderItemAdapter}
       />
     </Animated.View>

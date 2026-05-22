@@ -10,9 +10,9 @@ import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, BodyXSmBlack, Title3
 import {HTML} from 'components/text/HTML';
 import {NWACStationsByZone, ZoneWithWeatherStations} from 'components/weather_data/NWACWeatherStationList';
 import helpStrings from 'content/helpStrings';
+import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
-import {useMapLayer} from 'hooks/useMapLayer';
 import {FormatTimeOfDay, useNWACWeatherForecast} from 'hooks/useNWACWeatherForecast';
 import {useRefresh} from 'hooks/useRefresh';
 import {useWeatherForecast} from 'hooks/useWeatherForecast';
@@ -22,7 +22,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
-import {HomeStackParamList, TabNavigationProps} from 'routes';
+import {MainStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
   AvalancheCenterID,
@@ -36,11 +36,12 @@ import {
   WeatherDatum,
   WeatherPeriodLabel,
   WeatherStationSource,
+  mapFeaturesForCenter,
 } from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {RequestedTime, RequestedTimeString, formatRequestedTime, pacificDateToDayOfWeekString, parseRequestedTimeString, utcDateToLocalTimeString} from 'utils/date';
 
-type ForecastNavigationProp = CompositeNavigationProp<NativeStackNavigationProp<HomeStackParamList, 'forecast'>, TabNavigationProps>;
+type ForecastNavigationProp = CompositeNavigationProp<NativeStackNavigationProp<MainStackParamList, 'forecast'>, TabNavigationProps>;
 
 interface WeatherTabProps {
   zone: AvalancheForecastZone;
@@ -168,7 +169,7 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
   const adaptedWeatherForecast = center_id === 'SAC' ? adaptSierraWeatherForecast(weatherForecast) : weatherForecast;
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
+    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />} directionalLockEnabled={true}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>Mountain Weather</Title3Black>}>
           <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
@@ -215,7 +216,7 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
   const metadata = avalancheCenterMetadataResult.data;
   const nwacForecastResult = useNWACWeatherForecast(center_id, zone.id, requestedTime);
   const nwacForecast = nwacForecastResult.data;
-  const mapLayerResult = useMapLayer(center_id);
+  const mapLayerResult = useAllMapLayers();
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata(center_id, metadata?.widget_config.stations?.token);
   const weatherStations = weatherStationsResult.data;
@@ -228,9 +229,9 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
   const navigation = useNavigation<ForecastNavigationProp>();
   useEffect(() => {
     if (metadata?.widget_config.stations?.token && weatherStations && mapLayer) {
-      setStationsByZone(NWACStationsByZone(mapLayer, weatherStations));
+      setStationsByZone(NWACStationsByZone(mapFeaturesForCenter(mapLayer, center_id), weatherStations));
     }
-  }, [metadata, weatherStations, mapLayer]);
+  }, [metadata, weatherStations, mapLayer, center_id]);
 
   const postHog = usePostHog();
 
@@ -367,7 +368,7 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
   }));
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
+    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />} directionalLockEnabled={true}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>Mountain Weather</Title3Black>} noDivider>
           <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>

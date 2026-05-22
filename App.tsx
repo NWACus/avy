@@ -1,9 +1,7 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
 import {SelectProvider} from '@mobile-reality/react-native-select-pro';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {getStateFromPath, NavigationContainer, PathConfigMap, RouteProp, useNavigationContainerRef} from '@react-navigation/native';
+import {getStateFromPath, NavigationContainer, PathConfigMap, useNavigationContainerRef} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
 import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -14,8 +12,6 @@ import * as BackgroundFetch from 'expo-background-task';
 import Constants from 'expo-constants';
 import * as TaskManager from 'expo-task-manager';
 
-import {merge} from 'lodash';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createAsyncStoragePersister} from '@tanstack/query-async-storage-persister';
 import {focusManager, QueryCache, QueryClient, useQueryClient} from '@tanstack/react-query';
@@ -23,10 +19,6 @@ import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
 
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
-import {HomeTabScreen} from 'components/screens/HomeScreen';
-import {MenuStackScreen} from 'components/screens/MenuScreen';
-import {ObservationsTabScreen} from 'components/screens/ObservationsScreen';
-import {WeatherScreen} from 'components/screens/WeatherScreen';
 import {HTMLRendererConfig} from 'components/text/HTML';
 import ImageCache, {queryKeyPrefix} from 'hooks/useCachedImageURI';
 import {useOnlineManager} from 'hooks/useOnlineManager';
@@ -35,18 +27,17 @@ import {logFilePath, logger} from 'logger';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
 import Toast, {ToastConfigParams} from 'react-native-toast-message';
-import {TabNavigatorParamList} from 'routes';
-import {colorLookup} from 'theme';
-import {AvalancheCenterID, AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
 
 import 'date-time-format-timezone';
 
 import axios, {AxiosRequestConfig} from 'axios';
 import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
 import * as FileSystem from 'expo-file-system';
+import {MapPersistenceProvider, useMapPersistence} from 'MapPersistence';
 import {PreferencesProvider, usePreferences} from 'Preferences';
 import {NotFoundError} from 'types/requests';
-import {formatRequestedTime, RequestedTime} from 'utils/date';
+import {RequestedTime} from 'utils/date';
 
 import Mapbox from '@rnmapbox/maps';
 import {Integration} from '@sentry/types';
@@ -55,6 +46,7 @@ import * as messages from 'compiled-lang/en.json';
 import {Button} from 'components/content/Button';
 import {Center, VStack} from 'components/core';
 import {KillSwitchMonitor} from 'components/KillSwitchMonitor';
+import {DrawerNavigator} from 'components/screens/navigation/Drawer';
 import {Body, BodyBlack, Title3Black} from 'components/text';
 import * as Linking from 'expo-linking';
 import * as Updates from 'expo-updates';
@@ -237,8 +229,6 @@ const asyncStoragePersister = createAsyncStoragePersister({
   key: QUERY_CACHE_ASYNC_STORAGE_KEY,
 });
 
-const TabNavigator = createBottomTabNavigator<TabNavigatorParamList>();
-
 // We add the listener at startup and never plan to stop listening, so there's
 // no need to unsubscribe here.
 AppState.addEventListener('change', (status: AppStateStatus) => {
@@ -297,7 +287,9 @@ const AppWithClientContext = () => {
   return (
     <ClientContext.Provider value={contextValue}>
       <PreferencesProvider>
-        <BaseApp staging={staging} setStaging={setStaging} />
+        <MapPersistenceProvider>
+          <BaseApp staging={staging} setStaging={setStaging} />
+        </MapPersistenceProvider>
       </PreferencesProvider>
     </ClientContext.Provider>
   );
@@ -308,14 +300,9 @@ const BaseApp: React.FunctionComponent<{
   setStaging: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({staging, setStaging}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const {preferences, setPreferences} = usePreferences();
-  const avalancheCenterId = preferences.center;
-  const setAvalancheCenterId = useCallback(
-    (avalancheCenterId: AvalancheCenterID) => {
-      setPreferences({center: avalancheCenterId});
-    },
-    [setPreferences],
-  );
+  const {preferences} = usePreferences();
+  const {center} = preferences;
+  const {isInNoCenterExperience, setIsInNoCenterExperience, mapPersistenceLoaded} = useMapPersistence();
 
   const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
@@ -325,15 +312,48 @@ const BaseApp: React.FunctionComponent<{
         logger.info('skipping prefetch because EXPO_PUBLIC_DISABLE_PREFETCHING is set');
       } else {
         try {
-          await prefetchAllActiveForecasts(queryClient, avalancheCenterId, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, logger);
+          await prefetchAllActiveForecasts(queryClient, center, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, logger);
         } catch (e) {
           logger.error({error: e}, 'error prefetching data');
         }
       }
     })();
-  }, [logger, queryClient, avalancheCenterId, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost]);
+  }, [logger, queryClient, center, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost]);
 
   const navigationRef = useNavigationContainerRef();
+
+  const initialUrlRef = useRef<string | null>(null);
+  const isInNoCenterExperienceRef = useRef(isInNoCenterExperience);
+
+  useEffect(() => {
+    isInNoCenterExperienceRef.current = isInNoCenterExperience;
+  }, [isInNoCenterExperience]);
+
+  const handleDeepLink = useCallback(
+    (url: string) => {
+      initialUrlRef.current = url;
+      const urlHash = new URL(url).hash;
+      const isObservationsList = urlHash === '#/view/observations' || urlHash === '#/observations';
+      if (isObservationsList && isInNoCenterExperienceRef.current && mapPersistenceLoaded) {
+        setIsInNoCenterExperience(false);
+      }
+    },
+    [setIsInNoCenterExperience, mapPersistenceLoaded],
+  );
+
+  useEffect(() => {
+    Linking.getInitialURL()
+      .then(url => {
+        if (url) handleDeepLink(url);
+      })
+      .catch(err => logger.error('An error occurred while getting InitialUrl.', err));
+  }, [handleDeepLink, logger]);
+
+  useEffect(() => {
+    const subscription = Linking.addEventListener('url', event => handleDeepLink(event.url));
+    return () => subscription.remove();
+  }, [handleDeepLink]);
+
   const trackNavigationChange = useCallback(() => {
     if (routingInstrumentation && navigationRef) {
       routingInstrumentation.registerNavigationContainer(navigationRef);
@@ -372,27 +392,6 @@ const BaseApp: React.FunctionComponent<{
         setUpdateStatus('ready');
       });
   }, [setUpdateStatus, logger]);
-
-  const tabNavigatorScreenOptions = useCallback(
-    ({route: {name}}: {route: RouteProp<TabNavigatorParamList, keyof TabNavigatorParamList>}) => ({
-      headerShown: false,
-      tabBarIcon: ({color, size}: {focused: boolean; color: string; size: number}) => {
-        if (name === 'Home') {
-          return <Ionicons name="map-outline" size={size} color={color} />;
-        } else if (name === 'Observations') {
-          return <Ionicons name="reader-outline" size={size} color={color} />;
-        } else if (name === 'Weather Data') {
-          return <Ionicons name="stats-chart-outline" size={size} color={color} />;
-        } else if (name === 'Menu') {
-          return <Ionicons name="ellipsis-horizontal" size={size} color={color} />;
-        }
-      },
-      // these two properties should really take ColorValue but oh well
-      tabBarActiveTintColor: colorLookup('primary') as string,
-      tabBarInactiveTintColor: colorLookup('text.secondary') as string,
-    }),
-    [],
-  );
 
   const [startupPaused, {off: unpauseStartup}] = useToggle(process.env.EXPO_PUBLIC_PAUSE_ON_STARTUP === 'true');
 
@@ -438,22 +437,6 @@ const BaseApp: React.FunctionComponent<{
     );
   }
 
-  let initialUrl: string | null = null;
-  // get the universal link the app was open with, if one exists
-  Linking.getInitialURL()
-    .then(url => {
-      if (url) {
-        initialUrl = url;
-      }
-    })
-    .catch(err => {
-      logger.error('An error occurred while getting InitialUrl.', err);
-    });
-
-  Linking.addEventListener('url', event => {
-    initialUrl = event.url;
-  });
-
   const linking = {
     prefixes: [
       // Prefixes are removed from URL before parsing
@@ -462,11 +445,16 @@ const BaseApp: React.FunctionComponent<{
     filter: (url: string) => url.includes('/observations/'), // Only handle observation links
     config: {
       screens: {
-        Observations: {
+        MainStack: {
           path: 'observations/#/view/observations',
+          initialRouteName: 'bottomTabs',
           screens: {
-            observationsList: '',
-            observation: ':id',
+            bottomTabs: {
+              screens: {
+                Observations: '',
+              },
+            },
+            observationModal: ':id',
           },
         },
       },
@@ -484,9 +472,9 @@ const BaseApp: React.FunctionComponent<{
       let newPath = path.replace('observations/#/observation', 'observations/#/view/observations');
 
       // Setup share URL for back controls
-      if (initialUrl) {
+      if (initialUrlRef.current) {
         // this url contains the whole url, like so: https://nwac.us/observations/#/observations/fb5bb19a-2b89-4c9c-91d2-eb673c5ab877
-        const origin = new URL(initialUrl).origin;
+        const origin = new URL(initialUrlRef.current).origin;
         if (origin !== 'null') {
           newPath += '?share=true&share_url=' + origin + '/';
         }
@@ -520,55 +508,9 @@ const BaseApp: React.FunctionComponent<{
               <FeatureFlagsProvider>
                 <KillSwitchMonitor>
                   <SelectProvider>
-                    <StatusBar barStyle="dark-content" backgroundColor="white" />
-                    <View style={StyleSheet.absoluteFill}>
-                      <TabNavigator.Navigator initialRouteName="Home" screenOptions={tabNavigatorScreenOptions}>
-                        <TabNavigator.Screen name="Home" initialParams={{center_id: avalancheCenterId}} options={{title: 'Zones'}}>
-                          {state =>
-                            HomeTabScreen(
-                              merge(state, {
-                                route: {
-                                  params: {
-                                    center_id: avalancheCenterId,
-                                    requestedTime: formatRequestedTime(requestedTime),
-                                  },
-                                },
-                              }),
-                            )
-                          }
-                        </TabNavigator.Screen>
-                        <TabNavigator.Screen name="Observations" initialParams={{center_id: avalancheCenterId}}>
-                          {state =>
-                            ObservationsTabScreen(
-                              merge(state, {
-                                route: {
-                                  params: {
-                                    center_id: avalancheCenterId,
-                                    requestedTime: formatRequestedTime(requestedTime),
-                                  },
-                                },
-                              }),
-                            )
-                          }
-                        </TabNavigator.Screen>
-                        <TabNavigator.Screen name="Weather Data" initialParams={{center_id: avalancheCenterId}}>
-                          {state =>
-                            WeatherScreen(
-                              merge(state, {
-                                route: {
-                                  params: {
-                                    center_id: avalancheCenterId,
-                                    requestedTime: formatRequestedTime(requestedTime),
-                                  },
-                                },
-                              }),
-                            )
-                          }
-                        </TabNavigator.Screen>
-                        <TabNavigator.Screen name="Menu" initialParams={{center_id: avalancheCenterId}} options={{title: 'More'}}>
-                          {state => MenuStackScreen(state, queryCache, avalancheCenterId, setAvalancheCenterId, staging, setStaging)}
-                        </TabNavigator.Screen>
-                      </TabNavigator.Navigator>
+                    <StatusBar barStyle={'dark-content'} animated={false} backgroundColor={'white'} />
+                    <View style={{flex: 1}}>
+                      <DrawerNavigator requestedTime={requestedTime} centerId={center} isInNoCenterExperience={isInNoCenterExperience} staging={staging} setStaging={setStaging} />
                     </View>
                   </SelectProvider>
                 </KillSwitchMonitor>

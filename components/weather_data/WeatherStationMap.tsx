@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {RefObject, useCallback, useEffect, useRef, useState} from 'react';
 
 import centroid from '@turf/centroid';
 import turfClustersDBScan from '@turf/clusters-dbscan';
@@ -7,27 +7,26 @@ import turfDistance from '@turf/distance';
 import {Coord, Units, featureCollection} from '@turf/helpers';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native';
+import {TouchableOpacity, useWindowDimensions} from 'react-native';
 
 import {format} from 'date-fns';
 
 import {Camera, CircleLayer, ShapeSource} from '@rnmapbox/maps';
-import {MapViewZone, ZoneMap, mapViewZoneFor} from 'components/content/ZoneMap';
 import {HStack, VStack, View} from 'components/core';
 import {defaultMapRegionForGeometries} from 'components/helpers/geographicCoordinates';
 import {AnimatedCards, AnimatedDrawerState, AnimatedMapWithDrawerController, CARD_MARGIN, CARD_WIDTH} from 'components/map/AnimatedCards';
+import {MapViewZone, ZoneMap, mapViewZoneFor} from 'components/map/ZoneMap';
 import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {formatData, formatTime, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
 import {formatInTimeZone} from 'date-fns-tz';
 import {FeatureCollection, Point} from 'geojson';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
-import {WeatherStackNavigationProps} from 'routes';
+import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
   AvalancheCenterID,
   DangerLevel,
-  MapLayer,
   MapLayerFeature,
   Position,
   StationColorNameForSource,
@@ -77,14 +76,15 @@ function clustersDBScan(
 }
 
 export const WeatherStationMap: React.FunctionComponent<{
-  mapLayer: MapLayer;
+  mapLayerFeatures: MapLayerFeature[];
   weatherStations: WeatherStationCollection;
   center_id: AvalancheCenterID;
   requestedTime: RequestedTimeString;
+  tabBarHeight: number;
   toggleList: () => void;
-}> = ({mapLayer, weatherStations, center_id, requestedTime, toggleList}) => {
+}> = ({mapLayerFeatures, weatherStations, center_id, requestedTime, tabBarHeight, toggleList}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const avalancheCenterMapRegion = defaultMapRegionForGeometries(mapLayer?.features.map(feature => feature.geometry));
+  const avalancheCenterMapRegion = defaultMapRegionForGeometries(mapLayerFeatures.map(feature => feature.geometry));
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
@@ -96,7 +96,7 @@ export const WeatherStationMap: React.FunctionComponent<{
   }, [postHog, center_id]);
   useFocusEffect(recordAnalytics);
 
-  const navigation = useNavigation<WeatherStackNavigationProps>();
+  const navigation = useNavigation<MainStackNavigationProps>();
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const onPressMarker = React.useCallback(
     (station: WeatherStation) => {
@@ -120,16 +120,18 @@ export const WeatherStationMap: React.FunctionComponent<{
   // useRef has to be used here. Animation and gesture handlers can't use props and state,
   // and aren't re-evaluated on render. Fun!
   const mapCameraView = useRef<Camera>(null);
-  const controller = useRef<AnimatedMapWithDrawerController>(
-    new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraView, logger),
-  ).current;
+  const controller = useRef<AnimatedMapWithDrawerController>(new AnimatedMapWithDrawerController(AnimatedDrawerState.Hidden, avalancheCenterMapRegion, mapCameraView, logger));
   React.useEffect(() => {
-    controller.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
+    controller.current.animateUsingUpdatedAvalancheCenterMapRegion(avalancheCenterMapRegion);
   }, [avalancheCenterMapRegion, controller]);
 
+  React.useEffect(() => {
+    controller.current.animateUsingUpdatedTabBarHeight(tabBarHeight);
+  }, [tabBarHeight, controller]);
+
   // we want light grey zones in the background here
-  const zones: MapViewZone[] = mapLayer.features.map((feature: MapLayerFeature) => ({
-    ...mapViewZoneFor(center_id, feature),
+  const zones: MapViewZone[] = mapLayerFeatures.map((feature: MapLayerFeature) => ({
+    ...mapViewZoneFor(feature),
     hasWarning: false,
     danger_level: DangerLevel.None,
     fillOpacity: 0.1,
@@ -200,8 +202,8 @@ export const WeatherStationMap: React.FunctionComponent<{
   return (
     <>
       <ZoneMap
-        style={StyleSheet.absoluteFillObject}
-        ref={mapCameraView}
+        style={{flex: 1, marginBottom: tabBarHeight}}
+        cameraRef={mapCameraView}
         onMapPress={onPressMapView}
         zoomEnabled={true}
         scrollEnabled={true}
@@ -223,8 +225,9 @@ export const WeatherStationMap: React.FunctionComponent<{
         stations={sortedStations}
         selectedStationId={selectedStationId}
         setSelectedStationId={setSelectedStationId}
-        controller={controller}
+        controllerRef={controller}
         buttonOnPress={process.env.EXPO_PUBLIC_WEATHER_STATION_LIST_TOGGLE ? toggleList : undefined}
+        bottomOffset={tabBarHeight}
       />
     </>
   );
@@ -268,9 +271,10 @@ export const WeatherStationCards: React.FunctionComponent<{
   stations: WeatherStationCollection;
   selectedStationId: string | null;
   setSelectedStationId: React.Dispatch<React.SetStateAction<string | null>>;
-  controller: AnimatedMapWithDrawerController;
+  controllerRef: RefObject<AnimatedMapWithDrawerController>;
   buttonOnPress?: () => void;
-}> = ({center_id, date, stations, selectedStationId, setSelectedStationId, controller, buttonOnPress}) => {
+  bottomOffset?: number;
+}> = ({center_id, date, stations, selectedStationId, setSelectedStationId, controllerRef, buttonOnPress, bottomOffset = 0}) => {
   return AnimatedCards<WeatherStation, string>({
     center_id,
     date,
@@ -278,11 +282,12 @@ export const WeatherStationCards: React.FunctionComponent<{
     getItemId: station => station.properties.stid,
     selectedItemId: selectedStationId,
     setSelectedItemId: setSelectedStationId,
-    controller,
+    controllerRef,
     renderItem: ({date, center_id, item}) => (
       <WeatherStationCard mode={'map'} center_id={center_id} date={date} station={item} units={stations.properties.units} variables={stations.properties.variables} />
     ),
     buttonOnPress,
+    bottomOffset,
   });
 };
 
@@ -319,7 +324,7 @@ export const WeatherStationCard: React.FunctionComponent<{
     mode: 'map' | 'list';
   }) => {
     const {width} = useWindowDimensions();
-    const navigation = useNavigation<WeatherStackNavigationProps>();
+    const navigation = useNavigation<MainStackNavigationProps>();
 
     const latestObservationDateString = weatherStationCardDateString(station.properties.data['date_time']);
     const latestObservation: Record<string, string | number | null> | undefined = station.properties.data;
