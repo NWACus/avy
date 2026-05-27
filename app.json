@@ -7,7 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -16,7 +15,6 @@
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "jsEngine": "hermes",
     "updates": {
       "url": "https://u.expo.dev/47e2fd36-5165-4eb4-9a2d-21beec393379",
       "fallbackToCacheTimeout": 0
@@ -36,7 +34,6 @@
     "android": {
       "package": "us.nwac.forecast",
       "icon": "./assets/icon.png",
-      "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#152E57"
@@ -63,6 +60,7 @@
       "expo-localization",
       "expo-background-task",
       "expo-location",
+      "expo-image",
       "@react-native-community/datetimepicker",
       [
         "@rnmapbox/maps",
