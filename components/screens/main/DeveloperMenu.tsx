@@ -18,7 +18,7 @@ import {Divider, HStack, View, VStack} from 'components/core';
 
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
-import * as FileSystem from 'expo-file-system';
+import {File} from 'expo-file-system';
 
 import {useQueryClient} from '@tanstack/react-query';
 import {ClientContext} from 'clientContext';
@@ -506,7 +506,7 @@ const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
                   buttonStyle="normal"
                   onPress={() => {
                     void (async () => {
-                      const log = await FileSystem.readAsStringAsync(logFilePath);
+                      const log = await new File(logFilePath).text();
                       await Clipboard.setStringAsync(log);
                     })();
                   }}>

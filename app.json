@@ -62,6 +62,7 @@
       "expo-localization",
       "expo-background-task",
       "expo-location",
+      "@react-native-community/datetimepicker",
       [
         "@rnmapbox/maps",
         {

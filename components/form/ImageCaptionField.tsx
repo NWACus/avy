@@ -17,7 +17,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 
-type ImageAssetArray = ImagePickerAssetWithCaption[] | undefined | null;
+type ImageAssetArray = ImagePickerAssetWithCaption[] | undefined;
 
 const EditImageCaptionField: React.FC<{
   image: ImageAndCaption | null;

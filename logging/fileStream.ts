@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/react-native';
 import {LogStream} from 'browser-bunyan';
-import * as FileSystem from 'expo-file-system';
+import {File} from 'expo-file-system';
 import {debounce} from 'lodash';
 import {filterLoggedData} from 'logging/filterLoggedData';
 
@@ -11,7 +11,7 @@ export class FileStream implements LogStream {
   constructor(filePath: string) {
     this.filePath = filePath;
     this.buffer = [];
-    void FileSystem.writeAsStringAsync(this.filePath, '');
+    new File(this.filePath).write('');
   }
 
   private FLUSH_INTERVAL_MS = 1000;
@@ -21,9 +21,10 @@ export class FileStream implements LogStream {
   private flush = debounce(async (): Promise<void> => {
     const buffer = this.buffer;
     this.buffer = [];
-    const contents = await FileSystem.readAsStringAsync(this.filePath);
+    const file = new File(this.filePath);
+    const contents = await file.text();
     try {
-      return await FileSystem.writeAsStringAsync(this.filePath, contents + buffer.join('\n') + '\n');
+      file.write(contents + buffer.join('\n') + '\n');
     } catch (error) {
       Sentry.captureException(error, {
         extra: {

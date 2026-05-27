@@ -2,7 +2,7 @@ import {Platform} from 'react-native';
 
 import {Logger} from 'browser-bunyan';
 
-import * as FileSystem from 'expo-file-system';
+import {File} from 'expo-file-system';
 import * as Linking from 'expo-linking';
 import * as MailComposer from 'expo-mail-composer';
 
@@ -39,7 +39,7 @@ export const sendMail = async ({to, subject, body, footer, attachments, logger}:
     }
   } else {
     try {
-      const attachmentContents = (await Promise.all((attachments || []).map(a => FileSystem.readAsStringAsync(a)))).join('\n');
+      const attachmentContents = (await Promise.all((attachments || []).map(a => new File(a).text()))).join('\n');
       const bodyWithAttachments = encodeURIComponent(`${body || ''}${attachmentContents.length > 0 ? '\n' : ''}${attachmentContents}`.slice(0, 1024));
       const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}${bodyWithAttachments.length > 0 ? `&body=${bodyWithAttachments}` : ''}`;
       await Linking.openURL(url);
