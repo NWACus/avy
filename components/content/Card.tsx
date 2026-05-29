@@ -1,7 +1,7 @@
 import React, {PropsWithChildren, ReactNode, useCallback, useEffect, useState} from 'react';
 
+import {Collapsible} from 'components/content/Collapsible';
 import {ColorValue, TouchableOpacity, ViewStyle} from 'react-native';
-import Collapsible from 'react-native-collapsible';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
