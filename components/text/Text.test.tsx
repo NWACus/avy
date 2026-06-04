@@ -11,13 +11,11 @@ describe('Text', () => {
     it('does not strip HTML entities by default', () => {
       render(<Body>{input}</Body>);
       expect(screen.getByText(input)).not.toBeNull();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       expect(() => screen.getByText(output)).toThrow();
     });
 
     it('strips HTML entities when option is set', () => {
       render(<Body unescapeHTMLEntities>{input}</Body>);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       expect(() => screen.getByText(input)).toThrow();
       expect(screen.getByText(output)).not.toBeNull();
     });

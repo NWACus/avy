@@ -17,7 +17,6 @@ import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySiz
 import {compareDesc, formatDuration, isBefore, parseISO, sub} from 'date-fns';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useNACObservations} from 'hooks/useNACObservations';
-import {useNWACObservations} from 'hooks/useNWACObservations';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -40,12 +39,11 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
-import {RequestedTime, observationDateToLocalDateString, requestedTimeToUTCDate} from 'utils/date';
+import {RequestedTime, observationDateToLocalDateString} from 'utils/date';
 
 interface ObservationsListViewItem {
   id: ObservationFragment['id'];
   observation: ObservationFragment;
-  source: string;
   zone: string;
   pending?: boolean;
 }
@@ -61,17 +59,13 @@ interface ObservationFragmentWithPageIndex extends ObservationFragment {
   pageIndex: number;
 }
 
-type SourceType = 'nac' | 'nwac';
-
-interface ObservationFragmentWithPageIndexAndZoneAndSource extends ObservationFragmentWithPageIndex {
+interface ObservationFragmentWithPageIndexAndZone extends ObservationFragmentWithPageIndex {
   zone: string;
-  source: SourceType;
 }
 
 export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, tabBarHeight = 0, additionalFilters}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const navigation = useNavigation<MainStackNavigationProps>();
-  const endDate = requestedTimeToUTCDate(requestedTime);
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
   const [filterConfig, setFilterConfig] = useState<ObservationFilterConfig>(originalFilterConfig);
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal}] = useToggle(false);
@@ -84,7 +78,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   const recordAnalytics = useCallback(() => {
     if (postHog && center_id) {
-      postHog.screen('observations', {
+      void postHog.screen('observations', {
         center: center_id,
         zone: additionalFilters && additionalFilters.zones && additionalFilters.zones.length > 0 ? additionalFilters.zones[0] : 'global',
       });
@@ -100,16 +94,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     }));
   }, [additionalFilters]);
 
-  // From the 2023-24 season onward, we will only have NAC observations
-  const displayNWACObservations = center_id === 'NWAC' && endDate < new Date('2023-09-01');
-  const nacObservationsResult = useNACObservations(center_id, requestedTime, {
-    enabled: !displayNWACObservations,
+  const observationsResult = useNACObservations(center_id, requestedTime, {
+    enabled: true,
   });
-  const nwacObservationsResult = useNWACObservations(center_id, requestedTime, {
-    enabled: displayNWACObservations,
-  });
-
-  const observationsResult = displayNWACObservations ? nwacObservationsResult : nacObservationsResult;
 
   const flatObservationList: ObservationFragmentWithPageIndex[] = useMemo(
     () =>
@@ -121,12 +108,11 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
       ),
     [observationsResult],
   );
-  const observations: ObservationFragmentWithPageIndexAndZoneAndSource[] = useMemo(
+  const observations: ObservationFragmentWithPageIndexAndZone[] = useMemo(
     () =>
       flatObservationList
         .map(observation => ({
           ...observation,
-          source: displayNWACObservations ? 'nwac' : ('nac' as SourceType),
         }))
         .filter(observation => observation) // when nothing is returned from the NAC, we get a null
         // Sort observations by page index, then by date. This keeps old entries from shifting around as new data is fetched
@@ -144,7 +130,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           ...observation,
           zone: matchesZone(mapFeatures, observation.locationPoint.lat, observation.locationPoint.lng),
         })),
-    [flatObservationList, mapFeatures, displayNWACObservations],
+    [flatObservationList, mapFeatures],
   );
   const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
   const refreshWrapper = useCallback(() => void refresh(), [refresh]);
@@ -214,7 +200,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
           ({
             id: observation.id,
             observation: observation,
-            source: 'nac',
             zone: observation.locationName,
             pending: true,
           } as const),
@@ -233,7 +218,6 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             ({
               id: observation.id,
               observation: observation,
-              source: observation.source,
               zone: observation.zone,
             } as const),
         ),
@@ -248,9 +232,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   }, [pendingObservationsSection, observationsSection]);
 
   const renderItem = useCallback(
-    ({item}: SectionListRenderItemInfo<ObservationsListViewItem, Section>) => (
-      <ObservationSummaryCard source={item.source} observation={item.observation} zone={item.zone} pending={item.pending} />
-    ),
+    ({item}: SectionListRenderItemInfo<ObservationsListViewItem, Section>) => <ObservationSummaryCard observation={item.observation} zone={item.zone} pending={item.pending} />,
     [],
   );
 
@@ -333,8 +315,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const optionalFilterCount = resolvedFilters.filter(value => value.removeFilter !== undefined).length;
 
   return (
-    <VStack width="100%" height="100%" space={0} paddingBottom={insets.bottom}>
-      <Modal visible={filterModalVisible} onRequestClose={hideFilterModal} presentationStyle="overFullScreen">
+    <VStack width="100%" height="100%" space={0}>
+      <Modal visible={filterModalVisible} onRequestClose={hideFilterModal} presentationStyle="overFullScreen" animationType="slide" statusBarTranslucent>
         <ObservationsFilterForm
           requestedTime={requestedTime}
           mapLayerFeatures={mapFeatures}
@@ -413,14 +395,14 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             </Center>
           )
         }
-        contentContainerStyle={{flexGrow: 1, paddingBottom: tabBarHeight}}
+        contentContainerStyle={{flexGrow: 1, paddingBottom: tabBarHeight + insets.bottom}}
         style={{backgroundColor: colorLookup('primary.background'), width: '100%', height: '100%'}}
         refreshing={isRefreshing}
         onRefresh={refreshWrapper}
         getItemLayout={getItemLayout}
         renderItem={renderItem}
       />
-      <HStack position="absolute" bottom={tabBarHeight + 16} right={16} justifyContent="flex-end">
+      <HStack position="absolute" bottom={tabBarHeight > 0 ? tabBarHeight + 8 : 32} right={16} justifyContent="flex-end">
         {/* Padding numbers are carefully chosen to center things, and to make the button perfectly round
         when the text is hidden. Expo icons are never vertically centered correctly by default for some reason. */}
         <Button buttonStyle="primary" onPress={submit} borderRadius={32} paddingHorizontal={13}>
@@ -483,7 +465,6 @@ export const FilterPillButton: React.FC<FilterPillButtonProps> = ({label, headIc
 );
 
 export interface ObservationSummaryCardProps {
-  source: string;
   observation: ObservationFragment;
   zone: string;
   pending?: boolean;
@@ -491,21 +472,15 @@ export interface ObservationSummaryCardProps {
 
 const OBSERVATION_SUMMARY_CARD_HEIGHT = 132;
 
-export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(({source, zone, observation, pending}: ObservationSummaryCardProps) => {
+export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryCardProps> = React.memo(({zone, observation, pending}: ObservationSummaryCardProps) => {
   const navigation = useNavigation<MainStackNavigationProps>();
   const avalanches = observation.instability.avalanches_caught || observation.instability.avalanches_observed || observation.instability.avalanches_triggered;
   const redFlags = observation.instability.collapsing || observation.instability.cracking;
   const onPress = useCallback(() => {
-    if (source === 'nwac') {
-      navigation.navigate('nwacObservation', {
-        id: observation.id,
-      });
-    } else {
-      navigation.navigate('observation', {
-        id: observation.id,
-      });
-    }
-  }, [navigation, source, observation.id]);
+    navigation.navigate('observation', {
+      id: observation.id,
+    });
+  }, [navigation, observation.id]);
 
   let thumbnail = '';
   if (observation.media && observation.media.length > 0) {

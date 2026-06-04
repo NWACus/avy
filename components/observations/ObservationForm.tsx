@@ -9,7 +9,7 @@ import {add} from 'date-fns';
 import _ from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FieldErrors, FieldPath, FormProvider, Resolver, useForm, useWatch} from 'react-hook-form';
-import {KeyboardAvoidingView, Platform, View as RNView, ScrollView, findNodeHandle} from 'react-native';
+import {KeyboardAvoidingView, View as RNView, ScrollView, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {ClientContext, ClientProps} from 'clientContext';
@@ -32,6 +32,7 @@ import {Body, BodySemibold, Title3Semibold} from 'components/text';
 import helpStrings from 'content/helpStrings';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {useKeyboardBehavior} from 'hooks/useKeyboardBehavior';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {usePostHog} from 'posthog-react-native';
 import Toast from 'react-native-toast-message';
@@ -78,7 +79,7 @@ export const ObservationForm: React.FC<{
 
   const recordAnalytics = useCallback(() => {
     if (postHog && center_id) {
-      postHog.screen('observationForm', {
+      void postHog.screen('observationForm', {
         center: center_id,
       });
     }
@@ -283,6 +284,8 @@ export const ObservationForm: React.FC<{
     }
   }, []);
 
+  const keyboardBehavior = useKeyboardBehavior();
+
   if (incompleteQueryState(metadataResult, capabilitiesResult) || !metadata || !capabilities) {
     return (
       <SafeAreaView edges={['top', 'left', 'right']}>
@@ -294,11 +297,7 @@ export const ObservationForm: React.FC<{
   return (
     <FormProvider {...formContext}>
       <View flex={1} bg="F6F8FC">
-        <KeyboardAvoidingView
-          enabled={!isModalDisplayed}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{flex: 1, height: '100%'}}
-          keyboardVerticalOffset={keyboardVerticalOffset}>
+        <KeyboardAvoidingView enabled={!isModalDisplayed} behavior={keyboardBehavior} style={{flex: 1, height: '100%'}} keyboardVerticalOffset={keyboardVerticalOffset}>
           <VStack style={{height: '100%', width: '100%'}} alignItems="stretch" bg="#F6F8FC">
             <ScrollView scrollsToTop={!isModalDisplayed} style={{height: '100%', width: '100%', backgroundColor: 'white'}} keyboardShouldPersistTaps="handled" ref={scrollViewRef}>
               <SafeAreaView edges={['bottom']} style={{flex: 1}}>

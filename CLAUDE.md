@@ -36,7 +36,7 @@ React Navigation v6 with bottom tabs (Home/Observations/Weather/Menu). Each tab 
 
 TanStack React Query v4 with AsyncStorage persistence (24h cache TTL). Axios HTTP client with custom logging interceptors. Query cache key includes git revision for automatic cache busting on updates.
 
-Custom hooks in `hooks/` wrap React Query (e.g. `useAvalancheForecast`, `useNWACObservations`, `useWeatherStationTimeseries`). Safe fetch wrapper in `hooks/fetch.ts` handles errors and throws `NotFoundError` for 404s.
+Custom hooks in `hooks/` wrap React Query (e.g. `useAvalancheForecast`, `useNACObservations`, `useWeatherStationTimeseries`). Safe fetch wrapper in `hooks/fetch.ts` handles errors and throws `NotFoundError` for 404s.
 
 API hosts configured in `clientContext.ts` with production/staging toggle:
 

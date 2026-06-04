@@ -18,7 +18,7 @@ import {Divider, HStack, View, VStack} from 'components/core';
 
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
-import * as FileSystem from 'expo-file-system';
+import {File} from 'expo-file-system';
 
 import {useQueryClient} from '@tanstack/react-query';
 import {ClientContext} from 'clientContext';
@@ -411,15 +411,6 @@ const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
           });
         },
       },
-      {
-        label: 'NWAC pro observation with avalanches',
-        data: null,
-        action: () => {
-          navigation.navigate('nwacObservation', {
-            id: '20312',
-          });
-        },
-      },
     ],
     [navigation],
   );
@@ -506,7 +497,7 @@ const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
                   buttonStyle="normal"
                   onPress={() => {
                     void (async () => {
-                      const log = await FileSystem.readAsStringAsync(logFilePath);
+                      const log = await new File(logFilePath).text();
                       await Clipboard.setStringAsync(log);
                     })();
                   }}>
@@ -844,7 +835,7 @@ export const OutcomeScreen = ({route}: NativeStackScreenProps<MainStackParamList
 
 export const ExpoConfigScreen = (_: NativeStackScreenProps<MainStackParamList, 'expoConfig'>) => {
   return (
-    <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={StyleSheet.absoluteFill} edges={['top', 'left', 'right']}>
       <ScrollView>
         <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Expo Configuration</Title3Black>}>
           <Body>{JSON.stringify(Constants.expoConfig, null, 2)}</Body>
@@ -856,6 +847,6 @@ export const ExpoConfigScreen = (_: NativeStackScreenProps<MainStackParamList, '
 
 const styles = StyleSheet.create({
   fullscreen: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
 });

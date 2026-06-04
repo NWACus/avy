@@ -1,7 +1,7 @@
+import {Collapsible} from 'components/content/Collapsible';
 import {View} from 'components/core';
 import React, {PropsWithChildren} from 'react';
 import {useWatch} from 'react-hook-form';
-import Collapsible from 'react-native-collapsible';
 
 interface ConditionalProps<T> {
   name: string;

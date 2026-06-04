@@ -13,7 +13,8 @@ import {
   PanGestureHandlerEventPayload,
   PinchGestureHandlerEventPayload,
 } from 'react-native-gesture-handler';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import {ImageMediaItem} from 'types/nationalAvalancheCenter';
 
 interface ImageViewProps {
@@ -72,7 +73,7 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
     scale.value = withTiming(MIN_SCALE);
     translateX.value = withTiming(RESET_TRANSLATION_VALUE);
     translateY.value = withTiming(RESET_TRANSLATION_VALUE);
-    runOnJS(setPanOnJS)(false);
+    scheduleOnRN(setPanOnJS, false);
   };
 
   const pinchGesture = Gesture.Pinch()
@@ -92,7 +93,7 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
         scale.value = withTiming(MAX_SCALE);
       }
 
-      runOnJS(setPanOnJS)(true);
+      scheduleOnRN(setPanOnJS, true);
     });
 
   const panGesture = Gesture.Pan()
@@ -126,7 +127,7 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
         resetTransforms();
       } else {
         scale.value = withTiming(DOUBLE_TAP_SCALE);
-        runOnJS(setPanOnJS)(true);
+        scheduleOnRN(setPanOnJS, true);
       }
     });
 
@@ -158,7 +159,7 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
   return (
     <GestureDetector gesture={composedGesture}>
       <Animated.View style={[{flex: 1}, animatedStyle]}>
-        <Image style={[{flex: 1}, animatedStyle]} contentFit="contain" contentPosition={'center'} source={item.url.original} />
+        <Image style={{flex: 1}} contentFit="contain" contentPosition={'center'} source={item.url.original} />
       </Animated.View>
     </GestureDetector>
   );

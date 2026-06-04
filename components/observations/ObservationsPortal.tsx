@@ -26,7 +26,7 @@ export const ObservationsPortal: React.FC<{
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('observationsPortal', {
+    void postHog?.screen('observationsPortal', {
       center: center_id,
     });
   }, [postHog, center_id]);

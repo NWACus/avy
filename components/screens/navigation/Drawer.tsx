@@ -90,7 +90,7 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('menu');
+    void postHog?.screen('menu');
   }, [postHog]);
   useFocusEffect(recordAnalytics);
   const sendMailHandler = useCallback(

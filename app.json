@@ -7,16 +7,9 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#152E57"
-    },
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "jsEngine": "hermes",
     "updates": {
       "url": "https://u.expo.dev/47e2fd36-5165-4eb4-9a2d-21beec393379",
       "fallbackToCacheTimeout": 0
@@ -57,16 +50,27 @@
       ]
     },
     "plugins": [
+      "expo-status-bar",
       "expo-mail-composer",
       "expo-web-browser",
       "expo-localization",
       "expo-background-task",
       "expo-location",
+      "expo-image",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#152E57",
+          "enableFullScreenImage_legacy": true
+        }
+      ],
       [
         "@rnmapbox/maps",
         {
-          "RNMapboxMapsVersion": "11.16.0",
-          "RNMapboxImpl": "mapbox"
+          "RNMapboxMapsVersion": "11.20.1"
         }
       ],
       [
@@ -74,8 +78,8 @@
         {
           "android": {
             "minSdkVersion": 26,
-            "compileSdkVersion": 35,
-            "targetSdkVersion": 35
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36
           }
         }
       ],

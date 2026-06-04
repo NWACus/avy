@@ -145,7 +145,7 @@ const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVi
   }, [selectedLocation, onSelect]);
 
   return (
-    <Modal visible={modalVisible} onRequestClose={onClose} animationType="slide">
+    <Modal visible={modalVisible} onRequestClose={onClose} animationType="slide" statusBarTranslucent>
       <SafeAreaProvider>
         <SafeAreaView style={{width: '100%', height: '100%'}}>
           <VStack width="100%" height="100%">

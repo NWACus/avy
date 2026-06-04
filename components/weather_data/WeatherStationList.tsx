@@ -36,7 +36,7 @@ export const WeatherStationList: React.FunctionComponent<{
 
   const recordAnalytics = useCallback(() => {
     if (postHog && center_id) {
-      postHog.screen('weatherStations', {
+      void postHog.screen('weatherStations', {
         center: center_id,
       });
     }

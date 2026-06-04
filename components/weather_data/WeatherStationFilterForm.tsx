@@ -168,7 +168,7 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('weatherStationsFilter');
+    void postHog?.screen('weatherStationsFilter');
   }, [postHog]);
   useFocusEffect(recordAnalytics);
 

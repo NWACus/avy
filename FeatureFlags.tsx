@@ -10,14 +10,13 @@ import * as Updates from 'expo-updates';
 
 import {useNetInfo} from '@react-native-community/netinfo';
 import PostHog, {useFeatureFlags, usePostHog} from 'posthog-react-native';
-import {PostHogCore} from 'posthog-react-native/lib/posthog-core/src';
 
 import {useAppState} from 'hooks/useAppState';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {logger} from 'logger';
 import {usePreferences} from 'Preferences';
 
-export type FeatureFlagsReturn = ReturnType<PostHogCore['getFeatureFlags']>;
+export type FeatureFlagsReturn = ReturnType<PostHog['getFeatureFlags']>;
 export type FeatureFlags = Exclude<FeatureFlagsReturn, undefined>;
 
 export type FeatureFlagKey = keyof FeatureFlags;
@@ -61,7 +60,7 @@ export const FeatureFlagsProvider: React.FC<FeatureFlagsProviderProps> = ({child
   const [registered, setRegistered] = React.useState(false);
   useEffect(() => {
     if (postHog && !registered) {
-      postHog.register({
+      void postHog.register({
         // Posthog automatically captures `Application.nativeBuildVersion` as `App Build`, but stores it as a string.
         // We additionally capture it as a number here, so that we can use < and > in feature flag rules.
         buildNumber: Number.parseInt(Application.nativeBuildVersion || '0'),
@@ -103,9 +102,7 @@ export const FeatureFlagsProvider: React.FC<FeatureFlagsProviderProps> = ({child
     }
   }, [netInfo, postHog, registered, userIdentified]);
 
-  // TODO: why does TS thing useFeatureFlags() returns an any? it has a concrete return type ...
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const featureFlags: FeatureFlags = useFeatureFlags();
+  const featureFlags: FeatureFlags = useFeatureFlags() ?? defaultFeatureFlags;
   const [clientSideFeatureFlagOverrides, setClientSideFeatureFlagOverrides] = useState<FeatureFlags>({});
 
   return (

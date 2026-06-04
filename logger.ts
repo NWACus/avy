@@ -1,6 +1,6 @@
 import {StreamOptions, createLogger, stdSerializers} from 'browser-bunyan';
 import Constants from 'expo-constants';
-import * as FileSystem from 'expo-file-system';
+import {File, Paths} from 'expo-file-system';
 import * as Updates from 'expo-updates';
 import {ConsoleFormattedStream} from 'logging/consoleFormattedStream';
 import {FileStream} from 'logging/fileStream';
@@ -8,13 +8,16 @@ import {LogBox} from 'react-native';
 
 // react-native-logs always logs to FS.documentDirectory
 const LOG_PATH = 'log.json';
-export const logFilePath = String(FileSystem.documentDirectory) + LOG_PATH;
+
+// Path's export is undefined in the Jest testing environment
+export const logFilePath = (Paths?.document?.uri ?? '') + LOG_PATH;
 
 // Always delete the log file on startup
 if (process.env.NODE_ENV !== 'test') {
-  void (async () => {
-    await FileSystem.deleteAsync(logFilePath, {idempotent: true});
-  })();
+  const logFile = new File(logFilePath);
+  if (logFile.exists) {
+    logFile.delete();
+  }
 }
 
 if (process.env.EXPO_PUBLIC_DISABLE_LOGBOX) {

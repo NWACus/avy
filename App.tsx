@@ -33,14 +33,14 @@ import 'date-time-format-timezone';
 
 import axios, {AxiosRequestConfig} from 'axios';
 import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
-import * as FileSystem from 'expo-file-system';
+import {File} from 'expo-file-system';
 import {MapPersistenceProvider, useMapPersistence} from 'MapPersistence';
 import {PreferencesProvider, usePreferences} from 'Preferences';
 import {NotFoundError} from 'types/requests';
 import {RequestedTime} from 'utils/date';
 
 import Mapbox from '@rnmapbox/maps';
-import {Integration} from '@sentry/types';
+import {Integration} from '@sentry/core';
 import {TRACE} from 'browser-bunyan';
 import * as messages from 'compiled-lang/en.json';
 import {Button} from 'components/content/Button';
@@ -138,6 +138,12 @@ void SplashScreen.preventAutoHideAsync().catch((error: Error) => {
   logger.debug('SplashScreen.preventAutoHideAsync threw error, ignoring', {error});
 });
 
+// These mirror the expo-splash-screen plugin config in app.json. SDK 56 removed the
+// top-level `splash` field from the Expo config, so they're no longer readable via
+// Constants.expoConfig.splash; we keep them in sync here for the custom splash view below.
+const SPLASH_BACKGROUND_COLOR = '#152E57';
+const SPLASH_RESIZE_MODE = 'contain';
+
 let routingInstrumentation:
   | (Integration & {
       registerNavigationContainer: (navigationContainerRef: unknown) => void;
@@ -160,9 +166,9 @@ if (Sentry?.init) {
       enableWatchdogTerminationTracking: true,
       integrations: [routingInstrumentation],
       beforeSend: async (event, hint) => {
-        const {exists} = await FileSystem.getInfoAsync(logFilePath);
-        if (exists) {
-          const data = await FileSystem.readAsStringAsync(logFilePath);
+        const logFile = new File(logFilePath);
+        if (logFile.exists) {
+          const data = await logFile.text();
           hint.attachments = [{filename: 'log.json', data, contentType: 'application/json'}];
         }
         event.tags = {
@@ -195,7 +201,10 @@ queryCache.subscribe(event => {
 
   const data = event.query.state.data as string;
   logger.debug({source: values['uri'], destination: data}, 'cleaning up remote image');
-  void FileSystem.deleteAsync(data, {idempotent: true});
+  const fileToDelete = new File(data);
+  if (fileToDelete.exists) {
+    fileToDelete.delete();
+  }
   // TODO: handle errors?
 });
 
@@ -211,14 +220,14 @@ const queryClient: QueryClient = new QueryClient({
 
 // on startup and periodically, reconcile the react-query link cache with the filesystem
 const BACKGROUND_CACHE_RECONCILIATION_TASK = 'background-cache-reconciliation';
-TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, async () => {
+TaskManager.defineTask(BACKGROUND_CACHE_RECONCILIATION_TASK, () => {
   try {
-    await ImageCache.reconcile(queryClient, queryClient.getQueryCache(), logger);
+    ImageCache.reconcile(queryClient, queryClient.getQueryCache(), logger);
   } catch (e) {
     logger.error({error: e}, 'error reconciling image cache');
-    return BackgroundFetch.BackgroundTaskResult.Failed;
+    return Promise.resolve(BackgroundFetch.BackgroundTaskResult.Failed);
   }
-  return BackgroundFetch.BackgroundTaskResult.Success;
+  return Promise.resolve(BackgroundFetch.BackgroundTaskResult.Success);
 });
 void BackgroundFetch.registerTaskAsync(BACKGROUND_CACHE_RECONCILIATION_TASK, {
   minimumInterval: 15 * 60, // fifteen minutes, in seconds
@@ -403,14 +412,14 @@ const BaseApp: React.FunctionComponent<{
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: Constants.expoConfig?.splash?.backgroundColor,
+            backgroundColor: SPLASH_BACKGROUND_COLOR,
           },
         ]}>
         <Image
           style={{
             width: '100%',
             height: '100%',
-            resizeMode: Constants.expoConfig?.splash?.resizeMode || 'contain',
+            resizeMode: SPLASH_RESIZE_MODE,
           }}
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports
           source={require('./assets/splash.png')}
@@ -492,6 +501,7 @@ const BaseApp: React.FunctionComponent<{
             <PostHogProvider
               apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string}
               options={{
+                captureAppLifecycleEvents: true,
                 bootstrap: {
                   distinctId: preferences.mixpanelUserId,
                   isIdentifiedId: true,
@@ -503,7 +513,6 @@ const BaseApp: React.FunctionComponent<{
               }}
               autocapture={{
                 captureScreens: false, // we need to translate screen parameters to human-readable info, which requires HTTP request data, so we can't use the built-in screen capture with route property mapping feature
-                captureLifecycleEvents: true,
               }}>
               <FeatureFlagsProvider>
                 <KillSwitchMonitor>

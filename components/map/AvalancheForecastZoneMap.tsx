@@ -58,7 +58,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const postHog = usePostHog();
   const recordAnalytics = useCallback(() => {
     if (postHog && center_id) {
-      postHog.screen('avalancheForecastMap', {
+      void postHog.screen('avalancheForecastMap', {
         center: center_id,
       });
     }
@@ -115,7 +115,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
                   if (forecast.product_type === ProductType.Forecast) {
                     const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);
                     if (currentDanger) {
-                      const maxCurrentDanger = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
+                      const maxCurrentDanger = [currentDanger.lower, currentDanger.middle, currentDanger.upper].reduce((a, b) => (a > b ? a : b));
                       // If we're in season, use the forecast's danger level only if it's not None
                       if (maxCurrentDanger !== DangerLevel.None) {
                         zones[id].danger_level = maxCurrentDanger;
@@ -202,18 +202,16 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         }
       }
 
-      // Get the last known location that's less than 12 hours old.
-      // getCurrentPositionAsync can sometimes take 5+ seconds to resolve while getLastKnownPositionAsync will fire immediately if the location matches the criteria
-      let location = await Location.getLastKnownPositionAsync({maxAge: 12 * 60 * 60 * 1000});
-      if (!location) {
-        try {
+      try {
+        // Get the last known location that's less than 12 hours old.
+        // getCurrentPositionAsync can sometimes take 5+ seconds to resolve while getLastKnownPositionAsync will fire immediately if the location matches the criteria
+        let location = await Location.getLastKnownPositionAsync({maxAge: 12 * 60 * 60 * 1000});
+        if (!location) {
           location = await Location.getCurrentPositionAsync({accuracy: Location.LocationAccuracy.Low});
-          setUserLocation([location.coords.longitude, location.coords.latitude]);
-        } catch (error) {
-          logger.debug({error}, "Failed to fetch the user's location");
         }
-      } else {
         setUserLocation([location.coords.longitude, location.coords.latitude]);
+      } catch (error) {
+        logger.debug({error}, "Failed to fetch the user's location");
       }
     }
 

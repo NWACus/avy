@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access */
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 

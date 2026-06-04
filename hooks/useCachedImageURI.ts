@@ -1,27 +1,22 @@
 import {QueryCache, QueryClient, QueryKey, useQuery} from '@tanstack/react-query';
 import {Logger} from 'browser-bunyan';
 import {formatDistanceToNowStrict} from 'date-fns';
-import * as FileSystem from 'expo-file-system';
+import {Directory, File, Paths} from 'expo-file-system';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import md5 from 'md5';
 import React, {useEffect, useState} from 'react';
 
-const rootDirectory = `${FileSystem.cacheDirectory ?? '/'}image-cache/`;
+const rootDirectory = Paths.cache.uri + 'image-cache/';
 export const queryKeyPrefix = 'image';
-let promise: Promise<boolean> | null = null;
-export const initialize = (): Promise<boolean> => {
-  if (promise == null) {
-    promise = new Promise(resolve => {
-      void (async () => {
-        const info = await FileSystem.getInfoAsync(rootDirectory);
-        if (!info.exists || !info.isDirectory) {
-          await FileSystem.makeDirectoryAsync(rootDirectory);
-        }
-        resolve(true);
-      })();
-    });
+let initialized = false;
+export const initialize = (): void => {
+  if (!initialized) {
+    const dir = new Directory(rootDirectory);
+    if (!dir.exists) {
+      dir.create();
+    }
+    initialized = true;
   }
-  return promise;
 };
 
 export const useCachedImageURI = (uri: string) => {
@@ -66,16 +61,12 @@ const fetchCachedImageURI = async (uri: string, logger: Logger): Promise<string>
     logger.debug({source: uri}, 'skipping download for local image');
     return uri;
   }
-  await initialize();
+  initialize();
 
   const destination = rootDirectory + md5(uri) + CACHE_FILE_EXTENSION;
   logger.debug({source: uri, destination: destination}, 'caching remote image');
-  const result = await FileSystem.downloadAsync(uri, destination);
-  if (result.status !== 200) {
-    throw new Error(`Failed to fetch remote image at ${uri}: ${result.status}`);
-  }
-
-  return result.uri;
+  const downloadedFile = await File.downloadFileAsync(uri, new File(destination), {idempotent: true});
+  return downloadedFile.uri;
 };
 
 const prefetchCachedImageURI = async (queryClient: QueryClient, logger: Logger, uri: string) => {
@@ -97,7 +88,7 @@ const prefetchCachedImageURI = async (queryClient: QueryClient, logger: Logger, 
   });
 };
 
-const reconcileCachedImages = async (queryClient: QueryClient, queryCache: QueryCache, logger: Logger): Promise<void> => {
+const reconcileCachedImages = (queryClient: QueryClient, queryCache: QueryCache, logger: Logger) => {
   const start = new Date();
   logger.info('reconciling cached images');
   // first, figure out all the links we know about in react-query
@@ -109,8 +100,7 @@ const reconcileCachedImages = async (queryClient: QueryClient, queryCache: Query
     return accumulator;
   }, {} as Record<string, QueryKey>);
   // then, figure out all the files we have on disk
-  const fileNames = await FileSystem.readDirectoryAsync(rootDirectory);
-  const files = fileNames.map(fileName => rootDirectory + fileName);
+  const files = new Directory(rootDirectory).list().map(entry => entry.uri);
   logger.info({files: files}, 'found files in image cache');
   // now, we can reconcile the two caches
 
@@ -126,13 +116,12 @@ const reconcileCachedImages = async (queryClient: QueryClient, queryCache: Query
   // but it's not clear that we can fix that race condition.
   const filesToRemove = files.filter(file => !fileLinks.includes(file));
   logger.info({filesToRemove: filesToRemove}, 'removing orphaned files from image cache');
-  await Promise.all(
-    filesToRemove
-      .map(async file => {
-        await FileSystem.deleteAsync(file, {idempotent: true});
-      })
-      .flat(),
-  );
+  filesToRemove.forEach(file => {
+    const f = new File(file);
+    if (f.exists) {
+      f.delete();
+    }
+  });
   logger.info({duration: formatDistanceToNowStrict(start)}, 'finished reconciling cached images');
 };
 
