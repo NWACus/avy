@@ -4,7 +4,7 @@
 
 import React, {ReactNode, useCallback, useMemo, useState} from 'react';
 
-import DateTimePicker, {DateTimePickerEvent} from '@react-native-community/datetimepicker';
+import DateTimePicker, {DateTimePickerChangeEvent} from '@react-native-community/datetimepicker';
 import {Platform, ScrollView, SectionList, StyleSheet, Switch, TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
@@ -775,10 +775,8 @@ export const TimeMachine = () => {
     [setRequestedTime],
   );
   const onDateSelected = useCallback(
-    (event: DateTimePickerEvent, date?: Date) => {
-      if (event.type === 'set') {
-        changeTime(date || 'latest');
-      }
+    (_: DateTimePickerChangeEvent, date: Date) => {
+      changeTime(date);
     },
     [changeTime],
   );
@@ -787,7 +785,7 @@ export const TimeMachine = () => {
       <Button buttonStyle="primary" onPress={() => changeTime('latest')}>
         Today
       </Button>
-      <DateTimePicker value={requestedTimeToUTCDate(requestedTime)} mode="date" display="inline" onChange={onDateSelected} />
+      <DateTimePicker value={requestedTimeToUTCDate(requestedTime)} mode="date" display="inline" onValueChange={onDateSelected} />
       <Divider />
       <BodyBlack>Other interesting days</BodyBlack>
       <Button buttonStyle="normal" onPress={() => changeTime(new Date('2023-02-20T5:21:00-0800'))}>

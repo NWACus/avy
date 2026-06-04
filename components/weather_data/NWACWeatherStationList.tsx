@@ -13,7 +13,7 @@ import {logger} from 'logger';
 import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {mapFeaturesForCenter, MapLayerFeature, WeatherStationCollection, WeatherStationProperties, WeatherStationSource} from 'types/nationalAvalancheCenter';
-import {RequestedTimeString} from 'utils/date';
+import {parseRequestedTimeString, RequestedTimeString} from 'utils/date';
 
 const stationGroupMapping = {
   // Snoqualmie Pass
@@ -107,7 +107,7 @@ export const NWACStationsByZone = (mapLayerFeatures: MapLayerFeature[] | undefin
 
 export const NWACStationList: React.FunctionComponent<{token: string; requestedTime: RequestedTimeString; tabBarHeight: number}> = ({token, requestedTime, tabBarHeight}) => {
   const navigation = useNavigation<MainStackNavigationProps>();
-  const mapLayerResult = useAllMapLayers();
+  const mapLayerResult = useAllMapLayers(parseRequestedTimeString(requestedTime));
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata('NWAC', token);
   const weatherStations = weatherStationsResult.data;
