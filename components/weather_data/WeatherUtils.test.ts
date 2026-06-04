@@ -8,7 +8,7 @@ describe('centerOrPartnerCenter', () => {
       const partnerCenterId = centerOrPartnerCenter(centerIdValue);
 
       if (centerIdValue == 'HPAC') {
-        expect(partnerCenterId).toStrictEqual('CNFAIC' as AvalancheCenterID);
+        expect(partnerCenterId).toStrictEqual('CNFAIC');
       } else {
         expect(partnerCenterId).toStrictEqual(centerIdValue);
       }

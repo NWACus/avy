@@ -138,6 +138,12 @@ void SplashScreen.preventAutoHideAsync().catch((error: Error) => {
   logger.debug('SplashScreen.preventAutoHideAsync threw error, ignoring', {error});
 });
 
+// These mirror the expo-splash-screen plugin config in app.json. SDK 56 removed the
+// top-level `splash` field from the Expo config, so they're no longer readable via
+// Constants.expoConfig.splash; we keep them in sync here for the custom splash view below.
+const SPLASH_BACKGROUND_COLOR = '#152E57';
+const SPLASH_RESIZE_MODE = 'contain';
+
 let routingInstrumentation:
   | (Integration & {
       registerNavigationContainer: (navigationContainerRef: unknown) => void;
@@ -406,14 +412,14 @@ const BaseApp: React.FunctionComponent<{
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: Constants.expoConfig?.splash?.backgroundColor,
+            backgroundColor: SPLASH_BACKGROUND_COLOR,
           },
         ]}>
         <Image
           style={{
             width: '100%',
             height: '100%',
-            resizeMode: Constants.expoConfig?.splash?.resizeMode || 'contain',
+            resizeMode: SPLASH_RESIZE_MODE,
           }}
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports
           source={require('./assets/splash.png')}

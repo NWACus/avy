@@ -115,7 +115,7 @@ const AvalancheForecast: React.FunctionComponent<{
 const AvalancheTabScreen = ({route}: MaterialTopTabScreenProps<ForecastTabNavigatorParamList, 'avalanche'>) => {
   const {center_id, forecast_zone_id, requestedTime} = route.params;
   return (
-    <SafeAreaView style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}} edges={['left', 'right']}>
+    <SafeAreaView style={{...StyleSheet.absoluteFill, backgroundColor: 'white'}} edges={['left', 'right']}>
       <AvalancheTab center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
     </SafeAreaView>
   );
@@ -124,7 +124,7 @@ const AvalancheTabScreen = ({route}: MaterialTopTabScreenProps<ForecastTabNaviga
 const WeatherTabScreen = ({route}: MaterialTopTabScreenProps<ForecastTabNavigatorParamList, 'weather'>) => {
   const {center_id, forecast_zone_id, requestedTime} = route.params;
   return (
-    <SafeAreaView style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}} edges={['left', 'right']}>
+    <SafeAreaView style={{...StyleSheet.absoluteFill, backgroundColor: 'white'}} edges={['left', 'right']}>
       <WeatherTab center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
     </SafeAreaView>
   );
@@ -133,7 +133,7 @@ const WeatherTabScreen = ({route}: MaterialTopTabScreenProps<ForecastTabNavigato
 const ObservationsTabScreen = ({route}: MaterialTopTabScreenProps<ForecastTabNavigatorParamList, 'observations'>) => {
   const {center_id, forecast_zone_id, requestedTime} = route.params;
   return (
-    <SafeAreaView style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}} edges={['left', 'right']}>
+    <SafeAreaView style={{...StyleSheet.absoluteFill, backgroundColor: 'white'}} edges={['left', 'right']}>
       <ObservationsTab center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
     </SafeAreaView>
   );
@@ -142,7 +142,7 @@ const ObservationsTabScreen = ({route}: MaterialTopTabScreenProps<ForecastTabNav
 const SynopsisTabScreen = ({route}: MaterialTopTabScreenProps<ForecastTabNavigatorParamList, 'blog'>) => {
   const {center_id, forecast_zone_id, requestedTime} = route.params;
   return (
-    <SafeAreaView style={{...StyleSheet.absoluteFillObject, backgroundColor: 'white'}} edges={['left', 'right']}>
+    <SafeAreaView style={{...StyleSheet.absoluteFill, backgroundColor: 'white'}} edges={['left', 'right']}>
       <SynopsisTab center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
     </SafeAreaView>
   );

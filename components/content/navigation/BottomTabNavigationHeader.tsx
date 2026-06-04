@@ -24,7 +24,7 @@ export const BottomTabNavigationHeader: React.FunctionComponent<BottomTabNavigat
     if (capabilities) {
       return userFacingCenterId(centerId, capabilities);
     }
-    return centerId as string;
+    return centerId;
   }, [centerId, capabilities]);
 
   const openDrawer = useCallback(() => {

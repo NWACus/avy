@@ -30,7 +30,6 @@ import {usePreferences} from 'Preferences';
 import React, {useCallback} from 'react';
 import {StyleSheet} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {BackButtonDisplayMode} from 'react-native-screens';
 import {MainStackParamList} from 'routes';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 import {parseRequestedTimeString, RequestedTime} from 'utils/date';
@@ -63,7 +62,7 @@ export const MainStackNavigator: React.FunctionComponent<{
     ({route}: {route: RouteProp<MainStackParamList, 'avalancheCenterSelector'>}) => ({
       headerShown: true,
       title: `Select Avalanche Center${route.params.debugMode ? ' (debug)' : ''}`,
-      headerBackButtonDisplayMode: 'minimal' as BackButtonDisplayMode,
+      headerBackButtonDisplayMode: 'minimal' as const,
     }),
     [],
   );

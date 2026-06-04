@@ -835,7 +835,7 @@ export const OutcomeScreen = ({route}: NativeStackScreenProps<MainStackParamList
 
 export const ExpoConfigScreen = (_: NativeStackScreenProps<MainStackParamList, 'expoConfig'>) => {
   return (
-    <SafeAreaView style={StyleSheet.absoluteFillObject} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={StyleSheet.absoluteFill} edges={['top', 'left', 'right']}>
       <ScrollView>
         <Card marginTop={1} borderRadius={0} borderColor="white" header={<Title3Black>Expo Configuration</Title3Black>}>
           <Body>{JSON.stringify(Constants.expoConfig, null, 2)}</Body>
@@ -847,6 +847,6 @@ export const ExpoConfigScreen = (_: NativeStackScreenProps<MainStackParamList, '
 
 const styles = StyleSheet.create({
   fullscreen: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
 });

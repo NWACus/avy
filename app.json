@@ -7,11 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#152E57"
-    },
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -55,6 +50,16 @@
       ]
     },
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#152E57",
+          "enableFullScreenImage_legacy": true
+        }
+      ],
+      "expo-status-bar",
       "expo-mail-composer",
       "expo-web-browser",
       "expo-localization",

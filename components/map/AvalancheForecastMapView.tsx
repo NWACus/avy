@@ -175,7 +175,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
       <ZoneMap
         key={'forecastZoneMap'}
         cameraRef={mapCameraRef}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         initialCameraBounds={avalancheCenterMapRegion.cameraBounds}
         initialCameraStop={initialCameraStop}
         zones={zones}

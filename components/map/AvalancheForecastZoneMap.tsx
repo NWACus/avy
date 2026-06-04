@@ -115,7 +115,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
                   if (forecast.product_type === ProductType.Forecast) {
                     const currentDanger = forecast.danger.find(d => d.valid_day === ForecastPeriod.Current);
                     if (currentDanger) {
-                      const maxCurrentDanger = Math.max(currentDanger.lower, currentDanger.middle, currentDanger.upper) as DangerLevel;
+                      const maxCurrentDanger = [currentDanger.lower, currentDanger.middle, currentDanger.upper].reduce((a, b) => (a > b ? a : b));
                       // If we're in season, use the forecast's danger level only if it's not None
                       if (maxCurrentDanger !== DangerLevel.None) {
                         zones[id].danger_level = maxCurrentDanger;

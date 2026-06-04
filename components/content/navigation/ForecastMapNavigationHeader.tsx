@@ -33,7 +33,7 @@ export const ForecastNavigationHeader: React.FunctionComponent<ForecastNavigatio
     if (capabilities) {
       return userFacingCenterId(centerId, capabilities);
     }
-    return centerId as string;
+    return centerId;
   }, [centerId, capabilities]);
 
   const openDrawer = useCallback(() => {
@@ -54,8 +54,8 @@ export const ForecastNavigationHeader: React.FunctionComponent<ForecastNavigatio
   return (
     <View style={{width: '100%', height: totalHeight, overflow: 'hidden'}}>
       {/* No-center header: dark gradient background, static */}
-      <View style={StyleSheet.absoluteFillObject}>
-        <LinearGradient colors={['rgba(0,0,0,0.9)', 'rgba(0,0,0,0.0)']} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+      <View style={StyleSheet.absoluteFill}>
+        <LinearGradient colors={['rgba(0,0,0,0.9)', 'rgba(0,0,0,0.0)']} style={StyleSheet.absoluteFill} pointerEvents="none" />
         <View style={{height: insets.top}} />
         <HStack justifyContent="space-between" alignItems="center" height={HEADER_HEIGHT} space={8} pl={3} pr={16}>
           <Ionicons.Button
@@ -86,12 +86,12 @@ export const ForecastNavigationHeader: React.FunctionComponent<ForecastNavigatio
       </View>
 
       {/* Center header: white background, slides in/out from top */}
-      <Animated.View style={[StyleSheet.absoluteFillObject, styles.whiteBackground, centerHeaderStyle]}>
+      <Animated.View style={[StyleSheet.absoluteFill, styles.whiteBackground, centerHeaderStyle]}>
         <View style={{height: insets.top}} />
         <HStack justifyContent="space-between" alignItems="center" height={HEADER_HEIGHT} space={8} pl={3} pr={16}>
           <Ionicons.Button
             size={24}
-            color={colorLookup('primary') as string}
+            color={colorLookup('primary')}
             name="menu"
             backgroundColor="transparent"
             underlayColor="rgba(0,0,0,0.1)"

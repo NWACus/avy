@@ -1,5 +1,3 @@
-import {MutableRefObject} from 'react';
-
 const notNull = <T>(value: T | null | undefined): value is T => value != null;
 
 /**
@@ -22,9 +20,7 @@ export const combineRefs = <T>(refs: [React.Ref<T>, ...(React.Ref<T> | null | un
       if (typeof ref === 'function') {
         ref(value);
       } else if (ref != null) {
-        // in order to fake
-        const mutable = ref as MutableRefObject<T | null>;
-        mutable.current = value;
+        ref.current = value;
       }
     }
   };
