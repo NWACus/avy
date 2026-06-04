@@ -79,7 +79,7 @@ export const ObservationForm: React.FC<{
 
   const recordAnalytics = useCallback(() => {
     if (postHog && center_id) {
-      postHog.screen('observationForm', {
+      void postHog.screen('observationForm', {
         center: center_id,
       });
     }

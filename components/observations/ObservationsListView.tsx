@@ -78,7 +78,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   const recordAnalytics = useCallback(() => {
     if (postHog && center_id) {
-      postHog.screen('observations', {
+      void postHog.screen('observations', {
         center: center_id,
         zone: additionalFilters && additionalFilters.zones && additionalFilters.zones.length > 0 ? additionalFilters.zones[0] : 'global',
       });

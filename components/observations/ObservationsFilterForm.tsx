@@ -219,7 +219,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('observationsFilter');
+    void postHog?.screen('observationsFilter');
   }, [postHog]);
   useFocusEffect(recordAnalytics);
 

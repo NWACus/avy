@@ -175,7 +175,7 @@ export const ObservationCard: React.FunctionComponent<{
 
   const recordAnalytics = useCallback(() => {
     if (postHog && observation.center_id && observation.id) {
-      postHog.screen('observation', {
+      void postHog.screen('observation', {
         center: observation.center_id,
         id: observation.id,
       });

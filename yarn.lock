@@ -2511,6 +2511,18 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@posthog/core@1.30.6":
+  version "1.30.6"
+  resolved "https://registry.yarnpkg.com/@posthog/core/-/core-1.30.6.tgz#890b871bad2bf31f889735a569d239c576cf31a8"
+  integrity sha512-9X9IUm4Iw9M+nxWOou8LdsvUCyAhDNwzYchMZOcOUVu+CY2oq19GJHC7fZ7UERoUppKVbgWQD51NlfFMHkjGKg==
+  dependencies:
+    "@posthog/types" "1.379.3"
+
+"@posthog/types@1.379.3":
+  version "1.379.3"
+  resolved "https://registry.yarnpkg.com/@posthog/types/-/types-1.379.3.tgz#1eddaf0b0d6de591c083b09d412230109246c7d5"
+  integrity sha512-xx5GLkb/S/eSSQ0H0hnkn1BT7ZG1ZVetQ8/G/h8B5XyOM5prR96a/bgkcIbnK25GFSYyIMNx0X3syvBCYorkUA==
+
 "@react-native-async-storage/async-storage@2.2.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@react-native-async-storage/async-storage/-/async-storage-2.2.0.tgz#a3aa565253e46286655560172f4e366e8969f5ad"
@@ -2835,10 +2847,10 @@
   dependencies:
     nanoid "^3.3.11"
 
-"@rnmapbox/maps@10.1.45":
-  version "10.1.45"
-  resolved "https://registry.yarnpkg.com/@rnmapbox/maps/-/maps-10.1.45.tgz#4c7776a9616a628dd80fb9d631da1dea4f1b6adb"
-  integrity sha512-Rk6Yu5euDnYZDsFPFgQ1Rvp5e2IrTMIjtl6OYj9e/OMSuRGufNSa6P6tt0SwOnUG6QHUcle0c9jhsSL9VQBtTg==
+"@rnmapbox/maps@10.3.1":
+  version "10.3.1"
+  resolved "https://registry.yarnpkg.com/@rnmapbox/maps/-/maps-10.3.1.tgz#9116a4b60d01dc891f9b113ac6b0e4b4009f6d06"
+  integrity sha512-Vu6Q4eLIsLN4U9xc0omPqtdFV+1Pqc40hgkdG9YCdqZx5LnMjyjmy1syjFlzwTugeO7K39hKESXP8Mg0pPY2BA==
   dependencies:
     "@turf/along" "6.5.0"
     "@turf/distance" "6.5.0"
@@ -9695,10 +9707,13 @@ postcss@^8.5.14:
     picocolors "^1.1.1"
     source-map-js "^1.2.1"
 
-posthog-react-native@^2.8.1:
-  version "2.11.6"
-  resolved "https://registry.yarnpkg.com/posthog-react-native/-/posthog-react-native-2.11.6.tgz#3af9481ede4c2d3cd647bb743ef838c603619e56"
-  integrity sha512-zhFgg+Pvxx+pcd2XfEwOisxLq0dpSnrOTPGFjZF8zKmZX7T0VfGGArbXPzH2+X90JKTdGjz/o0poeq/pgKSBBA==
+posthog-react-native@4:
+  version "4.46.13"
+  resolved "https://registry.yarnpkg.com/posthog-react-native/-/posthog-react-native-4.46.13.tgz#84ab9531c43c9f451be40055f3fb88c654771b44"
+  integrity sha512-EWNPXJIGr7DSt9LIosrHdvxWcu+C3EvqgsbKl9od9AmglP2VD7du3Mxd+Cp8MVeO1QFM7de/Co2zKr5bIaGq7A==
+  dependencies:
+    "@posthog/core" "1.30.6"
+    "@posthog/types" "1.379.3"
 
 postinstall-postinstall@^2.1.0:
   version "2.1.0"

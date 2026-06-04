@@ -146,7 +146,7 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
 
   const recordAnalytics = useCallback(() => {
     if (postHog && center_id && zone.name) {
-      postHog.screen('weatherForecastTab', {
+      void postHog.screen('weatherForecastTab', {
         center: center_id,
         zone: zone.name,
       });
@@ -237,7 +237,7 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
 
   const recordAnalytics = useCallback(() => {
     if (postHog && center_id && zone.name) {
-      postHog.screen('weatherForecastTab', {
+      void postHog.screen('weatherForecastTab', {
         center: center_id,
         zone: zone.name,
       });

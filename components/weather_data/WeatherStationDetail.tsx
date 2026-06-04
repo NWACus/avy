@@ -46,7 +46,7 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
 
   const recordAnalytics = useCallback(() => {
     if (postHog && center_id && stationId) {
-      postHog.screen('weatherStation', {
+      void postHog.screen('weatherStation', {
         center: center_id,
         stationId: stationId,
       });

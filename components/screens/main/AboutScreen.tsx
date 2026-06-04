@@ -37,7 +37,7 @@ export const AboutScreen = (_: NativeStackScreenProps<MainStackParamList, 'about
   const insets = useSafeAreaInsets();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('about');
+    void postHog?.screen('about');
   }, [postHog]);
   useFocusEffect(recordAnalytics);
 

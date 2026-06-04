@@ -35,7 +35,7 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
   const postHog = usePostHog();
 
   const recordAnalytics = useCallback(() => {
-    postHog?.screen('centerSelector');
+    void postHog?.screen('centerSelector');
   }, [postHog]);
   useFocusEffect(recordAnalytics);
 

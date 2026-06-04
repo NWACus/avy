@@ -501,6 +501,7 @@ const BaseApp: React.FunctionComponent<{
             <PostHogProvider
               apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string}
               options={{
+                captureAppLifecycleEvents: true,
                 bootstrap: {
                   distinctId: preferences.mixpanelUserId,
                   isIdentifiedId: true,
@@ -512,7 +513,6 @@ const BaseApp: React.FunctionComponent<{
               }}
               autocapture={{
                 captureScreens: false, // we need to translate screen parameters to human-readable info, which requires HTTP request data, so we can't use the built-in screen capture with route property mapping feature
-                captureLifecycleEvents: true,
               }}>
               <FeatureFlagsProvider>
                 <KillSwitchMonitor>
