@@ -12,28 +12,29 @@ import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {MapLayer, mapLayerSchema} from 'types/nationalAvalancheCenter';
 import {carvePolygonFeatures} from 'utils/carvePolygonFeatures';
+import {apiDateString, RequestedTime} from 'utils/date';
 import {ZodError} from 'zod';
 
-export const useAllMapLayers = (): UseQueryResult<MapLayer, AxiosError | ZodError> => {
+export const useAllMapLayers = (requestedTime: RequestedTime): UseQueryResult<MapLayer, AxiosError | ZodError> => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = queryKey(nationalAvalancheCenterHost);
+  const key = queryKey(nationalAvalancheCenterHost, requestedTime);
   const [thisLogger] = useState(logger.child({query: key}));
 
   return useQuery<MapLayer, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async (): Promise<MapLayer> => fetchAllMapLayers(nationalAvalancheCenterHost, thisLogger),
+    queryFn: async (): Promise<MapLayer> => fetchAllMapLayers(nationalAvalancheCenterHost, requestedTime, thisLogger),
     enabled: true,
     cacheTime: 24 * 60 * 60 * 1000, // hold this in the query cache for one day after it's become inactive
   });
 };
 
-function queryKey(nationalAvalancheCenterHost: string) {
-  return ['all-map-layers', {host: nationalAvalancheCenterHost}];
+function queryKey(nationalAvalancheCenterHost: string, requestedTime: RequestedTime) {
+  return ['all-map-layers', {host: nationalAvalancheCenterHost}, requestedTime];
 }
 
-export const prefetchAllMapLayers = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, logger: Logger) => {
-  const key = queryKey(nationalAvalancheCenterHost);
+export const prefetchAllMapLayers = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, requestedTime: RequestedTime, logger: Logger) => {
+  const key = queryKey(nationalAvalancheCenterHost, requestedTime);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
@@ -42,7 +43,7 @@ export const prefetchAllMapLayers = async (queryClient: QueryClient, nationalAva
     queryFn: async (): Promise<MapLayer> => {
       const start = new Date();
       thisLogger.trace(`prefetching`);
-      const result = await fetchAllMapLayers(nationalAvalancheCenterHost, thisLogger);
+      const result = await fetchAllMapLayers(nationalAvalancheCenterHost, requestedTime, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
@@ -51,11 +52,15 @@ export const prefetchAllMapLayers = async (queryClient: QueryClient, nationalAva
   });
 };
 
-const fetchAllMapLayers = async (nationalAvalancheCenterHost: string, logger: Logger): Promise<MapLayer> => {
-  const url = `${nationalAvalancheCenterHost}/v2/public/products/map-layer?day=`;
+const fetchAllMapLayers = async (nationalAvalancheCenterHost: string, requestedTime: RequestedTime, logger: Logger): Promise<MapLayer> => {
+  const url = `${nationalAvalancheCenterHost}/v2/public/products/map-layer`;
+  const dayParamValue = requestedTime === 'latest' ? '' : apiDateString(requestedTime);
+  const params = {
+    day: dayParamValue,
+  };
   const what = 'avalanche avalanche center map layer';
-  const thisLogger = logger.child({url: url, what: what});
-  const data = await safeFetch(() => axios.get<AxiosResponse<unknown>>(url), thisLogger, what);
+  const thisLogger = logger.child({url: url, params: params, what: what});
+  const data = await safeFetch(() => axios.get<AxiosResponse<unknown>>(url, {params: params}), thisLogger, what);
 
   const parseResult = mapLayerSchema.safeParse(data);
   if (!parseResult.success) {
@@ -70,7 +75,7 @@ const fetchAllMapLayers = async (nationalAvalancheCenterHost: string, logger: Lo
   } else {
     // This is temporary until we can get 1 call that includes CBAC
     const urlCBAC = `${nationalAvalancheCenterHost}/v2/public/products/map-layer/CBAC`;
-    const cbacData = await safeFetch(() => axios.get<AxiosResponse<unknown>>(urlCBAC), thisLogger, what);
+    const cbacData = await safeFetch(() => axios.get<AxiosResponse<unknown>>(urlCBAC, {params: params}), thisLogger, what);
     const cbacResult = mapLayerSchema.safeParse(cbacData);
     if (!cbacResult.success) {
       thisLogger.warn({error: cbacResult.error}, 'failed to parse');

@@ -42,7 +42,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const {isInNoCenterExperience} = useMapPersistence();
 
   // Fetches all the map layers in call. Unfortunately, CBAC isn't included in that call so it needs to be fetched separately
-  const allMapLayersResult = useAllMapLayers();
+  const allMapLayersResult = useAllMapLayers(requestedTime);
   const allMapLayers = allMapLayersResult.data;
 
   const metadataResult = useAvalancheCenterMetadata(center_id);

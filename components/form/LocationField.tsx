@@ -90,7 +90,7 @@ interface LocationMapProps {
 }
 
 const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVisible, initialLocation, onClose, onSelect}) => {
-  const mapLayerResult = useAllMapLayers();
+  const mapLayerResult = useAllMapLayers('latest');
   const mapLayer = mapLayerResult.data;
   const [initialRegion, setInitialRegion] = useState<AvalancheCenterRegion>(defaultMapRegionForZones([]));
   const [selectedLocation, setSelectedLocation] = useState<LocationPoint | undefined>(initialLocation);

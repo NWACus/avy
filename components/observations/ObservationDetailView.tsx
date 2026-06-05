@@ -59,7 +59,7 @@ export const ObservationDetailView: React.FunctionComponent<{
 }> = ({id}) => {
   const observationResult = useNACObservation(id);
   const observation = observationResult.data;
-  const mapResult = useAllMapLayers();
+  const mapResult = useAllMapLayers('latest');
   const mapLayer = mapResult.data;
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;

@@ -61,7 +61,7 @@ export const prefetchAllActiveForecasts = async (
   const metadata = queryClient.getQueryData<AvalancheCenter>(AvalancheCenterMetadataQuery.queryKey(nationalAvalancheCenterHost, center_id));
 
   if (metadata?.widget_config?.danger_map) {
-    void AllMapLayersQuery.prefetch(queryClient, nationalAvalancheCenterHost, logger);
+    void AllMapLayersQuery.prefetch(queryClient, nationalAvalancheCenterHost, requestedTime, logger);
   }
 
   const endDate: Date = currentDateTime;
