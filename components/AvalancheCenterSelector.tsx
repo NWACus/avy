@@ -8,8 +8,8 @@ import {avalancheCenterList, AvalancheCenters} from 'components/avalancheCenterL
 import {AvalancheCenterList} from 'components/content/AvalancheCenterList';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {useAllAvalancheCenterMetadata} from 'hooks/useAllAvalancheCenterMetadata';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
-import {usePostHog} from 'posthog-react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MainStackNavigationProps, MainStackParamList} from 'routes';
 import {AvalancheCenter, AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -32,11 +32,11 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
     },
     [setAvalancheCenter, navigation],
   );
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    void postHog?.screen('centerSelector');
-  }, [postHog]);
+    analytics.screen('centerSelector');
+  }, [analytics]);
   useFocusEffect(recordAnalytics);
 
   const insets = useSafeAreaInsets();

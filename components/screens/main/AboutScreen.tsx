@@ -14,8 +14,8 @@ import {ActionList} from 'components/content/ActionList';
 import {Center, HStack, View, VStack} from 'components/core';
 import {getVersionInfoFull} from 'components/screens/main/Version';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
-import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MainStackParamList} from 'routes';
@@ -32,13 +32,13 @@ export const AboutScreen = (_: NativeStackScreenProps<MainStackParamList, 'about
     })();
   }, [mixpanelUserId, updateGroupId]);
 
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const insets = useSafeAreaInsets();
 
   const recordAnalytics = useCallback(() => {
-    void postHog?.screen('about');
-  }, [postHog]);
+    analytics.screen('about');
+  }, [analytics]);
   useFocusEffect(recordAnalytics);
 
   return (

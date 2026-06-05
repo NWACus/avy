@@ -13,12 +13,12 @@ import {BodyBlack} from 'components/text';
 import {settingsMenuItems} from 'data/settingsMenuItems';
 import * as Updates from 'expo-updates';
 import * as WebBrowser from 'expo-web-browser';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {sendMail} from 'network/sendMail';
-import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
 import React, {useCallback, useMemo} from 'react';
 import {ScrollView} from 'react-native';
@@ -87,11 +87,11 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
   } = usePreferences();
   const [updateGroupId] = getUpdateGroupId();
 
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    void postHog?.screen('menu');
-  }, [postHog]);
+    analytics.screen('menu');
+  }, [analytics]);
   useFocusEffect(recordAnalytics);
   const sendMailHandler = useCallback(
     () =>

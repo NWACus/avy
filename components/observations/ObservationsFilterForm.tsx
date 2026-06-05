@@ -15,9 +15,9 @@ import {DateField} from 'components/form/DateField';
 import {SwitchField} from 'components/form/SwitchField';
 import {BodyBlack, BodySemibold, BodySmBlack, Title3Semibold} from 'components/text';
 import {endOfDay, isAfter, isBefore, parseISO} from 'date-fns';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useKeyboardBehavior} from 'hooks/useKeyboardBehavior';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {usePostHog} from 'posthog-react-native';
 import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, View as RNView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -216,11 +216,11 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
     return true;
   });
 
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    void postHog?.screen('observationsFilter');
-  }, [postHog]);
+    analytics.screen('observationsFilter');
+  }, [analytics]);
   useFocusEffect(recordAnalytics);
 
   const onResetHandler = useCallback(() => formContext.reset(initialFilterConfig), [formContext, initialFilterConfig]);

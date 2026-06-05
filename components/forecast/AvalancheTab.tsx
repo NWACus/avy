@@ -20,12 +20,12 @@ import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, BodySm, BodySm
 import {HTML} from 'components/text/HTML';
 import helpStrings from 'content/helpStrings';
 import {toDate} from 'date-fns-tz';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {useAvalancheWarning} from 'hooks/useAvalancheWarning';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
-import {usePostHog} from 'posthog-react-native';
 import {RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
 import Toast from 'react-native-toast-message';
 import {MainStackNavigationProps} from 'routes';
@@ -73,7 +73,7 @@ export const AvalancheTab: React.FunctionComponent<{
   const warning = warningResult.data;
   const {isRefreshing, refresh} = useRefresh(forecastResult.refetch, warningResult.refetch);
   const onRefresh = useCallback(() => void refresh(), [refresh]);
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   // When navigating from elsewhere in the app, the screen title should already
   // be set to the zone name. But if we warp directly to a forecast link, we
@@ -114,13 +114,13 @@ export const AvalancheTab: React.FunctionComponent<{
   );
 
   const recordAnalytics = useCallback(() => {
-    if (postHog && center_id && zoneName) {
-      void postHog.screen('avalancheForecastTab', {
+    if (center_id && zoneName) {
+      analytics.screen('avalancheForecastTab', {
         center: center_id,
         zone: zoneName,
       });
     }
-  }, [postHog, center_id, zoneName]);
+  }, [analytics, center_id, zoneName]);
   useFocusEffect(recordAnalytics);
 
   if (incompleteQueryState(centerResult, forecastResult, warningResult) || !center || !forecast || !warning) {

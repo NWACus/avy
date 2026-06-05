@@ -4,8 +4,8 @@ import {Button} from 'components/content/Button';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {VStack, View} from 'components/core';
 import {Body, BodyBlack, Title3Black} from 'components/text';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
-import {usePostHog} from 'posthog-react-native';
 import React, {useCallback} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {MainStackNavigationProps, TabNavigationProps} from 'routes';
@@ -23,13 +23,13 @@ export const ObservationsPortal: React.FC<{
     [center_id, tabNavigation, requestedTime],
   );
   const onSubmit = useCallback(() => mainNavigation.navigate('observationSubmit'), [mainNavigation]);
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    void postHog?.screen('observationsPortal', {
+    analytics.screen('observationsPortal', {
       center: center_id,
     });
-  }, [postHog, center_id]);
+  }, [analytics, center_id]);
   useFocusEffect(recordAnalytics);
 
   const capabilitiesResult = useAvalancheCenterCapabilities();

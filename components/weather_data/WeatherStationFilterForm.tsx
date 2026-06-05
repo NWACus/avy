@@ -12,8 +12,8 @@ import {SelectField} from 'components/form/SelectField';
 import {matchesZone} from 'components/observations/ObservationsFilterForm';
 import {BodyBlack, BodySemibold, Title3Semibold} from 'components/text';
 import {isAfter, isBefore, parseISO, sub} from 'date-fns';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {usePostHog} from 'posthog-react-native';
 import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -165,11 +165,11 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
   React.useEffect(() => {
     formContext.reset(currentFilterConfig);
   }, [formContext, currentFilterConfig]);
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    void postHog?.screen('weatherStationsFilter');
-  }, [postHog]);
+    analytics.screen('weatherStationsFilter');
+  }, [analytics]);
   useFocusEffect(recordAnalytics);
 
   const closeWithoutSaving = useCallback(() => {

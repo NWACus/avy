@@ -20,8 +20,8 @@ import {BodySm, BodySmSemibold, Title3Black} from 'components/text';
 import {formatData, formatTime, formatUnits, orderStationVariables} from 'components/weather_data/WeatherStationDetail';
 import {formatInTimeZone} from 'date-fns-tz';
 import {FeatureCollection, Point} from 'geojson';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {usePostHog} from 'posthog-react-native';
 import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
@@ -85,15 +85,15 @@ export const WeatherStationMap: React.FunctionComponent<{
 }> = ({mapLayerFeatures, weatherStations, center_id, requestedTime, tabBarHeight, toggleList}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const avalancheCenterMapRegion = defaultMapRegionForGeometries(mapLayerFeatures.map(feature => feature.geometry));
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    if (postHog && center_id) {
-      void postHog.screen('weatherStationsMap', {
+    if (center_id) {
+      analytics.screen('weatherStationsMap', {
         center: center_id,
       });
     }
-  }, [postHog, center_id]);
+  }, [analytics, center_id]);
   useFocusEffect(recordAnalytics);
 
   const navigation = useNavigation<MainStackNavigationProps>();

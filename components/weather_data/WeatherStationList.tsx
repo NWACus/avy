@@ -5,8 +5,8 @@ import {Divider, HStack, VStack, View} from 'components/core';
 import {FilterPillButton} from 'components/observations/ObservationsListView';
 import {WeatherStationFilterConfig, WeatherStationFilterForm, filtersForConfig} from 'components/weather_data/WeatherStationFilterForm';
 import {WeatherStationCard} from 'components/weather_data/WeatherStationMap';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useToggle} from 'hooks/useToggle';
-import {usePostHog} from 'posthog-react-native';
 import React, {useCallback, useMemo} from 'react';
 import {FlatList, ListRenderItemInfo, Modal, ScrollView, TouchableOpacity} from 'react-native';
 import {colorLookup} from 'theme';
@@ -32,15 +32,15 @@ export const WeatherStationList: React.FunctionComponent<{
   const currentTime = requestedTimeToUTCDate(parsedTime);
   const [filterConfig, setFilterConfig] = React.useState<WeatherStationFilterConfig>({...initialFilterConfig});
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal}] = useToggle(false);
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    if (postHog && center_id) {
-      void postHog.screen('weatherStations', {
+    if (center_id) {
+      analytics.screen('weatherStations', {
         center: center_id,
       });
     }
-  }, [postHog, center_id]);
+  }, [analytics, center_id]);
   useFocusEffect(recordAnalytics);
 
   // when the initial filter inputs change, we should honor those

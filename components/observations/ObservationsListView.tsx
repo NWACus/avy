@@ -16,11 +16,11 @@ import {usePendingObservations} from 'components/observations/uploader/usePendin
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
 import {compareDesc, formatDuration, isBefore, parseISO, sub} from 'date-fns';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {usePostHog} from 'posthog-react-native';
 import {
   ActivityIndicator,
   ColorValue,
@@ -74,16 +74,16 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
 
   const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, center_id), [mapLayer, center_id]);
 
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    if (postHog && center_id) {
-      void postHog.screen('observations', {
+    if (center_id) {
+      analytics.screen('observations', {
         center: center_id,
         zone: additionalFilters && additionalFilters.zones && additionalFilters.zones.length > 0 ? additionalFilters.zones[0] : 'global',
       });
     }
-  }, [postHog, additionalFilters, center_id]);
+  }, [analytics, additionalFilters, center_id]);
   useFocusEffect(recordAnalytics);
 
   // Filter inputs changed via render props should overwrite our current state

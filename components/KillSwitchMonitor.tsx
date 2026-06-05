@@ -3,26 +3,26 @@ import * as Linking from 'expo-linking';
 import React, {useCallback} from 'react';
 import {Modal, Platform} from 'react-native';
 
-import {usePostHog} from 'posthog-react-native';
-
 import {useOneFeatureFlag} from 'FeatureFlags';
 import NoConnection from 'assets/illustrations/NoConnection.svg';
 import {Button} from 'components/content/Button';
 import {Outcome} from 'components/content/Outcome';
 import {VStack} from 'components/core';
 import {BodyBlack} from 'components/text';
+import {useAnalytics} from 'hooks/useAnalytics';
+import {fireAndForget} from 'utils/fireAndForget';
 
 type KillSwitchMonitorProps = {
   children: React.ReactNode;
 };
 
 export const KillSwitchMonitor: React.FC<KillSwitchMonitorProps> = ({children}) => {
-  const posthog = usePostHog();
+  const analytics = useAnalytics();
 
   const downForMaintenance = !!useOneFeatureFlag('down-for-maintenance');
   const updateRequired = !!useOneFeatureFlag(`update-required`);
 
-  const reloadFeatureFlags = useCallback(() => void posthog?.reloadFeatureFlagsAsync(), [posthog]);
+  const reloadFeatureFlags = useCallback(() => fireAndForget(analytics.reloadFeatureFlags(), 'failed to reload feature flags'), [analytics]);
 
   let storeUrl: string | undefined = undefined;
   if (Platform.OS === 'android' && Constants.expoConfig?.android?.playStoreUrl) {
