@@ -9,8 +9,9 @@ import * as Application from 'expo-application';
 import * as Updates from 'expo-updates';
 
 import {useNetInfo} from '@react-native-community/netinfo';
-import PostHog, {useFeatureFlags, usePostHog} from 'posthog-react-native';
+import PostHog, {useFeatureFlags} from 'posthog-react-native';
 
+import {Analytics, useAnalytics} from 'hooks/useAnalytics';
 import {useAppState} from 'hooks/useAppState';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {logger} from 'logger';
@@ -42,11 +43,15 @@ interface FeatureFlagsProviderProps {
   children?: ReactNode;
 }
 
-const tryReloadFeatureFlags = (posthog: PostHog) => {
+const tryReloadFeatureFlags = (analytics: Analytics) => {
   logger.debug('fetching feature flags');
   void (async () => {
-    const featureFlags = await posthog.reloadFeatureFlagsAsync();
-    logger.debug(`reloaded feature flags: ${JSON.stringify(featureFlags)}`);
+    try {
+      const featureFlags = await analytics.reloadFeatureFlags();
+      logger.debug(`reloaded feature flags: ${JSON.stringify(featureFlags)}`);
+    } catch (error) {
+      logger.error({error}, 'failed to reload feature flags');
+    }
   })();
 };
 
@@ -56,11 +61,11 @@ const FEATURE_FLAG_REFRESH_INTERVAL_MS = Updates.channel ? 30 * 60 * 1000 : 0;
 const tryReloadFeatureFlagsWithDebounce = _.debounce(tryReloadFeatureFlags, FEATURE_FLAG_REFRESH_INTERVAL_MS);
 
 export const FeatureFlagsProvider: React.FC<FeatureFlagsProviderProps> = ({children}) => {
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
   const [registered, setRegistered] = React.useState(false);
   useEffect(() => {
-    if (postHog && !registered) {
-      void postHog.register({
+    if (!registered) {
+      analytics.register({
         // Posthog automatically captures `Application.nativeBuildVersion` as `App Build`, but stores it as a string.
         // We additionally capture it as a number here, so that we can use < and > in feature flag rules.
         buildNumber: Number.parseInt(Application.nativeBuildVersion || '0'),
@@ -71,36 +76,36 @@ export const FeatureFlagsProvider: React.FC<FeatureFlagsProviderProps> = ({child
       logger.debug('registered user');
       setRegistered(true);
     }
-  }, [postHog, registered, setRegistered]);
+  }, [analytics, registered, setRegistered]);
   // We use the mixpanel user id (a unique UUID generated for each install of the app) as the posthog distinct id as well.
   const {
     preferences: {mixpanelUserId: distinctUserId},
   } = usePreferences();
   const [userIdentified, setUserIdentified] = useState(false);
   useEffect(() => {
-    if (postHog && distinctUserId && !userIdentified && registered) {
-      postHog.identify(distinctUserId);
+    if (distinctUserId && !userIdentified && registered) {
+      analytics.identify(distinctUserId);
       setUserIdentified(true);
       logger.debug('identified user, reloading feature flags', {distinctUserId});
-      tryReloadFeatureFlagsWithDebounce(postHog);
+      tryReloadFeatureFlagsWithDebounce(analytics);
     }
-  }, [postHog, distinctUserId, userIdentified, registered]);
+  }, [analytics, distinctUserId, userIdentified, registered]);
 
   const appState = useAppState();
   useEffect(() => {
-    if (postHog && appState === 'active' && registered && userIdentified) {
+    if (appState === 'active' && registered && userIdentified) {
       logger.debug('appState changed to active, reloading feature flags');
-      tryReloadFeatureFlagsWithDebounce(postHog);
+      tryReloadFeatureFlagsWithDebounce(analytics);
     }
-  }, [appState, postHog, registered, userIdentified]);
+  }, [appState, analytics, registered, userIdentified]);
 
   const netInfo = useNetInfo();
   useEffect(() => {
-    if (postHog && netInfo.isConnected && netInfo.isInternetReachable && registered && userIdentified) {
+    if (netInfo.isConnected && netInfo.isInternetReachable && registered && userIdentified) {
       logger.debug('network online, reloading feature flags');
-      tryReloadFeatureFlagsWithDebounce(postHog);
+      tryReloadFeatureFlagsWithDebounce(analytics);
     }
-  }, [netInfo, postHog, registered, userIdentified]);
+  }, [netInfo, analytics, registered, userIdentified]);
 
   const featureFlags: FeatureFlags = useFeatureFlags() ?? defaultFeatureFlags;
   const [clientSideFeatureFlagOverrides, setClientSideFeatureFlagOverrides] = useState<FeatureFlags>({});

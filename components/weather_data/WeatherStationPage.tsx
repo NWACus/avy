@@ -5,10 +5,10 @@ import {WeatherStationList} from 'components/weather_data/WeatherStationList';
 import {WeatherStationMap} from 'components/weather_data/WeatherStationMap';
 import {centerOrPartnerCenter} from 'components/weather_data/WeatherUtils';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useToggle} from 'hooks/useToggle';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
-import {usePostHog} from 'posthog-react-native';
 import React, {useCallback, useMemo} from 'react';
 import {AvalancheCenterID, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
@@ -23,15 +23,15 @@ interface Props {
 export const WeatherStationPage: React.FC<Props> = ({center_id, requestedTime, tabBarHeight}) => {
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(centerOrPartnerCenter(center_id));
   const metadata = avalancheCenterMetadataResult.data;
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    if (postHog && center_id) {
-      void postHog.screen('weatherTab', {
+    if (center_id) {
+      analytics.screen('weatherTab', {
         center: center_id,
       });
     }
-  }, [postHog, center_id]);
+  }, [analytics, center_id]);
   useFocusEffect(recordAnalytics);
 
   if (incompleteQueryState(avalancheCenterMetadataResult) || !metadata) {

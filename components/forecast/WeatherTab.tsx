@@ -11,6 +11,7 @@ import {HTML} from 'components/text/HTML';
 import {NWACStationsByZone, ZoneWithWeatherStations} from 'components/weather_data/NWACWeatherStationList';
 import helpStrings from 'content/helpStrings';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {FormatTimeOfDay, useNWACWeatherForecast} from 'hooks/useNWACWeatherForecast';
@@ -19,7 +20,6 @@ import {useWeatherForecast} from 'hooks/useWeatherForecast';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
 import {isArray} from 'lodash';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {usePostHog} from 'posthog-react-native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
 import {MainStackParamList, TabNavigationProps} from 'routes';
@@ -142,16 +142,16 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
     void refresh();
   }, [refresh]);
 
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    if (postHog && center_id && zone.name) {
-      void postHog.screen('weatherForecastTab', {
+    if (center_id && zone.name) {
+      analytics.screen('weatherForecastTab', {
         center: center_id,
         zone: zone.name,
       });
     }
-  }, [postHog, center_id, zone.name]);
+  }, [analytics, center_id, zone.name]);
   useFocusEffect(recordAnalytics);
 
   if (incompleteQueryState(avalancheCenterMetadataResult, avalancheForecastResult) || !metadata || !avalancheForecast) {
@@ -233,16 +233,16 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
     }
   }, [metadata, weatherStations, mapLayer, center_id]);
 
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    if (postHog && center_id && zone.name) {
-      void postHog.screen('weatherForecastTab', {
+    if (center_id && zone.name) {
+      analytics.screen('weatherForecastTab', {
         center: center_id,
         zone: zone.name,
       });
     }
-  }, [postHog, center_id, zone.name]);
+  }, [analytics, center_id, zone.name]);
   useFocusEffect(recordAnalytics);
 
   // In the UI, we show weather station groups, which may contain 1 or more weather stations.

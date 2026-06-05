@@ -2,8 +2,8 @@ import React, {useCallback, useMemo, useState} from 'react';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {compareDesc} from 'date-fns';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {uniq} from 'lodash';
-import {usePostHog} from 'posthog-react-native';
 
 import {ButtonBar} from 'components/content/ButtonBar';
 import {DataGrid} from 'components/content/DataGrid';
@@ -278,16 +278,16 @@ export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, station
   const requestedTimeDate = parseRequestedTimeString(requestedTime);
   const timeseriesResult = useWeatherStationTimeseries(metadata?.widget_config.stations?.token, stations, requestedTimeDate, {days: days});
   const timeseries = timeseriesResult.data;
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    if (postHog && center_id && name) {
-      void postHog.screen('weatherStations', {
+    if (center_id && name) {
+      analytics.screen('weatherStations', {
         center: center_id,
         name: name,
       });
     }
-  }, [postHog, center_id, name]);
+  }, [analytics, center_id, name]);
   useFocusEffect(recordAnalytics);
 
   React.useEffect(() => {

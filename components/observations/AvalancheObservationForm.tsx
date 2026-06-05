@@ -21,9 +21,9 @@ import {AvalancheObservationFormData, avalancheObservationFormSchema, defaultAva
 import {BodySemibold, Title3Semibold} from 'components/text';
 import helpStrings from 'content/helpStrings';
 import {add} from 'date-fns';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useKeyboardBehavior} from 'hooks/useKeyboardBehavior';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {usePostHog} from 'posthog-react-native';
 import {
   AvalancheAspect,
   AvalancheCenterID,
@@ -68,15 +68,15 @@ export const AvalancheObservationForm: React.FC<{
 
   const insets = useSafeAreaInsets();
 
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    if (postHog && center_id) {
-      void postHog.screen('avalancheObservationForm', {
+    if (center_id) {
+      analytics.screen('avalancheObservationForm', {
         center: center_id,
       });
     }
-  }, [postHog, center_id]);
+  }, [analytics, center_id]);
   useFocusEffect(recordAnalytics);
 
   const today = new Date();

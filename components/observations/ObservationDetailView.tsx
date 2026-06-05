@@ -17,9 +17,9 @@ import {matchesZone} from 'components/observations/ObservationsFilterForm';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useNACObservation} from 'hooks/useNACObservation';
-import {usePostHog} from 'posthog-react-native';
 import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
@@ -171,16 +171,16 @@ export const ObservationCard: React.FunctionComponent<{
 }> = ({observation, capabilities}) => {
   const {avalanches_observed, avalanches_triggered, avalanches_caught} = observation.instability;
 
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    if (postHog && observation.center_id && observation.id) {
-      void postHog.screen('observation', {
+    if (observation.center_id && observation.id) {
+      analytics.screen('observation', {
         center: observation.center_id,
         id: observation.id,
       });
     }
-  }, [postHog, observation.center_id, observation.id]);
+  }, [analytics, observation.center_id, observation.id]);
   useFocusEffect(recordAnalytics);
 
   const insets = useSafeAreaInsets();

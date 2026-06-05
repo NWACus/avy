@@ -12,10 +12,10 @@ import {BodyBlack, bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
 import {formatDateTime} from 'components/weather_data/WeatherStationsDetail';
 import {centerOrPartnerCenter} from 'components/weather_data/WeatherUtils';
 import {compareDesc} from 'date-fns';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useWeatherStationTimeseries} from 'hooks/useWeatherStationTimeseries';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {usePostHog} from 'posthog-react-native';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, StationNote, Variable, WeatherStationSource, WeatherStationTimeseries} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
@@ -42,16 +42,16 @@ export const WeatherStationDetail: React.FC<Props> = ({center_id, stationId, sou
   identifier[stationId] = source;
   const timeseriesResult = useWeatherStationTimeseries(metadata?.widget_config.stations?.token, identifier, requestedTimeDate, {days: days});
   const timeseries = timeseriesResult.data;
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    if (postHog && center_id && stationId) {
-      void postHog.screen('weatherStation', {
+    if (center_id && stationId) {
+      analytics.screen('weatherStation', {
         center: center_id,
         stationId: stationId,
       });
     }
-  }, [postHog, center_id, stationId]);
+  }, [analytics, center_id, stationId]);
   useFocusEffect(recordAnalytics);
 
   if (incompleteQueryState(avalancheCenterMetadataResult, timeseriesResult) || !metadata || !timeseries) {

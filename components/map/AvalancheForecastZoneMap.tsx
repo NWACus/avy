@@ -7,11 +7,11 @@ import {MapViewZone, mapViewZoneFor} from 'components/map/ZoneMap';
 import {AvalancheCenterSelectionModal} from 'components/modals/AvalancheCenterSelectionModal';
 import {isAfter} from 'date-fns';
 import {toDate} from 'date-fns-tz';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts';
 import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {useMapPersistence} from 'MapPersistence';
-import {usePostHog} from 'posthog-react-native';
 import {usePreferences} from 'Preferences';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
 import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
@@ -55,14 +55,14 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const [userLocation, setUserLocation] = useState<Position | undefined>(undefined);
   const [topElementMeasurements, setTopElementMeasurements] = useState<TopElementMeasurments>({yPos: 0, height: 0});
 
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
   const recordAnalytics = useCallback(() => {
-    if (postHog && center_id) {
-      void postHog.screen('avalancheForecastMap', {
+    if (center_id) {
+      analytics.screen('avalancheForecastMap', {
         center: center_id,
       });
     }
-  }, [postHog, center_id]);
+  }, [analytics, center_id]);
   useFocusEffect(recordAnalytics);
 
   // Default to the values in the map layer, but update it with the forecasts and warnings we've fetched

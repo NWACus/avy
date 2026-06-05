@@ -30,11 +30,11 @@ import {UploaderState, getUploader} from 'components/observations/uploader/Obser
 import {TaskStatus} from 'components/observations/uploader/Task';
 import {Body, BodySemibold, Title3Semibold} from 'components/text';
 import helpStrings from 'content/helpStrings';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useKeyboardBehavior} from 'hooks/useKeyboardBehavior';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {usePostHog} from 'posthog-react-native';
 import Toast from 'react-native-toast-message';
 import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
@@ -75,15 +75,15 @@ export const ObservationForm: React.FC<{
 
   const keyboardVerticalOffset = useKeyboardVerticalOffset();
 
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    if (postHog && center_id) {
-      void postHog.screen('observationForm', {
+    if (center_id) {
+      analytics.screen('observationForm', {
         center: center_id,
       });
     }
-  }, [postHog, center_id]);
+  }, [analytics, center_id]);
   useFocusEffect(recordAnalytics);
 
   useEffect(() => {
