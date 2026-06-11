@@ -159,7 +159,8 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 
   useEffect(() => {
     if (userLocation) {
-      mapCameraRef.current?.setCamera({centerCoordinate: userLocation, zoomLevel: 7});
+      // Center on the user's location and re-orient the map to north (heading: 0).
+      mapCameraRef.current?.setCamera({centerCoordinate: userLocation, zoomLevel: 7, heading: 0});
     }
   }, [mapCameraRef, userLocation]);
 
