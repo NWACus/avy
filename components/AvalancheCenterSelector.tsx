@@ -8,7 +8,7 @@ import {avalancheCenterList, AvalancheCenters} from 'components/avalancheCenterL
 import {AvalancheCenterList} from 'components/content/AvalancheCenterList';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {useAllAvalancheCenterMetadata} from 'hooks/useAllAvalancheCenterMetadata';
-import {useAnalytics} from 'hooks/useAnalytics';
+import {CenterSwitchOrigin, useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MainStackNavigationProps, MainStackParamList} from 'routes';
@@ -24,15 +24,17 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
   const capabilities = capabilitiesResult.data;
   const whichCenters = route.params.debugMode ? AvalancheCenters.AllCenters : AvalancheCenters.SupportedCenters;
   const metadataResults = useAllAvalancheCenterMetadata(capabilities, whichCenters);
+  const analytics = useAnalytics();
+
   const setAvalancheCenterWrapper = React.useCallback(
     (center: AvalancheCenterID) => {
+      analytics.captureCenterSwitch(currentCenterId, center, CenterSwitchOrigin.CenterSelectorView);
       setAvalancheCenter(center);
 
       navigation.goBack();
     },
-    [setAvalancheCenter, navigation],
+    [setAvalancheCenter, currentCenterId, navigation, analytics],
   );
-  const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
     analytics.screen('centerSelector');
