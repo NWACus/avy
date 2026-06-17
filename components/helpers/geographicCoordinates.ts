@@ -96,6 +96,30 @@ export const boundsForRegions = (bounds: RegionBounds[]): RegionBounds => ({
   bottomLeft: {longitude: Math.min(...bounds.map(b => b.bottomLeft.longitude)), latitude: Math.min(...bounds.map(b => b.bottomLeft.latitude))},
 });
 
+// The map fills the whole screen (absoluteFill), so its reported bounds include the area hidden behind the
+// header (top) and tab bar (bottom). Shrink the viewport's latitude span to the unobstructed area so a center
+// hidden behind that chrome counts as off-screen. Longitude is unchanged because the header/tab bar span the full width.
+export const insetViewportBounds = (viewport: CameraBounds, {topInset, bottomInset, mapHeight}: {topInset: number; bottomInset: number; mapHeight: number}): CameraBounds => {
+  if (mapHeight <= 0) {
+    return viewport;
+  }
+  const latSpan = viewport.ne[1] - viewport.sw[1];
+  return {
+    // ne[1] is the north edge at the top of the screen; the header obstructs it, so move it south.
+    ne: [viewport.ne[0], viewport.ne[1] - (topInset / mapHeight) * latSpan],
+    // sw[1] is the south edge at the bottom of the screen; the tab bar obstructs it, so move it north.
+    sw: [viewport.sw[0], viewport.sw[1] + (bottomInset / mapHeight) * latSpan],
+  };
+};
+
+// True when the avalanche center's bounding box overlaps the visible map viewport at all.
+// Both args are {ne, sw} where ne = [maxLng, maxLat], sw = [minLng, minLat].
+export const regionBoundsVisible = (centerBounds: CameraBounds, viewport: CameraBounds): boolean =>
+  centerBounds.sw[0] <= viewport.ne[0] && // center's west edge is at/left of viewport's east edge
+  centerBounds.ne[0] >= viewport.sw[0] && // center's east edge is at/right of viewport's west edge
+  centerBounds.sw[1] <= viewport.ne[1] && // center's south edge is at/below viewport's north edge
+  centerBounds.ne[1] >= viewport.sw[1]; //   center's north edge is at/above viewport's south edge
+
 export const pointInBounds = (position: AvyPosition, {topRight, bottomLeft}: RegionBounds): boolean =>
   position.latitude >= bottomLeft.latitude && position.latitude <= topRight.latitude && position.longitude >= bottomLeft.longitude && position.longitude >= topRight.longitude;
 

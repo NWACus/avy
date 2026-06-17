@@ -14,7 +14,7 @@ import {AvalancheCenterID, isSupportedCenter} from 'types/nationalAvalancheCente
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 import {Camera, CameraStop, MapState} from '@rnmapbox/maps';
-import {defaultMapRegionForGeometries} from 'components/helpers/geographicCoordinates';
+import {defaultMapRegionForGeometries, insetViewportBounds, regionBoundsVisible} from 'components/helpers/geographicCoordinates';
 import {AvalancheForecastZoneCards} from 'components/map/AvalancheForecastZoneCards';
 import {TopElementMeasurments} from 'components/map/AvalancheForecastZoneMap';
 import {Position} from 'geojson';
@@ -29,12 +29,6 @@ interface AvalancheForecastMapViewProps {
   topElementMeasurements?: TopElementMeasurments;
   userLocation?: Position | undefined;
 }
-
-// These map zoom level thresholds control when the AnimatedCards are automatically hidden and when the isInNoCenterExperience triggers
-// In Mapbox, the levels start at 0 (most zoomed out) and go to 22 (most zoomed in). The card threshold therefore happens first and then the no center experience is triggered
-// This prevents all the changes from happening at once
-const CARD_HIDDEN_ZOOM_THRESHOLD = 6;
-const NO_CENTER_EXPERIENCE_ZOOM_THRESHOLD = 5;
 
 export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecastMapViewProps> = ({
   preferredCenterId,
@@ -132,13 +126,23 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 
   const onCameraChanged = useCallback(
     (mapState: MapState) => {
-      if (mapState.gestures.isGestureActive) {
-        if (mapState.properties.zoom < CARD_HIDDEN_ZOOM_THRESHOLD && controller.current.state !== AnimatedDrawerState.Hidden) {
-          controller.current.setState(AnimatedDrawerState.Hidden, false);
+      // Guard: with no preferred-center zones the center bounds are degenerate (0,0); skip detection.
+      if (mapState.gestures.isGestureActive && preferredCenterZones.length > 0 && !isInNoCenterExperienceRef.current) {
+        // The map fills the whole screen, so trim its bounds to the area not covered by the header and tab bar
+        // before testing visibility — otherwise a center hidden behind that chrome would still count as on-screen.
+        const visibleViewport = insetViewportBounds(mapState.properties.bounds, {
+          topInset: topElementMeasurements.yPos + topElementMeasurements.height,
+          bottomInset: tabBarHeight,
+          mapHeight: windowHeight,
+        });
+        const centerVisible = regionBoundsVisible(avalancheCenterMapRegion.cameraBounds, visibleViewport);
+        if (!centerVisible) {
+          // The preferred center has been panned fully off-screen: hide the cards, clear the selection,
+          // and enter the no-center experience together as a single event.
+          if (controller.current.state !== AnimatedDrawerState.Hidden) {
+            controller.current.setState(AnimatedDrawerState.Hidden, false);
+          }
           setSelectedZoneId(null);
-        }
-
-        if (!isInNoCenterExperienceRef.current && mapState.properties.zoom < NO_CENTER_EXPERIENCE_ZOOM_THRESHOLD) {
           // Updating the ref here helps prevent unnecessary calls to setIsInNoCenterExperience.
           isInNoCenterExperienceRef.current = true;
           setIsInNoCenterExperience(true);
@@ -154,7 +158,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         });
       }
     },
-    [controller, setIsInNoCenterExperience, saveMapCamera, setSelectedZoneId],
+    [controller, avalancheCenterMapRegion, preferredCenterZones, topElementMeasurements, tabBarHeight, windowHeight, setIsInNoCenterExperience, saveMapCamera, setSelectedZoneId],
   );
 
   useEffect(() => {
