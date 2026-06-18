@@ -18,6 +18,7 @@ import {defaultMapRegionForGeometries, insetViewportBounds, regionBoundsVisible}
 import {AvalancheForecastZoneCards} from 'components/map/AvalancheForecastZoneCards';
 import {TopElementMeasurments} from 'components/map/AvalancheForecastZoneMap';
 import {Position} from 'geojson';
+import {CenterSwitchOrigin, useAnalytics} from 'hooks/useAnalytics';
 
 interface AvalancheForecastMapViewProps {
   preferredCenterId: AvalancheCenterID;
@@ -43,6 +44,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
   const {setPreferences} = usePreferences();
+  const analytics = useAnalytics();
   const {isInNoCenterExperience, setIsInNoCenterExperience, initialMapCamera, saveMapCamera} = useMapPersistence();
 
   const navigation = useNavigation<MainStackNavigationProps>();
@@ -72,6 +74,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
           setSelectedZoneId(zone.zone_id);
 
           if (selectedZoneCenter !== preferredCenterId) {
+            analytics.captureCenterSwitch(preferredCenterId, selectedZoneCenter, CenterSwitchOrigin.Map);
             setPreferences({center: selectedZoneCenter});
           }
 
@@ -83,7 +86,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         }
       }
     },
-    [navigation, selectedZoneId, preferredCenterId, requestedTime, setSelectedZoneId, setPreferences, setIsInNoCenterExperience],
+    [navigation, analytics, selectedZoneId, preferredCenterId, requestedTime, setSelectedZoneId, setPreferences, setIsInNoCenterExperience],
   );
 
   const preferredCenterZones = useMemo(() => zones.filter(zone => zone.center_id === preferredCenterId), [zones, preferredCenterId]);

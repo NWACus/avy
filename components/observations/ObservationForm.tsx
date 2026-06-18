@@ -30,7 +30,7 @@ import {UploaderState, getUploader} from 'components/observations/uploader/Obser
 import {TaskStatus} from 'components/observations/uploader/Task';
 import {Body, BodySemibold, Title3Semibold} from 'components/text';
 import helpStrings from 'content/helpStrings';
-import {useAnalytics} from 'hooks/useAnalytics';
+import {getPresentedFromForAnalytics, useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useKeyboardBehavior} from 'hooks/useKeyboardBehavior';
@@ -240,12 +240,14 @@ export const ObservationForm: React.FC<{
       if (!formContext.getValues('instability.avalanches_observed') && formContext.getValues('avalanches').length > 0) {
         formContext.setValue('avalanches', []);
       }
+
+      analytics.capture('submitObsButtonPressed', {presentedFrom: getPresentedFromForAnalytics(navigation)});
       // Force validation errors to show up on fields that haven't been visited yet
       await formContext.trigger();
       // Then try to submit the form
       void formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
     })();
-  }, [formContext, onSubmitHandler, onSubmitErrorHandler]);
+  }, [formContext, analytics, navigation, onSubmitHandler, onSubmitErrorHandler]);
 
   const onCloseHandler = useCallback(() => {
     formContext.reset();

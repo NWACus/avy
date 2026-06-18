@@ -4,6 +4,7 @@ import {NativeStackHeaderProps} from '@react-navigation/native-stack';
 import {HStack, View} from 'components/core';
 import {GenerateObservationShareLink} from 'components/observations/ObservationUrlMapping';
 import {Title3Black} from 'components/text';
+import {getPresentedFromForAnalytics, useAnalytics} from 'hooks/useAnalytics';
 import {logger} from 'logger';
 import {usePreferences} from 'Preferences';
 import React, {useCallback} from 'react';
@@ -15,6 +16,8 @@ import {AvalancheCenterID, AvalancheCenterWebsites, reverseLookup} from 'types/n
 export const NavigationHeader: React.FunctionComponent<NativeStackHeaderProps> = ({navigation, route, options, back}) => {
   const {preferences} = usePreferences();
   const centerId = preferences.center;
+
+  const analytics = useAnalytics();
 
   let share: boolean = false;
   let firstOpen: boolean = false;
@@ -69,10 +72,12 @@ export const NavigationHeader: React.FunctionComponent<NativeStackHeaderProps> =
       return;
     }
 
+    analytics.capture('shareButtonPressed', {presentedFrom: getPresentedFromForAnalytics(navigation)});
+
     Share.share({
       message: shareUrl,
     }).catch((error: object) => logger.error(error, 'share button failed'));
-  }, [shareUrl]);
+  }, [shareUrl, analytics, navigation]);
 
   return (
     // Setting the top padding to insets.top correctly aligns the view underneath the notches on iPhone. Trying to set the padding ourselves could lead to unexpected behavior
