@@ -14,6 +14,7 @@ import {Card, CollapsibleCard} from 'components/content/Card';
 import {Collapsible} from 'components/content/Collapsible';
 import {InfoTooltip} from 'components/content/InfoTooltip';
 import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
+import Toast from 'components/content/ToastRoot';
 import {MediaCarousel} from 'components/content/carousel/MediaCarousel';
 import {HStack, VStack, View} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, BodySm, BodySmBlack, BodySmSemibold, Title3Black} from 'components/text';
@@ -27,7 +28,6 @@ import {useAvalancheWarning} from 'hooks/useAvalancheWarning';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
 import {RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
-import Toast from 'react-native-toast-message';
 import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {COLORS} from 'theme/colors';
@@ -90,27 +90,44 @@ export const AvalancheTab: React.FunctionComponent<{
     }
   }, [forecast, forecast_zone_id, navigation]);
 
+  // Key the effect on the expiry string, not the forecast object: React Query refetches can produce a new
+  // object identity for identical data, and re-running this effect hides the toast (cleanup) out from under
+  // the user even though it is set to never auto-hide.
+  const expiresTimeString = forecast?.expires_time;
   useFocusEffect(
     useCallback(() => {
-      if (forecast?.expires_time) {
-        const expires_time = new Date(forecast.expires_time);
-        if (isAfter(new Date(), expires_time)) {
-          setTimeout(
-            // entirely unclear why this needs to be in a setTimeout, but nothing works without it
-            () =>
-              Toast.show({
-                type: 'error',
-                text1: `This avalanche forecast expired ${formatDistanceToNow(expires_time)} ago.`,
-                autoHide: false,
-                position: 'bottom',
-                onPress: () => Toast.hide(),
-              }),
-            0,
-          );
-        }
+      let shown = false;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      let removeListener: (() => void) | undefined;
+      if (expiresTimeString && isAfter(new Date(), new Date(expiresTimeString))) {
+        const expires_time = new Date(expiresTimeString);
+        const showToast = () => {
+          if (shown) {
+            return;
+          }
+          shown = true;
+          Toast.show({
+            type: 'error',
+            text1: `This avalanche forecast expired ${formatDistanceToNow(expires_time)} ago.`,
+            autoHide: false,
+            position: 'bottom',
+            onPress: () => Toast.hide(),
+          });
+        };
+        // Show once the screen-push transition ends — touches are blocked while it runs. Fall back to a
+        // short delay when there's no transition (e.g. a tab re-focus, where transitionEnd never fires).
+        const stackNavigation: MainStackNavigationProps | undefined = navigation.getParent();
+        removeListener = stackNavigation?.addListener('transitionEnd', showToast);
+        timer = setTimeout(showToast, 600);
       }
-      return () => Toast.hide();
-    }, [forecast]),
+      return () => {
+        removeListener?.();
+        if (timer) {
+          clearTimeout(timer);
+        }
+        Toast.hide();
+      };
+    }, [expiresTimeString, navigation]),
   );
 
   const recordAnalytics = useCallback(() => {
