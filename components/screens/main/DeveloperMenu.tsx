@@ -770,7 +770,14 @@ export const TimeMachine = () => {
   const {requestedTime, setRequestedTime} = React.useContext(ClientContext);
   const changeTime = useCallback(
     (time: RequestedTime) => {
-      setRequestedTime(time);
+      // The TimeMachine picks a calendar *day*, but a Date also carries a time-of-day. The map layer and warnings
+      // format requestedTime in UTC, while forecasts convert it to the center's *nominal* forecast day (which rolls
+      // forward at the evening expiry hour). An off-hours instant can therefore make those projections land on
+      // different days (e.g. map shows 2/16 while the forecast resolves to 2/17). Collapse any selected day to noon
+      // UTC — early morning across every US timezone, and safely before any expiry hour — so both projections resolve
+      // to the same date.
+      const normalized: RequestedTime = time === 'latest' ? 'latest' : new Date(Date.UTC(time.getFullYear(), time.getMonth(), time.getDate(), 12, 0, 0, 0));
+      setRequestedTime(normalized);
     },
     [setRequestedTime],
   );
