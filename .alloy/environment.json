@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "dockerComposePath": "docker-compose.alloy.yaml",
+  "frontendPort": 8081,
+  "homeUrl": "/"
+}

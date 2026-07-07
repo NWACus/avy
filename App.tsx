@@ -59,7 +59,9 @@ import {ZodError} from 'zod';
 
 logger.info('App starting.');
 
-Mapbox.setAccessToken(Constants.expoConfig?.extra?.mapboxAPIKey as string).catch((error: Error) => {
+// On web, @rnmapbox/maps' setAccessToken may not return a promise (native maps
+// are unavailable in the browser preview), so guard the returned value.
+void Promise.resolve(Mapbox.setAccessToken(Constants.expoConfig?.extra?.mapboxAPIKey as string)).catch((error: Error) => {
   logger.error('Failed to initialize mapbox with error: ', error);
 });
 

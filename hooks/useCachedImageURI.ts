@@ -5,13 +5,20 @@ import {Directory, File, Paths} from 'expo-file-system';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import md5 from 'md5';
 import React, {useEffect, useState} from 'react';
+import {Platform} from 'react-native';
 
-const rootDirectory = Paths.cache.uri + 'image-cache/';
+// expo-file-system (and Paths.cache) is not supported on web; accessing it there
+// throws, so defer reading it until it is actually needed on native.
+const fileSystemSupported = Platform.OS !== 'web';
+const getRootDirectory = (): string => Paths.cache.uri + 'image-cache/';
 export const queryKeyPrefix = 'image';
 let initialized = false;
 export const initialize = (): void => {
+  if (!fileSystemSupported) {
+    return;
+  }
   if (!initialized) {
-    const dir = new Directory(rootDirectory);
+    const dir = new Directory(getRootDirectory());
     if (!dir.exists) {
       dir.create();
     }
@@ -63,7 +70,7 @@ const fetchCachedImageURI = async (uri: string, logger: Logger): Promise<string>
   }
   initialize();
 
-  const destination = rootDirectory + md5(uri) + CACHE_FILE_EXTENSION;
+  const destination = getRootDirectory() + md5(uri) + CACHE_FILE_EXTENSION;
   logger.debug({source: uri, destination: destination}, 'caching remote image');
   const downloadedFile = await File.downloadFileAsync(uri, new File(destination), {idempotent: true});
   return downloadedFile.uri;
@@ -100,7 +107,7 @@ const reconcileCachedImages = (queryClient: QueryClient, queryCache: QueryCache,
     return accumulator;
   }, {} as Record<string, QueryKey>);
   // then, figure out all the files we have on disk
-  const files = new Directory(rootDirectory).list().map(entry => entry.uri);
+  const files = new Directory(getRootDirectory()).list().map(entry => entry.uri);
   logger.info({files: files}, 'found files in image cache');
   // now, we can reconcile the two caches
 

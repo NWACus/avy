@@ -4,6 +4,7 @@ import ImageCache, {useCachedImageURI} from 'hooks/useCachedImageURI';
 import React, {ReactElement} from 'react';
 import {ActivityIndicator, DimensionValue, Image, ImageResizeMode, ImageResolvedAssetSource, ImageStyle} from 'react-native';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {resolveAssetSource} from 'utils/resolveAssetSource';
 
 interface AvalancheCenterLogoStyle {
   resizeMode?: ImageResizeMode | undefined;
@@ -23,36 +24,36 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
   /* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-require-imports */
 
   const source: Record<AvalancheCenterID, ImageResolvedAssetSource> = {
-    ['BAC']: Image.resolveAssetSource(require('../assets/logos/BAC.png')),
-    ['BTAC']: Image.resolveAssetSource(require('../assets/logos/BTAC.png')),
-    ['CBAC']: Image.resolveAssetSource(require('../assets/logos/CBAC.png')),
-    ['CNFAIC']: Image.resolveAssetSource(require('../assets/logos/CNFAIC.png')),
-    ['COAA']: Image.resolveAssetSource(require('../assets/logos/COAA.png')),
-    ['ESAC']: Image.resolveAssetSource(require('../assets/logos/ESAC.png')),
-    ['FAC']: Image.resolveAssetSource(require('../assets/logos/FAC.png')),
-    ['HAC']: Image.resolveAssetSource(require('../assets/logos/HAC.png')),
-    ['HPAC']: Image.resolveAssetSource(require('../assets/logos/HPAC.png')),
-    ['GNFAC']: Image.resolveAssetSource(require('../assets/logos/GNFAC.png')),
-    ['IPAC']: Image.resolveAssetSource(require('../assets/logos/IPAC.png')),
-    ['KPAC']: Image.resolveAssetSource(require('../assets/logos/KPAC.png')),
-    ['MSAC']: Image.resolveAssetSource(require('../assets/logos/MSAC.png')),
-    ['MWAC']: Image.resolveAssetSource(require('../assets/logos/MWAC.png')),
-    ['NWAC']: Image.resolveAssetSource(require('../assets/logos/NWAC.png')),
-    ['PAC']: Image.resolveAssetSource(require('../assets/logos/PAC.png')),
-    ['SAC']: Image.resolveAssetSource(require('../assets/logos/SAC.png')),
-    ['SNFAC']: Image.resolveAssetSource(require('../assets/logos/SNFAC.png')),
-    ['TAC']: Image.resolveAssetSource(require('../assets/logos/TAC.png')),
-    ['VAC']: Image.resolveAssetSource(require('../assets/logos/VAC.png')),
-    ['WAC']: Image.resolveAssetSource(require('../assets/logos/WAC.png')),
-    ['WCMAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['BAC']: resolveAssetSource(require('../assets/logos/BAC.png')),
+    ['BTAC']: resolveAssetSource(require('../assets/logos/BTAC.png')),
+    ['CBAC']: resolveAssetSource(require('../assets/logos/CBAC.png')),
+    ['CNFAIC']: resolveAssetSource(require('../assets/logos/CNFAIC.png')),
+    ['COAA']: resolveAssetSource(require('../assets/logos/COAA.png')),
+    ['ESAC']: resolveAssetSource(require('../assets/logos/ESAC.png')),
+    ['FAC']: resolveAssetSource(require('../assets/logos/FAC.png')),
+    ['HAC']: resolveAssetSource(require('../assets/logos/HAC.png')),
+    ['HPAC']: resolveAssetSource(require('../assets/logos/HPAC.png')),
+    ['GNFAC']: resolveAssetSource(require('../assets/logos/GNFAC.png')),
+    ['IPAC']: resolveAssetSource(require('../assets/logos/IPAC.png')),
+    ['KPAC']: resolveAssetSource(require('../assets/logos/KPAC.png')),
+    ['MSAC']: resolveAssetSource(require('../assets/logos/MSAC.png')),
+    ['MWAC']: resolveAssetSource(require('../assets/logos/MWAC.png')),
+    ['NWAC']: resolveAssetSource(require('../assets/logos/NWAC.png')),
+    ['PAC']: resolveAssetSource(require('../assets/logos/PAC.png')),
+    ['SAC']: resolveAssetSource(require('../assets/logos/SAC.png')),
+    ['SNFAC']: resolveAssetSource(require('../assets/logos/SNFAC.png')),
+    ['TAC']: resolveAssetSource(require('../assets/logos/TAC.png')),
+    ['VAC']: resolveAssetSource(require('../assets/logos/VAC.png')),
+    ['WAC']: resolveAssetSource(require('../assets/logos/WAC.png')),
+    ['WCMAC']: resolveAssetSource(require('../assets/logos/WCMAC.png')),
     // The following are unsupported
-    ['CAIC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
-    ['UAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
-    ['SOAIX']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
-    ['EWYAIX']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
-    ['EARAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
-    ['CAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
-    ['CAAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['CAIC']: resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['UAC']: resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['SOAIX']: resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['EWYAIX']: resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['EARAC']: resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['CAC']: resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['CAAC']: resolveAssetSource(require('../assets/logos/WCMAC.png')),
   };
 
   const {data: uri} = useCachedImageURI(source[avalancheCenterId].uri);
@@ -165,64 +166,64 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
 export const preloadAvalancheCenterLogo = async (queryClient: QueryClient, logger: Logger, avalancheCenter: AvalancheCenterID) => {
   switch (avalancheCenter) {
     case 'BAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/BAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/BAC.png')).uri);
     case 'BTAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/BTAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/BTAC.png')).uri);
     case 'CBAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/CBAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/CBAC.png')).uri);
     case 'CNFAIC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/CNFAIC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/CNFAIC.png')).uri);
     case 'COAA':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/COAA.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/COAA.png')).uri);
     case 'ESAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/ESAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/ESAC.png')).uri);
     case 'FAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/FAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/FAC.png')).uri);
     case 'GNFAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/GNFAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/GNFAC.png')).uri);
     case 'HAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/HAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/HAC.png')).uri);
     case 'HPAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/HPAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/HPAC.png')).uri);
     case 'IPAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/IPAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/IPAC.png')).uri);
     case 'KPAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/KPAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/KPAC.png')).uri);
     case 'MSAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/MSAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/MSAC.png')).uri);
     case 'MWAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/MWAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/MWAC.png')).uri);
     case 'NWAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/NWAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/NWAC.png')).uri);
     case 'PAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/PAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/PAC.png')).uri);
     case 'SAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/SAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/SAC.png')).uri);
     case 'SNFAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/SNFAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/SNFAC.png')).uri);
     case 'TAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/TAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/TAC.png')).uri);
     case 'VAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/VAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/VAC.png')).uri);
     case 'WAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/WAC.png')).uri);
     case 'WCMAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
     // The following are unsupported
     case 'CAIC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
     case 'UAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
     case 'SOAIX':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
     case 'EWYAIX':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
     case 'EARAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
     case 'CAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
     case 'CAAC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
   }
   const invalid: never = avalancheCenter;
   throw new Error(`Unable to load logo, unknown avalanche center: ${JSON.stringify(invalid)}`);

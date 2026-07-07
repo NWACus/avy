@@ -5,6 +5,7 @@ import {ActivityIndicator, Image, ImageResolvedAssetSource, ImageSourcePropType,
 import {QueryClient} from '@tanstack/react-query';
 import ImageCache, {useCachedImageURI} from 'hooks/useCachedImageURI';
 import {AvalancheProblemType} from 'types/nationalAvalancheCenter';
+import {resolveAssetSource} from 'utils/resolveAssetSource';
 
 export interface AvalancheProblemIconProps {
   problem: AvalancheProblemType;
@@ -26,19 +27,19 @@ const icons: Record<AvalancheProblemType, ImageSourcePropType> = {
 const sizes: Record<AvalancheProblemType, ImageResolvedAssetSource> = {
   /* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-require-imports */
 
-  [AvalancheProblemType.DryLoose]: Image.resolveAssetSource(require('../assets/problem-icons/DryLoose.png')),
-  [AvalancheProblemType.StormSlab]: Image.resolveAssetSource(require('../assets/problem-icons/StormSlab.png')),
-  [AvalancheProblemType.WindSlab]: Image.resolveAssetSource(require('../assets/problem-icons/WindSlab.png')),
-  [AvalancheProblemType.PersistentSlab]: Image.resolveAssetSource(require('../assets/problem-icons/PersistentSlab.png')),
-  [AvalancheProblemType.DeepPersistentSlab]: Image.resolveAssetSource(require('../assets/problem-icons/DeepPersistentSlab.png')),
-  [AvalancheProblemType.WetLoose]: Image.resolveAssetSource(require('../assets/problem-icons/WetLoose.png')),
-  [AvalancheProblemType.WetSlab]: Image.resolveAssetSource(require('../assets/problem-icons/WetSlab.png')),
-  [AvalancheProblemType.CorniceFall]: Image.resolveAssetSource(require('../assets/problem-icons/CorniceFall.png')),
-  [AvalancheProblemType.Glide]: Image.resolveAssetSource(require('../assets/problem-icons/Glide.png')),
+  [AvalancheProblemType.DryLoose]: resolveAssetSource(require('../assets/problem-icons/DryLoose.png')),
+  [AvalancheProblemType.StormSlab]: resolveAssetSource(require('../assets/problem-icons/StormSlab.png')),
+  [AvalancheProblemType.WindSlab]: resolveAssetSource(require('../assets/problem-icons/WindSlab.png')),
+  [AvalancheProblemType.PersistentSlab]: resolveAssetSource(require('../assets/problem-icons/PersistentSlab.png')),
+  [AvalancheProblemType.DeepPersistentSlab]: resolveAssetSource(require('../assets/problem-icons/DeepPersistentSlab.png')),
+  [AvalancheProblemType.WetLoose]: resolveAssetSource(require('../assets/problem-icons/WetLoose.png')),
+  [AvalancheProblemType.WetSlab]: resolveAssetSource(require('../assets/problem-icons/WetSlab.png')),
+  [AvalancheProblemType.CorniceFall]: resolveAssetSource(require('../assets/problem-icons/CorniceFall.png')),
+  [AvalancheProblemType.Glide]: resolveAssetSource(require('../assets/problem-icons/Glide.png')),
 };
 
 export const AvalancheProblemIcon: React.FunctionComponent<AvalancheProblemIconProps> = ({problem}: AvalancheProblemIconProps) => {
-  const {data: uri} = useCachedImageURI(Image.resolveAssetSource(icons[problem]).uri);
+  const {data: uri} = useCachedImageURI(resolveAssetSource(icons[problem]).uri);
   if (!uri) {
     return <ActivityIndicator />;
   }
@@ -56,14 +57,14 @@ export const AvalancheProblemIcon: React.FunctionComponent<AvalancheProblemIconP
 
 export const preloadAvalancheProblemIcons = async (queryClient: QueryClient, logger: Logger) => {
   return Promise.all([
-    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/DryLoose.png')).uri),
-    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/StormSlab.png')).uri),
-    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/WindSlab.png')).uri),
-    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/PersistentSlab.png')).uri),
-    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/DeepPersistentSlab.png')).uri),
-    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/WetLoose.png')).uri),
-    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/WetSlab.png')).uri),
-    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/CorniceFall.png')).uri),
-    ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/problem-icons/Glide.png')).uri),
+    ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/problem-icons/DryLoose.png')).uri),
+    ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/problem-icons/StormSlab.png')).uri),
+    ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/problem-icons/WindSlab.png')).uri),
+    ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/problem-icons/PersistentSlab.png')).uri),
+    ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/problem-icons/DeepPersistentSlab.png')).uri),
+    ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/problem-icons/WetLoose.png')).uri),
+    ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/problem-icons/WetSlab.png')).uri),
+    ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/problem-icons/CorniceFall.png')).uri),
+    ImageCache.prefetch(queryClient, logger, resolveAssetSource(require('../assets/problem-icons/Glide.png')).uri),
   ]);
 };

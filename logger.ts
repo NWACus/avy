@@ -4,16 +4,20 @@ import {File, Paths} from 'expo-file-system';
 import * as Updates from 'expo-updates';
 import {ConsoleFormattedStream} from 'logging/consoleFormattedStream';
 import {FileStream} from 'logging/fileStream';
-import {LogBox} from 'react-native';
+import {LogBox, Platform} from 'react-native';
 
 // react-native-logs always logs to FS.documentDirectory
 const LOG_PATH = 'log.json';
 
+// expo-file-system is not supported on web, and accessing Paths.document throws
+// there, so skip file-based logging entirely on the web preview.
+const fileLoggingSupported = Platform.OS !== 'web';
+
 // Path's export is undefined in the Jest testing environment
-export const logFilePath = (Paths?.document?.uri ?? '') + LOG_PATH;
+export const logFilePath = (fileLoggingSupported ? Paths?.document?.uri ?? '' : '') + LOG_PATH;
 
 // Always delete the log file on startup
-if (process.env.NODE_ENV !== 'test') {
+if (fileLoggingSupported && process.env.NODE_ENV !== 'test') {
   const logFile = new File(logFilePath);
   if (logFile.exists) {
     logFile.delete();
@@ -37,7 +41,7 @@ if (Updates.channel === '') {
 }
 
 // Always log to file, except for when we're in test
-if (process.env.NODE_ENV !== 'test') {
+if (fileLoggingSupported && process.env.NODE_ENV !== 'test') {
   streams.push({
     level: 'INFO',
     stream: new FileStream(logFilePath),

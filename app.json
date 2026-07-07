@@ -14,7 +14,7 @@
       "url": "https://u.expo.dev/47e2fd36-5165-4eb4-9a2d-21beec393379",
       "fallbackToCacheTimeout": 0
     },
-    "platforms": ["ios", "android"],
+    "platforms": ["ios", "android", "web"],
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,

@@ -1,0 +1,25 @@
+services:
+  web:
+    image: node:22-bookworm
+    working_dir: /workspace
+    network_mode: host
+    # Run as the workspace owner so files created in the bind mount (node_modules,
+    # .env, .expo caches) stay owned by the host user instead of root.
+    user: '1001:1001'
+    environment:
+      HOME: /tmp
+      IS_ALLOY: ${IS_ALLOY:-true}
+      # Expo/Metro web dev server port. 8080 is reserved for Alloy, so we
+      # keep Expo on its default 8081 and expose that as the frontend port.
+      EXPO_WEB_PORT: '8081'
+      # Non-interactive + CI-friendly startup for the Expo dev server.
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+    volumes:
+      - .:/workspace
+    command: bash -lc "
+      ./.alloy/populate-env.sh &&
+      (corepack enable || true) &&
+      yarn install --frozen-lockfile &&
+      yarn expo start --web --port 8081
+      "
