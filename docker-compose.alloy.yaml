@@ -15,6 +15,14 @@ services:
       # Non-interactive + CI-friendly startup for the Expo dev server.
       CI: '1'
       EXPO_NO_TELEMETRY: '1'
+      # Pass a Mapbox access token through from the sandbox process env when one
+      # is available, under any of the common variable names. populate-env.sh
+      # resolves these into MAPBOX_API_KEY (see app.config.ts). Empty when unset.
+      MAPBOX_API_KEY: ${MAPBOX_API_KEY:-}
+      EXPO_PUBLIC_MAPBOX_API_KEY: ${EXPO_PUBLIC_MAPBOX_API_KEY:-}
+      MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-}
+      MAPBOX_PUBLIC_TOKEN: ${MAPBOX_PUBLIC_TOKEN:-}
+      MAPBOX_DOWNLOAD_TOKEN: ${MAPBOX_DOWNLOAD_TOKEN:-}
     volumes:
       - .:/workspace
     command: bash -lc "

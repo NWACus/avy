@@ -63,8 +63,14 @@ set_default() {
 # being empty in development.
 set_default SENTRY_AUTH_TOKEN ""
 set_default EXPO_PUBLIC_SENTRY_DSN ""
-set_default MAPBOX_API_KEY ""
 set_default EXPO_PUBLIC_POSTHOG_API_KEY ""
+
+# Mapbox access token. The app reads MAPBOX_API_KEY (see app.config.ts). Accept
+# any of the common env var names a Mapbox token might be provided under so the
+# real token flows into .env when the sandbox has one; otherwise fall back to an
+# empty value (the web preview renders empty map containers without a token).
+MAPBOX_TOKEN_VALUE="${MAPBOX_API_KEY:-${EXPO_PUBLIC_MAPBOX_API_KEY:-${MAPBOX_ACCESS_TOKEN:-${MAPBOX_PUBLIC_TOKEN:-${MAPBOX_DOWNLOAD_TOKEN:-}}}}}"
+set_default MAPBOX_API_KEY "$MAPBOX_TOKEN_VALUE"
 
 # Keep on-screen error/warning boxes suppressed so the web preview renders
 # cleanly even when optional forecast data is missing.
