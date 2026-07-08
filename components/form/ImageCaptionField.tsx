@@ -1,23 +1,87 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import {zodResolver} from '@hookform/resolvers/zod';
 import * as Sentry from '@sentry/react-native';
 
 import * as ImagePicker from 'expo-image-picker';
 import React, {useCallback, useEffect, useState} from 'react';
-import {FieldPathByValue, FieldValues, useController} from 'react-hook-form';
-import {ColorValue, LayoutChangeEvent, Modal, StyleSheet, TouchableHighlight} from 'react-native';
+import {FieldPathByValue, FieldValues, FormProvider, Resolver, useController, useForm} from 'react-hook-form';
+import {ColorValue, LayoutChangeEvent, Platform, StyleSheet, TouchableHighlight} from 'react-native';
 
 import {Button} from 'components/content/Button';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
+import {DrawerModal, DrawerModalDisplayType} from 'components/content/DrawerModal';
 import Toast from 'components/content/ToastRoot';
 import {HStack, VStack, View, ViewProps} from 'components/core';
-import {ImageCaptionFieldEditView} from 'components/form/ImageCaptionFieldEditView';
+import {TextField, TextFieldComponent} from 'components/form/TextField';
 import {ImageAndCaption, ImagePickerAssetWithCaption} from 'components/observations/ObservationFormData';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
-import {Body, BodyBlack, BodySm} from 'components/text';
+import {Body, BodyBlack, BodySemibold, BodySm} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {colorLookup} from 'theme';
+import {z} from 'zod';
 
 type ImageAssetArray = ImagePickerAssetWithCaption[] | undefined;
+
+interface CaptionFormData {
+  caption: string;
+}
+
+const captionForm = z.object({
+  caption: z.string(),
+});
+
+const CaptionFormTextField = TextField as TextFieldComponent<CaptionFormData>;
+
+const CaptionEditor: React.FC<{
+  initialCaption?: string;
+  onSetCaption: (caption: string) => void;
+  onCancel: () => void;
+}> = ({initialCaption, onSetCaption, onCancel}) => {
+  const formContext = useForm<CaptionFormData>({
+    defaultValues: {caption: initialCaption ?? ''},
+    resolver: zodResolver(captionForm) as Resolver<CaptionFormData>,
+    mode: 'onBlur',
+    shouldFocusError: false,
+    shouldUnregister: true,
+  });
+
+  const onSubmitPress = useCallback(() => {
+    void (async () => {
+      await formContext.trigger();
+      const submit = formContext.handleSubmit(values => {
+        onSetCaption(values.caption);
+      });
+      await submit();
+    })();
+  }, [formContext, onSetCaption]);
+
+  return (
+    <FormProvider {...formContext}>
+      <VStack space={8} px={16} pb={16}>
+        <View style={styles.captionHeader}>
+          <BodySemibold>Photo Description</BodySemibold>
+        </View>
+        <CaptionFormTextField
+          name="caption"
+          style={styles.captionTextField}
+          label="Caption"
+          hideLabel
+          textInputProps={{
+            placeholder: 'Write a short image description…',
+            multiline: true,
+            autoFocus: Platform.OS !== 'android',
+          }}
+        />
+        <Button mx={0} mt={8} buttonStyle="primary" onPress={onSubmitPress}>
+          <BodySemibold>Save</BodySemibold>
+        </Button>
+        <Button mx={0} mt={8} buttonStyle="normal" borderWidth={0} onPress={onCancel}>
+          <BodySemibold>Cancel</BodySemibold>
+        </Button>
+      </VStack>
+    </FormProvider>
+  );
+};
 
 const EditImageCaptionField: React.FC<{
   image: ImageAndCaption | null;
@@ -25,41 +89,39 @@ const EditImageCaptionField: React.FC<{
   onDismiss: () => void;
   onModalDisplayed: (isDisplayed: boolean) => void;
 }> = ({image, onUpdateImage, onDismiss, onModalDisplayed}) => {
-  const onSetCaption = useCallback(
-    (caption: string) => {
-      if (image == null) {
-        return;
-      }
-      onUpdateImage({
-        image: image.image,
-        caption,
-      });
-      onDismiss();
-    },
-    [image, onUpdateImage, onDismiss],
-  );
-
   const [visible, setVisible] = useState(false);
+  const [editedImage, setEditedImage] = useState<ImageAndCaption | null>(null);
 
   useEffect(() => {
     if (image != null) {
+      setEditedImage(image);
       setVisible(true);
     }
   }, [image]);
-
-  const handleDismiss = useCallback(() => {
-    onDismiss();
-    setVisible(false);
-  }, [onDismiss]);
 
   useEffect(() => {
     onModalDisplayed(visible);
   }, [visible, onModalDisplayed]);
 
+  const handleDismiss = useCallback(() => {
+    setVisible(false);
+    onDismiss();
+  }, [onDismiss]);
+
+  const onSetCaption = useCallback(
+    (caption: string) => {
+      if (editedImage != null) {
+        onUpdateImage({image: editedImage.image, caption});
+      }
+      handleDismiss();
+    },
+    [editedImage, onUpdateImage, handleDismiss],
+  );
+
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen" onRequestClose={onDismiss} statusBarTranslucent>
-      <ImageCaptionFieldEditView onDismiss={handleDismiss} onViewDismissed={handleDismiss} onSetCaption={onSetCaption} initialCaption={image?.caption} />
-    </Modal>
+    <DrawerModal isVisible={visible} onDismiss={handleDismiss} drawerDisplayType={DrawerModalDisplayType.halfScreenOnly}>
+      {editedImage != null && <CaptionEditor key={editedImage.image.uri} initialCaption={editedImage.caption} onSetCaption={onSetCaption} onCancel={handleDismiss} />}
+    </DrawerModal>
   );
 };
 
@@ -364,5 +426,12 @@ const styles = StyleSheet.create({
   },
   trashRight: {
     right: 12,
+  },
+  captionHeader: {
+    alignItems: 'center',
+    paddingBottom: 8,
+  },
+  captionTextField: {
+    minHeight: 120,
   },
 });
