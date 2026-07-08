@@ -8,13 +8,13 @@ import {ColorValue, LayoutChangeEvent, Modal, StyleSheet, TouchableHighlight} fr
 
 import {Button} from 'components/content/Button';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
+import Toast from 'components/content/ToastRoot';
 import {HStack, VStack, View, ViewProps} from 'components/core';
 import {ImageCaptionFieldEditView} from 'components/form/ImageCaptionFieldEditView';
 import {ImageAndCaption, ImagePickerAssetWithCaption} from 'components/observations/ObservationFormData';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {Body, BodyBlack, BodySm} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 
 type ImageAssetArray = ImagePickerAssetWithCaption[] | undefined;

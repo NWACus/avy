@@ -5,6 +5,7 @@ import {formatDistanceToNow, isAfter} from 'date-fns';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {Card} from 'components/content/Card';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
+import Toast from 'components/content/ToastRoot';
 import {MediaCarousel} from 'components/content/carousel/MediaCarousel';
 import {HStack, VStack} from 'components/core';
 import {AllCapsSm, AllCapsSmBlack, BodyBlack, Title3Black} from 'components/text';
@@ -13,7 +14,6 @@ import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useRefresh} from 'hooks/useRefresh';
 import {useSynopsis} from 'hooks/useSynopsis';
 import {RefreshControl, ScrollView} from 'react-native';
-import Toast from 'react-native-toast-message';
 import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -39,27 +39,44 @@ export const SynopsisTab: React.FunctionComponent<{
     });
   }, [navigation]);
 
+  // Key the effect on the expiry string, not the synopsis object: React Query refetches can produce a new
+  // object identity for identical data, and re-running this effect hides the toast (cleanup) out from under
+  // the user even though it is set to never auto-hide.
+  const expiresTimeString = synopsis?.expires_time;
   useFocusEffect(
     useCallback(() => {
-      if (synopsis?.expires_time) {
-        const expires_time = new Date(synopsis.expires_time);
-        if (isAfter(new Date(), expires_time)) {
-          setTimeout(
-            // entirely unclear why this needs to be in a setTimeout, but nothing works without it
-            () =>
-              Toast.show({
-                type: 'error',
-                text1: `This blog expired ${formatDistanceToNow(expires_time)} ago.`,
-                autoHide: false,
-                position: 'bottom',
-                onPress: () => Toast.hide(),
-              }),
-            0,
-          );
-        }
+      let shown = false;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      let removeListener: (() => void) | undefined;
+      if (expiresTimeString && isAfter(new Date(), new Date(expiresTimeString))) {
+        const expires_time = new Date(expiresTimeString);
+        const showToast = () => {
+          if (shown) {
+            return;
+          }
+          shown = true;
+          Toast.show({
+            type: 'error',
+            text1: `This blog expired ${formatDistanceToNow(expires_time)} ago.`,
+            autoHide: false,
+            position: 'bottom',
+            onPress: () => Toast.hide(),
+          });
+        };
+        // Show once the screen-push transition ends — touches are blocked while it runs. Fall back to a
+        // short delay when there's no transition (e.g. a tab re-focus, where transitionEnd never fires).
+        const stackNavigation: MainStackNavigationProps | undefined = navigation.getParent();
+        removeListener = stackNavigation?.addListener('transitionEnd', showToast);
+        timer = setTimeout(showToast, 600);
       }
-      return () => Toast.hide();
-    }, [synopsis]),
+      return () => {
+        removeListener?.();
+        if (timer) {
+          clearTimeout(timer);
+        }
+        Toast.hide();
+      };
+    }, [expiresTimeString, navigation]),
   );
 
   if (incompleteQueryState(centerResult, synopsisResult) || !center || !synopsis) {

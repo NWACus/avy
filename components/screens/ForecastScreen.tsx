@@ -68,6 +68,9 @@ const AvalancheForecast: React.FunctionComponent<{
     <Tab.Navigator
       initialRouteName={'avalanche'}
       screenOptions={{
+        // Mount tabs on first focus instead of all four during the screen-push transition — on Android the
+        // up-front mount saturates the UI thread for seconds, during which touches are not processed.
+        lazy: true,
         tabBarActiveTintColor: colorLookup('primary').toString(),
         tabBarInactiveTintColor: colorLookup('text').toString(),
         tabBarItemStyle: {alignItems: 'stretch'},

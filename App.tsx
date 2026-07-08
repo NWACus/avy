@@ -4,6 +4,7 @@ import {SelectProvider} from '@mobile-reality/react-native-select-pro';
 import {getStateFromPath, NavigationContainer, PathConfigMap, useNavigationContainerRef} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
 import {ActivityIndicator, AppState, AppStateStatus, Image, Platform, StatusBar, StyleSheet, View} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import * as Sentry from '@sentry/react-native';
@@ -18,7 +19,8 @@ import {focusManager, QueryCache, QueryClient, useQueryClient} from '@tanstack/r
 import {PersistQueryClientProvider} from '@tanstack/react-query-persist-client';
 
 import {ClientContext, ClientProps, productionHosts, stagingHosts} from 'clientContext';
-import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
+import Toast, {ToastConfigParams} from 'components/content/ToastRoot';
+import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/ToastViews';
 import {HTMLRendererConfig} from 'components/text/HTML';
 import ImageCache, {queryKeyPrefix} from 'hooks/useCachedImageURI';
 import {useOnlineManager} from 'hooks/useOnlineManager';
@@ -26,7 +28,6 @@ import {IntlProvider} from 'intl';
 import {logFilePath, logger} from 'logger';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {prefetchAllActiveForecasts} from 'network/prefetchAllActiveForecasts';
-import Toast, {ToastConfigParams} from 'react-native-toast-message';
 import {AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
 
 import 'date-time-format-timezone';
@@ -495,40 +496,48 @@ const BaseApp: React.FunctionComponent<{
 
   return (
     <>
-      <HTMLRendererConfig>
+      <GestureHandlerRootView style={{flex: 1}}>
         <SafeAreaProvider>
-          <NavigationContainer linking={linking} ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
-            <PostHogProvider
-              apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string}
-              options={{
-                captureAppLifecycleEvents: true,
-                bootstrap: {
-                  distinctId: preferences.mixpanelUserId,
-                  isIdentifiedId: true,
-                  featureFlags: {
-                    'down-for-maintenance': false,
-                    'update-required': false,
+          <HTMLRendererConfig>
+            <NavigationContainer linking={linking} ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
+              <PostHogProvider
+                apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string}
+                options={{
+                  captureAppLifecycleEvents: true,
+                  bootstrap: {
+                    distinctId: preferences.mixpanelUserId,
+                    isIdentifiedId: true,
+                    featureFlags: {
+                      'down-for-maintenance': false,
+                      'update-required': false,
+                    },
                   },
-                },
-              }}
-              autocapture={{
-                captureScreens: false, // we need to translate screen parameters to human-readable info, which requires HTTP request data, so we can't use the built-in screen capture with route property mapping feature
-              }}>
-              <FeatureFlagsProvider>
-                <KillSwitchMonitor>
-                  <SelectProvider>
-                    <StatusBar barStyle={'dark-content'} animated={false} backgroundColor={'white'} />
-                    <View style={{flex: 1}}>
-                      <DrawerNavigator requestedTime={requestedTime} centerId={center} isInNoCenterExperience={isInNoCenterExperience} staging={staging} setStaging={setStaging} />
-                    </View>
-                  </SelectProvider>
-                </KillSwitchMonitor>
-              </FeatureFlagsProvider>
-            </PostHogProvider>
-          </NavigationContainer>
+                }}
+                autocapture={{
+                  captureScreens: false, // we need to translate screen parameters to human-readable info, which requires HTTP request data, so we can't use the built-in screen capture with route property mapping feature
+                }}>
+                <FeatureFlagsProvider>
+                  <KillSwitchMonitor>
+                    <SelectProvider>
+                      <StatusBar barStyle={'dark-content'} animated={false} backgroundColor={'white'} />
+                      <View style={{flex: 1}}>
+                        <DrawerNavigator
+                          requestedTime={requestedTime}
+                          centerId={center}
+                          isInNoCenterExperience={isInNoCenterExperience}
+                          staging={staging}
+                          setStaging={setStaging}
+                        />
+                      </View>
+                    </SelectProvider>
+                  </KillSwitchMonitor>
+                </FeatureFlagsProvider>
+              </PostHogProvider>
+            </NavigationContainer>
+          </HTMLRendererConfig>
+          <Toast config={toastConfig} bottomOffset={88} visibilityTime={2000} />
         </SafeAreaProvider>
-      </HTMLRendererConfig>
-      <Toast config={toastConfig} bottomOffset={88} visibilityTime={2000} />
+      </GestureHandlerRootView>
     </>
   );
 };

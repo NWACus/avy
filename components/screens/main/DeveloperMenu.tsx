@@ -27,7 +27,8 @@ import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
-import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/Toast';
+import Toast from 'components/content/ToastRoot';
+import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/ToastViews';
 import {AvalancheForecastZoneMap} from 'components/map/AvalancheForecastZoneMap';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {Keys} from 'components/screens/main/Keys';
@@ -60,7 +61,6 @@ import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {logFilePath, logger} from 'logger';
 import {sendMail} from 'network/sendMail';
 import {usePreferences} from 'Preferences';
-import Toast from 'react-native-toast-message';
 import {colorLookup} from 'theme';
 import {parseRequestedTimeString, RequestedTime, requestedTimeToUTCDate, toISOStringUTC} from 'utils/date';
 
