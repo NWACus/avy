@@ -58,7 +58,7 @@ export const DrawerModal: React.FC<DrawerProps> = ({isVisible, onDismiss, drawer
   const animateIn = useCallback(() => {
     dismissingRef.current = false;
     translateY.value = withSpring(0, SPRING_CONFIG);
-    overlayOpacity.value = withTiming(1, {duration: OVERLAY_FADE_DURATION});
+    overlayOpacity.value = withTiming(0.3, {duration: OVERLAY_FADE_DURATION});
   }, [translateY, overlayOpacity]);
 
   const animateOut = useCallback(
