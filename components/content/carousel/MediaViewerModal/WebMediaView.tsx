@@ -63,7 +63,7 @@ export const WebMediaView: React.FunctionComponent<WebMediaViewProps> = ({
 
   const onRenderLoading = useCallback(() => {
     return (
-      <View style={{...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center', backgroundColor: colorLookup('modal.background')}}>
+      <View style={{...StyleSheet.absoluteFill, justifyContent: 'center', alignItems: 'center', backgroundColor: colorLookup('modal.background')}}>
         <ActivityIndicator size={'large'} />
       </View>
     );
