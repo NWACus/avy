@@ -83,7 +83,7 @@ export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, 
       ref={handleRef}
       source={sourceData}
       heightFraction={0.33}
-      errorMessage="An error occured loading the video. Please try again"
+      errorMessage="An error occurred loading the video. Please try again"
       allowsInlineMediaPlayback
       allowsFullscreenVideo
     />
