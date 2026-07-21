@@ -26,6 +26,7 @@ import {AvalancheProblemSizeLine} from 'components/AvalancheProblemSizeLine';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
+import {DrawerModal, DrawerModalDisplayType} from 'components/content/DrawerModal';
 import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryState';
 import Toast from 'components/content/ToastRoot';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/ToastViews';
@@ -175,6 +176,13 @@ const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
           navigation.navigate('avalancheComponentPreview');
         },
         data: undefined,
+      },
+      {
+        label: 'Open drawer preview',
+        data: 'Drawer Preview',
+        action: () => {
+          navigation.navigate('drawerPreview');
+        },
       },
     ],
     [navigation],
@@ -775,6 +783,54 @@ export const AvalancheComponentPreview = () => {
   );
 };
 
+export const DrawerPreview = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [displayType, setDisplayType] = useState<DrawerModalDisplayType>(DrawerModalDisplayType.halfScreenOnly);
+
+  const openHalfScreen = useCallback(() => {
+    setDisplayType(DrawerModalDisplayType.halfScreenOnly);
+    setIsOpen(true);
+  }, []);
+  const openFullScreen = useCallback(() => {
+    setDisplayType(DrawerModalDisplayType.fullScreen);
+    setIsOpen(true);
+  }, []);
+  const dismiss = useCallback(() => setIsOpen(false), []);
+
+  const rows = Array.from({length: 18}, (_, index) => index + 1);
+
+  return (
+    <SafeAreaView style={{flex: 1}}>
+      <VStack space={16} px={16} py={16}>
+        <Body>Open the drawer with each display type to compare how tall it is allowed to grow.</Body>
+        <Button buttonStyle="primary" onPress={openHalfScreen}>
+          <BodySemibold>Open half-screen drawer</BodySemibold>
+        </Button>
+        <Button buttonStyle="primary" onPress={openFullScreen}>
+          <BodySemibold>Open full-screen drawer</BodySemibold>
+        </Button>
+      </VStack>
+      <DrawerModal isVisible={isOpen} onDismiss={dismiss} drawerDisplayType={displayType}>
+        <VStack space={12} px={16} pb={16} flexShrink={1}>
+          <BodyBlack>{displayType === DrawerModalDisplayType.fullScreen ? 'Full-screen drawer' : 'Half-screen drawer'}</BodyBlack>
+          <ScrollView style={styles.drawerPreviewScroll}>
+            <VStack space={8} py={4}>
+              {rows.map(row => (
+                <View key={row} bg="gray.100" borderRadius={8} p={12}>
+                  <Body>Row {row}</Body>
+                </View>
+              ))}
+            </VStack>
+          </ScrollView>
+          <Button buttonStyle="normal" onPress={dismiss}>
+            <BodySemibold>Close</BodySemibold>
+          </Button>
+        </VStack>
+      </DrawerModal>
+    </SafeAreaView>
+  );
+};
+
 export const TimeMachine = () => {
   const {requestedTime, setRequestedTime} = React.useContext(ClientContext);
   const changeTime = useCallback(
@@ -862,5 +918,8 @@ export const ExpoConfigScreen = (_: NativeStackScreenProps<MainStackParamList, '
 const styles = StyleSheet.create({
   fullscreen: {
     ...StyleSheet.absoluteFill,
+  },
+  drawerPreviewScroll: {
+    flexShrink: 1,
   },
 });

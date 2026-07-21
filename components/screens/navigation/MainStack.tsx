@@ -16,6 +16,7 @@ import {
   ButtonStylePreview,
   DebugMapScreen,
   DeveloperMenuScreen,
+  DrawerPreview,
   ExpoConfigScreen,
   OutcomeScreen,
   TextStylePreview,
@@ -139,6 +140,7 @@ export const MainStackNavigator: React.FunctionComponent<{
         options={{title: `Avalanche Component Preview`, headerBackButtonDisplayMode: 'minimal'}}
       />
       <MainStack.Screen name="toastPreview" component={ToastPreview} options={{title: `Toast Preview`, headerBackButtonDisplayMode: 'minimal'}} />
+      <MainStack.Screen name="drawerPreview" component={DrawerPreview} options={{title: `Drawer Preview`, headerBackButtonDisplayMode: 'minimal'}} />
       <MainStack.Screen name="timeMachine" component={TimeMachine} options={{title: `Time Machine`, headerBackButtonDisplayMode: 'minimal'}} />
     </MainStack.Navigator>
   );
