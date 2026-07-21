@@ -263,4 +263,5 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
   CAC: [],
   CAAC: [],
   UAC: [],
+  NYSAC: [],
 };

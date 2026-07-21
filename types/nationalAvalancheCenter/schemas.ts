@@ -15,6 +15,7 @@ export const avalancheCenterIDSchema = z.enum([
   'MSAC', // Mount Shasta: CA
   'MWAC', // Mount Washington: NH
   'NWAC', // Northwest: WA, OR
+  'NYSAC', // New York State - Currently Unsupported with plans to fully support them
   'PAC', // Payette: ID
   'SAC', // Sierra: CA
   'SNFAC', // Sawtooths: ID
@@ -65,6 +66,7 @@ export const isSupportedCenter = (centerId: AvalancheCenterID): boolean => {
     case 'EARAC':
     case 'CAC':
     case 'CAAC':
+    case 'NYSAC':
       return false;
   }
 };
@@ -104,6 +106,7 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
   ['EARAC']: 'https://alaskasnow.org/eastern-ak-range/',
   ['CAC']: 'https://alaskasnow.org/cordova/',
   ['CAAC']: 'https://www.coastalakavalanche.org/',
+  ['NYSAC']: '',
 };
 
 export enum DangerLevel {
@@ -806,7 +809,7 @@ export type AvalancheCenter = z.infer<typeof avalancheCenterSchema>;
 export const mapLayerPropertiesSchema = z.object({
   name: z.string(),
   center_id: avalancheCenterIDSchema,
-  center_link: z.string(),
+  center_link: z.string().nullable(), // Optional for NYSAC. This will be reverted once NYSAC is onboarded
   state: z.string(),
   link: z.string(),
   off_season: z.boolean(),

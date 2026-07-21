@@ -53,6 +53,7 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
     ['EARAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
     ['CAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
     ['CAAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['NYSAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
   };
 
   const {data: uri} = useCachedImageURI(source[avalancheCenterId].uri);
@@ -149,6 +150,9 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
     ['CAAC']: (s: ImageStyle) => {
       return <Image style={s} source={{uri: uri}} />;
     },
+    ['NYSAC']: (s: ImageStyle) => {
+      return <Image style={s} source={{uri: uri}} />;
+    },
   };
   const actualStyle: ImageStyle = {...style};
   if (actualStyle.resizeMode !== 'contain') {
@@ -222,6 +226,8 @@ export const preloadAvalancheCenterLogo = async (queryClient: QueryClient, logge
     case 'CAC':
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
     case 'CAAC':
+      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+    case 'NYSAC':
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
   }
   const invalid: never = avalancheCenter;
