@@ -5,11 +5,9 @@ import React, {PropsWithChildren, useCallback, useMemo, useState} from 'react';
 import {FlatList, FlatListProps} from 'react-native';
 import {ImageMediaItem, MediaItem, MediaType, PDFMediaItem, VideoMediaItem} from 'types/nationalAvalancheCenter';
 
-export interface ThumbnailListItem {
+interface ThumbnailListItem {
   kind: 'image' | 'video' | 'pdf';
   uri: string;
-  caption: string | null;
-  title: string | null | undefined;
 }
 
 const thumbnailListItems = (mediaItems: MediaItem[]): ThumbnailListItem[] => {
@@ -29,13 +27,11 @@ const thumbnailListItems = (mediaItems: MediaItem[]): ThumbnailListItem[] => {
   return thumbnailItems;
 };
 
-export const videoToThumbnailListItem = (item: VideoMediaItem): ThumbnailListItem => {
+const videoToThumbnailListItem = (item: VideoMediaItem): ThumbnailListItem => {
   if (typeof item.url === 'string' || 'external_link' in item.url) {
     return {
       kind: 'video',
       uri: '',
-      caption: item.caption,
-      title: item.title,
     };
   }
 
@@ -43,26 +39,20 @@ export const videoToThumbnailListItem = (item: VideoMediaItem): ThumbnailListIte
   return {
     kind: 'video',
     uri: url['thumbnail'],
-    caption: item.caption,
-    title: item.title,
   };
 };
 
-export const imageToThumbnailListItem = (item: ImageMediaItem): ThumbnailListItem => {
+const imageToThumbnailListItem = (item: ImageMediaItem): ThumbnailListItem => {
   return {
     kind: 'image',
     uri: item.url['thumbnail'],
-    caption: item.caption,
-    title: item.title,
   };
 };
 
-export const pdfToThumbnailListItem = (_item: PDFMediaItem): ThumbnailListItem => {
+const pdfToThumbnailListItem = (_item: PDFMediaItem): ThumbnailListItem => {
   return {
     kind: 'pdf',
     uri: '',
-    caption: null,
-    title: undefined,
   };
 };
 
