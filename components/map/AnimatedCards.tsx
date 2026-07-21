@@ -382,16 +382,17 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
   const [programmaticallyScrolling, setProgrammaticallyScrolling] = useState<boolean>(false);
   const isUserScrolling = useRef(false);
 
-  const offsets = items?.map((_itemData, index) => index * CARD_WIDTH * width + (index - 1) * CARD_SPACING * width);
+  const cardInterval = (CARD_WIDTH + CARD_SPACING) * width;
+  const offsets = items?.map((_itemData, index) => index * cardInterval - (CARD_SPACING + CARD_MARGIN) * width);
   const flatListProps = {
     snapToAlignment: 'center',
     decelerationRate: 'fast',
-    snapToOffsets: offsets,
+    snapToInterval: cardInterval,
+    disableIntervalMomentum: true,
     contentInset: {
       left: CARD_MARGIN * width,
       right: CARD_MARGIN * width,
     },
-    contentContainerStyle: {paddingHorizontal: CARD_MARGIN * width},
   } as const;
 
   const panResponder = useRef(
@@ -489,11 +490,11 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
 
   const getItemLayout = useCallback(
     (_data: unknown, index: number) => ({
-      length: width * (CARD_WIDTH + CARD_SPACING),
+      length: cardInterval,
       offset: offsets[index],
       index,
     }),
-    [offsets, width],
+    [offsets, cardInterval],
   );
 
   const getItemCount = useCallback(() => items.length, [items]);
