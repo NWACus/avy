@@ -1,17 +1,16 @@
 import React, {useCallback} from 'react';
 
-import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {ScrollView} from 'react-native';
 
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {avalancheCenterList, AvalancheCenters} from 'components/avalancheCenterList';
+import {avalancheCenterList} from 'components/avalancheCenterList';
 import {AvalancheCenterList} from 'components/content/AvalancheCenterList';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {useAllAvalancheCenterMetadata} from 'hooks/useAllAvalancheCenterMetadata';
 import {CenterSwitchOrigin, useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {MainStackNavigationProps, MainStackParamList} from 'routes';
+import {MainStackNavigationProps} from 'routes';
 import {AvalancheCenter, AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 export const AvalancheCenterSelector: React.FunctionComponent<{
@@ -19,11 +18,9 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
   setAvalancheCenter: (center: AvalancheCenterID) => void;
 }> = ({currentCenterId, setAvalancheCenter}) => {
   const navigation = useNavigation<MainStackNavigationProps>();
-  const route = useRoute<NativeStackScreenProps<MainStackParamList, 'avalancheCenterSelector'>['route']>();
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
-  const whichCenters = route.params.debugMode ? AvalancheCenters.AllCenters : AvalancheCenters.SupportedCenters;
-  const metadataResults = useAllAvalancheCenterMetadata(capabilities, whichCenters);
+  const metadataResults = useAllAvalancheCenterMetadata(capabilities);
   const analytics = useAnalytics();
 
   const setAvalancheCenterWrapper = React.useCallback(

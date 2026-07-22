@@ -1,5 +1,4 @@
-import * as Updates from 'expo-updates';
-import {AllAvalancheCenterCapabilities, AvalancheCenter, AvalancheCenterID, avalancheCenterIDSchema, isSupportedCenter, userFacingCenterId} from 'types/nationalAvalancheCenter';
+import {AllAvalancheCenterCapabilities, AvalancheCenter, AvalancheCenterID, avalancheCenterIDSchema, isNACCenter, userFacingCenterId} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheCenterListData {
   center: AvalancheCenter;
@@ -7,7 +6,7 @@ export interface AvalancheCenterListData {
   display_id: string;
 }
 
-export const supportedAvalancheCenters = (): {center: AvalancheCenterID; description: string}[] => {
+export const nacAvalancheCenterDescriptions = (): {center: AvalancheCenterID; description: string}[] => {
   const centers: {center: AvalancheCenterID; description: string}[] = [
     {center: 'BTAC', description: 'Avalanche forecasts for Western Wyoming and Eastern Idaho.'},
     {center: 'BAC', description: 'Avalanche forecasts for the Bridgeport region in California.'},
@@ -16,60 +15,44 @@ export const supportedAvalancheCenters = (): {center: AvalancheCenterID; descrip
     {center: 'COAA', description: 'Avalanche forecasts for central Oregon.'},
     {center: 'ESAC', description: 'Avalanche forecasts for the Eastern Sierra region in California.'},
     {center: 'FAC', description: 'Avalanche forecasts for Northwestern Montana.'},
+    {center: 'GNFAC', description: 'Avalanche forecasts for Southwest Montana.'},
+    {center: 'HAC', description: 'Avalanche forecasts for the Haines region in Alaska.'},
     {center: 'HPAC', description: 'Avalanche forecasts for the Hatcher Pass region in Alaska.'},
     {center: 'IPAC', description: 'Avalanche forecasts for the Idaho panhandle.'},
+    {center: 'KPAC', description: 'Avalanche forecasts for the Kachina region in Arizona.'},
     {center: 'MSAC', description: 'Avalanche forecasts for the Mount Shasta region in California.'},
     {center: 'MWAC', description: 'Avalanche forecasts for Mount Washington.'},
     {center: 'NWAC', description: 'Avalanche forecasts for Washington and Northern Oregon.'},
     {center: 'PAC', description: 'Avalanche forecasts for the Payette region in Idaho.'},
     {center: 'SNFAC', description: 'Avalanche forecasts for South Central Idaho.'},
     {center: 'SAC', description: 'Avalanche forecasts for the Lake Tahoe region in California.'},
+    {center: 'TAC', description: 'Avalanche forecasts for the Taos Valley in New Mexico.'},
+    {center: 'VAC', description: 'Avalanche forecasts for the Valdez region of Alaska.'},
     {center: 'WAC', description: 'Avalanche forecasts for Northeast Oregon.'},
+    {center: 'WCMAC', description: 'Avalanche forecasts for West Central Montana.'},
   ];
-
-  if (Updates.channel !== 'release') {
-    centers.push(
-      // { center: 'AAIC', description: 'Avalanche forecasts for Alaska.' }, // This is needed to fetch the metadata for AAIC but it is not a selectable center
-      {center: 'HAC', description: 'Avalanche forecasts for the Haines region in Alaska.'},
-      {center: 'GNFAC', description: 'Avalanche forecasts for Southwest Montana.'},
-      {center: 'KPAC', description: 'Avalanche forecasts for the Kachina region in Arizona.'},
-      {center: 'TAC', description: 'Avalanche forecasts for the Taos Valley in New Mexico.'},
-      {center: 'VAC', description: 'Avalanche forecasts for the Valdez region of Alaska.'},
-      {center: 'WCMAC', description: 'Avalanche forecasts for West Central Montana.'},
-    );
-  }
 
   return centers;
 };
 
-export enum AvalancheCenters {
-  SupportedCenters,
-  AllCenters,
-}
-
 // In order to display data for the center, we need to know about it so that we have a logo, etc.
-export const filterToKnownCenters = (ids: string[]): AvalancheCenterID[] => {
+export const filterToNACCenters = (ids: string[]): AvalancheCenterID[] => {
   const knownCenters: AvalancheCenterID[] = [];
   for (const center of ids) {
     const idResult = avalancheCenterIDSchema.safeParse(center);
-    if (idResult.success && isSupportedCenter(idResult.data)) {
+    if (idResult.success && isNACCenter(idResult.data)) {
       knownCenters.push(idResult.data);
     }
   }
   return knownCenters;
 };
 
-export const filterToSupportedCenters = (ids: AvalancheCenterID[]): AvalancheCenterID[] => {
-  const supportedCenters: AvalancheCenterID[] = supportedAvalancheCenters().map(c => c.center);
-  return ids.filter(id => supportedCenters.includes(id));
-};
-
 export const avalancheCenterList = (metadata: AvalancheCenter[], capabilities: AllAvalancheCenterCapabilities): AvalancheCenterListData[] => {
-  const centers = supportedAvalancheCenters();
+  const nacCenters = nacAvalancheCenterDescriptions();
   return metadata
     .map(center => ({
       center: center,
-      description: centers.find(supported => supported.center === center.id)?.description,
+      description: nacCenters.find(supported => supported.center === center.id)?.description,
       display_id: userFacingCenterId(center.id as AvalancheCenterID, capabilities),
     }))
     .sort((a, b) => {
@@ -82,8 +65,8 @@ export const avalancheCenterList = (metadata: AvalancheCenter[], capabilities: A
         // Unsupported centers are sorted alphabetically
         return a.center.name.localeCompare(b.center.name);
       } else {
-        // Supported centers are sorted according to their order in supportedAvalancheCenters
-        return centers.findIndex(supported => supported.center === a.center.id) - centers.findIndex(supported => supported.center === b.center.id);
+        // NAC centers are sorted according to their order in supportedAvalancheCenters
+        return nacCenters.findIndex(supported => supported.center === a.center.id) - nacCenters.findIndex(supported => supported.center === b.center.id);
       }
     });
 };
