@@ -4,7 +4,7 @@ import {useQueries, useQueryClient, UseQueryOptions} from '@tanstack/react-query
 import {AxiosError} from 'axios';
 
 import {ClientContext, ClientProps} from 'clientContext';
-import {AvalancheCenters, filterToKnownCenters, filterToSupportedCenters} from 'components/avalancheCenterList';
+import {AvalancheCenters, filterToKnownNACCenters, filterToSupportedNACCenters} from 'components/avalancheCenterList';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AllAvalancheCenterCapabilities, AvalancheCenter, AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -17,7 +17,7 @@ export const useAllAvalancheCenterMetadata = (capabilities: AllAvalancheCenterCa
 
   const knownCenters: AvalancheCenterID[] = [];
   if (capabilities) {
-    knownCenters.push(...filterToKnownCenters(capabilities.centers.map(center => center.id)));
+    knownCenters.push(...filterToKnownNACCenters(capabilities.centers.map(center => center.id)));
   }
 
   const filteredCenters: AvalancheCenterID[] = [];
@@ -25,8 +25,8 @@ export const useAllAvalancheCenterMetadata = (capabilities: AllAvalancheCenterCa
     case AvalancheCenters.AllCenters:
       filteredCenters.push(...knownCenters);
       break;
-    case AvalancheCenters.SupportedCenters:
-      filteredCenters.push(...filterToSupportedCenters(knownCenters));
+    case AvalancheCenters.NACCenters:
+      filteredCenters.push(...filterToSupportedNACCenters(knownCenters));
   }
 
   return useQueries<UseQueryOptions<AvalancheCenter, AxiosError | ZodError>[]>({

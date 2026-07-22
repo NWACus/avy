@@ -10,7 +10,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import {useMapPersistence} from 'MapPersistence';
 import {usePreferences} from 'Preferences';
 import {MainStackNavigationProps} from 'routes';
-import {AvalancheCenterID, isSupportedCenter} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, isNACCenter} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 import {Camera, CameraStop, MapState} from '@rnmapbox/maps';
@@ -70,7 +70,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         });
       } else {
         const selectedZoneCenter = zone.center_id;
-        if (isSupportedCenter(selectedZoneCenter)) {
+        if (isNACCenter(selectedZoneCenter)) {
           setSelectedZoneId(zone.zone_id);
 
           if (selectedZoneCenter !== preferredCenterId) {

@@ -22,7 +22,7 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
   const route = useRoute<NativeStackScreenProps<MainStackParamList, 'avalancheCenterSelector'>['route']>();
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
-  const whichCenters = route.params.debugMode ? AvalancheCenters.AllCenters : AvalancheCenters.SupportedCenters;
+  const whichCenters = route.params.debugMode ? AvalancheCenters.AllCenters : AvalancheCenters.NACCenters;
   const metadataResults = useAllAvalancheCenterMetadata(capabilities, whichCenters);
   const analytics = useAnalytics();
 

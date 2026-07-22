@@ -1,6 +1,6 @@
 import {createDrawerNavigator, DrawerContentComponentProps} from '@react-navigation/drawer';
 import {RouteProp, useFocusEffect} from '@react-navigation/native';
-import {supportedAvalancheCenters} from 'components/avalancheCenterList';
+import {nacAvalancheCenterDescriptions} from 'components/avalancheCenterList';
 import {ActionList} from 'components/content/ActionList';
 import {Button} from 'components/content/Button';
 import {CenterFocusedDrawerHeader} from 'components/content/navigation/CenterFocusedDrawerHeader';
@@ -80,7 +80,7 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
     return '';
   }, [avalancheCenterId, capabilities]);
 
-  const description = useMemo(() => supportedAvalancheCenters().find(supported => supported.center === avalancheCenterId)?.description ?? '', [avalancheCenterId]);
+  const description = useMemo(() => nacAvalancheCenterDescriptions().find(nacCenter => nacCenter.center === avalancheCenterId)?.description ?? '', [avalancheCenterId]);
 
   const {
     preferences: {mixpanelUserId},

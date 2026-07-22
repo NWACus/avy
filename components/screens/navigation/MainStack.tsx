@@ -113,7 +113,7 @@ export const MainStackNavigator: React.FunctionComponent<{
 
       <MainStack.Screen
         name="avalancheCenterSelector"
-        component={AvalancheCenterSelectorScreen(AvalancheCenters.SupportedCenters, centerId, setAvalancheCenter)}
+        component={AvalancheCenterSelectorScreen(AvalancheCenters.NACCenters, centerId, setAvalancheCenter)}
         options={avalancheCenterSelectorOptions}
       />
       <MainStack.Screen name="about" component={AboutScreen} options={{title: 'Avy', headerBackButtonDisplayMode: 'minimal'}} />

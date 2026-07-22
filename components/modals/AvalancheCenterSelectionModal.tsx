@@ -30,7 +30,7 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
   }, [onClose, selectedCenter]);
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
-  const metadataResults = useAllAvalancheCenterMetadata(capabilities, AvalancheCenters.SupportedCenters);
+  const metadataResults = useAllAvalancheCenterMetadata(capabilities, AvalancheCenters.NACCenters);
   const loading = incompleteQueryState(capabilitiesResult, ...metadataResults) || !capabilities;
   const metadata: AvalancheCenter[] = [];
   for (const result of metadataResults) {
