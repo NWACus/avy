@@ -1,6 +1,5 @@
 import {RouteProp} from '@react-navigation/native';
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
-import {AvalancheCenters} from 'components/avalancheCenterList';
 import {NavigationHeader} from 'components/content/navigation/NavigationHeader';
 import {View} from 'components/core';
 import {FeatureFlagsDebuggerScreen} from 'components/FeatureFlagsDebugger';
@@ -111,11 +110,7 @@ export const MainStackNavigator: React.FunctionComponent<{
         }}
       />
 
-      <MainStack.Screen
-        name="avalancheCenterSelector"
-        component={AvalancheCenterSelectorScreen(AvalancheCenters.NACCenters, centerId, setAvalancheCenter)}
-        options={avalancheCenterSelectorOptions}
-      />
+      <MainStack.Screen name="avalancheCenterSelector" component={AvalancheCenterSelectorScreen(centerId, setAvalancheCenter)} options={avalancheCenterSelectorOptions} />
       <MainStack.Screen name="about" component={AboutScreen} options={{title: 'Avy', headerBackButtonDisplayMode: 'minimal'}} />
 
       {/* Developer Menu Screens */}

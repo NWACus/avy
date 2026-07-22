@@ -1,6 +1,6 @@
 import {QueryClient} from '@tanstack/react-query';
 import {Logger} from 'browser-bunyan';
-import {filterToKnownNACCenters, filterToSupportedNACCenters} from 'components/avalancheCenterList';
+import {filterToNACCenters} from 'components/avalancheCenterList';
 import {preloadAvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {preloadAvalancheDangerIcons} from 'components/AvalancheDangerIcon';
 import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
@@ -50,7 +50,7 @@ export const prefetchAllActiveForecasts = async (
   const knownCenters: AvalancheCenterID[] = [];
 
   if (capabilities) {
-    knownCenters.push(...filterToSupportedNACCenters(filterToKnownNACCenters(capabilities.centers.map(center => center.id))));
+    knownCenters.push(...filterToNACCenters(capabilities.centers.map(center => center.id)));
   }
   knownCenters.forEach(id => {
     void AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, id, logger);

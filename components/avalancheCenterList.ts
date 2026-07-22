@@ -35,13 +35,8 @@ export const nacAvalancheCenterDescriptions = (): {center: AvalancheCenterID; de
   return centers;
 };
 
-export enum AvalancheCenters {
-  NACCenters,
-  AllCenters,
-}
-
 // In order to display data for the center, we need to know about it so that we have a logo, etc.
-export const filterToKnownNACCenters = (ids: string[]): AvalancheCenterID[] => {
+export const filterToNACCenters = (ids: string[]): AvalancheCenterID[] => {
   const knownCenters: AvalancheCenterID[] = [];
   for (const center of ids) {
     const idResult = avalancheCenterIDSchema.safeParse(center);
@@ -50,10 +45,6 @@ export const filterToKnownNACCenters = (ids: string[]): AvalancheCenterID[] => {
     }
   }
   return knownCenters;
-};
-
-export const filterToSupportedNACCenters = (ids: AvalancheCenterID[]): AvalancheCenterID[] => {
-  return ids.filter(id => isNACCenter(id));
 };
 
 export const avalancheCenterList = (metadata: AvalancheCenter[], capabilities: AllAvalancheCenterCapabilities): AvalancheCenterListData[] => {
