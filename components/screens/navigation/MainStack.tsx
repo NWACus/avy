@@ -59,9 +59,9 @@ export const MainStackNavigator: React.FunctionComponent<{
   );
 
   const avalancheCenterSelectorOptions = useCallback(
-    ({route}: {route: RouteProp<MainStackParamList, 'avalancheCenterSelector'>}) => ({
+    (_: {route: RouteProp<MainStackParamList, 'avalancheCenterSelector'>}) => ({
       headerShown: true,
-      title: `Select Avalanche Center${route.params.debugMode ? ' (debug)' : ''}`,
+      title: 'Select Avalanche Center',
       headerBackButtonDisplayMode: 'minimal' as const,
     }),
     [],

@@ -56,17 +56,9 @@ export const avalancheCenterList = (metadata: AvalancheCenter[], capabilities: A
       display_id: userFacingCenterId(center.id as AvalancheCenterID, capabilities),
     }))
     .sort((a, b) => {
-      // Centers with descriptions are "blessed" and should sort above the rest
-      if (a.description && !b.description) {
-        return -1;
-      } else if (!a.description && b.description) {
-        return 1;
-      } else if (!a.description && !b.description) {
-        // Unsupported centers are sorted alphabetically
-        return a.center.name.localeCompare(b.center.name);
-      } else {
-        // NAC centers are sorted according to their order in supportedAvalancheCenters
-        return nacCenters.findIndex(supported => supported.center === a.center.id) - nacCenters.findIndex(supported => supported.center === b.center.id);
-      }
+      //Centers are sorted according to their order in nacAvalancheCenterDescriptions
+      return (
+        nacCenters.findIndex(centerDescription => centerDescription.center === a.center.id) - nacCenters.findIndex(centerDescription => centerDescription.center === b.center.id)
+      );
     });
 };

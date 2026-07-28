@@ -105,7 +105,7 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
   );
 
   const navigateToCenterSelection = useCallback(() => {
-    navigation.navigate('MainStack', {screen: 'avalancheCenterSelector', params: {debugMode: false}});
+    navigation.navigate('MainStack', {screen: 'avalancheCenterSelector'});
   }, [navigation]);
 
   const navigateToAbout = useCallback(() => {
