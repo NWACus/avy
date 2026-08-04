@@ -103,13 +103,6 @@ const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
   const debugSettingsActions = useMemo(
     () => [
       {
-        label: 'Select avalanche center (debug)',
-        data: 'Center (debug)',
-        action: () => {
-          navigation.navigate('avalancheCenterSelector', {debugMode: true});
-        },
-      },
-      {
         label: 'Time machine',
         data: 'timeMachine',
         action: () => {

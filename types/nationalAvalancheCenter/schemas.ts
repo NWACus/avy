@@ -34,7 +34,7 @@ export const avalancheCenterIDSchema = z.enum([
 
 export type AvalancheCenterID = z.infer<typeof avalancheCenterIDSchema>;
 
-export const isSupportedCenter = (centerId: AvalancheCenterID): boolean => {
+export const isNACCenter = (centerId: AvalancheCenterID): boolean => {
   switch (centerId) {
     case 'BAC':
     case 'BTAC':

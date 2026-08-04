@@ -2,7 +2,7 @@ import React, {useCallback, useState} from 'react';
 import {ScrollView} from 'react-native';
 
 import Topo from 'assets/illustrations/topo.svg';
-import {avalancheCenterList, AvalancheCenters} from 'components/avalancheCenterList';
+import {avalancheCenterList} from 'components/avalancheCenterList';
 import {AvalancheCenterList} from 'components/content/AvalancheCenterList';
 import {Button} from 'components/content/Button';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
@@ -30,7 +30,7 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
   }, [onClose, selectedCenter]);
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
-  const metadataResults = useAllAvalancheCenterMetadata(capabilities, AvalancheCenters.SupportedCenters);
+  const metadataResults = useAllAvalancheCenterMetadata(capabilities);
   const loading = incompleteQueryState(capabilitiesResult, ...metadataResults) || !capabilities;
   const metadata: AvalancheCenter[] = [];
   for (const result of metadataResults) {

@@ -39,9 +39,7 @@ export type MainStackParamList = {
   };
 
   // These screens are navigated to from the drawer
-  avalancheCenterSelector: {
-    debugMode: boolean;
-  };
+  avalancheCenterSelector: undefined;
 
   about: undefined;
   outcome: {
