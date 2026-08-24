@@ -1,11 +1,18 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {Image, Modal, StyleSheet} from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {Button} from 'components/content/Button';
 import {HStack, View, VStack} from 'components/core';
 import {Body, BodyBlack, Title3Black} from 'components/text';
+import {sponsorLogoSize} from 'data/sponsors';
+import {useTitleSponsor} from 'hooks/useTitleSponsor';
 import {colorLookup} from 'theme';
+
+const AVY_LOGO_HEIGHT = 60;
+const SPONSOR_LOGO_WIDTH = 120;
+const SPONSOR_LOGO_BLANK_LEFT_FRACTION = 0.107;
+const SPONSOR_LOGO_BLANK_RIGHT_FRACTION = 0.064;
 
 interface FirstRunExperienceModalProps {
   visible: boolean;
@@ -20,6 +27,16 @@ const BulletItem: React.FC<{children: React.ReactNode}> = ({children}) => (
 );
 
 export const FirstRunExperienceModal: React.FC<FirstRunExperienceModalProps> = ({visible, onClose}) => {
+  const sponsor = useTitleSponsor();
+  const sponsorLogoStyle = useMemo(
+    () => ({
+      ...sponsorLogoSize(sponsor.logoOnLight, SPONSOR_LOGO_WIDTH),
+      marginLeft: -SPONSOR_LOGO_WIDTH * SPONSOR_LOGO_BLANK_LEFT_FRACTION,
+      marginRight: -SPONSOR_LOGO_WIDTH * SPONSOR_LOGO_BLANK_RIGHT_FRACTION,
+    }),
+    [sponsor.logoOnLight],
+  );
+
   const onPressOkay = useCallback(() => {
     onClose();
   }, [onClose]);
@@ -32,8 +49,7 @@ export const FirstRunExperienceModal: React.FC<FirstRunExperienceModalProps> = (
             {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports*/}
             <Image source={require('assets/avy-logo-transparent.png')} resizeMode="contain" style={styles.avyLogo} />
             <Title3Black color={colorLookup('text.secondary')}>+</Title3Black>
-            {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports*/}
-            <Image source={require('assets/logos/Nokian_Tyres_Logo.jpg')} resizeMode="contain" style={styles.sponsorLogo} />
+            <Image source={sponsor.logoOnLight} resizeMode="contain" style={sponsorLogoStyle} />
           </HStack>
           <VStack space={12}>
             <Title3Black textAlign="center">Avy has a fresh look!</Title3Black>
@@ -50,7 +66,7 @@ export const FirstRunExperienceModal: React.FC<FirstRunExperienceModalProps> = (
                   <Ionicons color={colorLookup('primary')} name="menu" backgroundColor={colorLookup('white')} size={12} />
                 </BodyBlack>
               </BulletItem>
-              <BulletItem>{'This season we’ve partnered with Nokian Tyres!'}</BulletItem>
+              <BulletItem>{`This season we’ve partnered with ${sponsor.displayName}!`}</BulletItem>
             </VStack>
           </VStack>
           <View mt={16} alignItems="stretch">
@@ -64,20 +80,9 @@ export const FirstRunExperienceModal: React.FC<FirstRunExperienceModalProps> = (
   );
 };
 
-const AVY_LOGO_HEIGHT = 60;
-const SPONSOR_LOGO_WIDTH = 120;
-const SPONSOR_LOGO_BLANK_LEFT_FRACTION = 0.107;
-const SPONSOR_LOGO_BLANK_RIGHT_FRACTION = 0.064;
-
 const styles = StyleSheet.create({
   avyLogo: {
     height: AVY_LOGO_HEIGHT,
     width: AVY_LOGO_HEIGHT * (120 / 95),
-  },
-  sponsorLogo: {
-    width: SPONSOR_LOGO_WIDTH,
-    height: SPONSOR_LOGO_WIDTH * (416 / 1024),
-    marginLeft: -SPONSOR_LOGO_WIDTH * SPONSOR_LOGO_BLANK_LEFT_FRACTION,
-    marginRight: -SPONSOR_LOGO_WIDTH * SPONSOR_LOGO_BLANK_RIGHT_FRACTION,
   },
 });

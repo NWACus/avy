@@ -13,17 +13,19 @@ import {getVersionInfoFull} from 'components/screens/main/Version';
 import {MainStackNavigator} from 'components/screens/navigation/MainStack';
 import {AllCapsSm, Body, BodyBlack, bodySize, Title3Semibold} from 'components/text';
 import {settingsMenuItems} from 'data/settingsMenuItems';
+import {sponsorLogoSize} from 'data/sponsors';
 import * as Updates from 'expo-updates';
 import * as WebBrowser from 'expo-web-browser';
 import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
+import {useTitleSponsor} from 'hooks/useTitleSponsor';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {sendMail} from 'network/sendMail';
 import {usePreferences} from 'Preferences';
 import React, {useCallback, useMemo, useState} from 'react';
-import {ColorValue, Image, Pressable, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
+import {Alert, ColorValue, Image, Pressable, ScrollView, TouchableOpacity} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {DrawerParamList} from 'routes';
 import {colorLookup} from 'theme';
@@ -121,8 +123,9 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
   }, [navigation, staging, setStaging]);
 
   const openSponsorDrawer = useCallback(() => {
+    analytics.capture('sponsorSectionTapped');
     setShowSponsorDrawer(true);
-  }, [setShowSponsorDrawer]);
+  }, [setShowSponsorDrawer, analytics]);
 
   const closeSponsorDrawer = useCallback(() => {
     setShowSponsorDrawer(false);
@@ -206,20 +209,21 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
   );
 };
 
+const SPONSOR_LOGO_WIDTH = 150;
+
 const SponsorSection: React.FunctionComponent<{onPress: () => void}> = ({onPress}) => {
+  const sponsor = useTitleSponsor();
+  const logoStyle = useMemo(() => sponsorLogoSize(sponsor.logoOnLight, SPONSOR_LOGO_WIDTH), [sponsor.logoOnLight]);
+
   return (
     <VStack pl={16} bg={'white'} paddingBottom={8}>
-      <View borderBottomWidth={1} borderColor={colorLookup('light.300')} py={10}>
-        <BodyBlack>Our sponsor</BodyBlack>
-      </View>
       <TouchableOpacity onPress={onPress}>
         <VStack paddingTop={8}>
           <AllCapsSm color={colorLookup('text.secondary')} textAlign="center">
-            AVY, IN PARTNERSHIP WITH
+            AVY, {sponsor.splashMessage}
           </AllCapsSm>
           <Center>
-            {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports */}
-            <Image source={require('assets/logos/Nokian_Tyres_Logo.jpg')} style={styles.logo} />
+            <Image source={sponsor.logoOnLight} resizeMode="contain" style={logoStyle} />
           </Center>
         </VStack>
       </TouchableOpacity>
@@ -227,20 +231,33 @@ const SponsorSection: React.FunctionComponent<{onPress: () => void}> = ({onPress
   );
 };
 
-const NOKIAN_TYRES_URL = 'https://na.nokiantyres.com/?utm_medium=referral&utm_source=3rd%20Party&utm_campaign=Nokian_Tyres_Avy';
 const SponsorDrawer: React.FunctionComponent<{visible: boolean; onDismiss: () => void}> = ({visible, onDismiss}) => {
-  const visitNokianTyres = useCallback(() => {
-    void WebBrowser.openBrowserAsync(NOKIAN_TYRES_URL);
-  }, []);
+  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const analytics = useAnalytics();
+  const sponsor = useTitleSponsor();
+  const logoStyle = useMemo(() => sponsorLogoSize(sponsor.logoOnLight, SPONSOR_LOGO_WIDTH), [sponsor.logoOnLight]);
+
+  const visitSponsor = useCallback(() => {
+    analytics.capture('vistSponsorURLTapped');
+    WebBrowser.openBrowserAsync(sponsor.campaignUrl).catch((e: unknown) => {
+      logger.error({error: e}, 'Failed to open title sponsor URL');
+      Alert.alert('Unable to Open Web Browser', 'An error occured when trying to open the web browser. Please try again.', [
+        {
+          text: 'Okay',
+          style: 'default',
+        },
+      ]);
+    });
+  }, [analytics, logger, sponsor.campaignUrl]);
 
   const renderVisitButton = useCallback(
     ({textColor}: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => (
       <HStack space={8} alignItems="center" justifyContent="center">
-        <BodyBlack color={textColor}>Visit nokiantyres.com</BodyBlack>
+        <BodyBlack color={textColor}>{sponsor.visitButtonTitle}</BodyBlack>
         <Ionicons name="open-outline" size={bodySize + 4} color={textColor} />
       </HStack>
     ),
-    [],
+    [sponsor.visitButtonTitle],
   );
 
   return (
@@ -254,28 +271,19 @@ const SponsorDrawer: React.FunctionComponent<{visible: boolean; onDismiss: () =>
           </Pressable>
         </View>
         <Center>
-          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports */}
-          <Image source={require('assets/logos/Nokian_Tyres_Logo.jpg')} style={styles.logo} />
+          <Image source={sponsor.logoOnLight} resizeMode="contain" style={logoStyle} />
         </Center>
         <VStack space={16} paddingBottom={16}>
-          <Title3Semibold textAlign="center">Why we partner with Nokian Tyres</Title3Semibold>
+          <Title3Semibold textAlign="center">Why we partner with {sponsor.displayName}</Title3Semibold>
           <Body textAlign="center" color={colorLookup('text.secondary')}>
-            Nokian Tyres invented the winter tire in 1934 and has spent ninety years helping people travel safely through snow and ice.
+            {sponsor.aboutSponsor}
           </Body>
           <Body textAlign="center" color={colorLookup('text.secondary')}>
-            Their support keeps the AvyApp free for every backcountry traveler: no banner ads, no paywall, easy access to the forecasts you rely on.
+            {sponsor.whyWePartner}
           </Body>
         </VStack>
-        <Button buttonStyle="primary" onPress={visitNokianTyres} renderChildren={renderVisitButton} />
+        <Button buttonStyle="primary" onPress={visitSponsor} renderChildren={renderVisitButton} />
       </VStack>
     </DrawerModal>
   );
 };
-
-const styles = StyleSheet.create({
-  logo: {
-    width: 150,
-    height: 150 * (416 / 1024),
-    resizeMode: 'contain',
-  },
-});
