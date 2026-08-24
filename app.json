@@ -61,10 +61,10 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/splash.png",
+          "image": "./assets/avy-logo-transparent.png",
+          "imageWidth": 72,
           "resizeMode": "contain",
-          "backgroundColor": "#152E57",
-          "enableFullScreenImage_legacy": true
+          "backgroundColor": "#152E57"
         }
       ],
       [
