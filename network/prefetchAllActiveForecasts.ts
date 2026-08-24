@@ -6,6 +6,7 @@ import {preloadAvalancheDangerIcons} from 'components/AvalancheDangerIcon';
 import {preloadAvalancheProblemIcons} from 'components/AvalancheProblemIcon';
 import {images} from 'components/content/carousel/MediaCarousel';
 import AllMapLayersQuery from 'hooks/useAllMapLayers';
+import {prefetchAlternateObservationZones} from 'hooks/useAlternateObservationZones';
 import AvalancheCenterCapabilitiesQuery from 'hooks/useAvalancheCenterCapabilities';
 import AvalancheCenterMetadataQuery from 'hooks/useAvalancheCenterMetadata';
 import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
@@ -62,6 +63,14 @@ export const prefetchAllActiveForecasts = async (
 
   if (metadata?.widget_config?.danger_map) {
     void AllMapLayersQuery.prefetch(queryClient, nationalAvalancheCenterHost, requestedTime, logger);
+  }
+
+  const alternateZonesUrl = metadata?.widget_config?.observation_viewer?.alternate_zones;
+  if (alternateZonesUrl) {
+    logger.info({url: alternateZonesUrl}, 'Found alternate observation zones URL, prefetching KML');
+    void prefetchAlternateObservationZones(queryClient, alternateZonesUrl, center_id, logger);
+  } else {
+    logger.debug('No alternate observation zones URL found in metadata');
   }
 
   const endDate: Date = currentDateTime;

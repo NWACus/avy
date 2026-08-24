@@ -22,7 +22,7 @@ import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, View as RNView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
-import {MapLayerFeature, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
+import {MapLayerFeature, ObservationFragment, ObservationZonesFeature, PartnerType} from 'types/nationalAvalancheCenter';
 import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 import {z} from 'zod';
 
@@ -112,6 +112,7 @@ export const filtersForConfig = (
   mapLayerFeatures: MapLayerFeature[],
   config: ObservationFilterConfig,
   additionalFilters: Partial<ObservationFilterConfig> | undefined,
+  alternateObservationZoneFeatures: ObservationZonesFeature[] | undefined,
 ): FilterListItem[] => {
   if (!config) {
     return [];
@@ -130,7 +131,8 @@ export const filtersForConfig = (
   if (config.zones.length > 0) {
     filterFuncs.push({
       type: 'zone',
-      filter: (observation: ObservationFragment) => config.zones.includes(matchesZone(mapLayerFeatures, observation.locationPoint?.lat, observation.locationPoint?.lng)),
+      filter: (observation: ObservationFragment) =>
+        config.zones.includes(matchesZone(mapLayerFeatures, observation.locationPoint?.lat, observation.locationPoint?.lng, alternateObservationZoneFeatures)),
       removeFilter: additionalFilters?.zones ? undefined : (config: ObservationFilterConfig) => ({...config, zones: []}),
       label: config.zones.join(', '),
     });
@@ -177,6 +179,7 @@ export const filtersForConfig = (
 interface ObservationsFilterFormProps {
   requestedTime: RequestedTime;
   mapLayerFeatures: MapLayerFeature[];
+  alternateObservationZoneFeatures: ObservationZonesFeature[] | undefined;
   initialFilterConfig: ObservationFilterConfig;
   currentFilterConfig: ObservationFilterConfig;
   setFilterConfig: React.Dispatch<React.SetStateAction<ObservationFilterConfig>>;
@@ -407,19 +410,30 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   );
 };
 
-export const matchesZone = (mapLayerFeatures: MapLayerFeature[], lat: number | null | undefined, long: number | null | undefined): string => {
+export const matchesZone = (
+  mapLayerFeatures: MapLayerFeature[],
+  lat: number | null | undefined,
+  long: number | null | undefined,
+  observationZonesFeatures?: ObservationZonesFeature[],
+): string => {
   if (!lat || !long) {
     return 'Unknown Zone';
   }
   const matchingFeatures = mapLayerFeatures
     .filter(feature => (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') && booleanPointInPolygon([long, lat], feature.geometry))
     .map(feature => feature.properties.name);
-  if (matchingFeatures.length === 0) {
-    return 'Unknown Zone';
-  } else if (matchingFeatures.length > 1) {
-    // TODO: this happens almost 100% ... why?
-    // also, seems like the widget is naming things with more specificity than just the forecast zones? e.g. teton village
-    // log.info(`(${long},${lat}) matched ${matchingFeatures.length} features: ${matchingFeatures}`);
+
+  if (matchingFeatures.length > 0) {
+    return matchingFeatures[0];
   }
-  return matchingFeatures[0];
+
+  const matchingObsFeatures = observationZonesFeatures
+    ?.filter(feature => (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') && booleanPointInPolygon([long, lat], feature.geometry))
+    .map(feature => feature.properties.name);
+
+  if (matchingObsFeatures !== undefined && matchingObsFeatures.length > 0) {
+    return matchingObsFeatures[0];
+  }
+
+  return 'Unknown Zone';
 };

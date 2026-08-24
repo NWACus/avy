@@ -102,6 +102,7 @@
     "expo-system-ui": "~57.0.2",
     "expo-updates": "~57.0.17",
     "expo-web-browser": "~57.0.2",
+    "fast-xml-parser": "^5.11.0",
     "global": "^4.4.0",
     "html-entities": "^2.4.0",
     "lodash": "^4.17.21",

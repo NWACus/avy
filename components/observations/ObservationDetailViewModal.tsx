@@ -7,12 +7,14 @@ import {ObservationCard} from 'components/observations/ObservationDetailView';
 import {matchesZone} from 'components/observations/ObservationsFilterForm';
 import {Title3Black} from 'components/text';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
+import {useAlternateObservationZones} from 'hooks/useAlternateObservationZones';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useNACObservation} from 'hooks/useNACObservation';
 import React, {useCallback, useMemo} from 'react';
 import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
+import {AllAvalancheCenterCapabilities, AvalancheCenterID, mapFeaturesForCenter, MapLayer, Observation} from 'types/nationalAvalancheCenter';
 
 export const ObservationDetailModalView: React.FunctionComponent<{
   id: string;
@@ -24,22 +26,40 @@ export const ObservationDetailModalView: React.FunctionComponent<{
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
 
-  const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, observation?.center_id.toUpperCase() as AvalancheCenterID), [mapLayer, observation?.center_id]);
-  const navigation = useNavigation<MainStackNavigationProps>();
-  const zone_name = useMemo(
-    () => observation?.location_point?.lat && observation?.location_point?.lng && matchesZone(mapFeatures ?? [], observation.location_point?.lat, observation.location_point?.lng),
-    [observation, mapFeatures],
-  );
-
-  const closeModal = useCallback(() => navigation.goBack(), [navigation]);
-
   if (incompleteQueryState(observationResult, mapResult, capabilitiesResult) || !observation || !mapLayer || !capabilities) {
     return <QueryState results={[observationResult, mapResult, capabilitiesResult]} />;
   }
 
+  return <ObservationDetailModalContent observation={observation} mapLayer={mapLayer} capabilities={capabilities} />;
+};
+
+const ObservationDetailModalContent: React.FunctionComponent<{
+  observation: Observation;
+  mapLayer: MapLayer;
+  capabilities: AllAvalancheCenterCapabilities;
+}> = ({observation, mapLayer, capabilities}) => {
+  const centerId = observation.center_id;
+
+  const avalancheZoneMetadataResult = useAvalancheCenterMetadata(centerId);
+  const alternateZonesUrl: string = avalancheZoneMetadataResult.data?.widget_config?.observation_viewer?.alternate_zones || '';
+  const alternateObservationZonesResult = useAlternateObservationZones(alternateZonesUrl, centerId);
+  const alternateObservationZoneFeatures = alternateObservationZonesResult.data?.features;
+
+  const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, centerId), [mapLayer, centerId]);
+  const navigation = useNavigation<MainStackNavigationProps>();
+  const zone_name = useMemo(
+    () =>
+      observation.location_point?.lat &&
+      observation.location_point?.lng &&
+      matchesZone(mapFeatures ?? [], observation.location_point.lat, observation.location_point.lng, alternateObservationZoneFeatures),
+    [observation, mapFeatures, alternateObservationZoneFeatures],
+  );
+
+  const closeModal = useCallback(() => navigation.goBack(), [navigation]);
+
   return (
     <View flex={1}>
-      <ObsDetailModalHeader title={zone_name ? `${zone_name} Observation` : 'Observation'} centerId={observation.center_id} onClosePressed={closeModal} />
+      <ObsDetailModalHeader title={zone_name ? `${zone_name} Observation` : 'Observation'} centerId={centerId} onClosePressed={closeModal} />
       <ObservationCard observation={observation} capabilities={capabilities} />
     </View>
   );

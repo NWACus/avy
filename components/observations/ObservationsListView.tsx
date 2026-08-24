@@ -16,7 +16,9 @@ import {usePendingObservations} from 'components/observations/uploader/usePendin
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
 import {compareDesc, formatDuration, isBefore, parseISO, sub} from 'date-fns';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
+import {useAlternateObservationZones} from 'hooks/useAlternateObservationZones';
 import {useAnalytics} from 'hooks/useAnalytics';
+import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useNACObservations} from 'hooks/useNACObservations';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
@@ -71,6 +73,12 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const [filterModalVisible, {set: setFilterModalVisible, on: showFilterModal, off: hideFilterModal}] = useToggle(false);
   const mapResult = useAllMapLayers('latest');
   const mapLayer = mapResult.data;
+
+  const avalancheZoneMetadataResult = useAvalancheCenterMetadata(center_id);
+  const alternateZonesUrl: string = avalancheZoneMetadataResult.data?.widget_config?.observation_viewer?.alternate_zones || '';
+  const alternateObservationZonesResult = useAlternateObservationZones(alternateZonesUrl, center_id);
+  const alternateObservationZones = alternateObservationZonesResult.data;
+  const alternateObservationZoneFeatures = alternateObservationZones?.features;
 
   const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, center_id), [mapLayer, center_id]);
 
@@ -128,16 +136,19 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         // calculate the zone and cache it now
         .map(observation => ({
           ...observation,
-          zone: matchesZone(mapFeatures, observation.locationPoint.lat, observation.locationPoint.lng),
+          zone: matchesZone(mapFeatures, observation.locationPoint.lat, observation.locationPoint.lng, alternateObservationZoneFeatures),
         })),
-    [flatObservationList, mapFeatures],
+    [flatObservationList, mapFeatures, alternateObservationZoneFeatures],
   );
   const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
   const refreshWrapper = useCallback(() => void refresh(), [refresh]);
 
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
-  const resolvedFilters = useMemo(() => filtersForConfig(mapFeatures, filterConfig, additionalFilters), [mapFeatures, filterConfig, additionalFilters]);
+  const resolvedFilters = useMemo(
+    () => filtersForConfig(mapFeatures, filterConfig, additionalFilters, alternateObservationZoneFeatures),
+    [mapFeatures, filterConfig, additionalFilters, alternateObservationZoneFeatures],
+  );
 
   // Set a date limit for how far back to look for observations
   const [lookBackLimit, setLookBackLimit] = useState<Duration>({years: 1});
@@ -320,6 +331,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         <ObservationsFilterForm
           requestedTime={requestedTime}
           mapLayerFeatures={mapFeatures}
+          alternateObservationZoneFeatures={alternateObservationZoneFeatures}
           initialFilterConfig={originalFilterConfig}
           currentFilterConfig={filterConfig}
           setFilterConfig={setFilterConfig}
@@ -479,8 +491,9 @@ export const ObservationSummaryCard: React.FunctionComponent<ObservationSummaryC
   const onPress = useCallback(() => {
     navigation.navigate('observation', {
       id: observation.id,
+      zoneName: zone,
     });
-  }, [navigation, observation.id]);
+  }, [navigation, observation.id, zone]);
 
   let thumbnail = '';
   if (observation.media && observation.media.length > 0) {

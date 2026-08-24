@@ -157,10 +157,10 @@ const ObservationSubmitScreen = () => {
 };
 
 const ObservationDetailScreen = ({route}: NativeStackScreenProps<MainStackParamList, 'observation'>) => {
-  const {id} = route.params;
+  const {id, zoneName} = route.params;
   return (
     <View style={styles.fullScreen}>
-      <ObservationDetailView id={id} />
+      <ObservationDetailView id={id} zoneName={zoneName} />
     </View>
   );
 };

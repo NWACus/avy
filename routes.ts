@@ -28,6 +28,7 @@ export type MainStackParamList = {
   stationDetail: WeatherStationDetailPageProps;
   observation: {
     id: string;
+    zoneName: string;
   };
   observationModal: {
     id: string;
