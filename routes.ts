@@ -63,6 +63,7 @@ export type MainStackParamList = {
   avalancheComponentPreview: undefined;
   toastPreview: undefined;
   drawerPreview: undefined;
+  alertModalPreview: undefined;
   timeMachine: undefined;
   featureFlags: undefined;
   expoConfig: undefined;

@@ -190,7 +190,8 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         selectedZoneId={selectedZoneId}
         onPolygonPress={onPolygonPress}
         onMapPress={onMapPresOutsideOfPolygon}
-        onCameraChanged={onCameraChanged}></ZoneMap>
+        onCameraChanged={onCameraChanged}
+      />
 
       <AvalancheForecastZoneCards
         key={`${preferredCenterId}-zoneCards`}

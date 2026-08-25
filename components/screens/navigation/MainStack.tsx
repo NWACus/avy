@@ -11,6 +11,7 @@ import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {AboutScreen} from 'components/screens/main/AboutScreen';
 import {AvalancheCenterSelectorScreen} from 'components/screens/main/AvalancheCenterSelectorScreen';
 import {
+  AlertModalPreview,
   AvalancheComponentPreview,
   ButtonStylePreview,
   DebugMapScreen,
@@ -136,6 +137,7 @@ export const MainStackNavigator: React.FunctionComponent<{
       />
       <MainStack.Screen name="toastPreview" component={ToastPreview} options={{title: `Toast Preview`, headerBackButtonDisplayMode: 'minimal'}} />
       <MainStack.Screen name="drawerPreview" component={DrawerPreview} options={{title: `Drawer Preview`, headerBackButtonDisplayMode: 'minimal'}} />
+      <MainStack.Screen name="alertModalPreview" component={AlertModalPreview} options={{title: `Alert Modal Preview`, headerBackButtonDisplayMode: 'minimal'}} />
       <MainStack.Screen name="timeMachine" component={TimeMachine} options={{title: `Time Machine`, headerBackButtonDisplayMode: 'minimal'}} />
     </MainStack.Navigator>
   );
