@@ -1,14 +1,10 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import React, {useCallback} from 'react';
-import {Alert, Modal, TouchableOpacity} from 'react-native';
-
-import {Button} from 'components/content/Button';
-import {HStack, View, VStack} from 'components/core';
-import {Body, BodyBlack, Title3Black} from 'components/text';
+import {AlertModal, AlertModalAction} from 'components/content/AlertModal';
+import {Body} from 'components/text';
 import * as WebBrowser from 'expo-web-browser';
 import {useAnalytics} from 'hooks/useAnalytics';
 import {logger} from 'logger';
-import {colorLookup} from 'theme';
+import React, {useCallback, useMemo} from 'react';
+import {Alert} from 'react-native';
 import {AvalancheCenterID, UnsupportedCenterID, UnsupportedCenterNames} from 'types/nationalAvalancheCenter';
 
 interface CenterNotSupportedModalProps {
@@ -43,28 +39,14 @@ export const CenterNotSupportedModal: React.FC<CenterNotSupportedModalProps> = (
       });
   }, [analytics, centerId, unsupportedCenterId, avalancheCenterWebsiteUrl, onClose]);
 
+  const primaryAction = useMemo<AlertModalAction>(
+    () => ({label: `Open ${unsupportedCenterId === 'CAN' ? 'Avalance Canada' : unsupportedCenterId} Site`, onPress: onPressWebsite}),
+    [onPressWebsite, unsupportedCenterId],
+  );
+
   return (
-    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose} statusBarTranslucent>
-      <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24}}>
-        <VStack style={{backgroundColor: colorLookup('white'), borderRadius: 16, padding: 24, width: '100%', maxWidth: 340}}>
-          <VStack space={12}>
-            <HStack width={'100%'} alignItems={'flex-start'} space={8}>
-              <View flex={1}>
-                <Title3Black>Forecast Available on Official Site</Title3Black>
-              </View>
-              <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
-                <Ionicons name="close-outline" size={24} color={colorLookup('text')} />
-              </TouchableOpacity>
-            </HStack>
-            <Body>{`${centerDisplayName} isn't available within Avy right now. You can still access their latest forecast and updates on their website.`}</Body>
-          </VStack>
-          <View mt={20}>
-            <Button buttonStyle="primary" onPress={onPressWebsite}>
-              <BodyBlack letterSpacing={0.2}>Open {unsupportedCenterId === 'CAN' ? 'Avalance Canada' : unsupportedCenterId} Site</BodyBlack>
-            </Button>
-          </View>
-        </VStack>
-      </View>
-    </Modal>
+    <AlertModal isVisible={visible} onDismiss={onClose} title="Forecast Available on Official Site" showCloseButton primaryAction={primaryAction}>
+      <Body>{`${centerDisplayName} isn't available within Avy right now. You can still access their latest forecast and updates on their website.`}</Body>
+    </AlertModal>
   );
 };

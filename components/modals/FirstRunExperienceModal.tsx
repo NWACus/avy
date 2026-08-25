@@ -1,9 +1,9 @@
-import React, {useCallback, useMemo} from 'react';
-import {Image, Modal, StyleSheet} from 'react-native';
+import React, {useMemo} from 'react';
+import {Image, StyleSheet} from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
-import {Button} from 'components/content/Button';
-import {HStack, View, VStack} from 'components/core';
+import {AlertModal, AlertModalAction} from 'components/content/AlertModal';
+import {HStack, VStack} from 'components/core';
 import {Body, BodyBlack, Title3Black} from 'components/text';
 import {sponsorLogoSize} from 'data/sponsors';
 import {useTitleSponsor} from 'hooks/useTitleSponsor';
@@ -37,46 +37,38 @@ export const FirstRunExperienceModal: React.FC<FirstRunExperienceModalProps> = (
     [sponsor.logoOnLight],
   );
 
-  const onPressOkay = useCallback(() => {
-    onClose();
-  }, [onClose]);
+  const header = useMemo(
+    () => (
+      <HStack space={12} alignItems="center" justifyContent="center" paddingBottom={12}>
+        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports*/}
+        <Image source={require('assets/avy-logo-transparent.png')} resizeMode="contain" style={styles.avyLogo} />
+        <Title3Black color={colorLookup('text.secondary')}>+</Title3Black>
+        <Image source={sponsor.logoOnLight} resizeMode="contain" style={sponsorLogoStyle} />
+      </HStack>
+    ),
+    [sponsor.logoOnLight, sponsorLogoStyle],
+  );
+
+  const primaryAction = useMemo<AlertModalAction>(() => ({label: 'Okay', onPress: onClose}), [onClose]);
 
   return (
-    <Modal transparent statusBarTranslucent visible={visible} animationType="fade" onRequestClose={onClose}>
-      <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24}}>
-        <View style={{backgroundColor: colorLookup('white'), borderRadius: 16, padding: 24, width: '100%', maxWidth: 340}}>
-          <HStack space={12} alignItems="center" justifyContent="center" paddingBottom={12}>
-            {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports*/}
-            <Image source={require('assets/avy-logo-transparent.png')} resizeMode="contain" style={styles.avyLogo} />
-            <Title3Black color={colorLookup('text.secondary')}>+</Title3Black>
-            <Image source={sponsor.logoOnLight} resizeMode="contain" style={sponsorLogoStyle} />
-          </HStack>
-          <VStack space={12}>
-            <Title3Black textAlign="center">Avy has a fresh look!</Title3Black>
-            <Body textAlign="left">{'We’ve redesigned the map to make it faster and easier to access avalanche forecasts from across the country.'}</Body>
-            <VStack space={8}>
-              <BulletItem>
-                Switch <BodyBlack letterSpacing={0}>Centers</BodyBlack> right from the map! Simply zoom out and tap on a <BodyBlack letterSpacing={0}>Zone</BodyBlack> from a
-                different <BodyBlack letterSpacing={0}>Center</BodyBlack>.
-              </BulletItem>
-              <BulletItem>
-                You can still switch <BodyBlack letterSpacing={0}>Centers</BodyBlack> in the settings, accessible in the upper left{' '}
-                <BodyBlack letterSpacing={0}>
-                  Menu
-                  <Ionicons color={colorLookup('primary')} name="menu" backgroundColor={colorLookup('white')} size={12} />
-                </BodyBlack>
-              </BulletItem>
-              <BulletItem>{`This season we’ve partnered with ${sponsor.displayName}!`}</BulletItem>
-            </VStack>
-          </VStack>
-          <View mt={16} alignItems="stretch">
-            <Button buttonStyle="primary" onPress={onPressOkay}>
-              <BodyBlack>Okay</BodyBlack>
-            </Button>
-          </View>
-        </View>
-      </View>
-    </Modal>
+    <AlertModal isVisible={visible} onDismiss={onClose} title="Avy has a fresh look!" titleAlign="center" header={header} primaryAction={primaryAction}>
+      <Body textAlign="left">{'We’ve redesigned the map to make it faster and easier to access avalanche forecasts from across the country.'}</Body>
+      <VStack space={8}>
+        <BulletItem>
+          Switch <BodyBlack letterSpacing={0}>Centers</BodyBlack> right from the map! Simply zoom out and tap on a <BodyBlack letterSpacing={0}>Zone</BodyBlack> from a different{' '}
+          <BodyBlack letterSpacing={0}>Center</BodyBlack>.
+        </BulletItem>
+        <BulletItem>
+          You can still switch <BodyBlack letterSpacing={0}>Centers</BodyBlack> in the settings, accessible in the upper left{' '}
+          <BodyBlack letterSpacing={0}>
+            Menu
+            <Ionicons color={colorLookup('primary')} name="menu" backgroundColor={colorLookup('white')} size={12} />
+          </BodyBlack>
+        </BulletItem>
+        <BulletItem>{`This season we’ve partnered with ${sponsor.displayName}!`}</BulletItem>
+      </VStack>
+    </AlertModal>
   );
 };
 
