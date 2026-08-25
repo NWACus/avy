@@ -42,6 +42,7 @@ import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
 import {RequestedTime, observationDateToLocalDateString} from 'utils/date';
+import {observationOnlyZones} from 'utils/observationOnlyZones';
 
 interface ObservationsListViewItem {
   id: ObservationFragment['id'];
@@ -81,6 +82,12 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const alternateObservationZoneFeatures = alternateObservationZones?.features;
 
   const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, center_id), [mapLayer, center_id]);
+
+  // The alternate zones returns all of the zones for some of of the centers. Not just the observation only zones
+  const filteredAlternateObservationZoneFeatures = useMemo(
+    () => observationOnlyZones(alternateObservationZoneFeatures, mapFeatures),
+    [alternateObservationZoneFeatures, mapFeatures],
+  );
 
   const analytics = useAnalytics();
 
@@ -136,9 +143,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         // calculate the zone and cache it now
         .map(observation => ({
           ...observation,
-          zone: matchesZone(mapFeatures, observation.locationPoint.lat, observation.locationPoint.lng, alternateObservationZoneFeatures),
+          zone: matchesZone(mapFeatures, observation.locationPoint.lat, observation.locationPoint.lng, filteredAlternateObservationZoneFeatures),
         })),
-    [flatObservationList, mapFeatures, alternateObservationZoneFeatures],
+    [flatObservationList, mapFeatures, filteredAlternateObservationZoneFeatures],
   );
   const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
   const refreshWrapper = useCallback(() => void refresh(), [refresh]);
@@ -146,8 +153,8 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
   // an observer type, we only show observations that match both of those at the same time
   const resolvedFilters = useMemo(
-    () => filtersForConfig(mapFeatures, filterConfig, additionalFilters, alternateObservationZoneFeatures),
-    [mapFeatures, filterConfig, additionalFilters, alternateObservationZoneFeatures],
+    () => filtersForConfig(mapFeatures, filterConfig, additionalFilters, filteredAlternateObservationZoneFeatures),
+    [mapFeatures, filterConfig, additionalFilters, filteredAlternateObservationZoneFeatures],
   );
 
   // Set a date limit for how far back to look for observations
@@ -331,7 +338,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         <ObservationsFilterForm
           requestedTime={requestedTime}
           mapLayerFeatures={mapFeatures}
-          alternateObservationZoneFeatures={alternateObservationZoneFeatures}
+          alternateObservationZoneFeatures={filteredAlternateObservationZoneFeatures}
           initialFilterConfig={originalFilterConfig}
           currentFilterConfig={filterConfig}
           setFilterConfig={setFilterConfig}

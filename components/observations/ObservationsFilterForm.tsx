@@ -31,6 +31,7 @@ type avalancheInstability = z.infer<typeof avalancheInstabilitySchema>;
 
 const observationFilterConfigSchema = z.object({
   zones: z.array(z.string()),
+  otherRegions: z.array(z.string()),
   dates: z
     .object({
       from: z.date(),
@@ -56,6 +57,7 @@ type FilterFunction = (observation: ObservationFragment) => boolean;
 export const createDefaultFilterConfig = (defaults: Partial<ObservationFilterConfig> | undefined): ObservationFilterConfig => {
   return {
     zones: [],
+    otherRegions: [],
     observerTypes: [],
     avalanches: [],
     cracking: false,
@@ -103,7 +105,7 @@ const matchesAvalanches = (avalanches: avalancheInstability[], observation: Obse
 };
 
 interface FilterListItem {
-  type: 'date' | 'zone' | 'observer' | 'instability' | 'avalanche';
+  type: 'date' | 'zone' | 'observer' | 'instability' | 'avalanche' | 'otherRegions';
   filter: FilterFunction;
   label: string;
   removeFilter?: (config: ObservationFilterConfig) => ObservationFilterConfig;
@@ -135,6 +137,16 @@ export const filtersForConfig = (
         config.zones.includes(matchesZone(mapLayerFeatures, observation.locationPoint?.lat, observation.locationPoint?.lng, alternateObservationZoneFeatures)),
       removeFilter: additionalFilters?.zones ? undefined : (config: ObservationFilterConfig) => ({...config, zones: []}),
       label: config.zones.join(', '),
+    });
+  }
+
+  if (config.otherRegions.length > 0) {
+    filterFuncs.push({
+      type: 'otherRegions',
+      filter: (observation: ObservationFragment) =>
+        config.otherRegions.includes(matchesZone(mapLayerFeatures, observation.locationPoint?.lat, observation.locationPoint?.lng, alternateObservationZoneFeatures)),
+      removeFilter: additionalFilters?.zones ? undefined : (config: ObservationFilterConfig) => ({...config, otherRegions: []}),
+      label: config.otherRegions.join(', '),
     });
   }
 
@@ -191,6 +203,7 @@ const formFieldSpacing = 16;
 export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterFormProps> = ({
   requestedTime,
   mapLayerFeatures,
+  alternateObservationZoneFeatures,
   initialFilterConfig,
   currentFilterConfig,
   setFilterConfig,
@@ -310,9 +323,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                   </TouchableOpacity>
                 </HStack>
                 <VStack space={formFieldSpacing} pt={formFieldSpacing} backgroundColor={colorLookup('primary.background')}>
-                  <View px={16} pt={16}>
-                    <BodyBlack>Date</BodyBlack>
-                  </View>
+                  <SectionHeader title="Date" />
                   <VStack space={8} px={16} bg="white">
                     <View bg="white">
                       <BodySmBlack>From</BodySmBlack>
@@ -328,25 +339,36 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     </View>
                   </VStack>
                   {mapLayerFeatures && (
-                    <View px={16} pt={16}>
-                      <BodyBlack>Zone</BodyBlack>
-                    </View>
+                    <>
+                      <SectionHeader title="Zone" />
+                      <CheckboxSelectField
+                        name="zones"
+                        items={
+                          initialFilterConfig.zones.length > 0
+                            ? initialFilterConfig.zones.map(z => ({label: z, value: z}))
+                            : mapLayerFeatures.map(feature => ({label: feature.properties.name, value: feature.properties.name}))
+                        }
+                        disabled={initialFilterConfig.zones.length > 0}
+                        px={16}
+                      />
+                    </>
                   )}
-                  {mapLayerFeatures && (
-                    <CheckboxSelectField
-                      name="zones"
-                      items={
-                        initialFilterConfig.zones.length > 0
-                          ? initialFilterConfig.zones.map(z => ({label: z, value: z}))
-                          : mapLayerFeatures.map(feature => ({label: feature.properties.name, value: feature.properties.name}))
-                      }
-                      disabled={initialFilterConfig.zones.length > 0}
-                      px={16}
-                    />
+                  {alternateObservationZoneFeatures && alternateObservationZoneFeatures.length > 0 && (
+                    <>
+                      <SectionHeader title="Other Regions" />
+                      <CheckboxSelectField
+                        name="otherRegions"
+                        items={
+                          initialFilterConfig.otherRegions.length > 0
+                            ? initialFilterConfig.otherRegions.map(z => ({label: z, value: z}))
+                            : alternateObservationZoneFeatures.map(feature => ({label: feature.properties.name, value: feature.properties.name}))
+                        }
+                        disabled={initialFilterConfig.otherRegions.length > 0}
+                        px={16}
+                      />
+                    </>
                   )}
-                  <View px={16} pt={16}>
-                    <BodyBlack>Observer Type</BodyBlack>
-                  </View>
+                  <SectionHeader title="Observer Type" />
                   <CheckboxSelectField
                     name="observerTypes"
                     items={[
@@ -361,9 +383,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     ]}
                     px={16}
                   />
-                  <View px={16} pt={16}>
-                    <BodyBlack>Avalanches</BodyBlack>
-                  </View>
+                  <SectionHeader title="Avalanches" />
                   <CheckboxSelectField
                     name="avalanches"
                     items={[
@@ -373,9 +393,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     ]}
                     px={16}
                   />
-                  <View px={16} pt={16}>
-                    <BodyBlack>Snowpack Cracking</BodyBlack>
-                  </View>
+                  <SectionHeader title="Snowpack Cracking" />
                   <SwitchField
                     name="cracking"
                     items={[
@@ -385,9 +403,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                     pb={formFieldSpacing}
                     px={16}
                   />
-                  <View px={16}>
-                    <BodyBlack>Snowpack Collapsing</BodyBlack>
-                  </View>
+                  <SectionHeader title="Snowpack Collapsing" />
                   <SwitchField
                     name="collapsing"
                     items={[
@@ -407,6 +423,14 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
         </SafeAreaView>
       </SelectModalProvider>
     </FormProvider>
+  );
+};
+
+const SectionHeader: React.FunctionComponent<{title: string}> = ({title}) => {
+  return (
+    <View px={16} pt={16}>
+      <BodyBlack>{title}</BodyBlack>
+    </View>
   );
 };
 
