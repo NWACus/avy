@@ -1,67 +1,98 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {Animated} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 
-import {LineLayer, Animated as MBAnimated, ShapeSource} from '@rnmapbox/maps';
+import {FillLayer, FillLayerStyle, LineLayer, LineLayerStyle, ShapeSource} from '@rnmapbox/maps';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {MapViewZone} from 'components/map/ZoneMap';
 import {ZONE_OUTLINE_COLOR, ZONE_OUTLINE_WIDTH} from 'components/map/zonePolygonStyle';
 import {colorLookup} from 'theme';
 
+export type ZonePolygonStyle = 'default' | 'coverageEdge';
+
+const COVERAGE_EDGE_LINE_WIDTH = 3;
+const COVERAGE_EDGE_DASH_ARRAY = [2, 2];
+// Mapbox will not hit-test a layer painted at exactly zero opacity, so the coverage edge fill uses the
+// smallest opacity that still registers a tap. It is imperceptible on screen.
+const COVERAGE_EDGE_FILL_OPACITY = 0.01;
+
+const HITBOX = {width: 0, height: 0};
+
+export const DEFAULT_LINE_STYLE: LineLayerStyle = {lineColor: ZONE_OUTLINE_COLOR.toString(), lineWidth: ZONE_OUTLINE_WIDTH, lineCap: 'butt', lineJoin: 'miter'};
+const COVERAGE_EDGE_LINE_STYLE: LineLayerStyle = {lineColor: 'white', lineWidth: COVERAGE_EDGE_LINE_WIDTH, lineCap: 'round', lineJoin: 'round'};
+const COVERAGE_EDGE_DASH_STYLE: LineLayerStyle = {
+  lineColor: colorLookup('gray.900').toString(),
+  lineWidth: COVERAGE_EDGE_LINE_WIDTH,
+  lineDasharray: COVERAGE_EDGE_DASH_ARRAY,
+  lineCap: 'butt',
+  lineJoin: 'round',
+};
+
 export interface AvalancheForecastZonePolygonProps {
   zone: MapViewZone;
   renderFillColor: boolean;
+  polygonStyle?: ZonePolygonStyle;
   onPress?: (zone: MapViewZone) => void;
 }
 
-export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({zone, onPress, renderFillColor}: AvalancheForecastZonePolygonProps) => {
-  const useAnimation = zone.hasWarning && renderFillColor;
-  const animationProgress = useRef(new Animated.Value(0)).current;
+const AvalancheForecastZonePolygonComponent: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({
+  zone,
+  onPress,
+  renderFillColor,
+  polygonStyle = 'default',
+}: AvalancheForecastZonePolygonProps) => {
+  const isCoverageEdge = polygonStyle === 'coverageEdge';
+
+  // ShapeSource is a PureComponent whose render re-serializes the whole geometry with JSON.stringify.
+  // Both of its unstable props are held stable here so it can short-circuit: the zone is read through a
+  // ref rather than closed over, and the layers are memoized rather than built as a fresh array literal.
+  const zoneRef = useRef(zone);
   useEffect(() => {
-    if (useAnimation) {
-      Animated.loop(
-        Animated.timing(animationProgress, {
-          toValue: 3,
-          duration: 2000,
-          useNativeDriver: false,
-        }),
-      ).start();
-    }
-  }, [animationProgress, useAnimation]);
+    zoneRef.current = zone;
+  }, [zone]);
 
   const onPolygonPress = useCallback(
     (_: object) => {
       if (onPress) {
-        onPress(zone);
+        onPress(zoneRef.current);
       }
     },
-    [zone, onPress],
+    [onPress],
   );
 
-  const fillOpacity = renderFillColor ? zone.fillOpacity : 0;
-  let fillColor: string | Animated.AnimatedInterpolation<string | number>;
-  if (useAnimation) {
-    fillColor = animationProgress.interpolate({
-      inputRange: [0, 1, 2, 3, 4, 5],
-      outputRange: [
-        colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
-        colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
-        colorFor(zone.danger_level).alpha(1).string(),
-        colorFor(zone.danger_level).alpha(1).string(),
-        colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
-        colorFor(zone.danger_level).alpha(zone.fillOpacity).string(),
-      ],
-    });
-  } else {
-    fillColor = colorFor(zone.danger_level).alpha(fillOpacity).string();
-  }
+  const fillOpacity = isCoverageEdge ? COVERAGE_EDGE_FILL_OPACITY : zone.fillOpacity;
+
+  // Mapbox multiplies fillOpacity by the fill color's alpha, so exactly one of them carries the opacity:
+  // the color stays opaque and fillOpacity does the work.
+  const fillColor = useMemo(() => colorFor(zone.danger_level).string(), [zone.danger_level]);
+
+  const fillStyle = useMemo<FillLayerStyle>(
+    () => ({
+      fillColor: fillColor,
+      fillOpacity: fillOpacity,
+      visibility: isCoverageEdge || renderFillColor ? 'visible' : 'none',
+    }),
+    [fillColor, fillOpacity, isCoverageEdge, renderFillColor],
+  );
+
+  // Every layer has to be a direct child of ShapeSource — it injects its source id per child and skips
+  // over Fragments.
+  const layers = useMemo(
+    () => [
+      <FillLayer key="fillLayer" id={`${zone.zone_id}-fillLayer`} style={fillStyle} />,
+      <LineLayer key="lineLayer" id={`${zone.zone_id}-lineLayer`} style={isCoverageEdge ? COVERAGE_EDGE_LINE_STYLE : DEFAULT_LINE_STYLE} />,
+      ...(isCoverageEdge ? [<LineLayer key="coverageEdgeDashLayer" id={`${zone.zone_id}-coverageEdgeDashLayer`} style={COVERAGE_EDGE_DASH_STYLE} />] : []),
+    ],
+    [zone.zone_id, fillStyle, isCoverageEdge],
+  );
 
   return (
-    <ShapeSource key={`${zone.zone_id}`} id={`${zone.zone_id}`} shape={zone.feature} onPress={onPolygonPress} hitbox={{width: 0, height: 0}}>
-      <MBAnimated.FillLayer id={`${zone.zone_id}-fillLayer`} style={{fillColor: fillColor, visibility: renderFillColor ? 'visible' : 'none'}} />
-      <LineLayer id={`${zone.zone_id}-lineLayer`} style={{lineColor: ZONE_OUTLINE_COLOR.toString(), lineWidth: ZONE_OUTLINE_WIDTH}} />
+    <ShapeSource id={`${zone.zone_id}`} shape={zone.feature} onPress={onPolygonPress} hitbox={HITBOX}>
+      {layers}
     </ShapeSource>
   );
 };
+
+export const AvalancheForecastZonePolygon = React.memo(AvalancheForecastZonePolygonComponent);
+AvalancheForecastZonePolygon.displayName = 'AvalancheForecastZonePolygon';
 
 export const SelectedAvalancheForecastZonePolygon: React.FunctionComponent<{zone: MapViewZone}> = ({zone}) => {
   const highlight = colorLookup('blue.100');

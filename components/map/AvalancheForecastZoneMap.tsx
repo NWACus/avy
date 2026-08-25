@@ -14,11 +14,14 @@ import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {useMapPersistence} from 'MapPersistence';
 import {usePreferences} from 'Preferences';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
+import {carvePolygonFeatures} from 'utils/carvePolygonFeatures';
 import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 
 import {ForecastNavigationHeader} from 'components/content/navigation/ForecastMapNavigationHeader';
 import {DangerScale} from 'components/DangerScale';
-import {AvalancheForecastMapView} from 'components/map/AvalancheForecastMapView';
+import {AvalancheForecastMapView, CBAC_COVERAGE_CENTER_ID, CBAC_OVERLAPPED_CENTER_ID, cbacDrawsAsOwnZone} from 'components/map/AvalancheForecastMapView';
+import {CBACCoverageLegend} from 'components/map/CBACCoverageLegend';
+import {CBACForecastFirstRunModal} from 'components/modals/cbac/CBACForecastFirstRunModal';
 import {FirstRunExperienceModal} from 'components/modals/FirstRunExperienceModal';
 import * as Location from 'expo-location';
 import {Position} from 'geojson';
@@ -26,6 +29,9 @@ import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useCanadaZones} from 'hooks/useCanadaZones';
 import {logger} from 'logger';
 import {Alert, Linking, View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+
+const LEGEND_FADE_DURATION_MS = 200;
 
 export interface MapProps {
   center_id: AvalancheCenterID;
@@ -40,7 +46,7 @@ export type TopElementMeasurments = {
 
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime, tabBarHeight = 0}: MapProps) => {
   const {preferences, setPreferences} = usePreferences();
-  const {isInNoCenterExperience} = useMapPersistence();
+  const {isInNoCenterExperience, mapPersistenceLoaded} = useMapPersistence();
 
   // Fetches all the map layers in call. Unfortunately, CBAC isn't included in that call so it needs to be fetched separately
   const allMapLayersResult = useAllMapLayers(requestedTime);
@@ -52,6 +58,25 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const warningResults = useMapLayerAvalancheWarnings(center_id, requestedTime, allMapLayers);
 
   const canadaZones = useCanadaZones(requestedTime);
+
+  const carveCBACFromCAIC = cbacDrawsAsOwnZone(center_id, isInNoCenterExperience);
+
+  // The carve is turf work over CAIC's high-vertex polygons, so it is cached against the map layer that
+  // produced it: the no-center experience flips this selection on and off as the user pans around.
+  const carvedCAICCacheRef = React.useRef<{features: MapLayerFeature[]; carved: MapLayerFeature[]} | null>(null);
+  const mapLayerFeatures = useMemo((): MapLayerFeature[] | undefined => {
+    const features = allMapLayers?.features;
+    if (!features || !carveCBACFromCAIC) {
+      return features;
+    }
+    if (carvedCAICCacheRef.current?.features !== features) {
+      const caicFeatures = features.filter(feature => feature.properties.center_id === CBAC_OVERLAPPED_CENTER_ID);
+      const otherFeatures = features.filter(feature => feature.properties.center_id !== CBAC_OVERLAPPED_CENTER_ID);
+      const cbacFeatures = features.filter(feature => feature.properties.center_id === CBAC_COVERAGE_CENTER_ID);
+      carvedCAICCacheRef.current = {features: features, carved: otherFeatures.concat(carvePolygonFeatures(caicFeatures, cbacFeatures, logger))};
+    }
+    return carvedCAICCacheRef.current.carved;
+  }, [allMapLayers, carveCBACFromCAIC]);
 
   const topElements = React.useRef<View>(null);
 
@@ -72,7 +97,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   // This is done all at once so that zonesById is recalculated when forecastResults or warningResults changes while
   // avoiding the recalculation on every re-render
   const zonesById = useMemo(() => {
-    const zones = allMapLayers?.features.reduce((accum: Record<string, MapViewZone>, feature: MapLayerFeature) => {
+    const zones = mapLayerFeatures?.reduce((accum: Record<string, MapViewZone>, feature: MapLayerFeature) => {
       accum[feature.id] = mapViewZoneFor(feature);
       return accum;
     }, {});
@@ -157,7 +182,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       });
 
     return zones;
-  }, [allMapLayers, forecastResults, warningResults, requestedTime]);
+  }, [mapLayerFeatures, forecastResults, warningResults, requestedTime]);
 
   const onSelectCenter = useCallback(
     (center: AvalancheCenterID) => {
@@ -166,22 +191,22 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     [setPreferences],
   );
 
+  // Keeping the previous object when the numbers are unchanged matters: this feeds the map's viewport
+  // insets, and a fresh identity there rebuilds the camera handler and every memo that depends on it.
+  const measureTopElements = useCallback(() => {
+    topElements.current?.measureInWindow((x, y, width, height) => {
+      setTopElementMeasurements(previous => (previous.yPos === y && previous.height === height ? previous : {yPos: y, height: height}));
+    });
+  }, [setTopElementMeasurements]);
+
   const onLayout = useCallback(() => {
     // onLayout returns position relative to parent - we need position relative to screen
-    topElements.current?.measureInWindow((x, y, width, height) => {
-      setTopElementMeasurements({yPos: y, height: height});
-    });
+    measureTopElements();
 
     // we seem to see races between onLayout firing and the measureInWindow picking up the correct
     // SafeAreaView bounds, so let's queue up another render pass in the future to hopefully converge
-    setTimeout(() => {
-      if (topElements.current) {
-        topElements.current.measureInWindow((x, y, width, height) => {
-          setTopElementMeasurements({yPos: y, height: height});
-        });
-      }
-    }, 50);
-  }, [setTopElementMeasurements]);
+    setTimeout(measureTopElements, 50);
+  }, [measureTopElements]);
 
   const onFetchLocation = useCallback(() => {
     async function getUserLocation() {
@@ -221,9 +246,18 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     void getUserLocation();
   }, [setUserLocation]);
 
-  const zones = useMemo(() => (zonesById !== undefined ? Object.keys(zonesById).map(k => zonesById[k]) : []), [zonesById]);
+  const zones = useMemo(() => {
+    if (zonesById === undefined) {
+      return [];
+    }
+    const others: MapViewZone[] = [];
+    const cbac: MapViewZone[] = [];
+    Object.keys(zonesById).forEach(k => (zonesById[k].center_id === CBAC_COVERAGE_CENTER_ID ? cbac : others).push(zonesById[k]));
+    return others.concat(cbac);
+  }, [zonesById]);
 
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
+  const [cbacCoverageVisible, setCBACCoverageVisible] = useState(false);
 
   // Reset selected zone when the user switches centers via the center picker (not via zone tap).
   // When a zone tap switches centers, selectedZoneId is set to the tapped zone which belongs to the
@@ -240,6 +274,18 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   const showFREModal = useMemo(() => preferences.hasSeenCenterPicker && !preferences.hasSeenFRE, [preferences.hasSeenCenterPicker, preferences.hasSeenFRE]);
   const onFREClose = useCallback(() => setPreferences({hasSeenFRE: true}), [setPreferences]);
+
+  const showCBACForecastFirstRunModal = useMemo(
+    () =>
+      preferences.hasSeenCenterPicker &&
+      preferences.hasSeenFRE &&
+      preferences.center === CBAC_COVERAGE_CENTER_ID &&
+      !preferences.hasSeenCBACForecastFirstRun &&
+      mapPersistenceLoaded &&
+      !isInNoCenterExperience,
+    [preferences.hasSeenCenterPicker, preferences.hasSeenFRE, preferences.center, preferences.hasSeenCBACForecastFirstRun, mapPersistenceLoaded, isInNoCenterExperience],
+  );
+  const onCBACForecastFirstRunClose = useCallback(() => setPreferences({hasSeenCBACForecastFirstRun: true}), [setPreferences]);
 
   const isQueryIncomplete = incompleteQueryState(allMapLayersResult, metadataResult, ...forecastResults, ...warningResults) || !allMapLayers || !metadata;
 
@@ -269,18 +315,25 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           selectedZoneId={selectedZoneId}
           tabBarHeight={tabBarHeight}
           setSelectedZoneId={setSelectedZoneId}
+          onCBACCoverageVisibleChange={setCBACCoverageVisible}
         />
       )}
 
       <VStack ref={topElements} width="100%" position="absolute" top={0} left={0} right={0} onLayout={onLayout}>
         <ForecastNavigationHeader centerId={center_id} isInNoCenterExperience={isInNoCenterExperience} onFetchUserLocation={onFetchLocation} />
-        <VStack px={4} marginTop={8}>
+        <VStack px={4} marginTop={8} space={8}>
           <DangerScale width="100%" />
+          {isInNoCenterExperience && cbacCoverageVisible && (
+            <Animated.View entering={FadeIn.duration(LEGEND_FADE_DURATION_MS)} exiting={FadeOut.duration(LEGEND_FADE_DURATION_MS)}>
+              <CBACCoverageLegend width="100%" />
+            </Animated.View>
+          )}
         </VStack>
       </VStack>
 
       <AvalancheCenterSelectionModal visible={showAvalancheCenterSelectionModal} initialSelection={preferences.center} onClose={onSelectCenter} />
       <FirstRunExperienceModal visible={showFREModal} onClose={onFREClose} />
+      <CBACForecastFirstRunModal visible={showCBACForecastFirstRunModal} onClose={onCBACForecastFirstRunClose} />
     </>
   );
 };

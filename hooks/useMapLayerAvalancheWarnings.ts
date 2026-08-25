@@ -13,17 +13,22 @@ export const useMapLayerAvalancheWarnings = (center_id: AvalancheCenterID, reque
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const apiVersion = useNACApiVersion();
-  const preferredCenterFeatures = mapLayer?.features.filter(feature => feature.properties.center_id === center_id);
 
-  return useQueries<UseQueryOptions<WarningResultWithZone, AxiosError | ZodError>[]>({
-    queries: preferredCenterFeatures
-      ? preferredCenterFeatures.map(feature => {
+  // Memoized because useQueries re-defaults (and so re-hashes the key of) every query it is handed a
+  // new array for, and then pushes them back into its observer — on every render of this hook's caller.
+  const queries = React.useMemo(
+    () =>
+      mapLayer?.features
+        .filter(feature => feature.properties.center_id === center_id)
+        .map(feature => {
           return {
             queryKey: AvalancheWarningQuery.queryKey(nationalAvalancheCenterHost, apiVersion, center_id, feature.id, requestedTime),
             queryFn: async (): Promise<WarningResultWithZone> => AvalancheWarningQuery.fetch(nationalAvalancheCenterHost, apiVersion, center_id, feature.id, requestedTime, logger),
             cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
           };
-        })
-      : [],
-  });
+        }) ?? [],
+    [mapLayer, center_id, nationalAvalancheCenterHost, apiVersion, requestedTime, logger],
+  );
+
+  return useQueries<UseQueryOptions<WarningResultWithZone, AxiosError | ZodError>[]>({queries: queries});
 };
