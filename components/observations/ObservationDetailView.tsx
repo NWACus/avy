@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {Image, ScrollView} from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -13,10 +13,8 @@ import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {HStack, VStack, View} from 'components/core';
 import {NACAvalancheIcon} from 'components/icons/nac-icons';
 import {ZoneMap} from 'components/map/ZoneMap';
-import {matchesZone} from 'components/observations/ObservationsFilterForm';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySemibold, bodySize} from 'components/text';
 import {HTML} from 'components/text/HTML';
-import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useNACObservation} from 'hooks/useNACObservation';
@@ -28,7 +26,6 @@ import {
   AvalancheAspect,
   AvalancheBedSurface,
   AvalancheCause,
-  AvalancheCenterID,
   AvalancheTrigger,
   AvalancheType,
   AvyPosition,
@@ -49,36 +46,27 @@ import {
   Position,
   SnowAvailableForTransport,
   WindLoading,
-  mapFeaturesForCenter,
   userFacingCenterId,
 } from 'types/nationalAvalancheCenter';
 import {observationDateToLocalShortDateString, utcDateToLocalShortDateString} from 'utils/date';
 
 export const ObservationDetailView: React.FunctionComponent<{
   id: string;
-}> = ({id}) => {
+  zoneName: string;
+}> = ({id, zoneName}) => {
   const observationResult = useNACObservation(id);
   const observation = observationResult.data;
-  const mapResult = useAllMapLayers('latest');
-  const mapLayer = mapResult.data;
   const capabilitiesResult = useAvalancheCenterCapabilities();
   const capabilities = capabilitiesResult.data;
 
-  const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, observation?.center_id.toUpperCase() as AvalancheCenterID), [mapLayer, observation?.center_id]);
   const navigation = useNavigation<MainStackNavigationProps>();
-  const zone_name = useMemo(
-    () => observation?.location_point?.lat && observation?.location_point?.lng && matchesZone(mapFeatures ?? [], observation.location_point?.lat, observation.location_point?.lng),
-    [observation, mapFeatures],
-  );
 
   React.useEffect(() => {
-    if (zone_name) {
-      navigation.setOptions({title: `${zone_name} Observation`});
-    }
-  }, [navigation, zone_name]);
+    navigation.setOptions({title: `${zoneName} Observation`});
+  }, [navigation, zoneName]);
 
-  if (incompleteQueryState(observationResult, mapResult, capabilitiesResult) || !observation || !mapLayer || !capabilities || !capabilities) {
-    return <QueryState results={[observationResult, mapResult, capabilitiesResult]} />;
+  if (incompleteQueryState(observationResult, capabilitiesResult) || !observation || !capabilities) {
+    return <QueryState results={[observationResult, capabilitiesResult]} />;
   }
 
   return <ObservationCard observation={observation} capabilities={capabilities} />;
