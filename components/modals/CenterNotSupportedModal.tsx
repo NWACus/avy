@@ -1,9 +1,10 @@
-import {AlertModal, AlertModalAction} from 'components/content/AlertModal';
-import {Body} from 'components/text';
+import {AlertModal, AlertModalActions} from 'components/content/AlertModal';
+import {Button} from 'components/content/Button';
+import {Body, BodyBlack} from 'components/text';
 import * as WebBrowser from 'expo-web-browser';
 import {useAnalytics} from 'hooks/useAnalytics';
 import {logger} from 'logger';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {Alert} from 'react-native';
 import {AvalancheCenterID, UnsupportedCenterID, UnsupportedCenterNames} from 'types/nationalAvalancheCenter';
 
@@ -39,14 +40,14 @@ export const CenterNotSupportedModal: React.FC<CenterNotSupportedModalProps> = (
       });
   }, [analytics, centerId, unsupportedCenterId, avalancheCenterWebsiteUrl, onClose]);
 
-  const primaryAction = useMemo<AlertModalAction>(
-    () => ({label: `Open ${unsupportedCenterId === 'CAN' ? 'Avalance Canada' : unsupportedCenterId} Site`, onPress: onPressWebsite}),
-    [onPressWebsite, unsupportedCenterId],
-  );
-
   return (
-    <AlertModal isVisible={visible} onDismiss={onClose} title="Forecast Available on Official Site" showCloseButton primaryAction={primaryAction}>
+    <AlertModal isVisible={visible} onDismiss={onClose} title="Forecast Available on Official Site" showCloseButton>
       <Body>{`${centerDisplayName} isn't available within Avy right now. You can still access their latest forecast and updates on their website.`}</Body>
+      <AlertModalActions>
+        <Button buttonStyle="primary" onPress={onPressWebsite}>
+          <BodyBlack>Open {unsupportedCenterId === 'CAN' ? 'Avalance Canada' : unsupportedCenterId} Site</BodyBlack>
+        </Button>
+      </AlertModalActions>
     </AlertModal>
   );
 };
