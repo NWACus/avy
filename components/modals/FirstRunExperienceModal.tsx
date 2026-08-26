@@ -2,7 +2,8 @@ import React, {useMemo} from 'react';
 import {Image, StyleSheet} from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
-import {AlertModal, AlertModalAction} from 'components/content/AlertModal';
+import {AlertModal, AlertModalActions} from 'components/content/AlertModal';
+import {Button} from 'components/content/Button';
 import {HStack, VStack} from 'components/core';
 import {Body, BodyBlack, Title3Black} from 'components/text';
 import {sponsorLogoSize} from 'data/sponsors';
@@ -49,10 +50,8 @@ export const FirstRunExperienceModal: React.FC<FirstRunExperienceModalProps> = (
     [sponsor.logoOnLight, sponsorLogoStyle],
   );
 
-  const primaryAction = useMemo<AlertModalAction>(() => ({label: 'Okay', onPress: onClose}), [onClose]);
-
   return (
-    <AlertModal isVisible={visible} onDismiss={onClose} title="Avy has a fresh look!" titleAlign="center" header={header} primaryAction={primaryAction}>
+    <AlertModal isVisible={visible} onDismiss={onClose} title="Avy has a fresh look!" titleAlign="center" header={header}>
       <Body textAlign="left">{'We’ve redesigned the map to make it faster and easier to access avalanche forecasts from across the country.'}</Body>
       <VStack space={8}>
         <BulletItem>
@@ -68,6 +67,11 @@ export const FirstRunExperienceModal: React.FC<FirstRunExperienceModalProps> = (
         </BulletItem>
         <BulletItem>{`This season we’ve partnered with ${sponsor.displayName}!`}</BulletItem>
       </VStack>
+      <AlertModalActions>
+        <Button buttonStyle="primary" onPress={onClose}>
+          <BodyBlack>Okay</BodyBlack>
+        </Button>
+      </AlertModalActions>
     </AlertModal>
   );
 };

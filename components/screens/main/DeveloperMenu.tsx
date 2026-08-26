@@ -24,7 +24,7 @@ import {useQueryClient} from '@tanstack/react-query';
 import {ClientContext} from 'clientContext';
 import {AvalancheProblemSizeLine} from 'components/AvalancheProblemSizeLine';
 import {ActionList} from 'components/content/ActionList';
-import {AlertModal} from 'components/content/AlertModal';
+import {AlertModal, AlertModalActions} from 'components/content/AlertModal';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {DrawerModal, DrawerModalDisplayType} from 'components/content/DrawerModal';
@@ -866,12 +866,22 @@ export const AlertModalPreview = () => {
         ))}
       </VStack>
 
-      <AlertModal isVisible={variant === 'titleOnly'} onDismiss={dismiss} title="A simple alert" primaryAction={{label: 'Got it', onPress: dismiss}}>
+      <AlertModal isVisible={variant === 'titleOnly'} onDismiss={dismiss} title="A simple alert">
         <Body>Just a title, a paragraph of body copy, and a single primary action.</Body>
+        <AlertModalActions>
+          <Button buttonStyle="primary" onPress={dismiss}>
+            <BodyBlack>Got it</BodyBlack>
+          </Button>
+        </AlertModalActions>
       </AlertModal>
 
-      <AlertModal isVisible={variant === 'closeButton'} onDismiss={dismiss} title="Dismissable alert" showCloseButton primaryAction={{label: 'Continue', onPress: dismiss}}>
+      <AlertModal isVisible={variant === 'closeButton'} onDismiss={dismiss} title="Dismissable alert" showCloseButton>
         <Body>The close button sits to the right of the title and calls onDismiss.</Body>
+        <AlertModalActions>
+          <Button buttonStyle="primary" onPress={dismiss}>
+            <BodyBlack>Continue</BodyBlack>
+          </Button>
+        </AlertModalActions>
       </AlertModal>
 
       <AlertModal
@@ -885,18 +895,25 @@ export const AlertModalPreview = () => {
               <BodyBlack color={colorLookup('primary')}>Avy</BodyBlack>
             </View>
           </View>
-        }
-        primaryAction={{label: 'Okay', onPress: dismiss}}>
+        }>
         <Body textAlign="center">The header slot renders above the title, outside the shared 12pt content stack.</Body>
+        <AlertModalActions>
+          <Button buttonStyle="primary" onPress={dismiss}>
+            <BodyBlack>Okay</BodyBlack>
+          </Button>
+        </AlertModalActions>
       </AlertModal>
 
-      <AlertModal
-        isVisible={variant === 'twoActions'}
-        onDismiss={dismiss}
-        title="Two actions"
-        primaryAction={{label: 'Confirm', onPress: dismiss}}
-        secondaryAction={{label: 'Not now', onPress: dismiss}}>
-        <Body>The secondary action stacks above the primary one and defaults to the normal button style.</Body>
+      <AlertModal isVisible={variant === 'twoActions'} onDismiss={dismiss} title="Two actions">
+        <Body>Actions live in children, so callers control both their order and their button styles.</Body>
+        <AlertModalActions>
+          <Button buttonStyle="primary" onPress={dismiss}>
+            <BodyBlack>Confirm</BodyBlack>
+          </Button>
+          <Button buttonStyle="normal" onPress={dismiss}>
+            <BodyBlack>Not now</BodyBlack>
+          </Button>
+        </AlertModalActions>
       </AlertModal>
     </SafeAreaView>
   );

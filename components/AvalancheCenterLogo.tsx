@@ -46,7 +46,7 @@ export const AvalancheCenterLogo: React.FunctionComponent<AvalancheCenterLogoPro
     ['WAC']: Image.resolveAssetSource(require('../assets/logos/WAC.png')),
     ['WCMAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
     // The following are unsupported
-    ['CAIC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
+    ['CAIC']: Image.resolveAssetSource(require('../assets/logos/CAIC.png')),
     ['UAC']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
     ['SOAIX']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
     ['EWYAIX']: Image.resolveAssetSource(require('../assets/logos/WCMAC.png')),
@@ -214,7 +214,7 @@ export const preloadAvalancheCenterLogo = async (queryClient: QueryClient, logge
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
     // The following are unsupported
     case 'CAIC':
-      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
+      return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/CAIC.png')).uri);
     case 'UAC':
       return ImageCache.prefetch(queryClient, logger, Image.resolveAssetSource(require('../assets/logos/WCMAC.png')).uri);
     case 'SOAIX':
