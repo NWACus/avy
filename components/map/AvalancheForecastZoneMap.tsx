@@ -13,7 +13,6 @@ import {useMapLayerAvalancheForecasts} from 'hooks/useMapLayerAvalancheForecasts
 import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {useMapPersistence} from 'MapPersistence';
 import {usePreferences} from 'Preferences';
-import {useSplashComplete} from 'SplashScreenContext';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
 import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 
@@ -234,13 +233,9 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     }
   }, [center_id, zones, selectedZoneId]);
 
-  const splashComplete = useSplashComplete();
-  const showAvalancheCenterSelectionModal = useMemo(() => splashComplete && !preferences.hasSeenCenterPicker, [splashComplete, preferences.hasSeenCenterPicker]);
+  const showAvalancheCenterSelectionModal = useMemo(() => !preferences.hasSeenCenterPicker, [preferences.hasSeenCenterPicker]);
 
-  const showFREModal = useMemo(
-    () => splashComplete && preferences.hasSeenCenterPicker && !preferences.hasSeenFRE,
-    [splashComplete, preferences.hasSeenCenterPicker, preferences.hasSeenFRE],
-  );
+  const showFREModal = useMemo(() => preferences.hasSeenCenterPicker && !preferences.hasSeenFRE, [preferences.hasSeenCenterPicker, preferences.hasSeenFRE]);
   const onFREClose = useCallback(() => setPreferences({hasSeenFRE: true}), [setPreferences]);
 
   const isQueryIncomplete = incompleteQueryState(allMapLayersResult, metadataResult, ...forecastResults, ...warningResults) || !allMapLayers || !metadata;
