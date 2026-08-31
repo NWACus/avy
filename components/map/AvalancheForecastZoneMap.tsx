@@ -20,6 +20,7 @@ import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 import {ForecastNavigationHeader} from 'components/content/navigation/ForecastMapNavigationHeader';
 import {DangerScale} from 'components/DangerScale';
 import {AvalancheForecastMapView} from 'components/map/AvalancheForecastMapView';
+import {SponsorWatermark} from 'components/map/SponsorWatermark';
 import {FirstRunExperienceModal} from 'components/modals/FirstRunExperienceModal';
 import * as Location from 'expo-location';
 import {Position} from 'geojson';
@@ -282,6 +283,8 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
       <AvalancheCenterSelectionModal visible={showAvalancheCenterSelectionModal} initialSelection={preferences.center} onClose={onSelectCenter} />
       <FirstRunExperienceModal visible={showFREModal} onClose={onFREClose} />
+
+      <SponsorWatermark tabBarHeight={tabBarHeight} active={splashComplete && !showAvalancheCenterSelectionModal && !showFREModal} />
     </>
   );
 };
