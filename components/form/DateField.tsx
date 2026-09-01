@@ -1,11 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import DateTimePicker, {DateTimePickerAndroid, DateTimePickerEvent} from '@react-native-community/datetimepicker';
-import {Center, HStack, VStack, View, ViewProps} from 'components/core';
+import DateTimePicker, {DateTimePickerAndroid, DateTimePickerChangeEvent, DateTimePickerEvent} from '@react-native-community/datetimepicker';
+import {Button} from 'components/content/Button';
+import {Center, HStack, View, ViewProps, VStack} from 'components/core';
 import {FieldLabel} from 'components/form/FieldLabel';
 import {Body, bodySize} from 'components/text';
 import React, {useCallback, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {Platform, TouchableOpacity} from 'react-native';
+import {ColorValue, Platform, TouchableOpacity} from 'react-native';
 import {colorLookup} from 'theme';
 import {utcDateToLocalDateString} from 'utils/date';
 
@@ -20,8 +21,10 @@ interface DateFieldProps extends ViewProps {
 export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, maximumDate, disabled, ...props}) => {
   const {field} = useController({name: name});
   const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const value: Date | undefined = field.value as Date | undefined;
+  const [pendingDate, setPendingDate] = useState<Date>(value ?? new Date());
 
-  const onDateSelected = useCallback(
+  const onDateSelectedAndroid = useCallback(
     (event: DateTimePickerEvent, date?: Date) => {
       if (event.type === 'set') {
         field.onChange(date);
@@ -31,7 +34,24 @@ export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, m
     [field, setDatePickerVisible],
   );
 
-  const value: Date | undefined = field.value as Date | undefined;
+  const onDateSelectedIOS = useCallback((_: DateTimePickerChangeEvent, date: Date) => {
+    setPendingDate(date);
+  }, []);
+
+  const confirmDateIOS = useCallback(() => {
+    field.onChange(pendingDate);
+    setDatePickerVisible(false);
+  }, [field, pendingDate, setDatePickerVisible]);
+
+  const renderConfirmButtonContent = useCallback(
+    (style: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => (
+      <HStack space={4} alignItems="center">
+        <Ionicons name="checkmark" color={style.textColor} size={bodySize} />
+        <Body color={style.textColor}>Confirm</Body>
+      </HStack>
+    ),
+    [],
+  );
 
   const toggleDatePicker = useCallback(() => {
     setDatePickerVisible(!datePickerVisible);
@@ -39,10 +59,12 @@ export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, m
       if (datePickerVisible) {
         void DateTimePickerAndroid.dismiss('date');
       } else {
-        void DateTimePickerAndroid.open({mode: 'date', display: 'default', onChange: onDateSelected, value: value ?? new Date(), minimumDate, maximumDate});
+        void DateTimePickerAndroid.open({mode: 'date', display: 'default', onChange: onDateSelectedAndroid, value: value ?? new Date(), minimumDate, maximumDate});
       }
+    } else if (!datePickerVisible) {
+      setPendingDate(value ?? new Date());
     }
-  }, [datePickerVisible, setDatePickerVisible, onDateSelected, value, minimumDate, maximumDate]);
+  }, [datePickerVisible, setDatePickerVisible, onDateSelectedAndroid, value, minimumDate, maximumDate]);
 
   return (
     <VStack width="100%" space={4} {...props}>
@@ -59,16 +81,19 @@ export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, m
       </TouchableOpacity>
 
       {datePickerVisible && Platform.OS === 'ios' && (
-        <DateTimePicker
-          value={value || new Date()}
-          mode="date"
-          display="inline"
-          themeVariant="light"
-          onChange={onDateSelected}
-          minimumDate={minimumDate}
-          maximumDate={maximumDate}
-          disabled={disabled}
-        />
+        <VStack space={8}>
+          <DateTimePicker
+            value={pendingDate}
+            mode="date"
+            display="inline"
+            themeVariant="light"
+            onValueChange={onDateSelectedIOS}
+            minimumDate={minimumDate}
+            maximumDate={maximumDate}
+            disabled={disabled}
+          />
+          <Button onPress={confirmDateIOS} buttonStyle="primary" alignSelf="flex-end" px={16} py={8} disabled={disabled} renderChildren={renderConfirmButtonContent} />
+        </VStack>
       )}
     </VStack>
   );

@@ -31,7 +31,7 @@ type avalancheInstability = z.infer<typeof avalancheInstabilitySchema>;
 
 const observationFilterConfigSchema = z.object({
   zones: z.array(z.string()),
-  otherRegions: z.array(z.string()),
+  otherRegions: z.array(z.string()).default([]),
   dates: z
     .object({
       from: z.date(),
@@ -104,12 +104,32 @@ const matchesAvalanches = (avalanches: avalancheInstability[], observation: Obse
   });
 };
 
-interface FilterListItem {
+type FilterGroup = 'none' | 'location';
+
+export interface FilterListItem {
   type: 'date' | 'zone' | 'observer' | 'instability' | 'avalanche' | 'otherRegions';
+  group: FilterGroup;
   filter: FilterFunction;
   label: string;
   removeFilter?: (config: ObservationFilterConfig) => ObservationFilterConfig;
 }
+
+// Filters sharing a group are OR'd together; groups are AND'd against each other. A filter in the
+// 'none' group stands alone, so it always AND's with everything else.
+export const matchesFilters = (observation: ObservationFragment, filters: FilterListItem[]): boolean => {
+  const groups = new Map<string, FilterFunction[]>();
+  filters.forEach(({group, type, filter}) => {
+    const key = group === 'none' ? type : group;
+    const existing = groups.get(key);
+    if (existing) {
+      existing.push(filter);
+    } else {
+      groups.set(key, [filter]);
+    }
+  });
+  return Array.from(groups.values()).every(groupFilters => groupFilters.some(filter => filter(observation)));
+};
+
 export const filtersForConfig = (
   mapLayerFeatures: MapLayerFeature[],
   config: ObservationFilterConfig,
@@ -124,6 +144,7 @@ export const filtersForConfig = (
   if (config.dates && config.dates.from && config.dates.to) {
     filterFuncs.push({
       type: 'date',
+      group: 'none',
       filter: matchesDates(config.dates),
       label: dateLabelForFilterConfig(config.dates),
       removeFilter: (config: ObservationFilterConfig) => ({...config, dates: null}),
@@ -133,6 +154,7 @@ export const filtersForConfig = (
   if (config.zones.length > 0) {
     filterFuncs.push({
       type: 'zone',
+      group: 'location',
       filter: (observation: ObservationFragment) =>
         config.zones.includes(matchesZone(mapLayerFeatures, observation.locationPoint?.lat, observation.locationPoint?.lng, alternateObservationZoneFeatures)),
       removeFilter: additionalFilters?.zones ? undefined : (config: ObservationFilterConfig) => ({...config, zones: []}),
@@ -143,9 +165,10 @@ export const filtersForConfig = (
   if (config.otherRegions.length > 0) {
     filterFuncs.push({
       type: 'otherRegions',
+      group: 'location',
       filter: (observation: ObservationFragment) =>
         config.otherRegions.includes(matchesZone(mapLayerFeatures, observation.locationPoint?.lat, observation.locationPoint?.lng, alternateObservationZoneFeatures)),
-      removeFilter: additionalFilters?.zones ? undefined : (config: ObservationFilterConfig) => ({...config, otherRegions: []}),
+      removeFilter: additionalFilters?.otherRegions ? undefined : (config: ObservationFilterConfig) => ({...config, otherRegions: []}),
       label: config.otherRegions.join(', '),
     });
   }
@@ -153,6 +176,7 @@ export const filtersForConfig = (
   if (config.observerTypes.length > 0) {
     filterFuncs.push({
       type: 'observer',
+      group: 'none',
       filter: (observation: ObservationFragment) => config.observerTypes.includes(observation.observerType),
       removeFilter: (config: ObservationFilterConfig) => ({...config, observerTypes: []}),
       label: config.observerTypes.map(startCase).join(', '),
@@ -162,6 +186,7 @@ export const filtersForConfig = (
   if (config.avalanches.length > 0) {
     filterFuncs.push({
       type: 'avalanche',
+      group: 'none',
       filter: (observation: ObservationFragment) => matchesAvalanches(config.avalanches, observation),
       removeFilter: (config: ObservationFilterConfig) => ({...config, avalanches: []}),
       label: config.avalanches.map(startCase).join(', '),
@@ -179,6 +204,7 @@ export const filtersForConfig = (
 
     filterFuncs.push({
       type: 'instability',
+      group: 'none',
       filter: observation => matchesInstability(config, observation),
       label: labelStrings.map(startCase).join(', '),
       removeFilter: config => ({...config, cracking: false, collapsing: false}),
@@ -363,7 +389,7 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
                             ? initialFilterConfig.otherRegions.map(z => ({label: z, value: z}))
                             : alternateObservationZoneFeatures.map(feature => ({label: feature.properties.name, value: feature.properties.name}))
                         }
-                        disabled={initialFilterConfig.otherRegions.length > 0}
+                        disabled={initialFilterConfig.zones.length > 0 || initialFilterConfig.otherRegions.length > 0}
                         px={16}
                       />
                     </>
