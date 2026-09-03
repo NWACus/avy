@@ -6,6 +6,7 @@ import {StyleSheet, useWindowDimensions} from 'react-native';
 import {AnimatedDrawerState, AnimatedMapWithDrawerController} from 'components/map/AnimatedCards';
 import {ZonePolygonStyle} from 'components/map/AvalancheForecastZonePolygon';
 import {MapViewZone, ZoneMap} from 'components/map/ZoneMap';
+import {CBACForecastCenterlessModal} from 'components/modals/cbac/CBACForecastCenterlessModal';
 import {CenterNotSupportedModal} from 'components/modals/CenterNotSupportedModal';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {useMapPersistence} from 'MapPersistence';
@@ -62,7 +63,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 
   const [unsupportedCenter, setUnsupportedCenter] = useState<{centerId: UnsupportedCenterID; url: string} | null>(null);
   const [isUnsupportedModalVisible, setIsUnsupportedModalVisible] = useState(false);
-  const onCloseUnsupportedModal = useCallback(() => setIsUnsupportedModalVisible(false), []);
+  const onCloseUnsupportedModal = useCallback(() => setIsUnsupportedModalVisible(false), [setIsUnsupportedModalVisible]);
 
   const onCanadaPolygonPress = useCallback(
     (zone: CanadaMapViewZone) => {
@@ -72,6 +73,9 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
     },
     [analytics, preferredCenterId],
   );
+
+  const [pendingCBACZone, setPendingCBACZone] = useState<MapViewZone | null>(null);
+  const onCloseCBACCenterlessModal = useCallback(() => setPendingCBACZone(null), []);
 
   const onMapPresOutsideOfPolygon = useCallback(
     (_: GeoJSON.Feature) => {
@@ -99,7 +103,10 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         });
       } else {
         const selectedZoneCenter = zone.center_id;
-        if (isNACCenter(selectedZoneCenter)) {
+        if (isInNoCenterExperienceRef.current && selectedZoneCenter === CBAC_COVERAGE_CENTER_ID) {
+          // Leave the zone unselected so dismissing the modal returns the map to exactly the state it was in
+          setPendingCBACZone(zone);
+        } else if (isNACCenter(selectedZoneCenter)) {
           setSelectedZoneId(zone.zone_id);
 
           if (selectedZoneCenter !== latest.preferredCenterId) {
@@ -117,8 +124,18 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         }
       }
     },
-    [navigation, analytics, setSelectedZoneId, setPreferences, setIsInNoCenterExperience],
+    [navigation, analytics, preferredCenterId, setSelectedZoneId, setPreferences, setIsInNoCenterExperience],
   );
+
+  const onSwitchToCBAC = useCallback(() => {
+    if (!pendingCBACZone) {
+      return;
+    }
+    setSelectedZoneId(pendingCBACZone.zone_id);
+    setPreferences({center: CBAC_COVERAGE_CENTER_ID, hasSeenCBACForecastFirstRun: true});
+    setIsInNoCenterExperience(false);
+    setPendingCBACZone(null);
+  }, [pendingCBACZone, setSelectedZoneId, setPreferences, setIsInNoCenterExperience]);
 
   const zonePolygonStyle = useCallback(
     (zone: MapViewZone): ZonePolygonStyle => {
@@ -298,6 +315,8 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         avalancheCenterWebsiteUrl={unsupportedCenter?.url ?? null}
         onClose={onCloseUnsupportedModal}
       />
+
+      <CBACForecastCenterlessModal visible={pendingCBACZone !== null} onClose={onCloseCBACCenterlessModal} onSwitchToCBAC={onSwitchToCBAC} />
     </>
   );
 };
