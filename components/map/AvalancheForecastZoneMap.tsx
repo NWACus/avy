@@ -19,12 +19,16 @@ import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 import {ForecastNavigationHeader} from 'components/content/navigation/ForecastMapNavigationHeader';
 import {DangerScale} from 'components/DangerScale';
 import {AvalancheForecastMapView} from 'components/map/AvalancheForecastMapView';
+import {CBACCoverageLegend} from 'components/map/CBACCoverageLegend';
 import {FirstRunExperienceModal} from 'components/modals/FirstRunExperienceModal';
 import * as Location from 'expo-location';
 import {Position} from 'geojson';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {logger} from 'logger';
 import {Alert, Linking, View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+
+const LEGEND_FADE_DURATION_MS = 200;
 
 export interface MapProps {
   center_id: AvalancheCenterID;
@@ -218,9 +222,19 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     void getUserLocation();
   }, [setUserLocation]);
 
-  const zones = useMemo(() => (zonesById !== undefined ? Object.keys(zonesById).map(k => zonesById[k]) : []), [zonesById]);
+  // zonesById is keyed by numeric zone id, so Object.keys iterates in ascending id order and loses the
+  // CBAC-last ordering that useAllMapLayers builds. Mapbox draws layers in child order, so CBAC has to
+  // come last for its coverage edge to sit above the CAIC fill it overlaps and to win the tap.
+  const zones = useMemo(() => {
+    if (zonesById === undefined) {
+      return [];
+    }
+    const allZones = Object.keys(zonesById).map(k => zonesById[k]);
+    return allZones.filter(zone => zone.center_id !== 'CBAC').concat(allZones.filter(zone => zone.center_id === 'CBAC'));
+  }, [zonesById]);
 
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
+  const [cbacCoverageVisible, setCBACCoverageVisible] = useState(false);
 
   // Reset selected zone when the user switches centers via the center picker (not via zone tap).
   // When a zone tap switches centers, selectedZoneId is set to the tapped zone which belongs to the
@@ -265,13 +279,19 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           selectedZoneId={selectedZoneId}
           tabBarHeight={tabBarHeight}
           setSelectedZoneId={setSelectedZoneId}
+          onCBACCoverageVisibleChange={setCBACCoverageVisible}
         />
       )}
 
       <VStack ref={topElements} width="100%" position="absolute" top={0} left={0} right={0} onLayout={onLayout}>
         <ForecastNavigationHeader centerId={center_id} isInNoCenterExperience={isInNoCenterExperience} onFetchUserLocation={onFetchLocation} />
-        <VStack px={4} marginTop={8}>
+        <VStack px={4} marginTop={8} space={8}>
           <DangerScale width="100%" />
+          {isInNoCenterExperience && cbacCoverageVisible && (
+            <Animated.View entering={FadeIn.duration(LEGEND_FADE_DURATION_MS)} exiting={FadeOut.duration(LEGEND_FADE_DURATION_MS)}>
+              <CBACCoverageLegend width="100%" />
+            </Animated.View>
+          )}
         </VStack>
       </VStack>
 

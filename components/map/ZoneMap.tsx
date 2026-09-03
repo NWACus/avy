@@ -1,4 +1,4 @@
-import {AvalancheForecastZonePolygon, SelectedAvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZonePolygon';
+import {AvalancheForecastZonePolygon, SelectedAvalancheForecastZonePolygon, ZonePolygonStyle} from 'components/map/AvalancheForecastZonePolygon';
 import React, {RefObject, useMemo} from 'react';
 import {AvalancheCenterID, DangerLevel, MapLayerFeature} from 'types/nationalAvalancheCenter';
 
@@ -39,6 +39,7 @@ interface ZoneMapProps extends ViewProps {
   cameraRef?: RefObject<Camera | null>;
   selectedZoneId?: number | null;
   renderFillColor?: boolean;
+  zonePolygonStyle?: (zone: MapViewZone) => ZonePolygonStyle;
   rotateEnabled?: boolean;
   scrollEnabled?: boolean;
   zoomEnabled?: boolean;
@@ -54,6 +55,7 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
   initialCameraBounds,
   initialCameraStop,
   renderFillColor = true,
+  zonePolygonStyle = undefined,
   rotateEnabled = true,
   scrollEnabled = true,
   zoomEnabled = true,
@@ -64,8 +66,16 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
   ...props
 }) => {
   const zonePolygons = useMemo(() => {
-    return zones?.map(zone => <AvalancheForecastZonePolygon key={`${zone.zone_id}-polygon`} zone={zone} renderFillColor={renderFillColor} onPress={onPolygonPress} />);
-  }, [zones, renderFillColor, onPolygonPress]);
+    return zones?.map(zone => (
+      <AvalancheForecastZonePolygon
+        key={`${zone.zone_id}-polygon`}
+        zone={zone}
+        renderFillColor={renderFillColor}
+        polygonStyle={zonePolygonStyle ? zonePolygonStyle(zone) : 'default'}
+        onPress={onPolygonPress}
+      />
+    ));
+  }, [zones, renderFillColor, zonePolygonStyle, onPolygonPress]);
 
   const selectedPolygon = useMemo(() => {
     if (selectedZoneId !== null) {

@@ -8,11 +8,9 @@ import * as Sentry from '@sentry/react-native';
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
-import * as Updates from 'expo-updates';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {MapLayer, mapLayerSchema} from 'types/nationalAvalancheCenter';
-import {carvePolygonFeatures} from 'utils/carvePolygonFeatures';
 import {apiDateString, RequestedTime} from 'utils/date';
 import {ZodError} from 'zod';
 
@@ -88,16 +86,7 @@ const fetchAllMapLayers = async (nationalAvalancheCenterHost: string, requestedT
       });
       throw cbacResult.error;
     } else {
-      // CAIC and CBAC overlap on the map. The following modifies the CAIC polygons so that they do not overlap with CBAC
-      // In release CAIC should be completely hidden for now.
-      const caicRemovedFeatures = parseResult.data.features.filter(f => f.properties.center_id !== 'CAIC');
-      if (Updates.channel === 'release') {
-        parseResult.data.features = caicRemovedFeatures.concat(cbacResult.data.features);
-      } else {
-        const caicFeatures = parseResult.data.features.filter(f => f.properties.center_id === 'CAIC');
-        const carvedCAIC = carvePolygonFeatures(caicFeatures, cbacResult.data.features, thisLogger);
-        parseResult.data.features = caicRemovedFeatures.concat(carvedCAIC, cbacResult.data.features);
-      }
+      parseResult.data.features = parseResult.data.features.concat(cbacResult.data.features);
       return parseResult.data;
     }
   }

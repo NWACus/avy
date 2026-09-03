@@ -54,6 +54,10 @@ export default {
     elevation bands. Although the danger ratings are assigned numerical levels, the danger increases exponentially between levels.
     In other words, the hazard rises more dramatically as it ascends toward the higher levels on the scale.</p>
     <p><a href='https://avalanche.org/avalanche-encyclopedia/danger-scale/'><strong>Learn more</strong></a></p>`,
+  cbacCoverageEdge: `
+    <p>The dashed outline marks the edge of the Crested Butte Avalanche Center (CBAC) forecast area.</p>
+    <p>CBAC issues a local forecast for this area, and CAIC's statewide forecast covers it too. Both are official.</p>
+    <p>The pills show CBAC's current rating for each zone. Tap inside the dashed outline to switch to CBAC's forecast.</p>`,
   weather: {
     precipitation: `
       <p><strong>Water Equivalent (WE)</strong> is the liquid water equivalent of all precipitation types; rain, snow, ice pellets, etc., forecast to the hundredth of an inch at specific locations. To use WE as a proxy for snowfall amounts, start with a snow to water ratio of 10:1 (10 inches of snow = 1 inch WE). Temperatures at or near freezing will generally have a lower ratio (heavy wet snow) and very cold temperatures can have a much higher ratio (dry fluffy snow).</p>
