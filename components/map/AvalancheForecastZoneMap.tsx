@@ -20,6 +20,7 @@ import {ForecastNavigationHeader} from 'components/content/navigation/ForecastMa
 import {DangerScale} from 'components/DangerScale';
 import {AvalancheForecastMapView} from 'components/map/AvalancheForecastMapView';
 import {CBACCoverageLegend} from 'components/map/CBACCoverageLegend';
+import {CBACForecastFirstRunModal} from 'components/modals/cbac/CBACForecastFirstRunModal';
 import {FirstRunExperienceModal} from 'components/modals/FirstRunExperienceModal';
 import * as Location from 'expo-location';
 import {Position} from 'geojson';
@@ -43,7 +44,7 @@ export type TopElementMeasurments = {
 
 export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({center_id, requestedTime, tabBarHeight = 0}: MapProps) => {
   const {preferences, setPreferences} = usePreferences();
-  const {isInNoCenterExperience} = useMapPersistence();
+  const {isInNoCenterExperience, mapPersistenceLoaded} = useMapPersistence();
 
   // Fetches all the map layers in call. Unfortunately, CBAC isn't included in that call so it needs to be fetched separately
   const allMapLayersResult = useAllMapLayers(requestedTime);
@@ -252,6 +253,27 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const showFREModal = useMemo(() => preferences.hasSeenCenterPicker && !preferences.hasSeenFRE, [preferences.hasSeenCenterPicker, preferences.hasSeenFRE]);
   const onFREClose = useCallback(() => setPreferences({hasSeenFRE: true}), [setPreferences]);
 
+  const showCBACForecastFirstRunModal = useMemo(
+    () =>
+      splashComplete &&
+      preferences.hasSeenCenterPicker &&
+      preferences.hasSeenFRE &&
+      preferences.center === 'CBAC' &&
+      !preferences.hasSeenCBACForecastFirstRun &&
+      mapPersistenceLoaded &&
+      !isInNoCenterExperience,
+    [
+      splashComplete,
+      preferences.hasSeenCenterPicker,
+      preferences.hasSeenFRE,
+      preferences.center,
+      preferences.hasSeenCBACForecastFirstRun,
+      mapPersistenceLoaded,
+      isInNoCenterExperience,
+    ],
+  );
+  const onCBACForecastFirstRunClose = useCallback(() => setPreferences({hasSeenCBACForecastFirstRun: true}), [setPreferences]);
+
   const isQueryIncomplete = incompleteQueryState(allMapLayersResult, metadataResult, ...forecastResults, ...warningResults) || !allMapLayers || !metadata;
 
   return (
@@ -297,6 +319,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
       <AvalancheCenterSelectionModal visible={showAvalancheCenterSelectionModal} initialSelection={preferences.center} onClose={onSelectCenter} />
       <FirstRunExperienceModal visible={showFREModal} onClose={onFREClose} />
+      <CBACForecastFirstRunModal visible={showCBACForecastFirstRunModal} onClose={onCBACForecastFirstRunClose} />
     </>
   );
 };

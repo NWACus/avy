@@ -30,11 +30,12 @@ export const CBACForecastModalBase: React.FC<CBACForecastModalBaseProps> = ({vis
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
   const onPressCAICSite = useCallback(() => {
-    WebBrowser.openBrowserAsync(AvalancheCenterWebsites['CAIC']).catch((e: unknown) => {
-      logger.error({error: e}, 'Failed to open CAIC website');
-      Alert.alert('Unable to Open Web Browser', 'An error occured when trying to open the web browser. Please try again.', [{text: 'Okay', style: 'default'}]);
-    });
-    onClose();
+    WebBrowser.openBrowserAsync(AvalancheCenterWebsites['CAIC'])
+      .then(onClose)
+      .catch((e: unknown) => {
+        logger.error({error: e}, 'Failed to open CAIC website');
+        Alert.alert('Unable to Open Web Browser', 'An error occured when trying to open the web browser. Please try again.', [{text: 'Okay', style: 'default'}]);
+      });
   }, [logger, onClose]);
 
   const header = useMemo(
