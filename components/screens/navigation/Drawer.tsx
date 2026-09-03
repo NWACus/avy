@@ -123,7 +123,7 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
   }, [navigation, staging, setStaging]);
 
   const openSponsorDrawer = useCallback(() => {
-    analytics.capture('sponsorSectionTapped');
+    analytics.capture('sponsor_section_tapped');
     setShowSponsorDrawer(true);
   }, [setShowSponsorDrawer, analytics]);
 
@@ -238,7 +238,7 @@ const SponsorDrawer: React.FunctionComponent<{visible: boolean; onDismiss: () =>
   const logoStyle = useMemo(() => sponsorLogoSize(sponsor.logoOnLight, SPONSOR_LOGO_WIDTH), [sponsor.logoOnLight]);
 
   const visitSponsor = useCallback(() => {
-    analytics.capture('vistSponsorURLTapped');
+    analytics.capture('vist_sponsor_url_tapped');
     WebBrowser.openBrowserAsync(sponsor.campaignUrl).catch((e: unknown) => {
       logger.error({error: e}, 'Failed to open title sponsor URL');
       Alert.alert('Unable to Open Web Browser', 'An error occured when trying to open the web browser. Please try again.', [

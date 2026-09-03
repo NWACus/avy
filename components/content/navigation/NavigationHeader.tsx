@@ -72,7 +72,7 @@ export const NavigationHeader: React.FunctionComponent<NativeStackHeaderProps> =
       return;
     }
 
-    analytics.capture('shareButtonPressed', {presentedFrom: getPresentedFromForAnalytics(navigation)});
+    analytics.capture('share_button_pressed', {presentedFrom: getPresentedFromForAnalytics(navigation)});
 
     Share.share({
       message: shareUrl,

@@ -241,7 +241,7 @@ export const ObservationForm: React.FC<{
         formContext.setValue('avalanches', []);
       }
 
-      analytics.capture('submitObsButtonPressed', {presentedFrom: getPresentedFromForAnalytics(navigation)});
+      analytics.capture('submit_obs_button_pressed', {presentedFrom: getPresentedFromForAnalytics(navigation)});
       // Force validation errors to show up on fields that haven't been visited yet
       await formContext.trigger();
       // Then try to submit the form
