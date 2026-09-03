@@ -37,7 +37,6 @@ import {QUERY_CACHE_ASYNC_STORAGE_KEY} from 'data/asyncStorageKeys';
 import {File} from 'expo-file-system';
 import {MapPersistenceProvider, useMapPersistence} from 'MapPersistence';
 import {PreferencesProvider, usePreferences} from 'Preferences';
-import {SplashScreenContext} from 'SplashScreenContext';
 import {NotFoundError} from 'types/requests';
 import {RequestedTime} from 'utils/date';
 
@@ -49,7 +48,7 @@ import {Button} from 'components/content/Button';
 import {Center, VStack} from 'components/core';
 import {KillSwitchMonitor} from 'components/KillSwitchMonitor';
 import {DrawerNavigator} from 'components/screens/navigation/Drawer';
-import {SponsorSplashScreen} from 'components/SponsorSplashScreen';
+import {SecondarySplashScreen} from 'components/splash/SecondarySplashScreen';
 import {Body, BodyBlack, Title3Black} from 'components/text';
 import * as Linking from 'expo-linking';
 import * as Updates from 'expo-updates';
@@ -367,27 +366,25 @@ const BaseApp: React.FunctionComponent<{
   }, [navigationRef]);
 
   const [splashScreenVisible, setSplashScreenVisible] = useState(true);
-  const [nativeSplashHidden, setNativeSplashHidden] = useState(false);
   useEffect(() => {
     // Hide the splash screen, but bake in a delay so that we are ready to render a view
     // that looks just like it
     if (splashScreenVisible) {
       setSplashScreenVisible(false);
-      setTimeout(() => {
-        void (async () => {
-          try {
-            await SplashScreen.hideAsync();
-          } catch (error) {
-            // We really don't care about these errors, they're common and not actionable
-            logger.debug({error}, 'Error from SplashScreen.hideAsync, ignoring');
-          }
-        })();
-        // The sponsor splash is only visible once the native splash is gone, so its timers
-        // and entrance animation should start from here rather than from app launch
-        setNativeSplashHidden(true);
-      }, 500);
+      setTimeout(
+        () =>
+          void (async () => {
+            try {
+              await SplashScreen.hideAsync();
+            } catch (error) {
+              // We really don't care about these errors, they're common and not actionable
+              logger.debug({error}, 'Error from SplashScreen.hideAsync, ignoring');
+            }
+          })(),
+        500,
+      );
     }
-  }, [splashScreenVisible, setSplashScreenVisible, setNativeSplashHidden, logger]);
+  }, [splashScreenVisible, setSplashScreenVisible, logger]);
 
   // Check for updates
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('checking');
@@ -403,24 +400,10 @@ const BaseApp: React.FunctionComponent<{
 
   const [startupPaused, {off: unpauseStartup}] = useToggle(process.env.EXPO_PUBLIC_PAUSE_ON_STARTUP === 'true');
 
-  // Keep the sponsor splash screen up for a minimum duration, measured from when the native
-  // splash is actually hidden, so it always gets a moment on screen
-  const [minimumSplashElapsed, setMinimumSplashElapsed] = useState(false);
-  useEffect(() => {
-    if (!nativeSplashHidden) {
-      return;
-    }
-    const timeout = setTimeout(() => setMinimumSplashElapsed(true), 750);
-    return () => clearTimeout(timeout);
-  }, [nativeSplashHidden, setMinimumSplashElapsed]);
-
-  // Startup modals wait for the sponsor splash to finish so they don't render above it
-  const [splashComplete, setSplashComplete] = useState(false);
-  const handleSplashComplete = useCallback(() => setSplashComplete(true), [setSplashComplete]);
-  const splashScreenContextValue = useMemo(() => ({splashComplete}), [splashComplete]);
-
-  const appReady = updateStatus === 'ready' && preferences.mixpanelUserId !== '';
-  const splashDismissed = appReady && minimumSplashElapsed;
+  if (updateStatus !== 'ready' || preferences.mixpanelUserId == '') {
+    // Here, we render a view that looks exactly like the splash screen but now has an activity indicator
+    return <SecondarySplashScreen />;
+  }
 
   if (startupPaused) {
     return (
@@ -486,53 +469,48 @@ const BaseApp: React.FunctionComponent<{
 
   return (
     <>
-      {appReady && (
-        <SplashScreenContext.Provider value={splashScreenContextValue}>
-          <GestureHandlerRootView style={{flex: 1}}>
-            <SafeAreaProvider>
-              <HTMLRendererConfig>
-                <NavigationContainer linking={linking} ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
-                  <PostHogProvider
-                    apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string}
-                    options={{
-                      captureAppLifecycleEvents: true,
-                      bootstrap: {
-                        distinctId: preferences.mixpanelUserId,
-                        isIdentifiedId: true,
-                        featureFlags: {
-                          'down-for-maintenance': false,
-                          'update-required': false,
-                        },
-                      },
-                    }}
-                    autocapture={{
-                      captureScreens: false, // we need to translate screen parameters to human-readable info, which requires HTTP request data, so we can't use the built-in screen capture with route property mapping feature
-                    }}>
-                    <FeatureFlagsProvider>
-                      <KillSwitchMonitor>
-                        <SelectProvider>
-                          <StatusBar barStyle={'dark-content'} animated={false} backgroundColor={'white'} />
-                          <View style={{flex: 1}}>
-                            <DrawerNavigator
-                              requestedTime={requestedTime}
-                              centerId={center}
-                              isInNoCenterExperience={isInNoCenterExperience}
-                              staging={staging}
-                              setStaging={setStaging}
-                            />
-                          </View>
-                        </SelectProvider>
-                      </KillSwitchMonitor>
-                    </FeatureFlagsProvider>
-                  </PostHogProvider>
-                </NavigationContainer>
-              </HTMLRendererConfig>
-              <Toast config={toastConfig} bottomOffset={88} visibilityTime={2000} />
-            </SafeAreaProvider>
-          </GestureHandlerRootView>
-        </SplashScreenContext.Provider>
-      )}
-      <SponsorSplashScreen active={nativeSplashHidden} showActivityIndicator={minimumSplashElapsed && !appReady} dismissed={splashDismissed} onComplete={handleSplashComplete} />
+      <GestureHandlerRootView style={{flex: 1}}>
+        <SafeAreaProvider>
+          <HTMLRendererConfig>
+            <NavigationContainer linking={linking} ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
+              <PostHogProvider
+                apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string}
+                options={{
+                  captureAppLifecycleEvents: true,
+                  bootstrap: {
+                    distinctId: preferences.mixpanelUserId,
+                    isIdentifiedId: true,
+                    featureFlags: {
+                      'down-for-maintenance': false,
+                      'update-required': false,
+                    },
+                  },
+                }}
+                autocapture={{
+                  captureScreens: false, // we need to translate screen parameters to human-readable info, which requires HTTP request data, so we can't use the built-in screen capture with route property mapping feature
+                }}>
+                <FeatureFlagsProvider>
+                  <KillSwitchMonitor>
+                    <SelectProvider>
+                      <StatusBar barStyle={'dark-content'} animated={false} backgroundColor={'white'} />
+                      <View style={{flex: 1}}>
+                        <DrawerNavigator
+                          requestedTime={requestedTime}
+                          centerId={center}
+                          isInNoCenterExperience={isInNoCenterExperience}
+                          staging={staging}
+                          setStaging={setStaging}
+                        />
+                      </View>
+                    </SelectProvider>
+                  </KillSwitchMonitor>
+                </FeatureFlagsProvider>
+              </PostHogProvider>
+            </NavigationContainer>
+          </HTMLRendererConfig>
+          <Toast config={toastConfig} bottomOffset={88} visibilityTime={2000} />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
     </>
   );
 };

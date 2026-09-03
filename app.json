@@ -58,13 +58,18 @@
       "expo-location",
       "expo-image",
       "@react-native-community/datetimepicker",
+      "./plugins/withAndroidSplashBranding",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/avy-logo-transparent.png",
-          "imageWidth": 72,
+          "image": "./assets/splash-ios.png",
+          "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#152E57"
+          "backgroundColor": "#152E57",
+          "android": {
+            "image": "./assets/adaptive-icon.png",
+            "imageWidth": 288
+          }
         }
       ],
       [

@@ -1,4 +1,5 @@
 yarn ci:prettier
 yarn ci:eslint
 yarn ci:tsc
+yarn ci:check-plugin-integrity
 yarn test
