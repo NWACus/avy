@@ -11,7 +11,14 @@ import {NotFound, QueryState, incompleteQueryState} from 'components/content/Que
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
 import {Center, Divider, HStack, VStack, View} from 'components/core';
 import {NACAvalancheIcon} from 'components/icons/nac-icons';
-import {ObservationFilterConfig, ObservationsFilterForm, createDefaultFilterConfig, filtersForConfig, matchesZone} from 'components/observations/ObservationsFilterForm';
+import {
+  ObservationFilterConfig,
+  ObservationsFilterForm,
+  createDefaultFilterConfig,
+  filtersForConfig,
+  matchesFilters,
+  matchesZone,
+} from 'components/observations/ObservationsFilterForm';
 import {usePendingObservations} from 'components/observations/uploader/usePendingObservations';
 import {Body, BodyBlack, BodySm, BodySmBlack, BodyXSm, Caption1Semibold, bodySize, bodyXSmSize} from 'components/text';
 import {compareDesc, formatDuration, isBefore, parseISO, sub} from 'date-fns';
@@ -150,8 +157,9 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   const {isRefreshing, refresh} = useRefresh(observationsResult.refetch);
   const refreshWrapper = useCallback(() => void refresh(), [refresh]);
 
-  // the displayed observations need to match all filters - for instance, if a user chooses a zone *and*
-  // an observer type, we only show observations that match both of those at the same time
+  // the displayed observations need to match every filter group - for instance, if a user chooses a zone *and*
+  // an observer type, we only show observations that match both of those at the same time. A group is satisfied
+  // by any one of its filters, so zone and other regions - which share the 'location' group - are OR'd together.
   const resolvedFilters = useMemo(
     () => filtersForConfig(mapFeatures, filterConfig, additionalFilters, filteredAlternateObservationZoneFeatures),
     [mapFeatures, filterConfig, additionalFilters, filteredAlternateObservationZoneFeatures],
@@ -177,7 +185,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
         if (!pageResult.hasNextPage) {
           break;
         }
-        const fetchCount = pageResult.data?.pages.at(-1)?.data?.filter(observation => resolvedFilters.every(({filter}) => filter(observation))).length ?? 0;
+        const fetchCount = pageResult.data?.pages.at(-1)?.data?.filter(observation => matchesFilters(observation, resolvedFilters)).length ?? 0;
         if (fetchCount > 0) {
           logger.debug('fetchMoreData exiting because of fetchCount');
           break;
@@ -230,7 +238,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     () => ({
       title: 'Published Results',
       data: observations
-        .filter(observation => resolvedFilters.every(({filter}) => filter(observation)))
+        .filter(observation => matchesFilters(observation, resolvedFilters))
         .map(
           observation =>
             ({
