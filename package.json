@@ -4,7 +4,8 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "android": "EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) expo start --android",
-    "ci": "yarn ci:prettier && yarn ci:eslint && yarn ci:tsc && yarn test",
+    "ci": "yarn ci:prettier && yarn ci:eslint && yarn ci:tsc && yarn ci:check-plugin-integrity && yarn test",
+    "ci:check-plugin-integrity": "scripts/ci-check-plugin-integrity.sh",
     "ci:eslint": "scripts/eslint.sh",
     "ci:prettier": "scripts/ci-prettier.sh",
     "ci:tsc": "scripts/ci-tsc.sh",

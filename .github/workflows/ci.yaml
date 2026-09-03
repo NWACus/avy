@@ -39,6 +39,17 @@ jobs:
       - name: 🎨 Run typescript compiler (tsc)
         run: yarn ci:tsc
 
+  plugin-integrity:
+    name: plugin integrity
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v3
+      - name: 🏗 Setup build environment
+        uses: ./.github/actions/setup
+      - name: 🔌 Check config plugin order
+        run: yarn ci:check-plugin-integrity
+
   tests:
     name: tests
     runs-on: ubuntu-latest
