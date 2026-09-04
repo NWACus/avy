@@ -1,16 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import * as WebBrowser from 'expo-web-browser';
 import React, {useCallback, useMemo} from 'react';
-import {Alert, ColorValue, StyleSheet, TouchableOpacity} from 'react-native';
+import {ColorValue, StyleSheet, TouchableOpacity} from 'react-native';
 
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {AlertModal, AlertModalActions} from 'components/content/AlertModal';
 import {Button} from 'components/content/Button';
 import {Divider, HStack, View} from 'components/core';
 import {Body, bodySize, BodySm} from 'components/text';
-import {LoggerContext, LoggerProps} from 'loggerContext';
+import {useOpenAvalancheCenterWebsite} from 'hooks/useOpenAvalancheCenterWebsite';
 import {colorLookup} from 'theme';
-import {AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
 
 const TITLE = 'Two forecasts cover Crested Butte';
 const BODY = "CBAC issues the local forecast shown in this app. CAIC's statewide forecast covers this area too. Both are official and we encourage you to read both.";
@@ -27,16 +25,9 @@ interface CBACForecastModalBaseProps {
 }
 
 export const CBACForecastModalBase: React.FC<CBACForecastModalBaseProps> = ({visible, onClose, children}) => {
-  const {logger} = React.useContext<LoggerProps>(LoggerContext);
+  const openAvalancheCenterWebsite = useOpenAvalancheCenterWebsite();
 
-  const onPressCAICSite = useCallback(() => {
-    WebBrowser.openBrowserAsync(AvalancheCenterWebsites['CAIC'])
-      .then(onClose)
-      .catch((e: unknown) => {
-        logger.error({error: e}, 'Failed to open CAIC website');
-        Alert.alert('Unable to Open Web Browser', 'An error occured when trying to open the web browser. Please try again.', [{text: 'Okay', style: 'default'}]);
-      });
-  }, [logger, onClose]);
+  const onPressCAICSite = useCallback(() => openAvalancheCenterWebsite('CAIC', onClose), [openAvalancheCenterWebsite, onClose]);
 
   const header = useMemo(
     () => (

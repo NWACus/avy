@@ -19,7 +19,10 @@ import {Camera, CameraBounds, CameraStop, MapState} from '@rnmapbox/maps';
 import {defaultMapRegionForGeometries, defaultMapRegionForZones, insetViewportBounds, regionBoundsVisible} from 'components/helpers/geographicCoordinates';
 import {AvalancheForecastZoneCards} from 'components/map/AvalancheForecastZoneCards';
 import {TopElementMeasurments} from 'components/map/AvalancheForecastZoneMap';
+import {CBACForecastZoneDropdown} from 'components/map/CBACForecastZoneDropdown';
+import {CBACOverlappingForecastsLink} from 'components/map/CBACOverlappingForecastsLink';
 import {CBACZoneRatingPill} from 'components/map/CBACZoneRatingPill';
+import {CBACForecastExplanationModal} from 'components/modals/cbac/CBACForecastExplanationModal';
 import {Position} from 'geojson';
 import {CenterSwitchOrigin, useAnalytics} from 'hooks/useAnalytics';
 
@@ -63,6 +66,10 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 
   const [pendingCBACZone, setPendingCBACZone] = useState<MapViewZone | null>(null);
   const onCloseCBACCenterlessModal = useCallback(() => setPendingCBACZone(null), []);
+
+  const [showForecastExplanation, setShowForecastExplanation] = useState(false);
+  const openForecastExplanation = useCallback(() => setShowForecastExplanation(true), []);
+  const closeForecastExplanation = useCallback(() => setShowForecastExplanation(false), []);
 
   const onMapPresOutsideOfPolygon = useCallback(
     (_: GeoJSON.Feature) => {
@@ -136,6 +143,8 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 
   const avalancheCenterMapRegion = useMemo(() => defaultMapRegionForGeometries(preferredCenterZones.map(zone => zone.feature.geometry)), [preferredCenterZones]);
 
+  const caicZones = useMemo(() => zones.filter(zone => zone.center_id === 'CAIC'), [zones]);
+  const caicCoverageBounds = useMemo(() => (caicZones.length > 0 ? defaultMapRegionForZones(caicZones).cameraBounds : undefined), [caicZones]);
   const cbacZones = useMemo(() => zones.filter(zone => zone.center_id === CBAC_COVERAGE_CENTER_ID), [zones]);
   const cbacCoverageBounds = useMemo(() => (cbacZones.length > 0 ? defaultMapRegionForZones(cbacZones).cameraBounds : undefined), [cbacZones]);
   const cbacCoverageVisibleRef = useRef<boolean | null>(null);
@@ -187,6 +196,19 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
     [topElementMeasurements, tabBarHeight, windowHeight],
   );
 
+  // Hide the cards, clear the selection, and enter the no-center experience together as a single event.
+  const enterNoCenterExperience = useCallback(() => {
+    if (controller.current.state !== AnimatedDrawerState.Hidden) {
+      controller.current.setState(AnimatedDrawerState.Hidden, false);
+    }
+    setSelectedZoneId(null);
+    // Updating the ref here helps prevent unnecessary calls to setIsInNoCenterExperience.
+    isInNoCenterExperienceRef.current = true;
+    setIsInNoCenterExperience(true);
+    // Suppress synchronously so any debounced animateMapRegion already in flight is cancelled before setPreferences schedules a re-render.
+    controller.current.shouldSuppressMapCentering(true);
+  }, [controller, setIsInNoCenterExperience, setSelectedZoneId]);
+
   const enterNoCenterExperienceIfCenterOffscreen = useCallback(
     (mapState: MapState, visibleViewport: CameraBounds) => {
       // Guard: with no preferred-center zones the center bounds are degenerate (0,0); skip detection.
@@ -196,19 +218,9 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
       if (regionBoundsVisible(avalancheCenterMapRegion.cameraBounds, visibleViewport)) {
         return;
       }
-      // The preferred center has been panned fully off-screen: hide the cards, clear the selection,
-      // and enter the no-center experience together as a single event.
-      if (controller.current.state !== AnimatedDrawerState.Hidden) {
-        controller.current.setState(AnimatedDrawerState.Hidden, false);
-      }
-      setSelectedZoneId(null);
-      // Updating the ref here helps prevent unnecessary calls to setIsInNoCenterExperience.
-      isInNoCenterExperienceRef.current = true;
-      setIsInNoCenterExperience(true);
-      // Suppress synchronously so any debounced animateMapRegion already in flight is cancelled before setPreferences schedules a re-render.
-      controller.current.shouldSuppressMapCentering(true);
+      enterNoCenterExperience();
     },
-    [controller, avalancheCenterMapRegion, preferredCenterZones, setIsInNoCenterExperience, setSelectedZoneId],
+    [avalancheCenterMapRegion, preferredCenterZones, enterNoCenterExperience],
   );
 
   const persistCameraWhileCenterless = useCallback(
@@ -256,6 +268,27 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
     }
   }, [mapCameraRef, userLocation]);
 
+  const showCBACCoverageOnMap = useCallback(() => {
+    enterNoCenterExperience();
+    if (caicCoverageBounds) {
+      mapCameraRef.current?.setCamera({bounds: caicCoverageBounds, heading: 0});
+    }
+  }, [enterNoCenterExperience, caicCoverageBounds]);
+
+  const onExploreBothForecasts = useCallback(() => {
+    setShowForecastExplanation(false);
+    showCBACCoverageOnMap();
+  }, [showCBACCoverageOnMap]);
+
+  const renderCBACHeaderAccessory = useCallback(
+    (zone: MapViewZone) => <CBACForecastZoneDropdown zone={zone} onSeeAreaOnMap={showCBACCoverageOnMap} onShowExplanation={openForecastExplanation} />,
+    [showCBACCoverageOnMap, openForecastExplanation],
+  );
+
+  const renderCBACFooter = useCallback(() => <CBACOverlappingForecastsLink onPress={openForecastExplanation} />, [openForecastExplanation]);
+
+  const isCBACSelected = preferredCenterId === CBAC_COVERAGE_CENTER_ID;
+
   const initialCameraStop: CameraStop | undefined = useMemo(() => {
     if (isInNoCenterExperience && initialMapCamera) {
       return {centerCoordinate: initialMapCamera.center, zoomLevel: initialMapCamera.zoom};
@@ -289,11 +322,15 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         setSelectedZoneId={setSelectedZoneId}
         controllerRef={controller}
         bottomOffset={isInNoCenterExperience ? 0 : tabBarHeight}
+        renderHeaderAccessory={isCBACSelected ? renderCBACHeaderAccessory : undefined}
+        renderFooter={isCBACSelected ? renderCBACFooter : undefined}
       />
 
       <CenterNotSupportedModal visible={unsupportedCenterId !== null} centerId={unsupportedCenterId} onClose={onCloseUnsupportedModal} />
 
       <CBACForecastCenterlessModal visible={pendingCBACZone !== null} onClose={onCloseCBACCenterlessModal} onSwitchToCBAC={onSwitchToCBAC} />
+
+      <CBACForecastExplanationModal visible={showForecastExplanation} onClose={closeForecastExplanation} onExploreBoth={onExploreBothForecasts} />
     </>
   );
 };

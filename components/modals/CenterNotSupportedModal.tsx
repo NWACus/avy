@@ -1,10 +1,10 @@
 import React, {useCallback} from 'react';
-import {Linking} from 'react-native';
 
 import {AlertModal, AlertModalActions} from 'components/content/AlertModal';
 import {Button} from 'components/content/Button';
 import {Body, BodyBlack} from 'components/text';
-import {AvalancheCenterID, AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
+import {useOpenAvalancheCenterWebsite} from 'hooks/useOpenAvalancheCenterWebsite';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 interface CenterNotSupportedModalProps {
   visible: boolean;
@@ -13,13 +13,15 @@ interface CenterNotSupportedModalProps {
 }
 
 export const CenterNotSupportedModal: React.FC<CenterNotSupportedModalProps> = ({visible, centerId, onClose}) => {
+  const openAvalancheCenterWebsite = useOpenAvalancheCenterWebsite();
+
   const onPressWebsite = useCallback(() => {
-    const url = centerId ? AvalancheCenterWebsites[centerId] : '';
-    if (url) {
-      void Linking.openURL(url);
+    if (centerId) {
+      openAvalancheCenterWebsite(centerId, onClose);
+    } else {
+      onClose();
     }
-    onClose();
-  }, [centerId, onClose]);
+  }, [centerId, openAvalancheCenterWebsite, onClose]);
 
   return (
     <AlertModal isVisible={visible} onDismiss={onClose} title="Forecast Available on Official Site" showCloseButton>

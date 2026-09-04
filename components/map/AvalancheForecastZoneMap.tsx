@@ -255,22 +255,13 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
   const showCBACForecastFirstRunModal = useMemo(
     () =>
-      splashComplete &&
       preferences.hasSeenCenterPicker &&
       preferences.hasSeenFRE &&
       preferences.center === 'CBAC' &&
       !preferences.hasSeenCBACForecastFirstRun &&
       mapPersistenceLoaded &&
       !isInNoCenterExperience,
-    [
-      splashComplete,
-      preferences.hasSeenCenterPicker,
-      preferences.hasSeenFRE,
-      preferences.center,
-      preferences.hasSeenCBACForecastFirstRun,
-      mapPersistenceLoaded,
-      isInNoCenterExperience,
-    ],
+    [preferences.hasSeenCenterPicker, preferences.hasSeenFRE, preferences.center, preferences.hasSeenCBACForecastFirstRun, mapPersistenceLoaded, isInNoCenterExperience],
   );
   const onCBACForecastFirstRunClose = useCallback(() => setPreferences({hasSeenCBACForecastFirstRun: true}), [setPreferences]);
 
