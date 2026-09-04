@@ -121,6 +121,13 @@ export const regionBoundsVisible = (centerBounds: CameraBounds, viewport: Camera
   centerBounds.sw[1] <= viewport.ne[1] && // center's south edge is at/below viewport's north edge
   centerBounds.ne[1] >= viewport.sw[1]; //   center's north edge is at/above viewport's south edge
 
+// The same overlap test as regionBoundsVisible, in the {topRight, bottomLeft} shape featureBounds returns.
+export const regionBoundsOverlap = (a: RegionBounds, b: RegionBounds): boolean =>
+  a.bottomLeft.longitude <= b.topRight.longitude &&
+  a.topRight.longitude >= b.bottomLeft.longitude &&
+  a.bottomLeft.latitude <= b.topRight.latitude &&
+  a.topRight.latitude >= b.bottomLeft.latitude;
+
 export const pointInBounds = (position: AvyPosition, {topRight, bottomLeft}: RegionBounds): boolean =>
   position.latitude >= bottomLeft.latitude && position.latitude <= topRight.latitude && position.longitude >= bottomLeft.longitude && position.longitude >= topRight.longitude;
 
