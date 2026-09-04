@@ -26,9 +26,11 @@ export const AvalancheForecastZoneCards: React.FunctionComponent<{
   renderHeaderAccessory?: (zone: MapViewZone) => React.ReactNode;
   renderFooter?: (zone: MapViewZone) => React.ReactNode;
 }> = ({center_id, date, zones, selectedZoneId, setSelectedZoneId, controllerRef, bottomOffset, renderHeaderAccessory, renderFooter}) => {
+  // The render props are handed to the card rather than called here: invoking them at this level would
+  // produce a fresh element on every pass and the card's memo could never bail out.
   const renderItem = useCallback(
     ({date, item}: {date: RequestedTime; item: MapViewZone}) => (
-      <AvalancheForecastZoneCard date={date} zone={item} headerAccessory={renderHeaderAccessory?.(item)} footer={renderFooter?.(item)} />
+      <AvalancheForecastZoneCard date={date} zone={item} renderHeaderAccessory={renderHeaderAccessory} renderFooter={renderFooter} />
     ),
     [renderHeaderAccessory, renderFooter],
   );
@@ -49,64 +51,66 @@ export const AvalancheForecastZoneCards: React.FunctionComponent<{
 interface AvalancheForecastZoneCardProps {
   date: RequestedTime;
   zone: MapViewZone;
-  headerAccessory?: React.ReactNode;
-  footer?: React.ReactNode;
+  renderHeaderAccessory?: (zone: MapViewZone) => React.ReactNode;
+  renderFooter?: (zone: MapViewZone) => React.ReactNode;
 }
 
-const AvalancheForecastZoneCard: React.FunctionComponent<AvalancheForecastZoneCardProps> = React.memo(({date, zone, headerAccessory, footer}: AvalancheForecastZoneCardProps) => {
-  const {width} = useWindowDimensions();
-  const navigation = useNavigation<MainStackNavigationProps>();
+const AvalancheForecastZoneCard: React.FunctionComponent<AvalancheForecastZoneCardProps> = React.memo(
+  ({date, zone, renderHeaderAccessory, renderFooter}: AvalancheForecastZoneCardProps) => {
+    const {width} = useWindowDimensions();
+    const navigation = useNavigation<MainStackNavigationProps>();
 
-  const dangerLevel = zone.danger_level ?? DangerLevel.None;
-  const dangerColor = colorFor(dangerLevel);
-  const onPress = useCallback(() => {
-    navigation.navigate('forecast', {
-      center_id: zone.center_id,
-      forecast_zone_id: zone.zone_id,
-      requestedTime: formatRequestedTime(date),
-    });
-  }, [navigation, zone, date]);
+    const dangerLevel = zone.danger_level ?? DangerLevel.None;
+    const dangerColor = colorFor(dangerLevel);
+    const onPress = useCallback(() => {
+      navigation.navigate('forecast', {
+        center_id: zone.center_id,
+        forecast_zone_id: zone.zone_id,
+        requestedTime: formatRequestedTime(date),
+      });
+    }, [navigation, zone, date]);
 
-  return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
-      <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={'100%'}>
-        <View height={8} width="100%" bg={dangerColor.string()} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
-        <VStack px={24} pt={4} pb={12} space={8}>
-          <HStack space={8} alignItems="center" justifyContent="space-between">
-            <HStack space={8} alignItems="center" flexShrink={1}>
-              <AvalancheDangerIcon style={{height: 32}} level={dangerLevel} />
-              <DangerLevelTitle dangerLevel={dangerLevel} />
+    return (
+      <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
+        <VStack borderRadius={8} bg="white" width={width * CARD_WIDTH} mx={CARD_MARGIN * width} height={'100%'}>
+          <View height={8} width="100%" bg={dangerColor.string()} borderTopLeftRadius={8} borderTopRightRadius={8} pb={0} />
+          <VStack px={24} pt={4} pb={12} space={8} flexGrow={1}>
+            <HStack space={8} alignItems="center" justifyContent="space-between">
+              <HStack space={8} alignItems="center" flexShrink={1}>
+                <AvalancheDangerIcon style={{height: 32}} level={dangerLevel} />
+                <DangerLevelTitle dangerLevel={dangerLevel} />
+              </HStack>
+              {renderHeaderAccessory?.(zone)}
             </HStack>
-            {headerAccessory}
-          </HStack>
-          <Title3Black>{zone.name}</Title3Black>
-          {(zone.start_date || zone.end_date) && (
-            <VStack py={8}>
-              <Text>
-                {zone.start_date && (
-                  <>
-                    <BodySm>Published: </BodySm>
-                    <BodySm>{utcDateToLocalTimeString(zone.start_date)}</BodySm>
-                    {'\n'}
-                  </>
-                )}
-                {zone.end_date && (
-                  <>
-                    <BodySm>Expires: </BodySm>
-                    <BodySm>{utcDateToLocalTimeString(zone.end_date)}</BodySm>
-                  </>
-                )}
-              </Text>
-            </VStack>
-          )}
-          <Text>
-            <BodySm>Travel advice: </BodySm>
-            <TravelAdvice dangerLevel={dangerLevel} HeadingText={BodySm} BodyText={BodySm} />
-          </Text>
-          {footer}
+            <Title3Black>{zone.name}</Title3Black>
+            {(zone.start_date || zone.end_date) && (
+              <VStack py={8}>
+                <Text>
+                  {zone.start_date && (
+                    <>
+                      <BodySm>Published: </BodySm>
+                      <BodySm>{utcDateToLocalTimeString(zone.start_date)}</BodySm>
+                      {'\n'}
+                    </>
+                  )}
+                  {zone.end_date && (
+                    <>
+                      <BodySm>Expires: </BodySm>
+                      <BodySm>{utcDateToLocalTimeString(zone.end_date)}</BodySm>
+                    </>
+                  )}
+                </Text>
+              </VStack>
+            )}
+            <Text>
+              <BodySm>Travel advice: </BodySm>
+              <TravelAdvice dangerLevel={dangerLevel} HeadingText={BodySm} BodyText={BodySm} />
+            </Text>
+          </VStack>
+          {renderFooter?.(zone)}
         </VStack>
-      </VStack>
-    </TouchableOpacity>
-  );
-});
+      </TouchableOpacity>
+    );
+  },
+);
 AvalancheForecastZoneCard.displayName = 'AvalancheForecastZoneCard';
