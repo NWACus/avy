@@ -5,6 +5,7 @@ import {
   insetViewportBounds,
   interiorPoint,
   RegionBounds,
+  regionBoundsOverlap,
   regionBoundsVisible,
   updateBoundsToContain,
 } from 'components/helpers/geographicCoordinates';
@@ -172,6 +173,47 @@ describe('AvalancheForecastZonePolygon', () => {
 
     it('is not visible when the viewport is entirely south of the center', () => {
       expect(regionBoundsVisible(centerBounds, {ne: [-105, 35], sw: [-108, 30]})).toBe(false);
+    });
+  });
+
+  describe('regionBoundsOverlap', () => {
+    // base box: lng -110..-100, lat 40..50
+    const base: RegionBounds = {topRight: {longitude: -100, latitude: 50}, bottomLeft: {longitude: -110, latitude: 40}};
+    const bounds = (west: number, east: number, south: number, north: number): RegionBounds => ({
+      topRight: {longitude: east, latitude: north},
+      bottomLeft: {longitude: west, latitude: south},
+    });
+
+    it('overlaps when the other box fully contains the base', () => {
+      expect(regionBoundsOverlap(base, bounds(-115, -95, 35, 55))).toBe(true);
+    });
+
+    it('overlaps when the other box is entirely inside the base', () => {
+      expect(regionBoundsOverlap(base, bounds(-108, -105, 42, 45))).toBe(true);
+    });
+
+    it('overlaps when only a sliver crosses the eastern edge', () => {
+      expect(regionBoundsOverlap(base, bounds(-101, -99, 42, 45))).toBe(true);
+    });
+
+    it('overlaps when the boxes share only an edge', () => {
+      expect(regionBoundsOverlap(base, bounds(-100, -95, 42, 45))).toBe(true);
+    });
+
+    it('does not overlap when the other box is entirely east', () => {
+      expect(regionBoundsOverlap(base, bounds(-95, -90, 42, 45))).toBe(false);
+    });
+
+    it('does not overlap when the other box is entirely west', () => {
+      expect(regionBoundsOverlap(base, bounds(-120, -115, 42, 45))).toBe(false);
+    });
+
+    it('does not overlap when the other box is entirely north', () => {
+      expect(regionBoundsOverlap(base, bounds(-108, -105, 55, 60))).toBe(false);
+    });
+
+    it('does not overlap when the other box is entirely south', () => {
+      expect(regionBoundsOverlap(base, bounds(-108, -105, 30, 35))).toBe(false);
     });
   });
 

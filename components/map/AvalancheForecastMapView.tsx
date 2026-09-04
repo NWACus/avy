@@ -22,12 +22,15 @@ import {TopElementMeasurments} from 'components/map/AvalancheForecastZoneMap';
 import {CBACForecastZoneDropdown} from 'components/map/CBACForecastZoneDropdown';
 import {CBACOverlappingForecastsLink} from 'components/map/CBACOverlappingForecastsLink';
 import {CBACZoneRatingPill} from 'components/map/CBACZoneRatingPill';
+import {zoneIdsOverlappingCenter} from 'components/map/zoneOverlap';
 import {CBACForecastExplanationModal} from 'components/modals/cbac/CBACForecastExplanationModal';
 import {Position} from 'geojson';
 import {CenterSwitchOrigin, useAnalytics} from 'hooks/useAnalytics';
 import {throttle} from 'lodash';
 
 const CBAC_COVERAGE_CENTER_ID: AvalancheCenterID = 'CBAC';
+// The statewide center CBAC's coverage is drawn on top of.
+const CBAC_OVERLAPPED_CENTER_ID: AvalancheCenterID = 'CAIC';
 // Below this the CBAC zones are small enough that the fixed-size rating pills swamp them. The pills
 // hide again a little lower so that a pinch resting on the threshold doesn't thrash them on and off.
 const CBAC_RATING_PILL_MIN_ZOOM = 8;
@@ -90,10 +93,23 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 
   // Read through a ref so onPolygonPress stays referentially stable: it is the memo key for every zone
   // polygon, and closing over selectedZoneId would rebuild all of them on each tap.
-  const latestRef = useRef({selectedZoneId, preferredCenterId, requestedTime});
+  const latestRef = useRef({selectedZoneId, preferredCenterId, requestedTime, zones});
   useEffect(() => {
-    latestRef.current = {selectedZoneId, preferredCenterId, requestedTime};
-  }, [selectedZoneId, preferredCenterId, requestedTime]);
+    latestRef.current = {selectedZoneId, preferredCenterId, requestedTime, zones};
+  }, [selectedZoneId, preferredCenterId, requestedTime, zones]);
+
+  // Computed on demand and cached against the zones identity it was built from, like caicCoverageBounds and for
+  // the same reason: zones gets a new identity whenever a forecast or warning query settles, and walking CAIC's
+  // geometry on each of those would be wasted work. zones is read back out of latestRef rather than closed over
+  // so this callback never changes identity and onPolygonPress can depend on it.
+  const cbacOverlappedZoneIdsRef = useRef<{zones: MapViewZone[]; zoneIds: Set<number>} | null>(null);
+  const cbacOverlappedZoneIds = useCallback((): Set<number> => {
+    const currentZones = latestRef.current.zones;
+    if (cbacOverlappedZoneIdsRef.current?.zones !== currentZones) {
+      cbacOverlappedZoneIdsRef.current = {zones: currentZones, zoneIds: zoneIdsOverlappingCenter(currentZones, CBAC_OVERLAPPED_CENTER_ID, CBAC_COVERAGE_CENTER_ID)};
+    }
+    return cbacOverlappedZoneIdsRef.current.zoneIds;
+  }, []);
 
   const onPolygonPress = useCallback(
     (zone: MapViewZone) => {
@@ -120,12 +136,23 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
           if (isInNoCenterExperienceRef.current) {
             setIsInNoCenterExperience(false);
           }
+        } else if (
+          selectedZoneCenter === CBAC_OVERLAPPED_CENTER_ID &&
+          latest.preferredCenterId === CBAC_COVERAGE_CENTER_ID &&
+          !isInNoCenterExperienceRef.current &&
+          cbacOverlappedZoneIds().has(zone.zone_id)
+        ) {
+          // A statewide zone that CBAC's coverage sits on top of. The user already has a local forecast for this
+          // ground, so explain the overlap rather than treating CAIC as an unsupported center. Excluded in the
+          // no-center experience because this modal's own "Explore both forecasts" is how the user got there.
+          // Leave the zone unselected, like the other two modal branches.
+          openForecastExplanation();
         } else {
           setUnsupportedCenterId(selectedZoneCenter);
         }
       }
     },
-    [navigation, analytics, setSelectedZoneId, setPreferences, setIsInNoCenterExperience],
+    [navigation, analytics, setSelectedZoneId, setPreferences, setIsInNoCenterExperience, openForecastExplanation, cbacOverlappedZoneIds],
   );
 
   const onSwitchToCBAC = useCallback(() => {
@@ -157,7 +184,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   const caicCoverageBoundsRef = useRef<{zones: MapViewZone[]; bounds: CameraBounds | undefined} | null>(null);
   const caicCoverageBounds = useCallback((): CameraBounds | undefined => {
     if (caicCoverageBoundsRef.current?.zones !== zones) {
-      const caicZones = zones.filter(zone => zone.center_id === 'CAIC');
+      const caicZones = zones.filter(zone => zone.center_id === CBAC_OVERLAPPED_CENTER_ID);
       caicCoverageBoundsRef.current = {zones: zones, bounds: caicZones.length > 0 ? defaultMapRegionForZones(caicZones).cameraBounds : undefined};
     }
     return caicCoverageBoundsRef.current.bounds;
