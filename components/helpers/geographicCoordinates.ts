@@ -1,6 +1,7 @@
 import {CameraBounds} from '@rnmapbox/maps';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import {MapViewZone} from 'components/map/ZoneMap';
+import polylabel from 'polylabel';
 import {AvyPosition, Geometry, MapLayerFeature, Position} from 'types/nationalAvalancheCenter';
 
 export interface RegionBounds {
@@ -135,6 +136,31 @@ const coordinateList = (geometry: Geometry): number[][][] => {
     items = geometry.coordinates.map(coordinates => coordinates[0]);
   }
   return items;
+};
+
+const INTERIOR_POINT_PRECISION = 0.001;
+
+const hasOuterRing = (rings: Position[][]): boolean => rings.length > 0 && rings[0].length > 0;
+
+const outerRingBboxArea = (rings: Position[][]): number => {
+  const longitudes = rings[0].map(position => position[0]);
+  const latitudes = rings[0].map(position => position[1]);
+  return (Math.max(...longitudes) - Math.min(...longitudes)) * (Math.max(...latitudes) - Math.min(...latitudes));
+};
+
+export const interiorPoint = (geometry: Geometry): Position | undefined => {
+  if (geometry.type === 'Polygon') {
+    return hasOuterRing(geometry.coordinates) ? polylabel(geometry.coordinates, INTERIOR_POINT_PRECISION) : undefined;
+  }
+  if (geometry.type === 'MultiPolygon') {
+    const polygons = geometry.coordinates.filter(hasOuterRing);
+    if (polygons.length === 0) {
+      return undefined;
+    }
+    const largest = polygons.reduce((a, b) => (outerRingBboxArea(b) > outerRingBboxArea(a) ? b : a));
+    return polylabel(largest, INTERIOR_POINT_PRECISION);
+  }
+  return undefined;
 };
 
 export const toPositionList = (geometry: Geometry | undefined): Position[][] => {

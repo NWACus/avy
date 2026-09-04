@@ -3,6 +3,7 @@ import {
   avalancheCenterRegionFromRegionBounds,
   boundsForRegions,
   insetViewportBounds,
+  interiorPoint,
   RegionBounds,
   regionBoundsVisible,
   updateBoundsToContain,
@@ -10,6 +11,16 @@ import {
 import {Position} from 'types/nationalAvalancheCenter';
 
 import {CameraBounds} from '@rnmapbox/maps';
+
+const bboxRing = (west: number, east: number, south: number, north: number): Position[][] => [
+  [
+    [west, south],
+    [east, south],
+    [east, north],
+    [west, north],
+    [west, south],
+  ],
+];
 
 describe('AvalancheForecastZonePolygon', () => {
   describe('updateRegionToContain', () => {
@@ -197,5 +208,43 @@ describe('AvalancheForecastZonePolygon', () => {
       expect(regionBoundsVisible(centerBounds, viewport)).toBe(true); // visible against the full (untrimmed) bounds
       expect(regionBoundsVisible(centerBounds, inset)).toBe(false); // hidden once the header inset is applied
     });
+  });
+});
+
+describe('interiorPoint', () => {
+  it('returns a point inside a Polygon', () => {
+    const point = interiorPoint({type: 'Polygon', coordinates: bboxRing(-115, -114, 43, 44)});
+    expect(point).toBeDefined();
+    expect(point?.[0]).toBeGreaterThan(-115);
+    expect(point?.[0]).toBeLessThan(-114);
+    expect(point?.[1]).toBeGreaterThan(43);
+    expect(point?.[1]).toBeLessThan(44);
+  });
+
+  it('uses the largest polygon of a MultiPolygon', () => {
+    const sliver = bboxRing(-100, -99.99, 40, 40.01);
+    const main = bboxRing(-115, -114, 43, 44);
+    const point = interiorPoint({type: 'MultiPolygon', coordinates: [sliver, main]});
+    expect(point).toBeDefined();
+    expect(point?.[0]).toBeGreaterThan(-115);
+    expect(point?.[0]).toBeLessThan(-114);
+    expect(point?.[1]).toBeGreaterThan(43);
+    expect(point?.[1]).toBeLessThan(44);
+  });
+
+  it('returns undefined for a Point geometry', () => {
+    expect(interiorPoint({type: 'Point', coordinates: [-115, 43]})).toBeUndefined();
+  });
+
+  it('returns undefined for a Polygon with no rings', () => {
+    expect(interiorPoint({type: 'Polygon', coordinates: []})).toBeUndefined();
+  });
+
+  it('returns undefined for a Polygon with an empty outer ring', () => {
+    expect(interiorPoint({type: 'Polygon', coordinates: [[]]})).toBeUndefined();
+  });
+
+  it('returns undefined for a MultiPolygon with no usable polygons', () => {
+    expect(interiorPoint({type: 'MultiPolygon', coordinates: [[[]]]})).toBeUndefined();
   });
 });

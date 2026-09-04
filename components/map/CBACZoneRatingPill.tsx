@@ -5,6 +5,7 @@ import centroid from '@turf/centroid';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {HStack, View} from 'components/core';
 import {dangerValue} from 'components/helpers/dangerText';
+import {interiorPoint} from 'components/helpers/geographicCoordinates';
 import {MapViewZone} from 'components/map/ZoneMap';
 import {BodyXSm, BodyXSmBlack} from 'components/text';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
@@ -17,7 +18,7 @@ const hasRating = (level: DangerLevel | undefined): boolean =>
   level === DangerLevel.Low || level === DangerLevel.Moderate || level === DangerLevel.Considerable || level === DangerLevel.High || level === DangerLevel.Extreme;
 
 export const CBACZoneRatingPill: React.FunctionComponent<{zone: MapViewZone}> = ({zone}) => {
-  const coordinate = useMemo(() => centroid(zone.feature.geometry).geometry.coordinates, [zone.feature.geometry]);
+  const coordinate = useMemo(() => interiorPoint(zone.feature.geometry) ?? centroid(zone.feature.geometry).geometry.coordinates, [zone.feature.geometry]);
   const swatchStyle = useMemo(() => ({backgroundColor: colorFor(zone.danger_level).string()}), [zone.danger_level]);
 
   return (
