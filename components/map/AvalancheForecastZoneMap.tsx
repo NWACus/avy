@@ -168,22 +168,22 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     [setPreferences],
   );
 
+  // Keeping the previous object when the numbers are unchanged matters: this feeds the map's viewport
+  // insets, and a fresh identity there rebuilds the camera handler and every memo that depends on it.
+  const measureTopElements = useCallback(() => {
+    topElements.current?.measureInWindow((x, y, width, height) => {
+      setTopElementMeasurements(previous => (previous.yPos === y && previous.height === height ? previous : {yPos: y, height: height}));
+    });
+  }, [setTopElementMeasurements]);
+
   const onLayout = useCallback(() => {
     // onLayout returns position relative to parent - we need position relative to screen
-    topElements.current?.measureInWindow((x, y, width, height) => {
-      setTopElementMeasurements({yPos: y, height: height});
-    });
+    measureTopElements();
 
     // we seem to see races between onLayout firing and the measureInWindow picking up the correct
     // SafeAreaView bounds, so let's queue up another render pass in the future to hopefully converge
-    setTimeout(() => {
-      if (topElements.current) {
-        topElements.current.measureInWindow((x, y, width, height) => {
-          setTopElementMeasurements({yPos: y, height: height});
-        });
-      }
-    }, 50);
-  }, [setTopElementMeasurements]);
+    setTimeout(measureTopElements, 50);
+  }, [measureTopElements]);
 
   const onFetchLocation = useCallback(() => {
     async function getUserLocation() {
@@ -230,8 +230,10 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     if (zonesById === undefined) {
       return [];
     }
-    const allZones = Object.keys(zonesById).map(k => zonesById[k]);
-    return allZones.filter(zone => zone.center_id !== 'CBAC').concat(allZones.filter(zone => zone.center_id === 'CBAC'));
+    const others: MapViewZone[] = [];
+    const cbac: MapViewZone[] = [];
+    Object.keys(zonesById).forEach(k => (zonesById[k].center_id === 'CBAC' ? cbac : others).push(zonesById[k]));
+    return others.concat(cbac);
   }, [zonesById]);
 
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);

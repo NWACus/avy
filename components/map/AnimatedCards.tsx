@@ -7,7 +7,7 @@ import {add, isAfter} from 'date-fns';
 import _, {isEqual} from 'lodash';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import md5 from 'md5';
-import React, {RefObject, useCallback, useEffect, useRef, useState} from 'react';
+import React, {RefObject, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Animated,
   GestureResponderEvent,
@@ -59,6 +59,10 @@ export class AnimatedMapWithDrawerController {
   // The following members manage the optional button above the cards
   buttonYOffset: Animated.Value;
 
+  // Built once: this is read from a render body, and interpolate() allocates and attaches a new node
+  // to yOffset every time it's called.
+  private readonly transform: {translateY: Animated.AnimatedInterpolation<number>};
+
   // The following members determine the map's region
   baseAvalancheCenterMapRegion: AvalancheCenterRegion;
   windowWidth = 0;
@@ -82,6 +86,17 @@ export class AnimatedMapWithDrawerController {
     this.baseAvalancheCenterMapRegion = region;
     this.mapCameraRef = mapCameraRef;
     this.lastLogged = {};
+    const allowedRange = [
+      AnimatedMapWithDrawerController.OFFSETS[AnimatedDrawerState.Visible] - AnimatedMapWithDrawerController.SNAP_THRESHOLD,
+      AnimatedMapWithDrawerController.OFFSETS[AnimatedDrawerState.Hidden] + AnimatedMapWithDrawerController.SNAP_THRESHOLD,
+    ];
+    this.transform = {
+      translateY: this.yOffset.interpolate({
+        inputRange: allowedRange,
+        outputRange: allowedRange,
+        extrapolate: 'clamp',
+      }),
+    };
   }
 
   setState(state: AnimatedDrawerState, shouldAnimateRegion: boolean = true) {
@@ -167,17 +182,7 @@ export class AnimatedMapWithDrawerController {
   }
 
   getTransform() {
-    const allowedRange = [
-      AnimatedMapWithDrawerController.OFFSETS[AnimatedDrawerState.Visible] - AnimatedMapWithDrawerController.SNAP_THRESHOLD,
-      AnimatedMapWithDrawerController.OFFSETS[AnimatedDrawerState.Hidden] + AnimatedMapWithDrawerController.SNAP_THRESHOLD,
-    ];
-    return {
-      translateY: this.yOffset.interpolate({
-        inputRange: allowedRange,
-        outputRange: allowedRange,
-        extrapolate: 'clamp',
-      }),
-    };
+    return this.transform;
   }
 
   animateUsingUpdatedCardDrawerMaximumHeight(height: number) {
@@ -383,17 +388,21 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
   const isUserScrolling = useRef(false);
 
   const cardInterval = (CARD_WIDTH + CARD_SPACING) * width;
-  const offsets = items?.map((_itemData, index) => index * cardInterval - (CARD_SPACING + CARD_MARGIN) * width);
-  const flatListProps = {
-    snapToAlignment: 'center',
-    decelerationRate: 'fast',
-    snapToInterval: cardInterval,
-    disableIntervalMomentum: true,
-    contentInset: {
-      left: CARD_MARGIN * width,
-      right: CARD_MARGIN * width,
-    },
-  } as const;
+  const offsets = useMemo(() => items?.map((_itemData, index) => index * cardInterval - (CARD_SPACING + CARD_MARGIN) * width), [items, cardInterval, width]);
+  const flatListProps = useMemo(
+    () =>
+      ({
+        snapToAlignment: 'center',
+        decelerationRate: 'fast',
+        snapToInterval: cardInterval,
+        disableIntervalMomentum: true,
+        contentInset: {
+          left: CARD_MARGIN * width,
+          right: CARD_MARGIN * width,
+        },
+      } as const),
+    [cardInterval, width],
+  );
 
   const panResponder = useRef(
     PanResponder.create({
@@ -408,6 +417,29 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
   const onLayout = useCallback((event: LayoutChangeEvent) => controllerRef.current.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height), [controllerRef]);
 
   const renderItemAdapter = useCallback(({item}: {item: ItemRenderData<T, U>}) => renderItem(item), [renderItem]);
+
+  // Memoized so the list isn't handed a new data array on every render.
+  const data = useMemo(
+    () =>
+      items.map(
+        (i: T): ItemRenderData<T, U> => ({
+          key: getItemId(i),
+          item: i,
+          date: date,
+          center_id: center_id,
+        }),
+      ),
+    [items, getItemId, date, center_id],
+  );
+
+  const initialScrollIndex = useMemo(
+    () =>
+      Math.max(
+        0,
+        items.findIndex(item => getItemId(item) === selectedItemId),
+      ),
+    [items, getItemId, selectedItemId],
+  );
 
   const onScrollBeginDrag = useCallback(() => {
     isUserScrolling.current = true;
@@ -501,6 +533,13 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
 
   const getItem = useCallback((data: ItemRenderData<T, U>[], index: number) => data[index], []);
 
+  // Memoized alongside the cached transform on the controller: a fresh style object here rebuilds the
+  // AnimatedProps every render, which detaches and reattaches the interpolation from the drawer offset.
+  const drawerStyle = useMemo(
+    () => ({position: 'absolute' as const, width: '100%' as const, bottom: bottomOffset + 6, transform: [controllerRef.current.getTransform()]}),
+    [bottomOffset, controllerRef],
+  );
+
   // The list view has drawer-like behavior - it can be swiped into view, or swiped away.
   // These values control the state that's driven through gestures & animation.
   useEffect(() => {
@@ -525,15 +564,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
   }, [selectedItemId, previouslySelectedItemId, listRef, items, setProgrammaticallyScrolling, setPreviouslySelectedItemId, getItemId]);
 
   return (
-    <Animated.View
-      style={[
-        {
-          position: 'absolute',
-          width: '100%',
-          bottom: bottomOffset + 6,
-          transform: [controllerRef.current.getTransform()],
-        },
-      ]}>
+    <Animated.View style={drawerStyle}>
       {buttonOnPress && (
         <View
           style={[
@@ -558,7 +589,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
         // This helps keep the list from using too much memory by trying to render all of the cards before showing the view
         initialNumToRender={items.length > 2 ? 2 : items.length}
         ref={listRef}
-        initialScrollIndex={items.findIndex(item => getItemId(item) === selectedItemId) === -1 ? 0 : items.findIndex(item => getItemId(item) === selectedItemId)}
+        initialScrollIndex={initialScrollIndex}
         horizontal
         style={{width: '100%'}}
         showsHorizontalScrollIndicator={false}
@@ -573,14 +604,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
         getItem={getItem}
         {...panResponder.panHandlers}
         {...flatListProps}
-        data={items.map(
-          (i: T): ItemRenderData<T, U> => ({
-            key: getItemId(i),
-            item: i,
-            date: date,
-            center_id: center_id,
-          }),
-        )}
+        data={data}
         renderItem={renderItemAdapter}
       />
     </Animated.View>

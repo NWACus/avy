@@ -25,10 +25,19 @@ import {CBACZoneRatingPill} from 'components/map/CBACZoneRatingPill';
 import {CBACForecastExplanationModal} from 'components/modals/cbac/CBACForecastExplanationModal';
 import {Position} from 'geojson';
 import {CenterSwitchOrigin, useAnalytics} from 'hooks/useAnalytics';
+import {throttle} from 'lodash';
 
 const CBAC_COVERAGE_CENTER_ID: AvalancheCenterID = 'CBAC';
-// Below this the CBAC zones are small enough that the fixed-size rating pills swamp them.
+// Below this the CBAC zones are small enough that the fixed-size rating pills swamp them. The pills
+// hide again a little lower so that a pinch resting on the threshold doesn't thrash them on and off.
 const CBAC_RATING_PILL_MIN_ZOOM = 8;
+const CBAC_RATING_PILL_HIDE_ZOOM = 7.7;
+
+// onCameraChanged fires once per rendered frame while the camera moves, and rnmapbox offers no native
+// throttle. Nothing this handler does needs that resolution.
+const CAMERA_CHANGE_THROTTLE_MS = 100;
+
+const NO_TOP_ELEMENTS: TopElementMeasurments = {yPos: 0, height: 0};
 
 interface AvalancheForecastMapViewProps {
   preferredCenterId: AvalancheCenterID;
@@ -49,7 +58,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   selectedZoneId,
   tabBarHeight,
   setSelectedZoneId,
-  topElementMeasurements = {yPos: 0, height: 0},
+  topElementMeasurements = NO_TOP_ELEMENTS,
   userLocation = undefined,
   onCBACCoverageVisibleChange = undefined,
 }: AvalancheForecastMapViewProps) => {
@@ -143,8 +152,17 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 
   const avalancheCenterMapRegion = useMemo(() => defaultMapRegionForGeometries(preferredCenterZones.map(zone => zone.feature.geometry)), [preferredCenterZones]);
 
-  const caicZones = useMemo(() => zones.filter(zone => zone.center_id === 'CAIC'), [zones]);
-  const caicCoverageBounds = useMemo(() => (caicZones.length > 0 ? defaultMapRegionForZones(caicZones).cameraBounds : undefined), [caicZones]);
+  // Computed on demand rather than up front: CAIC is by far the highest-vertex center on the map and
+  // this bounding box is only read when the user taps through to its coverage.
+  const caicCoverageBoundsRef = useRef<{zones: MapViewZone[]; bounds: CameraBounds | undefined} | null>(null);
+  const caicCoverageBounds = useCallback((): CameraBounds | undefined => {
+    if (caicCoverageBoundsRef.current?.zones !== zones) {
+      const caicZones = zones.filter(zone => zone.center_id === 'CAIC');
+      caicCoverageBoundsRef.current = {zones: zones, bounds: caicZones.length > 0 ? defaultMapRegionForZones(caicZones).cameraBounds : undefined};
+    }
+    return caicCoverageBoundsRef.current.bounds;
+  }, [zones]);
+
   const cbacZones = useMemo(() => zones.filter(zone => zone.center_id === CBAC_COVERAGE_CENTER_ID), [zones]);
   const cbacCoverageBounds = useMemo(() => (cbacZones.length > 0 ? defaultMapRegionForZones(cbacZones).cameraBounds : undefined), [cbacZones]);
   const cbacCoverageVisibleRef = useRef<boolean | null>(null);
@@ -184,18 +202,6 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
     controller.current.animateUsingUpdatedTopElementsHeight(topElementMeasurements.yPos, topElementMeasurements.height);
   }, [controller, topElementMeasurements]);
 
-  const visibleViewportFor = useCallback(
-    (bounds: CameraBounds): CameraBounds =>
-      // The map fills the whole screen, so trim its bounds to the area not covered by the header and tab bar
-      // before testing visibility — otherwise a region hidden behind that chrome would still count as on-screen.
-      insetViewportBounds(bounds, {
-        topInset: topElementMeasurements.yPos + topElementMeasurements.height,
-        bottomInset: tabBarHeight,
-        mapHeight: windowHeight,
-      }),
-    [topElementMeasurements, tabBarHeight, windowHeight],
-  );
-
   // Hide the cards, clear the selection, and enter the no-center experience together as a single event.
   const enterNoCenterExperience = useCallback(() => {
     if (controller.current.state !== AnimatedDrawerState.Hidden) {
@@ -210,17 +216,24 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   }, [controller, setIsInNoCenterExperience, setSelectedZoneId]);
 
   const enterNoCenterExperienceIfCenterOffscreen = useCallback(
-    (mapState: MapState, visibleViewport: CameraBounds) => {
+    (mapState: MapState) => {
       // Guard: with no preferred-center zones the center bounds are degenerate (0,0); skip detection.
       if (!mapState.gestures.isGestureActive || preferredCenterZones.length === 0 || isInNoCenterExperienceRef.current) {
         return;
       }
+      // The map fills the whole screen, so trim its bounds to the area not covered by the header and tab bar
+      // before testing visibility — otherwise a center hidden behind that chrome would still count as on-screen.
+      const visibleViewport = insetViewportBounds(mapState.properties.bounds, {
+        topInset: topElementMeasurements.yPos + topElementMeasurements.height,
+        bottomInset: tabBarHeight,
+        mapHeight: windowHeight,
+      });
       if (regionBoundsVisible(avalancheCenterMapRegion.cameraBounds, visibleViewport)) {
         return;
       }
       enterNoCenterExperience();
     },
-    [avalancheCenterMapRegion, preferredCenterZones, enterNoCenterExperience],
+    [avalancheCenterMapRegion, preferredCenterZones, enterNoCenterExperience, topElementMeasurements, tabBarHeight, windowHeight],
   );
 
   const persistCameraWhileCenterless = useCallback(
@@ -236,12 +249,13 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   );
 
   const reportCBACCoverageVisibility = useCallback(
-    (visibleViewport: CameraBounds) => {
+    (bounds: CameraBounds) => {
       if (!onCBACCoverageVisibleChange) {
         return;
       }
-      // onCameraChanged fires continuously while panning, so only report an actual flip.
-      const cbacVisible = cbacCoverageBounds !== undefined && regionBoundsVisible(cbacCoverageBounds, visibleViewport);
+      // Tested against the raw viewport rather than the inset one: the legend this drives is measured as
+      // part of the top elements, so feeding it the inset would let showing the legend hide the legend.
+      const cbacVisible = cbacCoverageBounds !== undefined && regionBoundsVisible(cbacCoverageBounds, bounds);
       if (cbacCoverageVisibleRef.current !== cbacVisible) {
         cbacCoverageVisibleRef.current = cbacVisible;
         onCBACCoverageVisibleChange(cbacVisible);
@@ -250,16 +264,34 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
     [cbacCoverageBounds, onCBACCoverageVisibleChange],
   );
 
-  const onCameraChanged = useCallback(
+  const showCBACRatingPillsRef = useRef(false);
+  const reportCBACRatingPillVisibility = useCallback((zoom: number) => {
+    const show = showCBACRatingPillsRef.current ? zoom >= CBAC_RATING_PILL_HIDE_ZOOM : zoom >= CBAC_RATING_PILL_MIN_ZOOM;
+    if (showCBACRatingPillsRef.current !== show) {
+      showCBACRatingPillsRef.current = show;
+      setShowCBACRatingPills(show);
+    }
+  }, []);
+
+  const onCameraMoved = useCallback(
     (mapState: MapState) => {
-      const visibleViewport = visibleViewportFor(mapState.properties.bounds);
-      enterNoCenterExperienceIfCenterOffscreen(mapState, visibleViewport);
+      enterNoCenterExperienceIfCenterOffscreen(mapState);
       persistCameraWhileCenterless(mapState);
-      reportCBACCoverageVisibility(visibleViewport);
-      setShowCBACRatingPills(mapState.properties.zoom >= CBAC_RATING_PILL_MIN_ZOOM);
+      reportCBACCoverageVisibility(mapState.properties.bounds);
+      reportCBACRatingPillVisibility(mapState.properties.zoom);
     },
-    [visibleViewportFor, enterNoCenterExperienceIfCenterOffscreen, persistCameraWhileCenterless, reportCBACCoverageVisibility],
+    [enterNoCenterExperienceIfCenterOffscreen, persistCameraWhileCenterless, reportCBACCoverageVisibility, reportCBACRatingPillVisibility],
   );
+
+  // Read through a ref so the throttled handler never changes identity: it is a prop on the native
+  // MapView, and a new one each render would push a prop update down on every render.
+  const onCameraMovedRef = useRef(onCameraMoved);
+  useEffect(() => {
+    onCameraMovedRef.current = onCameraMoved;
+  }, [onCameraMoved]);
+
+  const onCameraChanged = useMemo(() => throttle((mapState: MapState) => onCameraMovedRef.current(mapState), CAMERA_CHANGE_THROTTLE_MS, {leading: true, trailing: true}), []);
+  useEffect(() => () => onCameraChanged.cancel(), [onCameraChanged]);
 
   useEffect(() => {
     if (userLocation) {
@@ -270,8 +302,9 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 
   const showCBACCoverageOnMap = useCallback(() => {
     enterNoCenterExperience();
-    if (caicCoverageBounds) {
-      mapCameraRef.current?.setCamera({bounds: caicCoverageBounds, heading: 0});
+    const bounds = caicCoverageBounds();
+    if (bounds) {
+      mapCameraRef.current?.setCamera({bounds: bounds, heading: 0});
     }
   }, [enterNoCenterExperience, caicCoverageBounds]);
 

@@ -1,5 +1,7 @@
 import {AvalancheForecastZonePolygon, SelectedAvalancheForecastZonePolygon, ZonePolygonStyle} from 'components/map/AvalancheForecastZonePolygon';
-import React, {RefObject, useMemo} from 'react';
+import {useWarningPulse, useWarningPulseShape, WarningPulseOverlay} from 'components/map/WarningPulseOverlay';
+import {partitionZonesByDrawOrder} from 'components/map/zoneDrawOrder';
+import React, {RefObject, useCallback, useMemo} from 'react';
 import {AvalancheCenterID, DangerLevel, MapLayerFeature} from 'types/nationalAvalancheCenter';
 
 import Mapbox, {Camera, CameraBounds, CameraStop, MapState, MapView} from '@rnmapbox/maps';
@@ -65,21 +67,31 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
   children,
   ...props
 }) => {
-  const zonePolygons = useMemo(() => {
-    return zones?.map(zone => (
-      <AvalancheForecastZonePolygon
-        key={`${zone.zone_id}-polygon`}
-        zone={zone}
-        renderFillColor={renderFillColor}
-        polygonStyle={zonePolygonStyle ? zonePolygonStyle(zone) : 'default'}
-        onPress={onPolygonPress}
-      />
-    ));
-  }, [zones, renderFillColor, zonePolygonStyle, onPolygonPress]);
+  const styleFor = useCallback((zone: MapViewZone): ZonePolygonStyle => (zonePolygonStyle ? zonePolygonStyle(zone) : 'default'), [zonePolygonStyle]);
+
+  const {baseZones, overlappingZones} = useMemo(() => partitionZonesByDrawOrder(zones, styleFor), [zones, styleFor]);
+
+  const polygonsFor = useCallback(
+    (groupZones: MapViewZone[]) =>
+      groupZones.map(zone => (
+        <AvalancheForecastZonePolygon key={`${zone.zone_id}-polygon`} zone={zone} renderFillColor={renderFillColor} polygonStyle={styleFor(zone)} onPress={onPolygonPress} />
+      )),
+    [renderFillColor, styleFor, onPolygonPress],
+  );
+  const basePolygons = useMemo(() => polygonsFor(baseZones), [polygonsFor, baseZones]);
+  const overlappingPolygons = useMemo(() => polygonsFor(overlappingZones), [polygonsFor, overlappingZones]);
+
+  // Warning zones are collected into a shared source rather than animated one by one, because on a bad
+  // day most of the country is warning at once. Nearly all of them land in the base group; coverageEdge
+  // zones are excluded because they draw an outline rather than a fill, so they have nothing to pulse.
+  const basePulseShape = useWarningPulseShape(renderFillColor ? baseZones.filter(zone => zone.hasWarning) : []);
+  const overlappingPulseShape = useWarningPulseShape(renderFillColor ? overlappingZones.filter(zone => zone.hasWarning && styleFor(zone) !== 'coverageEdge') : []);
+  const pulse = useWarningPulse(basePulseShape.features.length > 0 || overlappingPulseShape.features.length > 0);
 
   const selectedPolygon = useMemo(() => {
     if (selectedZoneId !== null) {
-      return zones?.filter(zone => zone.zone_id === selectedZoneId).map(zone => <SelectedAvalancheForecastZonePolygon key={`${zone.zone_id}-selectedPolygon`} zone={zone} />);
+      const selectedZone = zones?.find(zone => zone.zone_id === selectedZoneId);
+      return selectedZone ? <SelectedAvalancheForecastZonePolygon key={`${selectedZone.zone_id}-selectedPolygon`} zone={selectedZone} /> : null;
     }
 
     return null;
@@ -97,7 +109,10 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
       onCameraChanged={onCameraChanged}
       {...props}>
       <Camera ref={cameraRef} defaultSettings={initialCameraStop ?? {bounds: initialCameraBounds}} />
-      {zonePolygons}
+      {basePolygons}
+      <WarningPulseOverlay id="warning-pulse-base" shape={basePulseShape} pulse={pulse} />
+      {overlappingPolygons}
+      <WarningPulseOverlay id="warning-pulse-overlapping" shape={overlappingPulseShape} pulse={pulse} />
       {selectedPolygon}
       {children}
     </MapView>
