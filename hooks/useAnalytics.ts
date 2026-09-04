@@ -50,7 +50,7 @@ export const createAnalytics = (postHog: PostHog | undefined, logger: Logger): A
     postHog?.capture(...args);
   },
   captureCenterSwitch: (switchedFrom, switchedTo, origin) => {
-    postHog?.capture('centerSwitch', {switchedFrom: switchedFrom, switchedTo: switchedTo, eventOrigin: origin});
+    postHog?.capture('center_switched', {switchedFrom: switchedFrom, switchedTo: switchedTo, eventOrigin: origin});
   },
   identify: (...args) => {
     postHog?.identify(...args);

@@ -2,7 +2,7 @@ import {WebMediaView, WebMediaViewHandle} from 'components/content/carousel/Medi
 import {Center} from 'components/core';
 import {BodySm} from 'components/text';
 import Constants from 'expo-constants';
-import {usePostHog} from 'posthog-react-native';
+import {useAnalytics} from 'hooks/useAnalytics';
 import React, {useEffect, useRef} from 'react';
 import {Platform} from 'react-native';
 import {WebViewSource} from 'react-native-webview/lib/WebViewTypes';
@@ -47,7 +47,7 @@ const refererValue = (bundleID: string) => `https://${bundleID}`;
 
 export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, isVisible}: WebVideoViewProps) => {
   const handleRef = useRef<WebMediaViewHandle>(null);
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
 
   useEffect(() => {
     if (!isVisible) {
@@ -56,16 +56,14 @@ export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, 
   }, [isVisible]);
 
   useEffect(() => {
-    if (postHog) {
-      let properties: {[key: string]: string} = {};
-      if (typeof item.url === 'string') {
-        properties = {url: item.url};
-      } else if ('external_link' in item.url) {
-        properties = {url: item.url.external_link};
-      }
-      postHog.capture('webVideoView-UnsupportedVideoUrl', properties);
+    let properties: {[key: string]: string} = {};
+    if (typeof item.url === 'string') {
+      properties = {url: item.url};
+    } else if ('external_link' in item.url) {
+      properties = {url: item.url.external_link};
     }
-  }, [postHog, item.url]);
+    analytics.capture('unsupported_video_url_received', properties);
+  }, [analytics, item.url]);
 
   let sourceData: WebViewSource;
   try {

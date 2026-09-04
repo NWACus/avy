@@ -71,7 +71,8 @@ export const FeatureFlagsProvider: React.FC<FeatureFlagsProviderProps> = ({child
         buildNumber: Number.parseInt(Application.nativeBuildVersion || '0'),
         updateGroupId: getUpdateGroupId(),
         updateBuildTime: process.env.EXPO_PUBLIC_GIT_REVISION as string,
-        channel: Updates.channel || 'development',
+        environment: Updates.channel || 'development',
+        source: 'nwacus/avy',
       });
       logger.debug('registered user');
       setRegistered(true);

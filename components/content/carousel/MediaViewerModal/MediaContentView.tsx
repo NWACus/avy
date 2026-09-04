@@ -3,7 +3,7 @@ import {PDFView} from 'components/content/carousel/MediaViewerModal/PDFView';
 import {WebVideoView} from 'components/content/carousel/MediaViewerModal/WebVideoView';
 import {View} from 'components/core';
 import {BodySm} from 'components/text';
-import {usePostHog} from 'posthog-react-native';
+import {useAnalytics} from 'hooks/useAnalytics';
 import React, {useEffect} from 'react';
 import {useWindowDimensions} from 'react-native';
 import {NativeGesture} from 'react-native-gesture-handler';
@@ -16,7 +16,7 @@ interface MediaContentProps {
 }
 
 export const MediaContentView: React.FunctionComponent<MediaContentProps> = ({item, isVisible, nativeGesture}) => {
-  const postHog = usePostHog();
+  const analytics = useAnalytics();
   const dimensions = useWindowDimensions();
 
   let content: React.JSX.Element;
@@ -34,10 +34,10 @@ export const MediaContentView: React.FunctionComponent<MediaContentProps> = ({it
   }
 
   useEffect(() => {
-    if (postHog && !isMediaSupported) {
-      postHog.capture('mediaContentView-UnsupportedMedia', {mediaType: item.type});
+    if (!isMediaSupported) {
+      analytics.capture('unsupported_media_found', {mediaType: item.type});
     }
-  }, [postHog, isMediaSupported, item]);
+  }, [analytics, isMediaSupported, item]);
 
   return <View style={{width: dimensions.width, flex: 1}}>{content}</View>;
 };

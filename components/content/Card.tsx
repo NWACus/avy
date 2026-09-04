@@ -1,4 +1,4 @@
-import React, {PropsWithChildren, ReactNode, useCallback, useEffect, useState} from 'react';
+import React, {PropsWithChildren, ReactNode, useCallback, useState} from 'react';
 
 import {Collapsible} from 'components/content/Collapsible';
 import {ColorValue, TouchableOpacity, ViewStyle} from 'react-native';
@@ -6,7 +6,7 @@ import {ColorValue, TouchableOpacity, ViewStyle} from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import {Divider, HStack, View, ViewProps, VStack} from 'components/core';
-import {usePostHog} from 'posthog-react-native';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {colorLookup} from 'theme';
 
 export interface CardProps extends ViewProps {
@@ -134,16 +134,12 @@ export interface CollapsibleCardProps extends CardProps {
 export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({identifier, startsCollapsed, header, children, noDivider, ...props}) => {
   const [isCollapsed, setIsCollapsed] = useState(startsCollapsed);
   const textColor = colorLookup('text');
+  const analytics = useAnalytics();
   const pressHandler = useCallback(() => {
-    setIsCollapsed(!isCollapsed);
-  }, [isCollapsed]);
-  const postHog = usePostHog();
-  useEffect(() => {
-    if (postHog && identifier && isCollapsed !== startsCollapsed) {
-      // capture the even when the user decided to interact with the card, don't send something without interaction
-      postHog.capture('card', {identifier: identifier, isCollapsed: isCollapsed});
-    }
-  }, [identifier, postHog, isCollapsed, startsCollapsed]);
+    const newValue = !isCollapsed;
+    analytics.capture('collapsible_card_tapped', {identifier: identifier, is_collapsed_old_value: isCollapsed, is_collapsed_new_value: newValue});
+    setIsCollapsed(newValue);
+  }, [analytics, identifier, isCollapsed]);
 
   return (
     <Card
