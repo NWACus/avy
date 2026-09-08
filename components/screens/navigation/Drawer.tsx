@@ -225,6 +225,10 @@ const SponsorSection: React.FunctionComponent<{onPress: () => void}> = ({onPress
           <Center>
             <Image source={sponsor.logoOnLight} resizeMode="contain" style={logoStyle} />
           </Center>
+          <HStack space={4} alignItems="center" justifyContent="center" paddingTop={4}>
+            <Body color={colorLookup('primary')}>Why we partner with {sponsor.displayName}</Body>
+            <Ionicons name="chevron-forward" size={bodySize} color={colorLookup('primary')} />
+          </HStack>
         </VStack>
       </TouchableOpacity>
     </VStack>
