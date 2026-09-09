@@ -72,12 +72,12 @@ export const NavigationHeader: React.FunctionComponent<NativeStackHeaderProps> =
       return;
     }
 
-    analytics.capture('share_button_pressed', {presentedFrom: getPresentedFromForAnalytics(navigation)});
+    analytics.capture('share_button_pressed', {center: shareCenterId, presented_from: getPresentedFromForAnalytics(navigation)});
 
     Share.share({
       message: shareUrl,
     }).catch((error: object) => logger.error(error, 'share button failed'));
-  }, [shareUrl, analytics, navigation]);
+  }, [shareUrl, analytics, navigation, shareCenterId]);
 
   return (
     // Setting the top padding to insets.top correctly aligns the view underneath the notches on iPhone. Trying to set the padding ourselves could lead to unexpected behavior

@@ -196,6 +196,7 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
           )}
         {adaptedWeatherForecast.weather_discussion && (
           <CollapsibleCard
+            center_id={center_id}
             identifier={'weatherSynopsis'}
             marginTop={1}
             borderRadius={0}
@@ -451,6 +452,7 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
         ))}
         {actionListData.length > 0 && <ActionList pl={16} backgroundColor="white" header={<Title3Black>Weather Data</Title3Black>} actions={actionListData} />}
         <CollapsibleCard
+          center_id={center_id}
           identifier={'weatherSynopsis'}
           marginTop={1}
           borderRadius={0}
@@ -461,6 +463,7 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
         </CollapsibleCard>
         {nwacForecast.mountain_weather_forecast.extended_synopsis && (
           <CollapsibleCard
+            center_id={center_id}
             identifier={'weatherExtendedSynopsis'}
             marginTop={1}
             borderRadius={0}
@@ -550,7 +553,7 @@ const RowColumnWeatherForecast: React.FunctionComponent<{
   center_id: AvalancheCenterID;
 }> = ({forecast, center_id}) => {
   if (center_id === 'BTAC' && forecast.zone_id !== 'snake_river_range') {
-    return <BTACWeatherForecast forecast={forecast} />;
+    return <BTACWeatherForecast forecast={forecast} center_id={center_id} />;
   }
 
   let periods: period[] = [];
@@ -671,7 +674,7 @@ const ForecastValue: React.FunctionComponent<{forecastItem: datum}> = ({forecast
   );
 };
 
-export const BTACWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeatherData}> = ({forecast}) => {
+export const BTACWeatherForecast: React.FunctionComponent<{forecast: RowColumnWeatherData; center_id: AvalancheCenterID}> = ({forecast, center_id}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   // n.b. we can't factor this check into a separate method as tsc is not smart enough to do type narrowing then
   if (!forecast.columns || forecast.columns.length < 1 || !forecast.columns[0] || forecast.columns[0].length < 1) {
@@ -796,6 +799,7 @@ export const BTACWeatherForecast: React.FunctionComponent<{forecast: RowColumnWe
   return (
     <>
       <CollapsibleCard
+        center_id={center_id}
         identifier={'btacWeatherSynopsis'}
         marginTop={1}
         borderRadius={0}

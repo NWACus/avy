@@ -8,6 +8,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import {Divider, HStack, View, ViewProps, VStack} from 'components/core';
 import {useAnalytics} from 'hooks/useAnalytics';
 import {colorLookup} from 'theme';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 export interface CardProps extends ViewProps {
   header?: ReactNode;
@@ -126,20 +127,29 @@ export const EditDeleteCard: React.FunctionComponent<PropsWithChildren<EditDelet
 };
 
 export interface CollapsibleCardProps extends CardProps {
+  center_id: AvalancheCenterID;
   identifier: string;
   noDivider?: boolean;
   startsCollapsed: boolean;
 }
 
-export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({identifier, startsCollapsed, header, children, noDivider, ...props}) => {
+export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<CollapsibleCardProps>> = ({
+  center_id,
+  identifier,
+  startsCollapsed,
+  header,
+  children,
+  noDivider,
+  ...props
+}) => {
   const [isCollapsed, setIsCollapsed] = useState(startsCollapsed);
   const textColor = colorLookup('text');
   const analytics = useAnalytics();
   const pressHandler = useCallback(() => {
     const newValue = !isCollapsed;
-    analytics.capture('collapsible_card_tapped', {identifier: identifier, is_collapsed_old_value: isCollapsed, is_collapsed_new_value: newValue});
+    analytics.capture('collapsible_card_tapped', {center: center_id, identifier: identifier, is_collapsed_old_value: isCollapsed, is_collapsed_new_value: newValue});
     setIsCollapsed(newValue);
-  }, [analytics, identifier, isCollapsed]);
+  }, [analytics, center_id, identifier, isCollapsed]);
 
   return (
     <Card

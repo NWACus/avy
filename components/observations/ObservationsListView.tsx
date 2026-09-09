@@ -344,6 +344,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
     <VStack width="100%" height="100%" space={0}>
       <Modal visible={filterModalVisible} onRequestClose={hideFilterModal} presentationStyle="overFullScreen" animationType="slide" statusBarTranslucent>
         <ObservationsFilterForm
+          center_id={center_id}
           requestedTime={requestedTime}
           mapLayerFeatures={mapFeatures}
           alternateObservationZoneFeatures={filteredAlternateObservationZoneFeatures}

@@ -5,7 +5,7 @@ import {InternalError} from 'components/content/QueryState';
 import {View, ViewProps, VStack} from 'components/core';
 import {HTML, HTMLRendererConfig} from 'components/text/HTML';
 import React, {useCallback, useMemo, useState} from 'react';
-import {ImageMediaItem, MediaItem, MediaType, PDFMediaItem, VideoMediaItem} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, ImageMediaItem, MediaItem, MediaType, PDFMediaItem, VideoMediaItem} from 'types/nationalAvalancheCenter';
 
 interface MediaPreview {
   kind: 'image' | 'video' | 'pdf';
@@ -69,12 +69,13 @@ const mediaPreview = (mediaItem: MediaItem): MediaPreview | undefined => {
 };
 
 interface MediaPreviewProps extends ViewProps {
+  center_id: AvalancheCenterID;
   thumbnailHeight: number;
   thumbnailAspectRatio?: number;
   mediaItem: MediaItem;
 }
 
-export const MediaPreview: React.FunctionComponent<MediaPreviewProps> = ({thumbnailHeight, thumbnailAspectRatio = 1.3, mediaItem}) => {
+export const MediaPreview: React.FunctionComponent<MediaPreviewProps> = ({center_id, thumbnailHeight, thumbnailAspectRatio = 1.3, mediaItem}) => {
   const thumbnailWidth = thumbnailAspectRatio * thumbnailHeight;
 
   const [modalIndex, setModalIndex] = useState<number | null>(null);
@@ -120,7 +121,7 @@ export const MediaPreview: React.FunctionComponent<MediaPreviewProps> = ({thumbn
           </View>
         )}
       </VStack>
-      <MediaViewerModal visible={modalIndex !== null} startIndex={modalIndex ?? 0} mediaItems={[mediaItem]} onClose={onClose} />
+      <MediaViewerModal visible={modalIndex !== null} startIndex={modalIndex ?? 0} mediaItems={[mediaItem]} onClose={onClose} center_id={center_id} />
     </View>
   );
 };

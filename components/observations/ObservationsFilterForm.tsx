@@ -22,7 +22,7 @@ import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, View as RNView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
-import {MapLayerFeature, ObservationFragment, ObservationZonesFeature, PartnerType} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MapLayerFeature, ObservationFragment, ObservationZonesFeature, PartnerType} from 'types/nationalAvalancheCenter';
 import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 import {z} from 'zod';
 
@@ -215,6 +215,7 @@ export const filtersForConfig = (
 };
 
 interface ObservationsFilterFormProps {
+  center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
   mapLayerFeatures: MapLayerFeature[];
   alternateObservationZoneFeatures: ObservationZonesFeature[] | undefined;
@@ -227,6 +228,7 @@ interface ObservationsFilterFormProps {
 const formFieldSpacing = 16;
 
 export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterFormProps> = ({
+  center_id,
   requestedTime,
   mapLayerFeatures,
   alternateObservationZoneFeatures,
@@ -261,8 +263,8 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    analytics.screen('observationsFilter');
-  }, [analytics]);
+    analytics.screen('observationsFilter', {center: center_id});
+  }, [analytics, center_id]);
   useFocusEffect(recordAnalytics);
 
   const onResetHandler = useCallback(() => formContext.reset(initialFilterConfig), [formContext, initialFilterConfig]);

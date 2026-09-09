@@ -96,8 +96,8 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
   const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    analytics.screen('menu');
-  }, [analytics]);
+    analytics.screen('menu', {center: avalancheCenterId});
+  }, [analytics, avalancheCenterId]);
   useFocusEffect(recordAnalytics);
   const sendMailHandler = useCallback(
     () =>
@@ -123,9 +123,9 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
   }, [navigation, staging, setStaging]);
 
   const openSponsorDrawer = useCallback(() => {
-    analytics.capture('sponsor_section_tapped');
+    analytics.capture('sponsor_section_tapped', {center: avalancheCenterId});
     setShowSponsorDrawer(true);
-  }, [setShowSponsorDrawer, analytics]);
+  }, [setShowSponsorDrawer, analytics, avalancheCenterId]);
 
   const closeSponsorDrawer = useCallback(() => {
     setShowSponsorDrawer(false);
@@ -204,7 +204,7 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
           )}
         </VStack>
       </ScrollView>
-      <SponsorDrawer visible={showSponsorDrawer} onDismiss={closeSponsorDrawer} />
+      <SponsorDrawer visible={showSponsorDrawer} onDismiss={closeSponsorDrawer} center_id={avalancheCenterId} />
     </View>
   );
 };
@@ -235,14 +235,14 @@ const SponsorSection: React.FunctionComponent<{onPress: () => void}> = ({onPress
   );
 };
 
-const SponsorDrawer: React.FunctionComponent<{visible: boolean; onDismiss: () => void}> = ({visible, onDismiss}) => {
+const SponsorDrawer: React.FunctionComponent<{visible: boolean; onDismiss: () => void; center_id: AvalancheCenterID}> = ({visible, onDismiss, center_id}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const analytics = useAnalytics();
   const sponsor = useTitleSponsor();
   const logoStyle = useMemo(() => sponsorLogoSize(sponsor.logoOnLight, SPONSOR_LOGO_WIDTH), [sponsor.logoOnLight]);
 
   const visitSponsor = useCallback(() => {
-    analytics.capture('vist_sponsor_url_tapped');
+    analytics.capture('visit_sponsor_url_tapped', {center: center_id});
     WebBrowser.openBrowserAsync(sponsor.campaignUrl).catch((e: unknown) => {
       logger.error({error: e}, 'Failed to open title sponsor URL');
       Alert.alert('Unable to Open Web Browser', 'An error occured when trying to open the web browser. Please try again.', [
@@ -252,7 +252,7 @@ const SponsorDrawer: React.FunctionComponent<{visible: boolean; onDismiss: () =>
         },
       ]);
     });
-  }, [analytics, logger, sponsor.campaignUrl]);
+  }, [analytics, center_id, logger, sponsor.campaignUrl]);
 
   const renderVisitButton = useCallback(
     ({textColor}: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => (

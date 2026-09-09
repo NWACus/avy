@@ -6,12 +6,13 @@ import React, {useCallback, useState} from 'react';
 import {Dimensions, FlatList, Modal, ViewToken} from 'react-native';
 import {Gesture, GestureDetector, GestureHandlerRootView} from 'react-native-gesture-handler';
 import {colorLookup} from 'theme';
-import {MediaItem, MediaType} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
 const SCREEN = Dimensions.get('screen');
 const SCREEN_WIDTH = SCREEN.width;
 
 export interface MediaViewerModalProps {
+  center_id: AvalancheCenterID;
   visible: boolean;
   startIndex: number;
   mediaItems: MediaItem[];
@@ -26,7 +27,7 @@ const getItemId = (item: MediaItem) => {
   return item.id;
 };
 
-export const MediaViewerModal: React.FunctionComponent<MediaViewerModalProps> = ({visible, startIndex, mediaItems, onClose}: MediaViewerModalProps) => {
+export const MediaViewerModal: React.FunctionComponent<MediaViewerModalProps> = ({center_id, visible, startIndex, mediaItems, onClose}: MediaViewerModalProps) => {
   const [currentItemIndex, setCurrentItemIndex] = useState(startIndex);
 
   const nativeGesture = Gesture.Native();
@@ -36,9 +37,9 @@ export const MediaViewerModal: React.FunctionComponent<MediaViewerModalProps> = 
       const visibleItemId = getItemId(mediaItems[currentItemIndex]);
       const renderItemId = getItemId(item);
 
-      return <MediaContentView item={item} isVisible={visibleItemId === renderItemId} nativeGesture={nativeGesture} />;
+      return <MediaContentView item={item} isVisible={visibleItemId === renderItemId} nativeGesture={nativeGesture} center_id={center_id} />;
     },
-    [mediaItems, currentItemIndex, nativeGesture],
+    [mediaItems, currentItemIndex, nativeGesture, center_id],
   );
 
   const getItemLayout = useCallback(

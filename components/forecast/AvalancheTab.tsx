@@ -226,6 +226,7 @@ export const AvalancheTab: React.FunctionComponent<{
         )}
         {forecast.product_type === ProductType.Forecast && (
           <CollapsibleCard
+            center_id={center_id}
             identifier={'outlookDangerTable'}
             startsCollapsed
             borderRadius={0}
@@ -244,23 +245,30 @@ export const AvalancheTab: React.FunctionComponent<{
           forecast.forecast_avalanche_problems &&
           forecast.forecast_avalanche_problems.map((problem, index) => (
             <CollapsibleCard
+              center_id={center_id}
               identifier={'avalancheProblem'}
               startsCollapsed={false}
               key={`avalanche-problem-${index}-card`}
               borderRadius={0}
               borderColor="white"
               header={<HeaderWithTooltip title={`Problem #${index + 1}: ${problem.name}`} content={helpStrings.avalancheProblem} />}>
-              <AvalancheProblemCard key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
+              <AvalancheProblemCard center_id={center_id} key={`avalanche-problem-${index}`} problem={problem} names={elevationBandNames} />
             </CollapsibleCard>
           ))}
         {forecast.hazard_discussion && (
-          <CollapsibleCard identifier={'hazardDiscussion'} startsCollapsed={false} borderRadius={0} borderColor="white" header={<BodyBlack>Forecast Discussion</BodyBlack>}>
+          <CollapsibleCard
+            center_id={center_id}
+            identifier={'hazardDiscussion'}
+            startsCollapsed={false}
+            borderRadius={0}
+            borderColor="white"
+            header={<BodyBlack>Forecast Discussion</BodyBlack>}>
             <HTML source={{html: forecast.hazard_discussion}} />
           </CollapsibleCard>
         )}
         {forecast.media && forecast.media.length > 0 && (
           <Card borderRadius={0} borderColor="white" header={<BodyBlack>Media</BodyBlack>} noDivider>
-            <MediaCarousel thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={forecast.media} />
+            <MediaCarousel center_id={center_id} thumbnailHeight={160} thumbnailAspectRatio={1.3} mediaItems={forecast.media} />
           </Card>
         )}
         <View height={16} />

@@ -89,6 +89,7 @@ export const WeatherStationList: React.FunctionComponent<{
       <VStack width="100%" height="100%" space={0}>
         <Modal visible={filterModalVisible} onRequestClose={hideFilterModal}>
           <WeatherStationFilterForm
+            center_id={center_id}
             mapLayerFeatures={mapLayerFeatures}
             initialFilterConfig={{...initialFilterConfig}}
             currentFilterConfig={filterConfig}

@@ -241,13 +241,13 @@ export const ObservationForm: React.FC<{
         formContext.setValue('avalanches', []);
       }
 
-      analytics.capture('submit_obs_button_pressed', {presentedFrom: getPresentedFromForAnalytics(navigation)});
+      analytics.capture('submit_obs_button_pressed', {center: center_id, presented_from: getPresentedFromForAnalytics(navigation)});
       // Force validation errors to show up on fields that haven't been visited yet
       await formContext.trigger();
       // Then try to submit the form
       void formContext.handleSubmit(onSubmitHandler, onSubmitErrorHandler)();
     })();
-  }, [formContext, analytics, navigation, onSubmitHandler, onSubmitErrorHandler]);
+  }, [formContext, analytics, navigation, center_id, onSubmitHandler, onSubmitErrorHandler]);
 
   const onCloseHandler = useCallback(() => {
     formContext.reset();

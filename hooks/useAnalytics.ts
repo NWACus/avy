@@ -31,29 +31,35 @@ export const getPresentedFromForAnalytics = (navigation: NavigationWithState): s
   return state.routes[state.index - 1]?.name ?? null;
 };
 
+type EventProperties = NonNullable<Parameters<PostHog['capture']>[1]>;
+type EventOptions = Parameters<PostHog['capture']>[2];
+
+export type CenteredEventProperties = EventProperties & {center: AvalancheCenterID};
+export type CenterlessEventProperties = EventProperties & {center?: never};
+
 // A thin wrapper around the PostHog client. Several PostHog v4 methods return a Promise; this wraps the
 // fire-and-forget calls (screen, register) so rejections are logged instead of silently swallowed.
 // `reloadFeatureFlags` returns its promise so callers that want the resolved flags can await it.
 export interface Analytics {
-  screen(...args: Parameters<PostHog['screen']>): void;
-  capture(...args: Parameters<PostHog['capture']>): void;
+  screen(name: string, properties: CenteredEventProperties, options?: EventOptions): void;
+  capture(event: string, properties: CenteredEventProperties, options?: EventOptions): void;
   captureCenterSwitch(switchedFrom: AvalancheCenterID, switchedTo: AvalancheCenterID, origin: CenterSwitchOrigin): void;
-  identify(...args: Parameters<PostHog['identify']>): void;
-  register(...args: Parameters<PostHog['register']>): void;
+  identify(distinctId: string, properties?: CenterlessEventProperties, options?: EventOptions): void;
+  register(properties: CenterlessEventProperties): void;
   reloadFeatureFlags(...args: Parameters<PostHog['reloadFeatureFlagsAsync']>): ReturnType<PostHog['reloadFeatureFlagsAsync']> | undefined;
 }
 
 export const createAnalytics = (postHog: PostHog | undefined, logger: Logger): Analytics => ({
-  screen: (...args) => fireAndForget(postHog?.screen(...args), `failed to capture ${args[0]} screen view`, logger),
-  register: (...args) => fireAndForget(postHog?.register(...args), 'failed to register analytics super properties', logger),
-  capture: (...args) => {
-    postHog?.capture(...args);
+  screen: (name, properties, options) => fireAndForget(postHog?.screen(name, properties, options), `failed to capture ${name} screen view`, logger),
+  register: properties => fireAndForget(postHog?.register(properties), 'failed to register analytics super properties', logger),
+  capture: (event, properties, options) => {
+    postHog?.capture(event, properties, options);
   },
   captureCenterSwitch: (switchedFrom, switchedTo, origin) => {
-    postHog?.capture('center_switched', {switchedFrom: switchedFrom, switchedTo: switchedTo, eventOrigin: origin});
+    postHog?.capture('center_switched', {center: switchedFrom, switched_from: switchedFrom, switched_to: switchedTo, event_origin: origin});
   },
-  identify: (...args) => {
-    postHog?.identify(...args);
+  identify: (distinctId, properties, options) => {
+    postHog?.identify(distinctId, properties, options);
   },
   reloadFeatureFlags: (...args) => postHog?.reloadFeatureFlagsAsync(...args),
 });
