@@ -20,7 +20,7 @@ import {useKeyboardBehavior} from 'hooks/useKeyboardBehavior';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, View as RNView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, MapLayerFeature, ObservationFragment, ObservationZonesFeature, PartnerType} from 'types/nationalAvalancheCenter';
 import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
@@ -338,118 +338,120 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   return (
     <FormProvider {...formContext}>
       <SelectModalProvider>
-        <SafeAreaView style={{flex: 1}} edges={['top', 'bottom']}>
-          <KeyboardAvoidingView behavior={keyboardBehavior} style={{flex: 1, height: '100%'}}>
-            <ScrollView style={{flex: 1, backgroundColor: 'white'}} ref={scrollViewRef}>
-              <VStack space={12} pt={4}>
-                <HStack justifyContent={'space-between'} alignItems={'center'} px={16}>
-                  <TouchableOpacity onPress={onCloseHandler}>
-                    <Ionicons name="close-outline" size={28} color="black" />
-                  </TouchableOpacity>
-                  <Title3Semibold>Filters</Title3Semibold>
-                  <TouchableOpacity onPress={onResetHandler}>
-                    <BodyBlack color={colorLookup('blue2')}>Reset</BodyBlack>
-                  </TouchableOpacity>
-                </HStack>
-                <VStack space={formFieldSpacing} pt={formFieldSpacing} backgroundColor={colorLookup('primary.background')}>
-                  <SectionHeader title="Date" />
-                  <VStack space={8} px={16} bg="white">
-                    <View bg="white">
-                      <BodySmBlack>From</BodySmBlack>
-                    </View>
-                    <View bg="white">
-                      <DateField name="dates.from" maximumDate={minMaxDates.max} />
-                    </View>
-                    <View bg="white">
-                      <BodySmBlack>To</BodySmBlack>
-                    </View>
-                    <View bg="white" pb={formFieldSpacing}>
-                      <DateField name="dates.to" maximumDate={minMaxDates.max} />
-                    </View>
+        <SafeAreaProvider>
+          <SafeAreaView style={{flex: 1}} edges={['top', 'bottom']}>
+            <KeyboardAvoidingView behavior={keyboardBehavior} style={{flex: 1, height: '100%'}}>
+              <ScrollView style={{flex: 1, backgroundColor: 'white'}} ref={scrollViewRef}>
+                <VStack space={12} pt={4}>
+                  <HStack justifyContent={'space-between'} alignItems={'center'} px={16}>
+                    <TouchableOpacity onPress={onCloseHandler}>
+                      <Ionicons name="close-outline" size={28} color="black" />
+                    </TouchableOpacity>
+                    <Title3Semibold>Filters</Title3Semibold>
+                    <TouchableOpacity onPress={onResetHandler}>
+                      <BodyBlack color={colorLookup('blue2')}>Reset</BodyBlack>
+                    </TouchableOpacity>
+                  </HStack>
+                  <VStack space={formFieldSpacing} pt={formFieldSpacing} backgroundColor={colorLookup('primary.background')}>
+                    <SectionHeader title="Date" />
+                    <VStack space={8} px={16} bg="white">
+                      <View bg="white">
+                        <BodySmBlack>From</BodySmBlack>
+                      </View>
+                      <View bg="white">
+                        <DateField name="dates.from" maximumDate={minMaxDates.max} />
+                      </View>
+                      <View bg="white">
+                        <BodySmBlack>To</BodySmBlack>
+                      </View>
+                      <View bg="white" pb={formFieldSpacing}>
+                        <DateField name="dates.to" maximumDate={minMaxDates.max} />
+                      </View>
+                    </VStack>
+                    {mapLayerFeatures && (
+                      <>
+                        <SectionHeader title="Zone" />
+                        <CheckboxSelectField
+                          name="zones"
+                          items={
+                            initialFilterConfig.zones.length > 0
+                              ? initialFilterConfig.zones.map(z => ({label: z, value: z}))
+                              : mapLayerFeatures.map(feature => ({label: feature.properties.name, value: feature.properties.name}))
+                          }
+                          disabled={initialFilterConfig.zones.length > 0}
+                          px={16}
+                        />
+                      </>
+                    )}
+                    {alternateObservationZoneFeatures && alternateObservationZoneFeatures.length > 0 && (
+                      <>
+                        <SectionHeader title="Other Regions" />
+                        <CheckboxSelectField
+                          name="otherRegions"
+                          items={
+                            initialFilterConfig.otherRegions.length > 0
+                              ? initialFilterConfig.otherRegions.map(z => ({label: z, value: z}))
+                              : alternateObservationZoneFeatures.map(feature => ({label: feature.properties.name, value: feature.properties.name}))
+                          }
+                          disabled={initialFilterConfig.zones.length > 0 || initialFilterConfig.otherRegions.length > 0}
+                          px={16}
+                        />
+                      </>
+                    )}
+                    <SectionHeader title="Observer Type" />
+                    <CheckboxSelectField
+                      name="observerTypes"
+                      items={[
+                        {value: PartnerType.Forecaster, label: 'Forecaster'},
+                        {value: PartnerType.Intern, label: 'Intern'},
+                        {value: PartnerType.Professional, label: 'Professional'},
+                        {value: PartnerType.Observer, label: 'Observer'},
+                        {value: PartnerType.Educator, label: 'Educator'},
+                        {value: PartnerType.Volunteer, label: 'Volunteer'},
+                        {value: PartnerType.Public, label: 'Public'},
+                        {value: PartnerType.Other, label: 'Other'},
+                      ]}
+                      px={16}
+                    />
+                    <SectionHeader title="Avalanches" />
+                    <CheckboxSelectField
+                      name="avalanches"
+                      items={[
+                        {value: 'observed', label: 'Observed'},
+                        {value: 'triggered', label: 'Triggered'},
+                        {value: 'caught', label: 'Caught'},
+                      ]}
+                      px={16}
+                    />
+                    <SectionHeader title="Snowpack Cracking" />
+                    <SwitchField
+                      name="cracking"
+                      items={[
+                        {label: 'No', value: false},
+                        {label: 'Yes', value: true},
+                      ]}
+                      pb={formFieldSpacing}
+                      px={16}
+                    />
+                    <SectionHeader title="Snowpack Collapsing" />
+                    <SwitchField
+                      name="collapsing"
+                      items={[
+                        {label: 'No', value: false},
+                        {label: 'Yes', value: true},
+                      ]}
+                      pb={formFieldSpacing}
+                      px={16}
+                    />
                   </VStack>
-                  {mapLayerFeatures && (
-                    <>
-                      <SectionHeader title="Zone" />
-                      <CheckboxSelectField
-                        name="zones"
-                        items={
-                          initialFilterConfig.zones.length > 0
-                            ? initialFilterConfig.zones.map(z => ({label: z, value: z}))
-                            : mapLayerFeatures.map(feature => ({label: feature.properties.name, value: feature.properties.name}))
-                        }
-                        disabled={initialFilterConfig.zones.length > 0}
-                        px={16}
-                      />
-                    </>
-                  )}
-                  {alternateObservationZoneFeatures && alternateObservationZoneFeatures.length > 0 && (
-                    <>
-                      <SectionHeader title="Other Regions" />
-                      <CheckboxSelectField
-                        name="otherRegions"
-                        items={
-                          initialFilterConfig.otherRegions.length > 0
-                            ? initialFilterConfig.otherRegions.map(z => ({label: z, value: z}))
-                            : alternateObservationZoneFeatures.map(feature => ({label: feature.properties.name, value: feature.properties.name}))
-                        }
-                        disabled={initialFilterConfig.zones.length > 0 || initialFilterConfig.otherRegions.length > 0}
-                        px={16}
-                      />
-                    </>
-                  )}
-                  <SectionHeader title="Observer Type" />
-                  <CheckboxSelectField
-                    name="observerTypes"
-                    items={[
-                      {value: PartnerType.Forecaster, label: 'Forecaster'},
-                      {value: PartnerType.Intern, label: 'Intern'},
-                      {value: PartnerType.Professional, label: 'Professional'},
-                      {value: PartnerType.Observer, label: 'Observer'},
-                      {value: PartnerType.Educator, label: 'Educator'},
-                      {value: PartnerType.Volunteer, label: 'Volunteer'},
-                      {value: PartnerType.Public, label: 'Public'},
-                      {value: PartnerType.Other, label: 'Other'},
-                    ]}
-                    px={16}
-                  />
-                  <SectionHeader title="Avalanches" />
-                  <CheckboxSelectField
-                    name="avalanches"
-                    items={[
-                      {value: 'observed', label: 'Observed'},
-                      {value: 'triggered', label: 'Triggered'},
-                      {value: 'caught', label: 'Caught'},
-                    ]}
-                    px={16}
-                  />
-                  <SectionHeader title="Snowpack Cracking" />
-                  <SwitchField
-                    name="cracking"
-                    items={[
-                      {label: 'No', value: false},
-                      {label: 'Yes', value: true},
-                    ]}
-                    pb={formFieldSpacing}
-                    px={16}
-                  />
-                  <SectionHeader title="Snowpack Collapsing" />
-                  <SwitchField
-                    name="collapsing"
-                    items={[
-                      {label: 'No', value: false},
-                      {label: 'Yes', value: true},
-                    ]}
-                    pb={formFieldSpacing}
-                    px={16}
-                  />
                 </VStack>
-              </VStack>
-            </ScrollView>
-            <Button mx={16} mt={16} buttonStyle="primary" onPress={onApplyHandler}>
-              <BodySemibold>Apply Filters</BodySemibold>
-            </Button>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
+              </ScrollView>
+              <Button mx={16} mt={16} buttonStyle="primary" onPress={onApplyHandler}>
+                <BodySemibold>Apply Filters</BodySemibold>
+              </Button>
+            </KeyboardAvoidingView>
+          </SafeAreaView>
+        </SafeAreaProvider>
       </SelectModalProvider>
     </FormProvider>
   );
