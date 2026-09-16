@@ -79,7 +79,7 @@ export const ObservationForm: React.FC<{
 
   const recordAnalytics = useCallback(() => {
     if (center_id) {
-      analytics.screen('observationForm', {
+      analytics.screen('observation_form', {
         center: center_id,
       });
     }

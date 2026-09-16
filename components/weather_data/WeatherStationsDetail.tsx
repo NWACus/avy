@@ -282,7 +282,7 @@ export const WeatherStationsDetail: React.FC<Props> = ({center_id, name, station
 
   const recordAnalytics = useCallback(() => {
     if (center_id && name) {
-      analytics.screen('weatherStations', {
+      analytics.screen('weather_stations', {
         center: center_id,
         name: name,
       });

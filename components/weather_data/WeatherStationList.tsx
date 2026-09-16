@@ -36,7 +36,7 @@ export const WeatherStationList: React.FunctionComponent<{
 
   const recordAnalytics = useCallback(() => {
     if (center_id) {
-      analytics.screen('weatherStations', {
+      analytics.screen('weather_stations', {
         center: center_id,
       });
     }

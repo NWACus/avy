@@ -170,8 +170,9 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
   const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    analytics.screen('weatherStationsFilter', {center: center_id});
+    analytics.screen('weather_stations_filter', {center: center_id});
   }, [analytics, center_id]);
+
   useFocusEffect(recordAnalytics);
 
   const closeWithoutSaving = useCallback(() => {

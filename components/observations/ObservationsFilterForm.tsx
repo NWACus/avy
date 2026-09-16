@@ -263,8 +263,9 @@ export const ObservationsFilterForm: React.FunctionComponent<ObservationsFilterF
   const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    analytics.screen('observationsFilter', {center: center_id});
+    analytics.screen('observations_filter', {center: center_id});
   }, [analytics, center_id]);
+
   useFocusEffect(recordAnalytics);
 
   const onResetHandler = useCallback(() => formContext.reset(initialFilterConfig), [formContext, initialFilterConfig]);

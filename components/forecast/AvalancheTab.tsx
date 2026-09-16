@@ -132,7 +132,7 @@ export const AvalancheTab: React.FunctionComponent<{
 
   const recordAnalytics = useCallback(() => {
     if (center_id && zoneName) {
-      analytics.screen('avalancheForecastTab', {
+      analytics.screen('avalanche_forecast_tab', {
         center: center_id,
         zone: zoneName,
       });
