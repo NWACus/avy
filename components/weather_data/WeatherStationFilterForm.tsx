@@ -18,7 +18,7 @@ import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Platform, View as RNView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
-import {MapLayerFeature, WeatherStation, WeatherStationSource, WeatherStationTimeseriesEntry} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MapLayerFeature, WeatherStation, WeatherStationSource, WeatherStationTimeseriesEntry} from 'types/nationalAvalancheCenter';
 import {z} from 'zod';
 
 const dateValueSchema = z.enum(['past_hour', 'past_3_hours', 'past_12_hours', 'past_day']);
@@ -138,6 +138,7 @@ export const filtersForConfig = (
 };
 
 interface WeatherStationFilterFormProps {
+  center_id: AvalancheCenterID;
   mapLayerFeatures: MapLayerFeature[];
   initialFilterConfig: WeatherStationFilterConfig;
   currentFilterConfig: WeatherStationFilterConfig;
@@ -148,6 +149,7 @@ interface WeatherStationFilterFormProps {
 const formFieldSpacing = 16;
 
 export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFilterFormProps> = ({
+  center_id,
   mapLayerFeatures,
   initialFilterConfig,
   currentFilterConfig,
@@ -168,8 +170,9 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
   const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    analytics.screen('weatherStationsFilter');
-  }, [analytics]);
+    analytics.screen('weather_stations_filter', {center: center_id});
+  }, [analytics, center_id]);
+
   useFocusEffect(recordAnalytics);
 
   const closeWithoutSaving = useCallback(() => {

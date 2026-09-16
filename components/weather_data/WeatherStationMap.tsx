@@ -89,7 +89,7 @@ export const WeatherStationMap: React.FunctionComponent<{
 
   const recordAnalytics = useCallback(() => {
     if (center_id) {
-      analytics.screen('weatherStationsMap', {
+      analytics.screen('weather_stations_map', {
         center: center_id,
       });
     }

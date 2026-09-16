@@ -72,7 +72,7 @@ export const AvalancheObservationForm: React.FC<{
 
   const recordAnalytics = useCallback(() => {
     if (center_id) {
-      analytics.screen('avalancheObservationForm', {
+      analytics.screen('avalanche_observation_form', {
         center: center_id,
       });
     }

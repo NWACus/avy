@@ -22,7 +22,7 @@ import {MainStackParamList} from 'routes';
 
 export const AboutScreen = (_: NativeStackScreenProps<MainStackParamList, 'about'>) => {
   const {
-    preferences: {mixpanelUserId},
+    preferences: {mixpanelUserId, center},
   } = usePreferences();
   const [updateGroupId] = useState(getUpdateGroupId());
   const openUrl = useCallback(({data}: {data: string}) => void WebBrowser.openBrowserAsync(data), []);
@@ -37,8 +37,8 @@ export const AboutScreen = (_: NativeStackScreenProps<MainStackParamList, 'about
   const insets = useSafeAreaInsets();
 
   const recordAnalytics = useCallback(() => {
-    analytics.screen('about');
-  }, [analytics]);
+    analytics.screen('about', {center: center});
+  }, [analytics, center]);
   useFocusEffect(recordAnalytics);
 
   return (

@@ -58,7 +58,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const analytics = useAnalytics();
   const recordAnalytics = useCallback(() => {
     if (center_id) {
-      analytics.screen('avalancheForecastMap', {
+      analytics.screen('avalanche_forecast_map', {
         center: center_id,
       });
     }

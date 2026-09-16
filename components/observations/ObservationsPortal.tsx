@@ -26,7 +26,7 @@ export const ObservationsPortal: React.FC<{
   const analytics = useAnalytics();
 
   const recordAnalytics = useCallback(() => {
-    analytics.screen('observationsPortal', {
+    analytics.screen('observations_portal', {
       center: center_id,
     });
   }, [analytics, center_id]);

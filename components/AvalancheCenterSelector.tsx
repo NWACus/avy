@@ -34,8 +34,8 @@ export const AvalancheCenterSelector: React.FunctionComponent<{
   );
 
   const recordAnalytics = useCallback(() => {
-    analytics.screen('centerSelector');
-  }, [analytics]);
+    analytics.screen('center_selector', {center: currentCenterId});
+  }, [analytics, currentCenterId]);
   useFocusEffect(recordAnalytics);
 
   const insets = useSafeAreaInsets();

@@ -6,9 +6,10 @@ import {useAnalytics} from 'hooks/useAnalytics';
 import React, {useEffect, useRef} from 'react';
 import {Platform} from 'react-native';
 import {WebViewSource} from 'react-native-webview/lib/WebViewTypes';
-import {VideoMediaItem} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, VideoMediaItem} from 'types/nationalAvalancheCenter';
 
 interface WebVideoViewProps {
+  center_id: AvalancheCenterID;
   item: VideoMediaItem;
   isVisible: boolean;
 }
@@ -42,10 +43,20 @@ const getBundleID = () => {
   }
 };
 
+// The only supported url format is an object that contains 'videoId'. If it's a string or contains 'external_link', we can't show it
+const potentialUnsupportedVideoUrl = (url: VideoMediaItem['url']): string | null => {
+  if (typeof url === 'string') {
+    return url;
+  } else if ('external_link' in url) {
+    return url.external_link;
+  }
+  return null;
+};
+
 const youtubeLink = (videoId: string) => `https://youtube.com/embed/${videoId}`;
 const refererValue = (bundleID: string) => `https://${bundleID}`;
 
-export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, isVisible}: WebVideoViewProps) => {
+export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({center_id, item, isVisible}: WebVideoViewProps) => {
   const handleRef = useRef<WebMediaViewHandle>(null);
   const analytics = useAnalytics();
 
@@ -56,14 +67,11 @@ export const WebVideoView: React.FunctionComponent<WebVideoViewProps> = ({item, 
   }, [isVisible]);
 
   useEffect(() => {
-    let properties: {[key: string]: string} = {};
-    if (typeof item.url === 'string') {
-      properties = {url: item.url};
-    } else if ('external_link' in item.url) {
-      properties = {url: item.url.external_link};
+    const unsupportedUrl = potentialUnsupportedVideoUrl(item.url);
+    if (unsupportedUrl !== null) {
+      analytics.capture('unsupported_video_url_received', {center: center_id, url: unsupportedUrl});
     }
-    analytics.capture('unsupported_video_url_received', properties);
-  }, [analytics, item.url]);
+  }, [analytics, center_id, item.url]);
 
   let sourceData: WebViewSource;
   try {

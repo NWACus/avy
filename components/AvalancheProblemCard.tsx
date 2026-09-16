@@ -11,9 +11,10 @@ import {AllCapsSm, Caption1Semibold, allCapsSmLineHeight} from 'components/text'
 import {HTML} from 'components/text/HTML';
 import {LayoutChangeEvent} from 'react-native';
 import {colorLookup} from 'theme';
-import {AvalancheProblem, ElevationBandNames} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, AvalancheProblem, ElevationBandNames} from 'types/nationalAvalancheCenter';
 
 export interface AvalancheProblemCardProps {
+  center_id: AvalancheCenterID;
   problem: AvalancheProblem;
   names: ElevationBandNames;
 }
@@ -31,7 +32,7 @@ const AspectCard: React.FC<AspectCardProps> = ({caption, ...props}) => (
   </Card>
 );
 
-export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardProps> = ({problem, names}: AvalancheProblemCardProps) => {
+export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardProps> = ({center_id, problem, names}: AvalancheProblemCardProps) => {
   const [cardWidth, setCardWidth] = useState<number>(0);
   const onLayout = useCallback((event: LayoutChangeEvent) => setCardWidth(event.nativeEvent.layout.width), [setCardWidth]);
   return (
@@ -76,7 +77,7 @@ export const AvalancheProblemCard: React.FunctionComponent<AvalancheProblemCardP
         />
       </HStack>
       {problem.discussion && <HTML source={{html: problem.discussion}} />}
-      {problem.media && cardWidth > 0 && <MediaPreview mediaItem={problem.media} thumbnailAspectRatio={1.3} thumbnailHeight={cardWidth / 1.3} />}
+      {problem.media && cardWidth > 0 && <MediaPreview center_id={center_id} mediaItem={problem.media} thumbnailAspectRatio={1.3} thumbnailHeight={cardWidth / 1.3} />}
     </VStack>
   );
 };

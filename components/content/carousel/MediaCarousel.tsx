@@ -2,7 +2,7 @@ import {MediaViewerModal} from 'components/content/carousel/MediaViewerModal/Med
 import {ThumbnailList} from 'components/content/carousel/ThumbnailList';
 import {View, ViewProps} from 'components/core';
 import React, {PropsWithChildren, useCallback, useState} from 'react';
-import {ImageMediaItem, MediaItem, MediaType} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, ImageMediaItem, MediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
 export const images = (media: MediaItem[] | null | undefined): ImageMediaItem[] => {
   const filtered: ImageMediaItem[] = [];
@@ -18,12 +18,13 @@ export const images = (media: MediaItem[] | null | undefined): ImageMediaItem[] 
 };
 
 export interface MediaCarouselProps extends ViewProps {
+  center_id: AvalancheCenterID;
   thumbnailHeight: number;
   thumbnailAspectRatio?: number;
   mediaItems: MediaItem[];
 }
 
-export const MediaCarousel: React.FunctionComponent<PropsWithChildren<MediaCarouselProps>> = ({thumbnailHeight, thumbnailAspectRatio = 1.3, mediaItems, ...props}) => {
+export const MediaCarousel: React.FunctionComponent<PropsWithChildren<MediaCarouselProps>> = ({center_id, thumbnailHeight, thumbnailAspectRatio = 1.3, mediaItems, ...props}) => {
   const thumbnailWidth = thumbnailAspectRatio * thumbnailHeight;
 
   const [modalIndex, setModalIndex] = useState<number | null>(null);
@@ -40,7 +41,7 @@ export const MediaCarousel: React.FunctionComponent<PropsWithChildren<MediaCarou
   return (
     <View {...props}>
       <ThumbnailList imageWidth={thumbnailWidth} imageHeight={thumbnailHeight} mediaItems={mediaItems} onPress={onPress} imageStyle={{borderRadius: 4}} />
-      <MediaViewerModal visible={modalIndex !== null} startIndex={modalIndex ?? 0} mediaItems={mediaItems} onClose={onClose} />
+      <MediaViewerModal visible={modalIndex !== null} startIndex={modalIndex ?? 0} mediaItems={mediaItems} onClose={onClose} center_id={center_id} />
     </View>
   );
 };

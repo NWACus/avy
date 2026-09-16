@@ -27,7 +27,7 @@ export const WeatherStationPage: React.FC<Props> = ({center_id, requestedTime, t
 
   const recordAnalytics = useCallback(() => {
     if (center_id) {
-      analytics.screen('weatherTab', {
+      analytics.screen('weather_tab', {
         center: center_id,
       });
     }

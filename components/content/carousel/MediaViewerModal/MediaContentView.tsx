@@ -7,15 +7,16 @@ import {useAnalytics} from 'hooks/useAnalytics';
 import React, {useEffect} from 'react';
 import {useWindowDimensions} from 'react-native';
 import {NativeGesture} from 'react-native-gesture-handler';
-import {MediaItem, MediaType} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
 interface MediaContentProps {
+  center_id: AvalancheCenterID;
   item: MediaItem;
   isVisible: boolean;
   nativeGesture: NativeGesture;
 }
 
-export const MediaContentView: React.FunctionComponent<MediaContentProps> = ({item, isVisible, nativeGesture}) => {
+export const MediaContentView: React.FunctionComponent<MediaContentProps> = ({center_id, item, isVisible, nativeGesture}) => {
   const analytics = useAnalytics();
   const dimensions = useWindowDimensions();
 
@@ -25,9 +26,9 @@ export const MediaContentView: React.FunctionComponent<MediaContentProps> = ({it
   if (item.type === MediaType.Image) {
     content = <ImageView item={item} nativeGesture={nativeGesture} fullScreenWidth={dimensions.width} />;
   } else if (item.type === MediaType.Video) {
-    content = <WebVideoView item={item} isVisible={isVisible} />;
+    content = <WebVideoView item={item} isVisible={isVisible} center_id={center_id} />;
   } else if (item.type === MediaType.PDF) {
-    content = <PDFView item={item} />;
+    content = <PDFView item={item} center_id={center_id} />;
   } else {
     isMediaSupported = false;
     content = <BodySm>{'Unsupported Media Type'}</BodySm>;
@@ -35,9 +36,9 @@ export const MediaContentView: React.FunctionComponent<MediaContentProps> = ({it
 
   useEffect(() => {
     if (!isMediaSupported) {
-      analytics.capture('unsupported_media_found', {mediaType: item.type});
+      analytics.capture('unsupported_media_found', {center: center_id, media_type: item.type});
     }
-  }, [analytics, isMediaSupported, item]);
+  }, [analytics, center_id, isMediaSupported, item]);
 
   return <View style={{width: dimensions.width, flex: 1}}>{content}</View>;
 };
