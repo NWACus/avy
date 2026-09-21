@@ -11,7 +11,7 @@ import {useOpenAvalancheCenterWebsite} from 'hooks/useOpenAvalancheCenterWebsite
 import {colorLookup} from 'theme';
 
 const TITLE = 'Two forecasts cover Crested Butte';
-const BODY = "CBAC issues the local forecast shown in this app. CAIC's statewide forecast covers this area too. Both are official and we encourage you to read both.";
+const BODY = "CBAC issues the local forecast shown in this app. CAIC's forecasts covers this area too. Both are official and we encourage you to read both.";
 const FOOTER = "Opens in your browser. This app shows CBAC's forecast only.";
 
 const LOGO_SIZE = 44;

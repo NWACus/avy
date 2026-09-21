@@ -37,7 +37,7 @@ export const useMapLayerAvalancheForecasts = (
             cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
           };
         }) ?? [],
-    [mapLayer, center_id, nationalAvalancheCenterHost, requestedTime, expiryTimeZone, expiryTimeHours, metadata, queryClient, logger],
+    [mapLayer, center_id, nationalAvalancheCenterHost, apiVersion, requestedTime, expiryTimeZone, expiryTimeHours, metadata, queryClient, logger],
   );
 
   return useQueries<UseQueryOptions<ForecastResult, AxiosError | ZodError>[]>({queries: queries});
