@@ -21,6 +21,7 @@ import {format} from 'date-fns';
 import {logger} from 'logger';
 import {filterLoggedData} from 'logging/filterLoggedData';
 import {AvalancheCenterID, MediaType, MediaUsage, ObservationFragment, PartnerType} from 'types/nationalAvalancheCenter';
+import {NACApiVersion} from 'utils/nationalAvalancheCenterApi';
 
 type StateSubscriber = (state: UploaderState) => void;
 export interface ObservationFragmentWithStatus {
@@ -159,7 +160,17 @@ export class ObservationUploader {
     this.tryRunTaskQueue();
   }
 
-  async submitObservation({apiPrefix, center_id, observationFormData}: {apiPrefix: string; center_id: AvalancheCenterID; observationFormData: ObservationFormData}) {
+  async submitObservation({
+    apiPrefix,
+    apiVersion,
+    center_id,
+    observationFormData,
+  }: {
+    apiPrefix: string;
+    apiVersion: NACApiVersion;
+    center_id: AvalancheCenterID;
+    observationFormData: ObservationFormData;
+  }) {
     this.checkInitialized();
     try {
       const {photoUsage, name} = observationFormData;
@@ -169,12 +180,12 @@ export class ObservationUploader {
       const observationTaskId = uuid.v4();
 
       observationFormData.images?.forEach(({image, caption}) => {
-        this.addImageTask(tasks, image, caption, apiPrefix, center_id, observationFormData.location_name, observationTaskId, photoUsage, name);
+        this.addImageTask(tasks, image, caption, apiPrefix, apiVersion, center_id, observationFormData.location_name, observationTaskId, photoUsage, name);
       });
 
       observationFormData.avalanches.forEach((avalanche, index) => {
         avalanche.images?.forEach(({image, caption}) => {
-          this.addImageTask(tasks, image, caption, apiPrefix, center_id, avalanche.location, observationTaskId, photoUsage, name, index);
+          this.addImageTask(tasks, image, caption, apiPrefix, apiVersion, center_id, avalanche.location, observationTaskId, photoUsage, name, index);
         });
       });
 
@@ -217,6 +228,7 @@ export class ObservationUploader {
     image: ImagePickerAssetSchema,
     caption: string | undefined,
     apiPrefix: string,
+    apiVersion: NACApiVersion,
     center_id: AvalancheCenterID,
     locationName: string,
     observationTaskId: string,
@@ -233,6 +245,7 @@ export class ObservationUploader {
       status: 'pending',
       data: {
         apiPrefix: apiPrefix,
+        apiVersion: apiVersion,
         image: {
           uri: image.uri,
           width: image.width,

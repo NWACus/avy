@@ -9,14 +9,17 @@ import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
+import {useNACApiVersion} from 'hooks/useNACApiVersion';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, MapLayer, mapLayerSchema} from 'types/nationalAvalancheCenter';
+import {NACApiVersion, nacUrl} from 'utils/nationalAvalancheCenterApi';
 import {ZodError} from 'zod';
 
 export const useMapLayer = (center_id: AvalancheCenterID | undefined): UseQueryResult<MapLayer, AxiosError | ZodError> => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = center_id && queryKey(nationalAvalancheCenterHost, center_id);
+  const apiVersion = useNACApiVersion();
+  const key = center_id && queryKey(nationalAvalancheCenterHost, apiVersion, center_id);
   const [thisLogger] = useState(logger.child({query: key}));
   useEffect(() => {
     thisLogger.debug('initiating query');
@@ -24,18 +27,18 @@ export const useMapLayer = (center_id: AvalancheCenterID | undefined): UseQueryR
 
   return useQuery<MapLayer, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async (): Promise<MapLayer> => (center_id ? fetchMapLayer(nationalAvalancheCenterHost, center_id, thisLogger) : new Promise(() => null)),
+    queryFn: async (): Promise<MapLayer> => (center_id ? fetchMapLayer(nationalAvalancheCenterHost, apiVersion, center_id, thisLogger) : new Promise(() => null)),
     enabled: !!center_id,
     cacheTime: Infinity, // hold on to this cached data forever
   });
 };
 
-function queryKey(nationalAvalancheCenterHost: string, center_id: string) {
-  return ['map-layer', {host: nationalAvalancheCenterHost, center: center_id}];
+function queryKey(nationalAvalancheCenterHost: string, apiVersion: NACApiVersion, center_id: string) {
+  return ['map-layer', {host: nationalAvalancheCenterHost, apiVersion: apiVersion, center: center_id}];
 }
 
-export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger) => {
-  const key = queryKey(nationalAvalancheCenterHost, center_id);
+export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, apiVersion: NACApiVersion, center_id: AvalancheCenterID, logger: Logger) => {
+  const key = queryKey(nationalAvalancheCenterHost, apiVersion, center_id);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
@@ -44,7 +47,7 @@ export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalanc
     queryFn: async (): Promise<MapLayer> => {
       const start = new Date();
       thisLogger.trace(`prefetching`);
-      const result = await fetchMapLayer(nationalAvalancheCenterHost, center_id, thisLogger);
+      const result = await fetchMapLayer(nationalAvalancheCenterHost, apiVersion, center_id, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
@@ -53,8 +56,8 @@ export const prefetchMapLayer = async (queryClient: QueryClient, nationalAvalanc
   });
 };
 
-const fetchMapLayer = async (nationalAvalancheCenterHost: string, center_id: AvalancheCenterID, logger: Logger): Promise<MapLayer> => {
-  const url = `${nationalAvalancheCenterHost}/v2/public/products/map-layer/${center_id}`;
+const fetchMapLayer = async (nationalAvalancheCenterHost: string, apiVersion: NACApiVersion, center_id: AvalancheCenterID, logger: Logger): Promise<MapLayer> => {
+  const url = nacUrl(nationalAvalancheCenterHost, apiVersion, `products/map-layer/${center_id}`);
   const what = 'avalanche avalanche center map layer';
   const thisLogger = logger.child({url: url, what: what});
   const data = await safeFetch(() => axios.get<AxiosResponse<unknown>>(url), thisLogger, what);

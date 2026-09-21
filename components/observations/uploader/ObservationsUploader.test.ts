@@ -10,6 +10,7 @@ import {TaskQueueEntry} from 'components/observations/uploader/Task';
 import {uploadImage as uploadImageOriginal} from 'components/observations/uploader/uploadImage';
 import {logger} from 'logger';
 import {AvalancheCenterID, MediaItem, MediaType, MediaUsage} from 'types/nationalAvalancheCenter';
+import {NACApiVersion} from 'utils/nationalAvalancheCenterApi';
 
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
   __esModule: true,
@@ -473,8 +474,9 @@ const successfulUploadImageResponse: MediaItem = {
   caption: null,
 };
 
-const fakeObservation: {apiPrefix: string; center_id: AvalancheCenterID; observationFormData: ObservationFormData} = {
+const fakeObservation: {apiPrefix: string; apiVersion: NACApiVersion; center_id: AvalancheCenterID; observationFormData: ObservationFormData} = {
   apiPrefix: 'https://localhost:3000',
+  apiVersion: 'v3',
   center_id: 'NWAC',
   observationFormData: {
     activity: ['skiing_snowboarding'],
@@ -529,6 +531,7 @@ const imageUploadTask = (): TaskQueueEntry => ({
   status: 'pending',
   data: {
     apiPrefix: 'https://localhost:3000',
+    apiVersion: 'v3',
     image: {
       uri: 'file:///test.jpg',
       width: 640,

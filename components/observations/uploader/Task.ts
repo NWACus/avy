@@ -16,6 +16,7 @@ const taskQueueEntrySchema = z.discriminatedUnion('type', [
     status: taskStatus.default('pending'),
     data: z.object({
       apiPrefix: z.string(),
+      apiVersion: z.enum(['v2', 'v3']).default('v3'),
       image: z.object({
         uri: z.string(),
         width: z.number(),

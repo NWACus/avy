@@ -53,6 +53,7 @@ import {Body, BodyBlack, Title3Black} from 'components/text';
 import * as Linking from 'expo-linking';
 import * as Updates from 'expo-updates';
 import {FeatureFlagsProvider} from 'FeatureFlags';
+import {useNACApiVersion} from 'hooks/useNACApiVersion';
 import {useToggle} from 'hooks/useToggle';
 import {filterLoggedData} from 'logging/filterLoggedData';
 import {PostHogProvider} from 'posthog-react-native';
@@ -293,10 +294,45 @@ const AppWithClientContext = () => {
     <ClientContext.Provider value={contextValue}>
       <PreferencesProvider>
         <MapPersistenceProvider>
-          <BaseApp staging={staging} setStaging={setStaging} />
+          <AppWithAnalytics staging={staging} setStaging={setStaging} />
         </MapPersistenceProvider>
       </PreferencesProvider>
     </ClientContext.Provider>
+  );
+};
+
+const AppWithAnalytics: React.FunctionComponent<{
+  staging: boolean;
+  setStaging: React.Dispatch<React.SetStateAction<boolean>>;
+}> = ({staging, setStaging}) => {
+  const {preferences, preferencesLoaded} = usePreferences();
+
+  if (!preferencesLoaded) {
+    return <SecondarySplashScreen />;
+  }
+
+  return (
+    <PostHogProvider
+      apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string}
+      options={{
+        captureAppLifecycleEvents: true,
+        bootstrap: {
+          distinctId: preferences.mixpanelUserId,
+          isIdentifiedId: true,
+          featureFlags: {
+            'down-for-maintenance': false,
+            'update-required': false,
+            'nac-v3-kill-switch': false,
+          },
+        },
+      }}
+      autocapture={{
+        captureScreens: false, // we need to translate screen parameters to human-readable info, which requires HTTP request data, so we can't use the built-in screen capture with route property mapping feature
+      }}>
+      <FeatureFlagsProvider>
+        <BaseApp staging={staging} setStaging={setStaging} />
+      </FeatureFlagsProvider>
+    </PostHogProvider>
   );
 };
 
@@ -311,6 +347,7 @@ const BaseApp: React.FunctionComponent<{
 
   const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, avalancheCanadaHost, requestedTime} =
     React.useContext<ClientProps>(ClientContext);
+  const apiVersion = useNACApiVersion();
   const queryClient = useQueryClient();
   useEffect(() => {
     void (async () => {
@@ -322,6 +359,7 @@ const BaseApp: React.FunctionComponent<{
             queryClient,
             center,
             nationalAvalancheCenterHost,
+            apiVersion,
             nationalAvalancheCenterWordpressHost,
             nwacHost,
             snowboundHost,
@@ -333,7 +371,7 @@ const BaseApp: React.FunctionComponent<{
         }
       }
     })();
-  }, [logger, queryClient, center, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, avalancheCanadaHost]);
+  }, [logger, queryClient, center, nationalAvalancheCenterHost, apiVersion, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, avalancheCanadaHost]);
 
   const navigationRef = useNavigationContainerRef();
 
@@ -483,39 +521,14 @@ const BaseApp: React.FunctionComponent<{
         <SafeAreaProvider>
           <HTMLRendererConfig>
             <NavigationContainer linking={linking} ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
-              <PostHogProvider
-                apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY as string}
-                options={{
-                  captureAppLifecycleEvents: true,
-                  bootstrap: {
-                    distinctId: preferences.mixpanelUserId,
-                    isIdentifiedId: true,
-                    featureFlags: {
-                      'down-for-maintenance': false,
-                      'update-required': false,
-                    },
-                  },
-                }}
-                autocapture={{
-                  captureScreens: false, // we need to translate screen parameters to human-readable info, which requires HTTP request data, so we can't use the built-in screen capture with route property mapping feature
-                }}>
-                <FeatureFlagsProvider>
-                  <KillSwitchMonitor>
-                    <SelectProvider>
-                      <StatusBar barStyle={'dark-content'} animated={false} backgroundColor={'white'} />
-                      <View style={{flex: 1}}>
-                        <DrawerNavigator
-                          requestedTime={requestedTime}
-                          centerId={center}
-                          isInNoCenterExperience={isInNoCenterExperience}
-                          staging={staging}
-                          setStaging={setStaging}
-                        />
-                      </View>
-                    </SelectProvider>
-                  </KillSwitchMonitor>
-                </FeatureFlagsProvider>
-              </PostHogProvider>
+              <KillSwitchMonitor>
+                <SelectProvider>
+                  <StatusBar barStyle={'dark-content'} animated={false} backgroundColor={'white'} />
+                  <View style={{flex: 1}}>
+                    <DrawerNavigator requestedTime={requestedTime} centerId={center} isInNoCenterExperience={isInNoCenterExperience} staging={staging} setStaging={setStaging} />
+                  </View>
+                </SelectProvider>
+              </KillSwitchMonitor>
             </NavigationContainer>
           </HTMLRendererConfig>
           <Toast config={toastConfig} bottomOffset={88} visibilityTime={2000} />

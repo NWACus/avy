@@ -6,16 +6,19 @@ import {add, areIntervalsOverlapping, isBefore} from 'date-fns';
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import AvalancheForecastFragments from 'hooks/useAvalancheForecastFragments';
+import {useNACApiVersion} from 'hooks/useNACApiVersion';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, ForecastSummaryFragment, ProductType} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {apiDateString} from 'utils/date';
+import {NACApiVersion} from 'utils/nationalAvalancheCenterApi';
 
 export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forecast_zone_id: number, date: Date): UseQueryResult<ForecastSummaryFragment, Error> => {
   const queryClient = useQueryClient();
   const {nationalAvalancheCenterHost} = useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = ['products', center_id, forecast_zone_id, apiDateString(date)];
+  const apiVersion = useNACApiVersion();
+  const key = ['products', apiVersion, center_id, forecast_zone_id, apiDateString(date)];
   const [thisLogger] = useState(logger.child({query: key}));
   useEffect(() => {
     thisLogger.debug('initiating query');
@@ -23,7 +26,8 @@ export const useAvalancheForecastFragment = (center_id: AvalancheCenterID, forec
 
   return useQuery<ForecastSummaryFragment, Error>({
     queryKey: key,
-    queryFn: async (): Promise<ForecastSummaryFragment> => fetchAvalancheForecastFragment(queryClient, nationalAvalancheCenterHost, center_id, forecast_zone_id, date, thisLogger),
+    queryFn: async (): Promise<ForecastSummaryFragment> =>
+      fetchAvalancheForecastFragment(queryClient, nationalAvalancheCenterHost, apiVersion, center_id, forecast_zone_id, date, thisLogger),
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
 };
@@ -37,12 +41,13 @@ export const isBetween = (start: Date, end: Date, currentDate: Date): boolean =>
 const fetchAvalancheForecastFragment = async (
   queryClient: QueryClient,
   nationalAvalancheCenterHost: string,
+  apiVersion: NACApiVersion,
   center_id: AvalancheCenterID,
   forecast_zone_id: number,
   date: Date,
   logger: Logger,
 ): Promise<ForecastSummaryFragment> => {
-  const fragments = await AvalancheForecastFragments.fetchQuery(queryClient, nationalAvalancheCenterHost, center_id, date, logger);
+  const fragments = await AvalancheForecastFragments.fetchQuery(queryClient, nationalAvalancheCenterHost, apiVersion, center_id, date, logger);
   const forecasts: ForecastSummaryFragment[] = [];
   for (const fragment of fragments) {
     if (fragment.product_type === ProductType.Forecast || fragment.product_type === ProductType.Summary) {

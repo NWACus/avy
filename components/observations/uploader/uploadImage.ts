@@ -4,6 +4,7 @@ import {format, parse} from 'date-fns';
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 
 import {AvalancheCenterID, MediaItem, MediaUsage} from 'types/nationalAvalancheCenter';
+import {NACApiVersion, nacUrl} from 'utils/nationalAvalancheCenterApi';
 
 interface PickedImage {
   uri: string;
@@ -13,6 +14,7 @@ interface PickedImage {
 }
 interface UploadImageOptions {
   apiPrefix: string;
+  apiVersion: NACApiVersion;
   center_id: AvalancheCenterID;
   image: PickedImage;
   name: string;
@@ -64,7 +66,7 @@ export const captureDateFromExif = (exif?: PickedImage['exif']): string | null =
   return null;
 };
 
-export const uploadImage = async (taskId: string, {apiPrefix, image, name, center_id, photoUsage, title, caption}: UploadImageOptions): Promise<MediaItem> => {
+export const uploadImage = async (taskId: string, {apiPrefix, apiVersion, image, name, center_id, photoUsage, title, caption}: UploadImageOptions): Promise<MediaItem> => {
   const {imageDataBase64, filename, mimeType} = await loadImageData(image);
   const payload = {
     file: `data:${mimeType};base64,${imageDataBase64}`,
@@ -81,7 +83,7 @@ export const uploadImage = async (taskId: string, {apiPrefix, image, name, cente
     // TODO would be nice to tag images that came from this app, but haven't figured that out yet
   };
 
-  const response = await axios.post<MediaItem>(`${apiPrefix}/v2/public/media`, payload, {
+  const response = await axios.post<MediaItem>(nacUrl(apiPrefix, apiVersion, 'media'), payload, {
     headers: {
       // Public API uses the Origin header to determine who's authorized to call it
       Origin: 'https://nwac.us',
