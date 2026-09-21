@@ -56,7 +56,7 @@ export default {
     <p><a href='https://avalanche.org/avalanche-encyclopedia/danger-scale/'><strong>Learn more</strong></a></p>`,
   cbacCoverageEdge: `
     <p>The dashed outline marks the edge of the Crested Butte Avalanche Center (CBAC) forecast area.</p>
-    <p>CBAC issues a local forecast for this area, and CAIC's statewide forecast covers it too. Both are official.</p>
+    <p>CBAC issues a local forecast for this area, and CAIC's forecasts covers it too. Both are official.</p>
     <p>The pills show CBAC's current rating for each zone. Tap inside the dashed outline to switch to CBAC's forecast.</p>`,
   weather: {
     precipitation: `
