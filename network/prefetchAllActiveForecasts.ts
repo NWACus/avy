@@ -30,11 +30,13 @@ import {
   WeatherStationSource,
 } from 'types/nationalAvalancheCenter';
 import {requestedTimeToUTCDate} from 'utils/date';
+import {NACApiVersion} from 'utils/nationalAvalancheCenterApi';
 
 export const prefetchAllActiveForecasts = async (
   queryClient: QueryClient,
   center_id: AvalancheCenterID,
   nationalAvalancheCenterHost: string,
+  apiVersion: NACApiVersion,
   nationalAvalancheCenterWordpressHost: string,
   nwacHost: string,
   snowboundHost: string,
@@ -54,15 +56,15 @@ export const prefetchAllActiveForecasts = async (
     knownCenters.push(...filterToNACCenters(capabilities.centers.map(center => center.id)));
   }
   knownCenters.forEach(id => {
-    void AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, id, logger);
+    void AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, apiVersion, id, logger);
     void preloadAvalancheCenterLogo(queryClient, logger, id);
   });
 
-  await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, logger);
-  const metadata = queryClient.getQueryData<AvalancheCenter>(AvalancheCenterMetadataQuery.queryKey(nationalAvalancheCenterHost, center_id));
+  await AvalancheCenterMetadataQuery.prefetch(queryClient, nationalAvalancheCenterHost, apiVersion, center_id, logger);
+  const metadata = queryClient.getQueryData<AvalancheCenter>(AvalancheCenterMetadataQuery.queryKey(nationalAvalancheCenterHost, apiVersion, center_id));
 
   if (metadata?.widget_config?.danger_map) {
-    void AllMapLayersQuery.prefetch(queryClient, nationalAvalancheCenterHost, requestedTime, logger);
+    void AllMapLayersQuery.prefetch(queryClient, nationalAvalancheCenterHost, apiVersion, requestedTime, logger);
   }
 
   const alternateZonesUrl = metadata?.widget_config?.observation_viewer?.alternate_zones;
@@ -97,13 +99,14 @@ export const prefetchAllActiveForecasts = async (
           if (center_id === 'NWAC') {
             void NWACWeatherForecastQuery.prefetch(queryClient, nwacHost, zone.id, currentDateTime, logger);
           }
-          void AvalancheWarningQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime, logger);
+          void AvalancheWarningQuery.prefetch(queryClient, nationalAvalancheCenterHost, apiVersion, center_id, zone.id, requestedTime, logger);
           if (process.env.EXPO_PUBLIC_ENABLE_CONDITIONS_BLOG && metadata.config?.blog) {
-            void SynopsisQuery.prefetch(queryClient, nationalAvalancheCenterHost, center_id, zone.id, requestedTime, logger);
+            void SynopsisQuery.prefetch(queryClient, nationalAvalancheCenterHost, apiVersion, center_id, zone.id, requestedTime, logger);
           }
           await AvalancheForecastQuery.prefetch(
             queryClient,
             nationalAvalancheCenterHost,
+            apiVersion,
             center_id,
             zone.id,
             requestedTime,
@@ -112,13 +115,13 @@ export const prefetchAllActiveForecasts = async (
             logger,
           );
           const forecastData = queryClient.getQueryData<ForecastResult>(
-            AvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, center_id, zone.id, requestedTime, metadata?.timezone, metadata?.config?.expires_time ?? 0),
+            AvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, apiVersion, center_id, zone.id, requestedTime, metadata?.timezone, metadata?.config?.expires_time ?? 0),
           );
           if (forecastData) {
             const media: ImageMediaItem[] = images(forecastData.media);
             if (forecastData.product_type === ProductType.Forecast) {
               if (forecastData.weather_data?.weather_product_id) {
-                void WeatherForecastQuery.prefetch(queryClient, nationalAvalancheCenterHost, forecastData.weather_data?.weather_product_id, logger);
+                void WeatherForecastQuery.prefetch(queryClient, nationalAvalancheCenterHost, apiVersion, forecastData.weather_data?.weather_product_id, logger);
               }
 
               for (const problem of forecastData.forecast_avalanche_problems) {

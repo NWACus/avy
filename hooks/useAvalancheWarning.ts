@@ -9,15 +9,18 @@ import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {add, formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
+import {useNACApiVersion} from 'hooks/useNACApiVersion';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, warningResultSchema, WarningResultWithZone} from 'types/nationalAvalancheCenter';
 import {apiDateString, RequestedTime} from 'utils/date';
+import {asOfParams, NACApiVersion, nacUrl} from 'utils/nationalAvalancheCenterApi';
 import {ZodError} from 'zod';
 
 export const useAvalancheWarning = (center_id: AvalancheCenterID, zone_id: number, requested_time: RequestedTime): UseQueryResult<WarningResultWithZone, AxiosError | ZodError> => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = queryKey(nationalAvalancheCenterHost, center_id, zone_id, requested_time);
+  const apiVersion = useNACApiVersion();
+  const key = queryKey(nationalAvalancheCenterHost, apiVersion, center_id, zone_id, requested_time);
   const [thisLogger] = useState(logger.child({query: key}));
   useEffect(() => {
     thisLogger.debug('initiating query');
@@ -25,12 +28,12 @@ export const useAvalancheWarning = (center_id: AvalancheCenterID, zone_id: numbe
 
   return useQuery<WarningResultWithZone, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async (): Promise<WarningResultWithZone> => fetchAvalancheWarning(nationalAvalancheCenterHost, center_id, zone_id, requested_time, thisLogger),
+    queryFn: async (): Promise<WarningResultWithZone> => fetchAvalancheWarning(nationalAvalancheCenterHost, apiVersion, center_id, zone_id, requested_time, thisLogger),
     cacheTime: 12 * 60 * 60 * 1000, // hold on to this cached data for half a day (in milliseconds)
   });
 };
 
-function queryKey(nationalAvalancheCenterHost: string, center_id: string, zone_id: number, requestedTime: RequestedTime) {
+function queryKey(nationalAvalancheCenterHost: string, apiVersion: NACApiVersion, center_id: string, zone_id: number, requestedTime: RequestedTime) {
   let prefix: string;
   let date: Date;
   if (requestedTime === 'latest') {
@@ -44,6 +47,7 @@ function queryKey(nationalAvalancheCenterHost: string, center_id: string, zone_i
     `${prefix}-warning`,
     {
       host: nationalAvalancheCenterHost,
+      apiVersion: apiVersion,
       center: center_id,
       zone_id: zone_id,
       requestedTime: apiDateString(date),
@@ -54,12 +58,13 @@ function queryKey(nationalAvalancheCenterHost: string, center_id: string, zone_i
 const prefetchAvalancheWarning = async (
   queryClient: QueryClient,
   nationalAvalancheCenterHost: string,
+  apiVersion: NACApiVersion,
   center_id: string,
   zone_id: number,
   requested_time: RequestedTime,
   logger: Logger,
 ) => {
-  const key = queryKey(nationalAvalancheCenterHost, center_id, zone_id, requested_time);
+  const key = queryKey(nationalAvalancheCenterHost, apiVersion, center_id, zone_id, requested_time);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
@@ -68,7 +73,7 @@ const prefetchAvalancheWarning = async (
     queryFn: async () => {
       const start = new Date();
       thisLogger.trace(`prefetching`);
-      const result = await fetchAvalancheWarning(nationalAvalancheCenterHost, center_id, zone_id, requested_time, thisLogger);
+      const result = await fetchAvalancheWarning(nationalAvalancheCenterHost, apiVersion, center_id, zone_id, requested_time, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
@@ -77,16 +82,18 @@ const prefetchAvalancheWarning = async (
 
 const fetchAvalancheWarning = async (
   nationalAvalancheCenterHost: string,
+  apiVersion: NACApiVersion,
   center_id: string,
   zone_id: number,
   requested_time: RequestedTime,
   logger: Logger,
 ): Promise<WarningResultWithZone> => {
-  const url = `${nationalAvalancheCenterHost}/v2/public/product`;
+  const url = nacUrl(nationalAvalancheCenterHost, apiVersion, 'product');
   const params: Record<string, string> = {
     center_id: center_id,
     type: 'warning',
     zone_id: String(zone_id),
+    ...asOfParams(apiVersion, requested_time),
   };
   if (requested_time !== 'latest') {
     params['published_time'] = apiDateString(add(requested_time, {days: 1})); // the API accepts a _date_ and appends 19:00 to it for a time...

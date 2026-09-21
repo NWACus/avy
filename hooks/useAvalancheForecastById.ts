@@ -9,8 +9,10 @@ import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
+import {useNACApiVersion} from 'hooks/useNACApiVersion';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {ForecastResult, forecastResultSchema} from 'types/nationalAvalancheCenter';
+import {NACApiVersion, nacUrl} from 'utils/nationalAvalancheCenterApi';
 import {ZodError} from 'zod';
 
 export const useAvalancheForecastById = (fragment: ForecastResult) => {
@@ -18,7 +20,8 @@ export const useAvalancheForecastById = (fragment: ForecastResult) => {
   const forecastId = fragment?.id;
 
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = queryKey(nationalAvalancheCenterHost, forecastId);
+  const apiVersion = useNACApiVersion();
+  const key = queryKey(nationalAvalancheCenterHost, apiVersion, forecastId);
   const [thisLogger] = useState(logger.child({query: key}));
   useEffect(() => {
     thisLogger.debug('initiating query');
@@ -26,18 +29,18 @@ export const useAvalancheForecastById = (fragment: ForecastResult) => {
 
   return useQuery<ForecastResult, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: (): Promise<ForecastResult> => fetchForecast(nationalAvalancheCenterHost, forecastId, thisLogger),
+    queryFn: (): Promise<ForecastResult> => fetchForecast(nationalAvalancheCenterHost, apiVersion, forecastId, thisLogger),
     enabled: !!forecastId,
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
 };
 
-function queryKey(nationalAvalancheCenterHost: string, forecastId: number) {
-  return ['avalanche-forecast', {host: nationalAvalancheCenterHost, forecast: forecastId}];
+function queryKey(nationalAvalancheCenterHost: string, apiVersion: NACApiVersion, forecastId: number) {
+  return ['avalanche-forecast', {host: nationalAvalancheCenterHost, apiVersion: apiVersion, forecast: forecastId}];
 }
 
-export const prefetchAvalancheForecast = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, forecastId: number, logger: Logger) => {
-  const key = queryKey(nationalAvalancheCenterHost, forecastId);
+export const prefetchAvalancheForecast = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, apiVersion: NACApiVersion, forecastId: number, logger: Logger) => {
+  const key = queryKey(nationalAvalancheCenterHost, apiVersion, forecastId);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
@@ -46,7 +49,7 @@ export const prefetchAvalancheForecast = async (queryClient: QueryClient, nation
     queryFn: async (): Promise<ForecastResult> => {
       const start = new Date();
       thisLogger.trace(`prefetching`);
-      const result = fetchForecast(nationalAvalancheCenterHost, forecastId, thisLogger);
+      const result = fetchForecast(nationalAvalancheCenterHost, apiVersion, forecastId, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
@@ -55,8 +58,8 @@ export const prefetchAvalancheForecast = async (queryClient: QueryClient, nation
   });
 };
 
-export const fetchForecast = async (nationalAvalancheCenterHost: string, forecastId: number, logger: Logger): Promise<ForecastResult> => {
-  const url = `${nationalAvalancheCenterHost}/v2/public/product/${forecastId}`;
+export const fetchForecast = async (nationalAvalancheCenterHost: string, apiVersion: NACApiVersion, forecastId: number, logger: Logger): Promise<ForecastResult> => {
+  const url = nacUrl(nationalAvalancheCenterHost, apiVersion, `product/${forecastId}`);
   const what = 'avalanche forecast';
   const thisLogger = logger.child({url: url, what: what});
   const data = await safeFetch(() => axios.get<AxiosResponse<unknown>>(url), thisLogger, what);

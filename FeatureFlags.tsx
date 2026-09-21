@@ -130,8 +130,7 @@ export const useAllFeatureFlags = (): FeatureFlags | undefined => {
 
 export const useOneFeatureFlag = (key: FeatureFlagKey): FeatureFlagValue | undefined => {
   const flags = useContext(FeatureFlagsContext);
-  const resolved: FeatureFlags = _.merge({}, flags.featureFlags, flags.clientSideFeatureFlagOverrides);
-  return resolved && resolved[key];
+  return flags.clientSideFeatureFlagOverrides[key] ?? flags.featureFlags[key];
 };
 
 export const useDebugFeatureFlags = () => useContext(FeatureFlagsContext);
