@@ -208,7 +208,8 @@
           "/polylabel/",
           "/react-intl/",
           "/tinycolor2/",
-          "/use-async-effect/"
+          "/use-async-effect/",
+          "/react-native-render-html/"
         ]
       }
     }
