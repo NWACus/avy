@@ -34,6 +34,9 @@ export const avalancheCenterIDSchema = z.enum([
 
 export type AvalancheCenterID = z.infer<typeof avalancheCenterIDSchema>;
 
+// Avalanche Canada is not a NAC center, but its areas are rendered on the map alongside NAC zones
+export type MapCenterID = AvalancheCenterID | 'CAN';
+
 export const isNACCenter = (centerId: AvalancheCenterID): boolean => {
   switch (centerId) {
     case 'BAC':
@@ -1522,3 +1525,31 @@ export const mapLayerOrObservationZonesFeatureSchema = z.union([mapLayerFeatureS
 export type MapLayerOrObservationZonesFeature = z.infer<typeof mapLayerOrObservationZonesFeatureSchema>;
 export const mergedMapLayerSchema = featureCollectionSchema(mapLayerOrObservationZonesFeatureSchema);
 export type MergedMapLayer = z.infer<typeof mergedMapLayerSchema>;
+
+// Avalanche Canada — Get Forecast Areas (FeatureCollection of forecast area polygons)
+export const canadaForecastAreaPropertiesSchema = z.object({
+  id: z.string(),
+});
+export type CanadaForecastAreaProperties = z.infer<typeof canadaForecastAreaPropertiesSchema>;
+
+export const canadaForecastAreaFeatureSchema = featureSchema(canadaForecastAreaPropertiesSchema, z.string());
+export type CanadaForecastAreaFeature = z.infer<typeof canadaForecastAreaFeatureSchema>;
+
+export const canadaForecastAreasSchema = featureCollectionSchema(canadaForecastAreaFeatureSchema);
+export type CanadaForecastAreas = z.infer<typeof canadaForecastAreasSchema>;
+
+// Avalanche Canada — Get Forecast Metadata (array of metadata, one entry per forecast area)
+export const canadaForecastMetadataItemSchema = z.object({
+  area: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+  url: z.string(),
+  highestDanger: z.object({
+    value: z.string(),
+  }),
+});
+export type CanadaForecastMetadataItem = z.infer<typeof canadaForecastMetadataItemSchema>;
+
+export const canadaForecastMetadataSchema = z.array(canadaForecastMetadataItemSchema);
+export type CanadaForecastMetadata = z.infer<typeof canadaForecastMetadataSchema>;

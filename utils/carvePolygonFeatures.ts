@@ -3,15 +3,18 @@ import difference from '@turf/difference';
 import union from '@turf/union';
 import {Logger} from 'browser-bunyan';
 import {Feature, MultiPolygon, Polygon} from 'geojson';
-import {MapLayerFeature} from 'types/nationalAvalancheCenter';
+import {Geometry} from 'types/nationalAvalancheCenter';
 
-const isPolygonFeature = (feature: MapLayerFeature): feature is MapLayerFeature & {geometry: Polygon | MultiPolygon} =>
+// Any GeoJSON feature we can carve: the NAC map layer features and the Avalanche Canada forecast areas both qualify.
+export type CarvableFeature = {id: string | number; geometry: Geometry};
+
+const isPolygonFeature = <T extends CarvableFeature>(feature: T): feature is T & {geometry: Polygon | MultiPolygon} =>
   feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon';
 
 // Subtract the geometry of `mask` features from each feature in `featuresToCarve`. Features that end
 // up fully covered by the mask are dropped. Non-polygon features in `featuresToCarve` are returned
 // unchanged.
-export const carvePolygonFeatures = (featuresToCarve: MapLayerFeature[], mask: MapLayerFeature[], logger: Logger): MapLayerFeature[] => {
+export const carvePolygonFeatures = <T extends CarvableFeature>(featuresToCarve: T[], mask: CarvableFeature[], logger: Logger): T[] => {
   const maskPolygons = mask.filter(isPolygonFeature);
   if (maskPolygons.length === 0) {
     return featuresToCarve;

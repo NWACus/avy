@@ -10,7 +10,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import {useMapPersistence} from 'MapPersistence';
 import {usePreferences} from 'Preferences';
 import {MainStackNavigationProps} from 'routes';
-import {AvalancheCenterID, isNACCenter} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, AvalancheCenterWebsites, isNACCenter, MapCenterID} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 import {Camera, CameraStop, MapState} from '@rnmapbox/maps';
@@ -19,10 +19,12 @@ import {AvalancheForecastZoneCards} from 'components/map/AvalancheForecastZoneCa
 import {TopElementMeasurments} from 'components/map/AvalancheForecastZoneMap';
 import {Position} from 'geojson';
 import {CenterSwitchOrigin, useAnalytics} from 'hooks/useAnalytics';
+import {CanadaMapViewZone} from 'utils/canadaMapViewZone';
 
 interface AvalancheForecastMapViewProps {
   preferredCenterId: AvalancheCenterID;
   zones: MapViewZone[];
+  canadaZones: CanadaMapViewZone[];
   requestedTime: RequestedTime;
   selectedZoneId: number | null;
   tabBarHeight: number;
@@ -34,6 +36,7 @@ interface AvalancheForecastMapViewProps {
 export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecastMapViewProps> = ({
   preferredCenterId,
   zones,
+  canadaZones,
   requestedTime,
   selectedZoneId,
   tabBarHeight,
@@ -49,8 +52,16 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 
   const navigation = useNavigation<MainStackNavigationProps>();
 
-  const [unsupportedCenterId, setUnsupportedCenterId] = useState<AvalancheCenterID | null>(null);
-  const onCloseUnsupportedModal = useCallback(() => setUnsupportedCenterId(null), []);
+  const [unsupportedCenter, setUnsupportedCenter] = useState<{centerId: MapCenterID; url: string} | null>(null);
+  const onCloseUnsupportedModal = useCallback(() => setUnsupportedCenter(null), []);
+
+  const onCanadaPolygonPress = useCallback(
+    (zone: CanadaMapViewZone) => {
+      analytics.capture('canada_zone_tapped', {center: preferredCenterId, canada_zone_id: zone.zone_id});
+      setUnsupportedCenter({centerId: 'CAN', url: zone.url});
+    },
+    [analytics, preferredCenterId],
+  );
 
   const onMapPresOutsideOfPolygon = useCallback(
     (_: GeoJSON.Feature) => {
@@ -82,7 +93,8 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
             setIsInNoCenterExperience(false);
           }
         } else {
-          setUnsupportedCenterId(selectedZoneCenter);
+          analytics.capture('unsupported_center_tapped', {center: preferredCenterId, unsupported_center_id: zone.center_id, zone_name: zone.name});
+          setUnsupportedCenter({centerId: selectedZoneCenter, url: AvalancheCenterWebsites[selectedZoneCenter]});
         }
       }
     },
@@ -187,10 +199,13 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         initialCameraBounds={avalancheCenterMapRegion.cameraBounds}
         initialCameraStop={initialCameraStop}
         zones={zones}
+        canadaZones={canadaZones}
         selectedZoneId={selectedZoneId}
         onPolygonPress={onPolygonPress}
+        onCanadaPolygonPress={onCanadaPolygonPress}
         onMapPress={onMapPresOutsideOfPolygon}
-        onCameraChanged={onCameraChanged}></ZoneMap>
+        onCameraChanged={onCameraChanged}
+      />
 
       <AvalancheForecastZoneCards
         key={`${preferredCenterId}-zoneCards`}
@@ -203,7 +218,13 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         bottomOffset={isInNoCenterExperience ? 0 : tabBarHeight}
       />
 
-      <CenterNotSupportedModal visible={unsupportedCenterId !== null} centerId={unsupportedCenterId} onClose={onCloseUnsupportedModal} />
+      <CenterNotSupportedModal
+        visible={unsupportedCenter !== null}
+        centerId={preferredCenterId}
+        unsupportedCenterId={unsupportedCenter?.centerId ?? null}
+        avalancheCenterWebsiteUrl={unsupportedCenter?.url ?? null}
+        onClose={onCloseUnsupportedModal}
+      />
     </>
   );
 };

@@ -309,7 +309,8 @@ const BaseApp: React.FunctionComponent<{
   const {center} = preferences;
   const {isInNoCenterExperience, setIsInNoCenterExperience, mapPersistenceLoaded} = useMapPersistence();
 
-  const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, requestedTime} = React.useContext<ClientProps>(ClientContext);
+  const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, avalancheCanadaHost, requestedTime} =
+    React.useContext<ClientProps>(ClientContext);
   const queryClient = useQueryClient();
   useEffect(() => {
     void (async () => {
@@ -317,13 +318,22 @@ const BaseApp: React.FunctionComponent<{
         logger.info('skipping prefetch because EXPO_PUBLIC_DISABLE_PREFETCHING is set');
       } else {
         try {
-          await prefetchAllActiveForecasts(queryClient, center, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, logger);
+          await prefetchAllActiveForecasts(
+            queryClient,
+            center,
+            nationalAvalancheCenterHost,
+            nationalAvalancheCenterWordpressHost,
+            nwacHost,
+            snowboundHost,
+            avalancheCanadaHost,
+            logger,
+          );
         } catch (e) {
           logger.error({error: e}, 'error prefetching data');
         }
       }
     })();
-  }, [logger, queryClient, center, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost]);
+  }, [logger, queryClient, center, nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, avalancheCanadaHost]);
 
   const navigationRef = useNavigationContainerRef();
 
