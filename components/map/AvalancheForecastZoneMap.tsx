@@ -14,11 +14,12 @@ import {useMapLayerAvalancheWarnings} from 'hooks/useMapLayerAvalancheWarnings';
 import {useMapPersistence} from 'MapPersistence';
 import {usePreferences} from 'Preferences';
 import {AvalancheCenterID, DangerLevel, ForecastPeriod, MapLayerFeature, ProductType} from 'types/nationalAvalancheCenter';
+import {carvePolygonFeatures} from 'utils/carvePolygonFeatures';
 import {RequestedTime, requestedTimeToUTCDate} from 'utils/date';
 
 import {ForecastNavigationHeader} from 'components/content/navigation/ForecastMapNavigationHeader';
 import {DangerScale} from 'components/DangerScale';
-import {AvalancheForecastMapView} from 'components/map/AvalancheForecastMapView';
+import {AvalancheForecastMapView, CBAC_COVERAGE_CENTER_ID, CBAC_OVERLAPPED_CENTER_ID, cbacDrawsAsOwnZone} from 'components/map/AvalancheForecastMapView';
 import {CBACCoverageLegend} from 'components/map/CBACCoverageLegend';
 import {CBACForecastFirstRunModal} from 'components/modals/cbac/CBACForecastFirstRunModal';
 import {FirstRunExperienceModal} from 'components/modals/FirstRunExperienceModal';
@@ -55,6 +56,29 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const forecastResults = useMapLayerAvalancheForecasts(center_id, requestedTime, allMapLayers, metadata);
   const warningResults = useMapLayerAvalancheWarnings(center_id, requestedTime, allMapLayers);
 
+  // CBAC's coverage sits inside CAIC's, so a CBAC user would otherwise see their zones painted on top of
+  // a second, differently-rated fill. Carving the CBAC footprint out of CAIC lets both draw at the usual
+  // zone opacity with the topography still readable underneath. Everyone else keeps CAIC's real coverage,
+  // and CBAC outlines itself over the top instead of filling.
+  const carveCBACFromCAIC = cbacDrawsAsOwnZone(center_id, isInNoCenterExperience);
+
+  // The carve is turf work over CAIC's high-vertex polygons, so it is cached against the map layer that
+  // produced it: the no-center experience flips this selection on and off as the user pans around.
+  const carvedCAICCacheRef = React.useRef<{features: MapLayerFeature[]; carved: MapLayerFeature[]} | null>(null);
+  const mapLayerFeatures = useMemo((): MapLayerFeature[] | undefined => {
+    const features = allMapLayers?.features;
+    if (!features || !carveCBACFromCAIC) {
+      return features;
+    }
+    if (carvedCAICCacheRef.current?.features !== features) {
+      const caicFeatures = features.filter(feature => feature.properties.center_id === CBAC_OVERLAPPED_CENTER_ID);
+      const otherFeatures = features.filter(feature => feature.properties.center_id !== CBAC_OVERLAPPED_CENTER_ID);
+      const cbacFeatures = features.filter(feature => feature.properties.center_id === CBAC_COVERAGE_CENTER_ID);
+      carvedCAICCacheRef.current = {features: features, carved: otherFeatures.concat(carvePolygonFeatures(caicFeatures, cbacFeatures, logger))};
+    }
+    return carvedCAICCacheRef.current.carved;
+  }, [allMapLayers, carveCBACFromCAIC]);
+
   const topElements = React.useRef<View>(null);
 
   const [userLocation, setUserLocation] = useState<Position | undefined>(undefined);
@@ -74,7 +98,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   // This is done all at once so that zonesById is recalculated when forecastResults or warningResults changes while
   // avoiding the recalculation on every re-render
   const zonesById = useMemo(() => {
-    const zones = allMapLayers?.features.reduce((accum: Record<string, MapViewZone>, feature: MapLayerFeature) => {
+    const zones = mapLayerFeatures?.reduce((accum: Record<string, MapViewZone>, feature: MapLayerFeature) => {
       accum[feature.id] = mapViewZoneFor(feature);
       return accum;
     }, {});
@@ -159,7 +183,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
       });
 
     return zones;
-  }, [allMapLayers, forecastResults, warningResults, requestedTime]);
+  }, [mapLayerFeatures, forecastResults, warningResults, requestedTime]);
 
   const onSelectCenter = useCallback(
     (center: AvalancheCenterID) => {

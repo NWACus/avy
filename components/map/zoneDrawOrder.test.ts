@@ -23,10 +23,10 @@ const cbacStyle =
     candidate.center_id === 'CBAC' ? styleWhenOverlapping : 'default';
 
 describe('partitionZonesByDrawOrder', () => {
-  it.each<ZonePolygonStyle>(['opaqueFill', 'coverageEdge'])('holds %s zones back so they draw last', style => {
+  it('holds coverageEdge zones back so they draw last', () => {
     const zones = [zone(1, 'CAIC'), zone(2, 'CBAC'), zone(3, 'NWAC')];
 
-    const {baseZones, overlappingZones} = partitionZonesByDrawOrder(zones, cbacStyle(style));
+    const {baseZones, overlappingZones} = partitionZonesByDrawOrder(zones, cbacStyle('coverageEdge'));
 
     expect(baseZones.map(z => z.zone_id)).toEqual([1, 3]);
     expect(overlappingZones.map(z => z.zone_id)).toEqual([2]);
@@ -35,7 +35,7 @@ describe('partitionZonesByDrawOrder', () => {
   it('holds overlapping zones back even when they arrive before the zones they cover', () => {
     const zones = [zone(2, 'CBAC'), zone(1, 'CAIC')];
 
-    const {baseZones, overlappingZones} = partitionZonesByDrawOrder(zones, cbacStyle('opaqueFill'));
+    const {baseZones, overlappingZones} = partitionZonesByDrawOrder(zones, cbacStyle('coverageEdge'));
 
     expect(baseZones.map(z => z.zone_id)).toEqual([1]);
     expect(overlappingZones.map(z => z.zone_id)).toEqual([2]);
@@ -44,7 +44,7 @@ describe('partitionZonesByDrawOrder', () => {
   it('preserves relative order within each group so the last overlapping zone still wins a tap', () => {
     const zones = [zone(1, 'CAIC'), zone(3, 'NWAC'), zone(4, 'CBAC'), zone(5, 'CBAC')];
 
-    const {baseZones, overlappingZones} = partitionZonesByDrawOrder(zones, cbacStyle('opaqueFill'));
+    const {baseZones, overlappingZones} = partitionZonesByDrawOrder(zones, cbacStyle('coverageEdge'));
 
     expect(baseZones.map(z => z.zone_id)).toEqual([1, 3]);
     expect(overlappingZones.map(z => z.zone_id)).toEqual([4, 5]);
@@ -53,13 +53,13 @@ describe('partitionZonesByDrawOrder', () => {
   it('puts every zone in the base group when no zones overlap', () => {
     const zones = [zone(1, 'NWAC'), zone(2, 'SNFAC')];
 
-    const {baseZones, overlappingZones} = partitionZonesByDrawOrder(zones, cbacStyle('opaqueFill'));
+    const {baseZones, overlappingZones} = partitionZonesByDrawOrder(zones, cbacStyle('coverageEdge'));
 
     expect(baseZones.map(z => z.zone_id)).toEqual([1, 2]);
     expect(overlappingZones).toEqual([]);
   });
 
   it('tolerates undefined zones', () => {
-    expect(partitionZonesByDrawOrder(undefined, cbacStyle('opaqueFill'))).toEqual({baseZones: [], overlappingZones: []});
+    expect(partitionZonesByDrawOrder(undefined, cbacStyle('coverageEdge'))).toEqual({baseZones: [], overlappingZones: []});
   });
 });

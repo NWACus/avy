@@ -27,9 +27,17 @@ import {Position} from 'geojson';
 import {CenterSwitchOrigin, useAnalytics} from 'hooks/useAnalytics';
 import {throttle} from 'lodash';
 
-const CBAC_COVERAGE_CENTER_ID: AvalancheCenterID = 'CBAC';
+export const CBAC_COVERAGE_CENTER_ID: AvalancheCenterID = 'CBAC';
 // The statewide center CBAC's coverage is drawn on top of.
-const CBAC_OVERLAPPED_CENTER_ID: AvalancheCenterID = 'CAIC';
+export const CBAC_OVERLAPPED_CENTER_ID: AvalancheCenterID = 'CAIC';
+
+// CBAC only paints a filled zone for the user who has chosen it, and only while they are looking at
+// their own center. That is the one case where CAIC is carved out from under it, so the two always have
+// to be decided together: a filled CBAC over an uncarved CAIC would stack two translucent fills, and a
+// carved CAIC under an outlined CBAC would leave a hole. Every other state gets the coverage edge, which
+// marks CBAC's footprint over an intact CAIC.
+export const cbacDrawsAsOwnZone = (preferredCenterId: AvalancheCenterID, isInNoCenterExperience: boolean): boolean =>
+  preferredCenterId === CBAC_COVERAGE_CENTER_ID && !isInNoCenterExperience;
 // Below this the CBAC zones are small enough that the fixed-size rating pills swamp them. The pills
 // hide again a little lower so that a pinch resting on the threshold doesn't thrash them on and off.
 const CBAC_RATING_PILL_MIN_ZOOM = 8;
@@ -140,14 +148,16 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
     setPendingCBACZone(null);
   }, [pendingCBACZone, setSelectedZoneId, setPreferences, setIsInNoCenterExperience]);
 
+  const isCBACSelected = preferredCenterId === CBAC_COVERAGE_CENTER_ID;
+
   const zonePolygonStyle = useCallback(
     (zone: MapViewZone): ZonePolygonStyle => {
       if (zone.center_id !== CBAC_COVERAGE_CENTER_ID) {
         return 'default';
       }
-      return isInNoCenterExperience ? 'coverageEdge' : 'opaqueFill';
+      return cbacDrawsAsOwnZone(preferredCenterId, isInNoCenterExperience) ? 'default' : 'coverageEdge';
     },
-    [isInNoCenterExperience],
+    [preferredCenterId, isInNoCenterExperience],
   );
 
   const preferredCenterZones = useMemo(() => zones.filter(zone => zone.center_id === preferredCenterId), [zones, preferredCenterId]);
@@ -321,8 +331,6 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   );
 
   const renderCBACFooter = useCallback(() => <CBACOverlappingForecastsLink onPress={openForecastExplanation} />, [openForecastExplanation]);
-
-  const isCBACSelected = preferredCenterId === CBAC_COVERAGE_CENTER_ID;
 
   const initialCameraStop: CameraStop | undefined = useMemo(() => {
     if (isInNoCenterExperience && initialMapCamera) {

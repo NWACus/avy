@@ -1,12 +1,11 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 
 import {FillLayer, FillLayerStyle, LineLayer, LineLayerStyle, ShapeSource} from '@rnmapbox/maps';
-import Color from 'color';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {MapViewZone} from 'components/map/ZoneMap';
 import {colorLookup} from 'theme';
 
-export type ZonePolygonStyle = 'default' | 'coverageEdge' | 'opaqueFill';
+export type ZonePolygonStyle = 'default' | 'coverageEdge';
 
 const COVERAGE_EDGE_LINE_WIDTH = 6;
 const COVERAGE_EDGE_DASH_ARRAY = [1, 1];
@@ -40,9 +39,6 @@ const AvalancheForecastZonePolygonComponent: React.FunctionComponent<AvalancheFo
   polygonStyle = 'default',
 }: AvalancheForecastZonePolygonProps) => {
   const isCoverageEdge = polygonStyle === 'coverageEdge';
-  // Matches the filter WarningPulseOverlay uses to pick up zones, so the resting colour below the pulse
-  // agrees with whether a pulse is actually painted on top of it.
-  const pulses = zone.hasWarning && renderFillColor && !isCoverageEdge;
 
   // ShapeSource is a PureComponent whose render re-serializes the whole geometry with JSON.stringify.
   // Both of its unstable props are held stable here so it can short-circuit: the zone is read through a
@@ -61,26 +57,11 @@ const AvalancheForecastZonePolygonComponent: React.FunctionComponent<AvalancheFo
     [onPress],
   );
 
-  let fillOpacity: number;
-  if (isCoverageEdge) {
-    fillOpacity = COVERAGE_EDGE_FILL_OPACITY;
-  } else if (polygonStyle === 'opaqueFill') {
-    fillOpacity = 1;
-  } else {
-    fillOpacity = zone.fillOpacity;
-  }
+  const fillOpacity = isCoverageEdge ? COVERAGE_EDGE_FILL_OPACITY : zone.fillOpacity;
 
   // Mapbox multiplies fillOpacity by the fill color's alpha, so exactly one of them carries the opacity:
   // the color stays opaque and fillOpacity does the work.
-  //
-  // opaqueFill is the exception. It exists to hide the overlapping center's polygon, so it cannot fade
-  // with alpha — which leaves it nowhere to pulse from. A pulsing opaqueFill zone therefore rests on a
-  // lightened version of its color and the overlay flashes it back to full strength; one that isn't
-  // pulsing just paints its color outright.
-  const fillColor = useMemo(() => {
-    const base = colorFor(zone.danger_level);
-    return polygonStyle === 'opaqueFill' && pulses ? base.mix(Color('white'), 1 - zone.fillOpacity).string() : base.string();
-  }, [zone.danger_level, zone.fillOpacity, polygonStyle, pulses]);
+  const fillColor = useMemo(() => colorFor(zone.danger_level).string(), [zone.danger_level]);
 
   const fillStyle = useMemo<FillLayerStyle>(
     () => ({
