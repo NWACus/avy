@@ -9,8 +9,8 @@ import {RequestedTime} from 'utils/date';
 
 export const useCanadaZones = (requestedTime: RequestedTime): CanadaMapViewZone[] => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const {data: areas, error: areasError} = useCanadaMapLayer();
-  const {data: metadata, error: metadataError} = useCanadaForecastMetadata();
+  const {data: areas, error: areasError} = useCanadaMapLayer(requestedTime);
+  const {data: metadata, error: metadataError} = useCanadaForecastMetadata(requestedTime);
   const {data: allMapLayers} = useAllMapLayers(requestedTime);
 
   useEffect(() => {

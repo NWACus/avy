@@ -10,7 +10,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import {useMapPersistence} from 'MapPersistence';
 import {usePreferences} from 'Preferences';
 import {MainStackNavigationProps} from 'routes';
-import {AvalancheCenterID, AvalancheCenterWebsites, isNACCenter} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, AvalancheCenterWebsites, isNACCenter, MapCenterID} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 import {Camera, CameraStop, MapState} from '@rnmapbox/maps';
@@ -19,12 +19,12 @@ import {AvalancheForecastZoneCards} from 'components/map/AvalancheForecastZoneCa
 import {TopElementMeasurments} from 'components/map/AvalancheForecastZoneMap';
 import {Position} from 'geojson';
 import {CenterSwitchOrigin, useAnalytics} from 'hooks/useAnalytics';
-import {useCanadaZones} from 'hooks/useCanadaZones';
 import {CanadaMapViewZone} from 'utils/canadaMapViewZone';
 
 interface AvalancheForecastMapViewProps {
   preferredCenterId: AvalancheCenterID;
   zones: MapViewZone[];
+  canadaZones: CanadaMapViewZone[];
   requestedTime: RequestedTime;
   selectedZoneId: number | null;
   tabBarHeight: number;
@@ -36,6 +36,7 @@ interface AvalancheForecastMapViewProps {
 export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecastMapViewProps> = ({
   preferredCenterId,
   zones,
+  canadaZones,
   requestedTime,
   selectedZoneId,
   tabBarHeight,
@@ -45,20 +46,22 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 }: AvalancheForecastMapViewProps) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
 
-  const canadaZones = useCanadaZones(requestedTime);
-
   const {setPreferences} = usePreferences();
   const analytics = useAnalytics();
   const {isInNoCenterExperience, setIsInNoCenterExperience, initialMapCamera, saveMapCamera} = useMapPersistence();
 
   const navigation = useNavigation<MainStackNavigationProps>();
 
-  const [unsupportedCenter, setUnsupportedCenter] = useState<{centerId: AvalancheCenterID | 'CAN'; url: string} | null>(null);
+  const [unsupportedCenter, setUnsupportedCenter] = useState<{centerId: MapCenterID; url: string} | null>(null);
   const onCloseUnsupportedModal = useCallback(() => setUnsupportedCenter(null), []);
 
-  const onCanadaPolygonPress = useCallback((zone: CanadaMapViewZone) => {
-    setUnsupportedCenter({centerId: 'CAN', url: zone.url});
-  }, []);
+  const onCanadaPolygonPress = useCallback(
+    (zone: CanadaMapViewZone) => {
+      analytics.capture('canada_zone_tapped', {center: preferredCenterId, canada_zone_id: zone.zone_id});
+      setUnsupportedCenter({centerId: 'CAN', url: zone.url});
+    },
+    [analytics, preferredCenterId],
+  );
 
   const onMapPresOutsideOfPolygon = useCallback(
     (_: GeoJSON.Feature) => {
@@ -90,6 +93,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
             setIsInNoCenterExperience(false);
           }
         } else {
+          analytics.capture('unsupported_center_tapped', {center: preferredCenterId, unsupported_center_id: zone.center_id, zone_name: zone.name});
           setUnsupportedCenter({centerId: selectedZoneCenter, url: AvalancheCenterWebsites[selectedZoneCenter]});
         }
       }

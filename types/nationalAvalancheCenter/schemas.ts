@@ -34,6 +34,9 @@ export const avalancheCenterIDSchema = z.enum([
 
 export type AvalancheCenterID = z.infer<typeof avalancheCenterIDSchema>;
 
+// Avalanche Canada is not a NAC center, but its areas are rendered on the map alongside NAC zones
+export type MapCenterID = AvalancheCenterID | 'CAN';
+
 export const isNACCenter = (centerId: AvalancheCenterID): boolean => {
   switch (centerId) {
     case 'BAC':

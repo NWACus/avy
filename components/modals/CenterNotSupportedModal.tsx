@@ -9,12 +9,12 @@ import * as WebBrowser from 'expo-web-browser';
 import {useAnalytics} from 'hooks/useAnalytics';
 import {logger} from 'logger';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, MapCenterID} from 'types/nationalAvalancheCenter';
 
 interface CenterNotSupportedModalProps {
   visible: boolean;
   centerId: AvalancheCenterID;
-  unsupportedCenterId: AvalancheCenterID | 'CAN' | null;
+  unsupportedCenterId: MapCenterID | null;
   avalancheCenterWebsiteUrl: string | null;
   onClose: () => void;
 }

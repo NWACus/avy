@@ -11,12 +11,13 @@ import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {CanadaForecastAreas, canadaForecastAreasSchema} from 'types/nationalAvalancheCenter';
+import {RequestedTime, toISOStringZulu} from 'utils/date';
 import {ZodError} from 'zod';
 
-export const useCanadaMapLayer = (): UseQueryResult<CanadaForecastAreas, AxiosError | ZodError> => {
+export const useCanadaMapLayer = (requestedTime: RequestedTime): UseQueryResult<CanadaForecastAreas, AxiosError | ZodError> => {
   const {avalancheCanadaHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = queryKey(avalancheCanadaHost);
+  const key = queryKey(avalancheCanadaHost, requestedTime);
   const [thisLogger] = useState(logger.child({query: key}));
   useEffect(() => {
     thisLogger.debug('initiating query');
@@ -24,17 +25,17 @@ export const useCanadaMapLayer = (): UseQueryResult<CanadaForecastAreas, AxiosEr
 
   return useQuery<CanadaForecastAreas, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async (): Promise<CanadaForecastAreas> => fetchCanadaMapLayer(avalancheCanadaHost, thisLogger),
+    queryFn: async (): Promise<CanadaForecastAreas> => fetchCanadaMapLayer(avalancheCanadaHost, requestedTime, thisLogger),
     cacheTime: 24 * 60 * 60 * 1000, // hold this in the query cache for one day after it's become inactive
   });
 };
 
-function queryKey(avalancheCanadaHost: string) {
-  return ['canada-map-layer', {host: avalancheCanadaHost}];
+function queryKey(avalancheCanadaHost: string, requestedTime: RequestedTime) {
+  return ['canada-map-layer', {host: avalancheCanadaHost}, requestedTime];
 }
 
-export const prefetchCanadaMapLayer = async (queryClient: QueryClient, avalancheCanadaHost: string, logger: Logger) => {
-  const key = queryKey(avalancheCanadaHost);
+export const prefetchCanadaMapLayer = async (queryClient: QueryClient, avalancheCanadaHost: string, requestedTime: RequestedTime, logger: Logger) => {
+  const key = queryKey(avalancheCanadaHost, requestedTime);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
@@ -43,7 +44,7 @@ export const prefetchCanadaMapLayer = async (queryClient: QueryClient, avalanche
     queryFn: async (): Promise<CanadaForecastAreas> => {
       const start = new Date();
       thisLogger.trace(`prefetching`);
-      const result = await fetchCanadaMapLayer(avalancheCanadaHost, thisLogger);
+      const result = await fetchCanadaMapLayer(avalancheCanadaHost, requestedTime, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
@@ -52,11 +53,12 @@ export const prefetchCanadaMapLayer = async (queryClient: QueryClient, avalanche
   });
 };
 
-const fetchCanadaMapLayer = async (avalancheCanadaHost: string, logger: Logger): Promise<CanadaForecastAreas> => {
+const fetchCanadaMapLayer = async (avalancheCanadaHost: string, requestedTime: RequestedTime, logger: Logger): Promise<CanadaForecastAreas> => {
   const url = `${avalancheCanadaHost}/forecasts/en/areas`;
+  const params = requestedTime === 'latest' ? {} : {date: toISOStringZulu(requestedTime)};
   const what = 'avalanche canada forecast areas';
-  const thisLogger = logger.child({url: url, what: what});
-  const data = await safeFetch(() => axios.get<AxiosResponse<unknown>>(url), thisLogger, what);
+  const thisLogger = logger.child({url: url, params: params, what: what});
+  const data = await safeFetch(() => axios.get<AxiosResponse<unknown>>(url, {params: params}), thisLogger, what);
 
   const parseResult = canadaForecastAreasSchema.safeParse(data);
   if (!parseResult.success) {

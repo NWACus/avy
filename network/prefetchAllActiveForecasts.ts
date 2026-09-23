@@ -66,8 +66,8 @@ export const prefetchAllActiveForecasts = async (
 
   if (metadata?.widget_config?.danger_map) {
     void AllMapLayersQuery.prefetch(queryClient, nationalAvalancheCenterHost, requestedTime, logger);
-    void CanadaMapLayerQuery.prefetch(queryClient, avalancheCanadaHost, logger);
-    void CanadaForecastMetadataQuery.prefetch(queryClient, avalancheCanadaHost, logger);
+    void CanadaMapLayerQuery.prefetch(queryClient, avalancheCanadaHost, requestedTime, logger);
+    void CanadaForecastMetadataQuery.prefetch(queryClient, avalancheCanadaHost, requestedTime, logger);
   }
 
   const alternateZonesUrl = metadata?.widget_config?.observation_viewer?.alternate_zones;

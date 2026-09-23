@@ -5,6 +5,7 @@ import {
   nominalForecastDateString,
   nominalNWACWeatherForecastDate,
   normalizeTimeZone,
+  toISOStringZulu,
   utcDateToLocalDateString,
   utcDateToLocalTimeString,
 } from 'utils/date';
@@ -20,6 +21,22 @@ describe('Dates', () => {
 
     it('throws a useful error when given an invalid date', () => {
       expect(() => apiDateString(new Date('2023-01-32'))).toThrow('Failed to format date: Invalid time value, Invalid Date, yyyy-MM-dd, UTC');
+    });
+  });
+
+  describe('toISOStringZulu', () => {
+    it('renders into ISO 8601 with a Z suffix rather than a numeric offset', () => {
+      expect(toISOStringZulu(new Date('2023-01-19T02:01:02Z'))).toEqual('2023-01-19T02:01:02Z');
+    });
+
+    it('normalizes an offset time to UTC', () => {
+      expect(toISOStringZulu(new Date('2023-01-18T18:01:02-08:00'))).toEqual('2023-01-19T02:01:02Z');
+    });
+
+    it('renders in UTC regardless of the local time zone', () => {
+      TimezoneMock.register('US/Pacific');
+      expect(toISOStringZulu(new Date('2023-01-19T02:01:02Z'))).toEqual('2023-01-19T02:01:02Z');
+      TimezoneMock.unregister();
     });
   });
 
