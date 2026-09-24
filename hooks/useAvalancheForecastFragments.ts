@@ -9,15 +9,18 @@ import * as Sentry from '@sentry/react-native';
 import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {safeFetch} from 'hooks/fetch';
+import {useNACApiVersion} from 'hooks/useNACApiVersion';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, ProductFragmentArray, productFragmentArraySchema} from 'types/nationalAvalancheCenter';
 import {apiDateString} from 'utils/date';
+import {asOfParams, NACApiVersion, nacUrl} from 'utils/nationalAvalancheCenterApi';
 import {ZodError} from 'zod';
 
 export const useAvalancheForecastFragments = (center_id: AvalancheCenterID, date: Date): UseQueryResult<ProductFragmentArray, AxiosError | ZodError> => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = queryKey(nationalAvalancheCenterHost, center_id, date);
+  const apiVersion = useNACApiVersion();
+  const key = queryKey(nationalAvalancheCenterHost, apiVersion, center_id, date);
   const [thisLogger] = useState(logger.child({query: key}));
   useEffect(() => {
     thisLogger.debug('initiating query');
@@ -25,16 +28,23 @@ export const useAvalancheForecastFragments = (center_id: AvalancheCenterID, date
 
   return useQuery<ProductFragmentArray, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async (): Promise<ProductFragmentArray> => fetchAvalancheForecastFragments(nationalAvalancheCenterHost, center_id, date, thisLogger),
+    queryFn: async (): Promise<ProductFragmentArray> => fetchAvalancheForecastFragments(nationalAvalancheCenterHost, apiVersion, center_id, date, thisLogger),
   });
 };
 
-function queryKey(nationalAvalancheCenterHost: string, center_id: string, date: Date) {
-  return ['forecast-fragments', {host: nationalAvalancheCenterHost, center: center_id, date: apiDateString(date)}];
+function queryKey(nationalAvalancheCenterHost: string, apiVersion: NACApiVersion, center_id: string, date: Date) {
+  return ['forecast-fragments', {host: nationalAvalancheCenterHost, apiVersion: apiVersion, center: center_id, date: apiDateString(date)}];
 }
 
-const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nationalAvalancheCenterHost: string, center_id: string, date: Date, logger: Logger) => {
-  const key = queryKey(nationalAvalancheCenterHost, center_id, date);
+const prefetchAvalancheForecastFragments = async (
+  queryClient: QueryClient,
+  nationalAvalancheCenterHost: string,
+  apiVersion: NACApiVersion,
+  center_id: string,
+  date: Date,
+  logger: Logger,
+) => {
+  const key = queryKey(nationalAvalancheCenterHost, apiVersion, center_id, date);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
@@ -43,7 +53,7 @@ const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nati
     queryFn: async (): Promise<ProductFragmentArray> => {
       const start = new Date();
       thisLogger.trace(`prefetching`);
-      const result = await fetchAvalancheForecastFragments(nationalAvalancheCenterHost, center_id, date, thisLogger);
+      const result = await fetchAvalancheForecastFragments(nationalAvalancheCenterHost, apiVersion, center_id, date, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
@@ -53,29 +63,37 @@ const prefetchAvalancheForecastFragments = async (queryClient: QueryClient, nati
 const fetchAvalancheForecastFragmentsQuery = async (
   queryClient: QueryClient,
   nationalAvalancheCenterHost: string,
+  apiVersion: NACApiVersion,
   center_id: string,
   date: Date,
   logger: Logger,
 ): Promise<ProductFragmentArray> => {
-  const key = queryKey(nationalAvalancheCenterHost, center_id, date);
+  const key = queryKey(nationalAvalancheCenterHost, apiVersion, center_id, date);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
   return await queryClient.fetchQuery({
     queryKey: key,
     queryFn: async () => {
-      const result = await fetchAvalancheForecastFragments(nationalAvalancheCenterHost, center_id, date, thisLogger);
+      const result = await fetchAvalancheForecastFragments(nationalAvalancheCenterHost, apiVersion, center_id, date, thisLogger);
       return result;
     },
   });
 };
 
-const fetchAvalancheForecastFragments = async (nationalAvalancheCenterHost: string, center_id: string, date: Date, logger: Logger): Promise<ProductFragmentArray> => {
-  const url = `${nationalAvalancheCenterHost}/v2/public/products`;
+const fetchAvalancheForecastFragments = async (
+  nationalAvalancheCenterHost: string,
+  apiVersion: NACApiVersion,
+  center_id: string,
+  date: Date,
+  logger: Logger,
+): Promise<ProductFragmentArray> => {
+  const url = nacUrl(nationalAvalancheCenterHost, apiVersion, 'products');
   const params = {
     avalanche_center_id: center_id,
     date_start: apiDateString(sub(date, {days: 7})),
     date_end: apiDateString(add(date, {days: 1})),
+    ...asOfParams(apiVersion, date),
   };
   const what = 'avalanche forecast fragments';
   const thisLogger = logger.child({url: url, params: params, what: what});

@@ -2,6 +2,7 @@ import {useQueries, useQueryClient, UseQueryOptions} from '@tanstack/react-query
 import {AxiosError} from 'axios';
 import {ClientContext, ClientProps} from 'clientContext';
 import AvalancheForecastQuery from 'hooks/useAvalancheForecast';
+import {useNACApiVersion} from 'hooks/useNACApiVersion';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import React from 'react';
 import {AvalancheCenter, AvalancheCenterID, ForecastResult, MapLayer} from 'types/nationalAvalancheCenter';
@@ -17,6 +18,7 @@ export const useMapLayerAvalancheForecasts = (
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const queryClient = useQueryClient();
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
+  const apiVersion = useNACApiVersion();
   const expiryTimeHours = metadata?.config.expires_time ?? 0;
   const expiryTimeZone = metadata?.timezone ?? '';
   const preferredCenterFeatures = mapLayer?.features.filter(feature => feature.properties.center_id === center_id);
@@ -25,9 +27,9 @@ export const useMapLayerAvalancheForecasts = (
     queries: preferredCenterFeatures
       ? preferredCenterFeatures.map(feature => {
           return {
-            queryKey: AvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, center_id, feature.id, requestedTime, expiryTimeZone, expiryTimeHours),
+            queryKey: AvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, apiVersion, center_id, feature.id, requestedTime, expiryTimeZone, expiryTimeHours),
             queryFn: async (): Promise<ForecastResult> =>
-              AvalancheForecastQuery.fetch(queryClient, nationalAvalancheCenterHost, center_id, feature.id, requestedTime, expiryTimeZone, expiryTimeHours, logger),
+              AvalancheForecastQuery.fetch(queryClient, nationalAvalancheCenterHost, apiVersion, center_id, feature.id, requestedTime, expiryTimeZone, expiryTimeHours, logger),
             enabled: !!metadata,
             cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
           };

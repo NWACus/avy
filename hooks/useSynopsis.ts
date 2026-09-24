@@ -9,16 +9,19 @@ import {Logger} from 'browser-bunyan';
 import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
+import {useNACApiVersion} from 'hooks/useNACApiVersion';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, Synopsis, synopsisSchema} from 'types/nationalAvalancheCenter';
 import {NotFoundError} from 'types/requests';
 import {apiDateString, formatRequestedTime, RequestedTime} from 'utils/date';
+import {asOfParams, NACApiVersion, nacUrl} from 'utils/nationalAvalancheCenterApi';
 import {ZodError} from 'zod';
 
 export const useSynopsis = (center_id: AvalancheCenterID, zone_id: number, requested_time: RequestedTime): UseQueryResult<Synopsis, AxiosError | ZodError> => {
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = queryKey(nationalAvalancheCenterHost, center_id, zone_id, requested_time);
+  const apiVersion = useNACApiVersion();
+  const key = queryKey(nationalAvalancheCenterHost, apiVersion, center_id, zone_id, requested_time);
   const [thisLogger] = useState(logger.child({query: key}));
   useEffect(() => {
     thisLogger.debug('initiating query');
@@ -26,12 +29,12 @@ export const useSynopsis = (center_id: AvalancheCenterID, zone_id: number, reque
 
   return useQuery<Synopsis, AxiosError | ZodError>({
     queryKey: key,
-    queryFn: async (): Promise<Synopsis> => fetchSynopsis(nationalAvalancheCenterHost, center_id, zone_id, requested_time, thisLogger),
+    queryFn: async (): Promise<Synopsis> => fetchSynopsis(nationalAvalancheCenterHost, apiVersion, center_id, zone_id, requested_time, thisLogger),
     cacheTime: 12 * 60 * 60 * 1000, // hold on to this cached data for half a day (in milliseconds)
   });
 };
 
-function queryKey(nationalAvalancheCenterHost: string, center_id: string, zone_id: number, requestedTime: RequestedTime) {
+function queryKey(nationalAvalancheCenterHost: string, apiVersion: NACApiVersion, center_id: string, zone_id: number, requestedTime: RequestedTime) {
   let prefix = '';
   let date: Date;
   if (requestedTime === 'latest') {
@@ -45,6 +48,7 @@ function queryKey(nationalAvalancheCenterHost: string, center_id: string, zone_i
     `${prefix}-synopsis`,
     {
       host: nationalAvalancheCenterHost,
+      apiVersion: apiVersion,
       center: center_id,
       zone_id: zone_id,
       requestedTime: apiDateString(date),
@@ -55,12 +59,13 @@ function queryKey(nationalAvalancheCenterHost: string, center_id: string, zone_i
 const prefetchSynopsis = async (
   queryClient: QueryClient,
   nationalAvalancheCenterHost: string,
+  apiVersion: NACApiVersion,
   center_id: string,
   zone_id: number,
   requested_time: RequestedTime,
   logger: Logger,
 ) => {
-  const key = queryKey(nationalAvalancheCenterHost, center_id, zone_id, requested_time);
+  const key = queryKey(nationalAvalancheCenterHost, apiVersion, center_id, zone_id, requested_time);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
@@ -69,19 +74,27 @@ const prefetchSynopsis = async (
     queryFn: async () => {
       const start = new Date();
       thisLogger.trace(`prefetching`);
-      const result = await fetchSynopsis(nationalAvalancheCenterHost, center_id, zone_id, requested_time, thisLogger);
+      const result = await fetchSynopsis(nationalAvalancheCenterHost, apiVersion, center_id, zone_id, requested_time, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
   });
 };
 
-const fetchSynopsis = async (nationalAvalancheCenterHost: string, center_id: string, zone_id: number, requested_time: RequestedTime, logger: Logger): Promise<Synopsis> => {
-  const url = `${nationalAvalancheCenterHost}/v2/public/product`;
+const fetchSynopsis = async (
+  nationalAvalancheCenterHost: string,
+  apiVersion: NACApiVersion,
+  center_id: string,
+  zone_id: number,
+  requested_time: RequestedTime,
+  logger: Logger,
+): Promise<Synopsis> => {
+  const url = nacUrl(nationalAvalancheCenterHost, apiVersion, 'product');
   const params: Record<string, string> = {
     center_id: center_id,
     type: 'synopsis',
     zone_id: String(zone_id),
+    ...asOfParams(apiVersion, requested_time),
   };
   if (requested_time !== 'latest') {
     params['published_time'] = apiDateString(requested_time); // the API accepts a _date_ and appends 19:00 to it for a time...
