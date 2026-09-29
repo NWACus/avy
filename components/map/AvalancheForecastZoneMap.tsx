@@ -23,6 +23,7 @@ import {FirstRunExperienceModal} from 'components/modals/FirstRunExperienceModal
 import * as Location from 'expo-location';
 import {Position} from 'geojson';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
+import {useCanadaZones} from 'hooks/useCanadaZones';
 import {logger} from 'logger';
 import {Alert, Linking, View} from 'react-native';
 
@@ -49,6 +50,8 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
   const metadata = metadataResult.data;
   const forecastResults = useMapLayerAvalancheForecasts(center_id, requestedTime, allMapLayers, metadata);
   const warningResults = useMapLayerAvalancheWarnings(center_id, requestedTime, allMapLayers);
+
+  const canadaZones = useCanadaZones(requestedTime);
 
   const topElements = React.useRef<View>(null);
 
@@ -259,6 +262,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
         <AvalancheForecastMapView
           preferredCenterId={center_id}
           zones={zones}
+          canadaZones={canadaZones}
           requestedTime={requestedTime}
           topElementMeasurements={topElementMeasurements}
           userLocation={userLocation}

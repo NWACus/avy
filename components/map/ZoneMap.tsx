@@ -1,6 +1,8 @@
 import {AvalancheForecastZonePolygon, SelectedAvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZonePolygon';
+import {CanadaAvalancheForecastZonePolygons} from 'components/map/CanadaAvalancheForecastZonePolygons';
 import React, {RefObject, useMemo} from 'react';
 import {AvalancheCenterID, DangerLevel, MapLayerFeature} from 'types/nationalAvalancheCenter';
+import {CanadaMapViewZone} from 'utils/canadaMapViewZone';
 
 import Mapbox, {Camera, CameraBounds, CameraStop, MapState, MapView} from '@rnmapbox/maps';
 import {ViewProps} from 'react-native';
@@ -34,6 +36,7 @@ export type MapViewZone = {
 // If both initialCameraBounds and initialCameraStop are passed in, then initialCameraStop will take priority when setting the Camera
 interface ZoneMapProps extends ViewProps {
   zones: MapViewZone[];
+  canadaZones?: CanadaMapViewZone[];
   initialCameraBounds: CameraBounds;
   initialCameraStop?: CameraStop;
   cameraRef?: RefObject<Camera | null>;
@@ -43,12 +46,14 @@ interface ZoneMapProps extends ViewProps {
   scrollEnabled?: boolean;
   zoomEnabled?: boolean;
   onPolygonPress?: (zone: MapViewZone) => void;
+  onCanadaPolygonPress?: (zone: CanadaMapViewZone) => void;
   onMapPress?: (feature: GeoJSON.Feature) => void;
   onCameraChanged?: (mapState: MapState) => void;
 }
 
 export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
   zones,
+  canadaZones,
   cameraRef,
   selectedZoneId,
   initialCameraBounds,
@@ -59,6 +64,7 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
   zoomEnabled = true,
   onMapPress = undefined,
   onPolygonPress = undefined,
+  onCanadaPolygonPress = undefined,
   onCameraChanged = undefined,
   children,
   ...props
@@ -87,6 +93,7 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
       onCameraChanged={onCameraChanged}
       {...props}>
       <Camera ref={cameraRef} defaultSettings={initialCameraStop ?? {bounds: initialCameraBounds}} />
+      {canadaZones && <CanadaAvalancheForecastZonePolygons zones={canadaZones} renderFillColor={renderFillColor} onPress={onCanadaPolygonPress} />}
       {zonePolygons}
       {selectedPolygon}
       {children}

@@ -6,6 +6,7 @@ export interface ClientProps {
   nationalAvalancheCenterWordpressHost: string;
   snowboundHost: string;
   nwacHost: string;
+  avalancheCanadaHost: string;
   requestedTime: RequestedTime;
   setRequestedTime: (requestedTime: RequestedTime) => void;
 }
@@ -15,6 +16,7 @@ export const productionHosts = {
   nationalAvalancheCenterWordpressHost: 'https://forecasts.avalanche.org',
   snowboundHost: 'https://api.snowobs.com',
   nwacHost: 'https://nwac.us',
+  avalancheCanadaHost: 'https://avcan-services-api.prod.avalanche.ca',
 };
 
 export const stagingHosts = {
@@ -22,6 +24,7 @@ export const stagingHosts = {
   nationalAvalancheCenterWordpressHost: 'https://devavycenters.wpengine.com',
   snowboundHost: 'https://dev.snowobs.com',
   nwacHost: 'https://staging.nwac.us',
+  avalancheCanadaHost: 'https://avcan-services-api.prod.avalanche.ca',
 };
 
 export const ClientContext: Context<ClientProps> = React.createContext<ClientProps>({

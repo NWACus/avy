@@ -4,6 +4,7 @@ import {Animated} from 'react-native';
 import {LineLayer, Animated as MBAnimated, ShapeSource} from '@rnmapbox/maps';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {MapViewZone} from 'components/map/ZoneMap';
+import {ZONE_OUTLINE_COLOR, ZONE_OUTLINE_WIDTH} from 'components/map/zonePolygonStyle';
 import {colorLookup} from 'theme';
 
 export interface AvalancheForecastZonePolygonProps {
@@ -13,7 +14,6 @@ export interface AvalancheForecastZonePolygonProps {
 }
 
 export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheForecastZonePolygonProps> = ({zone, onPress, renderFillColor}: AvalancheForecastZonePolygonProps) => {
-  const outline = colorLookup('gray.700');
   const useAnimation = zone.hasWarning && renderFillColor;
   const animationProgress = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -58,7 +58,7 @@ export const AvalancheForecastZonePolygon: React.FunctionComponent<AvalancheFore
   return (
     <ShapeSource key={`${zone.zone_id}`} id={`${zone.zone_id}`} shape={zone.feature} onPress={onPolygonPress} hitbox={{width: 0, height: 0}}>
       <MBAnimated.FillLayer id={`${zone.zone_id}-fillLayer`} style={{fillColor: fillColor, visibility: renderFillColor ? 'visible' : 'none'}} />
-      <LineLayer id={`${zone.zone_id}-lineLayer`} style={{lineColor: outline.toString(), lineWidth: 2}} />
+      <LineLayer id={`${zone.zone_id}-lineLayer`} style={{lineColor: ZONE_OUTLINE_COLOR.toString(), lineWidth: ZONE_OUTLINE_WIDTH}} />
     </ShapeSource>
   );
 };
