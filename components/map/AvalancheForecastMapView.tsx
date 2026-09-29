@@ -10,7 +10,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import {useMapPersistence} from 'MapPersistence';
 import {usePreferences} from 'Preferences';
 import {MainStackNavigationProps} from 'routes';
-import {AvalancheCenterID, AvalancheCenterWebsites, isNACCenter, MapCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, AvalancheCenterWebsites, isNACCenter, UnsupportedCenterID} from 'types/nationalAvalancheCenter';
 import {formatRequestedTime, RequestedTime} from 'utils/date';
 
 import {Camera, CameraStop, MapState} from '@rnmapbox/maps';
@@ -52,13 +52,15 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 
   const navigation = useNavigation<MainStackNavigationProps>();
 
-  const [unsupportedCenter, setUnsupportedCenter] = useState<{centerId: MapCenterID; url: string} | null>(null);
-  const onCloseUnsupportedModal = useCallback(() => setUnsupportedCenter(null), []);
+  const [unsupportedCenter, setUnsupportedCenter] = useState<{centerId: UnsupportedCenterID; url: string} | null>(null);
+  const [isUnsupportedModalVisible, setIsUnsupportedModalVisible] = useState(false);
+  const onCloseUnsupportedModal = useCallback(() => setIsUnsupportedModalVisible(false), []);
 
   const onCanadaPolygonPress = useCallback(
     (zone: CanadaMapViewZone) => {
       analytics.capture('canada_zone_tapped', {center: preferredCenterId, canada_zone_id: zone.zone_id});
       setUnsupportedCenter({centerId: 'CAN', url: zone.url});
+      setIsUnsupportedModalVisible(true);
     },
     [analytics, preferredCenterId],
   );
@@ -95,6 +97,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         } else {
           analytics.capture('unsupported_center_tapped', {center: preferredCenterId, unsupported_center_id: zone.center_id, zone_name: zone.name});
           setUnsupportedCenter({centerId: selectedZoneCenter, url: AvalancheCenterWebsites[selectedZoneCenter]});
+          setIsUnsupportedModalVisible(true);
         }
       }
     },
@@ -219,7 +222,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
       />
 
       <CenterNotSupportedModal
-        visible={unsupportedCenter !== null}
+        visible={isUnsupportedModalVisible}
         centerId={preferredCenterId}
         unsupportedCenterId={unsupportedCenter?.centerId ?? null}
         avalancheCenterWebsiteUrl={unsupportedCenter?.url ?? null}

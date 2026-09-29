@@ -37,7 +37,9 @@ export type AvalancheCenterID = z.infer<typeof avalancheCenterIDSchema>;
 // Avalanche Canada is not a NAC center, but its areas are rendered on the map alongside NAC zones
 export type MapCenterID = AvalancheCenterID | 'CAN';
 
-export const isNACCenter = (centerId: AvalancheCenterID): boolean => {
+export type UnsupportedCenterID = Extract<MapCenterID, 'CAIC' | 'UAC' | 'SOAIX' | 'EWYAIX' | 'EARAC' | 'CAC' | 'CAAC' | 'NYSAC' | 'CAN'>;
+
+export const isNACCenter = (centerId: AvalancheCenterID): centerId is Exclude<AvalancheCenterID, UnsupportedCenterID> => {
   switch (centerId) {
     case 'BAC':
     case 'BTAC':
@@ -110,6 +112,18 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
   ['CAC']: 'https://alaskasnow.org/cordova/',
   ['CAAC']: 'https://www.coastalakavalanche.org/',
   ['NYSAC']: '',
+};
+
+export const UnsupportedCenterNames: Record<UnsupportedCenterID, string> = {
+  ['CAIC']: 'Colorado Avalanche Information Center',
+  ['UAC']: 'Utah Avalanche Center',
+  ['SOAIX']: 'Southern Oregon Avalanche Info Exchange',
+  ['EWYAIX']: 'Eastern Wyoming Avalanche Info Exchange',
+  ['EARAC']: 'Eastern Alaska Range Avalanche Center',
+  ['CAC']: 'Cordova Avalanche Center',
+  ['CAAC']: 'Coastal Alaska Avalanche Center',
+  ['NYSAC']: 'New York State Avalanche Center',
+  ['CAN']: 'Avalanche Canada',
 };
 
 export enum DangerLevel {

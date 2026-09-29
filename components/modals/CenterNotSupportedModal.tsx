@@ -9,18 +9,19 @@ import * as WebBrowser from 'expo-web-browser';
 import {useAnalytics} from 'hooks/useAnalytics';
 import {logger} from 'logger';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, MapCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, UnsupportedCenterID, UnsupportedCenterNames} from 'types/nationalAvalancheCenter';
 
 interface CenterNotSupportedModalProps {
   visible: boolean;
   centerId: AvalancheCenterID;
-  unsupportedCenterId: MapCenterID | null;
+  unsupportedCenterId: UnsupportedCenterID | null;
   avalancheCenterWebsiteUrl: string | null;
   onClose: () => void;
 }
 
 export const CenterNotSupportedModal: React.FC<CenterNotSupportedModalProps> = ({visible, centerId, unsupportedCenterId, avalancheCenterWebsiteUrl, onClose}) => {
   const analytics = useAnalytics();
+  const centerDisplayName = unsupportedCenterId ? UnsupportedCenterNames[unsupportedCenterId] : 'This avalanche center';
 
   const onPressWebsite = useCallback(() => {
     if (!unsupportedCenterId || !avalancheCenterWebsiteUrl) {
@@ -55,7 +56,7 @@ export const CenterNotSupportedModal: React.FC<CenterNotSupportedModalProps> = (
                 <Ionicons name="close-outline" size={24} color={colorLookup('text')} />
               </TouchableOpacity>
             </HStack>
-            <Body>{"This avalanche center isn't available within Avy right now. You can still access their latest forecast and updates on their website."}</Body>
+            <Body>{`${centerDisplayName} isn't available within Avy right now. You can still access their latest forecast and updates on their website.`}</Body>
           </VStack>
           <View mt={20}>
             <Button buttonStyle="primary" onPress={onPressWebsite}>
