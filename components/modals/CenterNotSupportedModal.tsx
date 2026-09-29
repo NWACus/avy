@@ -48,7 +48,7 @@ export const CenterNotSupportedModal: React.FC<CenterNotSupportedModalProps> = (
       <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24}}>
         <VStack style={{backgroundColor: colorLookup('white'), borderRadius: 16, padding: 24, width: '100%', maxWidth: 340}}>
           <VStack space={12}>
-            <HStack width={'100%'} paddingHorizontal={8} alignItems={'flex-start'} space={8}>
+            <HStack width={'100%'} alignItems={'flex-start'} space={8}>
               <View flex={1}>
                 <Title3Black>Forecast Available on Official Site</Title3Black>
               </View>
@@ -60,7 +60,7 @@ export const CenterNotSupportedModal: React.FC<CenterNotSupportedModalProps> = (
           </VStack>
           <View mt={20}>
             <Button buttonStyle="primary" onPress={onPressWebsite}>
-              <BodyBlack>Go to Website</BodyBlack>
+              <BodyBlack letterSpacing={0.2}>Open {unsupportedCenterId === 'CAN' ? 'Avalance Canada' : unsupportedCenterId} Site</BodyBlack>
             </Button>
           </View>
         </VStack>
