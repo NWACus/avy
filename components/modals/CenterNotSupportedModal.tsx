@@ -9,18 +9,19 @@ import * as WebBrowser from 'expo-web-browser';
 import {useAnalytics} from 'hooks/useAnalytics';
 import {logger} from 'logger';
 import {colorLookup} from 'theme';
-import {AvalancheCenterID, MapCenterID} from 'types/nationalAvalancheCenter';
+import {AvalancheCenterID, UnsupportedCenterID, UnsupportedCenterNames} from 'types/nationalAvalancheCenter';
 
 interface CenterNotSupportedModalProps {
   visible: boolean;
   centerId: AvalancheCenterID;
-  unsupportedCenterId: MapCenterID | null;
+  unsupportedCenterId: UnsupportedCenterID | null;
   avalancheCenterWebsiteUrl: string | null;
   onClose: () => void;
 }
 
 export const CenterNotSupportedModal: React.FC<CenterNotSupportedModalProps> = ({visible, centerId, unsupportedCenterId, avalancheCenterWebsiteUrl, onClose}) => {
   const analytics = useAnalytics();
+  const centerDisplayName = unsupportedCenterId ? UnsupportedCenterNames[unsupportedCenterId] : 'This avalanche center';
 
   const onPressWebsite = useCallback(() => {
     if (!unsupportedCenterId || !avalancheCenterWebsiteUrl) {
@@ -47,7 +48,7 @@ export const CenterNotSupportedModal: React.FC<CenterNotSupportedModalProps> = (
       <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24}}>
         <VStack style={{backgroundColor: colorLookup('white'), borderRadius: 16, padding: 24, width: '100%', maxWidth: 340}}>
           <VStack space={12}>
-            <HStack width={'100%'} paddingHorizontal={8} alignItems={'flex-start'} space={8}>
+            <HStack width={'100%'} alignItems={'flex-start'} space={8}>
               <View flex={1}>
                 <Title3Black>Forecast Available on Official Site</Title3Black>
               </View>
@@ -55,11 +56,11 @@ export const CenterNotSupportedModal: React.FC<CenterNotSupportedModalProps> = (
                 <Ionicons name="close-outline" size={24} color={colorLookup('text')} />
               </TouchableOpacity>
             </HStack>
-            <Body>{"This avalanche center isn't available within Avy right now. You can still access their latest forecast and updates on their website."}</Body>
+            <Body>{`${centerDisplayName} isn't available within Avy right now. You can still access their latest forecast and updates on their website.`}</Body>
           </VStack>
           <View mt={20}>
             <Button buttonStyle="primary" onPress={onPressWebsite}>
-              <BodyBlack>Go to Website</BodyBlack>
+              <BodyBlack letterSpacing={0.2}>Open {unsupportedCenterId === 'CAN' ? 'Avalance Canada' : unsupportedCenterId} Site</BodyBlack>
             </Button>
           </View>
         </VStack>
