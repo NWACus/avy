@@ -47,17 +47,19 @@ import * as messages from 'compiled-lang/en.json';
 import {Button} from 'components/content/Button';
 import {Center, VStack} from 'components/core';
 import {KillSwitchMonitor} from 'components/KillSwitchMonitor';
+import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {DrawerNavigator} from 'components/screens/navigation/Drawer';
 import {SecondarySplashScreen} from 'components/splash/SecondarySplashScreen';
 import {Body, BodyBlack, Title3Black} from 'components/text';
 import * as Linking from 'expo-linking';
 import * as Updates from 'expo-updates';
-import {FeatureFlagsProvider} from 'FeatureFlags';
+import {FeatureFlagsProvider, useFeatureFlagsLoaded} from 'FeatureFlags';
 import {useNACApiVersion} from 'hooks/useNACApiVersion';
 import {useToggle} from 'hooks/useToggle';
 import {filterLoggedData} from 'logging/filterLoggedData';
 import {PostHogProvider} from 'posthog-react-native';
 import {startupUpdateCheck, UpdateStatus} from 'Updates';
+import {NAC_API_V3_FLAG_KEY} from 'utils/nationalAvalancheCenterApi';
 import {ZodError} from 'zod';
 
 logger.info('App starting.');
@@ -322,7 +324,7 @@ const AppWithAnalytics: React.FunctionComponent<{
           featureFlags: {
             'down-for-maintenance': false,
             'update-required': false,
-            'nac-v3-kill-switch': false,
+            [NAC_API_V3_FLAG_KEY]: !Updates.channel,
           },
         },
       }}
@@ -347,9 +349,18 @@ const BaseApp: React.FunctionComponent<{
 
   const {nationalAvalancheCenterHost, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, avalancheCanadaHost, requestedTime} =
     React.useContext<ClientProps>(ClientContext);
+  const featureFlagsLoaded = useFeatureFlagsLoaded();
   const apiVersion = useNACApiVersion();
   const queryClient = useQueryClient();
   useEffect(() => {
+    if (featureFlagsLoaded) {
+      getUploader().setImageAPIVersion(apiVersion);
+    }
+  }, [featureFlagsLoaded, apiVersion]);
+  useEffect(() => {
+    if (!featureFlagsLoaded) {
+      return;
+    }
     void (async () => {
       if (process.env.EXPO_PUBLIC_DISABLE_PREFETCHING) {
         logger.info('skipping prefetch because EXPO_PUBLIC_DISABLE_PREFETCHING is set');
@@ -371,7 +382,18 @@ const BaseApp: React.FunctionComponent<{
         }
       }
     })();
-  }, [logger, queryClient, center, nationalAvalancheCenterHost, apiVersion, nationalAvalancheCenterWordpressHost, nwacHost, snowboundHost, avalancheCanadaHost]);
+  }, [
+    featureFlagsLoaded,
+    logger,
+    queryClient,
+    center,
+    nationalAvalancheCenterHost,
+    apiVersion,
+    nationalAvalancheCenterWordpressHost,
+    nwacHost,
+    snowboundHost,
+    avalancheCanadaHost,
+  ]);
 
   const navigationRef = useNavigationContainerRef();
 
@@ -448,7 +470,7 @@ const BaseApp: React.FunctionComponent<{
 
   const [startupPaused, {off: unpauseStartup}] = useToggle(process.env.EXPO_PUBLIC_PAUSE_ON_STARTUP === 'true');
 
-  if (updateStatus !== 'ready' || preferences.mixpanelUserId == '') {
+  if (updateStatus !== 'ready' || preferences.mixpanelUserId == '' || !featureFlagsLoaded) {
     // Here, we render a view that looks exactly like the splash screen but now has an activity indicator
     return <SecondarySplashScreen />;
   }

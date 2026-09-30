@@ -1,4 +1,4 @@
-import {useOneFeatureFlag} from 'FeatureFlags';
-import {NAC_V3_KILL_SWITCH, NACApiVersion, nacApiVersion} from 'utils/nationalAvalancheCenterApi';
+import {useSessionNACApiVersion} from 'FeatureFlags';
+import {NACApiVersion} from 'utils/nationalAvalancheCenterApi';
 
-export const useNACApiVersion = (): NACApiVersion => nacApiVersion(!!useOneFeatureFlag(NAC_V3_KILL_SWITCH));
+export const useNACApiVersion = (): NACApiVersion => useSessionNACApiVersion();

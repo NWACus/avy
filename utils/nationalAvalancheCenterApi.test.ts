@@ -1,12 +1,31 @@
-import {asOfParams, nacApiVersion, nacUrl} from 'utils/nationalAvalancheCenterApi';
+import {asOfParams, nacApiVersion, nacUrl, resolveSessionNACApiVersion} from 'utils/nationalAvalancheCenterApi';
 
 describe('nacApiVersion', () => {
-  it('returns v2 when the kill switch is enabled', () => {
-    expect(nacApiVersion(true)).toEqual('v2');
+  it('returns v3 when the flag is enabled', () => {
+    expect(nacApiVersion(true)).toEqual('v3');
   });
 
-  it('returns v3 when the kill switch is disabled', () => {
-    expect(nacApiVersion(false)).toEqual('v3');
+  it('returns v2 when the flag is disabled', () => {
+    expect(nacApiVersion(false)).toEqual('v2');
+  });
+});
+
+describe('resolveSessionNACApiVersion', () => {
+  it('uses the flag when no version has been locked for the session', () => {
+    expect(resolveSessionNACApiVersion(undefined, true)).toEqual('v3');
+    expect(resolveSessionNACApiVersion(undefined, false)).toEqual('v2');
+  });
+
+  it('stays on v2 for the session when the flag turns on', () => {
+    expect(resolveSessionNACApiVersion('v2', true)).toEqual('v2');
+  });
+
+  it('stays on v3 while the flag remains on', () => {
+    expect(resolveSessionNACApiVersion('v3', true)).toEqual('v3');
+  });
+
+  it('falls back to v2 immediately when the flag turns off', () => {
+    expect(resolveSessionNACApiVersion('v3', false)).toEqual('v2');
   });
 });
 

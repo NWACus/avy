@@ -35,7 +35,6 @@ import {getPresentedFromForAnalytics, useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useKeyboardBehavior} from 'hooks/useKeyboardBehavior';
-import {useNACApiVersion} from 'hooks/useNACApiVersion';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
@@ -127,7 +126,6 @@ export const ObservationForm: React.FC<{
   const scrollViewRef = useRef<ScrollView>(null);
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
-  const apiVersion = useNACApiVersion();
   const today = new Date();
 
   const maxImageCount = 8;
@@ -138,7 +136,6 @@ export const ObservationForm: React.FC<{
       const observationId = await getUploader().submitObservation({
         center_id,
         apiPrefix: nationalAvalancheCenterHost,
-        apiVersion,
         observationFormData,
       });
       const promise: Promise<void> = new Promise((resolve, reject) => {

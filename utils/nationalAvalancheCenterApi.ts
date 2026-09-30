@@ -2,9 +2,14 @@ import {RequestedTime, toISOStringZulu} from 'utils/date';
 
 export type NACApiVersion = 'v2' | 'v3';
 
-export const NAC_V3_KILL_SWITCH = 'nac-v3-kill-switch';
+export const NAC_API_V3_FLAG_KEY = 'nac-api-v3';
 
-export const nacApiVersion = (killSwitchEnabled: boolean): NACApiVersion => (killSwitchEnabled ? 'v2' : 'v3');
+export const nacApiVersion = (flagEnabled: boolean): NACApiVersion => {
+  return flagEnabled ? 'v3' : 'v2';
+};
+
+export const resolveSessionNACApiVersion = (lockedVersion: NACApiVersion | undefined, flagEnabled: boolean): NACApiVersion =>
+  lockedVersion === 'v2' ? 'v2' : nacApiVersion(flagEnabled);
 
 export const nacUrl = (nationalAvalancheCenterHost: string, apiVersion: NACApiVersion, path: string): string => `${nationalAvalancheCenterHost}/${apiVersion}/public/${path}`;
 

@@ -13,7 +13,7 @@ import {useNACApiVersion} from 'hooks/useNACApiVersion';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenterID, warningResultSchema, WarningResultWithZone} from 'types/nationalAvalancheCenter';
 import {apiDateString, RequestedTime} from 'utils/date';
-import {asOfParams, NACApiVersion, nacUrl} from 'utils/nationalAvalancheCenterApi';
+import {NACApiVersion, nacUrl} from 'utils/nationalAvalancheCenterApi';
 import {ZodError} from 'zod';
 
 export const useAvalancheWarning = (center_id: AvalancheCenterID, zone_id: number, requested_time: RequestedTime): UseQueryResult<WarningResultWithZone, AxiosError | ZodError> => {
@@ -93,7 +93,6 @@ const fetchAvalancheWarning = async (
     center_id: center_id,
     type: 'warning',
     zone_id: String(zone_id),
-    ...asOfParams(apiVersion, requested_time),
   };
   if (requested_time !== 'latest') {
     params['published_time'] = apiDateString(add(requested_time, {days: 1})); // the API accepts a _date_ and appends 19:00 to it for a time...

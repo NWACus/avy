@@ -102,6 +102,7 @@ export class ObservationUploader {
   private completedTasks: TaskQueueEntry[] = [];
   private ready = false;
   private offline = true;
+  private imageAPIVersion: NACApiVersion | undefined = undefined;
   private logger = logger.child({component: 'ObservationUploader'});
   private stateSubscribers: StateSubscriber[] = [];
 
@@ -133,6 +134,14 @@ export class ObservationUploader {
     }
   }
 
+  setImageAPIVersion(imageAPIVersion: NACApiVersion) {
+    this.logger.info({imageAPIVersion}, 'image API version updated');
+    this.imageAPIVersion = imageAPIVersion;
+    if (this.ready) {
+      this.tryRunTaskQueue();
+    }
+  }
+
   private async flush() {
     this.checkInitialized();
     this.logger.debug({queue: this.taskQueue}, 'flushing new task queue to disk');
@@ -143,8 +152,14 @@ export class ObservationUploader {
 
   private tryRunTaskQueue() {
     this.checkInitialized();
-    this.logger.debug({offline: this.offline, queueLength: this.taskQueue.length, pendingTaskQueueUpdate: this.pendingTaskQueueUpdate != null}, 'tryRunTaskQueue');
-    if (this.offline || this.taskQueue.length === 0 || this.pendingTaskQueueUpdate) {
+    this.logger.debug(
+      {offline: this.offline, imageAPIVersion: this.imageAPIVersion, queueLength: this.taskQueue.length, pendingTaskQueueUpdate: this.pendingTaskQueueUpdate != null},
+      'tryRunTaskQueue',
+    );
+    // TODO: remove imageAPIVersion once NAC v3 ships without the nac-api-v3 feature flag.
+    // Only image uploads use it, but we block the whole queue until it's set: tasks run in order and an
+    // observation needs its images' media attached first, so skipping images would upload observations without photos.
+    if (this.offline || !this.imageAPIVersion || this.taskQueue.length === 0 || this.pendingTaskQueueUpdate) {
       return;
     }
     const headEntry = this.taskQueue[0];
@@ -160,17 +175,7 @@ export class ObservationUploader {
     this.tryRunTaskQueue();
   }
 
-  async submitObservation({
-    apiPrefix,
-    apiVersion,
-    center_id,
-    observationFormData,
-  }: {
-    apiPrefix: string;
-    apiVersion: NACApiVersion;
-    center_id: AvalancheCenterID;
-    observationFormData: ObservationFormData;
-  }) {
+  async submitObservation({apiPrefix, center_id, observationFormData}: {apiPrefix: string; center_id: AvalancheCenterID; observationFormData: ObservationFormData}) {
     this.checkInitialized();
     try {
       const {photoUsage, name} = observationFormData;
@@ -180,12 +185,12 @@ export class ObservationUploader {
       const observationTaskId = uuid.v4();
 
       observationFormData.images?.forEach(({image, caption}) => {
-        this.addImageTask(tasks, image, caption, apiPrefix, apiVersion, center_id, observationFormData.location_name, observationTaskId, photoUsage, name);
+        this.addImageTask(tasks, image, caption, apiPrefix, center_id, observationFormData.location_name, observationTaskId, photoUsage, name);
       });
 
       observationFormData.avalanches.forEach((avalanche, index) => {
         avalanche.images?.forEach(({image, caption}) => {
-          this.addImageTask(tasks, image, caption, apiPrefix, apiVersion, center_id, avalanche.location, observationTaskId, photoUsage, name, index);
+          this.addImageTask(tasks, image, caption, apiPrefix, center_id, avalanche.location, observationTaskId, photoUsage, name, index);
         });
       });
 
@@ -228,7 +233,6 @@ export class ObservationUploader {
     image: ImagePickerAssetSchema,
     caption: string | undefined,
     apiPrefix: string,
-    apiVersion: NACApiVersion,
     center_id: AvalancheCenterID,
     locationName: string,
     observationTaskId: string,
@@ -245,7 +249,6 @@ export class ObservationUploader {
       status: 'pending',
       data: {
         apiPrefix: apiPrefix,
-        apiVersion: apiVersion,
         image: {
           uri: image.uri,
           width: image.width,
@@ -270,8 +273,9 @@ export class ObservationUploader {
     this.pendingTaskQueueUpdate = null;
     this.logger.debug({queue: this.taskQueue}, 'processTaskQueue');
 
+    const imageAPIVersion = this.imageAPIVersion;
     const entry = this.taskQueue.find(t => t.status === 'pending');
-    if (!entry) {
+    if (!entry || !imageAPIVersion) {
       return;
     }
     entry.attemptCount++;
@@ -281,7 +285,7 @@ export class ObservationUploader {
         case 'image':
           {
             // We upload the image, and if successful we update the parent observation task to include it
-            const mediaItem = await uploadImage(entry.id, entry.data);
+            const mediaItem = await uploadImage(entry.id, {...entry.data, apiVersion: imageAPIVersion});
             const parentTask = this.taskQueue.find(task => task.id === entry.parentId);
             if (!parentTask || parentTask.type !== 'observation') {
               this.logger.warn({entry, parentTask, queue: this.taskQueue}, `Unexpected: image task has no parent observation task`);

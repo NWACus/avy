@@ -97,7 +97,7 @@ const fetchSynopsis = async (
     ...asOfParams(apiVersion, requested_time),
   };
   if (requested_time !== 'latest') {
-    params['published_time'] = apiDateString(requested_time); // the API accepts a _date_ and appends 19:00 to it for a time...
+    params['published_time'] = apiDateString(requested_time);
   }
   const what = 'conditions blog';
   const thisLogger = logger.child({url: url, params: params, what: what});
