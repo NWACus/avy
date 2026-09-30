@@ -11,9 +11,11 @@ import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import AvalancheForecastByID from 'hooks/useAvalancheForecastById';
 import AvalancheForecastFragment from 'hooks/useAvalancheForecastFragment';
+import {useNACApiVersion} from 'hooks/useNACApiVersion';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {AvalancheCenter, AvalancheCenterID, ForecastResult, forecastResultSchema} from 'types/nationalAvalancheCenter';
 import {nominalForecastDate, nominalForecastDateString, RequestedTime} from 'utils/date';
+import {NACApiVersion, nacUrl} from 'utils/nationalAvalancheCenterApi';
 import {ZodError} from 'zod';
 
 export const useAvalancheForecast = (
@@ -28,7 +30,8 @@ export const useAvalancheForecast = (
   const queryClient = useQueryClient();
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = queryKey(nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone ?? '', expiryTimeHours ?? 0);
+  const apiVersion = useNACApiVersion();
+  const key = queryKey(nationalAvalancheCenterHost, apiVersion, center_id, zone_id, requestedTime, expiryTimeZone ?? '', expiryTimeHours ?? 0);
   const [thisLogger] = useState(logger.child({query: key}));
   useEffect(() => {
     thisLogger.debug('initiating query');
@@ -37,7 +40,7 @@ export const useAvalancheForecast = (
   return useQuery<ForecastResult, AxiosError | ZodError>({
     queryKey: key,
     queryFn: async (): Promise<ForecastResult> =>
-      fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone ?? '', expiryTimeHours ?? 0, thisLogger),
+      fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, apiVersion, center_id, zone_id, requestedTime, expiryTimeZone ?? '', expiryTimeHours ?? 0, thisLogger),
     enabled: !!center,
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
@@ -50,6 +53,7 @@ export const useAvalancheForecast = (
 // the cache. By adding the nominal date to the query key, we get this behavior.
 function queryKey(
   nationalAvalancheCenterHost: string,
+  apiVersion: NACApiVersion,
   center_id: AvalancheCenterID,
   zone_id: number,
   requestedTime: RequestedTime,
@@ -69,6 +73,7 @@ function queryKey(
     `${prefix}-forecast`,
     {
       host: nationalAvalancheCenterHost,
+      apiVersion: apiVersion,
       center: center_id,
       zone_id: zone_id,
       requestedTime: nominalForecastDateString(date, expiryTimeZone, expiryTimeHours),
@@ -79,6 +84,7 @@ function queryKey(
 const prefetchAvalancheForecast = async (
   queryClient: QueryClient,
   nationalAvalancheCenterHost: string,
+  apiVersion: NACApiVersion,
   center_id: AvalancheCenterID,
   zone_id: number,
   requestedTime: RequestedTime,
@@ -86,7 +92,7 @@ const prefetchAvalancheForecast = async (
   expiryTimeHours: number,
   logger: Logger,
 ) => {
-  const key = queryKey(nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours);
+  const key = queryKey(nationalAvalancheCenterHost, apiVersion, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
@@ -95,7 +101,7 @@ const prefetchAvalancheForecast = async (
     queryFn: async (): Promise<ForecastResult> => {
       const start = new Date();
       thisLogger.trace(`prefetching`);
-      const result = fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours, thisLogger);
+      const result = fetchAvalancheForecast(queryClient, nationalAvalancheCenterHost, apiVersion, center_id, zone_id, requestedTime, expiryTimeZone, expiryTimeHours, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
@@ -105,6 +111,7 @@ const prefetchAvalancheForecast = async (
 const fetchAvalancheForecast = async (
   queryClient: QueryClient,
   nationalAvalancheCenterHost: string,
+  apiVersion: NACApiVersion,
   center_id: AvalancheCenterID,
   zone_id: number,
   requested_time: RequestedTime,
@@ -113,22 +120,29 @@ const fetchAvalancheForecast = async (
   logger: Logger,
 ): Promise<ForecastResult> => {
   if (requested_time === 'latest') {
-    return fetchLatestAvalancheForecast(nationalAvalancheCenterHost, center_id, zone_id, logger);
+    return fetchLatestAvalancheForecast(nationalAvalancheCenterHost, apiVersion, center_id, zone_id, logger);
   } else {
     const fragment = await AvalancheForecastFragment.fetch(
       queryClient,
       nationalAvalancheCenterHost,
+      apiVersion,
       center_id,
       zone_id,
       nominalForecastDate(requested_time, expiryTimeZone, expiryTimeHours),
       logger,
     );
-    return await AvalancheForecastByID.fetch(nationalAvalancheCenterHost, fragment.id, logger);
+    return await AvalancheForecastByID.fetch(nationalAvalancheCenterHost, apiVersion, fragment.id, logger);
   }
 };
 
-const fetchLatestAvalancheForecast = async (nationalAvalancheCenterHost: string, center_id: string, zone_id: number, logger: Logger): Promise<ForecastResult> => {
-  const url = `${nationalAvalancheCenterHost}/v2/public/product`;
+const fetchLatestAvalancheForecast = async (
+  nationalAvalancheCenterHost: string,
+  apiVersion: NACApiVersion,
+  center_id: string,
+  zone_id: number,
+  logger: Logger,
+): Promise<ForecastResult> => {
+  const url = nacUrl(nationalAvalancheCenterHost, apiVersion, 'product');
   const params = {
     center_id: center_id,
     type: 'forecast',

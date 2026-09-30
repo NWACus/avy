@@ -9,13 +9,14 @@ import * as Application from 'expo-application';
 import * as Updates from 'expo-updates';
 
 import {useNetInfo} from '@react-native-community/netinfo';
-import PostHog, {useFeatureFlags} from 'posthog-react-native';
+import PostHog, {useFeatureFlags, usePostHog} from 'posthog-react-native';
 
 import {Analytics, useAnalytics} from 'hooks/useAnalytics';
 import {useAppState} from 'hooks/useAppState';
 import {getUpdateGroupId} from 'hooks/useEASUpdateStatus';
 import {logger} from 'logger';
 import {usePreferences} from 'Preferences';
+import {NAC_API_V3_FLAG_KEY, NACApiVersion, nacApiVersion, resolveSessionNACApiVersion} from 'utils/nationalAvalancheCenterApi';
 
 export type FeatureFlagsReturn = ReturnType<PostHog['getFeatureFlags']>;
 export type FeatureFlags = Exclude<FeatureFlagsReturn, undefined>;
@@ -24,9 +25,13 @@ export type FeatureFlagKey = keyof FeatureFlags;
 export type FeatureFlagValue = FeatureFlags[keyof FeatureFlags];
 
 const defaultFeatureFlags: FeatureFlags = {};
+const developmentFeatureFlags: FeatureFlags = {[NAC_API_V3_FLAG_KEY]: true};
+const fallbackFeatureFlags: FeatureFlags = Updates.channel ? defaultFeatureFlags : developmentFeatureFlags;
 
 interface FeatureFlagsContextType {
   featureFlags: FeatureFlags;
+  featureFlagsLoaded: boolean;
+  nacApiVersion: NACApiVersion;
 
   clientSideFeatureFlagOverrides: FeatureFlags;
   setClientSideFeatureFlagOverrides: React.Dispatch<React.SetStateAction<FeatureFlags>>;
@@ -34,6 +39,8 @@ interface FeatureFlagsContextType {
 
 const FeatureFlagsContext = createContext<FeatureFlagsContextType>({
   featureFlags: defaultFeatureFlags,
+  featureFlagsLoaded: false,
+  nacApiVersion: nacApiVersion(false),
 
   clientSideFeatureFlagOverrides: defaultFeatureFlags,
   setClientSideFeatureFlagOverrides: () => undefined,
@@ -108,13 +115,43 @@ export const FeatureFlagsProvider: React.FC<FeatureFlagsProviderProps> = ({child
     }
   }, [netInfo, analytics, registered, userIdentified]);
 
-  const featureFlags: FeatureFlags = useFeatureFlags() ?? defaultFeatureFlags;
+  const postHog = usePostHog();
+  const [postHogReady, setPostHogReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        await postHog?.ready();
+      } catch (error) {
+        logger.error({error}, 'failed waiting for posthog to be ready');
+      }
+      if (!cancelled) {
+        setPostHogReady(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [postHog]);
+
+  const featureFlags: FeatureFlags = useFeatureFlags() ?? fallbackFeatureFlags;
   const [clientSideFeatureFlagOverrides, setClientSideFeatureFlagOverrides] = useState<FeatureFlags>({});
+
+  const nacApiV3FlagEnabled = !!featureFlags[NAC_API_V3_FLAG_KEY];
+  const [lockedNACApiVersion, setLockedNACApiVersion] = useState<NACApiVersion>();
+  const sessionNACApiVersion = postHogReady ? resolveSessionNACApiVersion(lockedNACApiVersion, nacApiV3FlagEnabled) : undefined;
+  if (sessionNACApiVersion !== lockedNACApiVersion) {
+    setLockedNACApiVersion(sessionNACApiVersion);
+  }
+  const nacApiV3FlagOverride = clientSideFeatureFlagOverrides[NAC_API_V3_FLAG_KEY];
+  const effectiveNACApiVersion = nacApiV3FlagOverride !== undefined ? nacApiVersion(!!nacApiV3FlagOverride) : sessionNACApiVersion ?? nacApiVersion(nacApiV3FlagEnabled);
 
   return (
     <FeatureFlagsContext.Provider
       value={{
         featureFlags: featureFlags,
+        featureFlagsLoaded: postHogReady,
+        nacApiVersion: effectiveNACApiVersion,
         clientSideFeatureFlagOverrides: clientSideFeatureFlagOverrides,
         setClientSideFeatureFlagOverrides: setClientSideFeatureFlagOverrides,
       }}>
@@ -130,8 +167,11 @@ export const useAllFeatureFlags = (): FeatureFlags | undefined => {
 
 export const useOneFeatureFlag = (key: FeatureFlagKey): FeatureFlagValue | undefined => {
   const flags = useContext(FeatureFlagsContext);
-  const resolved: FeatureFlags = _.merge({}, flags.featureFlags, flags.clientSideFeatureFlagOverrides);
-  return resolved && resolved[key];
+  return flags.clientSideFeatureFlagOverrides[key] ?? flags.featureFlags[key];
 };
+
+export const useFeatureFlagsLoaded = (): boolean => useContext(FeatureFlagsContext).featureFlagsLoaded;
+
+export const useSessionNACApiVersion = (): NACApiVersion => useContext(FeatureFlagsContext).nacApiVersion;
 
 export const useDebugFeatureFlags = () => useContext(FeatureFlagsContext);
