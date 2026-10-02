@@ -2,6 +2,7 @@ import {z} from 'zod';
 export const avalancheCenterIDSchema = z.enum([
   'BAC', // Bridgeport: CA
   'BTAC', // Bridger-Teton: ID, WY
+  'CAAC', // Coastal Alaska
   'CBAC', // Crested Butte: CO
   'CNFAIC', // Chugach National Forest: AK
   'COAA', // Central Oregon: OR
@@ -29,7 +30,6 @@ export const avalancheCenterIDSchema = z.enum([
   'EWYAIX', // Eastern Wyoming - Unsupported
   'EARAC', // Eastern Alaska - Unsupported
   'CAC', // Cordova, Alaska - Unsupported
-  'CAAC', // Coastal Alaska - Unsupported
 ]);
 
 export type AvalancheCenterID = z.infer<typeof avalancheCenterIDSchema>;
@@ -37,12 +37,13 @@ export type AvalancheCenterID = z.infer<typeof avalancheCenterIDSchema>;
 // Avalanche Canada is not a NAC center, but its areas are rendered on the map alongside NAC zones
 export type MapCenterID = AvalancheCenterID | 'CAN';
 
-export type UnsupportedCenterID = Extract<MapCenterID, 'CAIC' | 'UAC' | 'SOAIX' | 'EWYAIX' | 'EARAC' | 'CAC' | 'CAAC' | 'NYSAC' | 'CAN'>;
+export type UnsupportedCenterID = Extract<MapCenterID, 'CAIC' | 'UAC' | 'SOAIX' | 'EWYAIX' | 'EARAC' | 'CAC' | 'NYSAC' | 'CAN'>;
 
 export const isNACCenter = (centerId: AvalancheCenterID): centerId is Exclude<AvalancheCenterID, UnsupportedCenterID> => {
   switch (centerId) {
     case 'BAC':
     case 'BTAC':
+    case 'CAAC':
     case 'CBAC':
     case 'CNFAIC':
     case 'COAA':
@@ -70,7 +71,6 @@ export const isNACCenter = (centerId: AvalancheCenterID): centerId is Exclude<Av
     case 'EWYAIX':
     case 'EARAC':
     case 'CAC':
-    case 'CAAC':
     case 'NYSAC':
       return false;
   }
@@ -85,6 +85,7 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
   ['NWAC']: 'https://nwac.us/',
   ['BAC']: 'https://bridgeportavalanchecenter.org/',
   ['BTAC']: 'https://bridgertetonavalanchecenter.org/',
+  ['CAAC']: 'https://www.coastalakavalanche.org/',
   ['CBAC']: 'https://cbavalanchecenter.org/',
   ['CNFAIC']: 'https://www.cnfaic.org/',
   ['COAA']: 'https://www.coavalanche.org/',
@@ -110,7 +111,6 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
   ['EWYAIX']: 'https://ewyoavalanche.org/#/view/observations',
   ['EARAC']: 'https://alaskasnow.org/eastern-ak-range/',
   ['CAC']: 'https://alaskasnow.org/cordova/',
-  ['CAAC']: 'https://www.coastalakavalanche.org/',
   ['NYSAC']: '',
 };
 
@@ -121,7 +121,6 @@ export const UnsupportedCenterNames: Record<UnsupportedCenterID, string> = {
   ['EWYAIX']: 'Eastern Wyoming Avalanche Info Exchange',
   ['EARAC']: 'Eastern Alaska Range Avalanche Center',
   ['CAC']: 'Cordova Avalanche Center',
-  ['CAAC']: 'Coastal Alaska Avalanche Center',
   ['NYSAC']: 'New York State Avalanche Center',
   ['CAN']: 'Avalanche Canada',
 };

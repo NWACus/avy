@@ -18,6 +18,7 @@ const CANADA_DANGER_LEVELS: Record<string, DangerLevel> = {
   norating: DangerLevel.GeneralInformation,
   offseason: DangerLevel.GeneralInformation,
   spring: DangerLevel.GeneralInformation,
+  earlyseason: DangerLevel.GeneralInformation,
 };
 
 export const canadaDangerLevelFor = (value: string, areaName: string, logger?: Logger): DangerLevel => {
