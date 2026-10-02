@@ -255,13 +255,13 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
     },
   ],
   WCMAC: [],
+  CAAC: [],
   // The following are unsupported
   CAIC: [],
   SOAIX: [],
   EWYAIX: [],
   EARAC: [],
   CAC: [],
-  CAAC: [],
   UAC: [],
   NYSAC: [],
 };
