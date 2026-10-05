@@ -10,6 +10,7 @@ export const nacAvalancheCenterDescriptions = (): {center: AvalancheCenterID; de
   const centers: {center: AvalancheCenterID; description: string}[] = [
     {center: 'BTAC', description: 'Avalanche forecasts for Western Wyoming and Eastern Idaho.'},
     {center: 'BAC', description: 'Avalanche forecasts for the Bridgeport region in California.'},
+    {center: 'CAAC', description: 'Avalanche forecasts for Coastal Alaska.'},
     {center: 'CBAC', description: 'Avalanche forecasts for Southwestern Colorado.'},
     {center: 'CNFAIC', description: 'Avalanche forecasts for the Chugach National Forest.'},
     {center: 'COAA', description: 'Avalanche forecasts for central Oregon.'},
