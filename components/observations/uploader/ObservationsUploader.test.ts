@@ -10,6 +10,7 @@ import {TaskQueueEntry} from 'components/observations/uploader/Task';
 import {uploadImage as uploadImageOriginal} from 'components/observations/uploader/uploadImage';
 import {logger} from 'logger';
 import {AvalancheCenterID, MediaItem, MediaType, MediaUsage} from 'types/nationalAvalancheCenter';
+import {NACApiVersion} from 'utils/nationalAvalancheCenterApi';
 
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
   __esModule: true,
@@ -161,8 +162,11 @@ describe('ObservationUploader', () => {
     await uploader?.resetTaskQueue();
   });
 
-  const createUploader = async () => {
+  const createUploader = async (imageAPIVersion: NACApiVersion | null = 'v3') => {
     uploader = new ObservationUploader();
+    if (imageAPIVersion) {
+      uploader.setImageAPIVersion(imageAPIVersion);
+    }
     const processTaskQueueInvocations: Deferred<void>[] = [];
     const processTaskQueue = uploader['processTaskQueue'];
     // the `as keyof typeof uploader` allows us to spy on the private method `processTaskQueue`
@@ -216,6 +220,36 @@ describe('ObservationUploader', () => {
     await processTaskQueueInvocations[0].promise;
     expect(processTaskQueueSpy).toHaveBeenCalledTimes(1);
     expect(uploadImage).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not process the task queue until the api version is set', async () => {
+    const {uploader, processTaskQueueSpy, processTaskQueueInvocations} = await createUploader(null);
+    uploadImage.mockReturnValue(Promise.resolve(successfulUploadImageResponse));
+
+    await uploader.submitObservation(fakeObservation);
+    jest.advanceTimersByTime(0);
+    expect(processTaskQueueSpy).toHaveBeenCalledTimes(0);
+
+    uploader.setImageAPIVersion('v2');
+    jest.advanceTimersByTime(0);
+    await processTaskQueueInvocations[0].promise;
+    expect(uploadImage).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({apiVersion: 'v2'}));
+  });
+
+  it('should upload with the api version current at upload time rather than at submission', async () => {
+    const {uploader, processTaskQueueInvocations} = await createUploader('v2');
+    uploadImage.mockReturnValue(Promise.resolve(successfulUploadImageResponse));
+
+    await uploader['enqueueTasks']([
+      {
+        ...imageUploadTask(),
+        attemptCount: 1,
+      },
+    ]);
+    uploader.setImageAPIVersion('v3');
+    jest.advanceTimersByTime(2000);
+    await processTaskQueueInvocations[0].promise;
+    expect(uploadImage).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({apiVersion: 'v3'}));
   });
 
   it('should delay by the exponential backoff controlled by attemptCount', async () => {
