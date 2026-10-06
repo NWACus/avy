@@ -24,6 +24,7 @@ jobs:
           IOS_USER_ID: ${{ secrets.IOS_USER_ID }}
           IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
           IOS_APP_ID: ${{ secrets.IOS_APP_ID }}
+          IOS_PREVIEW_APP_ID: ${{ secrets.IOS_PREVIEW_APP_ID }}
           PROFILE: ${{ github.ref_name }}
           PLATFORM: 'all'
         run: ./eas_build_and_submit.sh
