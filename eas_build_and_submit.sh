@@ -16,6 +16,10 @@ if [[ -z "${IOS_APP_ID:-}" ]]; then
   echo "[ERROR] \$IOS_APP_ID is required."
   exit 1
 fi
+if [[ -z "${IOS_PREVIEW_APP_ID:-}" ]]; then
+  echo "[ERROR] \$IOS_PREVIEW_APP_ID is required."
+  exit 1
+fi
 if [[ -z "${PROFILE:-}" ]]; then
   echo "[ERROR] \$PROFILE is required."
   exit 1
@@ -35,7 +39,8 @@ jq  < eas.json.tmpl > eas.json \
   --arg IOS_USER_ID "${IOS_USER_ID}" \
   --arg IOS_TEAM_ID "${IOS_TEAM_ID}" \
   --arg IOS_APP_ID "${IOS_APP_ID}" \
-  '.submit.release.ios={appleId:$IOS_USER_ID,appleTeamId:$IOS_TEAM_ID,ascAppId:$IOS_APP_ID} | .submit.preview.ios=.submit.release.ios'
+  --arg IOS_PREVIEW_APP_ID "${IOS_PREVIEW_APP_ID}" \
+  '.submit.release.ios={appleId:$IOS_USER_ID,appleTeamId:$IOS_TEAM_ID,ascAppId:$IOS_APP_ID} | .submit.preview.ios=(.submit.release.ios + {ascAppId:$IOS_PREVIEW_APP_ID})'
 
 set -o xtrace
 APP_VARIANT="${PROFILE}" eas build --non-interactive --platform "${PLATFORM}" --profile "${PROFILE}" --auto-submit
