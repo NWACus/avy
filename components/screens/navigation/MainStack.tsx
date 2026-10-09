@@ -9,6 +9,7 @@ import {ObservationForm} from 'components/observations/ObservationForm';
 import {ObservationsPortal} from 'components/observations/ObservationsPortal';
 import {ForecastScreen} from 'components/screens/ForecastScreen';
 import {AboutScreen} from 'components/screens/main/AboutScreen';
+import {AvalancheCenterNotificationsSelector} from 'components/screens/main/AvalancheCenterNotificationsSelector';
 import {AvalancheCenterSelectorScreen} from 'components/screens/main/AvalancheCenterSelectorScreen';
 import {
   AlertModalPreview,
@@ -19,10 +20,12 @@ import {
   DrawerPreview,
   ExpoConfigScreen,
   OutcomeScreen,
+  PushNotificationModalPreview,
   TextStylePreview,
   TimeMachine,
   ToastPreview,
 } from 'components/screens/main/DeveloperMenu';
+import {ManageNotificationsScreen} from 'components/screens/main/ManageNotificationsScreen';
 import {BottomTabs} from 'components/screens/navigation/BottomTabs';
 import {WeatherStationDetail} from 'components/weather_data/WeatherStationDetail';
 import {WeatherStationsDetail} from 'components/weather_data/WeatherStationsDetail';
@@ -138,6 +141,17 @@ export const MainStackNavigator: React.FunctionComponent<{
       <MainStack.Screen name="toastPreview" component={ToastPreview} options={{title: `Toast Preview`, headerBackButtonDisplayMode: 'minimal'}} />
       <MainStack.Screen name="drawerPreview" component={DrawerPreview} options={{title: `Drawer Preview`, headerBackButtonDisplayMode: 'minimal'}} />
       <MainStack.Screen name="alertModalPreview" component={AlertModalPreview} options={{title: `Alert Modal Preview`, headerBackButtonDisplayMode: 'minimal'}} />
+      <MainStack.Screen
+        name="pushNotificationModalPreview"
+        component={PushNotificationModalPreview}
+        options={{title: `Push Notification Modal Preview`, headerBackButtonDisplayMode: 'minimal'}}
+      />
+      <MainStack.Screen name="manageNotifications" component={ManageNotificationsScreen} options={{title: `Manage Notifications`, headerBackButtonDisplayMode: 'minimal'}} />
+      <MainStack.Screen
+        name="avalancheCenterNotificationsSelector"
+        component={AvalancheCenterNotificationsSelector}
+        options={{title: `Following`, headerBackButtonDisplayMode: 'minimal'}}
+      />
       <MainStack.Screen name="timeMachine" component={TimeMachine} options={{title: `Time Machine`, headerBackButtonDisplayMode: 'minimal'}} />
     </MainStack.Navigator>
   );
