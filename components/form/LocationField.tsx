@@ -13,7 +13,7 @@ import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useController} from 'react-hook-form';
 import {Modal, View as RNView, TouchableOpacity} from 'react-native';
-import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaProvider, SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, Position, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
 
@@ -96,6 +96,10 @@ const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVi
   const [selectedLocation, setSelectedLocation] = useState<LocationPoint | undefined>(initialLocation);
   const [mapReady, setMapReady] = useState<boolean>(false);
   const mapCameraRef = useRef<Camera>(null);
+  const insets = useSafeAreaInsets();
+  const attributionPosition = useMemo(() => ({bottom: insets.bottom, right: 8}), [insets.bottom]);
+  const logoPosition = useMemo(() => ({bottom: insets.bottom, left: 8}), [insets.bottom]);
+  const initialCameraPadding = useMemo(() => ({paddingTop: 0, paddingLeft: 0, paddingRight: 0, paddingBottom: insets.bottom}), [insets.bottom]);
 
   const mapFeatures = useMemo(() => mapFeaturesForCenter(mapLayer, center), [mapLayer, center]);
 
@@ -147,7 +151,7 @@ const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVi
   return (
     <Modal visible={modalVisible} onRequestClose={onClose} animationType="slide" statusBarTranslucent>
       <SafeAreaProvider>
-        <SafeAreaView style={{width: '100%', height: '100%'}}>
+        <SafeAreaView style={{width: '100%', height: '100%'}} edges={['top', 'left', 'right']}>
           <VStack width="100%" height="100%">
             <HStack justifyContent="space-between" alignItems="center" pb={8} px={20}>
               <Ionicons.Button
@@ -171,17 +175,20 @@ const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVi
                 onPress={onSelectPressed}
               />
             </HStack>
-            <Center width="100%" height="100%">
+            <Center width="100%" flex={1}>
               {incompleteQueryState(mapLayerResult) && <QueryState results={[mapLayerResult]} />}
               {mapReady && (
                 <ZoneMap
                   cameraRef={mapCameraRef}
-                  style={{minWidth: '100%', minHeight: '100%'}}
+                  style={{flex: 1, alignSelf: 'stretch'}}
                   zones={zones}
                   initialCameraBounds={initialRegion.cameraBounds}
+                  initialCameraPadding={initialCameraPadding}
                   onPolygonPress={emptyHandler}
                   onMapPress={onMapPress}
-                  renderFillColor={false}>
+                  renderFillColor={false}
+                  attributionPosition={attributionPosition}
+                  logoPosition={logoPosition}>
                   {selectedLocation && <AnimatedMapMarker id="obs-location-marker" coordinate={locationPointToPosition(selectedLocation)} />}
                 </ZoneMap>
               )}

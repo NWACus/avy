@@ -63,8 +63,8 @@ export const AvalancheCenterSelectionModal: React.FC<AvalancheCenterSelectionMod
             </ScrollView>
           </VStack>
           <Divider />
-          <Center height={100} width="100%" px={16} paddingBottom={safeAreaInsets.bottom} backgroundColor={'white'} alignItems="stretch">
-            <Button disabled={!selectedCenter} onPress={closeHandler} buttonStyle="primary" mt={16}>
+          <Center width="100%" px={16} pt={16} pb={Math.max(safeAreaInsets.bottom, 16)} backgroundColor={'white'} alignItems="stretch">
+            <Button disabled={!selectedCenter} onPress={closeHandler} buttonStyle="primary">
               <BodyBlack>Continue</BodyBlack>
             </Button>
           </Center>

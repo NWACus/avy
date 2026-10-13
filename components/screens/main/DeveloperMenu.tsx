@@ -6,7 +6,7 @@ import React, {ReactNode, useCallback, useMemo, useState} from 'react';
 
 import DateTimePicker, {DateTimePickerChangeEvent} from '@react-native-community/datetimepicker';
 import {Platform, ScrollView, SectionList, StyleSheet, Switch, TouchableOpacity} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
@@ -477,8 +477,10 @@ const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
     [navigation],
   );
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <ScrollView style={{flex: 1}}>
+    <ScrollView style={{flex: 1}} contentContainerStyle={{paddingBottom: insets.bottom}}>
       <Card borderColor="white" header={<BodyBlack>Developer Menu</BodyBlack>}>
         <VStack space={4}>
           <Card borderRadius={0} borderColor="white" header={<BodyBlack>Debug Settings</BodyBlack>}>

@@ -139,9 +139,7 @@ const ObservationsListScreen = ({route}: NativeStackScreenProps<TabNavigatorPara
 
   return (
     <View style={{...styles.fullScreen, backgroundColor: 'white'}} key={`${center_id}_observations`}>
-      <BottomTabBarHeightContext.Consumer>
-        {tabBarHeight => <ObservationsListView center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} tabBarHeight={tabBarHeight} />}
-      </BottomTabBarHeightContext.Consumer>
+      <ObservationsListView center_id={center_id} requestedTime={parseRequestedTimeString(requestedTime)} hasTabBar />
     </View>
   );
 };
