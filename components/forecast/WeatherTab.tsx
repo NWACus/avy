@@ -22,6 +22,7 @@ import {isArray} from 'lodash';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MainStackParamList, TabNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {
@@ -126,6 +127,7 @@ export function adaptSierraWeatherForecast(input: Weather): Weather {
 }
 
 export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requestedTime, forecast_zone_id}) => {
+  const insets = useSafeAreaInsets();
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = avalancheCenterMetadataResult.data;
   const avalancheForecastResult = useAvalancheForecast(center_id, forecast_zone_id, requestedTime, metadata);
@@ -169,7 +171,10 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
   const adaptedWeatherForecast = center_id === 'SAC' ? adaptSierraWeatherForecast(weatherForecast) : weatherForecast;
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />} directionalLockEnabled={true}>
+    <ScrollView
+      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+      directionalLockEnabled={true}
+      contentContainerStyle={{paddingBottom: insets.bottom}}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>Mountain Weather</Title3Black>}>
           <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>
@@ -213,6 +218,7 @@ export const NACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, reque
 };
 
 export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requestedTime}) => {
+  const insets = useSafeAreaInsets();
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = avalancheCenterMetadataResult.data;
   const nwacForecastResult = useNWACWeatherForecast(center_id, zone.id, requestedTime);
@@ -369,7 +375,10 @@ export const NWACWeatherTab: React.FC<WeatherTabProps> = ({zone, center_id, requ
   }));
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />} directionalLockEnabled={true}>
+    <ScrollView
+      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+      directionalLockEnabled={true}
+      contentContainerStyle={{paddingBottom: insets.bottom}}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>Mountain Weather</Title3Black>} noDivider>
           <HStack justifyContent="space-evenly" alignItems="flex-start" space={8}>

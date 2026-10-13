@@ -19,6 +19,7 @@ import {AvalancheForecastZoneCards} from 'components/map/AvalancheForecastZoneCa
 import {TopElementMeasurments} from 'components/map/AvalancheForecastZoneMap';
 import {Position} from 'geojson';
 import {CenterSwitchOrigin, useAnalytics} from 'hooks/useAnalytics';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {CanadaMapViewZone} from 'utils/canadaMapViewZone';
 
 interface AvalancheForecastMapViewProps {
@@ -193,6 +194,10 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
     return undefined;
   }, [isInNoCenterExperience, initialMapCamera]);
 
+  const insets = useSafeAreaInsets();
+  const attributionPosition = useMemo(() => ({bottom: insets.bottom, right: 8}), [insets.bottom]);
+  const logoPosition = useMemo(() => ({bottom: insets.bottom, left: 8}), [insets.bottom]);
+
   return (
     <>
       <ZoneMap
@@ -208,6 +213,8 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         onCanadaPolygonPress={onCanadaPolygonPress}
         onMapPress={onMapPresOutsideOfPolygon}
         onCameraChanged={onCameraChanged}
+        attributionPosition={attributionPosition}
+        logoPosition={logoPosition}
       />
 
       <AvalancheForecastZoneCards
@@ -218,7 +225,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         selectedZoneId={selectedZoneId}
         setSelectedZoneId={setSelectedZoneId}
         controllerRef={controller}
-        bottomOffset={isInNoCenterExperience ? 0 : tabBarHeight}
+        bottomOffset={isInNoCenterExperience ? insets.bottom : tabBarHeight}
       />
 
       <CenterNotSupportedModal

@@ -4,7 +4,7 @@ import React, {RefObject, useMemo} from 'react';
 import {AvalancheCenterID, DangerLevel, MapLayerFeature} from 'types/nationalAvalancheCenter';
 import {CanadaMapViewZone} from 'utils/canadaMapViewZone';
 
-import Mapbox, {Camera, CameraBounds, CameraStop, MapState, MapView} from '@rnmapbox/maps';
+import Mapbox, {Camera, CameraBounds, CameraPadding, CameraStop, MapState, MapView} from '@rnmapbox/maps';
 import {ViewProps} from 'react-native';
 
 export const mapViewZoneFor = (feature: MapLayerFeature): MapViewZone => {
@@ -39,6 +39,7 @@ interface ZoneMapProps extends ViewProps {
   canadaZones?: CanadaMapViewZone[];
   initialCameraBounds: CameraBounds;
   initialCameraStop?: CameraStop;
+  initialCameraPadding?: CameraPadding;
   cameraRef?: RefObject<Camera | null>;
   selectedZoneId?: number | null;
   renderFillColor?: boolean;
@@ -49,6 +50,8 @@ interface ZoneMapProps extends ViewProps {
   onCanadaPolygonPress?: (zone: CanadaMapViewZone) => void;
   onMapPress?: (feature: GeoJSON.Feature) => void;
   onCameraChanged?: (mapState: MapState) => void;
+  attributionPosition?: React.ComponentProps<typeof MapView>['attributionPosition'];
+  logoPosition?: React.ComponentProps<typeof MapView>['logoPosition'];
 }
 
 export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
@@ -58,6 +61,7 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
   selectedZoneId,
   initialCameraBounds,
   initialCameraStop,
+  initialCameraPadding,
   renderFillColor = true,
   rotateEnabled = true,
   scrollEnabled = true,
@@ -66,6 +70,8 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
   onPolygonPress = undefined,
   onCanadaPolygonPress = undefined,
   onCameraChanged = undefined,
+  attributionPosition,
+  logoPosition,
   children,
   ...props
 }) => {
@@ -91,8 +97,10 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
       scrollEnabled={scrollEnabled}
       onPress={onMapPress}
       onCameraChanged={onCameraChanged}
+      attributionPosition={attributionPosition}
+      logoPosition={logoPosition}
       {...props}>
-      <Camera ref={cameraRef} defaultSettings={initialCameraStop ?? {bounds: initialCameraBounds}} />
+      <Camera ref={cameraRef} defaultSettings={initialCameraStop ?? {bounds: initialCameraBounds, padding: initialCameraPadding}} />
       {canadaZones && <CanadaAvalancheForecastZonePolygons zones={canadaZones} renderFillColor={renderFillColor} onPress={onCanadaPolygonPress} />}
       {zonePolygons}
       {selectedPolygon}

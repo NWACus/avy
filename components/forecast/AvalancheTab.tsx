@@ -28,6 +28,7 @@ import {useAvalancheWarning} from 'hooks/useAvalancheWarning';
 import {useRefresh} from 'hooks/useRefresh';
 import {useToggle} from 'hooks/useToggle';
 import {RefreshControl, ScrollView, TouchableOpacity} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {COLORS} from 'theme/colors';
@@ -65,6 +66,7 @@ export const AvalancheTab: React.FunctionComponent<{
   forecast_zone_id: number;
 }> = ({center_id, forecast_zone_id, requestedTime: requestedTimeString}) => {
   const requestedTime = parseRequestedTimeString(requestedTimeString);
+  const insets = useSafeAreaInsets();
   const centerResult = useAvalancheCenterMetadata(center_id);
   const center = centerResult.data;
   const forecastResult = useAvalancheForecast(center_id, forecast_zone_id, requestedTime, center);
@@ -177,7 +179,10 @@ export const AvalancheTab: React.FunctionComponent<{
   }
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />} directionalLockEnabled={true}>
+    <ScrollView
+      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+      directionalLockEnabled={true}
+      contentContainerStyle={{paddingBottom: insets.bottom}}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
         <Card
           borderRadius={0}
