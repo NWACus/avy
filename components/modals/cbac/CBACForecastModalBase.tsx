@@ -6,13 +6,12 @@ import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {AlertModal, AlertModalActions} from 'components/content/AlertModal';
 import {Button} from 'components/content/Button';
 import {Divider, HStack, View} from 'components/core';
-import {Body, bodySize, BodySm} from 'components/text';
+import {Body, bodySize} from 'components/text';
 import {useOpenAvalancheCenterWebsite} from 'hooks/useOpenAvalancheCenterWebsite';
 import {colorLookup} from 'theme';
 
-const TITLE = 'Two forecasts cover Crested Butte';
-const BODY = "CBAC issues the local forecast shown in this app. CAIC's forecasts cover this area too. Both are official and we encourage you to read both.";
-const FOOTER = "Opens in your browser. This app shows CBAC's forecast only.";
+const TITLE = 'Two forecasts cover this area';
+const BODY = 'CBAC issues a localized forecast. CAIC forecasts for the entire state. We encourage you to read both.';
 
 const LOGO_SIZE = 44;
 
@@ -62,9 +61,6 @@ export const CBACForecastModalBase: React.FC<CBACForecastModalBaseProps> = ({vis
         {children}
         <Button buttonStyle="secondary" onPress={onPressCAICSite} renderChildren={renderVisitCAICButton} />
       </AlertModalActions>
-      <BodySm textAlign="center" color={colorLookup('text.secondary')}>
-        {FOOTER}
-      </BodySm>
     </AlertModal>
   );
 };

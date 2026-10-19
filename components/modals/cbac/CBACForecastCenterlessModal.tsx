@@ -16,7 +16,7 @@ export const CBACForecastCenterlessModal: React.FC<CBACForecastCenterlessModalPr
       <BodyBlack>Continue exploring</BodyBlack>
     </Button>
     <Button buttonStyle="secondary" onPress={onSwitchToCBAC}>
-      <Body>Switch to CBAC</Body>
+      <Body>Open CBAC</Body>
     </Button>
   </CBACForecastModalBase>
 );

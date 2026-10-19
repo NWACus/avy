@@ -41,11 +41,11 @@ export const CenterNotSupportedModal: React.FC<CenterNotSupportedModalProps> = (
   }, [analytics, centerId, unsupportedCenterId, avalancheCenterWebsiteUrl, onClose]);
 
   return (
-    <AlertModal isVisible={visible} onDismiss={onClose} title="Forecast Available on Official Site" showCloseButton>
-      <Body>{`${centerDisplayName} isn't available within Avy right now. You can still access their latest forecast and updates on their website.`}</Body>
+    <AlertModal isVisible={visible} onDismiss={onClose} title="Info Available on Official Site" showCloseButton>
+      <Body>{`${centerDisplayName} isn't available on Avy. View their latest products on their website.`}</Body>
       <AlertModalActions>
         <Button buttonStyle="primary" onPress={onPressWebsite}>
-          <BodyBlack>Open {unsupportedCenterId === 'CAN' ? 'Avalanche Canada' : unsupportedCenterId} Site</BodyBlack>
+          <BodyBlack letterSpacing={0}>Take me to {unsupportedCenterId === 'CAN' ? 'Avalanche Canada' : unsupportedCenterId}</BodyBlack>
         </Button>
       </AlertModalActions>
     </AlertModal>
