@@ -9,7 +9,6 @@ import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
-import {TAB_BAR_CONTENT_HEIGHT} from 'components/content/navigation/AnimatedBottomTabBar';
 import {Center, Divider, HStack, VStack, View} from 'components/core';
 import {NACAvalancheIcon} from 'components/icons/nac-icons';
 import {
@@ -62,7 +61,7 @@ interface ObservationsListViewItem {
 interface ObservationsListViewProps {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
-  hasTabBar?: boolean;
+  tabBarHeight?: number;
   additionalFilters?: Partial<ObservationFilterConfig>;
 }
 
@@ -74,7 +73,7 @@ interface ObservationFragmentWithPageIndexAndZone extends ObservationFragmentWit
   zone: string;
 }
 
-export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, hasTabBar = false, additionalFilters}) => {
+export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, tabBarHeight, additionalFilters}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const navigation = useNavigation<MainStackNavigationProps>();
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
@@ -329,7 +328,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   );
 
   const insets = useSafeAreaInsets();
-  const bottomOffset = (hasTabBar ? TAB_BAR_CONTENT_HEIGHT : 0) + insets.bottom;
+  const bottomOffset = tabBarHeight ?? insets.bottom;
 
   if (incompleteQueryState(observationsResult, mapResult) || !mapLayer || !mapFeatures) {
     return (

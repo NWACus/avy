@@ -4,8 +4,6 @@ import {LayoutChangeEvent, StyleSheet, Text, TouchableOpacity} from 'react-nativ
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {colorLookup} from 'theme';
 
-export const TAB_BAR_CONTENT_HEIGHT = 56;
-
 interface TabItemProps {
   routeKey: string;
   routeName: string;
@@ -62,7 +60,7 @@ export const AnimatedBottomTabBar: React.FunctionComponent<AnimatedBottomTabProp
   );
 
   return (
-    <Animated.View style={[styles.container, {height: TAB_BAR_CONTENT_HEIGHT + insets.bottom, paddingBottom: insets.bottom}, animatedStyle]} onLayout={handleLayout}>
+    <Animated.View style={[styles.container, {paddingBottom: insets.bottom}, animatedStyle]} onLayout={handleLayout}>
       {state.routes.map((route, index) => {
         const descriptor = descriptors[route.key];
         const isFocused = state.index === index;
