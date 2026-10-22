@@ -8,6 +8,7 @@ import {dangerValue} from 'components/helpers/dangerText';
 import {interiorPoint} from 'components/helpers/geographicCoordinates';
 import {MapViewZone} from 'components/map/ZoneMap';
 import {BodyXSm, BodyXSmBlack} from 'components/text';
+import Ionicons from 'node_modules/@expo/vector-icons/Ionicons';
 import {Pressable} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import {colorLookup} from 'theme';
@@ -31,6 +32,7 @@ export const CBACZoneRatingPill: React.FunctionComponent<{zone: MapViewZone; onP
             <View width={12} height={12} borderRadius={2} borderWidth={0.5} borderColor={colorLookup('text')} style={swatchStyle} />
             <BodyXSmBlack>CBAC</BodyXSmBlack>
             <BodyXSm>{hasRating(zone.danger_level) ? dangerValue(zone.danger_level ?? null) : 'No rating'}</BodyXSm>
+            {zone.hasWarning && <Ionicons name="warning-outline" size={16} color="red" />}
           </HStack>
         </Pressable>
       </Animated.View>
