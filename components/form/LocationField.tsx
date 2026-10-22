@@ -1,5 +1,6 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {Camera} from '@rnmapbox/maps';
+import {IconButton} from 'components/content/IconButton';
 import {QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {Center, HStack, VStack, View} from 'components/core';
 import {FieldLabel} from 'components/form/FieldLabel';
@@ -12,7 +13,7 @@ import {Body, BodyXSm, Title3Black, bodySize} from 'components/text';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {Modal, View as RNView, TouchableOpacity} from 'react-native';
+import {Modal, TouchableOpacity, ViewInstance} from 'react-native';
 import {SafeAreaProvider, SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, Position, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
@@ -27,7 +28,7 @@ interface LocationFieldProps {
 const positionToLocationPoint = (position: Position) => ({lat: position[1], lng: position[0]});
 const locationPointToPosition = (locationPoint: LocationPoint) => [locationPoint.lng, locationPoint.lat];
 
-export const LocationField = React.forwardRef<RNView, LocationFieldProps>(({name, label, center, disabled, required = false}, ref) => {
+export const LocationField = React.forwardRef<ViewInstance, LocationFieldProps>(({name, label, center, disabled, required = false}, ref) => {
   const {
     field,
     fieldState: {error},
@@ -154,24 +155,24 @@ const LocationMap: React.FunctionComponent<LocationMapProps> = ({center, modalVi
         <SafeAreaView style={{width: '100%', height: '100%'}} edges={['top', 'left', 'right']}>
           <VStack width="100%" height="100%">
             <HStack justifyContent="space-between" alignItems="center" pb={8} px={20}>
-              <Ionicons.Button
+              <IconButton
                 size={28}
                 color={colorLookup('text')}
                 name="close-outline"
+                accessibilityLabel="Close"
                 backgroundColor="white"
-                iconStyle={{marginLeft: 0, marginRight: 0, marginTop: 1}}
-                style={{textAlign: 'center'}}
+                iconStyle={{marginTop: 1}}
                 onPress={onClose}
               />
               <Title3Black>Pick a location</Title3Black>
-              <Ionicons.Button
+              <IconButton
                 size={24}
                 color={colorLookup('text')}
                 name="checkmark"
+                accessibilityLabel="Use this location"
                 backgroundColor="white"
                 disabled={selectedLocation == null}
-                iconStyle={{marginLeft: 20, marginRight: 0, marginTop: 1}}
-                style={{textAlign: 'center'}}
+                iconStyle={{marginLeft: 20, marginTop: 1}}
                 onPress={onSelectPressed}
               />
             </HStack>

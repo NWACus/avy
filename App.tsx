@@ -545,7 +545,7 @@ const BaseApp: React.FunctionComponent<{
             <NavigationContainer linking={linking} ref={navigationRef} onReady={trackNavigationChange} onStateChange={trackNavigationChange}>
               <KillSwitchMonitor>
                 <SelectProvider>
-                  <StatusBar barStyle={'dark-content'} animated={false} backgroundColor={'white'} />
+                  <StatusBar barStyle={'dark-content'} animated={false} />
                   <View style={{flex: 1}}>
                     <DrawerNavigator requestedTime={requestedTime} centerId={center} isInNoCenterExperience={isInNoCenterExperience} staging={staging} setStaging={setStaging} />
                   </View>

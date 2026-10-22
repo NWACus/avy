@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
 import {Dropdown, DropdownFooterLink, DropdownRow, DropdownSection} from 'components/content/Dropdown';
 import {VStack} from 'components/core';

@@ -3,8 +3,9 @@ import React, {PropsWithChildren, ReactNode, useCallback, useState} from 'react'
 import {Collapsible} from 'components/content/Collapsible';
 import {ColorValue, TouchableOpacity, ViewStyle} from 'react-native';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 
+import {IconButton} from 'components/content/IconButton';
 import {Divider, HStack, View, ViewProps, VStack} from 'components/core';
 import {useAnalytics} from 'hooks/useAnalytics';
 import {colorLookup} from 'theme';
@@ -95,27 +96,9 @@ export const EditDeleteCard: React.FunctionComponent<PropsWithChildren<EditDelet
           <HStack justifyContent="space-between">
             <>{header}</>
             <HStack space={4}>
-              {onEditPress && (
-                <Ionicons.Button
-                  size={16}
-                  name="pencil-outline"
-                  color="rgba(0, 0, 0, 0.8)"
-                  backgroundColor="white"
-                  iconStyle={{marginRight: 0}}
-                  style={{textAlign: 'center'}}
-                  onPress={onEditHandler}
-                />
-              )}
+              {onEditPress && <IconButton size={16} name="pencil-outline" accessibilityLabel="Edit" color="rgba(0, 0, 0, 0.8)" backgroundColor="white" onPress={onEditHandler} />}
 
-              <Ionicons.Button
-                size={16}
-                name="trash-outline"
-                color="rgba(0, 0, 0, 0.8)"
-                backgroundColor="white"
-                iconStyle={{marginRight: 0}}
-                style={{textAlign: 'center'}}
-                onPress={onDeleteHandler}
-              />
+              <IconButton size={16} name="trash-outline" accessibilityLabel="Delete" color="rgba(0, 0, 0, 0.8)" backgroundColor="white" onPress={onDeleteHandler} />
             </HStack>
           </HStack>
           {noDivider || <Divider />}
@@ -160,7 +143,7 @@ export const CollapsibleCard: React.FunctionComponent<PropsWithChildren<Collapsi
         <TouchableOpacity onPress={pressHandler}>
           <HStack justifyContent="space-between" alignItems="center">
             {header}
-            <Ionicons name={isCollapsed ? 'chevron-down' : 'chevron-up'} color={textColor} backgroundColor="white" size={24} />
+            <Ionicons name={isCollapsed ? 'chevron-down' : 'chevron-up'} color={textColor} size={24} />
           </HStack>
         </TouchableOpacity>
       }>

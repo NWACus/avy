@@ -28,7 +28,7 @@ import {Position} from 'geojson';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useCanadaZones} from 'hooks/useCanadaZones';
 import {logger} from 'logger';
-import {Alert, Linking, View} from 'react-native';
+import {Alert, Linking, ViewInstance} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 const LEGEND_FADE_DURATION_MS = 200;
@@ -78,7 +78,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
     return carvedCAICCacheRef.current.carved;
   }, [allMapLayers, carveCBACFromCAIC]);
 
-  const topElements = React.useRef<View>(null);
+  const topElements = React.useRef<ViewInstance>(null);
 
   const [userLocation, setUserLocation] = useState<Position | undefined>(undefined);
   const [topElementMeasurements, setTopElementMeasurements] = useState<TopElementMeasurments>({yPos: 0, height: 0});

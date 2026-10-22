@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {NetworkImageState} from 'components/content/carousel/NetworkImage';
 import {Center} from 'components/core';
 import React, {useCallback, useEffect} from 'react';

@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {FormattedMessage} from 'react-intl';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {colorFor} from 'components/AvalancheDangerTriangle';
 import {Button} from 'components/content/Button';
@@ -32,7 +32,6 @@ import {useToggle} from 'hooks/useToggle';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {
   ActivityIndicator,
-  ColorValue,
   GestureResponderEvent,
   LayoutAnimation,
   Modal,
@@ -46,7 +45,7 @@ import {
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MainStackNavigationProps} from 'routes';
-import {colorLookup} from 'theme';
+import {ThemeColorValue, colorLookup} from 'theme';
 import {AvalancheCenterID, DangerLevel, MediaType, ObservationFragment, PartnerType, mapFeaturesForCenter} from 'types/nationalAvalancheCenter';
 import {RequestedTime, observationDateToLocalDateString} from 'utils/date';
 import {observationOnlyZones} from 'utils/observationOnlyZones';
@@ -460,8 +459,8 @@ export interface FilterPillButtonProps {
   headIcon?: React.ReactNode;
   tailIcon?: React.ReactNode;
   onPress?: (event: GestureResponderEvent) => void;
-  textColor: ColorValue;
-  backgroundColor: ColorValue;
+  textColor: ThemeColorValue;
+  backgroundColor: ThemeColorValue;
 }
 
 export const FilterPillButton: React.FC<FilterPillButtonProps> = ({label, headIcon, tailIcon, onPress, textColor, backgroundColor}) => (
