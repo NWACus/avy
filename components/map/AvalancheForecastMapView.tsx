@@ -402,7 +402,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         selectedZoneId={selectedZoneId}
         setSelectedZoneId={setSelectedZoneId}
         controllerRef={controller}
-        bottomOffset={isInNoCenterExperience ? insets.bottom : tabBarHeight}
+        bottomOffset={isInNoCenterExperience ? 0 : tabBarHeight}
         renderHeaderAccessory={isCBACSelected ? renderCBACHeaderAccessory : undefined}
         renderFooter={isCBACSelected ? renderCBACFooter : undefined}
       />
