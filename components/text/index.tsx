@@ -5,10 +5,10 @@ import {Platform, Text, TextProps, TextStyle} from 'react-native';
 
 import {decode} from 'html-entities';
 
-import {colorLookup} from 'theme';
+import {colorLookup, ThemeColorValue} from 'theme';
 
 export interface TextWrapperProps extends TextProps {
-  color?: TextStyle['color'];
+  color?: ThemeColorValue;
   fontFamily?: TextStyle['fontFamily'];
   fontSize?: TextStyle['fontSize'];
   fontStyle?: TextStyle['fontStyle'];

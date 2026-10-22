@@ -1,25 +1,26 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons, IoniconsIconName} from '@react-native-vector-icons/ionicons/static';
 import {Button} from 'components/content/Button';
+import {IconButton} from 'components/content/IconButton';
 import {Center, View, VStack} from 'components/core';
 import {BodyBlack, Title3Semibold} from 'components/text';
 import {HTML, HTMLRendererConfig, HTMLRendererConfigProps} from 'components/text/HTML';
 import {merge} from 'lodash';
 import React, {useCallback, useMemo, useState} from 'react';
-import {ColorValue, Insets, Modal, TextStyle, TouchableWithoutFeedback, ViewStyle} from 'react-native';
+import {Insets, Modal, TouchableWithoutFeedback, ViewStyle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {colorLookup} from 'theme';
+import {colorLookup, ThemeColorValue} from 'theme';
 
 export interface InfoTooltipProps {
   title: string;
   content: string;
   size: number;
-  color?: ColorValue;
-  solidIcon?: keyof typeof Ionicons.glyphMap;
-  outlineIcon?: keyof typeof Ionicons.glyphMap;
+  color?: ThemeColorValue;
+  solidIcon?: IoniconsIconName;
+  outlineIcon?: IoniconsIconName;
 
   htmlStyle?: HTMLRendererConfigProps['baseStyle'];
   // Additional IconButton customization
-  style?: ViewStyle | TextStyle;
+  style?: ViewStyle;
   hitSlop?: Insets | undefined;
 }
 
@@ -48,7 +49,7 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
   return (
     <>
       {/* unfortunate ant misspelling: infocirlceo */}
-      <Ionicons.Button name={outlineIcon} color={colorLookup(color)} backgroundColor="transparent" onPress={openModal} size={size} iconStyle={{marginRight: 0}} {...props} />
+      <IconButton name={outlineIcon} accessibilityLabel={title} color={colorLookup(color)} onPress={openModal} size={size} {...props} />
       {/* Pressing the Android back button dismisses the modal */}
       <Modal visible={showModal} transparent animationType="fade" onRequestClose={closeModal}>
         {/* Pressing anywhere outside the modal dismisses the modal */}

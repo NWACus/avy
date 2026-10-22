@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {createDrawerNavigator, DrawerContentComponentProps} from '@react-navigation/drawer';
 import {RouteProp, useFocusEffect} from '@react-navigation/native';
 import {nacAvalancheCenterDescriptions} from 'components/avalancheCenterList';
@@ -25,10 +25,10 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import {sendMail} from 'network/sendMail';
 import {usePreferences} from 'Preferences';
 import React, {useCallback, useMemo, useState} from 'react';
-import {Alert, ColorValue, Image, Pressable, ScrollView, TouchableOpacity} from 'react-native';
+import {Alert, Image, Pressable, ScrollView, TouchableOpacity} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {DrawerParamList} from 'routes';
-import {colorLookup} from 'theme';
+import {colorLookup, ThemeColorValue} from 'theme';
 import {AvalancheCenterID, userFacingCenterId} from 'types/nationalAvalancheCenter';
 import {RequestedTime} from 'utils/date';
 
@@ -255,7 +255,7 @@ const SponsorDrawer: React.FunctionComponent<{visible: boolean; onDismiss: () =>
   }, [analytics, center_id, logger, sponsor.campaignUrl]);
 
   const renderVisitButton = useCallback(
-    ({textColor}: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => (
+    ({textColor}: {backgroundColor: ThemeColorValue | undefined; textColor: ThemeColorValue}) => (
       <HStack space={8} alignItems="center" justifyContent="center">
         <BodyBlack color={textColor}>{sponsor.visitButtonTitle}</BodyBlack>
         <Ionicons name="open-outline" size={bodySize + 4} color={textColor} />

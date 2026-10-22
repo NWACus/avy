@@ -3,8 +3,8 @@ import {MediaViewerModalFooter} from 'components/content/carousel/MediaViewerMod
 import {MediaViewerModalHeader} from 'components/content/carousel/MediaViewerModal/MediaViewerModalHeader';
 import {View} from 'components/core';
 import React, {useCallback, useState} from 'react';
-import {Dimensions, FlatList, Modal, ViewToken} from 'react-native';
-import {Gesture, GestureDetector, GestureHandlerRootView} from 'react-native-gesture-handler';
+import {Dimensions, FlatList, ListViewToken, Modal} from 'react-native';
+import {GestureDetector, GestureHandlerRootView, useNativeGesture} from 'react-native-gesture-handler';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, MediaItem, MediaType} from 'types/nationalAvalancheCenter';
 
@@ -30,7 +30,7 @@ const getItemId = (item: MediaItem) => {
 export const MediaViewerModal: React.FunctionComponent<MediaViewerModalProps> = ({center_id, visible, startIndex, mediaItems, onClose}: MediaViewerModalProps) => {
   const [currentItemIndex, setCurrentItemIndex] = useState(startIndex);
 
-  const nativeGesture = Gesture.Native();
+  const nativeGesture = useNativeGesture();
 
   const renderItem = useCallback(
     ({item}: {item: MediaItem}) => {
@@ -52,7 +52,7 @@ export const MediaViewerModal: React.FunctionComponent<MediaViewerModalProps> = 
   );
 
   const onViewableItemsChanged = useCallback(
-    ({changed}: {changed: ViewToken<MediaItem>[]}) => {
+    ({changed}: {changed: ListViewToken[]}) => {
       if (changed.length == 0) {
         return;
       }

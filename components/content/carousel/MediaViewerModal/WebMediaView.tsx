@@ -32,7 +32,7 @@ export const WebMediaView: React.FunctionComponent<WebMediaViewProps> = ({
   allowsFullscreenVideo,
   scalesPageToFit,
 }) => {
-  const webRef = useRef<WebView>(null);
+  const webRef = useRef<WebView<object>>(null);
 
   const [containerHeight, setContainerHeight] = useState(0);
   const [loadError, setLoadError] = useState<WebViewErrorEvent | null>(null);
@@ -86,7 +86,7 @@ export const WebMediaView: React.FunctionComponent<WebMediaViewProps> = ({
   return (
     <View style={{flex: 1, justifyContent: 'center', backgroundColor: colorLookup('modal.background')}} onLayout={onContainerLayout}>
       <View style={{height: maxViewHeight, width: '100%'}}>
-        <WebView
+        <WebView<object>
           ref={webRef}
           bounces={false}
           style={{flex: 1, backgroundColor: colorLookup('modal.background')}}

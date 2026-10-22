@@ -1,22 +1,22 @@
 import {Center, View, ViewProps} from 'components/core';
 import {bodySize} from 'components/text';
 import React, {useCallback, useState} from 'react';
-import {ActivityIndicator, ColorValue, GestureResponderEvent, Pressable, Text} from 'react-native';
-import {colorLookup} from 'theme';
+import {ActivityIndicator, GestureResponderEvent, Pressable, Text} from 'react-native';
+import {colorLookup, ThemeColorValue} from 'theme';
 
 interface ButtonStyle {
-  backgroundColor?: ColorValue;
-  borderColor: ColorValue;
-  textColor: ColorValue;
+  backgroundColor?: ThemeColorValue;
+  borderColor: ThemeColorValue;
+  textColor: ThemeColorValue;
   disabled: {
-    backgroundColor?: ColorValue;
-    borderColor: ColorValue;
-    textColor: ColorValue;
+    backgroundColor?: ThemeColorValue;
+    borderColor: ThemeColorValue;
+    textColor: ThemeColorValue;
   };
   pressed: {
-    backgroundColor?: ColorValue;
-    borderColor: ColorValue;
-    textColor: ColorValue;
+    backgroundColor?: ThemeColorValue;
+    borderColor: ThemeColorValue;
+    textColor: ThemeColorValue;
   };
 }
 
@@ -92,7 +92,7 @@ interface BaseButtonProps extends ViewProps {
 interface StyledButtonProps extends BaseButtonProps {
   buttonStyle: ButtonStyle;
   onPress: (event: GestureResponderEvent) => void;
-  renderChildren?: (style: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => React.ReactNode;
+  renderChildren?: (style: {backgroundColor: ThemeColorValue | undefined; textColor: ThemeColorValue}) => React.ReactNode;
 }
 
 const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, renderChildren, onPress, disabled = false, busy = false, ...props}) => {
@@ -119,7 +119,7 @@ const StyledButton: React.FC<StyledButtonProps> = ({buttonStyle, children, rende
 interface ButtonProps extends BaseButtonProps {
   buttonStyle?: PredefinedButtonStyle;
   onPress: (event: GestureResponderEvent) => void;
-  renderChildren?: (style: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => React.ReactNode;
+  renderChildren?: (style: {backgroundColor: ThemeColorValue | undefined; textColor: ThemeColorValue}) => React.ReactNode;
 }
 
 export const Button: React.FC<ButtonProps> = ({buttonStyle = 'normal', ...props}) => <StyledButton buttonStyle={styles[buttonStyle]} {...props} />;
