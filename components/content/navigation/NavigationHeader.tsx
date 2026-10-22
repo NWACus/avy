@@ -1,6 +1,6 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import {getHeaderTitle} from '@react-navigation/elements';
 import {NativeStackHeaderProps} from '@react-navigation/native-stack';
+import {IconButton} from 'components/content/IconButton';
 import {HStack, View} from 'components/core';
 import {GenerateObservationShareLink} from 'components/observations/ObservationUrlMapping';
 import {Title3Black} from 'components/text';
@@ -84,13 +84,13 @@ export const NavigationHeader: React.FunctionComponent<NativeStackHeaderProps> =
     <View style={{width: '100%', backgroundColor: colorLookup('white'), paddingTop: insets.top, justifyContent: 'center', alignContent: 'center'}}>
       <HStack justifyContent="space-between" style={options.headerStyle} space={8} pl={3} pr={16}>
         {back ? (
-          <Ionicons.Button
+          <IconButton
             size={24}
             color={colorLookup('primary')}
             name="arrow-back-outline"
+            accessibilityLabel="Go back"
             backgroundColor={colorLookup('white')}
-            iconStyle={{marginLeft: 0, marginRight: 0}}
-            style={{textAlign: 'center', borderColor: 'transparent', borderWidth: 1}}
+            style={{borderColor: 'transparent', borderWidth: 1}}
             onPress={firstOpen ? reset : goBack}
           />
         ) : (
@@ -104,13 +104,13 @@ export const NavigationHeader: React.FunctionComponent<NativeStackHeaderProps> =
         </TextComponent>
 
         {shareUrl ? (
-          <Ionicons.Button
+          <IconButton
             size={24}
             color={colorLookup('primary')}
             name={Platform.OS == 'ios' ? 'share-outline' : 'share-social'}
+            accessibilityLabel="Share"
             backgroundColor={colorLookup('white')}
-            iconStyle={{marginLeft: 0, marginRight: 0}}
-            style={{textAlign: 'center', borderColor: 'transparent', borderWidth: 1}}
+            style={{borderColor: 'transparent', borderWidth: 1}}
             onPress={onShareButtonPress}
           />
         ) : (

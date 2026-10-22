@@ -1,6 +1,6 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import {DrawerActions, useNavigation} from '@react-navigation/native';
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
+import {IconButton} from 'components/content/IconButton';
 import {HStack, View} from 'components/core';
 import {Title3Black} from 'components/text';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -58,28 +58,26 @@ export const ForecastNavigationHeader: React.FunctionComponent<ForecastNavigatio
         <LinearGradient colors={['rgba(0,0,0,0.9)', 'rgba(0,0,0,0.0)']} style={StyleSheet.absoluteFill} pointerEvents="none" />
         <View style={{height: insets.top}} />
         <HStack justifyContent="space-between" alignItems="center" height={HEADER_HEIGHT} space={8} pl={3} pr={16}>
-          <Ionicons.Button
+          <IconButton
             size={24}
             color="white"
             name="menu"
-            backgroundColor="transparent"
+            accessibilityLabel="Open menu"
             underlayColor="rgba(0,0,0,0.1)"
-            iconStyle={{marginLeft: 0, marginRight: 0}}
-            style={{textAlign: 'center', borderColor: 'transparent', borderWidth: 1}}
+            style={{borderColor: 'transparent', borderWidth: 1}}
             onPress={openDrawer}
           />
           <HStack space={4}>
             {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports */}
             <Image source={require('assets/white-avy-logo.png')} style={styles.appLogo} />
           </HStack>
-          <Ionicons.Button
+          <IconButton
             size={24}
             color="white"
             name="locate"
-            backgroundColor="transparent"
+            accessibilityLabel="Show my location"
             underlayColor="rgba(0,0,0,0.1)"
-            iconStyle={{marginLeft: 0, marginRight: 0}}
-            style={{textAlign: 'center', borderColor: 'transparent', borderWidth: 1}}
+            style={{borderColor: 'transparent', borderWidth: 1}}
             onPress={onFetchUserLocation}
           />
         </HStack>
@@ -89,14 +87,13 @@ export const ForecastNavigationHeader: React.FunctionComponent<ForecastNavigatio
       <Animated.View style={[StyleSheet.absoluteFill, styles.whiteBackground, centerHeaderStyle]}>
         <View style={{height: insets.top}} />
         <HStack justifyContent="space-between" alignItems="center" height={HEADER_HEIGHT} space={8} pl={3} pr={16}>
-          <Ionicons.Button
+          <IconButton
             size={24}
             color={colorLookup('primary')}
             name="menu"
-            backgroundColor="transparent"
+            accessibilityLabel="Open menu"
             underlayColor="rgba(0,0,0,0.1)"
-            iconStyle={{marginLeft: 0, marginRight: 0}}
-            style={{textAlign: 'center', borderColor: 'transparent', borderWidth: 1}}
+            style={{borderColor: 'transparent', borderWidth: 1}}
             onPress={openDrawer}
           />
           <HStack space={4}>

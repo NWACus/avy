@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {BottomTabBarHeightContext, BottomTabBarProps, BottomTabHeaderProps, createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {RouteProp, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';

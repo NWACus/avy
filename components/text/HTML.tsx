@@ -1,11 +1,11 @@
 import * as _ from 'lodash';
 import React, {PropsWithChildren, useRef} from 'react';
 
+import {MixedStyleDeclaration, RenderHTMLConfigProvider, RenderHTMLSource, RenderHTMLSourceProps, TRenderEngineProvider} from '@native-html/render';
 import {Body} from 'components/text';
 import Constants from 'expo-constants';
 import {useToggle} from 'hooks/useToggle';
 import {Platform, ScrollView, TouchableOpacity, useWindowDimensions} from 'react-native';
-import {MixedStyleDeclaration, RenderHTMLConfigProvider, RenderHTMLSource, RenderHTMLSourceProps, TRenderEngineProvider} from 'react-native-render-html';
 import {colorLookup} from 'theme';
 
 const systemFonts = [

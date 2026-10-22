@@ -4,7 +4,7 @@ import {BodySm, BodyXSm} from 'components/text';
 import {combineRefs} from 'hooks/combineRefs';
 import React, {Ref, useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {FieldPathByValue, FieldValues, useController} from 'react-hook-form';
-import {Platform, Pressable, View as RNView, StyleSheet, TextInput, TextInputProps} from 'react-native';
+import {Platform, Pressable, StyleSheet, TextInput, TextInputInstance, TextInputProps, ViewInstance} from 'react-native';
 import {colorLookup} from 'theme';
 
 export type KeysMatching<T, V> = {[K in keyof T]-?: T[K] extends V ? K : never}[keyof T];
@@ -26,7 +26,7 @@ interface TextFieldProps<TFieldValues extends FieldValues, TFieldName extends Fi
   disabled?: boolean;
   hideLabel?: boolean;
   required?: boolean;
-  textInputRef?: React.Ref<TextInput>;
+  textInputRef?: React.Ref<TextInputInstance>;
 }
 
 const textInputDefaultStyle = {
@@ -48,7 +48,7 @@ type StringFieldValue = string | null | undefined;
  */
 const _TextField = <TFieldValues extends FieldValues, TFieldName extends FieldPathByValue<TFieldValues, StringFieldValue>>(
   {name, label, comment, textTransform, textInputProps = {}, disabled, textInputRef, hideLabel = false, required = false, ...props}: TextFieldProps<TFieldValues, TFieldName>,
-  ref: Ref<RNView>,
+  ref: Ref<ViewInstance>,
 ) => {
   const {field, fieldState} = useController<TFieldValues, TFieldName>({name});
 
@@ -72,13 +72,13 @@ const _TextField = <TFieldValues extends FieldValues, TFieldName extends FieldPa
     setFocused(true);
   }, []);
 
-  const textFieldRef = useRef<TextInput>(null);
+  const textFieldRef = useRef<TextInputInstance>(null);
   const inputRef = combineRefs([textFieldRef, textInputRef]);
 
-  const [isFocused, setFocused] = useState(() => textFieldRef?.current?.isFocused ?? false);
+  const [isFocused, setFocused] = useState(() => textFieldRef?.current?.isFocused() ?? false);
 
   useLayoutEffect(() => {
-    setFocused(textFieldRef?.current?.isFocused ?? false);
+    setFocused(textFieldRef?.current?.isFocused() ?? false);
   }, []);
 
   const handleFocusField = useCallback(() => {
@@ -144,11 +144,11 @@ const _TextField = <TFieldValues extends FieldValues, TFieldName extends FieldPa
  *    };
  */
 export type TextFieldComponent<TFieldValues extends FieldValues> = <TFieldName extends FieldPathByValue<TFieldValues, StringFieldValue>>(
-  props: React.PropsWithRef<TextFieldProps<TFieldValues, TFieldName>> & {ref?: Ref<RNView>},
+  props: React.PropsWithRef<TextFieldProps<TFieldValues, TFieldName>> & {ref?: Ref<ViewInstance>},
 ) => JSX.Element;
 
 export const TextField = React.forwardRef(_TextField) as (<TFieldValues extends FieldValues, TFieldName extends FieldPathByValue<TFieldValues, StringFieldValue>>(
-  props: React.PropsWithoutRef<TextFieldProps<TFieldValues, TFieldName>> & {ref?: Ref<RNView>},
+  props: React.PropsWithoutRef<TextFieldProps<TFieldValues, TFieldName>> & {ref?: Ref<ViewInstance>},
 ) => JSX.Element) & {displayName?: string};
 
 TextField.displayName = 'TextField';

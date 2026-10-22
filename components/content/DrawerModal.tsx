@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {KeyboardAvoidingView, LayoutChangeEvent, Modal, Pressable, StyleSheet, useWindowDimensions, View} from 'react-native';
-import {Gesture, GestureDetector, GestureHandlerRootView, GestureStateChangeEvent, GestureUpdateEvent, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+import {GestureDetector, GestureHandlerRootView, usePanGesture} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring, withTiming} from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -110,23 +110,20 @@ export const DrawerModal: React.FC<DrawerProps> = ({isVisible, onDismiss, drawer
     }
   }, []);
 
-  const panGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .onUpdate((event: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
-          if (event.translationY > 0) {
-            translateY.value = event.translationY;
-          }
-        })
-        .onEnd((event: GestureStateChangeEvent<PanGestureHandlerEventPayload>) => {
-          if (event.translationY > DRAG_DISMISS_DISTANCE || event.velocityY > DRAG_DISMISS_VELOCITY) {
-            scheduleOnRN(performDismiss);
-          } else {
-            translateY.value = withSpring(0, SPRING_CONFIG);
-          }
-        }),
-    [translateY, performDismiss],
-  );
+  const panGesture = usePanGesture({
+    onUpdate: event => {
+      if (event.translationY > 0) {
+        translateY.value = event.translationY;
+      }
+    },
+    onDeactivate: event => {
+      if (event.translationY > DRAG_DISMISS_DISTANCE || event.velocityY > DRAG_DISMISS_VELOCITY) {
+        scheduleOnRN(performDismiss);
+      } else {
+        translateY.value = withSpring(0, SPRING_CONFIG);
+      }
+    },
+  });
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{translateY: translateY.value}],
