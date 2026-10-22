@@ -73,7 +73,7 @@ interface ObservationFragmentWithPageIndexAndZone extends ObservationFragmentWit
   zone: string;
 }
 
-export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, tabBarHeight = 0, additionalFilters}) => {
+export const ObservationsListView: React.FunctionComponent<ObservationsListViewProps> = ({center_id, requestedTime, tabBarHeight, additionalFilters}) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const navigation = useNavigation<MainStackNavigationProps>();
   const originalFilterConfig: ObservationFilterConfig = useMemo(() => createDefaultFilterConfig(additionalFilters), [additionalFilters]);
@@ -328,6 +328,7 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
   );
 
   const insets = useSafeAreaInsets();
+  const bottomOffset = tabBarHeight ?? insets.bottom;
 
   if (incompleteQueryState(observationsResult, mapResult) || !mapLayer || !mapFeatures) {
     return (
@@ -423,14 +424,14 @@ export const ObservationsListView: React.FunctionComponent<ObservationsListViewP
             </Center>
           )
         }
-        contentContainerStyle={{flexGrow: 1, paddingBottom: tabBarHeight + insets.bottom}}
+        contentContainerStyle={{flexGrow: 1, paddingBottom: bottomOffset}}
         style={{backgroundColor: colorLookup('primary.background'), width: '100%', height: '100%'}}
         refreshing={isRefreshing}
         onRefresh={refreshWrapper}
         getItemLayout={getItemLayout}
         renderItem={renderItem}
       />
-      <HStack position="absolute" bottom={tabBarHeight > 0 ? tabBarHeight + 8 : 32} right={16} justifyContent="flex-end">
+      <HStack position="absolute" bottom={bottomOffset + 16} right={16} justifyContent="flex-end">
         {/* Padding numbers are carefully chosen to center things, and to make the button perfectly round
         when the text is hidden. Expo icons are never vertically centered correctly by default for some reason. */}
         <Button buttonStyle="primary" onPress={submit} borderRadius={32} paddingHorizontal={13}>

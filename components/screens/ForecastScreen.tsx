@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import {StyleSheet} from 'react-native';
 
 import {SafeAreaView} from 'react-native-safe-area-context';
 
@@ -118,36 +117,36 @@ const AvalancheForecast: React.FunctionComponent<{
 const AvalancheTabScreen = ({route}: MaterialTopTabScreenProps<ForecastTabNavigatorParamList, 'avalanche'>) => {
   const {center_id, forecast_zone_id, requestedTime} = route.params;
   return (
-    <SafeAreaView style={{...StyleSheet.absoluteFill, backgroundColor: 'white'}} edges={['left', 'right']}>
+    <View flex={1} bg="white">
       <AvalancheTab center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
-    </SafeAreaView>
+    </View>
   );
 };
 
 const WeatherTabScreen = ({route}: MaterialTopTabScreenProps<ForecastTabNavigatorParamList, 'weather'>) => {
   const {center_id, forecast_zone_id, requestedTime} = route.params;
   return (
-    <SafeAreaView style={{...StyleSheet.absoluteFill, backgroundColor: 'white'}} edges={['left', 'right']}>
+    <View flex={1} bg="white">
       <WeatherTab center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
-    </SafeAreaView>
+    </View>
   );
 };
 
 const ObservationsTabScreen = ({route}: MaterialTopTabScreenProps<ForecastTabNavigatorParamList, 'observations'>) => {
   const {center_id, forecast_zone_id, requestedTime} = route.params;
   return (
-    <SafeAreaView style={{...StyleSheet.absoluteFill, backgroundColor: 'white'}} edges={['left', 'right']}>
+    <View flex={1} bg="white">
       <ObservationsTab center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
-    </SafeAreaView>
+    </View>
   );
 };
 
 const SynopsisTabScreen = ({route}: MaterialTopTabScreenProps<ForecastTabNavigatorParamList, 'blog'>) => {
   const {center_id, forecast_zone_id, requestedTime} = route.params;
   return (
-    <SafeAreaView style={{...StyleSheet.absoluteFill, backgroundColor: 'white'}} edges={['left', 'right']}>
+    <View flex={1} bg="white">
       <SynopsisTab center_id={center_id} forecast_zone_id={forecast_zone_id} requestedTime={requestedTime} />
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -14,6 +14,7 @@ import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useRefresh} from 'hooks/useRefresh';
 import {useSynopsis} from 'hooks/useSynopsis';
 import {RefreshControl, ScrollView} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MainStackNavigationProps} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -25,6 +26,7 @@ export const SynopsisTab: React.FunctionComponent<{
   forecast_zone_id: number;
 }> = ({center_id, forecast_zone_id, requestedTime: requestedTimeString}) => {
   const requestedTime = parseRequestedTimeString(requestedTimeString);
+  const insets = useSafeAreaInsets();
   const centerResult = useAvalancheCenterMetadata(center_id);
   const center = centerResult.data;
   const synopsisResult = useSynopsis(center_id, forecast_zone_id, requestedTime);
@@ -84,7 +86,7 @@ export const SynopsisTab: React.FunctionComponent<{
   }
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
+    <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />} contentContainerStyle={{paddingBottom: insets.bottom}}>
       <VStack space={8} backgroundColor={colorLookup('primary.background')}>
         <Card borderRadius={0} borderColor="white" header={<Title3Black>{center.config.blog_title ?? 'Conditions Blog'}</Title3Black>}>
           <HStack justifyContent="space-evenly" space={8}>
