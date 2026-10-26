@@ -79,7 +79,6 @@ export const FeatureFlagsProvider: React.FC<FeatureFlagsProviderProps> = ({child
         updateGroupId: getUpdateGroupId(),
         updateBuildTime: process.env.EXPO_PUBLIC_GIT_REVISION as string,
         environment: Updates.channel || 'development',
-        channel: `AvyApp-${Updates.channel || 'development'}`,
         source: 'nwacus/avy',
       });
       logger.debug('registered user');
