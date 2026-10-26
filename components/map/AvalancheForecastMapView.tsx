@@ -316,24 +316,36 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
 
   const onCameraMoved = useCallback(
     (mapState: MapState) => {
-      enterNoCenterExperienceIfCenterOffscreen(mapState);
       persistCameraWhileCenterless(mapState);
       reportCBACZoomVisibility(mapState.properties.zoom);
       reportCBACCoverageVisibility(mapState.properties.bounds);
       reportCBACRatingPillVisibility(mapState.properties.zoom);
     },
-    [enterNoCenterExperienceIfCenterOffscreen, persistCameraWhileCenterless, reportCBACZoomVisibility, reportCBACCoverageVisibility, reportCBACRatingPillVisibility],
+    [persistCameraWhileCenterless, reportCBACZoomVisibility, reportCBACCoverageVisibility, reportCBACRatingPillVisibility],
   );
 
   // Read through a ref so the throttled handler never changes identity: it is a prop on the native
   // MapView, and a new one each render would push a prop update down on every render.
   const onCameraMovedRef = useRef(onCameraMoved);
+  const enterNoCenterExperienceIfCenterOffscreenRef = useRef(enterNoCenterExperienceIfCenterOffscreen);
   useEffect(() => {
     onCameraMovedRef.current = onCameraMoved;
-  }, [onCameraMoved]);
+    enterNoCenterExperienceIfCenterOffscreenRef.current = enterNoCenterExperienceIfCenterOffscreen;
+  }, [onCameraMoved, enterNoCenterExperienceIfCenterOffscreen]);
 
-  const onCameraChanged = useMemo(() => throttle((mapState: MapState) => onCameraMovedRef.current(mapState), CAMERA_CHANGE_THROTTLE_MS, {leading: true, trailing: true}), []);
-  useEffect(() => () => onCameraChanged.cancel(), [onCameraChanged]);
+  const throttledOnCameraMoved = useMemo(
+    () => throttle((mapState: MapState) => onCameraMovedRef.current(mapState), CAMERA_CHANGE_THROTTLE_MS, {leading: true, trailing: true}),
+    [],
+  );
+  useEffect(() => () => throttledOnCameraMoved.cancel(), [throttledOnCameraMoved]);
+
+  const onCameraChanged = useCallback(
+    (mapState: MapState) => {
+      enterNoCenterExperienceIfCenterOffscreenRef.current(mapState);
+      throttledOnCameraMoved(mapState);
+    },
+    [throttledOnCameraMoved],
+  );
 
   useEffect(() => {
     if (userLocation) {
