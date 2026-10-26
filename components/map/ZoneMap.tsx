@@ -1,6 +1,9 @@
-import {AvalancheForecastZonePolygon, SelectedAvalancheForecastZonePolygon} from 'components/map/AvalancheForecastZonePolygon';
+import {AvalancheForecastZonePolygon, SelectedAvalancheForecastZonePolygon, ZonePolygonStyle} from 'components/map/AvalancheForecastZonePolygon';
+
 import {CanadaAvalancheForecastZonePolygons} from 'components/map/CanadaAvalancheForecastZonePolygons';
-import React, {RefObject, useMemo} from 'react';
+import {useWarningPulse, useWarningPulseShape, WarningPulseOverlay} from 'components/map/WarningPulseOverlay';
+import {partitionZonesByDrawOrder} from 'components/map/zoneDrawOrder';
+import React, {RefObject, useCallback, useMemo} from 'react';
 import {AvalancheCenterID, DangerLevel, MapLayerFeature} from 'types/nationalAvalancheCenter';
 import {CanadaMapViewZone} from 'utils/canadaMapViewZone';
 
@@ -43,6 +46,7 @@ interface ZoneMapProps extends ViewProps {
   cameraRef?: RefObject<Camera | null>;
   selectedZoneId?: number | null;
   renderFillColor?: boolean;
+  zonePolygonStyle?: (zone: MapViewZone) => ZonePolygonStyle;
   rotateEnabled?: boolean;
   scrollEnabled?: boolean;
   zoomEnabled?: boolean;
@@ -63,6 +67,7 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
   initialCameraStop,
   initialCameraPadding,
   renderFillColor = true,
+  zonePolygonStyle = undefined,
   rotateEnabled = true,
   scrollEnabled = true,
   zoomEnabled = true,
@@ -75,13 +80,27 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
   children,
   ...props
 }) => {
-  const zonePolygons = useMemo(() => {
-    return zones?.map(zone => <AvalancheForecastZonePolygon key={`${zone.zone_id}-polygon`} zone={zone} renderFillColor={renderFillColor} onPress={onPolygonPress} />);
-  }, [zones, renderFillColor, onPolygonPress]);
+  const styleFor = useCallback((zone: MapViewZone): ZonePolygonStyle => (zonePolygonStyle ? zonePolygonStyle(zone) : 'default'), [zonePolygonStyle]);
+
+  const {baseZones, overlappingZones} = useMemo(() => partitionZonesByDrawOrder(zones, styleFor), [zones, styleFor]);
+
+  const polygonsFor = useCallback(
+    (groupZones: MapViewZone[]) =>
+      groupZones.map(zone => (
+        <AvalancheForecastZonePolygon key={`${zone.zone_id}-polygon`} zone={zone} renderFillColor={renderFillColor} polygonStyle={styleFor(zone)} onPress={onPolygonPress} />
+      )),
+    [renderFillColor, styleFor, onPolygonPress],
+  );
+  const basePolygons = useMemo(() => polygonsFor(baseZones), [polygonsFor, baseZones]);
+  const overlappingPolygons = useMemo(() => polygonsFor(overlappingZones), [polygonsFor, overlappingZones]);
+
+  const pulseShape = useWarningPulseShape(renderFillColor ? baseZones.filter(zone => zone.hasWarning) : []);
+  const pulse = useWarningPulse(pulseShape.features.length > 0);
 
   const selectedPolygon = useMemo(() => {
     if (selectedZoneId !== null) {
-      return zones?.filter(zone => zone.zone_id === selectedZoneId).map(zone => <SelectedAvalancheForecastZonePolygon key={`${zone.zone_id}-selectedPolygon`} zone={zone} />);
+      const selectedZone = zones?.find(zone => zone.zone_id === selectedZoneId);
+      return selectedZone ? <SelectedAvalancheForecastZonePolygon key={`${selectedZone.zone_id}-selectedPolygon`} zone={selectedZone} /> : null;
     }
 
     return null;
@@ -102,7 +121,9 @@ export const ZoneMap: React.FunctionComponent<ZoneMapProps> = ({
       {...props}>
       <Camera ref={cameraRef} defaultSettings={initialCameraStop ?? {bounds: initialCameraBounds, padding: initialCameraPadding}} />
       {canadaZones && <CanadaAvalancheForecastZonePolygons zones={canadaZones} renderFillColor={renderFillColor} onPress={onCanadaPolygonPress} />}
-      {zonePolygons}
+      {basePolygons}
+      <WarningPulseOverlay id="warning-pulse" shape={pulseShape} pulse={pulse} />
+      {overlappingPolygons}
       {selectedPolygon}
       {children}
     </MapView>

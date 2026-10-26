@@ -115,13 +115,13 @@ export const AvalancheCenterWebsites: Record<AvalancheCenterID, string> = {
 };
 
 export const UnsupportedCenterNames: Record<UnsupportedCenterID, string> = {
-  ['CAIC']: 'Colorado Avalanche Information Center',
-  ['UAC']: 'Utah Avalanche Center',
-  ['SOAIX']: 'Southern Oregon Avalanche Info Exchange',
-  ['EWYAIX']: 'Eastern Wyoming Avalanche Info Exchange',
-  ['EARAC']: 'Eastern Alaska Range Avalanche Center',
-  ['CAC']: 'Cordova Avalanche Center',
-  ['NYSAC']: 'New York State Avalanche Center',
+  ['CAIC']: 'The Colorado Avalanche Information Center',
+  ['UAC']: 'The Utah Avalanche Center',
+  ['SOAIX']: 'The Southern Oregon Avalanche Info Exchange',
+  ['EWYAIX']: 'The Eastern Wyoming Avalanche Info Exchange',
+  ['EARAC']: 'The Eastern Alaska Range Avalanche Center',
+  ['CAC']: 'The Cordova Avalanche Center',
+  ['NYSAC']: 'The New York State Avalanche Center',
   ['CAN']: 'Avalanche Canada',
 };
 

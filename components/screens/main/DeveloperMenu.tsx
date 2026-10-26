@@ -24,6 +24,7 @@ import {useQueryClient} from '@tanstack/react-query';
 import {ClientContext} from 'clientContext';
 import {AvalancheProblemSizeLine} from 'components/AvalancheProblemSizeLine';
 import {ActionList} from 'components/content/ActionList';
+import {AlertModal, AlertModalActions} from 'components/content/AlertModal';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {DrawerModal, DrawerModalDisplayType} from 'components/content/DrawerModal';
@@ -175,6 +176,13 @@ const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
         data: 'Drawer Preview',
         action: () => {
           navigation.navigate('drawerPreview');
+        },
+      },
+      {
+        label: 'Open alert modal preview',
+        data: 'Alert Modal Preview',
+        action: () => {
+          navigation.navigate('alertModalPreview');
         },
       },
     ],
@@ -832,6 +840,83 @@ export const DrawerPreview = () => {
           </Button>
         </VStack>
       </DrawerModal>
+    </SafeAreaView>
+  );
+};
+
+type AlertModalVariant = 'titleOnly' | 'closeButton' | 'headerSlot' | 'twoActions';
+
+export const AlertModalPreview = () => {
+  const [variant, setVariant] = useState<AlertModalVariant | null>(null);
+  const dismiss = useCallback(() => setVariant(null), []);
+
+  const variants: {label: string; variant: AlertModalVariant}[] = [
+    {label: 'Title + body + one action', variant: 'titleOnly'},
+    {label: 'Title + close X', variant: 'closeButton'},
+    {label: 'Header slot + centered title', variant: 'headerSlot'},
+    {label: 'Primary + secondary actions', variant: 'twoActions'},
+  ];
+
+  return (
+    <SafeAreaView style={{flex: 1}}>
+      <VStack space={16} px={16} py={16}>
+        <Body>Each button opens the alert modal configured a different way.</Body>
+        {variants.map(({label, variant: value}) => (
+          <Button key={value} buttonStyle="primary" onPress={() => setVariant(value)}>
+            <BodySemibold>{label}</BodySemibold>
+          </Button>
+        ))}
+      </VStack>
+
+      <AlertModal isVisible={variant === 'titleOnly'} onDismiss={dismiss} title="A simple alert">
+        <Body>Just a title, a paragraph of body copy, and a single primary action.</Body>
+        <AlertModalActions>
+          <Button buttonStyle="primary" onPress={dismiss}>
+            <BodyBlack>Got it</BodyBlack>
+          </Button>
+        </AlertModalActions>
+      </AlertModal>
+
+      <AlertModal isVisible={variant === 'closeButton'} onDismiss={dismiss} title="Dismissable alert" showCloseButton>
+        <Body>The close button sits to the right of the title and calls onDismiss.</Body>
+        <AlertModalActions>
+          <Button buttonStyle="primary" onPress={dismiss}>
+            <BodyBlack>Continue</BodyBlack>
+          </Button>
+        </AlertModalActions>
+      </AlertModal>
+
+      <AlertModal
+        isVisible={variant === 'headerSlot'}
+        onDismiss={dismiss}
+        title="Centered title"
+        titleAlign="center"
+        header={
+          <View alignItems="center" pb={12}>
+            <View width={56} height={56} borderRadius={28} bg={colorLookup('primary.background')} alignItems="center" justifyContent="center">
+              <BodyBlack color={colorLookup('primary')}>Avy</BodyBlack>
+            </View>
+          </View>
+        }>
+        <Body textAlign="center">The header slot renders above the title, outside the shared 12pt content stack.</Body>
+        <AlertModalActions>
+          <Button buttonStyle="primary" onPress={dismiss}>
+            <BodyBlack>Okay</BodyBlack>
+          </Button>
+        </AlertModalActions>
+      </AlertModal>
+
+      <AlertModal isVisible={variant === 'twoActions'} onDismiss={dismiss} title="Two actions">
+        <Body>Actions live in children, so callers control both their order and their button styles.</Body>
+        <AlertModalActions>
+          <Button buttonStyle="primary" onPress={dismiss}>
+            <BodyBlack>Confirm</BodyBlack>
+          </Button>
+          <Button buttonStyle="normal" onPress={dismiss}>
+            <BodyBlack>Not now</BodyBlack>
+          </Button>
+        </AlertModalActions>
+      </AlertModal>
     </SafeAreaView>
   );
 };
