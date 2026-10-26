@@ -32,6 +32,9 @@ import {ConnectionLost, InternalError, NotFound} from 'components/content/QueryS
 import Toast from 'components/content/ToastRoot';
 import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'components/content/ToastViews';
 import {AvalancheForecastZoneMap} from 'components/map/AvalancheForecastZoneMap';
+import {PushNotificationsPermissionsAcceptedModal} from 'components/modals/push-notifications/PushNotificationsPermissionsAcceptedModal';
+import {PushNotificationsPermissionsDeniedModal} from 'components/modals/push-notifications/PushNotificationsPermissionsDeniedModal';
+import {PushNotificationsPermissionsModal} from 'components/modals/push-notifications/PushNotificationsPermissionsModal';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {Keys} from 'components/screens/main/Keys';
 import {getVersionInfoFull} from 'components/screens/main/Version';
@@ -183,6 +186,41 @@ const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
         data: 'Alert Modal Preview',
         action: () => {
           navigation.navigate('alertModalPreview');
+        },
+      },
+      {
+        label: 'Open push notification modal preview',
+        data: 'Push Notification Modal Preview',
+        action: () => {
+          navigation.navigate('pushNotificationModalPreview');
+        },
+      },
+      {
+        label: 'Manage notifications (not determined)',
+        data: 'Manage Notifications',
+        action: () => {
+          navigation.navigate('manageNotifications', {permissionStatus: 'undetermined', followedCenterIds: []});
+        },
+      },
+      {
+        label: 'Manage notifications (accepted)',
+        data: 'Manage Notifications',
+        action: () => {
+          navigation.navigate('manageNotifications', {permissionStatus: 'granted', followedCenterIds: ['BTAC']});
+        },
+      },
+      {
+        label: 'Manage notifications (denied)',
+        data: 'Manage Notifications',
+        action: () => {
+          navigation.navigate('manageNotifications', {permissionStatus: 'denied', followedCenterIds: []});
+        },
+      },
+      {
+        label: 'Manage notifications (empty)',
+        data: 'Manage Notifications',
+        action: () => {
+          navigation.navigate('manageNotifications', {permissionStatus: 'granted', followedCenterIds: []});
         },
       },
     ],
@@ -917,6 +955,65 @@ export const AlertModalPreview = () => {
           </Button>
         </AlertModalActions>
       </AlertModal>
+    </SafeAreaView>
+  );
+};
+
+const PREVIEW_NOTIFICATION_ZONES = [
+  {id: 1, name: 'Togwotee Pass'},
+  {id: 2, name: 'Tetons'},
+  {id: 3, name: 'Salt River & Wyoming Ranges'},
+  {id: 4, name: 'Snake River Range'},
+];
+
+const PREVIEW_NOTIFICATION_ZONES_OVERFLOW = [...PREVIEW_NOTIFICATION_ZONES, {id: 5, name: 'Greys River'}, {id: 6, name: 'Gros Ventre Range'}, {id: 7, name: 'Wind River Range'}];
+
+export const PushNotificationModalPreview = () => {
+  const [isPermissionsModalVisible, setIsPermissionsModalVisible] = useState(false);
+  const [isPermissionsDeniedModalVisible, setIsPermissionsDeniedModalVisible] = useState(false);
+  const showPermissionsModal = useCallback(() => setIsPermissionsModalVisible(true), [setIsPermissionsModalVisible]);
+  const dismissAskPermissions = useCallback(() => setIsPermissionsModalVisible(false), [setIsPermissionsModalVisible]);
+  const showPermissionsDeniedModal = useCallback(() => setIsPermissionsDeniedModalVisible(true), [setIsPermissionsDeniedModalVisible]);
+  const dismissPermissionsDenied = useCallback(() => setIsPermissionsDeniedModalVisible(false), []);
+  const [acceptedModalZones, setAcceptedModalZones] = useState<typeof PREVIEW_NOTIFICATION_ZONES | null>(null);
+  const showPermissionsAcceptedModal = useCallback(() => setAcceptedModalZones(PREVIEW_NOTIFICATION_ZONES), []);
+  const showPermissionsAcceptedModalOverflow = useCallback(() => setAcceptedModalZones(PREVIEW_NOTIFICATION_ZONES_OVERFLOW), []);
+  const dismissPermissionsAccepted = useCallback(() => setAcceptedModalZones(null), []);
+  const continueFromPermissionsAccepted = useCallback((enabledZoneIds: Set<number>) => {
+    logger.info({enabledZoneIds: Array.from(enabledZoneIds)}, 'push notification zones enabled');
+    setAcceptedModalZones(null);
+  }, []);
+
+  return (
+    <SafeAreaView style={{flex: 1}}>
+      <VStack space={16} px={16} py={16}>
+        <Body>Each button opens one of the push notification modals.</Body>
+        <Button buttonStyle="primary" onPress={showPermissionsModal}>
+          <BodySemibold>Ask Permissions</BodySemibold>
+        </Button>
+        <Button buttonStyle="primary" onPress={showPermissionsDeniedModal}>
+          <BodySemibold>Permissions Denied</BodySemibold>
+        </Button>
+        <Button buttonStyle="primary" onPress={showPermissionsAcceptedModal}>
+          <BodySemibold>Permissions Accepted</BodySemibold>
+        </Button>
+        <Button buttonStyle="primary" onPress={showPermissionsAcceptedModalOverflow}>
+          <BodySemibold>Permissions Accepted (7 zones)</BodySemibold>
+        </Button>
+      </VStack>
+
+      <PushNotificationsPermissionsModal visible={isPermissionsModalVisible} onClose={dismissAskPermissions} onTurnOnNotifications={dismissAskPermissions} />
+      <PushNotificationsPermissionsDeniedModal visible={isPermissionsDeniedModalVisible} onClose={dismissPermissionsDenied} />
+      {acceptedModalZones && (
+        <PushNotificationsPermissionsAcceptedModal
+          visible
+          centerName="Bridger-Teton Avalanche Center"
+          zones={acceptedModalZones}
+          onClose={dismissPermissionsAccepted}
+          onContinue={continueFromPermissionsAccepted}
+          onManageNotifications={dismissPermissionsAccepted}
+        />
+      )}
     </SafeAreaView>
   );
 };

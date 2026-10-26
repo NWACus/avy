@@ -118,6 +118,8 @@ export const COLORS: Record<string, ColorValue> = {
   'muted.700': '#404040',
   'light.100': '#f5f5f4',
   'light.300': '#d6d3d1',
+  'notice.banner.general': '#EAF2FF',
+  'notice.banner.alert': '#FFE2E5',
 } as const;
 
 export const colorLookup = (color: ColorValue): ColorValue => (typeof color === 'string' && COLORS[color] ? COLORS[color] : color);

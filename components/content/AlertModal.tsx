@@ -33,7 +33,7 @@ const cardStyle = {
 } as const;
 
 export const AlertModalActions: React.FC<{children?: React.ReactNode}> = ({children}) => (
-  <View mt={20} alignItems="stretch">
+  <View alignItems="stretch">
     <VStack space={8}>{children}</VStack>
   </View>
 );

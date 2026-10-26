@@ -3,6 +3,7 @@ import {DrawerNavigationProp} from '@react-navigation/drawer';
 import {MaterialTopTabNavigationProp} from '@react-navigation/material-top-tabs';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {AvalancheCenterID, WeatherStationSource} from 'types/nationalAvalancheCenter';
+import {NotificationPermissionStatus} from 'types/notifications';
 import {RequestedTimeString} from 'utils/date';
 
 export type TabNavigatorParamList = {
@@ -64,6 +65,14 @@ export type MainStackParamList = {
   toastPreview: undefined;
   drawerPreview: undefined;
   alertModalPreview: undefined;
+  pushNotificationModalPreview: undefined;
+  manageNotifications: {
+    permissionStatus: NotificationPermissionStatus;
+    followedCenterIds: AvalancheCenterID[];
+  };
+  avalancheCenterNotificationsSelector: {
+    selectedCenterIds: AvalancheCenterID[];
+  };
   timeMachine: undefined;
   featureFlags: undefined;
   expoConfig: undefined;
