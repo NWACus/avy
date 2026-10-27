@@ -24,7 +24,7 @@ import {CBACOverlappingForecastsLink} from 'components/map/CBACOverlappingForeca
 import {CBACZoneRatingPill} from 'components/map/CBACZoneRatingPill';
 import {CBACForecastExplanationModal} from 'components/modals/cbac/CBACForecastExplanationModal';
 import {Position} from 'geojson';
-import {CenterSwitchOrigin, useAnalytics} from 'hooks/useAnalytics';
+import {CBACAnalyticsSource, CenterSwitchOrigin, useAnalytics} from 'hooks/useAnalytics';
 import {throttle} from 'lodash';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {CanadaMapViewZone} from 'utils/canadaMapViewZone';
@@ -161,10 +161,13 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
       return;
     }
     setSelectedZoneId(pendingCBACZone.zone_id);
+    if (preferredCenterId !== CBAC_COVERAGE_CENTER_ID) {
+      analytics.captureCenterSwitch(preferredCenterId, CBAC_COVERAGE_CENTER_ID, CenterSwitchOrigin.Map);
+    }
     setPreferences({center: CBAC_COVERAGE_CENTER_ID, hasSeenCBACForecastFirstRun: true});
     setIsInNoCenterExperience(false);
     setPendingCBACZone(null);
-  }, [pendingCBACZone, setSelectedZoneId, setPreferences, setIsInNoCenterExperience]);
+  }, [pendingCBACZone, preferredCenterId, analytics, setSelectedZoneId, setPreferences, setIsInNoCenterExperience]);
 
   const isCBACSelected = preferredCenterId === CBAC_COVERAGE_CENTER_ID;
 
@@ -372,7 +375,12 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
     [showCBACCoverageOnMap, openForecastExplanation],
   );
 
-  const renderCBACFooter = useCallback(() => <CBACOverlappingForecastsLink onPress={openForecastExplanation} />, [openForecastExplanation]);
+  const onPressCardFooterExplanation = useCallback(() => {
+    analytics.capture('cbac_explanation_tapped', {center: preferredCenterId, displayed_from: CBACAnalyticsSource.CardFooter});
+    openForecastExplanation();
+  }, [analytics, preferredCenterId, openForecastExplanation]);
+
+  const renderCBACFooter = useCallback(() => <CBACOverlappingForecastsLink onPress={onPressCardFooterExplanation} />, [onPressCardFooterExplanation]);
 
   const initialCameraStop: CameraStop | undefined = useMemo(() => {
     if (isInNoCenterExperience && initialMapCamera) {
@@ -427,9 +435,9 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
         onClose={onCloseUnsupportedModal}
       />
 
-      <CBACForecastCenterlessModal visible={pendingCBACZone !== null} onClose={onCloseCBACCenterlessModal} onSwitchToCBAC={onSwitchToCBAC} />
+      <CBACForecastCenterlessModal visible={pendingCBACZone !== null} centerId={preferredCenterId} onClose={onCloseCBACCenterlessModal} onSwitchToCBAC={onSwitchToCBAC} />
 
-      <CBACForecastExplanationModal visible={showForecastExplanation} onClose={closeForecastExplanation} onExploreBoth={onExploreBothForecasts} />
+      <CBACForecastExplanationModal visible={showForecastExplanation} centerId={preferredCenterId} onClose={closeForecastExplanation} onExploreBoth={onExploreBothForecasts} />
     </>
   );
 };
