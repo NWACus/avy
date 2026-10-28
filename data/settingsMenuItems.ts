@@ -4,33 +4,33 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
   NWAC: [
     {
       title: 'About NWAC',
-      url: 'http://nwac.us/about/about-us',
+      url: 'https://nwac.us/about/about-us',
     },
     {
       title: 'Avalanche Education',
-      url: 'https://nwac.us/avalanche-education/',
+      url: 'https://nwac.us/education/the-avalanche-education-roadmap',
     },
     {
       title: 'Become A Member',
-      url: 'https://give.nwac.us/give/497748//#!/donation/checkout?c_src=avy',
+      url: 'https://nwac.us/support/donate-membership',
     },
     {
       title: 'Volunteer With NWAC',
-      url: 'https://support.nwac.us/volunteer/',
+      url: 'https://nwac.us/support/volunteer',
     },
     {
       title: 'Latest News',
-      url: 'http://nwac.us/#news',
+      url: 'https://nwac.us/blog',
     },
   ],
   SNFAC: [
     {
       title: 'About SAC',
-      url: 'http://www.sawtoothavalanche.com/about/',
+      url: 'https://www.sawtoothavalanche.com/about/about-us',
     },
     {
       title: 'Avalanche Education',
-      url: 'https://www.sawtoothavalanche.com/idaho-avalanche-education-calendar/',
+      url: 'https://www.sawtoothavalanche.com/education/classes',
     },
     {
       title: 'Become a Member',
@@ -84,7 +84,7 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
   SAC: [
     {
       title: 'About SAC',
-      url: 'https://www.sierraavalanchecenter.org/about',
+      url: 'https://www.sierraavalanchecenter.org/about/about-us',
     },
     {
       title: 'Education',
@@ -92,7 +92,7 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
     },
     {
       title: 'Donate',
-      url: 'https://www.sierraavalanchecenter.org/donate',
+      url: 'https://www.sierraavalanchecenter.org/support/donate',
     },
     {
       title: 'Events',
@@ -116,15 +116,15 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
   PAC: [
     {
       title: 'About PAC',
-      url: 'https://payetteavalanche.org/about',
+      url: 'https://payetteavalanche.org/about/about-us',
     },
     {
       title: 'Weather Resources',
-      url: 'https://payetteavalanche.org/weather-tools',
+      url: 'https://payetteavalanche.org/weather/weather-tools',
     },
     {
       title: 'Avalanche Education Calendar',
-      url: 'https://payetteavalanche.org/classes-events',
+      url: 'https://payetteavalanche.org/education/classes',
     },
     {
       title: 'Donate',
@@ -132,7 +132,7 @@ export const settingsMenuItems: Record<AvalancheCenterID, {title: string; url: s
     },
     {
       title: 'News',
-      url: 'https://payetteavalanche.org/friends/#whats-new',
+      url: 'https://payetteavalanche.org/blog?tags=news',
     },
   ],
   FAC: [
