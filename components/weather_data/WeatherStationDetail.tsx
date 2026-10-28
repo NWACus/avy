@@ -9,7 +9,7 @@ import {InfoTooltip} from 'components/content/InfoTooltip';
 import {incompleteQueryState, NotFound, QueryState} from 'components/content/QueryState';
 import {Center, Divider, HStack, View, VStack} from 'components/core';
 import {BodyBlack, bodySize, BodyXSm, BodyXSmBlack} from 'components/text';
-import {formatDateTime} from 'components/weather_data/WeatherStationsDetail';
+import {formatDateTime, formatStationValue} from 'components/weather_data/WeatherStationsDetail';
 import {centerOrPartnerCenter} from 'components/weather_data/WeatherUtils';
 import {compareDesc} from 'date-fns';
 import {useAnalytics} from 'hooks/useAnalytics';
@@ -236,7 +236,7 @@ export const formatData = (variable: Variable, data: (number | string | null)[])
       formatter = (i: string | number | null) => windDirection(Number(i));
       break;
     default:
-      formatter = (i: string | number | null) => (typeof i === 'number' ? i.toString() : i);
+      formatter = (i: string | number | null) => formatStationValue(variable.variable, i);
       break;
   }
 

@@ -27,6 +27,25 @@ interface Props {
 
 export const formatDateTime = (timezone: string) => (input: string) => formatInTimeZone(new Date(input), timezone, 'MM/dd HH:mm');
 
+// We request unrounded data from Snowbound, so round at display time: precipitation reads to hundredths,
+// everything else to whole units (matching AvyWeb).
+const decimalsByField: Record<string, number> = {
+  precip_accum_one_hour: 2,
+  precip_accum_24hr: 2,
+  precip_accum: 2,
+  snow_water_equiv: 2,
+  snow_water_equiv_24hr: 2,
+};
+
+export const formatStationValue = (field: string, value: number | string | null): string | null => {
+  if (typeof value !== 'number') {
+    return value;
+  }
+  const text = value.toFixed(decimalsByField[field] ?? 0);
+  // a small negative (e.g. 24-hour snow settling) rounds to "-0", which should read as plain 0
+  return Number(text) === 0 ? text.replace('-', '') : text;
+};
+
 const preferredFieldOrder: Record<string, number> = {
   date_time: 0,
   air_temp: 1,
@@ -169,7 +188,7 @@ const TimeSeriesTable: React.FC<{timeSeries: WeatherStationTimeseries}> = ({time
   const data: string[][] = useMemo(() => {
     const result = [];
     for (const time of times) {
-      result.push(tableColumns.map(column => String(column.dataByTime[time] !== null ? column.dataByTime[time] : '-')));
+      result.push(tableColumns.map(column => String(column.dataByTime[time] !== null ? formatStationValue(column.field, column.dataByTime[time]) : '-')));
     }
     return result;
   }, [tableColumns, times]);
