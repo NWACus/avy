@@ -15,69 +15,20 @@ You can email us at developer@nwac.us to request to be added to our Slack channe
 
 Lastly, please fill out the form linked at the [bottom of this page](https://nwac.us/technology-volunteer-outreach/) so we know who you are and what you're interested in!
 
-# Developer Environment
+# Development
 
-To start off, please create your own fork of the repo to clone it locally.
+See [Local development](docs/local-development.md) to get the app running, and [Debugging](docs/debugging.md) for DevTools and logging.
 
-We use the following global packages:
+# Working from a fork
 
-```
-npm install -g npm@8.19.3 yarn@1.22.10
-```
+Volunteers: please fork the repo, work on a branch in your fork, and open PRs from there against `NWACus/avy`. You don't need access to the Expo project. If you need shared secret values, ask developer@nwac.us or the Slack volunteer channel.
 
-And we primarily use `yarn` to handle our package management. Before building the app make sure you have all the dependencies installed by running:
+# Checking in code
 
-```
-yarn install
-```
+CI checks formatting, linting, types, and tests, and a pre-commit hook runs the same checks. Before committing, run:
 
-This project uses the Expo framework; follow their excellent [installation guide](https://docs.expo.dev/get-started/installation/) to get a development environment set up. Make sure to follow the steps for getting your environment set up to be able to make development builds as we currently use local development builds for the bulk of our testing.
-
-If you plan to build a development build of the app using EAS instead of running in the Expo Go sandbox, you'll need to [sign up for an account](https://expo.dev/signup) and get invited to the [project](https://expo.dev/accounts/nwac/projects/avalanche-forecast). If you do not need to do either of those things, you will not need access to the project to proceed with development.
-
-We have a preview app published on both the Android Play Store and Apple App Store for staging changes that cannot be tested inside the sandbox.
-
-## Checking in code
-
-We use CI to check that the code is correctly formatted/styled and to test it. This is verfied by a precommit hook. To make sure that your code meets our style guide run the following command:
-
-```
+```bash
 yarn prettify
 ```
 
-Once the code is commited and pushed to your fork, open a PR against the main Avy repro. NWAC staff, or another volunteer, will review it and get it checked in.
-
-## Local Secrets
-
-You will need a number of environment variables set to secret values. You would populate them in a `.env` file at the root of the repository. Make sure to include the following values:
-
-- `ANDROID_GOOGLE_MAPS_API_KEY`
-- `IOS_GOOGLE_MAPS_API_KEY`
-- `SENTRY_API_TOKEN`
-- `EXPO_PUBLIC_SENTRY_DSN`
-
-These secrets can be uploaded to the Expo servers if they ever become out-of-sync with:
-
-```shell
-eas secret:push --env-file=.env
-```
-
-If you do not wish to populate your own values, reach out to developer@nwac.us for our test values or reach out to us through our slack volunteer channel.
-
-For development with Expo Go, you should be able to run the app with an empty `.env` file in the root of the repository.
-
-## Logging
-
-The log level for our logger is set with `$LOG_LEVEL`, the default is `'info'` but it needs to be `'debug'` for the below network bits. This can be modified easily by adding it to your .env file
-
-Runtime logging can be enabled in development mode by running `npx expo start` with the following environment variables set:
-
-`$LOG_NETWORK`:
-
-- `'queries'`: queries issues to `react-query` will be logged along with their query keys; note that these may be fulfilled by the cache
-- `'requests'`: outgoing requests using `axios` will be logged
-- `'responses'`: incoming responses using `axios` will be logged along with their result status code
-- `'response-bodies'`: incoming response bodies using `axios` will be logged
-- `'all'`: all of the above will be logged
-
-`$LOG_NETWORK_MATCHING`: the value of this variable will be used to filter what is logged, using simple sub-string matches on the formatted URL with query parameters (e.g. `url.includes(log_network_matching)`).
+Open a PR against `NWACus/avy` and fill out the template. NWAC staff or another volunteer will review it.
