@@ -23,6 +23,7 @@ import {
   TimeMachine,
   ToastPreview,
 } from 'components/screens/main/DeveloperMenu';
+import {MemberAuthDebugScreen} from 'components/screens/main/MemberAuthDebug';
 import {BottomTabs} from 'components/screens/navigation/BottomTabs';
 import {WeatherStationDetail} from 'components/weather_data/WeatherStationDetail';
 import {WeatherStationsDetail} from 'components/weather_data/WeatherStationsDetail';
@@ -127,6 +128,7 @@ export const MainStackNavigator: React.FunctionComponent<{
       <MainStack.Screen name="outcome" component={OutcomeScreen} options={{title: `Outcome Preview`, headerBackButtonDisplayMode: 'minimal'}} />
       <MainStack.Screen name="expoConfig" component={ExpoConfigScreen} options={{title: `Expo Configuration Viewer`, headerBackButtonDisplayMode: 'minimal'}} />
       <MainStack.Screen name="featureFlags" component={FeatureFlagsDebuggerScreen} options={{title: `Feature Flag Debugger`, headerBackButtonDisplayMode: 'minimal'}} />
+      <MainStack.Screen name="memberAuthDebug" component={MemberAuthDebugScreen} options={{title: `Member Auth`, headerBackButtonDisplayMode: 'minimal'}} />
 
       <MainStack.Screen name="buttonStylePreview" component={ButtonStylePreview} options={{title: `Button Style Preview`, headerBackButtonDisplayMode: 'minimal'}} />
       <MainStack.Screen name="textStylePreview" component={TextStylePreview} options={{title: `Text Style Preview`, headerBackButtonDisplayMode: 'minimal'}} />
