@@ -15,6 +15,14 @@ export enum CenterSwitchOrigin {
   CenterSelectorView = 'CenterSelectorView',
 }
 
+export enum CBACAnalyticsSource {
+  FirstRunModal = 'first_run_modal',
+  CenterlessModal = 'centerless_modal',
+  ExplanationModal = 'explanation_modal',
+  ZoneDropdown = 'zone_dropdown',
+  CardFooter = 'card_footer',
+}
+
 // Any navigation object (from screen props or from useNavigation) exposes getState().
 interface NavigationWithState {
   getState: () => NavigationState;

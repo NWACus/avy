@@ -5,6 +5,7 @@ import {VStack} from 'components/core';
 import {DangerLevelTitle} from 'components/helpers/DangerLevelTitle';
 import {MapViewZone} from 'components/map/ZoneMap';
 import {Body, BodySmSemibold} from 'components/text';
+import {CBACAnalyticsSource, useAnalytics} from 'hooks/useAnalytics';
 import {useOpenAvalancheCenterWebsite} from 'hooks/useOpenAvalancheCenterWebsite';
 import React, {useCallback} from 'react';
 import {colorLookup} from 'theme';
@@ -30,11 +31,27 @@ interface CBACForecastZoneDropdownProps {
 export const CBACForecastZoneDropdown: React.FunctionComponent<CBACForecastZoneDropdownProps> = ({zone, onSeeAreaOnMap, onShowExplanation}) => {
   const dangerLevel = zone.danger_level ?? DangerLevel.None;
   const openAvalancheCenterWebsite = useOpenAvalancheCenterWebsite();
+  const analytics = useAnalytics();
 
-  const onReadCAICForecast = useCallback(() => openAvalancheCenterWebsite('CAIC'), [openAvalancheCenterWebsite]);
+  const onOpen = useCallback(() => analytics.capture('zone_dropdown_opened', {center: zone.center_id, zone_id: zone.zone_id}), [analytics, zone.center_id, zone.zone_id]);
+
+  const onPressSeeAreaOnMap = useCallback(() => {
+    analytics.capture('explore_both_forecasts_tapped', {center: zone.center_id});
+    onSeeAreaOnMap();
+  }, [analytics, zone.center_id, onSeeAreaOnMap]);
+
+  const onReadCAICForecast = useCallback(() => {
+    analytics.capture('caic_website_tapped', {center: zone.center_id});
+    openAvalancheCenterWebsite('CAIC');
+  }, [analytics, zone.center_id, openAvalancheCenterWebsite]);
+
+  const onPressExplanation = useCallback(() => {
+    analytics.capture('cbac_explanation_tapped', {center: zone.center_id, displayed_from: CBACAnalyticsSource.ZoneDropdown});
+    onShowExplanation();
+  }, [analytics, zone.center_id, onShowExplanation]);
 
   return (
-    <Dropdown label={zone.center_id}>
+    <Dropdown label={zone.center_id} onOpen={onOpen}>
       <DropdownSection title={LOCAL_SECTION_TITLE}>
         <DropdownRow selected leading={<AvalancheDangerIcon style={DANGER_ICON_STYLE} level={dangerLevel} />}>
           <VStack space={2}>
@@ -45,7 +62,7 @@ export const CBACForecastZoneDropdown: React.FunctionComponent<CBACForecastZoneD
       </DropdownSection>
       <DropdownSection title={STATEWIDE_SECTION_TITLE}>
         <DropdownRow
-          onPress={onSeeAreaOnMap}
+          onPress={onPressSeeAreaOnMap}
           accessibilityLabel={SEE_ON_MAP_LABEL}
           leading={<Ionicons name="map-outline" size={ICON_SIZE} color={linkColor} />}
           trailing={<Ionicons name="chevron-forward" size={ICON_SIZE} color={linkColor} />}>
@@ -59,7 +76,7 @@ export const CBACForecastZoneDropdown: React.FunctionComponent<CBACForecastZoneD
           <Body color={linkColor}>{READ_FORECAST_LABEL}</Body>
         </DropdownRow>
       </DropdownSection>
-      <DropdownFooterLink label={EXPLANATION_LABEL} onPress={onShowExplanation} />
+      <DropdownFooterLink label={EXPLANATION_LABEL} onPress={onPressExplanation} />
     </Dropdown>
   );
 };

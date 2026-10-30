@@ -1,13 +1,15 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import Svg, {Line} from 'react-native-svg';
 
 import {Legend, LegendProps} from 'components/content/Legend';
 import {HStack} from 'components/core';
 import {BodyXSm} from 'components/text';
 import helpStrings from 'content/helpStrings';
+import {useAnalytics} from 'hooks/useAnalytics';
 import {colorLookup} from 'theme';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
-type CBACCoverageLegendProps = Omit<LegendProps, 'children' | 'infoTitle' | 'infoContent'>;
+type CBACCoverageLegendProps = Omit<LegendProps, 'children' | 'infoTitle' | 'infoContent' | 'onInfoOpen'> & {centerId: AvalancheCenterID};
 
 const SWATCH_WIDTH = 84;
 const SWATCH_HEIGHT = 12;
@@ -27,9 +29,12 @@ const DashedLineSwatch: React.FunctionComponent = () => (
   </Svg>
 );
 
-export const CBACCoverageLegend: React.FunctionComponent<CBACCoverageLegendProps> = props => {
+export const CBACCoverageLegend: React.FunctionComponent<CBACCoverageLegendProps> = ({centerId, ...props}) => {
+  const analytics = useAnalytics();
+  const onInfoOpen = useCallback(() => analytics.capture('coverage_legend_info_tapped', {center: centerId}), [analytics, centerId]);
+
   return (
-    <Legend {...props} infoTitle="CBAC Coverage" infoContent={helpStrings.cbacCoverageEdge}>
+    <Legend {...props} infoTitle="CBAC Coverage" infoContent={helpStrings.cbacCoverageEdge} onInfoOpen={onInfoOpen}>
       <HStack space={8} alignItems="center">
         <DashedLineSwatch />
         <BodyXSm color="white">dashed = CBAC coverage edge</BodyXSm>

@@ -325,7 +325,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
           <DangerScale width="100%" />
           {isInNoCenterExperience && cbacCoverageVisible && (
             <Animated.View entering={FadeIn.duration(LEGEND_FADE_DURATION_MS)} exiting={FadeOut.duration(LEGEND_FADE_DURATION_MS)}>
-              <CBACCoverageLegend width="100%" />
+              <CBACCoverageLegend width="100%" centerId={center_id} />
             </Animated.View>
           )}
         </VStack>
@@ -333,7 +333,7 @@ export const AvalancheForecastZoneMap: React.FunctionComponent<MapProps> = ({cen
 
       <AvalancheCenterSelectionModal visible={showAvalancheCenterSelectionModal} initialSelection={preferences.center} onClose={onSelectCenter} />
       <FirstRunExperienceModal visible={showFREModal} onClose={onFREClose} />
-      <CBACForecastFirstRunModal visible={showCBACForecastFirstRunModal} onClose={onCBACForecastFirstRunClose} />
+      <CBACForecastFirstRunModal visible={showCBACForecastFirstRunModal} centerId={center_id} onClose={onCBACForecastFirstRunClose} />
     </>
   );
 };
