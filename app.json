@@ -58,6 +58,7 @@
       "expo-location",
       "expo-image",
       "@react-native-community/datetimepicker",
+      "@react-native-vector-icons/ionicons",
       "./plugins/withAndroidSplashBranding",
       [
         "expo-splash-screen",
@@ -83,8 +84,8 @@
         {
           "android": {
             "minSdkVersion": 26,
-            "compileSdkVersion": 36,
-            "targetSdkVersion": 36
+            "compileSdkVersion": 37,
+            "targetSdkVersion": 37
           }
         }
       ],

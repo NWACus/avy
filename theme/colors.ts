@@ -1,5 +1,7 @@
-import {ColorValue} from 'react-native';
+import {NativeColorValue} from 'react-native';
 import tinycolor from 'tinycolor2';
+
+export type ThemeColorValue = string | NativeColorValue;
 
 // A lot of colors from the designers are specified with alpha channels, but we want these colors to
 // be solid as opposed to letting the underlying colors through. Also, things with alpha channels are sometimes
@@ -14,7 +16,7 @@ const rgbaToHexString = (rgba: string): string => {
   }).toHexString();
 };
 
-export const COLORS: Record<string, ColorValue> = {
+export const COLORS: Record<string, ThemeColorValue> = {
   //
   // NWAC colors
   //
@@ -120,4 +122,4 @@ export const COLORS: Record<string, ColorValue> = {
   'light.300': '#d6d3d1',
 } as const;
 
-export const colorLookup = (color: ColorValue): ColorValue => (typeof color === 'string' && COLORS[color] ? COLORS[color] : color);
+export const colorLookup = (color: ThemeColorValue): ThemeColorValue => (typeof color === 'string' && COLORS[color] ? COLORS[color] : color);

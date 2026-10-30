@@ -1,13 +1,13 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker, {DateTimePickerAndroid, DateTimePickerEvent} from '@react-native-community/datetimepicker';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {Button} from 'components/content/Button';
-import {HStack, VStack, ViewProps} from 'components/core';
+import {HStack, ViewProps, VStack} from 'components/core';
 import {FieldLabel, HelpText} from 'components/form/FieldLabel';
 import {Body, BodyBlack, BodyXSm} from 'components/text';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
-import {ColorValue, Platform} from 'react-native';
-import {colorLookup} from 'theme';
+import {Platform} from 'react-native';
+import {colorLookup, ThemeColorValue} from 'theme';
 import {utcDateToLocalDateString} from 'utils/date';
 
 interface DateItem {
@@ -106,7 +106,7 @@ export function QuickPickDateField({
   }, [field.value, quickPickDates]);
 
   const renderOtherButtonContent = useCallback(
-    (style: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => {
+    (style: {backgroundColor: ThemeColorValue | undefined; textColor: ThemeColorValue}) => {
       const {textColor} = style;
       const TextElement = isQuickPickSelected ? Body : BodyBlack;
       return (

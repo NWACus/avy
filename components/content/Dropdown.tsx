@@ -1,9 +1,9 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {HStack, View, ViewProps, VStack} from 'components/core';
 import {BodySm, BodySmSemibold, BodyXSmBlack} from 'components/text';
 import {useToggle} from 'hooks/useToggle';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {LayoutChangeEvent, LayoutRectangle, Modal, Platform, View as RNView, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, useWindowDimensions} from 'react-native';
+import {LayoutChangeEvent, LayoutRectangle, Modal, Platform, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, useWindowDimensions, ViewInstance} from 'react-native';
 import {colorLookup} from 'theme';
 
 const EDGE_MARGIN = 12;
@@ -43,7 +43,7 @@ interface DropdownProps extends ViewProps {
 }
 
 export const Dropdown: React.FC<DropdownProps> = ({label, children, panelWidth, placement = 'auto', disabled = false, ...props}) => {
-  const ref = useRef<RNView>(null);
+  const ref = useRef<ViewInstance>(null);
   const [visible, {off: hide, on: show}] = useToggle(false);
   const [anchor, setAnchor] = useState<LayoutRectangle>({x: 0, y: 0, width: 0, height: 0});
   const [panelHeight, setPanelHeight] = useState(0);

@@ -11,20 +11,17 @@ export class FileStream implements LogStream {
   constructor(filePath: string) {
     this.filePath = filePath;
     this.buffer = [];
-    new File(this.filePath).write('');
+    new File(this.filePath).writeSync('');
   }
 
   private FLUSH_INTERVAL_MS = 1000;
 
   // Flush the buffer to disk, but only once per second
-  // Yes, there's no way to append to a file in a managed Expo app :(
   private flush = debounce(async (): Promise<void> => {
     const buffer = this.buffer;
     this.buffer = [];
-    const file = new File(this.filePath);
-    const contents = await file.text();
     try {
-      file.write(contents + buffer.join('\n') + '\n');
+      await new File(this.filePath).write(buffer.join('\n') + '\n', {append: true});
     } catch (error) {
       Sentry.captureException(error, {
         extra: {

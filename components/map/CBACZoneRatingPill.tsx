@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {MarkerView} from '@rnmapbox/maps';
 import centroid from '@turf/centroid';
 import {colorFor} from 'components/AvalancheDangerTriangle';
@@ -8,7 +9,6 @@ import {dangerValue} from 'components/helpers/dangerText';
 import {interiorPoint} from 'components/helpers/geographicCoordinates';
 import {MapViewZone} from 'components/map/ZoneMap';
 import {BodyXSm, BodyXSmBlack} from 'components/text';
-import Ionicons from 'node_modules/@expo/vector-icons/Ionicons';
 import {Pressable} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import {colorLookup} from 'theme';

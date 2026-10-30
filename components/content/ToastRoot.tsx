@@ -114,7 +114,7 @@ const ToastComponent: React.FC<ToastProps> = ({config, bottomOffset = 40, topOff
     if (!activeToast || measuredHeight === 0) {
       return;
     }
-    const easing = isVisible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic);
+    const easing = isVisible ? Easing.out(Easing.poly(3)) : Easing.in(Easing.poly(3));
     const animation = Animated.timing(progress, {toValue: isVisible ? 1 : 0, duration: ANIMATION_DURATION, easing, useNativeDriver: true});
     animation.start(({finished}) => {
       if (finished && !isVisible) {
