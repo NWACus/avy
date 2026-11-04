@@ -12,7 +12,7 @@ import {View} from 'components/core';
 import {AvalancheTab} from 'components/forecast/AvalancheTab';
 import {ObservationsTab} from 'components/forecast/ObservationsTab';
 import {SynopsisTab} from 'components/forecast/SynopsisTab';
-import {WeatherTab} from 'components/forecast/WeatherTab';
+import {WeatherTab} from 'components/forecast/WeatherTab/WeatherTab';
 import {Body, BodySemibold} from 'components/text';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {ForecastTabNavigatorParamList, MainStackNavigationProps, MainStackParamList} from 'routes';
