@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {ColorValue, StyleSheet, TouchableOpacity} from 'react-native';
 
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
@@ -7,8 +7,10 @@ import {AlertModal, AlertModalActions} from 'components/content/AlertModal';
 import {Button} from 'components/content/Button';
 import {Divider, HStack, View} from 'components/core';
 import {Body, bodySize} from 'components/text';
+import {CBACAnalyticsSource, useAnalytics} from 'hooks/useAnalytics';
 import {useOpenAvalancheCenterWebsite} from 'hooks/useOpenAvalancheCenterWebsite';
 import {colorLookup} from 'theme';
+import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 const TITLE = 'Two forecasts cover this area';
 const BODY = 'CBAC issues a localized forecast. CAIC forecasts for the entire state. We encourage you to read both.';
@@ -19,14 +21,31 @@ const logoStyle = {height: LOGO_SIZE, width: LOGO_SIZE, resizeMode: 'contain'} a
 
 interface CBACForecastModalBaseProps {
   visible: boolean;
+  centerId: AvalancheCenterID;
+  source: CBACAnalyticsSource;
   onClose: () => void;
   children: React.ReactNode;
 }
 
-export const CBACForecastModalBase: React.FC<CBACForecastModalBaseProps> = ({visible, onClose, children}) => {
+export const CBACForecastModalBase: React.FC<CBACForecastModalBaseProps> = ({visible, centerId, source, onClose, children}) => {
+  const analytics = useAnalytics();
   const openAvalancheCenterWebsite = useOpenAvalancheCenterWebsite();
 
-  const onPressCAICSite = useCallback(() => openAvalancheCenterWebsite('CAIC', onClose), [openAvalancheCenterWebsite, onClose]);
+  useEffect(() => {
+    if (visible) {
+      analytics.capture('cbac_modal_shown', {center: centerId, displayed_from: source});
+    }
+  }, [analytics, visible, centerId, source]);
+
+  const onPressClose = useCallback(() => {
+    analytics.capture('cbac_modal_close_tapped', {center: centerId, displayed_from: source});
+    onClose();
+  }, [analytics, centerId, source, onClose]);
+
+  const onPressCAICSite = useCallback(() => {
+    analytics.capture('open_caic_site_tapped', {center: centerId, displayed_from: source});
+    openAvalancheCenterWebsite('CAIC', onClose);
+  }, [analytics, centerId, source, openAvalancheCenterWebsite, onClose]);
 
   const header = useMemo(
     () => (
@@ -36,12 +55,12 @@ export const CBACForecastModalBase: React.FC<CBACForecastModalBaseProps> = ({vis
           <Divider direction="vertical" style={styles.divider} />
           <AvalancheCenterLogo avalancheCenterId="CBAC" style={logoStyle} />
         </HStack>
-        <TouchableOpacity style={styles.close} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
+        <TouchableOpacity style={styles.close} onPress={onPressClose} accessibilityRole="button" accessibilityLabel="Close">
           <Ionicons name="close-outline" size={24} color={colorLookup('text')} />
         </TouchableOpacity>
       </View>
     ),
-    [onClose],
+    [onPressClose],
   );
 
   const renderVisitCAICButton = useCallback(

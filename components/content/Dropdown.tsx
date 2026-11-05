@@ -40,9 +40,10 @@ interface DropdownProps extends ViewProps {
   panelWidth?: number;
   placement?: 'below' | 'above' | 'auto';
   disabled?: boolean;
+  onOpen?: () => void;
 }
 
-export const Dropdown: React.FC<DropdownProps> = ({label, children, panelWidth, placement = 'auto', disabled = false, ...props}) => {
+export const Dropdown: React.FC<DropdownProps> = ({label, children, panelWidth, placement = 'auto', disabled = false, onOpen, ...props}) => {
   const ref = useRef<RNView>(null);
   const [visible, {off: hide, on: show}] = useToggle(false);
   const [anchor, setAnchor] = useState<LayoutRectangle>({x: 0, y: 0, width: 0, height: 0});
@@ -67,9 +68,10 @@ export const Dropdown: React.FC<DropdownProps> = ({label, children, panelWidth, 
     if (visible) {
       hide();
     } else {
+      onOpen?.();
       measureAnchor(show);
     }
-  }, [visible, hide, show, measureAnchor]);
+  }, [visible, hide, show, measureAnchor, onOpen]);
 
   // Nothing can move the trigger while the panel blocks input, so a rotation is the only re-measure case.
   useEffect(() => {

@@ -21,6 +21,7 @@ export interface InfoTooltipProps {
   // Additional IconButton customization
   style?: ViewStyle | TextStyle;
   hitSlop?: Insets | undefined;
+  onOpen?: () => void;
 }
 
 const baseHtmlStyle = {fontSize: 14, lineHeight: 21, textAlign: 'center'} as const;
@@ -33,12 +34,14 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({
   outlineIcon = 'information-circle-outline',
   size,
   htmlStyle = {},
+  onOpen,
   ...props
 }) => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const openModal = useCallback(() => {
+    onOpen?.();
     setShowModal(true);
-  }, [setShowModal]);
+  }, [onOpen, setShowModal]);
   const closeModal = useCallback(() => {
     setShowModal(false);
   }, [setShowModal]);
