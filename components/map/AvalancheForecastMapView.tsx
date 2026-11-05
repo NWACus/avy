@@ -376,7 +376,7 @@ export const AvalancheForecastMapView: React.FunctionComponent<AvalancheForecast
   );
 
   const onPressCardFooterExplanation = useCallback(() => {
-    analytics.capture('cbac_explanation_tapped', {center: preferredCenterId, displayed_from: CBACAnalyticsSource.CardFooter});
+    analytics.capture('dual_colorado_explation_footer_tapped', {center: preferredCenterId, displayed_from: CBACAnalyticsSource.CardFooter});
     openForecastExplanation();
   }, [analytics, preferredCenterId, openForecastExplanation]);
 

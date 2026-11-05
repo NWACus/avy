@@ -46,7 +46,7 @@ export const CBACForecastZoneDropdown: React.FunctionComponent<CBACForecastZoneD
   }, [analytics, zone.center_id, openAvalancheCenterWebsite]);
 
   const onPressExplanation = useCallback(() => {
-    analytics.capture('cbac_explanation_tapped', {center: zone.center_id, displayed_from: CBACAnalyticsSource.ZoneDropdown});
+    analytics.capture('dual_colorado_explation_footer_tapped', {center: zone.center_id, displayed_from: CBACAnalyticsSource.ZoneDropdown});
     onShowExplanation();
   }, [analytics, zone.center_id, onShowExplanation]);
 
