@@ -51,6 +51,7 @@ export type CenterlessEventProperties = EventProperties & {center?: never};
 export interface Analytics {
   screen(name: string, properties: CenteredEventProperties, options?: EventOptions): void;
   capture(event: string, properties: CenteredEventProperties, options?: EventOptions): void;
+  captureEventNoCenter(event: string, properties: CenterlessEventProperties, options?: EventOptions): void;
   captureCenterSwitch(switchedFrom: AvalancheCenterID, switchedTo: AvalancheCenterID, origin: CenterSwitchOrigin): void;
   identify(distinctId: string, properties?: CenterlessEventProperties, options?: EventOptions): void;
   register(properties: CenterlessEventProperties): void;
@@ -61,6 +62,9 @@ export const createAnalytics = (postHog: PostHog | undefined, logger: Logger): A
   screen: (name, properties, options) => fireAndForget(postHog?.screen(name, properties, options), `failed to capture ${name} screen view`, logger),
   register: properties => fireAndForget(postHog?.register(properties), 'failed to register analytics super properties', logger),
   capture: (event, properties, options) => {
+    postHog?.capture(event, properties, options);
+  },
+  captureEventNoCenter: (event, properties, options) => {
     postHog?.capture(event, properties, options);
   },
   captureCenterSwitch: (switchedFrom, switchedTo, origin) => {
