@@ -67,6 +67,7 @@ export type MainStackParamList = {
   timeMachine: undefined;
   featureFlags: undefined;
   expoConfig: undefined;
+  memberAuthDebug: undefined;
 };
 
 export type MainStackNavigationProps = NativeStackNavigationProp<MainStackParamList>;

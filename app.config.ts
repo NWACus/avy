@@ -10,6 +10,12 @@ export default ({config}: ConfigContext): Partial<ExpoConfig> => {
   config.extra!.mapboxAPIKey = process.env.MAPBOX_API_KEY as string;
   config.extra!.log_level = process.env.LOG_LEVEL != null ? (process.env.LOG_LEVEL as string) : 'info';
 
+  // Native Google sign-in for the Member auth POC. The plugin refuses to prebuild without the iOS
+  // client's reversed id, so it is only added once that OAuth client exists.
+  if (process.env.GOOGLE_IOS_URL_SCHEME) {
+    config.plugins = [...(config.plugins ?? []), ['@react-native-google-signin/google-signin', {iosUrlScheme: process.env.GOOGLE_IOS_URL_SCHEME as string}]];
+  }
+
   if (process.env.APP_VARIANT === 'preview') {
     // The iOS App Store requires that the version we publish has been pre-created in the developer portal.
     // Before an app is published to the store, it's possible to push an infinite amount of builds for that

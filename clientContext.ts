@@ -7,6 +7,7 @@ export interface ClientProps {
   snowboundHost: string;
   nwacHost: string;
   avalancheCanadaHost: string;
+  avyWebHost: string;
   requestedTime: RequestedTime;
   setRequestedTime: (requestedTime: RequestedTime) => void;
 }
@@ -17,6 +18,7 @@ export const productionHosts = {
   snowboundHost: 'https://api.snowobs.com',
   nwacHost: 'https://nwac.us',
   avalancheCanadaHost: 'https://avcan-services-api.prod.avalanche.ca',
+  avyWebHost: 'https://avy-fx.org',
 };
 
 export const stagingHosts = {
@@ -25,6 +27,7 @@ export const stagingHosts = {
   snowboundHost: 'https://dev.snowobs.com',
   nwacHost: 'https://staging.nwac.us',
   avalancheCanadaHost: 'https://avcan-services-api.prod.avalanche.ca',
+  avyWebHost: 'https://dev.avy-fx.org',
 };
 
 export const ClientContext: Context<ClientProps> = React.createContext<ClientProps>({

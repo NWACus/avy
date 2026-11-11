@@ -124,6 +124,13 @@ const DeveloperMenu: React.FC<DeveloperMenuProps> = ({staging, setStaging}) => {
           navigation.navigate('featureFlags');
         },
       },
+      {
+        label: 'Member auth (POC)',
+        data: 'Member Auth',
+        action: () => {
+          navigation.navigate('memberAuthDebug');
+        },
+      },
     ],
     [navigation],
   );
