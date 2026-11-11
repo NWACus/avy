@@ -147,7 +147,7 @@ export const Dropdown: React.FC<DropdownProps> = ({label, children, panelWidth, 
         </View>
       </TouchableOpacity>
       <Modal visible={visible} transparent animationType="fade" onRequestClose={hide} onDismiss={runPendingAction}>
-        <TouchableWithoutFeedback disabled={!visible} onPress={hide}>
+        <TouchableWithoutFeedback disabled={!visible} onPress={hide} rejectResponderTermination>
           <View style={StyleSheet.absoluteFill}>
             <View position="absolute" borderRadius={PANEL_RADIUS} width={width} onLayout={onPanelLayout} style={panelStyle} {...panelPosition}>
               <VStack bg="white" borderRadius={PANEL_RADIUS} overflow="hidden" pb={4}>
@@ -195,7 +195,7 @@ export const DropdownRow: React.FC<DropdownRowProps> = ({children, leading, trai
   }
 
   return (
-    <TouchableOpacity onPress={handlePress} accessibilityRole="menuitem" accessibilityLabel={accessibilityLabel}>
+    <TouchableOpacity onPress={handlePress} accessibilityRole="menuitem" accessibilityLabel={accessibilityLabel} rejectResponderTermination>
       {row}
     </TouchableOpacity>
   );
@@ -205,7 +205,7 @@ export const DropdownFooterLink: React.FC<{label: string; onPress: () => void}> 
   const handlePress = useCloseThenPress(onPress);
 
   return (
-    <TouchableOpacity onPress={handlePress} accessibilityRole="button" accessibilityLabel={label}>
+    <TouchableOpacity onPress={handlePress} accessibilityRole="button" accessibilityLabel={label} rejectResponderTermination>
       <View px={16} pt={12} pb={8}>
         <BodySm textAlign="center" color="text.tertiary" style={styles.footerLabel}>
           {label}
