@@ -1,13 +1,13 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker, {DateTimePickerAndroid, DateTimePickerChangeEvent, DateTimePickerEvent} from '@react-native-community/datetimepicker';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {Button} from 'components/content/Button';
 import {Center, HStack, View, ViewProps, VStack} from 'components/core';
 import {FieldLabel} from 'components/form/FieldLabel';
 import {Body, bodySize} from 'components/text';
 import React, {useCallback, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {ColorValue, Platform, TouchableOpacity} from 'react-native';
-import {colorLookup} from 'theme';
+import {Platform, TouchableOpacity} from 'react-native';
+import {colorLookup, ThemeColorValue} from 'theme';
 import {utcDateToLocalDateString} from 'utils/date';
 
 interface DateFieldProps extends ViewProps {
@@ -44,7 +44,7 @@ export const DateField: React.FC<DateFieldProps> = ({name, label, minimumDate, m
   }, [field, pendingDate, setDatePickerVisible]);
 
   const renderConfirmButtonContent = useCallback(
-    (style: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => (
+    (style: {backgroundColor: ThemeColorValue | undefined; textColor: ThemeColorValue}) => (
       <HStack space={4} alignItems="center">
         <Ionicons name="checkmark" color={style.textColor} size={bodySize} />
         <Body color={style.textColor}>Confirm</Body>

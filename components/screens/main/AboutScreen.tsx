@@ -7,10 +7,9 @@ import * as Clipboard from 'expo-clipboard';
 import * as Updates from 'expo-updates';
 import * as WebBrowser from 'expo-web-browser';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
-
 import {useFocusEffect} from '@react-navigation/native';
 import {ActionList} from 'components/content/ActionList';
+import {IconButton} from 'components/content/IconButton';
 import {Center, HStack, View, VStack} from 'components/core';
 import {getVersionInfoFull} from 'components/screens/main/Version';
 import {Body, BodyBlack, BodyXSm, Title3Black} from 'components/text';
@@ -77,7 +76,7 @@ export const AboutScreen = (_: NativeStackScreenProps<MainStackParamList, 'about
             )}
             {mixpanelUserId && <BodyXSm>User ID: {mixpanelUserId}</BodyXSm>}
           </VStack>
-          <Ionicons.Button name="copy-outline" size={12} color="black" style={{backgroundColor: 'white'}} iconStyle={{marginRight: 0}} onPress={copyVersionInfoToClipboard} />
+          <IconButton name="copy-outline" accessibilityLabel="Copy version info" size={12} color="black" backgroundColor="white" onPress={copyVersionInfoToClipboard} />
         </HStack>
       </VStack>
     </View>

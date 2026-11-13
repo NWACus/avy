@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {useFocusEffect} from '@react-navigation/native';
 import {NotFound} from 'components/content/QueryState';
 import {Divider, HStack, VStack, View} from 'components/core';

@@ -7,7 +7,7 @@ import {FieldLabel, HelpText} from 'components/form/FieldLabel';
 import {Body, BodyBlack, BodyXSm, bodySize} from 'components/text';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {useController, useFormContext} from 'react-hook-form';
-import {Platform, View as RNView} from 'react-native';
+import {Platform, ViewInstance} from 'react-native';
 import {colorLookup} from 'theme';
 
 interface Item {
@@ -85,7 +85,7 @@ const selectStyles: SelectStyles = {
   },
 };
 
-export const SelectField = React.forwardRef<RNView, SelectFieldProps>(
+export const SelectField = React.forwardRef<ViewInstance, SelectFieldProps>(
   ({name, label, quickPickItems, otherItems, prompt, disabled, invisible, minOtherItemsShown, required, helpText}, ref) => {
     const {setValue} = useFormContext();
     const {field, fieldState} = useController({name});

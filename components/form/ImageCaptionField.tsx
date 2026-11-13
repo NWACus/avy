@@ -1,23 +1,24 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import {zodResolver} from '@hookform/resolvers/zod';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import * as Sentry from '@sentry/react-native';
 
 import * as ImagePicker from 'expo-image-picker';
 import React, {useCallback, useEffect, useState} from 'react';
 import {FieldPathByValue, FieldValues, FormProvider, Resolver, useController, useForm} from 'react-hook-form';
-import {ColorValue, LayoutChangeEvent, Platform, StyleSheet, TouchableHighlight} from 'react-native';
+import {LayoutChangeEvent, Platform, StyleSheet, TouchableHighlight} from 'react-native';
 
 import {Button} from 'components/content/Button';
 import {NetworkImage} from 'components/content/carousel/NetworkImage';
 import {DrawerModal, DrawerModalDisplayType} from 'components/content/DrawerModal';
+import {IconButton} from 'components/content/IconButton';
 import Toast from 'components/content/ToastRoot';
-import {HStack, VStack, View, ViewProps} from 'components/core';
+import {HStack, View, ViewProps, VStack} from 'components/core';
 import {TextField, TextFieldComponent} from 'components/form/TextField';
 import {ImageAndCaption, ImagePickerAssetWithCaption} from 'components/observations/ObservationFormData';
 import {getUploader} from 'components/observations/uploader/ObservationsUploader';
 import {Body, BodyBlack, BodySemibold, BodySm} from 'components/text';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {colorLookup} from 'theme';
+import {colorLookup, ThemeColorValue} from 'theme';
 import {z} from 'zod';
 
 type ImageAssetArray = ImagePickerAssetWithCaption[] | undefined;
@@ -197,7 +198,7 @@ const _AddImageFromPickerButton = <TFieldValues extends FieldValues, TKey extend
   const images = field.value;
 
   const renderAddImageButton = useCallback(
-    ({textColor}: {textColor: ColorValue}) => (
+    ({textColor}: {textColor: ThemeColorValue}) => (
       <HStack alignItems="center" space={space}>
         <Ionicons name="add" size={24} color={textColor} style={{marginTop: 1}} />
         <BodyBlack color={textColor}>Add images</BodyBlack>
@@ -319,15 +320,7 @@ const _ImageCaptionField = <TFieldValues extends FieldValues, TKey extends Field
                 </View>
               </TouchableHighlight>
               <View style={[styles.remove, i % 2 == 0 ? styles.trashLeft : styles.trashRight]}>
-                <Ionicons.Button
-                  size={16}
-                  name="trash-outline"
-                  color="white"
-                  backgroundColor="rgba(0, 0, 0, 0.3)"
-                  iconStyle={{marginRight: 0}}
-                  style={{textAlign: 'center'}}
-                  onPress={handleRemoveItem(i)}
-                />
+                <IconButton size={16} name="trash-outline" accessibilityLabel="Remove image" color="white" backgroundColor="rgba(0, 0, 0, 0.3)" onPress={handleRemoveItem(i)} />
               </View>
             </View>
           );

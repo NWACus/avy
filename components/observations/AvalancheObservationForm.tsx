@@ -6,8 +6,8 @@ import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
 import {KeyboardAvoidingView, Modal, ScrollView, TouchableOpacity} from 'react-native';
 import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
 import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
 import {Divider, HStack, VStack, View} from 'components/core';

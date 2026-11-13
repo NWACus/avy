@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import {View as RNView, ViewProps as RNViewProps, ViewStyle as RNViewStyle} from 'react-native';
+import {View as RNView, ViewProps as RNViewProps, ViewStyle as RNViewStyle, ViewInstance} from 'react-native';
 import {colorLookup} from 'theme';
 
 interface ViewStyleProps {
@@ -270,7 +270,7 @@ function split<T extends object, K extends keyof T>(obj: T, keySet: Record<K, st
 }
 
 export interface ViewProps extends RNViewProps, ViewStyleProps, ViewAliasProps {}
-export const View = React.forwardRef<RNView, ViewProps>(({children, style, ...props}, ref) => {
+export const View = React.forwardRef<ViewInstance, ViewProps>(({children, style, ...props}, ref) => {
   const [allStyleProps, viewProps] = split(props, viewStyleProps);
   const [aliasedProps, unaliasedStyleProps] = split(allStyleProps, propAliasMapping);
   const stylesFromProps = {

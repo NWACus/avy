@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import {Image, StyleSheet} from 'react-native';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {AlertModal, AlertModalActions} from 'components/content/AlertModal';
 import {Button} from 'components/content/Button';
 import {HStack, VStack} from 'components/core';
@@ -62,7 +62,7 @@ export const FirstRunExperienceModal: React.FC<FirstRunExperienceModalProps> = (
           You can still switch <BodyBlack letterSpacing={0}>Centers</BodyBlack> in the settings, accessible in the upper left{' '}
           <BodyBlack letterSpacing={0}>
             Menu
-            <Ionicons color={colorLookup('primary')} name="menu" backgroundColor={colorLookup('white')} size={12} />
+            <Ionicons color={colorLookup('primary')} name="menu" size={12} />
           </BodyBlack>
         </BulletItem>
         <BulletItem>{`This season we’ve partnered with ${sponsor.displayName}!`}</BulletItem>

@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {Camera, CameraBounds} from '@rnmapbox/maps';
 import {Logger} from 'browser-bunyan';
 import {HStack, View} from 'components/core';
@@ -19,6 +19,7 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   VirtualizedList,
+  VirtualizedListInstance,
 } from 'react-native';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
@@ -413,7 +414,7 @@ export const AnimatedCards = <T, U>(props: AnimatedCardsProps<T, U>) => {
     }),
   ).current;
 
-  const listRef = useRef<VirtualizedList<ItemRenderData<T, U>>>(null);
+  const listRef = useRef<VirtualizedListInstance>(null);
   const onLayout = useCallback((event: LayoutChangeEvent) => controllerRef.current.animateUsingUpdatedCardDrawerMaximumHeight(event.nativeEvent.layout.height), [controllerRef]);
 
   const renderItemAdapter = useCallback(({item}: {item: ItemRenderData<T, U>}) => renderItem(item), [renderItem]);
