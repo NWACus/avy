@@ -38,8 +38,6 @@ export const formatInTimeZone = (date: string | number | Date, timeZone: string,
 
 export const toISOStringUTC = (date: Date) => formatInTimeZone(date, 'UTC', 'yyyy-MM-dd HH:mm:ssXXX');
 
-export const toDateTimeInterfaceATOM = (date: Date) => formatInTimeZone(date, 'UTC', "yyyy-MM-dd'T'HH:mm:ssXXX");
-
 export const toISOStringZulu = (date: Date) => formatInTimeZone(date, 'UTC', "yyyy-MM-dd'T'HH:mm:ss'Z'");
 
 // The National Avalanche Center API expects 'YYYY-MM-DD' date-strings in query parameters, and it operates in UTC.
@@ -69,20 +67,6 @@ export const nominalForecastDate = (requestedTime: Date, expiryTimeZone: string,
 
 export const nominalForecastDateString = (requestedTime: Date, expiryTimeZone: string, expiryTimeHours: number): string => {
   return formatInTimeZone(nominalForecastDate(requestedTime, expiryTimeZone, expiryTimeHours), expiryTimeZone, 'yyyy-MM-dd');
-};
-
-// NWAC aims to publish weather forecasts at 7a and 2p Pacific Time, daily. Expire halfway between that.
-export const nominalNWACWeatherForecastDate = (requestedTime: Date): string => {
-  const expiryTimeZone = 'America/Los_Angeles';
-  const expiryTimeHours = 10;
-  // requestedTime is in UTC, expiryTimeHours is relative to the locale-specific start of day
-  const expiryTimeString = `${formatInTimeZone(requestedTime, expiryTimeZone, 'yyyy-MM-dd')} ${expiryTimeHoursToString(expiryTimeHours)}`;
-  const expiryTime = toDate(expiryTimeString, {timeZone: expiryTimeZone});
-  if (isAfter(expiryTime, requestedTime)) {
-    return `${formatInTimeZone(requestedTime, expiryTimeZone, 'yyyy-MM-dd')} morning`;
-  } else {
-    return `${formatInTimeZone(requestedTime, expiryTimeZone, 'yyyy-MM-dd')} afternoon`;
-  }
 };
 
 export const expiryTimeHoursToString = (expiryTimeHours: number): string => {

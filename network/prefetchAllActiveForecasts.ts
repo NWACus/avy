@@ -101,9 +101,6 @@ export const prefetchAllActiveForecasts = async (
       .filter(zone => zone.status === AvalancheForecastZoneStatus.Active)
       .forEach(zone => {
         void (async () => {
-          if (center_id === 'NWAC') {
-            void NWACWeatherForecastQuery.prefetch(queryClient, nwacHost, zone.id, currentDateTime, logger);
-          }
           void AvalancheWarningQuery.prefetch(queryClient, nationalAvalancheCenterHost, apiVersion, center_id, zone.id, requestedTime, logger);
           if (process.env.EXPO_PUBLIC_ENABLE_CONDITIONS_BLOG && metadata.config?.blog) {
             void SynopsisQuery.prefetch(queryClient, nationalAvalancheCenterHost, apiVersion, center_id, zone.id, requestedTime, logger);
@@ -123,6 +120,9 @@ export const prefetchAllActiveForecasts = async (
             AvalancheForecastQuery.queryKey(nationalAvalancheCenterHost, apiVersion, center_id, zone.id, requestedTime, metadata?.timezone, metadata?.config?.expires_time ?? 0),
           );
           if (forecastData) {
+            if (center_id === 'NWAC' && forecastData.published_time) {
+              void NWACWeatherForecastQuery.prefetch(queryClient, nwacHost, zone.id, forecastData.published_time, logger);
+            }
             const media: ImageMediaItem[] = images(forecastData.media);
             if (forecastData.product_type === ProductType.Forecast) {
               if (forecastData.weather_data?.weather_product_id) {
