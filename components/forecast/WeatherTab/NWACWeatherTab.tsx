@@ -398,7 +398,7 @@ const NWACWeatherPeriodCard: React.FunctionComponent<{issuance: NWACWeatherIssua
         <Ionicons name={night ? 'moon-outline' : 'sunny-outline'} size={16} color={colorLookup('text.secondary')} />
         <BodySmBlack>{night ? 'Night' : 'Day'}</BodySmBlack>
       </HStack>
-      <NWACWeatherLine label="Snow (in)" dialogTitle="Snow" content={helpStrings.weather.precipitation}>
+      <NWACWeatherLine label="Snow (in)" dialogTitle="Snow">
         <NWACSnowAmount snow={zoneSnow(issuance, zoneId, view.period.key)} />
       </NWACWeatherLine>
       {points.length > 1 &&
