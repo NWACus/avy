@@ -14,6 +14,7 @@ import helpStrings from 'content/helpStrings';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
+import {useAvalancheForecast} from 'hooks/useAvalancheForecast';
 import {useNWACWeatherForecast} from 'hooks/useNWACWeatherForecast';
 import {useRefresh} from 'hooks/useRefresh';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
@@ -59,14 +60,16 @@ export const NWACWeatherTab: React.FC<NWACWeatherTabProps> = ({zone, center_id, 
   const insets = useSafeAreaInsets();
   const avalancheCenterMetadataResult = useAvalancheCenterMetadata(center_id);
   const metadata = avalancheCenterMetadataResult.data;
-  const nwacForecastResult = useNWACWeatherForecast(zone.id, requestedTime);
+  const avalancheForecastResult = useAvalancheForecast(center_id, zone.id, requestedTime, metadata);
+  const avalancheForecast = avalancheForecastResult.data;
+  const nwacForecastResult = useNWACWeatherForecast(zone.id, avalancheForecast?.published_time);
   const nwacForecast = nwacForecastResult.data;
   const mapLayerResult = useAllMapLayers(requestedTime);
   const mapLayer = mapLayerResult.data;
   const weatherStationsResult = useWeatherStationsMetadata(center_id, metadata?.widget_config.stations?.token);
   const weatherStations = weatherStationsResult.data;
   const [stationsByZone, setStationsByZone] = useState<ZoneWithWeatherStations[]>([]);
-  const {isRefreshing, refresh} = useRefresh(nwacForecastResult.refetch, avalancheCenterMetadataResult.refetch, mapLayerResult.refetch);
+  const {isRefreshing, refresh} = useRefresh(avalancheForecastResult.refetch, nwacForecastResult.refetch, avalancheCenterMetadataResult.refetch, mapLayerResult.refetch);
   const onRefresh = useCallback(() => {
     void refresh();
   }, [refresh]);
@@ -117,8 +120,8 @@ export const NWACWeatherTab: React.FC<NWACWeatherTabProps> = ({zone, center_id, 
     [center_id, stationsByZone, navigation, requestedTime, zone.name, zone.id],
   );
 
-  if (incompleteQueryState(avalancheCenterMetadataResult, mapLayerResult) || !metadata || !mapLayer) {
-    return <QueryState results={[nwacForecastResult, avalancheCenterMetadataResult, mapLayerResult]} />;
+  if (incompleteQueryState(avalancheCenterMetadataResult, avalancheForecastResult, mapLayerResult) || !metadata || !avalancheForecast || !mapLayer) {
+    return <QueryState results={[avalancheCenterMetadataResult, avalancheForecastResult, mapLayerResult]} />;
   }
 
   if (metadata?.widget_config.stations?.token) {
@@ -136,6 +139,17 @@ export const NWACWeatherTab: React.FC<NWACWeatherTabProps> = ({zone, center_id, 
         />
       );
     }
+  }
+
+  if (!avalancheForecast.published_time) {
+    return (
+      <NotFound
+        terminal
+        what={[new NotFoundError(`avalanche forecast for zone ${zone.id} has no published time`, 'weather forecast')]}
+        headline="Missing forecast"
+        body="There may not be a forecast available for today."
+      />
+    );
   }
 
   if (incompleteQueryState(nwacForecastResult) || !nwacForecast) {
