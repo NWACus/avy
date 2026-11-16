@@ -18,6 +18,7 @@ const preferencesSchema = z.object({
   hasSeenFRE: z.boolean().default(false),
   hasSeenCBACForecastFirstRun: z.boolean().default(false),
   developerMenuCollapsed: z.boolean().default(true),
+  installReferrerReported: z.boolean().default(false),
   mixpanelUserId: z.string().uuid().optional(),
 });
 

@@ -24,6 +24,7 @@ import {ActionToast, ErrorToast, InfoToast, SuccessToast, WarningToast} from 'co
 import {HTMLRendererConfig} from 'components/text/HTML';
 import ImageCache, {queryKeyPrefix} from 'hooks/useCachedImageURI';
 import {useOnlineManager} from 'hooks/useOnlineManager';
+import {useReportInstallReferrer} from 'hooks/useReportInstallReferrer';
 import {IntlProvider} from 'intl';
 import {logFilePath, logger} from 'logger';
 import {LoggerContext, LoggerProps} from 'loggerContext';
@@ -352,6 +353,7 @@ const BaseApp: React.FunctionComponent<{
   const featureFlagsLoaded = useFeatureFlagsLoaded();
   const apiVersion = useNACApiVersion();
   const queryClient = useQueryClient();
+  useReportInstallReferrer();
   useEffect(() => {
     if (featureFlagsLoaded) {
       getUploader().setImageAPIVersion(apiVersion);
