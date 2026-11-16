@@ -1,4 +1,4 @@
-import {adaptSierraWeatherForecast} from 'components/forecast/WeatherTab';
+import {adaptSierraWeatherForecast} from 'components/forecast/WeatherTab/WeatherTab';
 import {weatherSchema} from 'types/nationalAvalancheCenter';
 
 describe('WeatherTab', () => {

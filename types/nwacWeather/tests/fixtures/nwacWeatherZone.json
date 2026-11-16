@@ -1,0 +1,2944 @@
+{
+  "afternoon": {
+    "day": {
+      "serviceDate": "2026-09-14",
+      "issuances": [
+        {
+          "id": 38,
+          "type": "afternoon",
+          "issuedAt": "2026-09-14T22:00:00+00:00",
+          "serviceDate": "2026-09-14",
+          "author": "Forecaster",
+          "synopsis": "Ridging rebuilds tonight ahead of the next shortwave. Light showers linger over the Olympics into the evening.",
+          "extendedOutlook": "Warm and dry Friday through the weekend, with freezing levels climbing toward 12,500 ft.",
+          "zones": [
+            {
+              "id": "olympics",
+              "name": "Olympics",
+              "avalancheZoneId": 1645
+            },
+            {
+              "id": "west-north",
+              "name": "West Slopes North",
+              "avalancheZoneId": 1646
+            },
+            {
+              "id": "east-north",
+              "name": "East Slopes North",
+              "avalancheZoneId": 1654
+            },
+            {
+              "id": "west-central",
+              "name": "West Slopes Central",
+              "avalancheZoneId": 1647
+            },
+            {
+              "id": "east-central",
+              "name": "East Slopes Central",
+              "avalancheZoneId": 1655
+            },
+            {
+              "id": "stevens",
+              "name": "Stevens Pass",
+              "avalancheZoneId": 1649
+            },
+            {
+              "id": "snoqualmie",
+              "name": "Snoqualmie Pass",
+              "avalancheZoneId": 1653
+            },
+            {
+              "id": "west-south",
+              "name": "West Slopes South",
+              "avalancheZoneId": 1648
+            },
+            {
+              "id": "east-south",
+              "name": "East Slopes South",
+              "avalancheZoneId": 1656
+            },
+            {
+              "id": "mt-hood",
+              "name": "Mt Hood",
+              "avalancheZoneId": 1657
+            }
+          ],
+          "points": [
+            {
+              "code": "HUR53",
+              "name": "Hurricane Ridge",
+              "zoneId": "olympics",
+              "zoneName": "Olympics",
+              "avalancheZoneId": 1645
+            },
+            {
+              "code": "MTB42",
+              "name": "Mt Baker Ski Area",
+              "zoneId": "west-north",
+              "zoneName": "West Slopes North",
+              "avalancheZoneId": 1646
+            },
+            {
+              "code": "BAR24",
+              "name": "Mt Loop — Barlow Pass",
+              "zoneId": "west-central",
+              "zoneName": "West Slopes Central",
+              "avalancheZoneId": 1647
+            },
+            {
+              "code": "STS40",
+              "name": "Stevens Pass",
+              "zoneId": "stevens",
+              "zoneName": "Stevens Pass",
+              "avalancheZoneId": 1649
+            },
+            {
+              "code": "SNO30",
+              "name": "Snoqualmie Pass",
+              "zoneId": "snoqualmie",
+              "zoneName": "Snoqualmie Pass",
+              "avalancheZoneId": 1653
+            },
+            {
+              "code": "CMT46",
+              "name": "Crystal Mountain",
+              "zoneId": "west-south",
+              "zoneName": "West Slopes South",
+              "avalancheZoneId": 1648
+            },
+            {
+              "code": "PVC54",
+              "name": "Paradise",
+              "zoneId": "west-south",
+              "zoneName": "West Slopes South",
+              "avalancheZoneId": 1648
+            },
+            {
+              "code": "WPS58",
+              "name": "White Pass",
+              "zoneId": "west-south",
+              "zoneName": "West Slopes South",
+              "avalancheZoneId": 1648
+            },
+            {
+              "code": "MSH56",
+              "name": "Mt St Helens",
+              "zoneId": "west-south",
+              "zoneName": "West Slopes South",
+              "avalancheZoneId": 1648
+            },
+            {
+              "code": "WAP55",
+              "name": "Washington Pass",
+              "zoneId": "east-north",
+              "zoneName": "East Slopes North",
+              "avalancheZoneId": 1654
+            },
+            {
+              "code": "MSR52",
+              "name": "Mission Ridge",
+              "zoneId": "east-central",
+              "zoneName": "East Slopes Central",
+              "avalancheZoneId": 1655
+            },
+            {
+              "code": "GHL56",
+              "name": "Salmon la Sac — Gallagher Head",
+              "zoneId": "east-central",
+              "zoneName": "East Slopes Central",
+              "avalancheZoneId": 1655
+            },
+            {
+              "code": "DAR70",
+              "name": "Tieton River — Darland Mt",
+              "zoneId": "east-south",
+              "zoneName": "East Slopes South",
+              "avalancheZoneId": 1656
+            },
+            {
+              "code": "MHM54",
+              "name": "Mt Hood Meadows",
+              "zoneId": "mt-hood",
+              "zoneName": "Mt Hood",
+              "avalancheZoneId": 1657
+            },
+            {
+              "code": "TIM59",
+              "name": "Timberline",
+              "zoneId": "mt-hood",
+              "zoneName": "Mt Hood",
+              "avalancheZoneId": 1657
+            }
+          ],
+          "periods": [
+            {
+              "key": "n1",
+              "label": "Night 1",
+              "short": "N1",
+              "kind": "night",
+              "date": "2026-09-14",
+              "precip": true
+            },
+            {
+              "key": "d2",
+              "label": "Day 2",
+              "short": "D2",
+              "kind": "day",
+              "date": "2026-09-15",
+              "precip": true
+            },
+            {
+              "key": "n2",
+              "label": "Night 2",
+              "short": "N2",
+              "kind": "night",
+              "date": "2026-09-15",
+              "precip": true
+            },
+            {
+              "key": "d3",
+              "label": "Day 3",
+              "short": "D3",
+              "kind": "day",
+              "date": "2026-09-16",
+              "precip": true
+            }
+          ],
+          "blocks": [
+            {
+              "key": "ev1",
+              "label": "Eve 1",
+              "part": "Evening",
+              "period": "n1"
+            },
+            {
+              "key": "nt1",
+              "label": "Night 1",
+              "part": "Night",
+              "period": "n1"
+            },
+            {
+              "key": "am2",
+              "label": "AM 2",
+              "part": "Morning",
+              "period": "d2"
+            },
+            {
+              "key": "pm2",
+              "label": "PM 2",
+              "part": "Afternoon",
+              "period": "d2"
+            },
+            {
+              "key": "ev2",
+              "label": "Eve 2",
+              "part": "Evening",
+              "period": "n2"
+            },
+            {
+              "key": "nt2",
+              "label": "Night 2",
+              "part": "Night",
+              "period": "n2"
+            },
+            {
+              "key": "am3",
+              "label": "AM 3",
+              "part": "Morning",
+              "period": "d3"
+            },
+            {
+              "key": "pm3",
+              "label": "PM 3",
+              "part": "Afternoon",
+              "period": "d3"
+            }
+          ],
+          "extendedBlocks": [
+            {
+              "key": "nt3",
+              "label": "Night",
+              "part": "Night",
+              "date": "2026-09-16"
+            },
+            {
+              "key": "am4",
+              "label": "Morning",
+              "part": "Morning",
+              "date": "2026-09-17"
+            },
+            {
+              "key": "nt4",
+              "label": "Night",
+              "part": "Night",
+              "date": "2026-09-17"
+            },
+            {
+              "key": "day5",
+              "label": "Day",
+              "part": "Day",
+              "date": "2026-09-18"
+            }
+          ],
+          "precip": {
+            "HUR53": {
+              "n1": {
+                "qpf": 0.24,
+                "slr": 11
+              },
+              "d2": {
+                "qpf": 0.19,
+                "slr": 11
+              },
+              "n2": {
+                "qpf": 0.14,
+                "slr": 11
+              },
+              "d3": {
+                "qpf": 0.09,
+                "slr": 11
+              }
+            },
+            "MTB42": {
+              "n1": {
+                "qpf": 0.22,
+                "slr": 12
+              },
+              "d2": {
+                "qpf": 0.17,
+                "slr": 12
+              },
+              "n2": {
+                "qpf": 0.12,
+                "slr": 12
+              },
+              "d3": {
+                "qpf": 0.07,
+                "slr": 12
+              }
+            },
+            "WAP55": {
+              "n1": {
+                "qpf": 0.21,
+                "slr": 10
+              },
+              "d2": {
+                "qpf": 0.16,
+                "slr": 10
+              },
+              "n2": {
+                "qpf": 0.11,
+                "slr": 10
+              },
+              "d3": {
+                "qpf": 0.06,
+                "slr": 10
+              }
+            },
+            "BAR24": {
+              "n1": {
+                "qpf": 0.19,
+                "slr": 11
+              },
+              "d2": {
+                "qpf": 0.14,
+                "slr": 11
+              },
+              "n2": {
+                "qpf": 0.09,
+                "slr": 11
+              },
+              "d3": {
+                "qpf": 0.04,
+                "slr": 11
+              }
+            },
+            "GHL56": {
+              "n1": {
+                "qpf": 0.18,
+                "slr": 12
+              },
+              "d2": {
+                "qpf": 0.13,
+                "slr": 12
+              },
+              "n2": {
+                "qpf": 0.08,
+                "slr": 12
+              },
+              "d3": {
+                "qpf": 0.03,
+                "slr": 12
+              }
+            },
+            "STS40": {
+              "n1": {
+                "qpf": 0.16,
+                "slr": 10
+              },
+              "d2": {
+                "qpf": 0.11,
+                "slr": 10
+              },
+              "n2": {
+                "qpf": 0.06,
+                "slr": 10
+              },
+              "d3": {
+                "qpf": 0.01,
+                "slr": 10
+              }
+            },
+            "SNO30": {
+              "n1": {
+                "qpf": 0.15,
+                "slr": 11
+              },
+              "d2": {
+                "qpf": 0.1,
+                "slr": 11
+              },
+              "n2": {
+                "qpf": 0.05,
+                "slr": 11
+              },
+              "d3": {
+                "qpf": 0,
+                "slr": 11
+              }
+            },
+            "MSR52": {
+              "n1": {
+                "qpf": 0.13,
+                "slr": 12
+              },
+              "d2": {
+                "qpf": 0.08,
+                "slr": 12
+              },
+              "n2": {
+                "qpf": 0.03,
+                "slr": 12
+              },
+              "d3": {
+                "qpf": 0,
+                "slr": 12
+              }
+            },
+            "CMT46": {
+              "n1": {
+                "qpf": 0.12,
+                "slr": 10
+              },
+              "d2": {
+                "qpf": 0.07,
+                "slr": 10
+              },
+              "n2": {
+                "qpf": 0.02,
+                "slr": 10
+              },
+              "d3": {
+                "qpf": 0,
+                "slr": 10
+              }
+            },
+            "PVC54": {
+              "n1": {
+                "qpf": 0.1,
+                "slr": 11
+              },
+              "d2": {
+                "qpf": 0.05,
+                "slr": 11
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 11
+              },
+              "d3": {
+                "qpf": 0,
+                "slr": 11
+              }
+            },
+            "WPS58": {
+              "n1": {
+                "qpf": 0.09,
+                "slr": 12
+              },
+              "d2": {
+                "qpf": 0.04,
+                "slr": 12
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 12
+              },
+              "d3": {
+                "qpf": 0,
+                "slr": 12
+              }
+            },
+            "MSH56": {
+              "n1": {
+                "qpf": 0.07,
+                "slr": 10
+              },
+              "d2": {
+                "qpf": 0.02,
+                "slr": 10
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 10
+              },
+              "d3": {
+                "qpf": 0,
+                "slr": 10
+              }
+            },
+            "DAR70": {
+              "n1": {
+                "qpf": 0.06,
+                "slr": 11
+              },
+              "d2": {
+                "qpf": 0.01,
+                "slr": 11
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 11
+              },
+              "d3": {
+                "qpf": 0,
+                "slr": 11
+              }
+            },
+            "MHM54": {
+              "n1": {
+                "qpf": 0.04,
+                "slr": 12
+              },
+              "d2": {
+                "qpf": 0,
+                "slr": 12
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 12
+              },
+              "d3": {
+                "qpf": 0,
+                "slr": 12
+              }
+            },
+            "TIM59": {
+              "n1": {
+                "qpf": 0.03,
+                "slr": 10
+              },
+              "d2": {
+                "qpf": 0,
+                "slr": 10
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 10
+              },
+              "d3": {
+                "qpf": 0,
+                "slr": 10
+              }
+            }
+          },
+          "temp": {
+            "olympics": {
+              "n1": {
+                "high": 53,
+                "low": 47
+              },
+              "d2": {
+                "high": 71,
+                "low": 49
+              },
+              "n2": {
+                "high": 53,
+                "low": 47
+              },
+              "d3": {
+                "high": 71,
+                "low": 49
+              }
+            },
+            "west-north": {
+              "n1": {
+                "high": 52,
+                "low": 46
+              },
+              "d2": {
+                "high": 70,
+                "low": 48
+              },
+              "n2": {
+                "high": 52,
+                "low": 46
+              },
+              "d3": {
+                "high": 70,
+                "low": 48
+              }
+            },
+            "east-north": {
+              "n1": {
+                "high": 51,
+                "low": 45
+              },
+              "d2": {
+                "high": 69,
+                "low": 47
+              },
+              "n2": {
+                "high": 51,
+                "low": 45
+              },
+              "d3": {
+                "high": 69,
+                "low": 47
+              }
+            },
+            "west-central": {
+              "n1": {
+                "high": 50,
+                "low": 44
+              },
+              "d2": {
+                "high": 68,
+                "low": 46
+              },
+              "n2": {
+                "high": 50,
+                "low": 44
+              },
+              "d3": {
+                "high": 68,
+                "low": 46
+              }
+            },
+            "east-central": {
+              "n1": {
+                "high": 49,
+                "low": 43
+              },
+              "d2": {
+                "high": 67,
+                "low": 45
+              },
+              "n2": {
+                "high": 49,
+                "low": 43
+              },
+              "d3": {
+                "high": 67,
+                "low": 45
+              }
+            },
+            "stevens": {
+              "n1": {
+                "high": 48,
+                "low": 42
+              },
+              "d2": {
+                "high": 66,
+                "low": 44
+              },
+              "n2": {
+                "high": 48,
+                "low": 42
+              },
+              "d3": {
+                "high": 66,
+                "low": 44
+              }
+            },
+            "snoqualmie": {
+              "n1": {
+                "high": 47,
+                "low": 41
+              },
+              "d2": {
+                "high": 65,
+                "low": 43
+              },
+              "n2": {
+                "high": 47,
+                "low": 41
+              },
+              "d3": {
+                "high": 65,
+                "low": 43
+              }
+            },
+            "west-south": {
+              "n1": {
+                "high": 46,
+                "low": 40
+              },
+              "d2": {
+                "high": 64,
+                "low": 42
+              },
+              "n2": {
+                "high": 46,
+                "low": 40
+              },
+              "d3": {
+                "high": 64,
+                "low": 42
+              }
+            },
+            "east-south": {
+              "n1": {
+                "high": 45,
+                "low": 39
+              },
+              "d2": {
+                "high": 63,
+                "low": 41
+              },
+              "n2": {
+                "high": 45,
+                "low": 39
+              },
+              "d3": {
+                "high": 63,
+                "low": 41
+              }
+            },
+            "mt-hood": {
+              "n1": {
+                "high": 44,
+                "low": 38
+              },
+              "d2": {
+                "high": 62,
+                "low": 40
+              },
+              "n2": {
+                "high": 44,
+                "low": 38
+              },
+              "d3": {
+                "high": 62,
+                "low": 40
+              }
+            }
+          },
+          "wind": {
+            "olympics": {
+              "ev1": {
+                "dir": "W",
+                "speed": 15
+              },
+              "nt1": {
+                "dir": "WNW",
+                "speed": 17
+              },
+              "am2": {
+                "dir": "NW",
+                "speed": 19
+              },
+              "pm2": {
+                "dir": "S",
+                "speed": 21
+              },
+              "ev2": {
+                "dir": "SSW",
+                "speed": 23
+              },
+              "nt2": {
+                "dir": "SW",
+                "speed": 25
+              },
+              "am3": {
+                "dir": "WSW",
+                "speed": 27
+              },
+              "pm3": {
+                "dir": "W",
+                "speed": 29
+              }
+            },
+            "west-north": {
+              "ev1": {
+                "dir": "WNW",
+                "speed": 18
+              },
+              "nt1": {
+                "dir": "NW",
+                "speed": 20
+              },
+              "am2": {
+                "dir": "S",
+                "speed": 22
+              },
+              "pm2": {
+                "dir": "SSW",
+                "speed": 24
+              },
+              "ev2": {
+                "dir": "SW",
+                "speed": 26
+              },
+              "nt2": {
+                "dir": "WSW",
+                "speed": 28
+              },
+              "am3": {
+                "dir": "W",
+                "speed": 10
+              },
+              "pm3": {
+                "dir": "WNW",
+                "speed": 12
+              }
+            },
+            "east-north": {
+              "ev1": {
+                "dir": "NW",
+                "speed": 21
+              },
+              "nt1": {
+                "dir": "S",
+                "speed": 23
+              },
+              "am2": {
+                "dir": "SSW",
+                "speed": 25
+              },
+              "pm2": {
+                "dir": "SW",
+                "speed": 27
+              },
+              "ev2": {
+                "dir": "WSW",
+                "speed": 29
+              },
+              "nt2": {
+                "dir": "W",
+                "speed": 11
+              },
+              "am3": {
+                "dir": "WNW",
+                "speed": 13
+              },
+              "pm3": {
+                "dir": "NW",
+                "speed": 15
+              }
+            },
+            "west-central": {
+              "ev1": {
+                "dir": "S",
+                "speed": 24
+              },
+              "nt1": {
+                "dir": "SSW",
+                "speed": 26
+              },
+              "am2": {
+                "dir": "SW",
+                "speed": 28
+              },
+              "pm2": {
+                "dir": "WSW",
+                "speed": 10
+              },
+              "ev2": {
+                "dir": "W",
+                "speed": 12
+              },
+              "nt2": {
+                "dir": "WNW",
+                "speed": 14
+              },
+              "am3": {
+                "dir": "NW",
+                "speed": 16
+              },
+              "pm3": {
+                "dir": "S",
+                "speed": 18
+              }
+            },
+            "east-central": {
+              "ev1": {
+                "dir": "SSW",
+                "speed": 27
+              },
+              "nt1": {
+                "dir": "SW",
+                "speed": 29
+              },
+              "am2": {
+                "dir": "WSW",
+                "speed": 11
+              },
+              "pm2": {
+                "dir": "W",
+                "speed": 13
+              },
+              "ev2": {
+                "dir": "WNW",
+                "speed": 15
+              },
+              "nt2": {
+                "dir": "NW",
+                "speed": 17
+              },
+              "am3": {
+                "dir": "S",
+                "speed": 19
+              },
+              "pm3": {
+                "dir": "SSW",
+                "speed": 21
+              }
+            },
+            "stevens": {
+              "ev1": {
+                "dir": "SW",
+                "speed": 10
+              },
+              "nt1": {
+                "dir": "WSW",
+                "speed": 12
+              },
+              "am2": {
+                "dir": "W",
+                "speed": 14
+              },
+              "pm2": {
+                "dir": "WNW",
+                "speed": 16
+              },
+              "ev2": {
+                "dir": "NW",
+                "speed": 18
+              },
+              "nt2": {
+                "dir": "S",
+                "speed": 20
+              },
+              "am3": {
+                "dir": "SSW",
+                "speed": 22
+              },
+              "pm3": {
+                "dir": "SW",
+                "speed": 24
+              }
+            },
+            "snoqualmie": {
+              "ev1": {
+                "dir": "WSW",
+                "speed": 13
+              },
+              "nt1": {
+                "dir": "W",
+                "speed": 15
+              },
+              "am2": {
+                "dir": "WNW",
+                "speed": 17
+              },
+              "pm2": {
+                "dir": "NW",
+                "speed": 19
+              },
+              "ev2": {
+                "dir": "S",
+                "speed": 21
+              },
+              "nt2": {
+                "dir": "SSW",
+                "speed": 23
+              },
+              "am3": {
+                "dir": "SW",
+                "speed": 25
+              },
+              "pm3": {
+                "dir": "WSW",
+                "speed": 27
+              }
+            },
+            "west-south": {
+              "ev1": {
+                "dir": "W",
+                "speed": 16
+              },
+              "nt1": {
+                "dir": "WNW",
+                "speed": 18
+              },
+              "am2": {
+                "dir": "NW",
+                "speed": 20
+              },
+              "pm2": {
+                "dir": "S",
+                "speed": 22
+              },
+              "ev2": {
+                "dir": "SSW",
+                "speed": 24
+              },
+              "nt2": {
+                "dir": "SW",
+                "speed": 26
+              },
+              "am3": {
+                "dir": "WSW",
+                "speed": 28
+              },
+              "pm3": {
+                "dir": "W",
+                "speed": 10
+              }
+            },
+            "east-south": {
+              "ev1": {
+                "dir": "WNW",
+                "speed": 19
+              },
+              "nt1": {
+                "dir": "NW",
+                "speed": 21
+              },
+              "am2": {
+                "dir": "S",
+                "speed": 23
+              },
+              "pm2": {
+                "dir": "SSW",
+                "speed": 25
+              },
+              "ev2": {
+                "dir": "SW",
+                "speed": 27
+              },
+              "nt2": {
+                "dir": "WSW",
+                "speed": 29
+              },
+              "am3": {
+                "dir": "W",
+                "speed": 11
+              },
+              "pm3": {
+                "dir": "WNW",
+                "speed": 13
+              }
+            },
+            "mt-hood": {
+              "ev1": {
+                "dir": "NW",
+                "speed": 22
+              },
+              "nt1": {
+                "dir": "S",
+                "speed": 24
+              },
+              "am2": {
+                "dir": "SSW",
+                "speed": 26
+              },
+              "pm2": {
+                "dir": "SW",
+                "speed": 28
+              },
+              "ev2": {
+                "dir": "WSW",
+                "speed": 10
+              },
+              "nt2": {
+                "dir": "W",
+                "speed": 12
+              },
+              "am3": {
+                "dir": "WNW",
+                "speed": 14
+              },
+              "pm3": {
+                "dir": "NW",
+                "speed": 16
+              }
+            }
+          },
+          "snowLevel": {
+            "olympics": {
+              "ev1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "am3": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "pm3": {
+                "freezing": 10500,
+                "mode": "auto"
+              }
+            },
+            "west-north": {
+              "ev1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "am3": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "pm3": {
+                "freezing": 10000,
+                "mode": "auto"
+              }
+            },
+            "east-north": {
+              "ev1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "am3": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "pm3": {
+                "freezing": 9500,
+                "mode": "auto"
+              }
+            },
+            "west-central": {
+              "ev1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "am3": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "pm3": {
+                "freezing": 11000,
+                "mode": "auto"
+              }
+            },
+            "east-central": {
+              "ev1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "am3": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "pm3": {
+                "freezing": 10500,
+                "mode": "auto"
+              }
+            },
+            "stevens": {
+              "ev1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "am3": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "pm3": {
+                "freezing": 10000,
+                "mode": "auto"
+              }
+            },
+            "snoqualmie": {
+              "ev1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "am3": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "pm3": {
+                "freezing": 9500,
+                "mode": "auto"
+              }
+            },
+            "west-south": {
+              "ev1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "am3": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "pm3": {
+                "freezing": 11000,
+                "mode": "auto"
+              }
+            },
+            "east-south": {
+              "ev1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "am3": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "pm3": {
+                "freezing": 10500,
+                "mode": "auto"
+              }
+            },
+            "mt-hood": {
+              "ev1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "am3": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "pm3": {
+                "freezing": 10000,
+                "mode": "auto"
+              }
+            }
+          },
+          "extendedSnowLevel": {
+            "olympics": {
+              "nt3": {
+                "freezing": 12000,
+                "mode": "auto"
+              },
+              "am4": {
+                "freezing": 12500,
+                "mode": "auto"
+              },
+              "nt4": {
+                "freezing": 11500,
+                "mode": "auto"
+              },
+              "day5": {
+                "freezing": 12000,
+                "mode": "auto"
+              }
+            },
+            "west-north": {
+              "nt3": {
+                "freezing": 12000,
+                "mode": "auto"
+              },
+              "am4": {
+                "freezing": 12500,
+                "mode": "auto"
+              },
+              "nt4": {
+                "freezing": 11500,
+                "mode": "auto"
+              },
+              "day5": {
+                "freezing": 12000,
+                "mode": "auto"
+              }
+            },
+            "stevens": {
+              "nt3": {
+                "freezing": 12000,
+                "mode": "auto"
+              },
+              "am4": {
+                "freezing": 12500,
+                "mode": "auto"
+              },
+              "nt4": {
+                "freezing": 11500,
+                "mode": "auto"
+              },
+              "day5": {
+                "freezing": 12000,
+                "mode": "auto"
+              }
+            }
+          },
+          "sensible": {
+            "olympics": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "west-north": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "east-north": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "west-central": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "east-central": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "stevens": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "snoqualmie": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "west-south": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "east-south": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "mt-hood": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            }
+          }
+        }
+      ]
+    }
+  },
+  "morning": {
+    "day": {
+      "serviceDate": "2026-09-14",
+      "issuances": [
+        {
+          "id": 37,
+          "type": "morning",
+          "issuedAt": "2026-09-14T14:00:00+00:00",
+          "serviceDate": "2026-09-14",
+          "author": "Forecaster",
+          "synopsis": "A weak upper-level trough grazes the Cascades today, keeping a marine push alive west of the crest. Freezing levels stay near 11,000 ft.",
+          "extendedOutlook": null,
+          "zones": [
+            {
+              "id": "olympics",
+              "name": "Olympics",
+              "avalancheZoneId": 1645
+            },
+            {
+              "id": "west-north",
+              "name": "West Slopes North",
+              "avalancheZoneId": 1646
+            },
+            {
+              "id": "east-north",
+              "name": "East Slopes North",
+              "avalancheZoneId": 1654
+            },
+            {
+              "id": "west-central",
+              "name": "West Slopes Central",
+              "avalancheZoneId": 1647
+            },
+            {
+              "id": "east-central",
+              "name": "East Slopes Central",
+              "avalancheZoneId": 1655
+            },
+            {
+              "id": "stevens",
+              "name": "Stevens Pass",
+              "avalancheZoneId": 1649
+            },
+            {
+              "id": "snoqualmie",
+              "name": "Snoqualmie Pass",
+              "avalancheZoneId": 1653
+            },
+            {
+              "id": "west-south",
+              "name": "West Slopes South",
+              "avalancheZoneId": 1648
+            },
+            {
+              "id": "east-south",
+              "name": "East Slopes South",
+              "avalancheZoneId": 1656
+            },
+            {
+              "id": "mt-hood",
+              "name": "Mt Hood",
+              "avalancheZoneId": 1657
+            }
+          ],
+          "points": [
+            {
+              "code": "HUR53",
+              "name": "Hurricane Ridge",
+              "zoneId": "olympics",
+              "zoneName": "Olympics",
+              "avalancheZoneId": 1645
+            },
+            {
+              "code": "MTB42",
+              "name": "Mt Baker Ski Area",
+              "zoneId": "west-north",
+              "zoneName": "West Slopes North",
+              "avalancheZoneId": 1646
+            },
+            {
+              "code": "BAR24",
+              "name": "Mt Loop — Barlow Pass",
+              "zoneId": "west-central",
+              "zoneName": "West Slopes Central",
+              "avalancheZoneId": 1647
+            },
+            {
+              "code": "STS40",
+              "name": "Stevens Pass",
+              "zoneId": "stevens",
+              "zoneName": "Stevens Pass",
+              "avalancheZoneId": 1649
+            },
+            {
+              "code": "SNO30",
+              "name": "Snoqualmie Pass",
+              "zoneId": "snoqualmie",
+              "zoneName": "Snoqualmie Pass",
+              "avalancheZoneId": 1653
+            },
+            {
+              "code": "CMT46",
+              "name": "Crystal Mountain",
+              "zoneId": "west-south",
+              "zoneName": "West Slopes South",
+              "avalancheZoneId": 1648
+            },
+            {
+              "code": "PVC54",
+              "name": "Paradise",
+              "zoneId": "west-south",
+              "zoneName": "West Slopes South",
+              "avalancheZoneId": 1648
+            },
+            {
+              "code": "WPS58",
+              "name": "White Pass",
+              "zoneId": "west-south",
+              "zoneName": "West Slopes South",
+              "avalancheZoneId": 1648
+            },
+            {
+              "code": "MSH56",
+              "name": "Mt St Helens",
+              "zoneId": "west-south",
+              "zoneName": "West Slopes South",
+              "avalancheZoneId": 1648
+            },
+            {
+              "code": "WAP55",
+              "name": "Washington Pass",
+              "zoneId": "east-north",
+              "zoneName": "East Slopes North",
+              "avalancheZoneId": 1654
+            },
+            {
+              "code": "MSR52",
+              "name": "Mission Ridge",
+              "zoneId": "east-central",
+              "zoneName": "East Slopes Central",
+              "avalancheZoneId": 1655
+            },
+            {
+              "code": "GHL56",
+              "name": "Salmon la Sac — Gallagher Head",
+              "zoneId": "east-central",
+              "zoneName": "East Slopes Central",
+              "avalancheZoneId": 1655
+            },
+            {
+              "code": "DAR70",
+              "name": "Tieton River — Darland Mt",
+              "zoneId": "east-south",
+              "zoneName": "East Slopes South",
+              "avalancheZoneId": 1656
+            },
+            {
+              "code": "MHM54",
+              "name": "Mt Hood Meadows",
+              "zoneId": "mt-hood",
+              "zoneName": "Mt Hood",
+              "avalancheZoneId": 1657
+            },
+            {
+              "code": "TIM59",
+              "name": "Timberline",
+              "zoneId": "mt-hood",
+              "zoneName": "Mt Hood",
+              "avalancheZoneId": 1657
+            }
+          ],
+          "periods": [
+            {
+              "key": "d1",
+              "label": "Day 1",
+              "short": "D1",
+              "kind": "day",
+              "date": "2026-09-14",
+              "precip": true
+            },
+            {
+              "key": "n1",
+              "label": "Night 1",
+              "short": "N1",
+              "kind": "night",
+              "date": "2026-09-14",
+              "precip": true
+            },
+            {
+              "key": "d2",
+              "label": "Day 2",
+              "short": "D2",
+              "kind": "day",
+              "date": "2026-09-15",
+              "precip": true
+            }
+          ],
+          "blocks": [
+            {
+              "key": "am1",
+              "label": "AM 1",
+              "part": "Morning",
+              "period": "d1"
+            },
+            {
+              "key": "pm1",
+              "label": "PM 1",
+              "part": "Afternoon",
+              "period": "d1"
+            },
+            {
+              "key": "ev1",
+              "label": "Eve 1",
+              "part": "Evening",
+              "period": "n1"
+            },
+            {
+              "key": "nt1",
+              "label": "Night 1",
+              "part": "Night",
+              "period": "n1"
+            },
+            {
+              "key": "am2",
+              "label": "AM 2",
+              "part": "Morning",
+              "period": "d2"
+            },
+            {
+              "key": "pm2",
+              "label": "PM 2",
+              "part": "Afternoon",
+              "period": "d2"
+            }
+          ],
+          "extendedBlocks": [],
+          "precip": {
+            "HUR53": {
+              "d1": {
+                "qpf": 0.24,
+                "slr": 11
+              },
+              "n1": {
+                "qpf": 0.19,
+                "slr": 11
+              },
+              "d2": {
+                "qpf": 0.14,
+                "slr": 11
+              },
+              "n2": {
+                "qpf": 0.09,
+                "slr": 11
+              }
+            },
+            "MTB42": {
+              "d1": {
+                "qpf": 0.22,
+                "slr": 12
+              },
+              "n1": {
+                "qpf": 0.17,
+                "slr": 12
+              },
+              "d2": {
+                "qpf": 0.12,
+                "slr": 12
+              },
+              "n2": {
+                "qpf": 0.07,
+                "slr": 12
+              }
+            },
+            "WAP55": {
+              "d1": {
+                "qpf": 0.21,
+                "slr": 10
+              },
+              "n1": {
+                "qpf": 0.16,
+                "slr": 10
+              },
+              "d2": {
+                "qpf": 0.11,
+                "slr": 10
+              },
+              "n2": {
+                "qpf": 0.06,
+                "slr": 10
+              }
+            },
+            "BAR24": {
+              "d1": {
+                "qpf": 0.19,
+                "slr": 11
+              },
+              "n1": {
+                "qpf": 0.14,
+                "slr": 11
+              },
+              "d2": {
+                "qpf": 0.09,
+                "slr": 11
+              },
+              "n2": {
+                "qpf": 0.04,
+                "slr": 11
+              }
+            },
+            "GHL56": {
+              "d1": {
+                "qpf": 0.18,
+                "slr": 12
+              },
+              "n1": {
+                "qpf": 0.13,
+                "slr": 12
+              },
+              "d2": {
+                "qpf": 0.08,
+                "slr": 12
+              },
+              "n2": {
+                "qpf": 0.03,
+                "slr": 12
+              }
+            },
+            "STS40": {
+              "d1": {
+                "qpf": 0.16,
+                "slr": 10
+              },
+              "n1": {
+                "qpf": 0.11,
+                "slr": 10
+              },
+              "d2": {
+                "qpf": 0.06,
+                "slr": 10
+              },
+              "n2": {
+                "qpf": 0.01,
+                "slr": 10
+              }
+            },
+            "SNO30": {
+              "d1": {
+                "qpf": 0.15,
+                "slr": 11
+              },
+              "n1": {
+                "qpf": 0.1,
+                "slr": 11
+              },
+              "d2": {
+                "qpf": 0.05,
+                "slr": 11
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 11
+              }
+            },
+            "MSR52": {
+              "d1": {
+                "qpf": 0.13,
+                "slr": 12
+              },
+              "n1": {
+                "qpf": 0.08,
+                "slr": 12
+              },
+              "d2": {
+                "qpf": 0.03,
+                "slr": 12
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 12
+              }
+            },
+            "CMT46": {
+              "d1": {
+                "qpf": 0.12,
+                "slr": 10
+              },
+              "n1": {
+                "qpf": 0.07,
+                "slr": 10
+              },
+              "d2": {
+                "qpf": 0.02,
+                "slr": 10
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 10
+              }
+            },
+            "PVC54": {
+              "d1": {
+                "qpf": 0.1,
+                "slr": 11
+              },
+              "n1": {
+                "qpf": 0.05,
+                "slr": 11
+              },
+              "d2": {
+                "qpf": 0,
+                "slr": 11
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 11
+              }
+            },
+            "WPS58": {
+              "d1": {
+                "qpf": 0.09,
+                "slr": 12
+              },
+              "n1": {
+                "qpf": 0.04,
+                "slr": 12
+              },
+              "d2": {
+                "qpf": 0,
+                "slr": 12
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 12
+              }
+            },
+            "MSH56": {
+              "d1": {
+                "qpf": 0.07,
+                "slr": 10
+              },
+              "n1": {
+                "qpf": 0.02,
+                "slr": 10
+              },
+              "d2": {
+                "qpf": 0,
+                "slr": 10
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 10
+              }
+            },
+            "DAR70": {
+              "d1": {
+                "qpf": 0.06,
+                "slr": 11
+              },
+              "n1": {
+                "qpf": 0.01,
+                "slr": 11
+              },
+              "d2": {
+                "qpf": 0,
+                "slr": 11
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 11
+              }
+            },
+            "MHM54": {
+              "d1": {
+                "qpf": 0.04,
+                "slr": 12
+              },
+              "n1": {
+                "qpf": 0,
+                "slr": 12
+              },
+              "d2": {
+                "qpf": 0,
+                "slr": 12
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 12
+              }
+            },
+            "TIM59": {
+              "d1": {
+                "qpf": 0.03,
+                "slr": 10
+              },
+              "n1": {
+                "qpf": 0,
+                "slr": 10
+              },
+              "d2": {
+                "qpf": 0,
+                "slr": 10
+              },
+              "n2": {
+                "qpf": 0,
+                "slr": 10
+              }
+            }
+          },
+          "temp": {
+            "olympics": {
+              "d1": {
+                "high": 71,
+                "low": 49
+              },
+              "n1": {
+                "high": 53,
+                "low": 47
+              },
+              "d2": {
+                "high": 71,
+                "low": 49
+              },
+              "n2": {
+                "high": 53,
+                "low": 47
+              }
+            },
+            "west-north": {
+              "d1": {
+                "high": 70,
+                "low": 48
+              },
+              "n1": {
+                "high": 52,
+                "low": 46
+              },
+              "d2": {
+                "high": 70,
+                "low": 48
+              },
+              "n2": {
+                "high": 52,
+                "low": 46
+              }
+            },
+            "east-north": {
+              "d1": {
+                "high": 69,
+                "low": 47
+              },
+              "n1": {
+                "high": 51,
+                "low": 45
+              },
+              "d2": {
+                "high": 69,
+                "low": 47
+              },
+              "n2": {
+                "high": 51,
+                "low": 45
+              }
+            },
+            "west-central": {
+              "d1": {
+                "high": 68,
+                "low": 46
+              },
+              "n1": {
+                "high": 50,
+                "low": 44
+              },
+              "d2": {
+                "high": 68,
+                "low": 46
+              },
+              "n2": {
+                "high": 50,
+                "low": 44
+              }
+            },
+            "east-central": {
+              "d1": {
+                "high": 67,
+                "low": 45
+              },
+              "n1": {
+                "high": 49,
+                "low": 43
+              },
+              "d2": {
+                "high": 67,
+                "low": 45
+              },
+              "n2": {
+                "high": 49,
+                "low": 43
+              }
+            },
+            "stevens": {
+              "d1": {
+                "high": 66,
+                "low": 44
+              },
+              "n1": {
+                "high": 48,
+                "low": 42
+              },
+              "d2": {
+                "high": 66,
+                "low": 44
+              },
+              "n2": {
+                "high": 48,
+                "low": 42
+              }
+            },
+            "snoqualmie": {
+              "d1": {
+                "high": 65,
+                "low": 43
+              },
+              "n1": {
+                "high": 47,
+                "low": 41
+              },
+              "d2": {
+                "high": 65,
+                "low": 43
+              },
+              "n2": {
+                "high": 47,
+                "low": 41
+              }
+            },
+            "west-south": {
+              "d1": {
+                "high": 64,
+                "low": 42
+              },
+              "n1": {
+                "high": 46,
+                "low": 40
+              },
+              "d2": {
+                "high": 64,
+                "low": 42
+              },
+              "n2": {
+                "high": 46,
+                "low": 40
+              }
+            },
+            "east-south": {
+              "d1": {
+                "high": 63,
+                "low": 41
+              },
+              "n1": {
+                "high": 45,
+                "low": 39
+              },
+              "d2": {
+                "high": 63,
+                "low": 41
+              },
+              "n2": {
+                "high": 45,
+                "low": 39
+              }
+            },
+            "mt-hood": {
+              "d1": {
+                "high": 62,
+                "low": 40
+              },
+              "n1": {
+                "high": 44,
+                "low": 38
+              },
+              "d2": {
+                "high": 62,
+                "low": 40
+              },
+              "n2": {
+                "high": 44,
+                "low": 38
+              }
+            }
+          },
+          "wind": {
+            "olympics": {
+              "pm1": {
+                "dir": "WNW",
+                "speed": 17
+              },
+              "ev1": {
+                "dir": "NW",
+                "speed": 19
+              },
+              "nt1": {
+                "dir": "S",
+                "speed": 21
+              },
+              "am2": {
+                "dir": "SSW",
+                "speed": 23
+              },
+              "pm2": {
+                "dir": "SW",
+                "speed": 25
+              },
+              "ev2": {
+                "dir": "WSW",
+                "speed": 27
+              },
+              "nt2": {
+                "dir": "W",
+                "speed": 29
+              },
+              "am1": {
+                "dir": "W",
+                "speed": 15
+              }
+            },
+            "west-north": {
+              "pm1": {
+                "dir": "NW",
+                "speed": 20
+              },
+              "ev1": {
+                "dir": "S",
+                "speed": 22
+              },
+              "nt1": {
+                "dir": "SSW",
+                "speed": 24
+              },
+              "am2": {
+                "dir": "SW",
+                "speed": 26
+              },
+              "pm2": {
+                "dir": "WSW",
+                "speed": 28
+              },
+              "ev2": {
+                "dir": "W",
+                "speed": 10
+              },
+              "nt2": {
+                "dir": "WNW",
+                "speed": 12
+              },
+              "am1": {
+                "dir": "WNW",
+                "speed": 18
+              }
+            },
+            "east-north": {
+              "pm1": {
+                "dir": "S",
+                "speed": 23
+              },
+              "ev1": {
+                "dir": "SSW",
+                "speed": 25
+              },
+              "nt1": {
+                "dir": "SW",
+                "speed": 27
+              },
+              "am2": {
+                "dir": "WSW",
+                "speed": 29
+              },
+              "pm2": {
+                "dir": "W",
+                "speed": 11
+              },
+              "ev2": {
+                "dir": "WNW",
+                "speed": 13
+              },
+              "nt2": {
+                "dir": "NW",
+                "speed": 15
+              },
+              "am1": {
+                "dir": "NW",
+                "speed": 21
+              }
+            },
+            "west-central": {
+              "pm1": {
+                "dir": "SSW",
+                "speed": 26
+              },
+              "ev1": {
+                "dir": "SW",
+                "speed": 28
+              },
+              "nt1": {
+                "dir": "WSW",
+                "speed": 10
+              },
+              "am2": {
+                "dir": "W",
+                "speed": 12
+              },
+              "pm2": {
+                "dir": "WNW",
+                "speed": 14
+              },
+              "ev2": {
+                "dir": "NW",
+                "speed": 16
+              },
+              "nt2": {
+                "dir": "S",
+                "speed": 18
+              },
+              "am1": {
+                "dir": "S",
+                "speed": 24
+              }
+            },
+            "east-central": {
+              "pm1": {
+                "dir": "SW",
+                "speed": 29
+              },
+              "ev1": {
+                "dir": "WSW",
+                "speed": 11
+              },
+              "nt1": {
+                "dir": "W",
+                "speed": 13
+              },
+              "am2": {
+                "dir": "WNW",
+                "speed": 15
+              },
+              "pm2": {
+                "dir": "NW",
+                "speed": 17
+              },
+              "ev2": {
+                "dir": "S",
+                "speed": 19
+              },
+              "nt2": {
+                "dir": "SSW",
+                "speed": 21
+              },
+              "am1": {
+                "dir": "SSW",
+                "speed": 27
+              }
+            },
+            "stevens": {
+              "pm1": {
+                "dir": "WSW",
+                "speed": 12
+              },
+              "ev1": {
+                "dir": "W",
+                "speed": 14
+              },
+              "nt1": {
+                "dir": "WNW",
+                "speed": 16
+              },
+              "am2": {
+                "dir": "NW",
+                "speed": 18
+              },
+              "pm2": {
+                "dir": "S",
+                "speed": 20
+              },
+              "ev2": {
+                "dir": "SSW",
+                "speed": 22
+              },
+              "nt2": {
+                "dir": "SW",
+                "speed": 24
+              },
+              "am1": {
+                "dir": "SW",
+                "speed": 10
+              }
+            },
+            "snoqualmie": {
+              "pm1": {
+                "dir": "W",
+                "speed": 15
+              },
+              "ev1": {
+                "dir": "WNW",
+                "speed": 17
+              },
+              "nt1": {
+                "dir": "NW",
+                "speed": 19
+              },
+              "am2": {
+                "dir": "S",
+                "speed": 21
+              },
+              "pm2": {
+                "dir": "SSW",
+                "speed": 23
+              },
+              "ev2": {
+                "dir": "SW",
+                "speed": 25
+              },
+              "nt2": {
+                "dir": "WSW",
+                "speed": 27
+              },
+              "am1": {
+                "dir": "WSW",
+                "speed": 13
+              }
+            },
+            "west-south": {
+              "pm1": {
+                "dir": "WNW",
+                "speed": 18
+              },
+              "ev1": {
+                "dir": "NW",
+                "speed": 20
+              },
+              "nt1": {
+                "dir": "S",
+                "speed": 22
+              },
+              "am2": {
+                "dir": "SSW",
+                "speed": 24
+              },
+              "pm2": {
+                "dir": "SW",
+                "speed": 26
+              },
+              "ev2": {
+                "dir": "WSW",
+                "speed": 28
+              },
+              "nt2": {
+                "dir": "W",
+                "speed": 10
+              },
+              "am1": {
+                "dir": "W",
+                "speed": 16
+              }
+            },
+            "east-south": {
+              "pm1": {
+                "dir": "NW",
+                "speed": 21
+              },
+              "ev1": {
+                "dir": "S",
+                "speed": 23
+              },
+              "nt1": {
+                "dir": "SSW",
+                "speed": 25
+              },
+              "am2": {
+                "dir": "SW",
+                "speed": 27
+              },
+              "pm2": {
+                "dir": "WSW",
+                "speed": 29
+              },
+              "ev2": {
+                "dir": "W",
+                "speed": 11
+              },
+              "nt2": {
+                "dir": "WNW",
+                "speed": 13
+              },
+              "am1": {
+                "dir": "WNW",
+                "speed": 19
+              }
+            },
+            "mt-hood": {
+              "pm1": {
+                "dir": "S",
+                "speed": 24
+              },
+              "ev1": {
+                "dir": "SSW",
+                "speed": 26
+              },
+              "nt1": {
+                "dir": "SW",
+                "speed": 28
+              },
+              "am2": {
+                "dir": "WSW",
+                "speed": 10
+              },
+              "pm2": {
+                "dir": "W",
+                "speed": 12
+              },
+              "ev2": {
+                "dir": "WNW",
+                "speed": 14
+              },
+              "nt2": {
+                "dir": "NW",
+                "speed": 16
+              },
+              "am1": {
+                "dir": "NW",
+                "speed": 22
+              }
+            }
+          },
+          "snowLevel": {
+            "olympics": {
+              "am1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "pm1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "ev1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 10500,
+                "mode": "auto"
+              }
+            },
+            "west-north": {
+              "am1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "pm1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "ev1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 10000,
+                "mode": "auto"
+              }
+            },
+            "east-north": {
+              "am1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "pm1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "ev1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 9500,
+                "mode": "auto"
+              }
+            },
+            "west-central": {
+              "am1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "pm1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "ev1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 11000,
+                "mode": "auto"
+              }
+            },
+            "east-central": {
+              "am1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "pm1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "ev1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 10500,
+                "mode": "auto"
+              }
+            },
+            "stevens": {
+              "am1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "pm1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "ev1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 10000,
+                "mode": "auto"
+              }
+            },
+            "snoqualmie": {
+              "am1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "pm1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "ev1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 9500,
+                "mode": "auto"
+              }
+            },
+            "west-south": {
+              "am1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "pm1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "ev1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 11000,
+                "mode": "auto"
+              }
+            },
+            "east-south": {
+              "am1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "pm1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "ev1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 10500,
+                "mode": "auto"
+              }
+            },
+            "mt-hood": {
+              "am1": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "pm1": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "ev1": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "nt1": {
+                "freezing": 10000,
+                "mode": "auto"
+              },
+              "am2": {
+                "freezing": 9500,
+                "mode": "auto"
+              },
+              "pm2": {
+                "freezing": 11000,
+                "mode": "auto"
+              },
+              "ev2": {
+                "freezing": 10500,
+                "mode": "auto"
+              },
+              "nt2": {
+                "freezing": 10000,
+                "mode": "auto"
+              }
+            }
+          },
+          "extendedSnowLevel": {},
+          "sensible": {
+            "olympics": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "west-north": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "east-north": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "west-central": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "east-central": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "stevens": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "snoqualmie": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "west-south": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "east-south": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            },
+            "mt-hood": {
+              "morning": "Mostly cloudy with a few morning showers, clearing by afternoon. Light ridgetop winds.",
+              "afternoon": "Sunny and warmer, with freezing levels rising through the day."
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -107,6 +107,22 @@ export const COLORS: Record<string, ColorValue> = {
 
   'modal.background': '#333333',
 
+  'nwacWeather.snow.0': '#eff6ff',
+  'nwacWeather.snow.1': '#dbeafe',
+  'nwacWeather.snow.2': '#bfdbfe',
+  'nwacWeather.snow.3': '#93c5fd',
+  'nwacWeather.level.below2000': '#bfdbfe',
+  'nwacWeather.level.2000': '#e0f2fe',
+  'nwacWeather.level.3000': '#f0fdfa',
+  'nwacWeather.level.4000': '#ecfdf5',
+  'nwacWeather.level.5000': '#f5f5f4',
+  'nwacWeather.level.6000': '#fefce8',
+  'nwacWeather.level.7000': '#fffbeb',
+  'nwacWeather.level.8000': '#fed7aa',
+  'nwacWeather.level.9000': '#fdba74',
+  'nwacWeather.level.10000': '#fca5a5',
+  'nwacWeather.snowflake': '#0369a1',
+
   // Color aliases from NativeBase
   // TODO: give these semantic names or replace them with named colors above
   'blue.100': '#dbeafe',

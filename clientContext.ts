@@ -23,7 +23,7 @@ export const stagingHosts = {
   nationalAvalancheCenterHost: 'https://staging-api.avalanche.org',
   nationalAvalancheCenterWordpressHost: 'https://devavycenters.wpengine.com',
   snowboundHost: 'https://dev.snowobs.com',
-  nwacHost: 'https://staging.nwac.us',
+  nwacHost: 'https://nwac.us',
   avalancheCanadaHost: 'https://avcan-services-api.prod.avalanche.ca',
 };
 
