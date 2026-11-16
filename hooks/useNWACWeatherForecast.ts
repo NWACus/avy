@@ -13,15 +13,14 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import {NWACWeatherForecastDay} from 'types/nwacWeather/nwacWeather';
 import {nwacWeatherZoneResponseSchema} from 'types/nwacWeather/schemas';
 import {NotFoundError} from 'types/requests';
+import {nominalNWACWeatherForecastDate, RequestedTime, requestedTimeToUTCDate, toISOStringZulu} from 'utils/date';
 import {ZodError} from 'zod';
 
-export const useNWACWeatherForecast = (
-  zone_id: number,
-  avalancheForecastPublishedTime: string | undefined,
-): UseQueryResult<NWACWeatherForecastDay, AxiosError | ZodError | NotFoundError> => {
+export const useNWACWeatherForecast = (zone_id: number, requestedTime: RequestedTime): UseQueryResult<NWACWeatherForecastDay, AxiosError | ZodError | NotFoundError> => {
   const {nwacHost} = React.useContext<ClientProps>(ClientContext);
+  const date = requestedTimeToUTCDate(requestedTime);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
-  const key = queryKey(nwacHost, zone_id, avalancheForecastPublishedTime ?? '');
+  const key = queryKey(nwacHost, zone_id, date);
   const [thisLogger] = useState(logger.child({query: key}));
   useEffect(() => {
     thisLogger.debug('initiating query');
@@ -29,25 +28,24 @@ export const useNWACWeatherForecast = (
 
   return useQuery<NWACWeatherForecastDay, AxiosError | ZodError | NotFoundError>({
     queryKey: key,
-    queryFn: () => fetchNWACWeatherForecast(nwacHost, zone_id, avalancheForecastPublishedTime ?? '', thisLogger),
-    enabled: !!avalancheForecastPublishedTime,
+    queryFn: () => fetchNWACWeatherForecast(nwacHost, zone_id, date, thisLogger),
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
   });
 };
 
-function queryKey(nwacHost: string, zone_id: number, avalancheForecastPublishedTime: string) {
+function queryKey(nwacHost: string, zone_id: number, requestedTime: Date) {
   return [
     'nwac-weather',
     {
       host: nwacHost,
       zone_id: zone_id,
-      published: avalancheForecastPublishedTime,
+      requestedTime: nominalNWACWeatherForecastDate(requestedTime),
     },
   ];
 }
 
-export const prefetchNWACWeatherForecast = async (queryClient: QueryClient, nwacHost: string, zone_id: number, avalancheForecastPublishedTime: string, logger: Logger) => {
-  const key = queryKey(nwacHost, zone_id, avalancheForecastPublishedTime);
+export const prefetchNWACWeatherForecast = async (queryClient: QueryClient, nwacHost: string, zone_id: number, requestedTime: Date, logger: Logger) => {
+  const key = queryKey(nwacHost, zone_id, requestedTime);
   const thisLogger = logger.child({query: key});
   thisLogger.debug('initiating query');
 
@@ -56,7 +54,7 @@ export const prefetchNWACWeatherForecast = async (queryClient: QueryClient, nwac
     queryFn: async () => {
       const start = new Date();
       thisLogger.trace(`prefetching`);
-      const result = fetchNWACWeatherForecast(nwacHost, zone_id, avalancheForecastPublishedTime, thisLogger);
+      const result = fetchNWACWeatherForecast(nwacHost, zone_id, requestedTime, thisLogger);
       thisLogger.trace({duration: formatDistanceToNowStrict(start)}, `finished prefetching`);
       return result;
     },
@@ -65,11 +63,11 @@ export const prefetchNWACWeatherForecast = async (queryClient: QueryClient, nwac
   });
 };
 
-export const fetchNWACWeatherForecast = async (nwacHost: string, zone_id: number, avalancheForecastPublishedTime: string, logger: Logger): Promise<NWACWeatherForecastDay> => {
+export const fetchNWACWeatherForecast = async (nwacHost: string, zone_id: number, requestedTime: Date, logger: Logger): Promise<NWACWeatherForecastDay> => {
   const url = `${nwacHost}/api/nwac/nwac-weather-zone`;
   const params = {
     zone: zone_id,
-    published: avalancheForecastPublishedTime,
+    published: toISOStringZulu(requestedTime),
   };
   const what = 'NWAC weather forecast';
   const thisLogger = logger.child({url: url, params: params, what: what});

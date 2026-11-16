@@ -3,6 +3,7 @@ import {
   apiDateString,
   expiryTimeHoursToString,
   nominalForecastDateString,
+  nominalNWACWeatherForecastDate,
   normalizeTimeZone,
   toISOStringZulu,
   utcDateToLocalDateString,
@@ -112,6 +113,21 @@ describe('Dates', () => {
     });
     it('handles single-digit expiry hours', () => {
       expect(nominalForecastDateString(new Date('2023-01-24T19:44:27-08:00'), 'America/Los_Angeles', 1)).toBe('2023-01-25');
+    });
+  });
+
+  describe('nominalNWACWeatherForecastDate', () => {
+    it('returns the current day morning when requesting before the expiry time', () => {
+      expect(nominalNWACWeatherForecastDate(new Date('2023-01-24T09:44:27-08:00'))).toBe('2023-01-24 morning');
+    });
+    it('returns the current day afternoon when requesting after the expiry time', () => {
+      expect(nominalNWACWeatherForecastDate(new Date('2023-01-24T19:44:27-08:00'))).toBe('2023-01-24 afternoon');
+    });
+    it('returns the current day morning when requesting before the expiry time using UTC', () => {
+      expect(nominalNWACWeatherForecastDate(new Date('2023-01-24T17:44:27-00:00'))).toBe('2023-01-24 morning');
+    });
+    it('returns the current day afternoon when requesting after the expiry time using UTC', () => {
+      expect(nominalNWACWeatherForecastDate(new Date('2023-01-25T03:44:27-00:00'))).toBe('2023-01-24 afternoon');
     });
   });
 
