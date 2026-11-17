@@ -7,6 +7,7 @@ import {logger} from 'logger';
 import React, {useCallback} from 'react';
 import {Alert} from 'react-native';
 import {AvalancheCenterID, UnsupportedCenterID, UnsupportedCenterNames} from 'types/nationalAvalancheCenter';
+import {appendUtmParameters} from 'utils/appendUtmParameters';
 
 interface CenterNotSupportedModalProps {
   visible: boolean;
@@ -27,7 +28,7 @@ export const CenterNotSupportedModal: React.FC<CenterNotSupportedModalProps> = (
       return;
     }
     analytics.capture('unsupported_center_website_tapped', {center: centerId, unsupported_center_id: unsupportedCenterId, url: avalancheCenterWebsiteUrl});
-    WebBrowser.openBrowserAsync(avalancheCenterWebsiteUrl)
+    WebBrowser.openBrowserAsync(appendUtmParameters(avalancheCenterWebsiteUrl, 'unsupported-center'))
       .then(onClose)
       .catch((e: unknown) => {
         logger.error({error: e}, 'Failed to open unsupported center URL');

@@ -3,6 +3,7 @@ import {LoggerContext, LoggerProps} from 'loggerContext';
 import React, {useCallback} from 'react';
 import {Alert} from 'react-native';
 import {AvalancheCenterID, AvalancheCenterWebsites} from 'types/nationalAvalancheCenter';
+import {appendUtmParameters} from 'utils/appendUtmParameters';
 
 export const useOpenAvalancheCenterWebsite = (): ((centerId: AvalancheCenterID, onComplete?: () => void) => void) => {
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
@@ -14,7 +15,7 @@ export const useOpenAvalancheCenterWebsite = (): ((centerId: AvalancheCenterID, 
         logger.warn({centerId: centerId}, 'No website is configured for this avalanche center');
         return;
       }
-      WebBrowser.openBrowserAsync(url)
+      WebBrowser.openBrowserAsync(appendUtmParameters(url, 'center-website'))
         .then(() => onComplete?.())
         .catch((e: unknown) => {
           logger.error({error: e, centerId: centerId}, 'Failed to open avalanche center website');
