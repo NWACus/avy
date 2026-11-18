@@ -138,7 +138,7 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
         label: item.title,
         data: item.title,
         action: () => {
-          void WebBrowser.openBrowserAsync(appendUtmParameters(item.url, item.title));
+          void WebBrowser.openBrowserAsync(appendUtmParameters(item.url, `center_drawer_link_${item.title}`));
         },
       })),
     [menuItems],
