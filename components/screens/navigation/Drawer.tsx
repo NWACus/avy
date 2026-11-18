@@ -30,6 +30,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {DrawerParamList} from 'routes';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, userFacingCenterId} from 'types/nationalAvalancheCenter';
+import {appendUtmParameters} from 'utils/appendUtmParameters';
 import {RequestedTime} from 'utils/date';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
@@ -137,7 +138,7 @@ const DrawerMenu: React.FunctionComponent<DrawerMenuProps> = ({navigation, avala
         label: item.title,
         data: item.title,
         action: () => {
-          void WebBrowser.openBrowserAsync(item.url);
+          void WebBrowser.openBrowserAsync(appendUtmParameters(item.url, `center_drawer_link_${item.title}`));
         },
       })),
     [menuItems],
@@ -243,7 +244,7 @@ const SponsorDrawer: React.FunctionComponent<{visible: boolean; onDismiss: () =>
 
   const visitSponsor = useCallback(() => {
     analytics.capture('visit_sponsor_url_tapped', {center: center_id});
-    WebBrowser.openBrowserAsync(sponsor.campaignUrl).catch((e: unknown) => {
+    WebBrowser.openBrowserAsync(appendUtmParameters(sponsor.campaignUrl, 'sponsor')).catch((e: unknown) => {
       logger.error({error: e}, 'Failed to open title sponsor URL');
       Alert.alert('Unable to Open Web Browser', 'An error occured when trying to open the web browser. Please try again.', [
         {
