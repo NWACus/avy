@@ -1,4 +1,5 @@
-import {nwacWeatherPeriodViews, nwacWeatherWindowToShow} from 'components/forecast/WeatherTab/NWACWeatherTab';
+import {nwacWeatherWindowToShow} from 'components/forecast/WeatherTab/NWACWeatherTab/NWACWeatherTab';
+import {nwacWeatherPeriodViews} from 'components/forecast/WeatherTab/NWACWeatherTab/NWACWeatherZoneForecast';
 import {NWACWeatherIssuance} from 'types/nwacWeather/nwacWeather';
 import {nwacWeatherZoneResponseSchema} from 'types/nwacWeather/schemas';
 import nwacWeatherFixture from 'types/nwacWeather/tests/fixtures/nwacWeatherZone.json';
