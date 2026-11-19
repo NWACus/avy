@@ -118,10 +118,17 @@ export const COLORS: Record<string, ColorValue> = {
   'nwacWeather.level.5000': '#f5f5f4',
   'nwacWeather.level.6000': '#fefce8',
   'nwacWeather.level.7000': '#fffbeb',
-  'nwacWeather.level.8000': '#fed7aa',
-  'nwacWeather.level.9000': '#fdba74',
-  'nwacWeather.level.10000': '#fca5a5',
+  'nwacWeather.level.8000': '#ffedd5',
+  'nwacWeather.level.9000': '#fed7aa',
+  'nwacWeather.level.10000': '#fecaca',
   'nwacWeather.snowflake': '#0369a1',
+  'nwacWeather.wind.light': '#ede9fe',
+  'nwacWeather.wind.lightToModerate': '#f5f3ff',
+  'nwacWeather.wind.moderate': '#fefce8',
+  'nwacWeather.wind.moderateToStrong': '#fef9c3',
+  'nwacWeather.wind.strong': '#fce7f3',
+  'nwacWeather.wind.strongToExtreme': '#fbcfe8',
+  'nwacWeather.wind.extreme': '#f9a8d4',
 
   // Color aliases from NativeBase
   // TODO: give these semantic names or replace them with named colors above

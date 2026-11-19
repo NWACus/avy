@@ -3,7 +3,6 @@ import {
   dayGroups,
   deriveSnow,
   fmtCalendarDate,
-  fmtWind,
   issueTime,
   levelKind,
   sensibleSlots,
@@ -54,16 +53,10 @@ describe('nwacWeatherFormat', () => {
 
   describe('wind', () => {
     it('reads speeds as bands', () => {
-      expect(windRange(25)).toEqual('20–30');
+      expect(windRange(25)).toEqual('20-30');
       expect(windWording(25)).toEqual('Moderate to Strong');
       expect(windRange(150)).toEqual('110+');
       expect(windRange(null)).toBeNull();
-    });
-
-    it('formats calm and missing wind', () => {
-      expect(fmtWind({dir: 'W', speed: 3})).toEqual('W Calm');
-      expect(fmtWind({dir: 'W', speed: 18})).toEqual('W 18');
-      expect(fmtWind(undefined)).toEqual('—');
     });
 
     it('converts compass points to bearings', () => {

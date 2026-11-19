@@ -6,18 +6,16 @@ import {ActionList} from 'components/content/ActionList';
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {HStack, VStack, View} from 'components/core';
-import {SmallHeaderWithTooltip} from 'components/forecast/WeatherTab/SmallHeaderWithTooltip';
-import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, BodySmBlack, BodySmSemibold, BodyXSm, Title3Black} from 'components/text';
+import {AllCapsSm, AllCapsSmBlack, BodySm, BodySmBlack, BodySmSemibold, BodyXSm, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';
 import {NWACStationsByZone, ZoneWithWeatherStations} from 'components/weather_data/NWACWeatherStationList';
-import helpStrings from 'content/helpStrings';
 import {useAllMapLayers} from 'hooks/useAllMapLayers';
 import {useAnalytics} from 'hooks/useAnalytics';
 import {useAvalancheCenterMetadata} from 'hooks/useAvalancheCenterMetadata';
 import {useNWACWeatherForecast} from 'hooks/useNWACWeatherForecast';
 import {useRefresh} from 'hooks/useRefresh';
 import {useWeatherStationsMetadata} from 'hooks/useWeatherStationsMetadata';
-import React, {PropsWithChildren, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {PropsWithChildren, ReactNode, useCallback, useEffect, useMemo, useState} from 'react';
 import {RefreshControl, ScrollView} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MainStackParamList, TabNavigationProps} from 'routes';
@@ -26,24 +24,25 @@ import {AvalancheCenterID, AvalancheForecastZone, WeatherStationSource, mapFeatu
 import {NWACWeatherBlock, NWACWeatherIssuance, NWACWeatherPeriod, NWACWeatherPoint, NWACWeatherTempCell, NWACWeatherWindCell, NWACWeatherZone} from 'types/nwacWeather/nwacWeather';
 import {
   DASH,
+  SNOW_TIER_LABELS,
   deriveSnowLevel,
   fmtCalendarDate,
-  fmtWind,
+  fmtQpf,
   issuanceLabel,
   levelKind,
-  periodDateGroups,
   pointSnow,
-  sensibleSlots,
+  sensibleSlotFor,
   snowRange,
   snowTier,
   tempPeriods,
   windBearing,
+  windBlocks,
   windRange,
   windWording,
   zonePoints,
-  zoneSnow,
   zonesFor,
 } from 'types/nwacWeather/nwacWeatherFormat';
+import {windowShowing} from 'types/nwacWeather/nwacWeatherWindow';
 import {NotFoundError} from 'types/requests';
 import {RequestedTime, formatRequestedTime, utcDateToLocalTimeString} from 'utils/date';
 
@@ -54,6 +53,19 @@ interface NWACWeatherTabProps {
   center_id: AvalancheCenterID;
   requestedTime: RequestedTime;
 }
+
+export const nwacWeatherWindowToShow = <Window extends {startsAt: string; issuance: number}>(windows: Window[], issuances: {issuedAt: string}[], now: Date): Window => {
+  const issuedAtOf = (forecastWindow: Window) => new Date(issuances[forecastWindow.issuance].issuedAt).getTime();
+  const issued = windows.filter(forecastWindow => issuedAtOf(forecastWindow) <= now.getTime());
+  if (issued.length === 0) {
+    return windowShowing(windows, now);
+  }
+  const newestIssuedAt = Math.max(...issued.map(issuedAtOf));
+  return windowShowing(
+    issued.filter(forecastWindow => issuedAtOf(forecastWindow) === newestIssuedAt),
+    now,
+  );
+};
 
 export const NWACWeatherTab: React.FC<NWACWeatherTabProps> = ({zone, center_id, requestedTime}) => {
   const insets = useSafeAreaInsets();
@@ -153,11 +165,15 @@ export const NWACWeatherTab: React.FC<NWACWeatherTabProps> = ({zone, center_id, 
     );
   }
 
-  const issuance = nwacForecast.issuances.length > 0 ? nwacForecast.issuances[0] : undefined;
-  const weatherZones = issuance ? zonesFor(issuance, zone.id) : [];
-  if (!issuance || weatherZones.length === 0) {
-    if (issuance) {
-      Sentry.captureException(new Error(`NWAC weather issuance ${issuance.id} has no weather zone for avalanche zone ${zone.id}`), {
+  const windows = nwacForecast.windows.filter(forecastWindow => {
+    const windowIssuance = nwacForecast.issuances[forecastWindow.issuance];
+    return windowIssuance != null && zonesFor(windowIssuance, zone.id).length > 0;
+  });
+  const shown = windows.length > 0 ? nwacWeatherWindowToShow(windows, nwacForecast.issuances, new Date(nwacForecastResult.dataUpdatedAt)) : undefined;
+  const issuance = shown ? nwacForecast.issuances[shown.issuance] : undefined;
+  if (!shown || !issuance) {
+    if (nwacForecast.windows.length > 0) {
+      Sentry.captureException(new Error(`NWAC weather day ${nwacForecast.serviceDate} has no window for avalanche zone ${zone.id}`), {
         tags: {center_id: center_id, zone_id: zone.id},
       });
     }
@@ -170,6 +186,7 @@ export const NWACWeatherTab: React.FC<NWACWeatherTabProps> = ({zone, center_id, 
       />
     );
   }
+  const weatherZones = zonesFor(issuance, zone.id);
 
   return (
     <ScrollView
@@ -203,14 +220,11 @@ export const NWACWeatherTab: React.FC<NWACWeatherTabProps> = ({zone, center_id, 
             </VStack>
           </HStack>
         </Card>
-        {weatherZones.map(weatherZone => (
-          <NWACWeatherZoneForecast key={weatherZone.id} issuance={issuance} zone={weatherZone} showName={weatherZones.length > 1} />
-        ))}
-        {actionListData.length > 0 && <ActionList pl={16} backgroundColor="white" header={<Title3Black>Weather Data</Title3Black>} actions={actionListData} />}
+
         {issuance.synopsis && (
           <CollapsibleCard
             center_id={center_id}
-            identifier={'weatherSynopsis'}
+            identifier={'NWACWeatherSynopsis'}
             marginTop={1}
             borderRadius={0}
             borderColor="white"
@@ -219,10 +233,15 @@ export const NWACWeatherTab: React.FC<NWACWeatherTabProps> = ({zone, center_id, 
             <HTML source={{html: issuance.synopsis}} />
           </CollapsibleCard>
         )}
+
+        {weatherZones.map(weatherZone => (
+          <NWACWeatherZoneForecast key={weatherZone.id} issuance={issuance} zone={weatherZone} periodKeys={shown.periodKeys} held={shown.held ?? false} />
+        ))}
+        {actionListData.length > 0 && <ActionList pl={16} backgroundColor="white" header={<Title3Black>Weather Data</Title3Black>} actions={actionListData} />}
         {issuance.extendedOutlook && (
           <CollapsibleCard
             center_id={center_id}
-            identifier={'weatherExtendedSynopsis'}
+            identifier={'NWACWeatherExtendedSynopsis'}
             marginTop={1}
             borderRadius={0}
             borderColor="white"
@@ -241,214 +260,259 @@ interface NWACWeatherBlockView {
   level: number | null;
   snow: boolean;
   wind: NWACWeatherWindCell | undefined;
+  windOut: boolean;
 }
 
 interface NWACWeatherPeriodView {
   period: NWACWeatherPeriod;
+  name: string;
+  label: string;
+  night: boolean;
+  summary: string | null;
   tempOut: boolean;
   blocks: NWACWeatherBlockView[];
 }
 
-const firstUncoveredIndex = <T,>(items: T[], isCovered: (item: T) => boolean): number => {
+const coveredCount = <T,>(items: T[], isCovered: (item: T) => boolean): number => {
   const lastCoveredIndex = items.findLastIndex(isCovered);
   return lastCoveredIndex === -1 ? items.length : lastCoveredIndex + 1;
 };
 
-export const nwacWeatherPeriodViews = (issuance: NWACWeatherIssuance, zoneId: string): NWACWeatherPeriodView[] => {
-  const temps = new Set(tempPeriods(issuance).map(p => p.key));
-  const blocksOf = (period: NWACWeatherPeriod) => issuance.blocks.filter(b => b.period === period.key);
-  const firstTempOutIndex = firstUncoveredIndex(issuance.periods, period => temps.has(period.key));
-  return issuance.periods.map((period, periodIndex) => ({
+const periodName = (period: NWACWeatherPeriod, index: number, held: boolean): string => {
+  if (held) {
+    return period.kind === 'night' ? 'Night' : 'Day';
+  }
+  if (period.kind === 'night') {
+    return 'Tonight';
+  }
+  return index === 0 ? 'Today' : 'Tomorrow';
+};
+
+export const nwacWeatherPeriodViews = (issuance: NWACWeatherIssuance, zoneId: string, periodKeys: string[], held = false): NWACWeatherPeriodView[] => {
+  const shown = issuance.periods.filter(period => periodKeys.includes(period.key));
+  const temps = new Set(tempPeriods(issuance).map(period => period.key));
+  const winds = new Set(windBlocks(issuance).map(block => block.key));
+  const tempsCovered = coveredCount(shown, period => temps.has(period.key));
+  const shownBlocks = shown.flatMap(period => issuance.blocks.filter(block => block.period === period.key));
+  const windsCovered = coveredCount(shownBlocks, block => winds.has(block.key));
+  const windOut = new Set(shownBlocks.slice(windsCovered).map(block => block.key));
+  const sensible = issuance.sensible[zoneId] ?? {};
+  const summaryOf = (periodKey: string) => {
+    const slot = sensibleSlotFor(issuance, periodKey);
+    return (slot && sensible[slot]?.trim()) || null;
+  };
+  return shown.map((period, periodIndex) => ({
     period,
-    tempOut: periodIndex >= firstTempOutIndex,
-    blocks: blocksOf(period).map(block => ({
-      block,
-      level: deriveSnowLevel(issuance.snowLevel[zoneId]?.[block.key]?.freezing),
-      snow: levelKind(issuance, zoneId, block) === 'snow',
-      wind: issuance.wind[zoneId]?.[block.key],
-    })),
+    name: periodName(period, periodIndex, held),
+    label: fmtCalendarDate(period.date),
+    night: period.kind === 'night',
+    summary: summaryOf(period.key),
+    tempOut: periodIndex >= tempsCovered,
+    blocks: shownBlocks
+      .filter(block => block.period === period.key)
+      .map(block => ({
+        block,
+        level: deriveSnowLevel(issuance.snowLevel[zoneId]?.[block.key]?.freezing),
+        snow: levelKind(issuance, zoneId, block) === 'snow',
+        wind: issuance.wind[zoneId]?.[block.key],
+        windOut: windOut.has(block.key),
+      })),
   }));
 };
 
 const NWAC_SNOW_FILLS = ['nwacWeather.snow.0', 'nwacWeather.snow.1', 'nwacWeather.snow.2', 'nwacWeather.snow.3'];
 
-const NWAC_LEVEL_FILLS: {below: number; fill: string}[] = [
-  {below: 2000, fill: 'nwacWeather.level.below2000'},
-  {below: 3000, fill: 'nwacWeather.level.2000'},
-  {below: 4000, fill: 'nwacWeather.level.3000'},
-  {below: 5000, fill: 'nwacWeather.level.4000'},
-  {below: 6000, fill: 'nwacWeather.level.5000'},
-  {below: 7000, fill: 'nwacWeather.level.6000'},
-  {below: 8000, fill: 'nwacWeather.level.7000'},
-  {below: 9000, fill: 'nwacWeather.level.8000'},
-  {below: 10000, fill: 'nwacWeather.level.9000'},
-  {below: Infinity, fill: 'nwacWeather.level.10000'},
+const NWAC_LEVEL_FILLS: {below: number; fill: string; label: string}[] = [
+  {below: 2000, fill: 'nwacWeather.level.below2000', label: "<2,000'"},
+  {below: 3000, fill: 'nwacWeather.level.2000', label: "2,000'"},
+  {below: 4000, fill: 'nwacWeather.level.3000', label: "3,000'"},
+  {below: 5000, fill: 'nwacWeather.level.4000', label: "4,000'"},
+  {below: 6000, fill: 'nwacWeather.level.5000', label: "5,000'"},
+  {below: 7000, fill: 'nwacWeather.level.6000', label: "6,000'"},
+  {below: 8000, fill: 'nwacWeather.level.7000', label: "7,000'"},
+  {below: 9000, fill: 'nwacWeather.level.8000', label: "8,000'"},
+  {below: 10000, fill: 'nwacWeather.level.9000', label: "9,000'"},
+  {below: Infinity, fill: 'nwacWeather.level.10000', label: "10,000'+"},
 ];
 
-const nwacLevelFill = (level: number): string => NWAC_LEVEL_FILLS.find(f => level < f.below)?.fill ?? 'nwacWeather.level.10000';
+interface NWACKeyLabel {
+  label?: string;
+  span: number;
+}
 
-const NWACWeatherZoneForecast: React.FunctionComponent<{issuance: NWACWeatherIssuance; zone: NWACWeatherZone; showName: boolean}> = ({issuance, zone, showName}) => {
-  const periodViews = nwacWeatherPeriodViews(issuance, zone.id);
+const NWAC_SNOW_KEY_LABELS: NWACKeyLabel[] = SNOW_TIER_LABELS.map(label => ({label, span: 1}));
+
+const NWAC_LEVEL_KEY_LABELS: NWACKeyLabel[] = [
+  {span: 1},
+  {label: "2k'", span: 2},
+  {label: "4k'", span: 2},
+  {label: "6k'", span: 2},
+  {label: "8k'", span: 2},
+  {label: "10k'+", span: 1},
+];
+
+const nwacLevelFill = (level: number): string => NWAC_LEVEL_FILLS.find(levelFill => level < levelFill.below)?.fill ?? 'nwacWeather.level.10000';
+
+const NWAC_WIND_FILL_BY_WORDING: Partial<Record<string, string>> = {
+  Light: 'nwacWeather.wind.light',
+  'Light to occasionally Moderate': 'nwacWeather.wind.lightToModerate',
+  'Light to Moderate': 'nwacWeather.wind.lightToModerate',
+  Moderate: 'nwacWeather.wind.moderate',
+  'Moderate to Strong': 'nwacWeather.wind.moderateToStrong',
+  Strong: 'nwacWeather.wind.strong',
+  'Strong to Extreme': 'nwacWeather.wind.strongToExtreme',
+  Extreme: 'nwacWeather.wind.extreme',
+};
+
+const NWAC_WIND_KEY_STEPS: {fill: string; name: string}[] = [
+  {fill: 'nwacWeather.wind.light', name: 'Light'},
+  {fill: 'nwacWeather.wind.lightToModerate', name: 'Light to Moderate'},
+  {fill: 'nwacWeather.wind.moderate', name: 'Moderate'},
+  {fill: 'nwacWeather.wind.moderateToStrong', name: 'Moderate to Strong'},
+  {fill: 'nwacWeather.wind.strong', name: 'Strong'},
+  {fill: 'nwacWeather.wind.strongToExtreme', name: 'Strong to Extreme'},
+  {fill: 'nwacWeather.wind.extreme', name: 'Extreme'},
+];
+
+const NWAC_WIND_KEY_LABELS: NWACKeyLabel[] = [
+  {label: 'Light', span: 2},
+  {label: 'Moderate', span: 2},
+  {label: 'Strong', span: 2},
+  {label: 'Extreme', span: 1},
+];
+
+const nwacWindFill = (speed: number | null | undefined): string | undefined => {
+  const wording = windWording(speed);
+  return wording == null ? undefined : NWAC_WIND_FILL_BY_WORDING[wording];
+};
+
+const NWACWeatherZoneForecast: React.FunctionComponent<{
+  issuance: NWACWeatherIssuance;
+  zone: NWACWeatherZone;
+  periodKeys: string[];
+  held: boolean;
+}> = ({issuance, zone, periodKeys, held}) => {
+  const periodViews = nwacWeatherPeriodViews(issuance, zone.id, periodKeys, held);
   const points = zonePoints(issuance, zone.id);
-  const sensible = issuance.sensible[zone.id] ?? {};
-  const slots = sensibleSlots(issuance)
-    .map(slot => ({...slot, text: sensible[slot.key]?.trim()}))
-    .filter(slot => slot.text);
   return (
-    <>
-      {showName && <Card borderRadius={0} borderColor="white" noDivider header={<Title3Black>{zone.name}</Title3Black>} />}
-      {slots.map(slot => (
-        <Card
-          key={slot.key}
-          borderRadius={0}
-          borderColor="white"
-          noDivider
-          header={
-            <VStack space={2}>
-              <BodyBlack>{slot.date ? `${slot.label} · ${fmtCalendarDate(slot.date)}` : slot.label}</BodyBlack>
-              <Body>{slot.text}</Body>
-            </VStack>
-          }
-        />
-      ))}
-      {periodDateGroups(issuance.periods).map(({date}) => (
-        <Card key={date} borderRadius={0} borderColor="white" noDivider noInternalSpace header={<BodyBlack>{fmtCalendarDate(date)}</BodyBlack>}>
-          {periodViews
-            .filter(periodView => periodView.period.date === date)
-            .map(periodView => (
-              <NWACWeatherPeriodCard key={periodView.period.key} issuance={issuance} zoneId={zone.id} points={points} view={periodView} />
-            ))}
+    <VStack space={12}>
+      {periodViews.map(periodView => (
+        <Card key={`Card-${periodView.period.key}`} borderRadius={0} borderColor="white" noDivider noInternalSpace>
+          <NWACWeatherPeriodCard issuance={issuance} zoneId={zone.id} points={points} view={periodView} />
         </Card>
       ))}
-      <NWACWeatherExtendedSnowLevels issuance={issuance} zoneId={zone.id} />
-    </>
+      <Card borderRadius={0} borderColor="white" noDivider>
+        <NWACWeatherKeys />
+      </Card>
+    </VStack>
   );
 };
 
-const NoForecastLabel: React.FunctionComponent = () => {
-  return (
-    <BodySm color="text.tertiary" style={{fontStyle: 'italic'}}>
-      No forecast
-    </BodySm>
-  );
-};
+const NWACWeatherLabel: React.FunctionComponent<{label: string; unit?: string; point?: string}> = ({label, unit, point}) => (
+  <BodySmSemibold>
+    {label}
+    {unit && <BodySm color="text.secondary">{` (${unit})`}</BodySm>}
+    {point && <BodySm>{`:\n${point}`}</BodySm>}
+  </BodySmSemibold>
+);
 
-const NWACWeatherLine: React.FunctionComponent<PropsWithChildren<{label: string; dialogTitle?: string; content?: string; sub?: boolean; alignItems?: 'center' | 'flex-start'}>> = ({
-  label,
-  dialogTitle,
-  content,
-  sub,
-  alignItems = 'center',
-  children,
-}) => (
-  <HStack justifyContent="space-between" alignItems={alignItems} borderTopWidth={1} borderColor={colorLookup('light.300')} pl={sub ? 24 : 12} pr={12} py={8} space={12}>
+const NWACWeatherLine: React.FunctionComponent<PropsWithChildren<{label: string; unit?: string; point?: string}>> = ({label, unit, point, children}) => (
+  <HStack justifyContent="space-between" alignItems="center" borderTopWidth={1} borderColor={colorLookup('light.300')} px={12} py={8} space={12}>
     <View flex={1}>
-      {sub ? (
-        <BodySm color="text.secondary">{label}</BodySm>
-      ) : (
-        <SmallHeaderWithTooltip title={label} dialogTitle={dialogTitle ?? label} content={content} tooltipPlacement="adjacent" />
-      )}
+      <NWACWeatherLabel label={label} unit={unit} point={point} />
     </View>
     {children}
   </HStack>
 );
 
-const BLOCK_PART_SHORT_LABELS: Record<string, string> = {
-  Morning: 'AM',
-  Afternoon: 'PM',
-  Evening: 'Eve',
-  Night: 'Night',
-};
+const NoForecastChip: React.FunctionComponent = () => (
+  <View bg={colorLookup('light.100')} borderRadius={4} px={6} py={2}>
+    <BodyXSm color="text.tertiary" style={{fontStyle: 'italic'}}>
+      No forecast
+    </BodyXSm>
+  </View>
+);
 
-const blockPartShortLabel = (part: string): string => BLOCK_PART_SHORT_LABELS[part] ?? part;
+const BLOCK_PART_COLUMN_WIDTH = 100;
 
-const NWACWeatherBlockValue: React.FunctionComponent<PropsWithChildren<{part: string}>> = ({part, children}) => (
-  <HStack space={8} alignItems="center">
-    <BodySm color="text.secondary">{blockPartShortLabel(part)}</BodySm>
-    <View flexGrow={1} alignItems="flex-end">
-      {children}
+const NWACWeatherBlocksRow: React.FunctionComponent<{part: ReactNode; level: ReactNode; wind: ReactNode; header?: boolean}> = ({part, level, wind, header = false}) => (
+  <HStack alignItems="stretch" borderTopWidth={1} borderColor={colorLookup('light.300')} bg={header ? colorLookup('light.100') : undefined}>
+    <View width={BLOCK_PART_COLUMN_WIDTH} px={12} py={8} justifyContent="center" borderRightWidth={1} borderColor={colorLookup('light.300')}>
+      {part}
+    </View>
+    <View flex={1} px={8} py={header ? 8 : 6} justifyContent="center">
+      {level}
+    </View>
+    <View flex={1} px={8} py={header ? 8 : 6} justifyContent="center">
+      {wind}
     </View>
   </HStack>
 );
+
+const NWACWeatherBlocks: React.FunctionComponent<{blocks: NWACWeatherBlockView[]}> = ({blocks}) => {
+  const showWind = blocks.some(blockView => !blockView.windOut);
+  return (
+    <View>
+      <NWACWeatherBlocksRow
+        header
+        part={null}
+        level={
+          <BodyXSm color="text.secondary">
+            Snow & Freezing Level <BodyXSm color="text.tertiary">(ft)</BodyXSm>
+          </BodyXSm>
+        }
+        wind={
+          showWind && (
+            <BodyXSm color="text.secondary">
+              Ridgeline Winds <BodyXSm color="text.tertiary">(mph)</BodyXSm>
+            </BodyXSm>
+          )
+        }
+      />
+      {blocks.map(blockView => (
+        <NWACWeatherBlocksRow
+          key={blockView.block.key}
+          part={<BodySm color="text.secondary">{blockView.block.part}</BodySm>}
+          level={<NWACSnowLevelValue level={blockView.level} snow={blockView.snow} />}
+          wind={!blockView.windOut && <NWACShadedWind cell={blockView.wind} />}
+        />
+      ))}
+    </View>
+  );
+};
 
 const NWACWeatherPeriodCard: React.FunctionComponent<{issuance: NWACWeatherIssuance; zoneId: string; points: NWACWeatherPoint[]; view: NWACWeatherPeriodView}> = ({
   issuance,
   zoneId,
   points,
   view,
-}) => {
-  const night = view.period.kind === 'night';
-  return (
-    <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} mt={12}>
-      <HStack space={6} alignItems="center" px={12} py={8} bg={colorLookup('light.100')} borderTopLeftRadius={8} borderTopRightRadius={8}>
-        <Ionicons name={night ? 'moon-outline' : 'sunny-outline'} size={16} color={colorLookup('text.secondary')} />
-        <BodySmBlack>{night ? 'Night' : 'Day'}</BodySmBlack>
-      </HStack>
-      <NWACWeatherLine label="Snow (in)" dialogTitle="Snow">
-        <NWACSnowAmount snow={zoneSnow(issuance, zoneId, view.period.key)} />
+}) => (
+  <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} overflow="hidden">
+    <HStack space={6} alignItems="center" px={12} py={8} bg={colorLookup('light.100')}>
+      <Ionicons name={view.night ? 'moon-outline' : 'sunny-outline'} size={16} color={colorLookup('text.secondary')} />
+      <BodySmBlack>{view.name}</BodySmBlack>
+      <BodySm color="text.secondary">{view.label}</BodySm>
+    </HStack>
+    {points.map(point => (
+      <NWACWeatherLine key={point.code} label="Precipitation & Snow" unit="in" point={point.name}>
+        <HStack space={6} alignItems="center">
+          <BodySm>{fmtQpf(issuance.precip[point.code]?.[view.period.key]?.qpf)}</BodySm>
+          <NWACSnowAmount snow={pointSnow(issuance, point.code, view.period.key)} />
+          <BodyXSm color="text.secondary">@ 5000&apos;</BodyXSm>
+        </HStack>
       </NWACWeatherLine>
-      {points.length > 1 &&
-        points.map(point => (
-          <NWACWeatherLine key={point.code} label={point.name} sub>
-            <NWACSnowAmount snow={pointSnow(issuance, point.code, view.period.key)} />
-          </NWACWeatherLine>
-        ))}
-      <NWACWeatherLine label="5K ft Temps (°F)" dialogTitle="Temperature" content={helpStrings.weather.temperature}>
-        {view.tempOut ? <NoForecastLabel /> : <NWACTempValue cell={issuance.temp[zoneId]?.[view.period.key]} />}
-      </NWACWeatherLine>
-      <NWACWeatherLine label="Snow Level (ft)" dialogTitle="Snow Level" content={helpStrings.weather.snowLevelNoAsterisk} alignItems="flex-start">
-        <VStack space={6}>
-          {view.blocks.map(blockView => (
-            <NWACWeatherBlockValue key={blockView.block.key} part={blockView.block.part}>
-              <NWACSnowLevelValue level={blockView.level} snow={blockView.snow} />
-            </NWACWeatherBlockValue>
-          ))}
-        </VStack>
-      </NWACWeatherLine>
-      <NWACWeatherLine label="Ridgeline Winds (mph)" dialogTitle="Ridgeline Winds" content={helpStrings.weather.wind} alignItems="flex-start">
-        <VStack space={6}>
-          {view.blocks.map(blockView => (
-            <NWACWeatherBlockValue key={blockView.block.key} part={blockView.block.part}>
-              <NWACWindValue cell={blockView.wind} />
-            </NWACWeatherBlockValue>
-          ))}
-        </VStack>
-      </NWACWeatherLine>
-    </View>
-  );
-};
-
-const NWACWeatherExtendedSnowLevels: React.FunctionComponent<{issuance: NWACWeatherIssuance; zoneId: string}> = ({issuance, zoneId}) => {
-  const levels = issuance.extendedSnowLevel[zoneId];
-  if (!levels || issuance.extendedBlocks.length === 0) {
-    return null;
-  }
-  return (
-    <Card
-      borderRadius={0}
-      borderColor="white"
-      noDivider
-      noInternalSpace
-      header={<SmallHeaderWithTooltip title="Extended Snow Levels (ft)" dialogTitle="Snow Level" content={helpStrings.weather.snowLevelNoAsterisk} />}>
-      <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} mt={12}>
-        {issuance.extendedBlocks.map((block, index) => (
-          <HStack
-            key={block.key}
-            justifyContent="space-between"
-            alignItems="center"
-            borderTopWidth={index > 0 ? 1 : 0}
-            borderColor={colorLookup('light.300')}
-            px={12}
-            py={6}
-            space={8}>
-            <BodySm color="text.secondary">{`${fmtCalendarDate(block.date)} ${block.part}`}</BodySm>
-            <NWACSnowLevelValue level={deriveSnowLevel(levels[block.key]?.freezing)} snow={levels[block.key]?.mode !== 'freezing'} />
-          </HStack>
-        ))}
+    ))}
+    <NWACWeatherLine label="5000' Temperatures" unit="Lo / Hi °F">
+      {view.tempOut ? <NoForecastChip /> : <NWACTempValue cell={issuance.temp[zoneId]?.[view.period.key]} />}
+    </NWACWeatherLine>
+    <NWACWeatherBlocks blocks={view.blocks} />
+    {view.summary && (
+      <View borderTopWidth={1} borderColor={colorLookup('light.300')} px={12} py={8}>
+        <BodySm>{view.summary}</BodySm>
       </View>
-    </Card>
-  );
-};
+    )}
+  </View>
+);
 
 const NWACSnowAmount: React.FunctionComponent<{snow: number | null}> = ({snow}) => {
   const tier = snowTier(snow);
@@ -465,41 +529,123 @@ const NWACTempValue: React.FunctionComponent<{cell: NWACWeatherTempCell | undefi
     return <BodySm color="text.secondary">{DASH}</BodySm>;
   }
   return (
-    <BodySm color="text.secondary">
-      <BodySmBlack>{cell.high}</BodySmBlack> / <BodySmBlack>{cell.low}</BodySmBlack>
+    <BodySm>
+      <BodySm>{cell.low}°</BodySm>
+      <BodySm color="text.secondary"> / </BodySm>
+      <BodySmBlack>{cell.high}°</BodySmBlack>
     </BodySm>
   );
 };
 
 const NWACSnowLevelValue: React.FunctionComponent<{level: number | null; snow: boolean}> = ({level, snow}) => {
   if (level == null) {
-    return <BodySm color="text.secondary">{DASH}</BodySm>;
+    return (
+      <BodySm color="text.secondary" textAlign="center">
+        {DASH}
+      </BodySm>
+    );
   }
   return (
-    <HStack space={4} alignItems="center" bg={colorLookup(nwacLevelFill(level))} borderRadius={4} px={6} py={2}>
+    <HStack
+      space={4}
+      justifyContent="center"
+      alignItems="center"
+      bg={colorLookup(nwacLevelFill(level))}
+      borderRadius={4}
+      px={6}
+      py={4}
+      accessibilityLabel={`${level.toLocaleString('en-US')} foot ${snow ? 'snow level' : 'freezing level'}`}>
       <View width={14}>{snow && <Ionicons name="snow-outline" size={14} color={colorLookup('nwacWeather.snowflake')} />}</View>
       <BodySmBlack>{`${level.toLocaleString('en-US')}'`}</BodySmBlack>
     </HStack>
   );
 };
 
-const NWACWindValue: React.FunctionComponent<{cell: NWACWeatherWindCell | undefined}> = ({cell}) => {
-  if (cell == null) {
-    return <NoForecastLabel />;
-  }
-  if (cell.speed == null || windWording(cell.speed) === 'Calm') {
-    return <BodySm color="text.secondary">{fmtWind(cell)}</BodySm>;
-  }
-  const bearing = windBearing(cell.dir);
-  const range = windRange(cell.speed);
+const NWACShadedWind: React.FunctionComponent<{cell: NWACWeatherWindCell | undefined}> = ({cell}) => {
+  const fill = nwacWindFill(cell?.speed);
   return (
-    <VStack alignItems="flex-end">
-      <HStack space={4} alignItems="center">
-        {bearing != null && <Ionicons name="arrow-up" size={14} color={colorLookup('primary')} style={{transform: [{rotate: `${bearing + 180}deg`}]}} />}
-        <BodyXSm color="text.secondary">{cell.dir}</BodyXSm>
-        {cell.speed >= 25 ? <BodySmBlack>{range}</BodySmBlack> : cell.speed >= 15 ? <BodySmSemibold>{range}</BodySmSemibold> : <BodySm>{range}</BodySm>}
-      </HStack>
-      <BodyXSm color="text.secondary">{windWording(cell.speed)}</BodyXSm>
-    </VStack>
+    <View bg={fill ? colorLookup(fill) : undefined} borderRadius={4} px={6} py={4} alignItems="center">
+      <NWACWindValue cell={cell} />
+    </View>
   );
 };
+
+const NWACWindValue: React.FunctionComponent<{cell: NWACWeatherWindCell | undefined}> = ({cell}) => {
+  if (cell?.speed == null) {
+    return <BodySm color="text.secondary">{DASH}</BodySm>;
+  }
+  if (windWording(cell.speed) === 'Calm') {
+    return (
+      <BodySm>
+        {cell.dir && `${cell.dir} `}
+        <BodySmBlack>Calm</BodySmBlack>
+      </BodySm>
+    );
+  }
+  const bearing = windBearing(cell.dir);
+  return (
+    <HStack
+      space={4}
+      alignItems="center"
+      justifyContent="center"
+      flexWrap="wrap"
+      accessibilityLabel={`${cell.dir ?? ''} ${windRange(cell.speed)} miles per hour, ${windWording(cell.speed)}`}>
+      {bearing != null && <Ionicons name="arrow-up" size={14} color={colorLookup('primary')} style={{transform: [{rotate: `${bearing + 180}deg`}]}} />}
+      <BodySm>{cell.dir}</BodySm>
+      <BodySmBlack>{windRange(cell.speed)}</BodySmBlack>
+    </HStack>
+  );
+};
+
+const NWACSegmentedBar: React.FunctionComponent<{fills: string[]; names: readonly string[]; labels: NWACKeyLabel[]; centered?: boolean}> = ({
+  fills,
+  names,
+  labels,
+  centered = false,
+}) => (
+  <VStack space={2} accessible accessibilityLabel={names.join(', ')}>
+    <HStack height={10} borderRadius={2} overflow="hidden">
+      {fills.map((fill, fillIndex) => (
+        <View key={fillIndex} flex={1} height={10} bg={colorLookup(fill)} />
+      ))}
+    </HStack>
+    <HStack alignItems="flex-start">
+      {labels.map(({label, span}, spanIndex) => (
+        <View key={spanIndex} flex={span}>
+          {label && (
+            <BodyXSm color="text.secondary" fontSize={10} lineHeight={12} textAlign={centered ? 'center' : 'left'} numberOfLines={1}>
+              {label}
+            </BodyXSm>
+          )}
+        </View>
+      ))}
+    </HStack>
+  </VStack>
+);
+
+const NWACWeatherKey: React.FunctionComponent<PropsWithChildren<{title: ReactNode}>> = ({title, children}) => (
+  <VStack space={4}>
+    {title}
+    {children}
+  </VStack>
+);
+
+const NWACWeatherKeys: React.FunctionComponent = () => (
+  <VStack space={12} pt={4}>
+    <NWACWeatherKey title={<BodyXSm color="text.secondary">Snow</BodyXSm>}>
+      <NWACSegmentedBar fills={NWAC_SNOW_FILLS} names={SNOW_TIER_LABELS} labels={NWAC_SNOW_KEY_LABELS} centered />
+    </NWACWeatherKey>
+    <NWACWeatherKey
+      title={
+        <HStack space={4} alignItems="center">
+          <Ionicons name="snow-outline" size={14} color={colorLookup('nwacWeather.snowflake')} />
+          <BodyXSm color="text.secondary">Snow level; none, freezing level</BodyXSm>
+        </HStack>
+      }>
+      <NWACSegmentedBar fills={NWAC_LEVEL_FILLS.map(levelFill => levelFill.fill)} names={NWAC_LEVEL_FILLS.map(levelFill => levelFill.label)} labels={NWAC_LEVEL_KEY_LABELS} />
+    </NWACWeatherKey>
+    <NWACWeatherKey title={<BodyXSm color="text.secondary">Ridgeline winds · VAR: variable</BodyXSm>}>
+      <NWACSegmentedBar fills={NWAC_WIND_KEY_STEPS.map(step => step.fill)} names={NWAC_WIND_KEY_STEPS.map(step => step.name)} labels={NWAC_WIND_KEY_LABELS} />
+    </NWACWeatherKey>
+  </VStack>
+);

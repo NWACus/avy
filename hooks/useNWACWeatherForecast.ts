@@ -10,13 +10,13 @@ import {ClientContext, ClientProps} from 'clientContext';
 import {formatDistanceToNowStrict} from 'date-fns';
 import {safeFetch} from 'hooks/fetch';
 import {LoggerContext, LoggerProps} from 'loggerContext';
-import {NWACWeatherForecastDay} from 'types/nwacWeather/nwacWeather';
+import {NWACWeatherZoneDay} from 'types/nwacWeather/nwacWeather';
 import {nwacWeatherZoneResponseSchema} from 'types/nwacWeather/schemas';
 import {NotFoundError} from 'types/requests';
 import {nominalNWACWeatherForecastDate, RequestedTime, requestedTimeToUTCDate, toISOStringZulu} from 'utils/date';
 import {ZodError} from 'zod';
 
-export const useNWACWeatherForecast = (zone_id: number, requestedTime: RequestedTime): UseQueryResult<NWACWeatherForecastDay, AxiosError | ZodError | NotFoundError> => {
+export const useNWACWeatherForecast = (zone_id: number, requestedTime: RequestedTime): UseQueryResult<NWACWeatherZoneDay, AxiosError | ZodError | NotFoundError> => {
   const {nwacHost} = React.useContext<ClientProps>(ClientContext);
   const date = requestedTimeToUTCDate(requestedTime);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
@@ -26,7 +26,7 @@ export const useNWACWeatherForecast = (zone_id: number, requestedTime: Requested
     thisLogger.debug('initiating query');
   }, [thisLogger]);
 
-  return useQuery<NWACWeatherForecastDay, AxiosError | ZodError | NotFoundError>({
+  return useQuery<NWACWeatherZoneDay, AxiosError | ZodError | NotFoundError>({
     queryKey: key,
     queryFn: () => fetchNWACWeatherForecast(nwacHost, zone_id, date, thisLogger),
     cacheTime: 24 * 60 * 60 * 1000, // hold on to this cached data for a day (in milliseconds)
@@ -63,7 +63,7 @@ export const prefetchNWACWeatherForecast = async (queryClient: QueryClient, nwac
   });
 };
 
-export const fetchNWACWeatherForecast = async (nwacHost: string, zone_id: number, requestedTime: Date, logger: Logger): Promise<NWACWeatherForecastDay> => {
+export const fetchNWACWeatherForecast = async (nwacHost: string, zone_id: number, requestedTime: Date, logger: Logger): Promise<NWACWeatherZoneDay> => {
   const url = `${nwacHost}/api/nwac/nwac-weather-zone`;
   const params = {
     zone: zone_id,

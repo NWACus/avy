@@ -2,6 +2,10 @@
   "afternoon": {
     "day": {
       "serviceDate": "2026-09-14",
+      "windows": [
+        {"startsAt": "2026-09-15T01:00:00.000Z", "issuance": 0, "periodKeys": ["n1", "d2"]},
+        {"startsAt": "2026-09-15T13:00:00.000Z", "issuance": 0, "periodKeys": ["d2", "n2"]}
+      ],
       "issuances": [
         {
           "id": 38,
@@ -1523,6 +1527,10 @@
   "morning": {
     "day": {
       "serviceDate": "2026-09-14",
+      "windows": [
+        {"startsAt": "2026-09-14T13:00:00.000Z", "issuance": 0, "periodKeys": ["d1", "n1"]},
+        {"startsAt": "2026-09-15T01:00:00.000Z", "issuance": 0, "periodKeys": ["n1", "d2"]}
+      ],
       "issuances": [
         {
           "id": 37,

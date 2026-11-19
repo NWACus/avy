@@ -2,7 +2,7 @@
 // Local changes: absolute imports, and formatDateTime is defined below in place of @/utilities/formatDateTime.
 /** How Mountain Weather values read on the page, matching the dashboard preview. Pure. */
 import {format} from 'date-fns';
-import type {NWACWeatherBlock, NWACWeatherGrid, NWACWeatherIssuance, NWACWeatherPeriod} from 'types/nwacWeather/nwacWeather';
+import type {NWACWeatherBlock, NWACWeatherGrid, NWACWeatherIssuance, NWACWeatherPeriod, NWACWeatherPrecipCell} from 'types/nwacWeather/nwacWeather';
 import {formatInTimeZone} from 'utils/date';
 
 const formatDateTime = (dateString: string, tz: string | null | undefined, formatStr: string) =>
@@ -35,6 +35,11 @@ export function deriveSnow(qpf: number | null | undefined, slr: number | null | 
   return Math.round(qpf * slr * 10) / 10;
 }
 
+/** Precipitation with no snow amount: anything summed or averaged over it is unknown too. */
+export function isSnowUnknown(cell: NWACWeatherPrecipCell | undefined) {
+  return (cell?.qpf ?? 0) > 0 && deriveSnow(cell?.qpf, cell?.slr) == null;
+}
+
 /**
  * The level as the forecaster typed it, with the snow/freezing designation as its label (the
  * old 1,000 ft "drop" derivation is retired; the API folds any stored drop in before serving).
@@ -58,31 +63,25 @@ export function fmtQpf(qpf: number | null | undefined): string {
   return `${qpf}"`;
 }
 
-export function fmtWind(cell: {dir: string | null; speed: number | null} | undefined) {
-  if (cell?.speed == null) return DASH;
-  if (windWording(cell.speed) === 'Calm') return `${cell.dir ?? ''} Calm`.trim();
-  return `${cell.dir ?? ''} ${cell.speed}`.trim();
-}
-
 /** Each band's top forecast speed (mph), the range the public reads and its sensible wording. */
 const WIND_BANDS: {top: number; range: string; wording: string}[] = [
-  {top: 4, range: '0–5', wording: 'Calm'},
-  {top: 10, range: '5–10', wording: 'Light'},
-  {top: 13, range: '10–15', wording: 'Light to occasionally Moderate'},
-  {top: 17, range: '10–20', wording: 'Light to Moderate'},
-  {top: 22, range: '15–25', wording: 'Moderate'},
-  {top: 27, range: '20–30', wording: 'Moderate to Strong'},
-  {top: 32, range: '25–35', wording: 'Strong'},
-  {top: 37, range: '30–40', wording: 'Strong'},
-  {top: 43, range: '35–45', wording: 'Strong to Extreme'},
-  {top: 50, range: '40–55', wording: 'Extreme'},
-  {top: 56, range: '45–60', wording: 'Extreme'},
-  {top: 62, range: '50–70', wording: 'Extreme'},
-  {top: 67, range: '55–75', wording: 'Extreme'},
-  {top: 72, range: '60–80', wording: 'Extreme'},
-  {top: 77, range: '65–85', wording: 'Extreme'},
-  {top: 84, range: '70–90', wording: 'Extreme'},
-  {top: 110, range: '85–110', wording: 'Extreme'},
+  {top: 4, range: '0-5', wording: 'Calm'},
+  {top: 10, range: '5-10', wording: 'Light'},
+  {top: 13, range: '10-15', wording: 'Light to occasionally Moderate'},
+  {top: 17, range: '10-20', wording: 'Light to Moderate'},
+  {top: 22, range: '15-25', wording: 'Moderate'},
+  {top: 27, range: '20-30', wording: 'Moderate to Strong'},
+  {top: 32, range: '25-35', wording: 'Strong'},
+  {top: 37, range: '30-40', wording: 'Strong'},
+  {top: 43, range: '35-45', wording: 'Strong to Extreme'},
+  {top: 50, range: '40-55', wording: 'Extreme'},
+  {top: 56, range: '45-60', wording: 'Extreme'},
+  {top: 62, range: '50-70', wording: 'Extreme'},
+  {top: 67, range: '55-75', wording: 'Extreme'},
+  {top: 72, range: '60-80', wording: 'Extreme'},
+  {top: 77, range: '65-85', wording: 'Extreme'},
+  {top: 84, range: '70-90', wording: 'Extreme'},
+  {top: 110, range: '85-110', wording: 'Extreme'},
 ];
 const TOP_BAND = {top: Infinity, range: '110+', wording: 'Extreme'};
 
@@ -144,6 +143,17 @@ export function precipPeriods(issuance: NWACWeatherIssuance): NWACWeatherPeriod[
   return issuance.periods.filter(p => p.precip);
 }
 
+/**
+ * False when precipitation is forecast but none of it has a snow amount: older forecasts never
+ * computed one. An issuance with no precipitation can't tell, and its zeros are true either way.
+ */
+export function hasSnowAmounts(issuance: NWACWeatherIssuance): boolean {
+  const wet = precipPeriods(issuance)
+    .flatMap(period => issuance.points.map(p => issuance.precip[p.code]?.[period.key]))
+    .filter(cell => (cell?.qpf ?? 0) > 0);
+  return wet.length === 0 || !wet.every(isSnowUnknown);
+}
+
 /** The 6h blocks with a value for any zone, else the whole window; the wire doesn't say. */
 export function blocksWithData<Cell>(issuance: NWACWeatherIssuance, grid: NWACWeatherGrid<Cell>, hasValue: (cell: Cell) => boolean): NWACWeatherBlock[] {
   const used = new Set<string>();
@@ -175,6 +185,27 @@ export function tempPeriods(issuance: NWACWeatherIssuance): NWACWeatherPeriod[] 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+const HOUR_MS = 60 * 60 * 1000;
+
+/**
+ * The local hours a 12h period's precipitation and snow cover, "4 am–4 pm PST": the model's
+ * 12Z–00Z day and 00Z–12Z night, which are 5 to 5 in PDT and don't match the 6 to 6 periods.
+ */
+export function precipHours(period: Pick<NWACWeatherPeriod, 'kind' | 'date'>, timezone: string): string {
+  const [y, m, d] = period.date.split('-').map(Number);
+  const start = period.kind === 'day' ? Date.UTC(y, m - 1, d, 12) : Date.UTC(y, m - 1, d + 1);
+  const hour = new Intl.DateTimeFormat('en-US', {timeZone: timezone, hour: 'numeric'});
+  const zone = new Intl.DateTimeFormat('en-US', {timeZone: timezone, timeZoneName: 'short'}).formatToParts(start).find(part => part.type === 'timeZoneName')?.value;
+  // "4 AM" → "4 am", the site's style for times of day.
+  const fmt = (ms: number) => hour.format(ms).toLowerCase();
+  return `${fmt(start)}–${fmt(start + 12 * HOUR_MS)}${zone ? ` ${zone}` : ''}`;
+}
+
+/** The hours a run of 12h periods covers, "36 hrs"; null for none. */
+export function hoursCovered(periods: unknown[]): string | null {
+  return periods.length ? `${periods.length * 12} hrs` : null;
+}
+
 /** "Mon Sep 14" for a `YYYY-MM-DD` calendar date. */
 export function fmtCalendarDate(ymd: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(ymd);
@@ -201,6 +232,15 @@ export function sensibleSlots(issuance: NWACWeatherIssuance) {
     label: i === 0 && firstIsNight ? 'Tonight' : s.label,
     date: dates[i]?.date ?? null,
   }));
+}
+
+/**
+ * The sensible text's two slots are the issuance's first two half-days: Today and Tonight on a
+ * morning, Tonight and Tomorrow on an afternoon. The slot holding `periodKey`'s text, if any.
+ */
+export function sensibleSlotFor(issuance: NWACWeatherIssuance, periodKey: string): string | null {
+  const index = issuance.periods.findIndex(p => p.key === periodKey);
+  return SENSIBLE_SLOTS[index]?.key ?? null;
 }
 
 export function issuanceLabel(type: NWACWeatherIssuance['type']): string {
@@ -285,9 +325,9 @@ export function zonePoints(issuance: NWACWeatherIssuance, zoneId: string) {
 }
 
 export function zoneSnow(issuance: NWACWeatherIssuance, zoneId: string, periodKey: string): number | null {
-  const snows = zonePoints(issuance, zoneId)
-    .map(p => pointSnow(issuance, p.code, periodKey))
-    .filter((s): s is number => s != null);
+  const points = zonePoints(issuance, zoneId);
+  if (points.some(p => isSnowUnknown(issuance.precip[p.code]?.[periodKey]))) return null;
+  const snows = points.map(p => pointSnow(issuance, p.code, periodKey)).filter((s): s is number => s != null);
   if (snows.length === 0) return null;
   return Math.round((snows.reduce((a, b) => a + b, 0) / snows.length) * 10) / 10;
 }
