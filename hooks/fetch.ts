@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import {AxiosError, AxiosResponse} from 'axios';
 import {Logger} from 'browser-bunyan';
 import {NotFoundError} from 'types/requests';
@@ -23,6 +24,14 @@ export const safeFetch = async <T>(request: () => Promise<AxiosResponse<T>>, log
       }
     } else if (error.request) {
       logger.warn({error: JSON.stringify(error.request)}, `no response on fetch`);
+      if (error.code === AxiosError.ECONNABORTED || error.code === AxiosError.ETIMEDOUT) {
+        Sentry.captureException(error, {
+          tags: {
+            request_timeout: true,
+            url: error.config?.url,
+          },
+        });
+      }
       throw new Error(`no response: ${JSON.stringify(error.request)}`);
     } else {
       logger.warn({error: error}, `could not create request`);

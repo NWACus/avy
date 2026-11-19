@@ -102,6 +102,7 @@ const formatURI = (
 axios.defaults.headers.common['User-Agent'] = `avy/${Application.nativeApplicationVersion || '0.0.0'}.${Application.nativeBuildVersion || '0'}+${
   Updates.channel || 'development'
 }-${process.env.EXPO_PUBLIC_GIT_REVISION || 'git-revision'}`;
+axios.defaults.timeout = 20 * 1000;
 
 axios.interceptors.request.use(request => {
   const msg = 'sending request';
