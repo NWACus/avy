@@ -18,7 +18,7 @@
     "intl:extract": "formatjs extract '**/*.ts*' --ignore='**/*.d.ts' --ignore='node_modules/**' --ignore='dist/**' --out-file lang/en.json --id-interpolation-pattern '[sha512:contenthash:base64:6]'",
     "postinstall": "patch-package",
     "prettify": "eslint --fix . ; npx prettier --write .",
-    "start": "EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) expo start --go",
+    "start": "EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) expo start --dev-client",
     "test": "jest",
     "web": "EXPO_PUBLIC_GIT_REVISION=$(git rev-parse --short HEAD) expo start --web",
     "prepare": "husky"
