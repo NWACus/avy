@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/react-native';
 import {Card, CollapsibleCard} from 'components/content/Card';
 import {InternalError, NotFound, QueryState, incompleteQueryState} from 'components/content/QueryState';
 import {HStack, VStack, View} from 'components/core';
-import {NWACWeatherTab} from 'components/forecast/WeatherTab/NWACWeatherTab';
+import {NWACWeatherTab} from 'components/forecast/WeatherTab/NWACWeatherTab/NWACWeatherTab';
 import {SmallHeaderWithTooltip} from 'components/forecast/WeatherTab/SmallHeaderWithTooltip';
 import {AllCapsSm, AllCapsSmBlack, Body, BodyBlack, BodySm, Title3Black} from 'components/text';
 import {HTML} from 'components/text/HTML';

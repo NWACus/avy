@@ -1,4 +1,4 @@
-import {NWACWeatherForecastDay} from 'types/nwacWeather/nwacWeather';
+import {NWACWeatherZoneDay} from 'types/nwacWeather/nwacWeather';
 import {z} from 'zod';
 
 const nullableNumber = z.number().nullable();
@@ -63,11 +63,19 @@ const nwacWeatherIssuanceSchema = z.object({
   sensible: grid(z.string()),
 });
 
-export const nwacWeatherForecastDaySchema: z.ZodType<NWACWeatherForecastDay> = z.object({
+const nwacWeatherWindowSchema = z.object({
+  startsAt: z.string(),
+  issuance: z.number(),
+  periodKeys: z.array(z.string()),
+  held: z.boolean().optional(),
+});
+
+export const nwacWeatherZoneDaySchema: z.ZodType<NWACWeatherZoneDay> = z.object({
   serviceDate: z.string(),
   issuances: z.array(nwacWeatherIssuanceSchema),
+  windows: z.array(nwacWeatherWindowSchema),
 });
 
 export const nwacWeatherZoneResponseSchema = z.object({
-  day: nwacWeatherForecastDaySchema.nullable(),
+  day: nwacWeatherZoneDaySchema.nullable(),
 });

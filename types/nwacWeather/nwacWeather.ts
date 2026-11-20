@@ -4,6 +4,8 @@
  * and every axis carries its calendar date.
  */
 
+import type {NWACWeatherWindow} from 'types/nwacWeather/nwacWeatherWindow';
+
 export type NWACWeatherIssuanceType = 'morning' | 'afternoon';
 
 export interface NWACWeatherZone {
@@ -103,4 +105,9 @@ export interface NWACWeatherIssuance {
 export interface NWACWeatherForecastDay {
   serviceDate: string;
   issuances: NWACWeatherIssuance[];
+}
+
+/** The issuances beside an avalanche forecast and the 24-hour windows read from them. */
+export interface NWACWeatherZoneDay extends NWACWeatherForecastDay {
+  windows: NWACWeatherWindow[];
 }
