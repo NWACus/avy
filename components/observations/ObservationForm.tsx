@@ -9,7 +9,7 @@ import {add} from 'date-fns';
 import _ from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FieldErrors, FieldPath, FormProvider, Resolver, useForm, useWatch} from 'react-hook-form';
-import {KeyboardAvoidingView, View as RNView, ScrollView, findNodeHandle} from 'react-native';
+import {KeyboardAvoidingView, ScrollView, ScrollViewInstance, ViewInstance, findNodeHandle} from 'react-native';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {ClientContext, ClientProps} from 'clientContext';
@@ -110,21 +110,21 @@ export const ObservationForm: React.FC<{
   const fieldRefs = useMemo(
     () =>
       ({
-        name: React.createRef<RNView>(),
-        email: React.createRef<RNView>(),
-        phone: React.createRef<RNView>(),
-        activity: React.createRef<RNView>(),
-        location_name: React.createRef<RNView>(),
-        location_point: React.createRef<RNView>(),
-        'instability.cracking_description': React.createRef<RNView>(),
-        'instability.collapsing_description': React.createRef<RNView>(),
-        avalanches_summary: React.createRef<RNView>(),
-        observation_summary: React.createRef<RNView>(),
+        name: React.createRef<ViewInstance>(),
+        email: React.createRef<ViewInstance>(),
+        phone: React.createRef<ViewInstance>(),
+        activity: React.createRef<ViewInstance>(),
+        location_name: React.createRef<ViewInstance>(),
+        location_point: React.createRef<ViewInstance>(),
+        'instability.cracking_description': React.createRef<ViewInstance>(),
+        'instability.collapsing_description': React.createRef<ViewInstance>(),
+        avalanches_summary: React.createRef<ViewInstance>(),
+        observation_summary: React.createRef<ViewInstance>(),
       } satisfies Partial<Record<FieldPath<ObservationFormData>, React.Ref<unknown>>>),
     [],
   );
 
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
 
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const today = new Date();

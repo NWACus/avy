@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {MarkerView} from '@rnmapbox/maps';
 import centroid from '@turf/centroid';
 import {colorFor} from 'components/AvalancheDangerTriangle';

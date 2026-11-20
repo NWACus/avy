@@ -2,7 +2,7 @@ import React, {useCallback, useState} from 'react';
 
 import {addDays, formatDistanceToNow, isAfter} from 'date-fns';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import {AvalancheDangerIcon} from 'components/AvalancheDangerIcon';
@@ -337,7 +337,7 @@ const WarningCard: React.FunctionComponent<{warning: Warning | Watch | Special}>
         </VStack>
         <TouchableOpacity onPress={toggleCollapsed}>
           <HStack mr={12} justifyContent="space-between" alignItems="center">
-            <Ionicons name={isCollapsed ? 'chevron-down' : 'chevron-up'} color={'white'} backgroundColor={colorLookup('modal.background')} size={24} />
+            <Ionicons name={isCollapsed ? 'chevron-down' : 'chevron-up'} color={'white'} size={24} />
           </HStack>
         </TouchableOpacity>
       </HStack>

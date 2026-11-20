@@ -1,6 +1,6 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {ColorValue, StyleSheet, TouchableOpacity} from 'react-native';
+import {StyleSheet, TouchableOpacity} from 'react-native';
 
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
 import {AlertModal, AlertModalActions} from 'components/content/AlertModal';
@@ -9,7 +9,7 @@ import {Divider, HStack, View} from 'components/core';
 import {Body, bodySize} from 'components/text';
 import {CBACAnalyticsSource, useAnalytics} from 'hooks/useAnalytics';
 import {useOpenAvalancheCenterWebsite} from 'hooks/useOpenAvalancheCenterWebsite';
-import {colorLookup} from 'theme';
+import {colorLookup, ThemeColorValue} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 const TITLE = 'Two forecasts cover this area';
@@ -64,7 +64,7 @@ export const CBACForecastModalBase: React.FC<CBACForecastModalBaseProps> = ({vis
   );
 
   const renderVisitCAICButton = useCallback(
-    ({textColor}: {backgroundColor: ColorValue | undefined; textColor: ColorValue}) => (
+    ({textColor}: {backgroundColor: ThemeColorValue | undefined; textColor: ThemeColorValue}) => (
       <HStack space={8} alignItems="center" justifyContent="center">
         <Body color={textColor}>Open CAIC Site</Body>
         <Ionicons name="open-outline" size={bodySize + 4} color={textColor} />

@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {FeatureFlagKey, FeatureFlagValue, useDebugFeatureFlags, useOneFeatureFlag} from 'FeatureFlags';
 import {Card} from 'components/content/Card';

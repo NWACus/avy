@@ -1,7 +1,7 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import {BottomTabHeaderProps} from '@react-navigation/bottom-tabs';
 import {DrawerActions} from '@react-navigation/native';
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
+import {IconButton} from 'components/content/IconButton';
 import {HStack, View} from 'components/core';
 import {Title3Black} from 'components/text';
 import {useAvalancheCenterCapabilities} from 'hooks/useAvalancheCenterCapabilities';
@@ -34,13 +34,13 @@ export const BottomTabNavigationHeader: React.FunctionComponent<BottomTabNavigat
   return (
     <View style={{width: '100%', backgroundColor: colorLookup('white'), paddingTop: insets.top, justifyContent: 'center', alignContent: 'center'}}>
       <HStack justifyContent="space-between" space={8} pl={3} pr={16}>
-        <Ionicons.Button
+        <IconButton
           size={24}
           color={colorLookup('primary')}
           name="menu"
+          accessibilityLabel="Open menu"
           backgroundColor={colorLookup('white')}
-          iconStyle={{marginLeft: 0, marginRight: 0}}
-          style={{textAlign: 'center', borderColor: 'transparent', borderWidth: 1}}
+          style={{borderColor: 'transparent', borderWidth: 1}}
           onPress={openDrawer}
         />
 

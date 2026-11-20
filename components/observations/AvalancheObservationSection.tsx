@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {Button} from 'components/content/Button';
 import {EditDeleteCard} from 'components/content/Card';
 import {HStack, VStack} from 'components/core';
@@ -7,8 +7,7 @@ import {AvalancheObservationFormData, ObservationFormData} from 'components/obse
 import {Body, BodySemibold} from 'components/text';
 import React, {useCallback, useState} from 'react';
 import {useController} from 'react-hook-form';
-import {ColorValue} from 'react-native';
-import {colorLookup} from 'theme';
+import {colorLookup, ThemeColorValue} from 'theme';
 import {AvalancheCenterID} from 'types/nationalAvalancheCenter';
 
 export const AvalancheObservationSection: React.FC<{center_id: AvalancheCenterID; disabled: boolean; busy: boolean}> = ({center_id, disabled, busy}) => {
@@ -105,7 +104,7 @@ export const AvalancheObservationSection: React.FC<{center_id: AvalancheCenterID
 
 const AddAvalancheObsButton: React.FC<{onPress: () => void; disabled: boolean; busy: boolean}> = ({onPress, disabled, busy}) => {
   const renderChildren = useCallback(
-    ({textColor}: {textColor: ColorValue}) => (
+    ({textColor}: {textColor: ThemeColorValue}) => (
       <HStack width={'100%'} justifyContent="space-between">
         <BodySemibold color={textColor}>{'Add avalanche details'}</BodySemibold>
         <Ionicons name="chevron-forward" size={24} color={textColor} style={{marginTop: 1}} />
