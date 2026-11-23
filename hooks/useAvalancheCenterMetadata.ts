@@ -29,7 +29,7 @@ export const useAvalancheCenterMetadata = (center_id: AvalancheCenterID): UseQue
     queryKey: key,
     queryFn: async (): Promise<AvalancheCenter> => fetchAvalancheCenterMetadata(nationalAvalancheCenterHost, apiVersion, center_id, thisLogger),
     cacheTime: 24 * 60 * 60 * 1000, // hold on to inactive query data for 1 day
-    staleTime: 24 * 60 * 80 * 1000, // don't bother fetching again for a day
+    staleTime: 24 * 60 * 60 * 1000, // don't bother fetching again for a day
   });
 };
 
@@ -106,6 +106,6 @@ const fetchAvalancheCenterMetadata = async (
 
 export default {
   queryKey,
-  fetchQuery: fetchAvalancheCenterMetadataQuery,
+  fetch: fetchAvalancheCenterMetadata,
   prefetch: prefetchAvalancheCenterMetadata,
 };
