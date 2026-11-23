@@ -58,25 +58,4 @@ export default {
     <p>The dashed outline marks the edge of the Crested Butte Avalanche Center (CBAC) forecast area.</p>
     <p>CBAC issues a localized forecast. CAIC forecasts for the entire state. We encourage you to read both.</p>
     <p>The pills show CBAC's current rating for each zone. Tap inside the dashed outline to switch to CBAC's forecast.</p>`,
-  weather: {
-    precipitation: `
-      <p><strong>Water Equivalent (WE)</strong> is the liquid water equivalent of all precipitation types; rain, snow, ice pellets, etc., forecast to the hundredth of an inch at specific locations. To use WE as a proxy for snowfall amounts, start with a snow to water ratio of 10:1 (10 inches of snow = 1 inch WE). Temperatures at or near freezing will generally have a lower ratio (heavy wet snow) and very cold temperatures can have a much higher ratio (dry fluffy snow).</p>
-      <p>The label <strong>LT</strong> is shorthand for ‘less than’.</p>
-    `,
-    temperature: `
-      <p>The 5000’ temperature forecast does not imply a trend over the 12 hr period and only represents the max and min temperatures within a 12 hr period in the zone. The 6-hr snow level forecast, the forecast discussion, and weather forecast sections may add detail regarding temperature trends.</p>
-      `,
-    wind: `
-      <p>Ridgeline winds are the average wind speed and direction over a 6 hr time period.</p>
-      <p>The wind forecast represents an elevation range instead of a single elevation slice. The elevation range overlaps with the near and above treeline elevation bands in the avalanche forecast and differs per zone.</p>
-      <p>Wind direction indicates the direction the wind originates or comes from on the 16-point compass rose.</p>
-    `,
-    snowLevelNoAsterisk: `
-      <p>The snow level forecast represents the general snow level over a 6 hr time period. Freezing levels are forecast when precipitation is not expected.</p>
-    `,
-    snowLevel: `
-      <p>The snow level forecast represents the general snow level over a 6 hr time period. Freezing levels are forecast when precipitation is not expected.</p>
-      <p>*Easterly or offshore flow is highlighted with an asterisk when we expect relatively cool east winds in the major Cascade Passes. Easterly flow will often lead to temperature inversions and is a key variable for forecasting precipitation type in the Cascade Passes. Strong easterly flow events can affect terrain on a more regional scale.</p>
-    `,
-  },
 } as const;
