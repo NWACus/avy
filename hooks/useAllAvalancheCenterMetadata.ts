@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {useQueries, useQueryClient, UseQueryOptions} from '@tanstack/react-query';
+import {useQueries, UseQueryOptions} from '@tanstack/react-query';
 import {AxiosError} from 'axios';
 
 import {ClientContext, ClientProps} from 'clientContext';
@@ -15,7 +15,6 @@ export const useAllAvalancheCenterMetadata = (capabilities: AllAvalancheCenterCa
   const {nationalAvalancheCenterHost} = React.useContext<ClientProps>(ClientContext);
   const {logger} = React.useContext<LoggerProps>(LoggerContext);
   const apiVersion = useNACApiVersion();
-  const queryClient = useQueryClient();
 
   const knownCenters: AvalancheCenterID[] = [];
   if (capabilities) {
@@ -26,9 +25,10 @@ export const useAllAvalancheCenterMetadata = (capabilities: AllAvalancheCenterCa
     queries: knownCenters.map(center => {
       return {
         queryKey: AvalancheCenterMetadataQuery.queryKey(nationalAvalancheCenterHost, apiVersion, center),
-        queryFn: async (): Promise<AvalancheCenter> => AvalancheCenterMetadataQuery.fetchQuery(queryClient, nationalAvalancheCenterHost, apiVersion, center, logger),
+        queryFn: async (): Promise<AvalancheCenter> => AvalancheCenterMetadataQuery.fetch(nationalAvalancheCenterHost, apiVersion, center, logger),
         enabled: !!capabilities,
         cacheTime: Infinity, // hold on to this cached data forever
+        staleTime: 24 * 60 * 60 * 1000,
       };
     }),
   });
