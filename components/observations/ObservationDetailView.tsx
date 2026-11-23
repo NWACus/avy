@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {Image, ScrollView} from 'react-native';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 

@@ -1,6 +1,6 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
 import {AvalancheCenterLogo} from 'components/AvalancheCenterLogo';
+import {IconButton} from 'components/content/IconButton';
 import {incompleteQueryState, QueryState} from 'components/content/QueryState';
 import {HStack, View} from 'components/core';
 import {ObservationCard} from 'components/observations/ObservationDetailView';
@@ -75,13 +75,13 @@ const ObsDetailModalHeader: React.FunctionComponent<ObsDetailModalHeaderProps> =
   return (
     <View style={{width: '100%', backgroundColor: colorLookup('white'), paddingVertical: 8, justifyContent: 'center', alignContent: 'center'}}>
       <HStack justifyContent="space-between" space={8} px={16}>
-        <Ionicons.Button
+        <IconButton
           size={24}
           color={colorLookup('primary')}
           name="close"
+          accessibilityLabel="Close"
           backgroundColor={colorLookup('white')}
-          iconStyle={{marginLeft: 0, marginRight: 0}}
-          style={{textAlign: 'center', borderColor: 'transparent', borderWidth: 1}}
+          style={{borderColor: 'transparent', borderWidth: 1}}
           onPress={onClosePressed}
         />
 

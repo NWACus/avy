@@ -5,6 +5,8 @@
 // Worklets mocked, the real Reanimated module runs under Jest without touching native — the legacy
 // `jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'))` module swap is no longer needed.
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
+// Reanimated 4.7's native initializer calls `setCSSEventHandler`, which the JS implementation used under Jest throws on.
+jest.mock('react-native-reanimated/lib/module/initializers', () => ({initializeReanimatedModule: () => undefined}));
 
 import {setUpTests} from 'react-native-reanimated';
 

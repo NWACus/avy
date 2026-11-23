@@ -2,7 +2,7 @@ import {InfoTooltip} from 'components/content/InfoTooltip';
 import {HStack} from 'components/core';
 import {BodyXSmBlack} from 'components/text';
 import React, {useCallback, useState} from 'react';
-import {NativeSyntheticEvent, TextLayoutEventData} from 'react-native';
+import {TextLayoutEvent} from 'react-native';
 
 export const SmallHeaderWithTooltip: React.FunctionComponent<{
   title: string;
@@ -12,7 +12,7 @@ export const SmallHeaderWithTooltip: React.FunctionComponent<{
 }> = ({title, content, dialogTitle, tooltipPlacement = 'end'}) => {
   const adjacent = tooltipPlacement === 'adjacent';
   const [wrappedTitleWidth, setWrappedTitleWidth] = useState<number | undefined>(undefined);
-  const onTitleTextLayout = useCallback((event: NativeSyntheticEvent<TextLayoutEventData>) => {
+  const onTitleTextLayout = useCallback((event: TextLayoutEvent) => {
     const {lines} = event.nativeEvent;
     setWrappedTitleWidth(lines.length > 1 ? Math.ceil(Math.max(...lines.map(line => line.width))) : undefined);
   }, []);

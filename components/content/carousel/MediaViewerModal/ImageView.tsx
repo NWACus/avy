@@ -4,22 +4,13 @@ import {View} from 'components/core';
 import {Image, useImage} from 'expo-image';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
-import {
-  Gesture,
-  GestureDetector,
-  GestureStateChangeEvent,
-  GestureUpdateEvent,
-  NativeGesture,
-  PanGestureHandlerEventPayload,
-  PinchGestureHandlerEventPayload,
-} from 'react-native-gesture-handler';
+import {GestureDetector, NativeGesture, usePanGesture, usePinchGesture, useSimultaneousGestures, useTapGesture} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
 import {ImageMediaItem} from 'types/nationalAvalancheCenter';
 
 interface ImageViewProps {
   item: ImageMediaItem;
-  nativeGesture: NativeGesture | null;
+  nativeGesture: NativeGesture;
   fullScreenWidth: number | null;
 }
 
@@ -62,28 +53,24 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
   const prevTranslateX = useSharedValue(0);
   const prevTranslateY = useSharedValue(0);
 
-  const [panEnabled, setPanEnabled] = useState(false);
-
-  const setPanOnJS = (value: boolean) => {
-    setPanEnabled(value);
-  };
+  const panEnabled = useSharedValue(false);
 
   const resetTransforms = () => {
     'worklet';
     scale.value = withTiming(MIN_SCALE);
     translateX.value = withTiming(RESET_TRANSLATION_VALUE);
     translateY.value = withTiming(RESET_TRANSLATION_VALUE);
-    scheduleOnRN(setPanOnJS, false);
+    panEnabled.value = false;
   };
 
-  const pinchGesture = Gesture.Pinch()
-    .onStart(() => {
+  const pinchGesture = usePinchGesture({
+    onActivate: () => {
       startScale.value = scale.value;
-    })
-    .onUpdate((event: GestureUpdateEvent<PinchGestureHandlerEventPayload>) => {
+    },
+    onUpdate: event => {
       scale.value = startScale.value * event.scale;
-    })
-    .onEnd(() => {
+    },
+    onDeactivate: () => {
       if (scale.value < MIN_SCALE) {
         resetTransforms();
         return;
@@ -93,19 +80,22 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
         scale.value = withTiming(MAX_SCALE);
       }
 
-      scheduleOnRN(setPanOnJS, true);
-    });
+      panEnabled.value = true;
+    },
+  });
 
-  const panGesture = Gesture.Pan()
-    .onStart((_: GestureStateChangeEvent<PanGestureHandlerEventPayload>) => {
+  const panGesture = usePanGesture({
+    enabled: panEnabled,
+    block: nativeGesture,
+    onActivate: () => {
       prevTranslateX.value = translateX.value;
       prevTranslateY.value = translateY.value;
-    })
-    .onUpdate((event: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
+    },
+    onUpdate: event => {
       translateX.value = prevTranslateX.value + event.translationX / (1.5 * scale.value);
       translateY.value = prevTranslateY.value + event.translationY / (1.5 * scale.value);
-    })
-    .onEnd(() => {
+    },
+    onDeactivate: () => {
       if (fullScreenWidth != null) {
         const maxXTranslate = 0.5 * fullScreenWidth - (0.5 * fullScreenWidth) / scale.value;
 
@@ -113,29 +103,26 @@ export const ImageView: React.FunctionComponent<ImageViewProps> = ({item, native
           translateX.value = translateX.value > 0 ? withTiming(maxXTranslate) : withTiming(-1 * maxXTranslate);
         }
       }
-    });
+    },
+  });
 
-  if (nativeGesture != null) {
-    panGesture.enabled(panEnabled);
-    panGesture.blocksExternalGesture(nativeGesture);
-  }
-
-  const doubleTap = Gesture.Tap()
-    .numberOfTaps(2)
-    .onEnd(() => {
+  const doubleTap = useTapGesture({
+    numberOfTaps: 2,
+    onDeactivate: () => {
       if (scale.value > MIN_SCALE) {
         resetTransforms();
       } else {
         scale.value = withTiming(DOUBLE_TAP_SCALE);
-        scheduleOnRN(setPanOnJS, true);
+        panEnabled.value = true;
       }
-    });
+    },
+  });
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{scale: scale.value}, {translateX: translateX.value}, {translateY: translateY.value}],
   }));
 
-  const composedGesture = Gesture.Simultaneous(pinchGesture, panGesture, doubleTap);
+  const composedGesture = useSimultaneousGestures(pinchGesture, panGesture, doubleTap);
 
   const retryImageLoad = useCallback(() => {
     if (imageLoadError) {

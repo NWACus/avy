@@ -1,4 +1,4 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import SegmentedControl from '@expo/ui/community/segmented-control';
 import {ViewProps, VStack} from 'components/core';
 import {FieldLabel, HelpText} from 'components/form/FieldLabel';
 import React, {useCallback} from 'react';
@@ -35,23 +35,7 @@ export function SwitchField<T>({name, label, items, disabled, helpText, ...props
     <VStack width="100%" space={4} {...props}>
       {label && <FieldLabel label={label} helpText={helpText} />}
       <SegmentedControl
-        tintColor="white"
-        activeFontStyle={{
-          color: colorLookup('text') as string,
-          fontSize: 16,
-          fontFamily: Platform.select({
-            android: 'Lato_400Regular',
-            ios: 'Lato-Regular',
-          }),
-        }}
-        fontStyle={{
-          color: colorLookup('text') as string,
-          fontSize: 16,
-          fontFamily: Platform.select({
-            android: 'Lato_400Regular',
-            ios: 'Lato-Regular',
-          }),
-        }}
+        tintColor={Platform.OS === 'ios' ? 'white' : (colorLookup('blue.100') as string)}
         values={items.map(i => i.label)}
         selectedIndex={Math.max(
           items.findIndex(i => i.value === field.value),

@@ -1,9 +1,9 @@
 import React, {useCallback} from 'react';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {SelectModalProvider} from '@mobile-reality/react-native-select-pro';
 import {useBackHandler} from '@react-native-community/hooks';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {useFocusEffect} from '@react-navigation/native';
 import {Button} from 'components/content/Button';
 import {Card} from 'components/content/Card';
@@ -15,7 +15,7 @@ import {isAfter, isBefore, parseISO, sub} from 'date-fns';
 import {useAnalytics} from 'hooks/useAnalytics';
 import {LoggerContext, LoggerProps} from 'loggerContext';
 import {FieldErrors, FormProvider, Resolver, useForm} from 'react-hook-form';
-import {KeyboardAvoidingView, Platform, View as RNView, ScrollView, TouchableOpacity, findNodeHandle} from 'react-native';
+import {KeyboardAvoidingView, Platform, ScrollView, ScrollViewInstance, TouchableOpacity, ViewInstance, findNodeHandle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colorLookup} from 'theme';
 import {AvalancheCenterID, MapLayerFeature, WeatherStation, WeatherStationSource, WeatherStationTimeseriesEntry} from 'types/nationalAvalancheCenter';
@@ -194,8 +194,8 @@ export const WeatherStationFilterForm: React.FunctionComponent<WeatherStationFil
     [setFilterConfig],
   );
 
-  const fieldRefs = React.useRef<{ref: RNView; field: keyof WeatherStationFilterConfig}[]>([]);
-  const scrollViewRef = React.useRef<ScrollView>(null);
+  const fieldRefs = React.useRef<{ref: ViewInstance; field: keyof WeatherStationFilterConfig}[]>([]);
+  const scrollViewRef = React.useRef<ScrollViewInstance>(null);
 
   const onSubmitErrorHandler = useCallback(
     (errors: FieldErrors<WeatherStationFilterConfig>) => {

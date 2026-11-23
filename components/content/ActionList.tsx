@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {HStack, View, ViewProps, VStack} from 'components/core';
 import {Body} from 'components/text';
 import {logger} from 'logger';

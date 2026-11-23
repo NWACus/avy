@@ -1,6 +1,7 @@
 import {COLORS} from 'theme/colors';
 
 export {colorLookup} from './colors';
+export type {ThemeColorValue} from './colors';
 
 export default {
   borderWidths: {
