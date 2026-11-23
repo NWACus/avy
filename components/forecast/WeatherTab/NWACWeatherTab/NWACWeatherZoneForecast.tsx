@@ -3,7 +3,8 @@ import {Card} from 'components/content/Card';
 import {HStack, VStack, View} from 'components/core';
 import {NWACWeatherKeys, NWAC_LEVEL_FILLS, NWAC_SNOW_FILLS} from 'components/forecast/WeatherTab/NWACWeatherTab/NWACWeatherKeys';
 import {BodySm, BodySmBlack, BodySmSemibold, BodyXSm} from 'components/text';
-import React, {PropsWithChildren, ReactNode} from 'react';
+import React, {PropsWithChildren, ReactNode, useCallback, useState} from 'react';
+import {LayoutChangeEvent} from 'react-native';
 import {colorLookup} from 'theme';
 import {NWACWeatherBlock, NWACWeatherIssuance, NWACWeatherPeriod, NWACWeatherPoint, NWACWeatherTempCell, NWACWeatherWindCell, NWACWeatherZone} from 'types/nwacWeather/nwacWeather';
 import {
@@ -207,33 +208,43 @@ const NWACWeatherPeriodCard: React.FunctionComponent<{issuance: NWACWeatherIssua
   zoneId,
   points,
   view,
-}) => (
-  <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} overflow="hidden">
-    <HStack space={6} alignItems="center" px={12} py={8} bg={colorLookup('light.100')}>
-      <Ionicons name={view.night ? 'moon-outline' : 'sunny-outline'} size={16} color={colorLookup('text.secondary')} />
-      <BodySmBlack>{view.name}</BodySmBlack>
-      <BodySm color="text.secondary">{view.label}</BodySm>
-    </HStack>
-    {points.map(point => (
-      <NWACWeatherLine key={point.code} label="Precipitation & Snow" unit="in" point={point.name}>
-        <HStack space={6} alignItems="center">
-          <BodySm>{fmtQpf(issuance.precip[point.code]?.[view.period.key]?.qpf)}</BodySm>
-          <NWACSnowAmount snow={pointSnow(issuance, point.code, view.period.key)} />
-          <BodyXSm color="text.secondary">@ 5000&apos;</BodyXSm>
-        </HStack>
+}) => {
+  const [snowColumnWidth, setSnowColumnWidth] = useState(0);
+  const onSnowColumnLayout = useCallback((event: LayoutChangeEvent) => {
+    const measuredWidth = event.nativeEvent.layout.width;
+    setSnowColumnWidth(currentWidth => Math.max(currentWidth, measuredWidth));
+  }, []);
+
+  return (
+    <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} overflow="hidden">
+      <HStack space={6} alignItems="center" px={12} py={8} bg={colorLookup('light.100')}>
+        <Ionicons name={view.night ? 'moon-outline' : 'sunny-outline'} size={16} color={colorLookup('text.secondary')} />
+        <BodySmBlack>{view.name}</BodySmBlack>
+        <BodySm color="text.secondary">{view.label}</BodySm>
+      </HStack>
+      {points.map(point => (
+        <NWACWeatherLine key={point.code} label="Precipitation & Snow" unit="in" point={point.name}>
+          <HStack space={12} alignItems="center">
+            <BodySm>{fmtQpf(issuance.precip[point.code]?.[view.period.key]?.qpf)}</BodySm>
+            <HStack minWidth={snowColumnWidth} space={6} justifyContent="flex-end" alignItems="center" onLayout={onSnowColumnLayout}>
+              <NWACSnowAmount snow={pointSnow(issuance, point.code, view.period.key)} />
+              <BodyXSm color="text.secondary">@ 5000&apos;</BodyXSm>
+            </HStack>
+          </HStack>
+        </NWACWeatherLine>
+      ))}
+      <NWACWeatherLine label="5000' Temperatures" unit="Lo / Hi °F">
+        {view.tempOut ? <NoForecastChip /> : <NWACTempValue cell={issuance.temp[zoneId]?.[view.period.key]} />}
       </NWACWeatherLine>
-    ))}
-    <NWACWeatherLine label="5000' Temperatures" unit="Lo / Hi °F">
-      {view.tempOut ? <NoForecastChip /> : <NWACTempValue cell={issuance.temp[zoneId]?.[view.period.key]} />}
-    </NWACWeatherLine>
-    <NWACWeatherBlocks blocks={view.blocks} />
-    {view.summary && (
-      <View borderTopWidth={1} borderColor={colorLookup('light.300')} px={12} py={8}>
-        <BodySm>{view.summary}</BodySm>
-      </View>
-    )}
-  </View>
-);
+      <NWACWeatherBlocks blocks={view.blocks} />
+      {view.summary && (
+        <View borderTopWidth={1} borderColor={colorLookup('light.300')} px={12} py={8}>
+          <BodySm>{view.summary}</BodySm>
+        </View>
+      )}
+    </View>
+  );
+};
 
 const NWACSnowAmount: React.FunctionComponent<{snow: number | null}> = ({snow}) => {
   const tier = snowTier(snow);
