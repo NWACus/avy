@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {Card} from 'components/content/Card';
 import {HStack, VStack, View} from 'components/core';
 import {NWACWeatherKeys, NWAC_LEVEL_FILLS, NWAC_SNOW_FILLS} from 'components/forecast/WeatherTab/NWACWeatherTab/NWACWeatherKeys';

@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {Ionicons} from '@react-native-vector-icons/ionicons/static';
 import {HStack, VStack, View} from 'components/core';
 import {BodyXSm} from 'components/text';
 import React, {PropsWithChildren, ReactNode} from 'react';
