@@ -1,10 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {Card} from 'components/content/Card';
+import {Collapsible} from 'components/content/Collapsible';
 import {HStack, VStack, View} from 'components/core';
-import {NWACWeatherKeys, NWAC_LEVEL_FILLS, NWAC_SNOW_FILLS} from 'components/forecast/WeatherTab/NWACWeatherTab/NWACWeatherKeys';
+import {NWACWeatherKey, NWACWeatherKeyType, NWAC_LEVEL_FILLS, NWAC_SNOW_FILLS} from 'components/forecast/WeatherTab/NWACWeatherTab/NWACWeatherKeys';
 import {BodySm, BodySmBlack, BodySmSemibold, BodyXSm} from 'components/text';
 import React, {PropsWithChildren, ReactNode, useCallback, useState} from 'react';
-import {LayoutChangeEvent} from 'react-native';
+import {Pressable, ViewStyle} from 'react-native';
 import {colorLookup} from 'theme';
 import {NWACWeatherBlock, NWACWeatherIssuance, NWACWeatherPeriod, NWACWeatherPoint, NWACWeatherTempCell, NWACWeatherWindCell, NWACWeatherZone} from 'types/nwacWeather/nwacWeather';
 import {
@@ -116,34 +117,127 @@ export const NWACWeatherZoneForecast: React.FunctionComponent<{
 }> = ({issuance, zone, periodKeys, held}) => {
   const periodViews = nwacWeatherPeriodViews(issuance, zone.id, periodKeys, held);
   const points = zonePoints(issuance, zone.id);
+  const [openKeyId, setOpenKeyId] = useState<string | null>(null);
+  const onToggleKey = useCallback((keyId: string) => setOpenKeyId(currentKeyId => (currentKeyId === keyId ? null : keyId)), []);
   return (
     <VStack space={12}>
       {periodViews.map(periodView => (
         <Card key={`Card-${periodView.period.key}`} borderRadius={0} borderColor="white" noDivider noInternalSpace>
-          <NWACWeatherPeriodCard issuance={issuance} zoneId={zone.id} points={points} view={periodView} />
+          <NWACWeatherPeriodCard issuance={issuance} zoneId={zone.id} points={points} view={periodView} openKeyId={openKeyId} onToggleKey={onToggleKey} />
         </Card>
       ))}
-      <Card borderRadius={0} borderColor="white" noDivider>
-        <NWACWeatherKeys />
-      </Card>
     </VStack>
   );
 };
 
-const NWACWeatherLabel: React.FunctionComponent<{label: string; unit?: string; point?: string}> = ({label, unit, point}) => (
+interface NWACWeatherKeyToggle {
+  keyId: string;
+  expanded: boolean;
+  onToggleKey: (keyId: string) => void;
+}
+
+const nwacWeatherKeyToggle = (periodKey: string, type: NWACWeatherKeyType, openKeyId: string | null, onToggleKey: (keyId: string) => void): NWACWeatherKeyToggle => {
+  const keyId = `${periodKey}-${type}`;
+  return {keyId, expanded: keyId === openKeyId, onToggleKey};
+};
+
+const NWACWeatherKeyPressable: React.FunctionComponent<PropsWithChildren<{toggle: NWACWeatherKeyToggle; style: ViewStyle}>> = ({toggle, style, children}) => {
+  const {keyId, expanded, onToggleKey} = toggle;
+  const onPress = useCallback(() => onToggleKey(keyId), [onToggleKey, keyId]);
+  return (
+    <Pressable style={style} onPress={onPress} accessibilityRole="button" accessibilityState={{expanded}} accessibilityHint={expanded ? 'Hides the key' : 'Shows the key'}>
+      {children}
+    </Pressable>
+  );
+};
+
+const NWACWeatherKeyRow: React.FunctionComponent<{type: NWACWeatherKeyType; expanded: boolean}> = ({type, expanded}) => (
+  <Collapsible collapsed={!expanded} duration={250}>
+    <View
+      borderTopWidth={1}
+      borderColor={colorLookup('light.300')}
+      bg={colorLookup('light.100')}
+      px={12}
+      py={12}
+      accessibilityElementsHidden={!expanded}
+      importantForAccessibility={expanded ? 'auto' : 'no-hide-descendants'}>
+      <NWACWeatherKey type={type} />
+    </View>
+  </Collapsible>
+);
+
+const NWACWeatherInfoGlyph: React.FunctionComponent = () => (
+  <>
+    {' '}
+    <Ionicons name="information-circle-outline" size={16} color={colorLookup('text')} />
+  </>
+);
+
+const NWACWeatherLabel: React.FunctionComponent<{label: string; unit?: string; info?: boolean}> = ({label, unit, info}) => (
   <BodySmSemibold>
     {label}
     {unit && <BodySm color="text.secondary">{` (${unit})`}</BodySm>}
-    {point && <BodySm>{`:\n${point}`}</BodySm>}
+    {info && <NWACWeatherInfoGlyph />}
   </BodySmSemibold>
 );
 
-const NWACWeatherLine: React.FunctionComponent<PropsWithChildren<{label: string; unit?: string; point?: string}>> = ({label, unit, point, children}) => (
-  <HStack justifyContent="space-between" alignItems="center" borderTopWidth={1} borderColor={colorLookup('light.300')} px={12} py={8} space={12}>
-    <View flex={1}>
-      <NWACWeatherLabel label={label} unit={unit} point={point} />
+const LABEL_COLUMN_WIDTH = '38%';
+
+const LABEL_CELL_STYLE: ViewStyle = {width: LABEL_COLUMN_WIDTH};
+
+const FLEX_CELL_STYLE: ViewStyle = {flex: 1};
+
+const NWACWeatherGridRow: React.FunctionComponent<PropsWithChildren<{label?: ReactNode; header?: boolean; keyToggle?: NWACWeatherKeyToggle}>> = ({
+  label,
+  header = false,
+  keyToggle,
+  children,
+}) => {
+  const labelCell = (
+    <View flex={1} px={12} py={8} justifyContent="center">
+      {label}
     </View>
+  );
+  return (
+    <HStack alignItems="stretch" borderTopWidth={1} borderColor={colorLookup('light.300')} bg={header ? colorLookup('light.100') : undefined}>
+      {keyToggle ? (
+        <NWACWeatherKeyPressable toggle={keyToggle} style={LABEL_CELL_STYLE}>
+          {labelCell}
+        </NWACWeatherKeyPressable>
+      ) : (
+        <View width={LABEL_COLUMN_WIDTH}>{labelCell}</View>
+      )}
+      {children}
+    </HStack>
+  );
+};
+
+const NWACWeatherGridCell: React.FunctionComponent<PropsWithChildren<{fill?: string; divided?: boolean}>> = ({fill, divided = false, children}) => (
+  <View
+    flex={1}
+    px={6}
+    py={8}
+    alignItems="center"
+    justifyContent="center"
+    bg={fill ? colorLookup(fill) : undefined}
+    borderLeftWidth={divided ? 1 : 0}
+    borderColor={colorLookup('light.300')}>
     {children}
+  </View>
+);
+
+const NWACWeatherColumnHeader: React.FunctionComponent<{label: string; unit?: string; info?: boolean}> = ({label, unit, info}) => (
+  <BodyXSm color="text.secondary" textAlign="center">
+    {label}
+    {unit && <BodyXSm color="text.tertiary">{` (${unit})`}</BodyXSm>}
+    {info && <NWACWeatherInfoGlyph />}
+  </BodyXSm>
+);
+
+const NWACWeatherStationLabel: React.FunctionComponent<{name: string}> = ({name}) => (
+  <HStack space={4} alignItems="center">
+    <Ionicons name="location-outline" size={16} color={colorLookup('text.secondary')} />
+    <BodySm style={{flex: 1}}>{name}</BodySm>
   </HStack>
 );
 
@@ -155,66 +249,52 @@ const NoForecastChip: React.FunctionComponent = () => (
   </View>
 );
 
-const BLOCK_PART_COLUMN_WIDTH = 100;
-
-const NWACWeatherBlocksRow: React.FunctionComponent<{part: ReactNode; level: ReactNode; wind: ReactNode; header?: boolean}> = ({part, level, wind, header = false}) => (
-  <HStack alignItems="stretch" borderTopWidth={1} borderColor={colorLookup('light.300')} bg={header ? colorLookup('light.100') : undefined}>
-    <View width={BLOCK_PART_COLUMN_WIDTH} px={12} py={8} justifyContent="center" borderRightWidth={1} borderColor={colorLookup('light.300')}>
-      {part}
-    </View>
-    <View flex={1} px={8} py={header ? 8 : 6} justifyContent="center">
-      {level}
-    </View>
-    <View flex={1} px={8} py={header ? 8 : 6} justifyContent="center">
-      {wind}
-    </View>
-  </HStack>
-);
-
-const NWACWeatherBlocks: React.FunctionComponent<{blocks: NWACWeatherBlockView[]}> = ({blocks}) => {
-  const showWind = blocks.some(blockView => !blockView.windOut);
+const NWACWeatherBlocks: React.FunctionComponent<{blocks: NWACWeatherBlockView[]; levelKeyToggle: NWACWeatherKeyToggle; windKeyToggle: NWACWeatherKeyToggle}> = ({
+  blocks,
+  levelKeyToggle,
+  windKeyToggle,
+}) => {
   return (
     <View>
-      <NWACWeatherBlocksRow
-        header
-        part={null}
-        level={
-          <BodyXSm color="text.secondary">
-            Snow & Freezing Level <BodyXSm color="text.tertiary">(ft)</BodyXSm>
-          </BodyXSm>
-        }
-        wind={
-          showWind && (
-            <BodyXSm color="text.secondary">
-              Ridgeline Winds <BodyXSm color="text.tertiary">(mph)</BodyXSm>
-            </BodyXSm>
-          )
-        }
-      />
-      {blocks.map(blockView => (
-        <NWACWeatherBlocksRow
-          key={blockView.block.key}
-          part={<BodySm color="text.secondary">{blockView.block.part}</BodySm>}
-          level={<NWACSnowLevelValue level={blockView.level} snow={blockView.snow} />}
-          wind={!blockView.windOut && <NWACShadedWind cell={blockView.wind} />}
-        />
-      ))}
+      <NWACWeatherGridRow header>
+        {blocks.map(blockView => (
+          <NWACWeatherGridCell key={blockView.block.key}>
+            <NWACWeatherColumnHeader label={blockView.block.part} />
+          </NWACWeatherGridCell>
+        ))}
+      </NWACWeatherGridRow>
+      <NWACWeatherGridRow label={<NWACWeatherLabel label="Snow Level" unit="ft" info />} keyToggle={levelKeyToggle}>
+        {blocks.map(blockView => (
+          <NWACWeatherGridCell key={blockView.block.key} fill={blockView.level == null ? undefined : nwacLevelFill(blockView.level)} divided>
+            <NWACSnowLevelValue level={blockView.level} snow={blockView.snow} />
+          </NWACWeatherGridCell>
+        ))}
+      </NWACWeatherGridRow>
+      <NWACWeatherKeyRow type="freezeLevel" expanded={levelKeyToggle.expanded} />
+      <NWACWeatherGridRow label={<NWACWeatherLabel label="Ridge Wind" unit="mph" info />} keyToggle={windKeyToggle}>
+        {blocks.map(blockView => (
+          <NWACWeatherGridCell key={blockView.block.key} fill={blockView.windOut ? undefined : nwacWindFill(blockView.wind?.speed)} divided>
+            <NWACWindValue cell={blockView.windOut ? undefined : blockView.wind} />
+          </NWACWeatherGridCell>
+        ))}
+      </NWACWeatherGridRow>
+      <NWACWeatherKeyRow type="wind" expanded={windKeyToggle.expanded} />
     </View>
   );
 };
 
-const NWACWeatherPeriodCard: React.FunctionComponent<{issuance: NWACWeatherIssuance; zoneId: string; points: NWACWeatherPoint[]; view: NWACWeatherPeriodView}> = ({
-  issuance,
-  zoneId,
-  points,
-  view,
-}) => {
-  const [snowColumnWidth, setSnowColumnWidth] = useState(0);
-  const onSnowColumnLayout = useCallback((event: LayoutChangeEvent) => {
-    const measuredWidth = event.nativeEvent.layout.width;
-    setSnowColumnWidth(currentWidth => Math.max(currentWidth, measuredWidth));
-  }, []);
-
+const NWACWeatherPeriodCard: React.FunctionComponent<{
+  issuance: NWACWeatherIssuance;
+  zoneId: string;
+  points: NWACWeatherPoint[];
+  view: NWACWeatherPeriodView;
+  openKeyId: string | null;
+  onToggleKey: (keyId: string) => void;
+}> = ({issuance, zoneId, points, view, openKeyId, onToggleKey}) => {
+  const snowKeyToggle = nwacWeatherKeyToggle(view.period.key, 'snow', openKeyId, onToggleKey);
+  const temperatureKeyToggle = nwacWeatherKeyToggle(view.period.key, 'temperature', openKeyId, onToggleKey);
+  const levelKeyToggle = nwacWeatherKeyToggle(view.period.key, 'freezeLevel', openKeyId, onToggleKey);
+  const windKeyToggle = nwacWeatherKeyToggle(view.period.key, 'wind', openKeyId, onToggleKey);
   return (
     <View borderWidth={1} borderColor={colorLookup('light.300')} borderRadius={8} overflow="hidden">
       <HStack space={6} alignItems="center" px={12} py={8} bg={colorLookup('light.100')}>
@@ -222,21 +302,25 @@ const NWACWeatherPeriodCard: React.FunctionComponent<{issuance: NWACWeatherIssua
         <BodySmBlack>{view.name}</BodySmBlack>
         <BodySm color="text.secondary">{view.label}</BodySm>
       </HStack>
+      <NWACWeatherGridRow header label={<BodyXSm color="text.secondary">Station</BodyXSm>}>
+        <NWACWeatherGridCell>
+          <NWACWeatherColumnHeader label="Precip" unit="in" />
+        </NWACWeatherGridCell>
+        <NWACWeatherKeyPressable toggle={snowKeyToggle} style={FLEX_CELL_STYLE}>
+          <NWACWeatherGridCell>
+            <NWACWeatherColumnHeader label="Snow @ 5000'" unit="in" info />
+          </NWACWeatherGridCell>
+        </NWACWeatherKeyPressable>
+      </NWACWeatherGridRow>
+      <NWACWeatherKeyRow type="snow" expanded={snowKeyToggle.expanded} />
       {points.map(point => (
-        <NWACWeatherLine key={point.code} label="Precipitation & Snow" unit="in" point={point.name}>
-          <HStack space={12} alignItems="center">
-            <BodySm>{fmtQpf(issuance.precip[point.code]?.[view.period.key]?.qpf)}</BodySm>
-            <HStack minWidth={snowColumnWidth} space={6} justifyContent="flex-end" alignItems="center" onLayout={onSnowColumnLayout}>
-              <NWACSnowAmount snow={pointSnow(issuance, point.code, view.period.key)} />
-              <BodyXSm color="text.secondary">@ 5000&apos;</BodyXSm>
-            </HStack>
-          </HStack>
-        </NWACWeatherLine>
+        <NWACWeatherStationRow key={point.code} issuance={issuance} point={point} periodKey={view.period.key} />
       ))}
-      <NWACWeatherLine label="5000' Temperatures" unit="Lo / Hi °F">
-        {view.tempOut ? <NoForecastChip /> : <NWACTempValue cell={issuance.temp[zoneId]?.[view.period.key]} />}
-      </NWACWeatherLine>
-      <NWACWeatherBlocks blocks={view.blocks} />
+      <NWACWeatherGridRow label={<NWACWeatherLabel label="Temperatures @ 5000'" unit="°F" info />} keyToggle={temperatureKeyToggle}>
+        <NWACWeatherGridCell>{view.tempOut ? <NoForecastChip /> : <NWACTempValue cell={issuance.temp[zoneId]?.[view.period.key]} />}</NWACWeatherGridCell>
+      </NWACWeatherGridRow>
+      <NWACWeatherKeyRow type="temperature" expanded={temperatureKeyToggle.expanded} />
+      <NWACWeatherBlocks blocks={view.blocks} levelKeyToggle={levelKeyToggle} windKeyToggle={windKeyToggle} />
       {view.summary && (
         <View borderTopWidth={1} borderColor={colorLookup('light.300')} px={12} py={8}>
           <BodySm>{view.summary}</BodySm>
@@ -246,13 +330,19 @@ const NWACWeatherPeriodCard: React.FunctionComponent<{issuance: NWACWeatherIssua
   );
 };
 
-const NWACSnowAmount: React.FunctionComponent<{snow: number | null}> = ({snow}) => {
+const NWACWeatherStationRow: React.FunctionComponent<{issuance: NWACWeatherIssuance; point: NWACWeatherPoint; periodKey: string}> = ({issuance, point, periodKey}) => {
+  const snow = pointSnow(issuance, point.code, periodKey);
   const tier = snowTier(snow);
   const text = snowRange(snow);
   return (
-    <View bg={tier == null ? undefined : colorLookup(NWAC_SNOW_FILLS[tier])} borderRadius={4} px={6} py={2}>
-      {snow != null && snow > 0 ? <BodySmBlack>{text}</BodySmBlack> : <BodySm color="text.secondary">{text}</BodySm>}
-    </View>
+    <NWACWeatherGridRow label={<NWACWeatherStationLabel name={point.name} />}>
+      <NWACWeatherGridCell>
+        <BodySm>{fmtQpf(issuance.precip[point.code]?.[periodKey]?.qpf)}</BodySm>
+      </NWACWeatherGridCell>
+      <NWACWeatherGridCell fill={tier == null ? undefined : NWAC_SNOW_FILLS[tier]}>
+        {snow != null && snow > 0 ? <BodySmBlack>{text}</BodySmBlack> : <BodySm color="text.secondary">{text}</BodySm>}
+      </NWACWeatherGridCell>
+    </NWACWeatherGridRow>
   );
 };
 
@@ -278,27 +368,10 @@ const NWACSnowLevelValue: React.FunctionComponent<{level: number | null; snow: b
     );
   }
   return (
-    <HStack
-      space={4}
-      justifyContent="center"
-      alignItems="center"
-      bg={colorLookup(nwacLevelFill(level))}
-      borderRadius={4}
-      px={6}
-      py={4}
-      accessibilityLabel={`${level.toLocaleString('en-US')} foot ${snow ? 'snow level' : 'freezing level'}`}>
-      <View width={14}>{snow && <Ionicons name="snow-outline" size={14} color={colorLookup('nwacWeather.snowflake')} />}</View>
+    <HStack space={4} justifyContent="center" alignItems="center" accessibilityLabel={`${level.toLocaleString('en-US')} foot ${snow ? 'snow level' : 'freezing level'}`}>
       <BodySmBlack>{`${level.toLocaleString('en-US')}'`}</BodySmBlack>
+      <View width={14}>{snow && <Ionicons name="snow-outline" size={14} color={colorLookup('nwacWeather.snowflake')} />}</View>
     </HStack>
-  );
-};
-
-const NWACShadedWind: React.FunctionComponent<{cell: NWACWeatherWindCell | undefined}> = ({cell}) => {
-  const fill = nwacWindFill(cell?.speed);
-  return (
-    <View bg={fill ? colorLookup(fill) : undefined} borderRadius={4} px={6} py={4} alignItems="center">
-      <NWACWindValue cell={cell} />
-    </View>
   );
 };
 
