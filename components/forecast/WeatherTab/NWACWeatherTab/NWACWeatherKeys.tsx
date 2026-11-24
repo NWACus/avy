@@ -1,7 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {HStack, VStack, View} from 'components/core';
-import {BodyXSm} from 'components/text';
+import {BodySm, BodySmBlack, BodyXSm} from 'components/text';
+import {LinearGradient} from 'expo-linear-gradient';
 import React, {PropsWithChildren, ReactNode} from 'react';
+import {ColorValue, StyleSheet} from 'react-native';
 import {colorLookup} from 'theme';
 import {SNOW_TIER_LABELS} from 'types/nwacWeather/nwacWeatherFormat';
 
@@ -20,21 +22,7 @@ export const NWAC_LEVEL_FILLS: {below: number; fill: string; label: string}[] = 
   {below: Infinity, fill: 'nwacWeather.level.10000', label: "10,000'+"},
 ];
 
-interface NWACKeyLabel {
-  label?: string;
-  span: number;
-}
-
-const NWAC_SNOW_KEY_LABELS: NWACKeyLabel[] = SNOW_TIER_LABELS.map(label => ({label, span: 1}));
-
-const NWAC_LEVEL_KEY_LABELS: NWACKeyLabel[] = [
-  {span: 1},
-  {label: "2k'", span: 2},
-  {label: "4k'", span: 2},
-  {label: "6k'", span: 2},
-  {label: "8k'", span: 2},
-  {label: "10k'+", span: 1},
-];
+const NWAC_LEVEL_KEY_LABELS = ["2k'", "4k'", "6k'", "8k'", "10k'+"];
 
 const NWAC_WIND_KEY_STEPS: {fill: string; name: string}[] = [
   {fill: 'nwacWeather.wind.light', name: 'Light'},
@@ -46,62 +34,84 @@ const NWAC_WIND_KEY_STEPS: {fill: string; name: string}[] = [
   {fill: 'nwacWeather.wind.extreme', name: 'Extreme'},
 ];
 
-const NWAC_WIND_KEY_LABELS: NWACKeyLabel[] = [
-  {label: 'Light', span: 2},
-  {label: 'Moderate', span: 2},
-  {label: 'Strong', span: 2},
-  {label: 'Extreme', span: 1},
-];
+const NWAC_WIND_KEY_LABELS = ['Light', 'Moderate', 'Strong', 'Extreme'];
 
-export const NWACWeatherKeys: React.FunctionComponent = () => (
-  <VStack space={12} pt={4}>
-    <NWACWeatherKey title={<BodyXSm color="text.secondary">Snow</BodyXSm>}>
-      <NWACSegmentedBar fills={NWAC_SNOW_FILLS} names={SNOW_TIER_LABELS} labels={NWAC_SNOW_KEY_LABELS} centered />
-    </NWACWeatherKey>
-    <NWACWeatherKey
-      title={
-        <HStack space={4} alignItems="center">
-          <Ionicons name="snow-outline" size={14} color={colorLookup('nwacWeather.snowflake')} />
-          <BodyXSm color="text.secondary">Snow level; none, freezing level</BodyXSm>
-        </HStack>
-      }>
-      <NWACSegmentedBar fills={NWAC_LEVEL_FILLS.map(levelFill => levelFill.fill)} names={NWAC_LEVEL_FILLS.map(levelFill => levelFill.label)} labels={NWAC_LEVEL_KEY_LABELS} />
-    </NWACWeatherKey>
-    <NWACWeatherKey title={<BodyXSm color="text.secondary">Ridgeline winds · VAR: variable</BodyXSm>}>
-      <NWACSegmentedBar fills={NWAC_WIND_KEY_STEPS.map(step => step.fill)} names={NWAC_WIND_KEY_STEPS.map(step => step.name)} labels={NWAC_WIND_KEY_LABELS} />
-    </NWACWeatherKey>
-  </VStack>
+const GRADIENT_START = {x: 0, y: 0.5};
+const GRADIENT_END = {x: 1, y: 0.5};
+
+export type NWACWeatherKeyType = 'snow' | 'temperature' | 'freezeLevel' | 'wind';
+
+export const NWACWeatherKey: React.FunctionComponent<{type: NWACWeatherKeyType}> = ({type}) => {
+  switch (type) {
+    case 'snow':
+      return <NWACSnowKey />;
+    case 'temperature':
+      return <NWACTemperatureKey />;
+    case 'freezeLevel':
+      return <NWACFreezeLevelKey />;
+    case 'wind':
+      return <NWACWindKey />;
+  }
+};
+
+const NWACSnowKey: React.FunctionComponent = () => (
+  <NWACWeatherKeyLayout title={<BodyXSm color="text.secondary">Inches of snow at 5000&apos;</BodyXSm>}>
+    <NWACGradientBar fills={NWAC_SNOW_FILLS} names={SNOW_TIER_LABELS} labels={SNOW_TIER_LABELS} />
+  </NWACWeatherKeyLayout>
 );
 
-const NWACWeatherKey: React.FunctionComponent<PropsWithChildren<{title: ReactNode}>> = ({title, children}) => (
-  <VStack space={4}>
+const NWACTemperatureKey: React.FunctionComponent = () => (
+  <BodySm color="text.secondary">
+    {'Lo / '}
+    <BodySmBlack>Hi</BodySmBlack>
+  </BodySm>
+);
+
+const NWACFreezeLevelKey: React.FunctionComponent = () => (
+  <NWACWeatherKeyLayout
+    title={
+      <HStack space={12} flexWrap="wrap" alignItems="center">
+        <HStack space={4} alignItems="center">
+          <Ionicons name="snow-outline" size={14} color={colorLookup('nwacWeather.snowflake')} />
+          <BodyXSm color="text.secondary">Snow level</BodyXSm>
+        </HStack>
+        <HStack space={4} alignItems="center">
+          <View width={12} height={12} borderRadius={6} borderWidth={1} borderColor={colorLookup('text.secondary')} style={{borderStyle: 'dashed'}} />
+          <BodyXSm color="text.secondary">No icon: freezing level (no precipitation expected)</BodyXSm>
+        </HStack>
+      </HStack>
+    }>
+    <NWACGradientBar fills={NWAC_LEVEL_FILLS.map(levelFill => levelFill.fill)} names={NWAC_LEVEL_FILLS.map(levelFill => levelFill.label)} labels={NWAC_LEVEL_KEY_LABELS} />
+  </NWACWeatherKeyLayout>
+);
+
+const NWACWindKey: React.FunctionComponent = () => (
+  <NWACWeatherKeyLayout title={<BodyXSm color="text.secondary">mph · VAR: variable</BodyXSm>}>
+    <NWACGradientBar fills={NWAC_WIND_KEY_STEPS.map(step => step.fill)} names={NWAC_WIND_KEY_STEPS.map(step => step.name)} labels={NWAC_WIND_KEY_LABELS} />
+  </NWACWeatherKeyLayout>
+);
+
+const NWACWeatherKeyLayout: React.FunctionComponent<PropsWithChildren<{title: ReactNode}>> = ({title, children}) => (
+  <VStack space={8}>
     {title}
     {children}
   </VStack>
 );
 
-const NWACSegmentedBar: React.FunctionComponent<{fills: string[]; names: readonly string[]; labels: NWACKeyLabel[]; centered?: boolean}> = ({
-  fills,
-  names,
-  labels,
-  centered = false,
-}) => (
-  <VStack space={2} accessible accessibilityLabel={names.join(', ')}>
-    <HStack height={10} borderRadius={2} overflow="hidden">
-      {fills.map((fill, fillIndex) => (
-        <View key={fillIndex} flex={1} height={10} bg={colorLookup(fill)} />
-      ))}
-    </HStack>
-    <HStack alignItems="flex-start">
-      {labels.map(({label, span}, spanIndex) => (
-        <View key={spanIndex} flex={span}>
-          {label && (
-            <BodyXSm color="text.secondary" fontSize={10} lineHeight={12} textAlign={centered ? 'center' : 'left'} numberOfLines={1}>
-              {label}
-            </BodyXSm>
-          )}
+const NWACGradientBar: React.FunctionComponent<{fills: string[]; names: readonly string[]; labels: readonly string[]}> = ({fills, names, labels}) => (
+  <View borderRadius={6} overflow="hidden" accessible accessibilityLabel={names.join(', ')}>
+    <LinearGradient
+      colors={fills.map(fill => colorLookup(fill)) as [ColorValue, ColorValue, ...ColorValue[]]}
+      start={GRADIENT_START}
+      end={GRADIENT_END}
+      style={StyleSheet.absoluteFill}
+    />
+    <HStack py={8}>
+      {labels.map(label => (
+        <View key={label} flex={1} alignItems="center">
+          <BodySm numberOfLines={1}>{label}</BodySm>
         </View>
       ))}
     </HStack>
-  </VStack>
+  </View>
 );
